@@ -32,8 +32,6 @@ func urlParse(printerURL string) (*url.URL, string, error) {
 		return nil, "", errInvalidURL
 	}
 
-	println("[", parsedURL.String(), "]")
-
 	if parsedURL.Scheme == "" || parsedURL.Host == "" {
 		return nil, "", errInvalidURL
 	}
