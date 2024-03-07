@@ -18,10 +18,13 @@ var (
 	errInvalidURLScheme = errors.New("Printer URL: scheme must be ipp or ipps")
 )
 
-// urlParse parses ipp://... or ipps://... URL.
+// urlParse parses IPP URL ("ipp://..." or "ipps://...")
 //
 // It returns parsed HTTP URL (with "http" or "https" scheme"),
 // normalized URL string (with IPP scheme) or an error
+//
+// URL normalization implies resolving absolute path per RFC 3986,
+// removing port when not needed and so on.
 func urlParse(printerURL string) (*url.URL, string, error) {
 	// Parse URL
 	parsedURL, err := url.Parse(printerURL)
