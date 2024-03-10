@@ -10,6 +10,7 @@ package ippx
 import (
 	"errors"
 	"fmt"
+	"math"
 	"os"
 	"reflect"
 	"strings"
@@ -33,6 +34,7 @@ type ippCodecStep struct {
 	offset   uintptr
 	attrName string
 	attrTag  goipp.Tag
+	slice    bool
 	encode   func(p unsafe.Pointer) ([]goipp.Value, error)
 	decode   func(p unsafe.Pointer, v goipp.Values) error
 }
@@ -65,6 +67,20 @@ func init() {
 	msg := goipp.NewResponse(goipp.DefaultVersion, 0, 0)
 	ippCodecPrinterAttributes.encode(p, &msg.Printer)
 	msg.Print(os.Stdout, false)
+
+	println("=============================")
+	p2 := &PrinterAttributes{}
+	err := ippCodecPrinterAttributes.decode(p2, msg.Printer)
+	if err != nil {
+		panic(err)
+	}
+
+	v := reflect.ValueOf(*p2)
+	for i := 0; i < v.NumField(); i++ {
+		name := v.Type().Field(i).Name
+		fld := v.Field(i)
+		fmt.Printf("%s: %#v\n", name, fld.Interface())
+	}
 }
 
 // ippCodecMustGenerate calls ippCodecGenerate for the particular
@@ -113,18 +129,19 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 		}
 
 		// Generate encoding/decoding step
-		step := ippCodecStep{
-			offset:   fld.Offset,
-			attrName: tag.name,
-			attrTag:  tag.ippTag,
-		}
-
 		fldType := fld.Type
 		fldKind := fldType.Kind()
 		slice := fldKind == reflect.Slice
 		if slice {
 			fldType = fldType.Elem()
 			fldKind = fldType.Kind()
+		}
+
+		step := ippCodecStep{
+			offset:   fld.Offset,
+			attrName: tag.name,
+			attrTag:  tag.ippTag,
+			slice:    slice,
 		}
 
 		methods := ippCodecMethodsByType[fldType]
@@ -139,8 +156,10 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 
 			if slice {
 				step.encode = methods.encodeSlice
+				step.decode = methods.decodeSlice
 			} else {
 				step.encode = methods.encode
+				step.decode = methods.decode
 			}
 		} else if fldKind == reflect.Struct {
 			// FIXME: skip for now
@@ -161,6 +180,7 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 
 // Encode structure into the goipp.Attributes
 func (codec ippCodec) encode(in interface{}, attrs *goipp.Attributes) error {
+	// Check for type mismatch
 	v := reflect.ValueOf(in)
 	if v.Kind() != reflect.Pointer || v.Elem().Type() != codec.t {
 		err := fmt.Errorf("Encoder for %q applied to %q",
@@ -168,12 +188,13 @@ func (codec ippCodec) encode(in interface{}, attrs *goipp.Attributes) error {
 		panic(err)
 	}
 
+	// Now encode, step by step
 	p := v.Pointer()
 	for _, step := range codec.steps {
 		attr := goipp.Attribute{Name: step.attrName}
 		val, err := step.encode(unsafe.Pointer(p + step.offset))
 		if err != nil {
-			return fmt.Errorf("%s: %s", step.attrName, err)
+			return fmt.Errorf("%q: %s", step.attrName, err)
 		}
 
 		if len(val) != 0 {
@@ -181,6 +202,57 @@ func (codec ippCodec) encode(in interface{}, attrs *goipp.Attributes) error {
 				attr.Values.Add(step.attrTag, v)
 			}
 			attrs.Add(attr)
+		}
+	}
+
+	return nil
+}
+
+// Decode structure from the goipp.Attributes
+func (codec ippCodec) decode(in interface{}, attrs goipp.Attributes) error {
+	// Check for type mismatch
+	v := reflect.ValueOf(in)
+	if v.Kind() != reflect.Pointer || v.Elem().Type() != codec.t {
+		err := fmt.Errorf("Decoder for %q applied to %q",
+			"*"+codec.t.Name(), reflect.TypeOf(in).Name())
+		panic(err)
+	}
+
+	// Build map of attributes
+	attrByName := make(map[string]goipp.Attribute)
+	for _, attr := range attrs {
+		// If we see some attribute twice, we simply concatenate
+		// values
+		//
+		// FIXME: check against IPP specs what is better to do
+		// here
+		if prev, found := attrByName[attr.Name]; found {
+			attr.Values = append(prev.Values, attr.Values...)
+		}
+		attrByName[attr.Name] = attr
+	}
+
+	// Now decode, step by step
+	p := v.Pointer()
+	for _, step := range codec.steps {
+		// Lookup the attribute
+		attr, found := attrByName[step.attrName]
+		if !found {
+			// FIXME: place to handle required attributes
+			continue
+		}
+
+		// If not slice, at least one value must be present
+		if !step.slice && len(attr.Values) == 0 {
+			err := fmt.Errorf("%s: at least 1 value required",
+				step.attrName)
+			return err
+		}
+
+		// Call decoder
+		err := step.decode(unsafe.Pointer(p+step.offset), attr.Values)
+		if err != nil {
+			return fmt.Errorf("%q: %s", step.attrName, err)
 		}
 	}
 
@@ -256,7 +328,7 @@ func ippStructTagParse(s string) (*ippStructTag, error) {
 type ippCodecMethods struct {
 	ippTag              goipp.Tag
 	encode, encodeSlice func(p unsafe.Pointer) ([]goipp.Value, error)
-	decode              func(p unsafe.Pointer, v goipp.Values) error
+	decode, decodeSlice func(p unsafe.Pointer, v goipp.Values) error
 }
 
 // ippCodecMethodsByType maps reflect.Type to the particular
@@ -266,6 +338,8 @@ var ippCodecMethodsByType = map[reflect.Type]*ippCodecMethods{
 		ippTag:      goipp.TagKeyword,
 		encode:      ippEncVersion,
 		encodeSlice: ippEncVersionSlice,
+		decode:      ippDecVersion,
+		decodeSlice: ippDecVersionSlice,
 	},
 }
 
@@ -288,6 +362,18 @@ func ippEncVersionSlice(p unsafe.Pointer) ([]goipp.Value, error) {
 	return out, nil
 }
 
+// Decode: single goipp.Version
+func ippDecVersion(p unsafe.Pointer, vals goipp.Values) error {
+	// FIXME
+	return nil
+}
+
+// Decode: slice of goipp.Version
+func ippDecVersionSlice(p unsafe.Pointer, vals goipp.Values) error {
+	// FIXME
+	return nil
+}
+
 // ippCodecMethodsByKind maps reflect.Kind to the particular
 // ippCodecMethods structure
 var ippCodecMethodsByKind = map[reflect.Kind]*ippCodecMethods{
@@ -295,24 +381,32 @@ var ippCodecMethodsByKind = map[reflect.Kind]*ippCodecMethods{
 		ippTag:      goipp.TagBoolean,
 		encode:      ippEncBool,
 		encodeSlice: ippEncBoolSlice,
+		decode:      ippDecBool,
+		decodeSlice: ippDecBoolSlice,
 	},
 
 	reflect.Int: &ippCodecMethods{
 		ippTag:      goipp.TagInteger,
 		encode:      ippEncInt,
 		encodeSlice: ippEncIntSlice,
+		decode:      ippDecInt,
+		decodeSlice: ippDecIntSlice,
 	},
 
 	reflect.String: &ippCodecMethods{
 		ippTag:      goipp.TagText,
 		encode:      ippEncString,
 		encodeSlice: ippEncStringSlice,
+		decode:      ippDecString,
+		decodeSlice: ippDecStringSlice,
 	},
 
 	reflect.Uint16: &ippCodecMethods{
 		ippTag:      goipp.TagInteger,
 		encode:      ippEncUint16,
 		encodeSlice: ippEncUint16Slice,
+		decode:      ippDecUint16,
+		decodeSlice: ippDecUint16Slice,
 	},
 }
 
@@ -335,6 +429,36 @@ func ippEncBoolSlice(p unsafe.Pointer) ([]goipp.Value, error) {
 	return out, nil
 }
 
+// Decode: single bool
+func ippDecBool(p unsafe.Pointer, vals goipp.Values) error {
+	res, ok := vals[0].V.(goipp.Boolean)
+	if !ok {
+		err := fmt.Errorf("can't convert %s to Boolean",
+			vals[0].V.Type().String())
+		return err
+	}
+
+	*(*bool)(p) = bool(res)
+	return nil
+}
+
+// Decode: slice of bool
+func ippDecBoolSlice(p unsafe.Pointer, vals goipp.Values) error {
+	out := make([]bool, len(vals))
+	for i, val := range vals {
+		res, ok := val.V.(goipp.Boolean)
+		if !ok {
+			err := fmt.Errorf("can't convert %s to Boolean",
+				val.V.Type().String())
+			return err
+		}
+		out[i] = bool(res)
+	}
+
+	*(*[]bool)(p) = out
+	return nil
+}
+
 // Encode: single int
 func ippEncInt(p unsafe.Pointer) ([]goipp.Value, error) {
 	in := *(*int)(p)
@@ -352,6 +476,36 @@ func ippEncIntSlice(p unsafe.Pointer) ([]goipp.Value, error) {
 	}
 
 	return out, nil
+}
+
+// Decode: single int
+func ippDecInt(p unsafe.Pointer, vals goipp.Values) error {
+	res, ok := vals[0].V.(goipp.Integer)
+	if !ok {
+		err := fmt.Errorf("can't convert %s to Integer",
+			vals[0].V.Type().String())
+		return err
+	}
+
+	*(*int)(p) = int(res)
+	return nil
+}
+
+// Decode: slice of int
+func ippDecIntSlice(p unsafe.Pointer, vals goipp.Values) error {
+	out := make([]int, len(vals))
+	for i, val := range vals {
+		res, ok := val.V.(goipp.Integer)
+		if !ok {
+			err := fmt.Errorf("can't convert %s to Integer",
+				val.V.Type().String())
+			return err
+		}
+		out[i] = int(res)
+	}
+
+	*(*[]int)(p) = out
+	return nil
 }
 
 // Encode: single string
@@ -373,6 +527,36 @@ func ippEncStringSlice(p unsafe.Pointer) ([]goipp.Value, error) {
 	return out, nil
 }
 
+// Decode: single string
+func ippDecString(p unsafe.Pointer, vals goipp.Values) error {
+	res, ok := vals[0].V.(goipp.String)
+	if !ok {
+		err := fmt.Errorf("can't convert %s to String",
+			vals[0].V.Type().String())
+		return err
+	}
+
+	*(*string)(p) = string(res)
+	return nil
+}
+
+// Decode: slice of string
+func ippDecStringSlice(p unsafe.Pointer, vals goipp.Values) error {
+	out := make([]string, len(vals))
+	for i, val := range vals {
+		res, ok := val.V.(goipp.String)
+		if !ok {
+			err := fmt.Errorf("can't convert %s to String",
+				val.V.Type().String())
+			return err
+		}
+		out[i] = string(res)
+	}
+
+	*(*[]string)(p) = out
+	return nil
+}
+
 // Encode: single uint16
 func ippEncUint16(p unsafe.Pointer) ([]goipp.Value, error) {
 	in := *(*uint16)(p)
@@ -390,4 +574,45 @@ func ippEncUint16Slice(p unsafe.Pointer) ([]goipp.Value, error) {
 	}
 
 	return out, nil
+}
+
+// Decode: single uint16
+func ippDecUint16(p unsafe.Pointer, vals goipp.Values) error {
+	res, ok := vals[0].V.(goipp.Integer)
+	if !ok {
+		err := fmt.Errorf("can't convert %s to Integer",
+			vals[0].V.Type().String())
+		return err
+	}
+
+	if res < 0 || res > math.MaxUint16 {
+		err := fmt.Errorf("Value %d out of range", res)
+		return err
+	}
+
+	*(*uint16)(p) = uint16(res)
+	return nil
+}
+
+// Decode: slice of uint16
+func ippDecUint16Slice(p unsafe.Pointer, vals goipp.Values) error {
+	out := make([]uint16, len(vals))
+	for i, val := range vals {
+		res, ok := val.V.(goipp.Integer)
+		if !ok {
+			err := fmt.Errorf("can't convert %s to Integer",
+				val.V.Type().String())
+			return err
+		}
+
+		if res < 0 || res > math.MaxUint16 {
+			err := fmt.Errorf("Value %d out of range", res)
+			return err
+		}
+
+		out[i] = uint16(res)
+	}
+
+	*(*[]uint16)(p) = out
+	return nil
 }
