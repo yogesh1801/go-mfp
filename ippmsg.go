@@ -190,10 +190,10 @@ func (codec ippCodec) encode(in interface{}, attrs *goipp.Attributes) error {
 	}
 
 	// Now encode, step by step
-	p := v.Pointer()
+	p := unsafe.Pointer(v.Pointer())
 	for _, step := range codec.steps {
 		attr := goipp.Attribute{Name: step.attrName}
-		val, err := step.encode(unsafe.Pointer(p + step.offset))
+		val, err := step.encode(unsafe.Pointer(uintptr(p) + step.offset))
 		if err != nil {
 			return fmt.Errorf("%q: %s", step.attrName, err)
 		}
@@ -234,7 +234,7 @@ func (codec ippCodec) decode(in interface{}, attrs goipp.Attributes) error {
 	}
 
 	// Now decode, step by step
-	p := v.Pointer()
+	p := unsafe.Pointer(v.Pointer())
 	for _, step := range codec.steps {
 		// Lookup the attribute
 		attr, found := attrByName[step.attrName]
@@ -251,7 +251,7 @@ func (codec ippCodec) decode(in interface{}, attrs goipp.Attributes) error {
 		}
 
 		// Call decoder
-		err := step.decode(unsafe.Pointer(p+step.offset), attr.Values)
+		err := step.decode(unsafe.Pointer(uintptr(p)+step.offset), attr.Values)
 		if err != nil {
 			return fmt.Errorf("%q: %s", step.attrName, err)
 		}
