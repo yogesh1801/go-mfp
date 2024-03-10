@@ -13,6 +13,7 @@ import (
 	"math"
 	"os"
 	"reflect"
+	"strconv"
 	"strings"
 	"unsafe"
 
@@ -364,14 +365,69 @@ func ippEncVersionSlice(p unsafe.Pointer) ([]goipp.Value, error) {
 
 // Decode: single goipp.Version
 func ippDecVersion(p unsafe.Pointer, vals goipp.Values) error {
-	// FIXME
+	s, ok := vals[0].V.(goipp.String)
+	if !ok {
+		err := fmt.Errorf("can't convert %s to String",
+			vals[0].V.Type().String())
+		return err
+	}
+
+	ver, err := ippDecVersionString(string(s))
+	if err != nil {
+		return err
+	}
+
+	*(*goipp.Version)(p) = ver
 	return nil
 }
 
 // Decode: slice of goipp.Version
 func ippDecVersionSlice(p unsafe.Pointer, vals goipp.Values) error {
-	// FIXME
+	out := make([]goipp.Version, len(vals))
+	for i, val := range vals {
+		s, ok := val.V.(goipp.String)
+		if !ok {
+			err := fmt.Errorf("can't convert %s to String",
+				val.V.Type().String())
+			return err
+		}
+
+		var err error
+		out[i], err = ippDecVersionString(string(s))
+		if err != nil {
+			return err
+		}
+	}
+
+	*(*[]goipp.Version)(p) = out
 	return nil
+}
+
+// Decode: IPP version string (X.Y).
+// Common function for ippDecVersion() and ippDecVersionSlice()
+func ippDecVersionString(s string) (goipp.Version, error) {
+	var major, minor uint64
+	var err error
+
+	ss := strings.Split(s, ".")
+	if len(ss) != 2 {
+		goto ERROR
+	}
+
+	major, err = strconv.ParseUint(ss[0], 10, 8)
+	if err != nil {
+		goto ERROR
+	}
+
+	minor, err = strconv.ParseUint(ss[1], 10, 8)
+	if err != nil {
+		goto ERROR
+	}
+
+	return goipp.MakeVersion(uint8(major), uint8(minor)), nil
+
+ERROR:
+	return 0, fmt.Errorf("%q: invalid version string", s)
 }
 
 // ippCodecMethodsByKind maps reflect.Kind to the particular
