@@ -180,7 +180,32 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 }
 
 // Encode structure into the goipp.Attributes
+//
+// This function wraps (ippCodec) doEncode, adding some common
+// error handling and so on
 func (codec ippCodec) encode(in interface{}, attrs *goipp.Attributes) error {
+	err := codec.doEncode(in, attrs)
+	if err != nil {
+		err = fmt.Errorf("IPP encode %s: %s", codec.t.Name(), err)
+	}
+	return err
+}
+
+// Decode structure from the goipp.Attributes
+//
+// This function wraps (ippCodec) doDecode, adding some common
+// error handling and so on
+func (codec ippCodec) decode(out interface{}, attrs goipp.Attributes) error {
+	err := codec.doDecode(out, attrs)
+	if err != nil {
+		err = fmt.Errorf("IPP decode %s: %s", codec.t.Name(), err)
+	}
+	return err
+}
+
+// doEncode performs the actual work of encoding structure
+// into goipp.Attributes
+func (codec ippCodec) doEncode(in interface{}, attrs *goipp.Attributes) error {
 	// Check for type mismatch
 	v := reflect.ValueOf(in)
 	if v.Kind() != reflect.Pointer || v.Elem().Type() != codec.t {
@@ -209,13 +234,14 @@ func (codec ippCodec) encode(in interface{}, attrs *goipp.Attributes) error {
 	return nil
 }
 
-// Decode structure from the goipp.Attributes
-func (codec ippCodec) decode(in interface{}, attrs goipp.Attributes) error {
+// doDecode performs the actual work of decoding structure
+// from goipp.Attributes
+func (codec ippCodec) doDecode(out interface{}, attrs goipp.Attributes) error {
 	// Check for type mismatch
-	v := reflect.ValueOf(in)
+	v := reflect.ValueOf(out)
 	if v.Kind() != reflect.Pointer || v.Elem().Type() != codec.t {
 		err := fmt.Errorf("Decoder for %q applied to %q",
-			"*"+codec.t.Name(), reflect.TypeOf(in).Name())
+			"*"+codec.t.Name(), reflect.TypeOf(out).Name())
 		panic(err)
 	}
 
