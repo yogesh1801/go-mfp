@@ -3,7 +3,7 @@
 // Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
 // See LICENSE for license terms and conditions
 //
-// IPP messages encoding decoding
+// Encoding and decoding structures to/from IPP attributes
 
 package ippx
 
