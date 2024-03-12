@@ -129,7 +129,7 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 			return nil, fmt.Errorf("%s: %s", fld.Name, err)
 		}
 
-		// Generate encoding/decoding step
+		// Obtain ippCodecMethods
 		fldType := fld.Type
 		fldKind := fldType.Kind()
 		slice := fldKind == reflect.Slice
@@ -138,6 +138,25 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 			fldKind = fldType.Kind()
 		}
 
+		methods := ippCodecMethodsByType[fldType]
+		if methods == nil {
+			methods = ippCodecMethodsByKind[fldKind]
+		}
+		if methods == nil && fldKind == reflect.Struct {
+			methods, err = ippCodecMethodsCollection(fldType)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		if methods == nil {
+			err := fmt.Errorf("%s: %s type not supported",
+				fld.Name, fldKind)
+
+			return nil, err
+		}
+
+		// Generate encoding/decoding step
 		step := ippCodecStep{
 			offset:   fld.Offset,
 			attrName: tag.name,
@@ -145,31 +164,16 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 			slice:    slice,
 		}
 
-		methods := ippCodecMethodsByType[fldType]
-		if methods == nil {
-			methods = ippCodecMethodsByKind[fldKind]
+		if step.attrTag == 0 {
+			step.attrTag = methods.ippTag
 		}
 
-		if methods != nil {
-			if step.attrTag == 0 {
-				step.attrTag = methods.ippTag
-			}
-
-			if slice {
-				step.encode = methods.encodeSlice
-				step.decode = methods.decodeSlice
-			} else {
-				step.encode = methods.encode
-				step.decode = methods.decode
-			}
-		} else if fldKind == reflect.Struct {
-			// FIXME: skip for now
-			continue
+		if slice {
+			step.encode = methods.encodeSlice
+			step.decode = methods.decodeSlice
 		} else {
-			err := fmt.Errorf("%s: %s type not supported",
-				fld.Name, fldKind)
-
-			return nil, err
+			step.encode = methods.encode
+			step.decode = methods.decode
 		}
 
 		// Append step to the codec
@@ -358,9 +362,85 @@ type ippCodecMethods struct {
 	decode, decodeSlice func(p unsafe.Pointer, v goipp.Values) error
 }
 
+// ----- ippCodecMethods for nested structures -----
+
+// ippCodecMethodsCollection creates ippCodecMethods for encoding
+// nested structure or slice of structures as IPP Collection
+func ippCodecMethodsCollection(t reflect.Type) (*ippCodecMethods, error) {
+	codec, err := ippCodecGenerate(t)
+	if err != nil {
+		return nil, err
+	}
+
+	m := &ippCodecMethods{
+		ippTag: goipp.TagBeginCollection,
+
+		encode: func(p unsafe.Pointer) ([]goipp.Value, error) {
+			return ippEncCollection(p, codec)
+		},
+
+		encodeSlice: func(p unsafe.Pointer) ([]goipp.Value, error) {
+			return ippEncCollectionSlice(p, codec)
+		},
+
+		decode: func(p unsafe.Pointer, v goipp.Values) error {
+			return ippDecCollection(p, v, codec)
+		},
+
+		decodeSlice: func(p unsafe.Pointer, v goipp.Values) error {
+			return ippDecCollectionSlice(p, v, codec)
+		},
+	}
+
+	return m, nil
+}
+
+// Encode: single nested structure as collection
+func ippEncCollection(p unsafe.Pointer,
+	codec *ippCodec) ([]goipp.Value, error) {
+
+	ss := reflect.NewAt(codec.t, p).Interface()
+
+	var attrs goipp.Attributes
+	err := codec.doEncode(ss, &attrs)
+	if err != nil {
+		return nil, err
+	}
+
+	return []goipp.Value{goipp.Collection(attrs)}, nil
+}
+
+// Encode: nested slice of structure as collection
+func ippEncCollectionSlice(p unsafe.Pointer,
+	codec *ippCodec) ([]goipp.Value, error) {
+	return nil, nil
+}
+
+// Decode: single nested structure from collection
+func ippDecCollection(p unsafe.Pointer, v goipp.Values,
+	codec *ippCodec) error {
+	return errors.New("NOT IMPLEMENTED")
+}
+
+// Decode: nested nested slice of structures from collection
+func ippDecCollectionSlice(p unsafe.Pointer, v goipp.Values,
+	codec *ippCodec) error {
+	return errors.New("NOT IMPLEMENTED")
+}
+
+// ----- ippCodecMethods for particular types -----
+
 // ippCodecMethodsByType maps reflect.Type to the particular
 // ippCodecMethods structure
 var ippCodecMethodsByType = map[reflect.Type]*ippCodecMethods{
+	reflect.TypeOf(goipp.Range{}): &ippCodecMethods{
+		ippTag:      goipp.TagRange,
+		encode:      ippEncRange,
+		encodeSlice: ippEncRangeSlice,
+		decode:      ippDecRange,
+		decodeSlice: ippDecRangeSlice,
+	},
+
 	reflect.TypeOf(goipp.Version(0)): &ippCodecMethods{
 		ippTag:      goipp.TagKeyword,
 		encode:      ippEncVersion,
@@ -368,6 +448,55 @@ var ippCodecMethodsByType = map[reflect.Type]*ippCodecMethods{
 		decode:      ippDecVersion,
 		decodeSlice: ippDecVersionSlice,
 	},
+}
+
+// Encode: single goipp.Range
+func ippEncRange(p unsafe.Pointer) ([]goipp.Value, error) {
+	in := *(*goipp.Range)(p)
+	out := []goipp.Value{goipp.Range(in)}
+	return out, nil
+}
+
+// Encode: slice of goipp.Range
+func ippEncRangeSlice(p unsafe.Pointer) ([]goipp.Value, error) {
+	in := *(*[]goipp.Range)(p)
+	out := make([]goipp.Value, len(in))
+
+	for i := range in {
+		out[i] = goipp.Range(in[i])
+	}
+
+	return out, nil
+}
+
+// Decode: single goipp.Range
+func ippDecRange(p unsafe.Pointer, vals goipp.Values) error {
+	res, ok := vals[0].V.(goipp.Range)
+	if !ok {
+		err := fmt.Errorf("can't convert %s to RangeOfInteger",
+			vals[0].V.Type().String())
+		return err
+	}
+
+	*(*goipp.Range)(p) = goipp.Range(res)
+	return nil
+}
+
+// Decode: slice of goipp.Range
+func ippDecRangeSlice(p unsafe.Pointer, vals goipp.Values) error {
+	out := make([]goipp.Range, len(vals))
+	for i, val := range vals {
+		res, ok := val.V.(goipp.Range)
+		if !ok {
+			err := fmt.Errorf("can't convert %s to RangeOfInteger",
+				val.V.Type().String())
+			return err
+		}
+		out[i] = goipp.Range(res)
+	}
+
+	*(*[]goipp.Range)(p) = out
+	return nil
 }
 
 // Encode: single goipp.Version
@@ -455,6 +584,8 @@ func ippDecVersionString(s string) (goipp.Version, error) {
 ERROR:
 	return 0, fmt.Errorf("%q: invalid version string", s)
 }
+
+// ----- ippCodecMethods for particular reflect.Kind-s -----
 
 // ippCodecMethodsByKind maps reflect.Kind to the particular
 // ippCodecMethods structure
