@@ -60,6 +60,10 @@ func init() {
 			"airprint-1.4",
 		},
 		IppVersionsSupported: DefaultIppVersionsSupported,
+		MediaSizeSupported: []PrinterMediaSizeSupported{
+			{21590, 27940},
+			{21000, 29700},
+		},
 		MediaSizeSupportedRange: PrinterMediaSizeSupportedRange{
 			XDimension: goipp.Range{10000, 14800},
 			YDimension: goipp.Range{21600, 35600},
@@ -417,25 +421,75 @@ func ippEncCollection(p unsafe.Pointer,
 // Encode: nested slice of structure as collection
 func ippEncCollectionSlice(p unsafe.Pointer,
 	codec *ippCodec) ([]goipp.Value, error) {
-	return nil, nil
+
+	// p is unsafe.Pointer that points to slice of structures,
+	// each of them is collection item
+	//
+	// convert it to reflect.Value of the underlying slice
+	slice := reflect.NewAt(reflect.SliceOf(codec.t), p).Elem()
+	out := make([]goipp.Value, slice.Len())
+
+	for i := 0; i < slice.Len(); i++ {
+		ss := slice.Index(i).Addr().Interface()
+
+		var attrs goipp.Attributes
+		err := codec.doEncode(ss, &attrs)
+		if err != nil {
+			return nil, err
+		}
+
+		out[i] = goipp.Collection(attrs)
+	}
+
+	return out, nil
 }
 
 // Decode: single nested structure from collection
-func ippDecCollection(p unsafe.Pointer, v goipp.Values,
+func ippDecCollection(p unsafe.Pointer, vals goipp.Values,
 	codec *ippCodec) error {
 
 	ss := reflect.NewAt(codec.t, p).Interface()
-	attrs := goipp.Attributes(v[0].V.(goipp.Collection))
+	coll, ok := vals[0].V.(goipp.Collection)
+	if !ok {
+		err := fmt.Errorf("can't convert %s to Collection",
+			vals[0].V.Type().String())
+		return err
+	}
+
+	attrs := goipp.Attributes(coll)
 	err := codec.doDecode(ss, attrs)
 
 	return err
 }
 
 // Decode: nested nested slice of structures from collection
-func ippDecCollectionSlice(p unsafe.Pointer, v goipp.Values,
+func ippDecCollectionSlice(p unsafe.Pointer, vals goipp.Values,
 	codec *ippCodec) error {
+
+	slice := reflect.Zero(reflect.SliceOf(codec.t))
+	for i := range vals {
+		coll, ok := vals[i].V.(goipp.Collection)
+		if !ok {
+			err := fmt.Errorf("can't convert %s to Collection",
+				vals[i].V.Type().String())
+			return err
+		}
+
+		attrs := goipp.Attributes(coll)
+		ss := reflect.New(codec.t)
+
+		err := codec.doDecode(ss.Interface(), attrs)
+		if err != nil {
+			return err
+		}
+
+		slice = reflect.Append(slice, ss.Elem())
+	}
+
+	out := reflect.NewAt(reflect.SliceOf(codec.t), p).Elem()
+	out.Set(slice)
+
 	return nil
-	return errors.New("ippDecCollectionSlice: NOT IMPLEMENTED")
 }
 
 // ----- ippCodecMethods for particular types -----
