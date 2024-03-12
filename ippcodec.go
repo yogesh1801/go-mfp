@@ -60,6 +60,10 @@ func init() {
 			"airprint-1.4",
 		},
 		IppVersionsSupported: DefaultIppVersionsSupported,
+		MediaSizeSupportedRange: PrinterMediaSizeSupportedRange{
+			XDimension: goipp.Range{10000, 14800},
+			YDimension: goipp.Range{21600, 35600},
+		},
 		OperationsSupported: []goipp.Op{
 			goipp.OpGetPrinterAttributes,
 		},
@@ -419,13 +423,19 @@ func ippEncCollectionSlice(p unsafe.Pointer,
 // Decode: single nested structure from collection
 func ippDecCollection(p unsafe.Pointer, v goipp.Values,
 	codec *ippCodec) error {
-	return errors.New("NOT IMPLEMENTED")
+
+	ss := reflect.NewAt(codec.t, p).Interface()
+	attrs := goipp.Attributes(v[0].V.(goipp.Collection))
+	err := codec.doDecode(ss, attrs)
+
+	return err
 }
 
 // Decode: nested nested slice of structures from collection
 func ippDecCollectionSlice(p unsafe.Pointer, v goipp.Values,
 	codec *ippCodec) error {
-	return errors.New("NOT IMPLEMENTED")
+	return nil
+	return errors.New("ippDecCollectionSlice: NOT IMPLEMENTED")
 }
 
 // ----- ippCodecMethods for particular types -----
