@@ -46,7 +46,7 @@ type PrinterAttributes struct {
 	CompressionSupported    []string                       `ipp:"compression-supported,keyword"`
 	IppFeaturesSupported    []string                       `ipp:"ipp-features-supported,keyword"`
 	IppVersionsSupported    []goipp.Version                `ipp:"ipp-versions-supported"`
-	MediaSizeSupported      []PrinterMediaSizeSupported    `ipp:"media-size-supported"`
+	MediaSizeSupported      []PrinterMediaSizeSupported    `ipp:"media-size-supported,norange"`
 	MediaSizeSupportedRange PrinterMediaSizeSupportedRange `ipp:"media-size-supported,range"`
 	OperationsSupported     []goipp.Op                     `ipp:"operations-supported,enum"`
 }

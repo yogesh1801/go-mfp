@@ -33,12 +33,13 @@ type ippCodec struct {
 // ippCodecStep represents a single encoding/decoding step for the
 // ippCodec
 type ippCodecStep struct {
-	offset   uintptr
-	attrName string
-	attrTag  goipp.Tag
-	slice    bool
-	encode   func(p unsafe.Pointer) ([]goipp.Value, error)
-	decode   func(p unsafe.Pointer, v goipp.Values) error
+	offset               uintptr
+	attrName             string
+	attrTag              goipp.Tag
+	slice                bool
+	flgRange, flgNorange bool
+	encode               func(p unsafe.Pointer) ([]goipp.Value, error)
+	decode               func(p unsafe.Pointer, v goipp.Values) error
 }
 
 // Standard codecs, precompiled
@@ -98,7 +99,7 @@ func init() {
 func ippCodecMustGenerate(t reflect.Type) *ippCodec {
 	codec, err := ippCodecGenerate(t)
 	if err != nil {
-		err = fmt.Errorf("%s: %s", t.Name(), err)
+		err = fmt.Errorf("%s: %w", t.Name(), err)
 		panic(err)
 	}
 	return codec
@@ -135,7 +136,7 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 		// Parse ipp: struct tag
 		tag, err := ippStructTagParse(tagStr)
 		if err != nil {
-			return nil, fmt.Errorf("%s: %s", fld.Name, err)
+			return nil, fmt.Errorf("%s: %w", fld.Name, err)
 		}
 
 		// Obtain ippCodecMethods
@@ -167,10 +168,12 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 
 		// Generate encoding/decoding step
 		step := ippCodecStep{
-			offset:   fld.Offset,
-			attrName: tag.name,
-			attrTag:  tag.ippTag,
-			slice:    slice,
+			offset:     fld.Offset,
+			attrName:   tag.name,
+			attrTag:    tag.ippTag,
+			slice:      slice,
+			flgRange:   tag.flgRange,
+			flgNorange: tag.flgNorange,
 		}
 
 		if step.attrTag == 0 {
@@ -199,7 +202,7 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 func (codec ippCodec) encode(in interface{}, attrs *goipp.Attributes) error {
 	err := codec.doEncode(in, attrs)
 	if err != nil {
-		err = fmt.Errorf("IPP encode %s: %s", codec.t.Name(), err)
+		err = fmt.Errorf("IPP encode %s: %w", codec.t.Name(), err)
 	}
 	return err
 }
@@ -211,7 +214,7 @@ func (codec ippCodec) encode(in interface{}, attrs *goipp.Attributes) error {
 func (codec ippCodec) decode(out interface{}, attrs goipp.Attributes) error {
 	err := codec.doDecode(out, attrs)
 	if err != nil {
-		err = fmt.Errorf("IPP decode %s: %s", codec.t.Name(), err)
+		err = fmt.Errorf("IPP decode %s: %w", codec.t.Name(), err)
 	}
 	return err
 }
@@ -247,7 +250,7 @@ func (codec ippCodec) doEncode(in interface{}, attrs *goipp.Attributes) error {
 		attr := goipp.Attribute{Name: step.attrName}
 		val, err := step.encode(unsafe.Pointer(uintptr(p) + step.offset))
 		if err != nil {
-			return fmt.Errorf("%q: %s", step.attrName, err)
+			return fmt.Errorf("%q: %w", step.attrName, err)
 		}
 
 		if len(val) != 0 {
@@ -325,9 +328,26 @@ func (codec ippCodec) doDecode(out interface{}, attrs goipp.Attributes) error {
 		}
 
 		// Call decoder
-		err := step.decode(unsafe.Pointer(uintptr(p)+step.offset), attr.Values)
+		err := step.decode(unsafe.Pointer(uintptr(p)+step.offset),
+			attr.Values)
+
+		var conv ippErrConvert
+		if errors.As(err, &conv) {
+			switch {
+			case step.flgRange &&
+				(conv.from == goipp.TypeInteger) &&
+				(conv.to == goipp.TypeRange):
+				err = nil
+
+			case step.flgNorange &&
+				(conv.to == goipp.TypeInteger) &&
+				(conv.from == goipp.TypeRange):
+				err = nil
+			}
+		}
+
 		if err != nil {
-			return fmt.Errorf("%q: %s", step.attrName, err)
+			return fmt.Errorf("%q: %w", step.attrName, err)
 		}
 	}
 
@@ -336,8 +356,9 @@ func (codec ippCodec) doDecode(out interface{}, attrs goipp.Attributes) error {
 
 // ippStructTag represents parsed ipp: struct tag
 type ippStructTag struct {
-	name   string    // Attribute name
-	ippTag goipp.Tag // IPP tag
+	name                 string    // Attribute name
+	ippTag               goipp.Tag // IPP tag
+	flgRange, flgNorange bool      // "range"/"norange" flags
 }
 
 // ippStructTagParse parses ipp: struct tag into the
@@ -392,6 +413,11 @@ func ippStructTagParse(s string) (*ippStructTag, error) {
 			tag.ippTag = goipp.TagURI
 		case "uriScheme":
 			tag.ippTag = goipp.TagURIScheme
+
+		case "range":
+			tag.flgRange = true
+		case "norange":
+			tag.flgNorange = true
 		}
 	}
 
@@ -487,8 +513,10 @@ func ippDecCollection(p unsafe.Pointer, vals goipp.Values,
 	ss := reflect.NewAt(codec.t, p).Interface()
 	coll, ok := vals[0].V.(goipp.Collection)
 	if !ok {
-		err := fmt.Errorf("can't convert %s to Collection",
-			vals[0].V.Type().String())
+		err := ippErrConvert{
+			from: vals[0].V.Type(),
+			to:   goipp.TypeCollection,
+		}
 		return err
 	}
 
@@ -506,8 +534,10 @@ func ippDecCollectionSlice(p unsafe.Pointer, vals goipp.Values,
 	for i := range vals {
 		coll, ok := vals[i].V.(goipp.Collection)
 		if !ok {
-			err := fmt.Errorf("can't convert %s to Collection",
-				vals[i].V.Type().String())
+			err := ippErrConvert{
+				from: vals[i].V.Type(),
+				to:   goipp.TypeCollection,
+			}
 			return err
 		}
 
@@ -573,8 +603,10 @@ func ippEncRangeSlice(p unsafe.Pointer) ([]goipp.Value, error) {
 func ippDecRange(p unsafe.Pointer, vals goipp.Values) error {
 	res, ok := vals[0].V.(goipp.Range)
 	if !ok {
-		err := fmt.Errorf("can't convert %s to RangeOfInteger",
-			vals[0].V.Type().String())
+		err := ippErrConvert{
+			from: vals[0].V.Type(),
+			to:   goipp.TypeRange,
+		}
 		return err
 	}
 
@@ -588,8 +620,10 @@ func ippDecRangeSlice(p unsafe.Pointer, vals goipp.Values) error {
 	for i, val := range vals {
 		res, ok := val.V.(goipp.Range)
 		if !ok {
-			err := fmt.Errorf("can't convert %s to RangeOfInteger",
-				val.V.Type().String())
+			err := ippErrConvert{
+				from: val.V.Type(),
+				to:   goipp.TypeRange,
+			}
 			return err
 		}
 		out[i] = goipp.Range(res)
@@ -622,8 +656,10 @@ func ippEncVersionSlice(p unsafe.Pointer) ([]goipp.Value, error) {
 func ippDecVersion(p unsafe.Pointer, vals goipp.Values) error {
 	s, ok := vals[0].V.(goipp.String)
 	if !ok {
-		err := fmt.Errorf("can't convert %s to String",
-			vals[0].V.Type().String())
+		err := ippErrConvert{
+			from: vals[0].V.Type(),
+			to:   goipp.TypeString,
+		}
 		return err
 	}
 
@@ -642,8 +678,10 @@ func ippDecVersionSlice(p unsafe.Pointer, vals goipp.Values) error {
 	for i, val := range vals {
 		s, ok := val.V.(goipp.String)
 		if !ok {
-			err := fmt.Errorf("can't convert %s to String",
-				val.V.Type().String())
+			err := ippErrConvert{
+				from: val.V.Type(),
+				to:   goipp.TypeString,
+			}
 			return err
 		}
 
@@ -746,8 +784,10 @@ func ippEncBoolSlice(p unsafe.Pointer) ([]goipp.Value, error) {
 func ippDecBool(p unsafe.Pointer, vals goipp.Values) error {
 	res, ok := vals[0].V.(goipp.Boolean)
 	if !ok {
-		err := fmt.Errorf("can't convert %s to Boolean",
-			vals[0].V.Type().String())
+		err := ippErrConvert{
+			from: vals[0].V.Type(),
+			to:   goipp.TypeBoolean,
+		}
 		return err
 	}
 
@@ -761,8 +801,10 @@ func ippDecBoolSlice(p unsafe.Pointer, vals goipp.Values) error {
 	for i, val := range vals {
 		res, ok := val.V.(goipp.Boolean)
 		if !ok {
-			err := fmt.Errorf("can't convert %s to Boolean",
-				val.V.Type().String())
+			err := ippErrConvert{
+				from: val.V.Type(),
+				to:   goipp.TypeBoolean,
+			}
 			return err
 		}
 		out[i] = bool(res)
@@ -795,8 +837,10 @@ func ippEncIntSlice(p unsafe.Pointer) ([]goipp.Value, error) {
 func ippDecInt(p unsafe.Pointer, vals goipp.Values) error {
 	res, ok := vals[0].V.(goipp.Integer)
 	if !ok {
-		err := fmt.Errorf("can't convert %s to Integer",
-			vals[0].V.Type().String())
+		err := ippErrConvert{
+			from: vals[0].V.Type(),
+			to:   goipp.TypeInteger,
+		}
 		return err
 	}
 
@@ -810,8 +854,10 @@ func ippDecIntSlice(p unsafe.Pointer, vals goipp.Values) error {
 	for i, val := range vals {
 		res, ok := val.V.(goipp.Integer)
 		if !ok {
-			err := fmt.Errorf("can't convert %s to Integer",
-				val.V.Type().String())
+			err := ippErrConvert{
+				from: val.V.Type(),
+				to:   goipp.TypeInteger,
+			}
 			return err
 		}
 		out[i] = int(res)
@@ -844,8 +890,10 @@ func ippEncStringSlice(p unsafe.Pointer) ([]goipp.Value, error) {
 func ippDecString(p unsafe.Pointer, vals goipp.Values) error {
 	res, ok := vals[0].V.(goipp.String)
 	if !ok {
-		err := fmt.Errorf("can't convert %s to String",
-			vals[0].V.Type().String())
+		err := ippErrConvert{
+			from: vals[0].V.Type(),
+			to:   goipp.TypeString,
+		}
 		return err
 	}
 
@@ -859,8 +907,10 @@ func ippDecStringSlice(p unsafe.Pointer, vals goipp.Values) error {
 	for i, val := range vals {
 		res, ok := val.V.(goipp.String)
 		if !ok {
-			err := fmt.Errorf("can't convert %s to String",
-				val.V.Type().String())
+			err := ippErrConvert{
+				from: val.V.Type(),
+				to:   goipp.TypeString,
+			}
 			return err
 		}
 		out[i] = string(res)
@@ -893,8 +943,10 @@ func ippEncUint16Slice(p unsafe.Pointer) ([]goipp.Value, error) {
 func ippDecUint16(p unsafe.Pointer, vals goipp.Values) error {
 	res, ok := vals[0].V.(goipp.Integer)
 	if !ok {
-		err := fmt.Errorf("can't convert %s to Integer",
-			vals[0].V.Type().String())
+		err := ippErrConvert{
+			from: vals[0].V.Type(),
+			to:   goipp.TypeInteger,
+		}
 		return err
 	}
 
@@ -913,8 +965,10 @@ func ippDecUint16Slice(p unsafe.Pointer, vals goipp.Values) error {
 	for i, val := range vals {
 		res, ok := val.V.(goipp.Integer)
 		if !ok {
-			err := fmt.Errorf("can't convert %s to Integer",
-				val.V.Type().String())
+			err := ippErrConvert{
+				from: val.V.Type(),
+				to:   goipp.TypeInteger,
+			}
 			return err
 		}
 
@@ -928,4 +982,15 @@ func ippDecUint16Slice(p unsafe.Pointer, vals goipp.Values) error {
 
 	*(*[]uint16)(p) = out
 	return nil
+}
+
+// ----- Errors, specific to IPP codec -----
+
+// Can't convert XXX to YYY
+type ippErrConvert struct {
+	from, to goipp.Type
+}
+
+func (err ippErrConvert) Error() string {
+	return fmt.Sprintf("can't convert %s to %s", err.from, err.to)
 }
