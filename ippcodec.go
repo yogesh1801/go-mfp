@@ -13,6 +13,7 @@ import (
 	"math"
 	"os"
 	"reflect"
+	"sort"
 	"strconv"
 	"strings"
 	"unsafe"
@@ -227,7 +228,21 @@ func (codec ippCodec) doEncode(in interface{}, attrs *goipp.Attributes) error {
 	}
 
 	// Now encode, step by step
+	//
+	// Note, attribute names may duplicate, because the same
+	// name can be used twice in Go structure: first time for
+	// the Integer values and second time for the RangeOfInteger
+	// values. In IPP it is encoded under the same attribute name,
+	// but in Go structure there will be two fields
+	//
+	// So we cannot encode into the linear sequence of attributes
+	// directly (otherwise we may have duplicate attributes on
+	// output). Instead, first we collect attributes into the
+	// map, indexed by attribute name, them export this map
+	// into the final linear sequence
 	p := unsafe.Pointer(v.Pointer())
+	attrByName := make(map[string]goipp.Attribute)
+
 	for _, step := range codec.steps {
 		attr := goipp.Attribute{Name: step.attrName}
 		val, err := step.encode(unsafe.Pointer(uintptr(p) + step.offset))
@@ -239,9 +254,30 @@ func (codec ippCodec) doEncode(in interface{}, attrs *goipp.Attributes) error {
 			for _, v := range val {
 				attr.Values.Add(step.attrTag, v)
 			}
-			attrs.Add(attr)
+
+			if prev, found := attrByName[step.attrName]; found {
+				attr.Values = append(prev.Values,
+					attr.Values...)
+			}
+			attrByName[step.attrName] = attr
 		}
 	}
+
+	// Export encoded attributes from the attrByName
+	//
+	// We sort resulting attributes by name with the purpose
+	// ho have always reproducible result. IPP doesn't dictate
+	// any particular order of attributes, but Go map traversal
+	// will always produce a different order of attributes, which
+	// we want to avoid
+	newattrs := make(goipp.Attributes, 0, len(attrByName))
+	for _, attr := range attrByName {
+		attrs.Add(attr)
+	}
+	sort.Slice(newattrs, func(i, j int) bool {
+		return newattrs[i].Name < newattrs[j].Name
+	})
+	*attrs = append(*attrs, newattrs...)
 
 	return nil
 }
