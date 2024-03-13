@@ -153,7 +153,15 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 			methods = ippCodecMethodsByKind[fldKind]
 		}
 		if methods == nil && fldKind == reflect.Struct {
-			methods, err = ippCodecMethodsCollection(fldType)
+			var skip func(error) bool
+
+			if tag.flgRange {
+				skip = ippErrIsIntegerToRangeConversion
+			} else if tag.flgNorange {
+				skip = ippErrIsRangeToIntegerConversion
+			}
+
+			methods, err = ippCodecMethodsCollection(fldType, skip)
 			if err != nil {
 				return nil, err
 			}
@@ -436,7 +444,9 @@ type ippCodecMethods struct {
 
 // ippCodecMethodsCollection creates ippCodecMethods for encoding
 // nested structure or slice of structures as IPP Collection
-func ippCodecMethodsCollection(t reflect.Type) (*ippCodecMethods, error) {
+func ippCodecMethodsCollection(t reflect.Type, skip func(error) bool) (
+	*ippCodecMethods, error) {
+
 	codec, err := ippCodecGenerate(t)
 	if err != nil {
 		return nil, err
@@ -454,11 +464,11 @@ func ippCodecMethodsCollection(t reflect.Type) (*ippCodecMethods, error) {
 		},
 
 		decode: func(p unsafe.Pointer, v goipp.Values) error {
-			return ippDecCollection(p, v, codec)
+			return ippDecCollection(p, v, codec, skip)
 		},
 
 		decodeSlice: func(p unsafe.Pointer, v goipp.Values) error {
-			return ippDecCollectionSlice(p, v, codec)
+			return ippDecCollectionSlice(p, v, codec, skip)
 		},
 	}
 
@@ -508,27 +518,52 @@ func ippEncCollectionSlice(p unsafe.Pointer,
 
 // Decode: single nested structure from collection
 func ippDecCollection(p unsafe.Pointer, vals goipp.Values,
-	codec *ippCodec) error {
+	codec *ippCodec, skip func(error) bool) error {
 
-	ss := reflect.NewAt(codec.t, p).Interface()
-	coll, ok := vals[0].V.(goipp.Collection)
-	if !ok {
-		err := ippErrConvert{
-			from: vals[0].V.Type(),
-			to:   goipp.TypeCollection,
-		}
+	slice, err := ippDecCollectionInternal(p, vals, codec, skip)
+	if err != nil {
 		return err
 	}
 
-	attrs := goipp.Attributes(coll)
-	err := codec.doDecode(ss, attrs)
+	ss := reflect.NewAt(codec.t, p)
+	ss.Elem().Set(slice.Index(0))
 
-	return err
+	return nil
 }
 
 // Decode: nested nested slice of structures from collection
 func ippDecCollectionSlice(p unsafe.Pointer, vals goipp.Values,
-	codec *ippCodec) error {
+	codec *ippCodec, skip func(error) bool) error {
+
+	slice, err := ippDecCollectionInternal(p, vals, codec, skip)
+	if err != nil {
+		return err
+	}
+
+	out := reflect.NewAt(reflect.SliceOf(codec.t), p).Elem()
+	out.Set(slice)
+
+	return nil
+}
+
+// ippDecCollectionInternal decodes collection as a slice
+// of decoded structures of type codec.t
+//
+// If some of attribute values decodes with error and skip
+// is not nil and skip(err) == true, this value simply skipped
+// instead of propagation the error up to the stack.
+
+// The purpose of this mechanism is to allow attributes with either
+// Integer or RangeOfInteger values within underlying collections,
+// like "media-size-supported" in printer attributes. In Go structure
+// such an attribute take 2 fields with different range/noRange types,
+// and this mechanism is used to filter values between these two
+// fields when decoding.
+//
+// It returns slice of decodes structures, represented
+// as reflect.Value.
+func ippDecCollectionInternal(p unsafe.Pointer, vals goipp.Values,
+	codec *ippCodec, skip func(error) bool) (reflect.Value, error) {
 
 	slice := reflect.Zero(reflect.SliceOf(codec.t))
 	for i := range vals {
@@ -538,7 +573,7 @@ func ippDecCollectionSlice(p unsafe.Pointer, vals goipp.Values,
 				from: vals[i].V.Type(),
 				to:   goipp.TypeCollection,
 			}
-			return err
+			return reflect.Value{}, err
 		}
 
 		attrs := goipp.Attributes(coll)
@@ -546,16 +581,17 @@ func ippDecCollectionSlice(p unsafe.Pointer, vals goipp.Values,
 
 		err := codec.doDecode(ss.Interface(), attrs)
 		if err != nil {
-			return err
+			if skip != nil && skip(err) {
+				continue
+			}
+
+			return reflect.Value{}, err
 		}
 
 		slice = reflect.Append(slice, ss.Elem())
 	}
 
-	out := reflect.NewAt(reflect.SliceOf(codec.t), p).Elem()
-	out.Set(slice)
-
-	return nil
+	return slice, nil
 }
 
 // ----- ippCodecMethods for particular types -----
@@ -995,4 +1031,26 @@ type ippErrConvert struct {
 // Implements error interface.
 func (err ippErrConvert) Error() string {
 	return fmt.Sprintf("can't convert %s to %s", err.from, err.to)
+}
+
+// ippErrIsIntegerToRangeConversion returns true if error is
+// ippErrConvert caused by Integer->Range conversion
+func ippErrIsIntegerToRangeConversion(err error) bool {
+	var conv ippErrConvert
+	if errors.As(err, &conv) {
+		return conv.from == goipp.TypeInteger &&
+			conv.to == goipp.TypeRange
+	}
+	return false
+}
+
+// ippErrIsIntegerToRangeConversion returns true if error is
+// ippErrConvert caused by Range->Integer conversion
+func ippErrIsRangeToIntegerConversion(err error) bool {
+	var conv ippErrConvert
+	if errors.As(err, &conv) {
+		return conv.to == goipp.TypeInteger &&
+			conv.from == goipp.TypeRange
+	}
+	return false
 }
