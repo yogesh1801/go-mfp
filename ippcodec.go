@@ -67,8 +67,8 @@ func init() {
 			{21000, 29700},
 		},
 		MediaSizeSupportedRange: PrinterMediaSizeSupportedRange{
-			XDimension: goipp.Range{10000, 14800},
-			YDimension: goipp.Range{21600, 35600},
+			XDimension: goipp.Range{Lower: 10000, Upper: 14800},
+			YDimension: goipp.Range{Lower: 21600, Upper: 35600},
 		},
 		OperationsSupported: []goipp.Op{
 			goipp.OpGetPrinterAttributes,
