@@ -991,6 +991,8 @@ type ippErrConvert struct {
 	from, to goipp.Type
 }
 
+// Convert ippErrConvert to string.
+// Implements error interface.
 func (err ippErrConvert) Error() string {
 	return fmt.Sprintf("can't convert %s to %s", err.from, err.to)
 }
