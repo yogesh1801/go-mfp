@@ -15,6 +15,8 @@ import (
 	"github.com/OpenPrinting/goipp"
 )
 
+// ----- IPP encode/decode test -----
+
 // ippEncodeDecodeTest represents a single IPP encode/decode test
 type ippEncodeDecodeTest struct {
 	t        reflect.Type // Input type
@@ -101,6 +103,99 @@ func TestIppEncodeDecode(t *testing.T) {
 		test.exec(t)
 	}
 }
+
+// ----- IPP decode test -----
+
+type ippDecodeTest struct {
+	t     reflect.Type
+	err   error
+	attrs goipp.Attributes
+	data  interface{}
+}
+
+var ippDecodeTestData = []ippDecodeTest{
+	{
+		t: reflect.TypeOf(PrinterAttributes{}),
+		attrs: goipp.Attributes{
+			goipp.Attribute{
+				Name: "charset-configured",
+				Values: goipp.Values{
+					{
+						goipp.TagString,
+						goipp.String("utf-8"),
+					},
+				},
+			},
+		},
+		data: &PrinterAttributes{
+			CharsetConfigured: DefaultCharsetConfigured,
+		},
+	},
+	{
+		t:   reflect.TypeOf(PrinterAttributes{}),
+		err: errors.New(`IPP decode PrinterAttributes: "charset-configured": can't convert Integer to String`),
+		attrs: goipp.Attributes{
+			goipp.Attribute{
+				Name: "charset-configured",
+				Values: goipp.Values{
+					{
+						goipp.TagInteger,
+						goipp.Integer(0),
+					},
+				},
+			},
+		},
+	},
+	{
+		t:   reflect.TypeOf(PrinterAttributes{}),
+		err: errors.New(`IPP decode PrinterAttributes: "charset-configured": at least 1 value required`),
+		attrs: goipp.Attributes{
+			goipp.Attribute{
+				Name: "charset-configured",
+			},
+		},
+	},
+	{
+		t:   reflect.TypeOf(PrinterAttributes{}),
+		err: errors.New(`IPP decode PrinterAttributes: "charset-supported": can't convert Integer to String`),
+		attrs: goipp.Attributes{
+			goipp.Attribute{
+				Name: "charset-supported",
+				Values: goipp.Values{
+					{
+						goipp.TagInteger,
+						goipp.Integer(0),
+					},
+				},
+			},
+		},
+	},
+}
+
+func (test ippDecodeTest) exec(t *testing.T) {
+	codec := ippCodecMustGenerate(test.t)
+
+	out := reflect.New(test.t).Interface()
+	err := codec.decode(out, test.attrs)
+
+	checkError(t, err, test.err)
+	if err != nil {
+		return
+	}
+
+	if !reflect.DeepEqual(test.data, out) {
+		t.Errorf("input/output mismatch")
+		t.Errorf("%#v", out)
+	}
+}
+
+func TestIppDecode(t *testing.T) {
+	for _, test := range ippDecodeTestData {
+		test.exec(t)
+	}
+}
+
+// ----- Common stuff -----
 
 // Check error against expected
 func checkError(t *testing.T, err, expected error) {

@@ -335,7 +335,7 @@ func (codec ippCodec) doDecode(out interface{}, attrs goipp.Attributes) error {
 
 		// If not slice, at least one value must be present
 		if !step.slice && len(attr.Values) == 0 {
-			err := fmt.Errorf("%s: at least 1 value required",
+			err := fmt.Errorf("%q: at least 1 value required",
 				step.attrName)
 			return err
 		}
