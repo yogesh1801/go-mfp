@@ -32,7 +32,7 @@ var ippEncodeDecodeTestData = []ippEncodeDecodeTest{
 		name:  "panic expected: ippCodecGenerate() with invalid type",
 		t:     reflect.TypeOf(int(0)),
 		data:  1,
-		panic: errors.New(`int is not struct`),
+		panic: errors.New(`int: is not struct`),
 	},
 	{
 		name:  "panic expected: ippCodec applied to wrong type",
