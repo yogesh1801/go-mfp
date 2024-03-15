@@ -19,6 +19,7 @@ import (
 
 // ippEncodeDecodeTest represents a single IPP encode/decode test
 type ippEncodeDecodeTest struct {
+	name     string       // Test name, for logging
 	t        reflect.Type // Input type
 	data     interface{}  // Input data
 	panic    error        // Expected panic
@@ -28,16 +29,19 @@ type ippEncodeDecodeTest struct {
 // ippEncodeDecodeTestData is the test data for the IPP encode/decode test
 var ippEncodeDecodeTestData = []ippEncodeDecodeTest{
 	{
+		name:  "panic expected: ippCodecGenerate() with invalid type",
 		t:     reflect.TypeOf(int(0)),
 		data:  1,
 		panic: errors.New(`int is not struct`),
 	},
 	{
+		name:  "panic expected: ippCodec applied to wrong type",
 		t:     reflect.TypeOf(PrinterAttributes{}),
 		data:  1,
 		panic: errors.New(`Encoder for "*PrinterAttributes" applied to "int"`),
 	},
 	{
+		name: "success expected",
 		t:    reflect.TypeOf(PrinterAttributes{}),
 		data: &testdataPrinterAttributes,
 	},
@@ -53,6 +57,7 @@ func (test ippEncodeDecodeTest) exec(t *testing.T) {
 
 		p := recover()
 		if p == nil && test.panic != nil {
+			t.Errorf("in test %q:", test.name)
 			t.Errorf("panic expected but didn't happen: %s",
 				test.panic)
 			return
@@ -65,6 +70,7 @@ func (test ippEncodeDecodeTest) exec(t *testing.T) {
 			}
 
 			if err.Error() != test.panic.Error() {
+				t.Errorf("in test %q:", test.name)
 				t.Errorf("panic expected: %s, got: %s",
 					test.panic, err)
 			}
@@ -78,7 +84,7 @@ func (test ippEncodeDecodeTest) exec(t *testing.T) {
 	var attrs goipp.Attributes
 	err := codec.encode(test.data, &attrs)
 
-	checkError(t, err, test.encError)
+	checkError(t, test.name, err, test.encError)
 	if err != nil {
 		return
 	}
@@ -87,12 +93,13 @@ func (test ippEncodeDecodeTest) exec(t *testing.T) {
 	out := reflect.New(test.t).Interface()
 	err = codec.decode(out, attrs)
 
-	checkError(t, err, test.encError)
+	checkError(t, test.name, err, test.encError)
 	if err != nil {
 		return
 	}
 
 	if !reflect.DeepEqual(test.data, out) {
+		t.Errorf("in test %q:", test.name)
 		t.Errorf("input/output mismatch")
 	}
 }
@@ -107,6 +114,7 @@ func TestIppEncodeDecode(t *testing.T) {
 // ----- IPP decode test -----
 
 type ippDecodeTest struct {
+	name  string
 	t     reflect.Type
 	err   error
 	attrs goipp.Attributes
@@ -115,7 +123,8 @@ type ippDecodeTest struct {
 
 var ippDecodeTestData = []ippDecodeTest{
 	{
-		t: reflect.TypeOf(PrinterAttributes{}),
+		name: "success expected",
+		t:    reflect.TypeOf(PrinterAttributes{}),
 		attrs: goipp.Attributes{
 			goipp.Attribute{
 				Name: "charset-configured",
@@ -132,8 +141,9 @@ var ippDecodeTestData = []ippDecodeTest{
 		},
 	},
 	{
-		t:   reflect.TypeOf(PrinterAttributes{}),
-		err: errors.New(`IPP decode PrinterAttributes: "charset-configured": can't convert Integer to String`),
+		name: "string field: Integer passed",
+		t:    reflect.TypeOf(PrinterAttributes{}),
+		err:  errors.New(`IPP decode PrinterAttributes: "charset-configured": can't convert Integer to String`),
 		attrs: goipp.Attributes{
 			goipp.Attribute{
 				Name: "charset-configured",
@@ -147,8 +157,9 @@ var ippDecodeTestData = []ippDecodeTest{
 		},
 	},
 	{
-		t:   reflect.TypeOf(PrinterAttributes{}),
-		err: errors.New(`IPP decode PrinterAttributes: "charset-configured": at least 1 value required`),
+		name: "string field: no values passed",
+		t:    reflect.TypeOf(PrinterAttributes{}),
+		err:  errors.New(`IPP decode PrinterAttributes: "charset-configured": at least 1 value required`),
 		attrs: goipp.Attributes{
 			goipp.Attribute{
 				Name: "charset-configured",
@@ -156,8 +167,9 @@ var ippDecodeTestData = []ippDecodeTest{
 		},
 	},
 	{
-		t:   reflect.TypeOf(PrinterAttributes{}),
-		err: errors.New(`IPP decode PrinterAttributes: "charset-supported": can't convert Integer to String`),
+		name: "[]string field: Integer passed",
+		t:    reflect.TypeOf(PrinterAttributes{}),
+		err:  errors.New(`IPP decode PrinterAttributes: "charset-supported": can't convert Integer to String`),
 		attrs: goipp.Attributes{
 			goipp.Attribute{
 				Name: "charset-supported",
@@ -178,14 +190,14 @@ func (test ippDecodeTest) exec(t *testing.T) {
 	out := reflect.New(test.t).Interface()
 	err := codec.decode(out, test.attrs)
 
-	checkError(t, err, test.err)
+	checkError(t, test.name, err, test.err)
 	if err != nil {
 		return
 	}
 
 	if !reflect.DeepEqual(test.data, out) {
+		t.Errorf("in test %q:", test.name)
 		t.Errorf("input/output mismatch")
-		t.Errorf("%#v", out)
 	}
 }
 
@@ -198,13 +210,16 @@ func TestIppDecode(t *testing.T) {
 // ----- Common stuff -----
 
 // Check error against expected
-func checkError(t *testing.T, err, expected error) {
+func checkError(t *testing.T, name string, err, expected error) {
 	switch {
 	case err == nil && expected != nil:
+		t.Errorf("in test %q:", name)
 		t.Errorf("error expected but didn't happen: %s", expected)
 	case err != nil && expected == nil:
+		t.Errorf("in test %q:", name)
 		t.Errorf("error not expected: %s", err)
 	case err != nil && expected != nil && err.Error() != expected.Error():
+		t.Errorf("in test %q:", name)
 		t.Errorf("error expected: %s, got: %s", expected, err)
 	}
 }
