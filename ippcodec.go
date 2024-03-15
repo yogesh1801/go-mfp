@@ -135,7 +135,6 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 		if !found {
 			continue
 		}
-		println(fld.Name, tagStr)
 
 		// Parse ipp: struct tag
 		tag, err := ippStructTagParse(tagStr)
