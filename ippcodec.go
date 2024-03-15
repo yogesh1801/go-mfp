@@ -107,6 +107,11 @@ func ippCodecMustGenerate(t reflect.Type) *ippCodec {
 
 // ippCodecGenerate generates codec for the particular type.
 func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
+	if t.Kind() != reflect.Struct {
+		err := fmt.Errorf("%s is not struct", t.Name())
+		panic(err)
+	}
+
 	codec := &ippCodec{
 		t: t,
 	}
