@@ -99,7 +99,6 @@ func init() {
 func ippCodecMustGenerate(t reflect.Type) *ippCodec {
 	codec, err := ippCodecGenerate(t)
 	if err != nil {
-		err = fmt.Errorf("%s: %w", t.Name(), err)
 		panic(err)
 	}
 	return codec
@@ -108,7 +107,7 @@ func ippCodecMustGenerate(t reflect.Type) *ippCodec {
 // ippCodecGenerate generates codec for the particular type.
 func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 	if t.Kind() != reflect.Struct {
-		err := fmt.Errorf("%s is not struct", t.Name())
+		err := fmt.Errorf("%s: is not struct", t.Name())
 		return nil, err
 	}
 
@@ -141,7 +140,8 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 		// Parse ipp: struct tag
 		tag, err := ippStructTagParse(tagStr)
 		if err != nil {
-			return nil, fmt.Errorf("%s: %w", fld.Name, err)
+			return nil, fmt.Errorf("%s.%s: %w",
+				t.Name(), fld.Name, err)
 		}
 
 		// Obtain ippCodecMethods
@@ -173,8 +173,8 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 		}
 
 		if methods == nil {
-			err := fmt.Errorf("%s: %s type not supported",
-				fld.Name, fldKind)
+			err := fmt.Errorf("%s.%s: %s type not supported",
+				t.Name(), fld.Name, fldKind)
 
 			return nil, err
 		}
