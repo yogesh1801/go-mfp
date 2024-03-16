@@ -9,7 +9,9 @@ package ippx
 
 import (
 	"errors"
+	"os"
 	"reflect"
+	"sort"
 	"testing"
 	"time"
 
@@ -127,16 +129,17 @@ func TestIppEncodeDecode(t *testing.T) {
 // ----- IPP decode test -----
 
 type ippDecodeTest struct {
-	name  string
-	t     reflect.Type
-	err   error
-	attrs goipp.Attributes
-	data  interface{}
+	name       string
+	t          reflect.Type
+	err        error
+	attrs      goipp.Attributes
+	data       interface{}
+	skipEncode bool
 }
 
 var ippDecodeTestData = []ippDecodeTest{
 	{
-		name: "success expected",
+		name: "ippTestStruct: success expected",
 		t:    reflect.TypeOf(ippTestStruct{}),
 		attrs: goipp.Attributes{
 			goipp.MakeAttribute("fld-boolean-f",
@@ -203,8 +206,9 @@ var ippDecodeTestData = []ippDecodeTest{
 		},
 	},
 	{
-		name: "success expected",
-		t:    reflect.TypeOf(PrinterAttributes{}),
+		name:       "PrinterAttributes: success expected",
+		skipEncode: true,
+		t:          reflect.TypeOf(PrinterAttributes{}),
 		attrs: goipp.Attributes{
 			goipp.Attribute{
 				Name: "charset-configured",
@@ -265,8 +269,10 @@ var ippDecodeTestData = []ippDecodeTest{
 }
 
 func (test ippDecodeTest) exec(t *testing.T) {
+	// Compile the codec
 	codec := ippCodecMustGenerate(test.t)
 
+	// Decode IPP attributes
 	out := reflect.New(test.t).Interface()
 	err := codec.decode(out, test.attrs)
 
@@ -275,9 +281,45 @@ func (test ippDecodeTest) exec(t *testing.T) {
 		return
 	}
 
+	// Compare result against expected
 	if !reflect.DeepEqual(test.data, out) {
 		t.Errorf("in test %q:", test.name)
-		t.Errorf("input/output mismatch")
+		t.Errorf("decode: input/output mismatch")
+	}
+
+	// Now encode it back
+	var attrs goipp.Attributes
+	codec.encode(out, &attrs)
+
+	// End compare encoded attributes
+	if test.skipEncode {
+		return
+	}
+
+	// Note, as decoding/encoding doesn't preserve
+	// original order of attributes, we need to
+	// sort them before comparison
+	attrs2 := make(goipp.Attributes, len(test.attrs))
+	copy(attrs2, test.attrs)
+
+	sort.Slice(attrs, func(i, j int) bool {
+		return attrs[i].Name < attrs[j].Name
+	})
+
+	sort.Slice(attrs2, func(i, j int) bool {
+		return attrs2[i].Name < attrs2[j].Name
+	})
+
+	if !attrs.Equal(attrs2) {
+		t.Errorf("in test %q:", test.name)
+		t.Errorf("encode: input/output mismatch")
+
+		var msg goipp.Message
+		msg = goipp.Message{Printer: attrs}
+		msg.Print(os.Stdout, true)
+
+		msg = goipp.Message{Printer: attrs2}
+		msg.Print(os.Stdout, true)
 	}
 }
 
