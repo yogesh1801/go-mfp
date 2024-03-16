@@ -26,20 +26,22 @@ import (
 // then reused, to minimize performance overhead associated with
 // reflection
 type ippCodec struct {
-	t     reflect.Type
-	steps []ippCodecStep
+	t     reflect.Type   // Type of structure
+	steps []ippCodecStep // Encoding/decoding steps
 }
 
 // ippCodecStep represents a single encoding/decoding step for the
 // ippCodec
 type ippCodecStep struct {
-	offset               uintptr
-	attrName             string
-	attrTag              goipp.Tag
-	slice                bool
-	flgRange, flgNorange bool
-	encode               func(p unsafe.Pointer) ([]goipp.Value, error)
-	decode               func(p unsafe.Pointer, v goipp.Values) error
+	offset               uintptr   // Field offset within the structure
+	attrName             string    // IPP attribute name
+	attrTag              goipp.Tag // IPP attribute tag
+	slice                bool      // It's a slice of values
+	flgRange, flgNorange bool      // Range/NoRange classification
+
+	// Encode/decode functions
+	encode func(p unsafe.Pointer) ([]goipp.Value, error)
+	decode func(p unsafe.Pointer, v goipp.Values) error
 }
 
 // Standard codecs, precompiled
