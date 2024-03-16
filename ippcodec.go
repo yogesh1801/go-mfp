@@ -16,6 +16,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 	"unsafe"
 
 	"github.com/OpenPrinting/goipp"
@@ -594,6 +595,14 @@ var ippCodecMethodsByType = map[reflect.Type]*ippCodecMethods{
 		decode:      ippDecVersion,
 		decodeSlice: ippDecVersionSlice,
 	},
+
+	reflect.TypeOf(time.Time{}): &ippCodecMethods{
+		ippTag:      goipp.TagDateTime,
+		encode:      ippEncDateTime,
+		encodeSlice: ippEncDateTimeSlice,
+		decode:      ippDecDateTime,
+		decodeSlice: ippDecDateTimeSlice,
+	},
 }
 
 // Encode: single goipp.Range
@@ -626,7 +635,7 @@ func ippDecRange(p unsafe.Pointer, vals goipp.Values) error {
 		return err
 	}
 
-	*(*goipp.Range)(p) = goipp.Range(res)
+	*(*goipp.Range)(p) = res
 	return nil
 }
 
@@ -642,7 +651,7 @@ func ippDecRangeSlice(p unsafe.Pointer, vals goipp.Values) error {
 			}
 			return err
 		}
-		out[i] = goipp.Range(res)
+		out[i] = res
 	}
 
 	*(*[]goipp.Range)(p) = out
@@ -737,6 +746,61 @@ func ippDecVersionString(s string) (goipp.Version, error) {
 
 ERROR:
 	return 0, fmt.Errorf("%q: invalid version string", s)
+}
+
+// Encode: single time.Time
+func ippEncDateTime(p unsafe.Pointer) []goipp.Value {
+	in := *(*time.Time)(p)
+	out := []goipp.Value{goipp.Time{in}}
+	return out
+}
+
+// Encode: slice of time.Time
+func ippEncDateTimeSlice(p unsafe.Pointer) []goipp.Value {
+	in := *(*[]time.Time)(p)
+	out := make([]goipp.Value, len(in))
+
+	for i := range in {
+		out[i] = goipp.Time{in[i]}
+	}
+
+	return out
+
+}
+
+// Decode: single time.Time
+func ippDecDateTime(p unsafe.Pointer, vals goipp.Values) error {
+	res, ok := vals[0].V.(goipp.Time)
+	if !ok {
+		err := ippErrConvert{
+			from: vals[0].V.Type(),
+			to:   goipp.TypeDateTime,
+		}
+		return err
+	}
+
+	*(*time.Time)(p) = res.Time
+	return nil
+
+}
+
+// Decode: slice of time.Time
+func ippDecDateTimeSlice(p unsafe.Pointer, vals goipp.Values) error {
+	out := make([]time.Time, len(vals))
+	for i, val := range vals {
+		res, ok := val.V.(goipp.Time)
+		if !ok {
+			err := ippErrConvert{
+				from: val.V.Type(),
+				to:   goipp.TypeDateTime,
+			}
+			return err
+		}
+		out[i] = res.Time
+	}
+
+	*(*[]time.Time)(p) = out
+	return nil
 }
 
 // ----- ippCodecMethods for particular reflect.Kind-s -----

@@ -11,6 +11,7 @@ import (
 	"errors"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/OpenPrinting/goipp"
 )
@@ -21,6 +22,9 @@ type ippTestStruct struct {
 	FldBooleanF     bool   `ipp:"fld-boolean-f,boolean"`
 	FldBooleanSlice []bool `ipp:"fld-boolean-slice,boolean"`
 	FldBooleanT     bool   `ipp:"fld-boolean-t,boolean"`
+
+	FldDateTime      time.Time   `ipp:"fld-datetime,dateTime"`
+	FldDateTimeSlice []time.Time `ipp:"fld-datetime-slice,dateTime"`
 
 	FldEnum      int   `ipp:"fld-enum,enum"`
 	FldEnumSlice []int `ipp:"fld-enum-slice,enum"`
@@ -147,6 +151,18 @@ var ippDecodeTestData = []ippDecodeTest{
 				},
 			},
 
+			goipp.MakeAttribute("fld-datetime",
+				goipp.TagDateTime, goipp.Time{testTime1}),
+
+			goipp.Attribute{
+				Name: "fld-datetime-slice",
+				Values: goipp.Values{
+					{goipp.TagDateTime, goipp.Time{testTime2}},
+					{goipp.TagDateTime, goipp.Time{testTime3}},
+					{goipp.TagDateTime, goipp.Time{testTime4}},
+				},
+			},
+
 			goipp.MakeAttribute("fld-enum",
 				goipp.TagEnum, goipp.Integer(4321)),
 			goipp.Attribute{
@@ -173,6 +189,11 @@ var ippDecodeTestData = []ippDecodeTest{
 			FldBooleanF:     false,
 			FldBooleanT:     true,
 			FldBooleanSlice: []bool{true, false},
+
+			FldDateTime: testTime1,
+			FldDateTimeSlice: []time.Time{
+				testTime2, testTime3, testTime4,
+			},
 
 			FldEnum:      4321,
 			FldEnumSlice: []int{3, 2, 1},
@@ -282,6 +303,13 @@ func checkError(t *testing.T, name string, err, expected error) {
 		t.Errorf("error expected: %s, got: %s", expected, err)
 	}
 }
+
+var (
+	testTime1 = time.Date(1970, time.January, 9, 23, 0, 0, 0, time.UTC)
+	testTime2 = time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
+	testTime3 = time.Date(2019, time.April, 12, 15, 0, 0, 0, time.UTC)
+	testTime4 = time.Date(2025, time.May, 17, 45, 0, 0, 0, time.UTC)
+)
 
 var testdataPrinterAttributes = PrinterAttributes{
 	CharsetConfigured:    DefaultCharsetConfigured,
