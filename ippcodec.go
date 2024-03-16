@@ -375,12 +375,12 @@ func ippStructTagParse(s string) (*ippStructTag, error) {
 	}
 
 	for _, part := range parts[1:] {
-		switch part {
+		switch strings.ToLower(part) {
 		case "boolean":
 			tag.ippTag = goipp.TagBoolean
 		case "charset":
 			tag.ippTag = goipp.TagCharset
-		case "dateTime":
+		case "datetime":
 			tag.ippTag = goipp.TagDateTime
 		case "enum":
 			tag.ippTag = goipp.TagEnum
@@ -388,15 +388,15 @@ func ippStructTagParse(s string) (*ippStructTag, error) {
 			tag.ippTag = goipp.TagInteger
 		case "keyword":
 			tag.ippTag = goipp.TagKeyword
-		case "mimeMediaType":
+		case "mimemediatype":
 			tag.ippTag = goipp.TagMimeType
 		case "name":
 			tag.ippTag = goipp.TagName
-		case "nameWithLanguage":
+		case "namewithlanguage":
 			tag.ippTag = goipp.TagNameLang
-		case "naturalLanguage":
+		case "naturallanguage":
 			tag.ippTag = goipp.TagLanguage
-		case "rangeOfInteger":
+		case "rangeofinteger":
 			tag.ippTag = goipp.TagRange
 		case "resolution":
 			tag.ippTag = goipp.TagResolution
@@ -404,11 +404,11 @@ func ippStructTagParse(s string) (*ippStructTag, error) {
 			tag.ippTag = goipp.TagString
 		case "text":
 			tag.ippTag = goipp.TagText
-		case "textWithLanguage":
+		case "textwithlanguage":
 			tag.ippTag = goipp.TagTextLang
 		case "uri":
 			tag.ippTag = goipp.TagURI
-		case "uriScheme":
+		case "urischeme":
 			tag.ippTag = goipp.TagURIScheme
 
 		case "range":

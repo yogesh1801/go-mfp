@@ -23,8 +23,8 @@ type ippTestStruct struct {
 	FldBooleanSlice []bool `ipp:"fld-boolean-slice,boolean"`
 	FldBooleanT     bool   `ipp:"fld-boolean-t,boolean"`
 
-	FldDateTime      time.Time   `ipp:"fld-datetime,dateTime"`
-	FldDateTimeSlice []time.Time `ipp:"fld-datetime-slice,dateTime"`
+	FldDateTime      time.Time   `ipp:"fld-datetime,datetime"`
+	FldDateTimeSlice []time.Time `ipp:"fld-datetime-slice,datetime"`
 
 	FldEnum      int   `ipp:"fld-enum,enum"`
 	FldEnumSlice []int `ipp:"fld-enum-slice,enum"`
