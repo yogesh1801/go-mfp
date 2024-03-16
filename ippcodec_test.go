@@ -15,6 +15,20 @@ import (
 	"github.com/OpenPrinting/goipp"
 )
 
+// ippTestStruct is the structure, intended for testing
+// of the IPP codec
+type ippTestStruct struct {
+	FldBooleanF     bool   `ipp:"fld-boolean-f,boolean"`
+	FldBooleanSlice []bool `ipp:"fld-boolean-slice,boolean"`
+	FldBooleanT     bool   `ipp:"fld-boolean-t,boolean"`
+
+	FldEnum      int   `ipp:"fld-enum,enum"`
+	FldEnumSlice []int `ipp:"fld-enum-slice,enum"`
+
+	FldInteger      int   `ipp:"fld-integer,integer"`
+	FldIntegerSlice []int `ipp:"fld-integer-slice,integer"`
+}
+
 // ----- IPP encode/decode test -----
 
 // ippEncodeDecodeTest represents a single IPP encode/decode test
@@ -117,6 +131,56 @@ type ippDecodeTest struct {
 }
 
 var ippDecodeTestData = []ippDecodeTest{
+	{
+		name: "success expected",
+		t:    reflect.TypeOf(ippTestStruct{}),
+		attrs: goipp.Attributes{
+			goipp.MakeAttribute("fld-boolean-f",
+				goipp.TagBoolean, goipp.Boolean(false)),
+			goipp.MakeAttribute("fld-boolean-t",
+				goipp.TagBoolean, goipp.Boolean(true)),
+			goipp.Attribute{
+				Name: "fld-boolean-slice",
+				Values: goipp.Values{
+					{goipp.TagBoolean, goipp.Boolean(true)},
+					{goipp.TagBoolean, goipp.Boolean(false)},
+				},
+			},
+
+			goipp.MakeAttribute("fld-enum",
+				goipp.TagEnum, goipp.Integer(4321)),
+			goipp.Attribute{
+				Name: "fld-enum-slice",
+				Values: goipp.Values{
+					{goipp.TagEnum, goipp.Integer(3)},
+					{goipp.TagEnum, goipp.Integer(2)},
+					{goipp.TagEnum, goipp.Integer(1)},
+				},
+			},
+
+			goipp.MakeAttribute("fld-integer",
+				goipp.TagInteger, goipp.Integer(1234)),
+			goipp.Attribute{
+				Name: "fld-integer-slice",
+				Values: goipp.Values{
+					{goipp.TagInteger, goipp.Integer(1)},
+					{goipp.TagInteger, goipp.Integer(2)},
+					{goipp.TagInteger, goipp.Integer(3)},
+				},
+			},
+		},
+		data: &ippTestStruct{
+			FldBooleanF:     false,
+			FldBooleanT:     true,
+			FldBooleanSlice: []bool{true, false},
+
+			FldEnum:      4321,
+			FldEnumSlice: []int{3, 2, 1},
+
+			FldInteger:      1234,
+			FldIntegerSlice: []int{1, 2, 3},
+		},
+	},
 	{
 		name: "success expected",
 		t:    reflect.TypeOf(PrinterAttributes{}),
