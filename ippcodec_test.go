@@ -19,11 +19,11 @@ import (
 
 // ippEncodeDecodeTest represents a single IPP encode/decode test
 type ippEncodeDecodeTest struct {
-	name     string       // Test name, for logging
-	t        reflect.Type // Input type
-	data     interface{}  // Input data
-	panic    error        // Expected panic
-	encError error        // Expected encode error
+	name  string       // Test name, for logging
+	t     reflect.Type // Input type
+	data  interface{}  // Input data
+	panic error        // Expected panic
+	err   error        // Expected error
 }
 
 // ippEncodeDecodeTestData is the test data for the IPP encode/decode test
@@ -82,18 +82,13 @@ func (test ippEncodeDecodeTest) exec(t *testing.T) {
 
 	// Test encoding
 	var attrs goipp.Attributes
-	err := codec.encode(test.data, &attrs)
-
-	checkError(t, test.name, err, test.encError)
-	if err != nil {
-		return
-	}
+	codec.encode(test.data, &attrs)
 
 	// Test decoding
 	out := reflect.New(test.t).Interface()
-	err = codec.decode(out, attrs)
+	err := codec.decode(out, attrs)
 
-	checkError(t, test.name, err, test.encError)
+	checkError(t, test.name, err, test.err)
 	if err != nil {
 		return
 	}
