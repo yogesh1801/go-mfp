@@ -33,6 +33,9 @@ type ippTestStruct struct {
 
 	FldInteger      int   `ipp:"fld-integer,integer"`
 	FldIntegerSlice []int `ipp:"fld-integer-slice,integer"`
+
+	FldString      string   `ipp:"fld-string,string"`
+	FldStringSlice []string `ipp:"fld-string-slice,string"`
 }
 
 // ----- IPP encode/decode test -----
@@ -187,6 +190,17 @@ var ippDecodeTestData = []ippDecodeTest{
 					{goipp.TagInteger, goipp.Integer(3)},
 				},
 			},
+
+			goipp.MakeAttribute("fld-string",
+				goipp.TagString, goipp.String("hello, world")),
+			goipp.Attribute{
+				Name: "fld-string-slice",
+				Values: goipp.Values{
+					{goipp.TagString, goipp.String("A")},
+					{goipp.TagString, goipp.String("B")},
+					{goipp.TagString, goipp.String("C")},
+				},
+			},
 		},
 		data: &ippTestStruct{
 			FldBooleanF:     false,
@@ -203,6 +217,9 @@ var ippDecodeTestData = []ippDecodeTest{
 
 			FldInteger:      1234,
 			FldIntegerSlice: []int{1, 2, 3},
+
+			FldString:      "hello, world",
+			FldStringSlice: []string{"A", "B", "C"},
 		},
 	},
 	{
@@ -285,6 +302,7 @@ func (test ippDecodeTest) exec(t *testing.T) {
 	if !reflect.DeepEqual(test.data, out) {
 		t.Errorf("in test %q:", test.name)
 		t.Errorf("decode: input/output mismatch")
+		return
 	}
 
 	// Now encode it back
