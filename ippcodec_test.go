@@ -34,6 +34,9 @@ type ippTestStruct struct {
 	FldInteger      int   `ipp:"fld-integer,integer"`
 	FldIntegerSlice []int `ipp:"fld-integer-slice,integer"`
 
+	FldMime      string   `ipp:"fld-mime,mimemediatype"`
+	FldMimeSlice []string `ipp:"fld-mime-slice,mimemediatype"`
+
 	FldString      string   `ipp:"fld-string,string"`
 	FldStringSlice []string `ipp:"fld-string-slice,string"`
 }
@@ -191,6 +194,17 @@ var ippDecodeTestData = []ippDecodeTest{
 				},
 			},
 
+			goipp.MakeAttribute("fld-mime",
+				goipp.TagMimeType, goipp.String("application/pdf")),
+			goipp.Attribute{
+				Name: "fld-mime-slice",
+				Values: goipp.Values{
+					{goipp.TagMimeType, goipp.String("image/tiff")},
+					{goipp.TagMimeType, goipp.String("image/jpeg")},
+					{goipp.TagMimeType, goipp.String("image/urf")},
+				},
+			},
+
 			goipp.MakeAttribute("fld-string",
 				goipp.TagString, goipp.String("hello, world")),
 			goipp.Attribute{
@@ -217,6 +231,12 @@ var ippDecodeTestData = []ippDecodeTest{
 
 			FldInteger:      1234,
 			FldIntegerSlice: []int{1, 2, 3},
+
+			FldMime: "application/pdf",
+			FldMimeSlice: []string{
+				"image/tiff",
+				"image/jpeg",
+				"image/urf"},
 
 			FldString:      "hello, world",
 			FldStringSlice: []string{"A", "B", "C"},
