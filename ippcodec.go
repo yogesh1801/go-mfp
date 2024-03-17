@@ -53,6 +53,7 @@ var (
 )
 
 func init() {
+	return
 	println("=============================")
 	p := &PrinterAttributes{
 		CharsetConfigured:    DefaultCharsetConfigured,
