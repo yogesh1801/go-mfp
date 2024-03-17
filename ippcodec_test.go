@@ -34,11 +34,20 @@ type ippTestStruct struct {
 	FldInteger      int   `ipp:"fld-integer,integer"`
 	FldIntegerSlice []int `ipp:"fld-integer-slice,integer"`
 
+	FldKeyword      string   `ipp:"fld-keyword,keyword"`
+	FldKeywordSlice []string `ipp:"fld-keyword-slice,keyword"`
+
 	FldMime      string   `ipp:"fld-mime,mimemediatype"`
 	FldMimeSlice []string `ipp:"fld-mime-slice,mimemediatype"`
 
+	FldName      string   `ipp:"fld-name,name"`
+	FldNameSlice []string `ipp:"fld-name-slice,name"`
+
 	FldString      string   `ipp:"fld-string,string"`
 	FldStringSlice []string `ipp:"fld-string-slice,string"`
+
+	FldText      string   `ipp:"fld-text,text"`
+	FldTextSlice []string `ipp:"fld-text-slice,text"`
 }
 
 // ----- IPP encode/decode test -----
@@ -194,6 +203,17 @@ var ippDecodeTestData = []ippDecodeTest{
 				},
 			},
 
+			goipp.MakeAttribute("fld-keyword",
+				goipp.TagKeyword, goipp.String("document")),
+			goipp.Attribute{
+				Name: "fld-keyword-slice",
+				Values: goipp.Values{
+					{goipp.TagKeyword, goipp.String("one-sided")},
+					{goipp.TagKeyword, goipp.String("two-sided-short-edge")},
+					{goipp.TagKeyword, goipp.String("two-sided-long-edge")},
+				},
+			},
+
 			goipp.MakeAttribute("fld-mime",
 				goipp.TagMimeType, goipp.String("application/pdf")),
 			goipp.Attribute{
@@ -205,6 +225,17 @@ var ippDecodeTestData = []ippDecodeTest{
 				},
 			},
 
+			goipp.MakeAttribute("fld-name",
+				goipp.TagName, goipp.String("Printer in a classroom")),
+			goipp.Attribute{
+				Name: "fld-name-slice",
+				Values: goipp.Values{
+					{goipp.TagName, goipp.String("Job0001")},
+					{goipp.TagName, goipp.String("Job0002")},
+					{goipp.TagName, goipp.String("Job0003")},
+				},
+			},
+
 			goipp.MakeAttribute("fld-string",
 				goipp.TagString, goipp.String("hello, world")),
 			goipp.Attribute{
@@ -213,6 +244,17 @@ var ippDecodeTestData = []ippDecodeTest{
 					{goipp.TagString, goipp.String("A")},
 					{goipp.TagString, goipp.String("B")},
 					{goipp.TagString, goipp.String("C")},
+				},
+			},
+
+			goipp.MakeAttribute("fld-text",
+				goipp.TagText, goipp.String("ping pong")),
+			goipp.Attribute{
+				Name: "fld-text-slice",
+				Values: goipp.Values{
+					{goipp.TagText, goipp.String("X")},
+					{goipp.TagText, goipp.String("Y")},
+					{goipp.TagText, goipp.String("Z")},
 				},
 			},
 		},
@@ -232,14 +274,29 @@ var ippDecodeTestData = []ippDecodeTest{
 			FldInteger:      1234,
 			FldIntegerSlice: []int{1, 2, 3},
 
+			FldKeyword: "document",
+			FldKeywordSlice: []string{
+				"one-sided",
+				"two-sided-short-edge",
+				"two-sided-long-edge"},
+
 			FldMime: "application/pdf",
 			FldMimeSlice: []string{
 				"image/tiff",
 				"image/jpeg",
 				"image/urf"},
 
+			FldName: "Printer in a classroom",
+			FldNameSlice: []string{
+				"Job0001",
+				"Job0002",
+				"Job0003"},
+
 			FldString:      "hello, world",
 			FldStringSlice: []string{"A", "B", "C"},
+
+			FldText:      "ping pong",
+			FldTextSlice: []string{"X", "Y", "Z"},
 		},
 	},
 	{
@@ -322,6 +379,8 @@ func (test ippDecodeTest) exec(t *testing.T) {
 	if !reflect.DeepEqual(test.data, out) {
 		t.Errorf("in test %q:", test.name)
 		t.Errorf("decode: input/output mismatch")
+		t.Errorf("expected: %#v\n", test.data)
+		t.Errorf("present: %#v\n", out)
 		return
 	}
 
