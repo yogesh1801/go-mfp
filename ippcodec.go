@@ -11,7 +11,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"os"
 	"reflect"
 	"sort"
 	"strconv"
@@ -51,52 +50,6 @@ var (
 	ippCodecPrinterAttributes = ippCodecMustGenerate(
 		reflect.TypeOf(PrinterAttributes{}))
 )
-
-func init() {
-	return
-	println("=============================")
-	p := &PrinterAttributes{
-		CharsetConfigured:    DefaultCharsetConfigured,
-		CharsetSupported:     DefaultCharsetSupported,
-		CompressionSupported: []string{"none"},
-		IppFeaturesSupported: []string{
-			"airprint-1.7",
-			"airprint-1.6",
-			"airprint-1.5",
-			"airprint-1.4",
-		},
-		IppVersionsSupported: DefaultIppVersionsSupported,
-		MediaSizeSupported: []PrinterMediaSizeSupported{
-			{21590, 27940},
-			{21000, 29700},
-		},
-		MediaSizeSupportedRange: PrinterMediaSizeSupportedRange{
-			XDimension: goipp.Range{Lower: 10000, Upper: 14800},
-			YDimension: goipp.Range{Lower: 21600, Upper: 35600},
-		},
-		OperationsSupported: []goipp.Op{
-			goipp.OpGetPrinterAttributes,
-		},
-	}
-
-	msg := goipp.NewResponse(goipp.DefaultVersion, 0, 0)
-	ippCodecPrinterAttributes.encode(p, &msg.Printer)
-	msg.Print(os.Stdout, false)
-
-	println("=============================")
-	p2 := &PrinterAttributes{}
-	err := ippCodecPrinterAttributes.decode(p2, msg.Printer)
-	if err != nil {
-		panic(err)
-	}
-
-	v := reflect.ValueOf(*p2)
-	for i := 0; i < v.NumField(); i++ {
-		name := v.Type().Field(i).Name
-		fld := v.Field(i)
-		fmt.Printf("%s: %#v\n", name, fld.Interface())
-	}
-}
 
 // ippCodecMustGenerate calls ippCodecGenerate for the particular
 // type and panics if it fails
