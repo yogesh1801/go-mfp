@@ -305,21 +305,6 @@ func (codec ippCodec) doDecode(out interface{}, attrs goipp.Attributes) error {
 		err := step.decode(unsafe.Pointer(uintptr(p)+step.offset),
 			attr.Values)
 
-		var conv ippErrConvert
-		if errors.As(err, &conv) {
-			switch {
-			case step.flgRange &&
-				(conv.from == goipp.TypeInteger) &&
-				(conv.to == goipp.TypeRange):
-				err = nil
-
-			case step.flgNorange &&
-				(conv.to == goipp.TypeInteger) &&
-				(conv.from == goipp.TypeRange):
-				err = nil
-			}
-		}
-
 		if err != nil {
 			return fmt.Errorf("%q: %w", step.attrName, err)
 		}
