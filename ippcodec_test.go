@@ -131,6 +131,8 @@ func (test ippEncodeDecodeTest) exec(t *testing.T) {
 	if !reflect.DeepEqual(test.data, out) {
 		t.Errorf("in test %q:", test.name)
 		t.Errorf("input/output mismatch")
+		t.Errorf("expected: %#v\n", test.data)
+		t.Errorf("present: %#v\n", out)
 	}
 }
 
