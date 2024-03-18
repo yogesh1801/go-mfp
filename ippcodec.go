@@ -227,13 +227,13 @@ func (codec ippCodec) encode(in interface{}, attrs *goipp.Attributes) {
 	// Export encoded attributes from the attrByName
 	//
 	// We sort resulting attributes by name with the purpose
-	// ho have always reproducible result. IPP doesn't dictate
+	// to have always reproducible result. IPP doesn't dictate
 	// any particular order of attributes, but Go map traversal
 	// will always produce a different order of attributes, which
 	// we want to avoid
 	newattrs := make(goipp.Attributes, 0, len(attrByName))
 	for _, attr := range attrByName {
-		attrs.Add(attr)
+		newattrs.Add(attr)
 	}
 	sort.Slice(newattrs, func(i, j int) bool {
 		return newattrs[i].Name < newattrs[j].Name
