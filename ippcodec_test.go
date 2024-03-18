@@ -73,7 +73,7 @@ var ippEncodeDecodeTestData = []ippEncodeDecodeTest{
 		name:  "panic expected: ippCodec applied to wrong type",
 		t:     reflect.TypeOf(PrinterAttributes{}),
 		data:  1,
-		panic: errors.New(`Encoder for "*PrinterAttributes" applied to "int"`),
+		panic: errors.New(`Encoder for "*ippx.PrinterAttributes" applied to "int"`),
 	},
 	{
 		name: "success expected",
@@ -321,7 +321,7 @@ var ippDecodeTestData = []ippDecodeTest{
 	{
 		name: "string field: Integer passed",
 		t:    reflect.TypeOf(PrinterAttributes{}),
-		err:  errors.New(`IPP decode PrinterAttributes: "charset-configured": can't convert Integer to String`),
+		err:  errors.New(`IPP decode ippx.PrinterAttributes: "charset-configured": can't convert Integer to String`),
 		attrs: goipp.Attributes{
 			goipp.Attribute{
 				Name: "charset-configured",
@@ -337,7 +337,7 @@ var ippDecodeTestData = []ippDecodeTest{
 	{
 		name: "string field: no values passed",
 		t:    reflect.TypeOf(PrinterAttributes{}),
-		err:  errors.New(`IPP decode PrinterAttributes: "charset-configured": at least 1 value required`),
+		err:  errors.New(`IPP decode ippx.PrinterAttributes: "charset-configured": at least 1 value required`),
 		attrs: goipp.Attributes{
 			goipp.Attribute{
 				Name: "charset-configured",
@@ -347,7 +347,7 @@ var ippDecodeTestData = []ippDecodeTest{
 	{
 		name: "[]string field: Integer passed",
 		t:    reflect.TypeOf(PrinterAttributes{}),
-		err:  errors.New(`IPP decode PrinterAttributes: "charset-supported": can't convert Integer to String`),
+		err:  errors.New(`IPP decode ippx.PrinterAttributes: "charset-supported": can't convert Integer to String`),
 		attrs: goipp.Attributes{
 			goipp.Attribute{
 				Name: "charset-supported",

@@ -64,7 +64,7 @@ func ippCodecMustGenerate(t reflect.Type) *ippCodec {
 // ippCodecGenerate generates codec for the particular type.
 func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 	if t.Kind() != reflect.Struct {
-		err := fmt.Errorf("%s: is not struct", t.Name())
+		err := fmt.Errorf("%s: is not struct", t)
 		return nil, err
 	}
 
@@ -96,8 +96,7 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 		// Parse ipp: struct tag
 		tag, err := ippStructTagParse(tagStr)
 		if err != nil {
-			return nil, fmt.Errorf("%s.%s: %w",
-				t.Name(), fld.Name, err)
+			return nil, fmt.Errorf("%s.%s: %w", t, fld.Name, err)
 		}
 
 		// Obtain ippCodecMethods
@@ -130,7 +129,7 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 
 		if methods == nil {
 			err := fmt.Errorf("%s.%s: %s type not supported",
-				t.Name(), fld.Name, fldKind)
+				t, fld.Name, fldKind)
 
 			return nil, err
 		}
@@ -173,7 +172,7 @@ func (codec ippCodec) encode(in interface{}, attrs *goipp.Attributes) {
 	v := reflect.ValueOf(in)
 	if v.Kind() != reflect.Pointer || v.Elem().Type() != codec.t {
 		err := fmt.Errorf("Encoder for %q applied to %q",
-			"*"+codec.t.Name(), reflect.TypeOf(in).Name())
+			reflect.PtrTo(codec.t), reflect.TypeOf(in))
 		panic(err)
 	}
 
@@ -234,7 +233,7 @@ func (codec ippCodec) encode(in interface{}, attrs *goipp.Attributes) {
 func (codec ippCodec) decode(out interface{}, attrs goipp.Attributes) error {
 	err := codec.doDecode(out, attrs)
 	if err != nil {
-		err = fmt.Errorf("IPP decode %s: %w", codec.t.Name(), err)
+		err = fmt.Errorf("IPP decode %s: %w", codec.t, err)
 	}
 	return err
 }
@@ -246,7 +245,7 @@ func (codec ippCodec) doDecode(out interface{}, attrs goipp.Attributes) error {
 	v := reflect.ValueOf(out)
 	if v.Kind() != reflect.Pointer || v.Elem().Type() != codec.t {
 		err := fmt.Errorf("Decoder for %q applied to %q",
-			"*"+codec.t.Name(), reflect.TypeOf(out).Name())
+			reflect.PtrTo(codec.t), reflect.TypeOf(out))
 		panic(err)
 	}
 
@@ -391,7 +390,7 @@ type ippCodecMethods struct {
 // ippEncSlice encodes slice of values
 //
 // p is pointer to slice, t is slice types (so for []string t will be
-// []string while // p's value will be of type *[]string, represented
+// []string while p's value will be of type *[]string, represented
 // as unsafe.Pointer)
 //
 // encode is the single-value encoder (i.e., ippEncString for slice
