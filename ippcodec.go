@@ -289,7 +289,13 @@ func (codec ippCodec) doDecode(out interface{}, attrs goipp.Attributes) error {
 		}
 
 		// If not slice, at least one value must be present
-		if !step.slice && len(attr.Values) == 0 {
+		// IPP protocol doesn't allow attributes without values
+		// and github.com/OpenPrinting/goipp will never return
+		// them.
+		//
+		// So if Values slice is empty, this is artificial construct.
+		// Reject it in this case.
+		if len(attr.Values) == 0 {
 			err := fmt.Errorf("%q: at least 1 value required",
 				step.attrName)
 			return err
