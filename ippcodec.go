@@ -683,7 +683,7 @@ ERROR:
 // Encode: time.Time
 func ippEncDateTime(p unsafe.Pointer) []goipp.Value {
 	in := *(*time.Time)(p)
-	out := []goipp.Value{goipp.Time{in}}
+	out := []goipp.Value{goipp.Time{Time: in}}
 	return out
 }
 

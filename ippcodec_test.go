@@ -170,14 +170,14 @@ var ippDecodeTestData = []ippDecodeTest{
 			},
 
 			goipp.MakeAttribute("fld-datetime",
-				goipp.TagDateTime, goipp.Time{testTime1}),
+				goipp.TagDateTime, goipp.Time{Time: testTime1}),
 
 			goipp.Attribute{
 				Name: "fld-datetime-slice",
 				Values: goipp.Values{
-					{goipp.TagDateTime, goipp.Time{testTime2}},
-					{goipp.TagDateTime, goipp.Time{testTime3}},
-					{goipp.TagDateTime, goipp.Time{testTime4}},
+					{goipp.TagDateTime, goipp.Time{Time: testTime2}},
+					{goipp.TagDateTime, goipp.Time{Time: testTime3}},
+					{goipp.TagDateTime, goipp.Time{Time: testTime4}},
 				},
 			},
 
