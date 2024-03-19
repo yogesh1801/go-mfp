@@ -320,6 +320,28 @@ type ippStructTag struct {
 	flgRange, flgNorange bool      // "range"/"norange" flags
 }
 
+// ippStructTagToIppTag maps ipp: struct tag keyword to the
+// corresponding IPP tag
+var ippStructTagToIppTag = map[string]goipp.Tag{
+	"boolean":          goipp.TagBoolean,
+	"charset":          goipp.TagCharset,
+	"datetime":         goipp.TagDateTime,
+	"enum":             goipp.TagEnum,
+	"integer":          goipp.TagInteger,
+	"keyword":          goipp.TagKeyword,
+	"mimemediatype":    goipp.TagMimeType,
+	"name":             goipp.TagName,
+	"namewithlanguage": goipp.TagNameLang,
+	"naturallanguage":  goipp.TagLanguage,
+	"rangeofinteger":   goipp.TagRange,
+	"resolution":       goipp.TagResolution,
+	"string":           goipp.TagString,
+	"text":             goipp.TagText,
+	"textwithlanguage": goipp.TagTextLang,
+	"uri":              goipp.TagURI,
+	"urischeme":        goipp.TagURIScheme,
+}
+
 // ippStructTagParse parses ipp: struct tag into the
 // ippStructTag structure
 func ippStructTagParse(s string) (*ippStructTag, error) {
@@ -337,46 +359,14 @@ func ippStructTagParse(s string) (*ippStructTag, error) {
 	}
 
 	for _, part := range parts[1:] {
-		switch strings.ToLower(part) {
-		case "boolean":
-			tag.ippTag = goipp.TagBoolean
-		case "charset":
-			tag.ippTag = goipp.TagCharset
-		case "datetime":
-			tag.ippTag = goipp.TagDateTime
-		case "enum":
-			tag.ippTag = goipp.TagEnum
-		case "integer":
-			tag.ippTag = goipp.TagInteger
-		case "keyword":
-			tag.ippTag = goipp.TagKeyword
-		case "mimemediatype":
-			tag.ippTag = goipp.TagMimeType
-		case "name":
-			tag.ippTag = goipp.TagName
-		case "namewithlanguage":
-			tag.ippTag = goipp.TagNameLang
-		case "naturallanguage":
-			tag.ippTag = goipp.TagLanguage
-		case "rangeofinteger":
-			tag.ippTag = goipp.TagRange
-		case "resolution":
-			tag.ippTag = goipp.TagResolution
-		case "string":
-			tag.ippTag = goipp.TagString
-		case "text":
-			tag.ippTag = goipp.TagText
-		case "textwithlanguage":
-			tag.ippTag = goipp.TagTextLang
-		case "uri":
-			tag.ippTag = goipp.TagURI
-		case "urischeme":
-			tag.ippTag = goipp.TagURIScheme
-
-		case "range":
-			tag.flgRange = true
-		case "norange":
-			tag.flgNorange = true
+		tag.ippTag = ippStructTagToIppTag[part]
+		if tag.ippTag == 0 {
+			switch strings.ToLower(part) {
+			case "range":
+				tag.flgRange = true
+			case "norange":
+				tag.flgNorange = true
+			}
 		}
 	}
 
