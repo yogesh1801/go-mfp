@@ -48,6 +48,9 @@ type ippTestStruct struct {
 
 	FldText      string   `ipp:"fld-text,text"`
 	FldTextSlice []string `ipp:"fld-text-slice,text"`
+
+	FldVersion      goipp.Version   `ipp:"fld-version"`
+	FldVersionSlice []goipp.Version `ipp:"fld-version-slice"`
 }
 
 // ----- IPP encode/decode test -----
@@ -259,6 +262,17 @@ var ippDecodeTestData = []ippDecodeTest{
 					{goipp.TagText, goipp.String("Z")},
 				},
 			},
+
+			goipp.MakeAttribute("fld-version",
+				goipp.TagText, goipp.String("2.0")),
+			goipp.Attribute{
+				Name: "fld-version-slice",
+				Values: goipp.Values{
+					{goipp.TagText, goipp.String("2.0")},
+					{goipp.TagText, goipp.String("1.1")},
+					{goipp.TagText, goipp.String("1.0")},
+				},
+			},
 		},
 		data: &ippTestStruct{
 			FldBooleanF:     false,
@@ -299,6 +313,13 @@ var ippDecodeTestData = []ippDecodeTest{
 
 			FldText:      "ping pong",
 			FldTextSlice: []string{"X", "Y", "Z"},
+
+			FldVersion: goipp.MakeVersion(2, 0),
+			FldVersionSlice: []goipp.Version{
+				goipp.MakeVersion(2, 0),
+				goipp.MakeVersion(1, 1),
+				goipp.MakeVersion(1, 0),
+			},
 		},
 	},
 	{
