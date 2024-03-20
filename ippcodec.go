@@ -178,6 +178,12 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 		codec.steps = append(codec.steps, step)
 	}
 
+	// At least 1 step must be generated
+	if len(codec.steps) == 0 {
+		err := fmt.Errorf("%s: contains no IPP fields", t)
+		return nil, err
+	}
+
 	return codec, nil
 }
 
