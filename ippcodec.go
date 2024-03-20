@@ -127,6 +127,8 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 				slice, skip)
 
 			if err != nil {
+				err = fmt.Errorf("%s.%s: %w",
+					t, fld.Name, err)
 				return nil, err
 			}
 
