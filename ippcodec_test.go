@@ -622,7 +622,6 @@ func (test ippEncodeDecodeTest) exec(t *testing.T) {
 
 // IPP encode/decode test
 func TestIppEncodeDecode(t *testing.T) {
-	return
 	for _, test := range ippEncodeDecodeTestData {
 		test.exec(t)
 	}
