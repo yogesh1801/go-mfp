@@ -18,6 +18,63 @@ import (
 	"github.com/OpenPrinting/goipp"
 )
 
+// ----- ippCodecGenerate test -----
+
+type ippCodecGenerateTest struct {
+	data interface{}
+	err  error
+}
+
+var ippCodecGenerateTestData = []ippCodecGenerateTest{
+	{
+		data: struct {
+			FldOk      int `ipp:"fld-ok"`
+			unexported string
+		}{},
+	},
+
+	{
+		data: struct {
+			FldNoIPPTag int
+		}{},
+		err: errors.New(`struct { FldNoIPPTag int }: contains no IPP fields`),
+	},
+
+	{
+		data: struct {
+			FldBad int `ipp:""`
+		}{},
+		err: errors.New(`struct { FldBad int "ipp:\"\"" }.FldBad: missed attribute name`),
+	},
+
+	{
+		data: struct {
+			FldBad float64 `ipp:"flg-bad"`
+		}{},
+		err: errors.New(`struct { FldBad float64 "ipp:\"flg-bad\"" }.FldBad: float64 type not supported`),
+	},
+
+	{
+		data: struct {
+			Nested struct {
+				FldBad float64 `ipp:"flg-bad"`
+			} `ipp:"flg-nested"`
+		}{},
+		err: errors.New(`struct { Nested struct { FldBad float64 "ipp:\"flg-bad\"" } "ipp:\"flg-nested\"" }.Nested: struct { FldBad float64 "ipp:\"flg-bad\"" }.FldBad: float64 type not supported`),
+	},
+}
+
+func (test ippCodecGenerateTest) exec(t *testing.T) {
+	_, err := ippCodecGenerate(reflect.TypeOf(test.data))
+	checkError(t, "TestIppCodecGenerate", err, test.err)
+}
+
+func TestIppCodecGenerate(t *testing.T) {
+	for _, test := range ippCodecGenerateTestData {
+		test.exec(t)
+	}
+}
+
 // ----- Decode test -----
 
 // ippTestStruct is the structure, intended for testing
