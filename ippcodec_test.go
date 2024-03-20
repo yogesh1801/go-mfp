@@ -49,6 +49,12 @@ type ippTestStruct struct {
 	FldName      string   `ipp:"fld-name,name"`
 	FldNameSlice []string `ipp:"fld-name-slice,name"`
 
+	FldRange      goipp.Range   `ipp:"fld-range,rangeOfInteger"`
+	FldRangeSlice []goipp.Range `ipp:"fld-range-slice,rangeOfIntege"`
+
+	FldResolution      goipp.Resolution   `ipp:"fld-resolution,resolution"`
+	FldResolutionSlice []goipp.Resolution `ipp:"fld-resolution-slice,resolution"`
+
 	FldString      string   `ipp:"fld-string,string"`
 	FldStringSlice []string `ipp:"fld-string-slice,string"`
 
@@ -274,6 +280,29 @@ var ippDecodeTestData = []ippDecodeTest{
 				},
 			},
 
+			goipp.MakeAttribute("fld-range",
+				goipp.TagRange, goipp.Range{Lower: 1, Upper: 99}),
+			goipp.Attribute{
+				Name: "fld-range-slice",
+				Values: goipp.Values{
+					{goipp.TagRange, goipp.Range{Lower: 10000, Upper: 14800}},
+					{goipp.TagRange, goipp.Range{Lower: 21600, Upper: 35600}},
+				},
+			},
+
+			goipp.MakeAttribute("fld-resolution",
+				goipp.TagResolution,
+				goipp.Resolution{Xres: 100, Yres: 150, Units: goipp.UnitsDpi}),
+			goipp.Attribute{
+				Name: "fld-resolution-slice",
+				Values: goipp.Values{
+					{goipp.TagResolution, goipp.Resolution{Xres: 200, Yres: 300,
+						Units: goipp.UnitsDpi}},
+					{goipp.TagResolution, goipp.Resolution{Xres: 400, Yres: 500,
+						Units: goipp.UnitsDpcm}},
+				},
+			},
+
 			goipp.MakeAttribute("fld-string",
 				goipp.TagString, goipp.String("hello, world")),
 			goipp.Attribute{
@@ -366,6 +395,16 @@ var ippDecodeTestData = []ippDecodeTest{
 				"Job0001",
 				"Job0002",
 				"Job0003"},
+
+			FldRange: goipp.Range{Lower: 1, Upper: 99},
+			FldRangeSlice: []goipp.Range{
+				{Lower: 10000, Upper: 14800},
+				{Lower: 21600, Upper: 35600}},
+
+			FldResolution: goipp.Resolution{Xres: 100, Yres: 150, Units: goipp.UnitsDpi},
+			FldResolutionSlice: []goipp.Resolution{
+				goipp.Resolution{Xres: 200, Yres: 300, Units: goipp.UnitsDpi},
+				goipp.Resolution{Xres: 400, Yres: 500, Units: goipp.UnitsDpcm}},
 
 			FldString:      "hello, world",
 			FldStringSlice: []string{"A", "B", "C"},
