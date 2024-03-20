@@ -8,8 +8,8 @@
 package ippx
 
 import (
+	"bytes"
 	"errors"
-	"os"
 	"reflect"
 	"sort"
 	"testing"
@@ -25,6 +25,9 @@ type ippTestStruct struct {
 	FldBooleanSlice []bool `ipp:"fld-boolean-slice,boolean"`
 	FldBooleanT     bool   `ipp:"fld-boolean-t,boolean"`
 
+	FldCharset      string   `ipp:"fld-charset,charset"`
+	FldCharsetSlice []string `ipp:"fld-charset-slice,charset"`
+
 	FldDateTime      time.Time   `ipp:"fld-datetime,datetime"`
 	FldDateTimeSlice []time.Time `ipp:"fld-datetime-slice,datetime"`
 
@@ -37,6 +40,9 @@ type ippTestStruct struct {
 	FldKeyword      string   `ipp:"fld-keyword,keyword"`
 	FldKeywordSlice []string `ipp:"fld-keyword-slice,keyword"`
 
+	FldLanguage      string   `ipp:"fld-language,naturalLanguage"`
+	FldLanguageSlice []string `ipp:"fld-language-slice,naturalLanguage"`
+
 	FldMime      string   `ipp:"fld-mime,mimemediatype"`
 	FldMimeSlice []string `ipp:"fld-mime-slice,mimemediatype"`
 
@@ -48,6 +54,12 @@ type ippTestStruct struct {
 
 	FldText      string   `ipp:"fld-text,text"`
 	FldTextSlice []string `ipp:"fld-text-slice,text"`
+
+	FldURI      string   `ipp:"fld-uri,uri"`
+	FldURISlice []string `ipp:"fld-uri-slice,uri"`
+
+	FldURIScheme      string   `ipp:"fld-urischeme,urischeme"`
+	FldURISchemeSlice []string `ipp:"fld-urischeme-slice,urischeme"`
 
 	FldVersion      goipp.Version   `ipp:"fld-version"`
 	FldVersionSlice []goipp.Version `ipp:"fld-version-slice"`
@@ -174,9 +186,19 @@ var ippDecodeTestData = []ippDecodeTest{
 				},
 			},
 
+			goipp.MakeAttribute("fld-charset",
+				goipp.TagCharset, goipp.String("utf-8")),
+			goipp.Attribute{
+				Name: "fld-charset-slice",
+				Values: goipp.Values{
+					{goipp.TagCharset, goipp.String("ibm866")},
+					{goipp.TagCharset, goipp.String("iso-8859-5")},
+					{goipp.TagCharset, goipp.String("windows-1251")},
+				},
+			},
+
 			goipp.MakeAttribute("fld-datetime",
 				goipp.TagDateTime, goipp.Time{Time: testTime1}),
-
 			goipp.Attribute{
 				Name: "fld-datetime-slice",
 				Values: goipp.Values{
@@ -216,6 +238,17 @@ var ippDecodeTestData = []ippDecodeTest{
 					{goipp.TagKeyword, goipp.String("one-sided")},
 					{goipp.TagKeyword, goipp.String("two-sided-short-edge")},
 					{goipp.TagKeyword, goipp.String("two-sided-long-edge")},
+				},
+			},
+
+			goipp.MakeAttribute("fld-language",
+				goipp.TagLanguage, goipp.String("en-US")),
+			goipp.Attribute{
+				Name: "fld-language-slice",
+				Values: goipp.Values{
+					{goipp.TagLanguage, goipp.String("be-BY")},
+					{goipp.TagLanguage, goipp.String("ru-RU")},
+					{goipp.TagLanguage, goipp.String("uk-UA")},
 				},
 			},
 
@@ -263,14 +296,34 @@ var ippDecodeTestData = []ippDecodeTest{
 				},
 			},
 
+			goipp.MakeAttribute("fld-uri",
+				goipp.TagURI, goipp.String("http://example.com")),
+			goipp.Attribute{
+				Name: "fld-uri-slice",
+				Values: goipp.Values{
+					{goipp.TagURI, goipp.String("http://example.com/print")},
+					{goipp.TagURI, goipp.String("http://example.com/scan")},
+				},
+			},
+
+			goipp.MakeAttribute("fld-urischeme",
+				goipp.TagURIScheme, goipp.String("http")),
+			goipp.Attribute{
+				Name: "fld-urischeme-slice",
+				Values: goipp.Values{
+					{goipp.TagURIScheme, goipp.String("tel")},
+					{goipp.TagURIScheme, goipp.String("mailto")},
+				},
+			},
+
 			goipp.MakeAttribute("fld-version",
-				goipp.TagText, goipp.String("2.0")),
+				goipp.TagKeyword, goipp.String("2.0")),
 			goipp.Attribute{
 				Name: "fld-version-slice",
 				Values: goipp.Values{
-					{goipp.TagText, goipp.String("2.0")},
-					{goipp.TagText, goipp.String("1.1")},
-					{goipp.TagText, goipp.String("1.0")},
+					{goipp.TagKeyword, goipp.String("2.0")},
+					{goipp.TagKeyword, goipp.String("1.1")},
+					{goipp.TagKeyword, goipp.String("1.0")},
 				},
 			},
 		},
@@ -278,6 +331,9 @@ var ippDecodeTestData = []ippDecodeTest{
 			FldBooleanF:     false,
 			FldBooleanT:     true,
 			FldBooleanSlice: []bool{true, false},
+
+			FldCharset:      "utf-8",
+			FldCharsetSlice: []string{"ibm866", "iso-8859-5", "windows-1251"},
 
 			FldDateTime: testTime1,
 			FldDateTimeSlice: []time.Time{
@@ -296,6 +352,9 @@ var ippDecodeTestData = []ippDecodeTest{
 				"two-sided-short-edge",
 				"two-sided-long-edge"},
 
+			FldLanguage:      "en-US",
+			FldLanguageSlice: []string{"be-BY", "ru-RU", "uk-UA"},
+
 			FldMime: "application/pdf",
 			FldMimeSlice: []string{
 				"image/tiff",
@@ -313,6 +372,14 @@ var ippDecodeTestData = []ippDecodeTest{
 
 			FldText:      "ping pong",
 			FldTextSlice: []string{"X", "Y", "Z"},
+
+			FldURI: "http://example.com",
+			FldURISlice: []string{
+				"http://example.com/print",
+				"http://example.com/scan"},
+
+			FldURIScheme:      "http",
+			FldURISchemeSlice: []string{"tel", "mailto"},
 
 			FldVersion: goipp.MakeVersion(2, 0),
 			FldVersionSlice: []goipp.Version{
@@ -435,11 +502,16 @@ func (test ippDecodeTest) exec(t *testing.T) {
 		t.Errorf("encode: input/output mismatch")
 
 		var msg goipp.Message
-		msg = goipp.Message{Printer: attrs}
-		msg.Print(os.Stdout, true)
+		buf := &bytes.Buffer{}
 
 		msg = goipp.Message{Printer: attrs2}
-		msg.Print(os.Stdout, true)
+		msg.Print(buf, true)
+		t.Errorf("expected:\n%s", buf)
+
+		buf.Reset()
+		msg = goipp.Message{Printer: attrs}
+		msg.Print(buf, true)
+		t.Errorf("present:\n%s", buf)
 	}
 }
 
