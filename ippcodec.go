@@ -359,9 +359,11 @@ func ippStructTagParse(s string) (*ippStructTag, error) {
 	}
 
 	for _, part := range parts[1:] {
-		tag.ippTag = ippStructTagToIppTag[part]
+		kw := strings.ToLower(part)
+
+		tag.ippTag = ippStructTagToIppTag[kw]
 		if tag.ippTag == 0 {
-			switch strings.ToLower(part) {
+			switch strings.ToLower(kw) {
 			case "range":
 				tag.flgRange = true
 			case "norange":
