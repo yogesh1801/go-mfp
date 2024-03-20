@@ -537,10 +537,7 @@ func ippDecCollectionInternal(p unsafe.Pointer, vals goipp.Values,
 	for i := range vals {
 		coll, ok := vals[i].V.(goipp.Collection)
 		if !ok {
-			err := ippErrConvert{
-				from: vals[i].V.Type(),
-				to:   goipp.TypeCollection,
-			}
+			err := ippErrConvertMake(vals[i], goipp.TypeCollection)
 			return reflect.Value{}, err
 		}
 
@@ -603,11 +600,7 @@ func ippEncRange(p unsafe.Pointer) []goipp.Value {
 func ippDecRange(p unsafe.Pointer, vals goipp.Values) error {
 	res, ok := vals[0].V.(goipp.Range)
 	if !ok {
-		err := ippErrConvert{
-			from: vals[0].V.Type(),
-			to:   goipp.TypeRange,
-		}
-		return err
+		return ippErrConvertMake(vals[0], goipp.TypeRange)
 	}
 
 	*(*goipp.Range)(p) = res
@@ -625,11 +618,7 @@ func ippEncResolution(p unsafe.Pointer) []goipp.Value {
 func ippDecResolution(p unsafe.Pointer, vals goipp.Values) error {
 	res, ok := vals[0].V.(goipp.Resolution)
 	if !ok {
-		err := ippErrConvert{
-			from: vals[0].V.Type(),
-			to:   goipp.TypeResolution,
-		}
-		return err
+		return ippErrConvertMake(vals[0], goipp.TypeResolution)
 	}
 
 	*(*goipp.Resolution)(p) = res
@@ -647,11 +636,7 @@ func ippEncVersion(p unsafe.Pointer) []goipp.Value {
 func ippDecVersion(p unsafe.Pointer, vals goipp.Values) error {
 	s, ok := vals[0].V.(goipp.String)
 	if !ok {
-		err := ippErrConvert{
-			from: vals[0].V.Type(),
-			to:   goipp.TypeString,
-		}
-		return err
+		return ippErrConvertMake(vals[0], goipp.TypeString)
 	}
 
 	ver, err := ippDecVersionString(string(s))
@@ -701,11 +686,7 @@ func ippEncDateTime(p unsafe.Pointer) []goipp.Value {
 func ippDecDateTime(p unsafe.Pointer, vals goipp.Values) error {
 	res, ok := vals[0].V.(goipp.Time)
 	if !ok {
-		err := ippErrConvert{
-			from: vals[0].V.Type(),
-			to:   goipp.TypeDateTime,
-		}
-		return err
+		return ippErrConvertMake(vals[0], goipp.TypeDateTime)
 	}
 
 	*(*time.Time)(p) = res.Time
@@ -754,11 +735,7 @@ func ippEncBool(p unsafe.Pointer) []goipp.Value {
 func ippDecBool(p unsafe.Pointer, vals goipp.Values) error {
 	res, ok := vals[0].V.(goipp.Boolean)
 	if !ok {
-		err := ippErrConvert{
-			from: vals[0].V.Type(),
-			to:   goipp.TypeBoolean,
-		}
-		return err
+		return ippErrConvertMake(vals[0], goipp.TypeBoolean)
 	}
 
 	*(*bool)(p) = bool(res)
@@ -776,11 +753,7 @@ func ippEncInt(p unsafe.Pointer) []goipp.Value {
 func ippDecInt(p unsafe.Pointer, vals goipp.Values) error {
 	res, ok := vals[0].V.(goipp.Integer)
 	if !ok {
-		err := ippErrConvert{
-			from: vals[0].V.Type(),
-			to:   goipp.TypeInteger,
-		}
-		return err
+		return ippErrConvertMake(vals[0], goipp.TypeInteger)
 	}
 
 	*(*int)(p) = int(res)
@@ -798,11 +771,7 @@ func ippEncString(p unsafe.Pointer) []goipp.Value {
 func ippDecString(p unsafe.Pointer, vals goipp.Values) error {
 	res, ok := vals[0].V.(goipp.String)
 	if !ok {
-		err := ippErrConvert{
-			from: vals[0].V.Type(),
-			to:   goipp.TypeString,
-		}
-		return err
+		return ippErrConvertMake(vals[0], goipp.TypeString)
 	}
 
 	*(*string)(p) = string(res)
@@ -820,11 +789,7 @@ func ippEncUint16(p unsafe.Pointer) []goipp.Value {
 func ippDecUint16(p unsafe.Pointer, vals goipp.Values) error {
 	res, ok := vals[0].V.(goipp.Integer)
 	if !ok {
-		err := ippErrConvert{
-			from: vals[0].V.Type(),
-			to:   goipp.TypeInteger,
-		}
-		return err
+		return ippErrConvertMake(vals[0], goipp.TypeInteger)
 	}
 
 	if res < 0 || res > math.MaxUint16 {
@@ -840,13 +805,25 @@ func ippDecUint16(p unsafe.Pointer, vals goipp.Values) error {
 
 // Can't convert XXX to YYY
 type ippErrConvert struct {
+	fromTag  goipp.Tag
 	from, to goipp.Type
+}
+
+func ippErrConvertMake(fromval struct {
+	T goipp.Tag
+	V goipp.Value
+}, to goipp.Type) ippErrConvert {
+	return ippErrConvert{
+		fromTag: fromval.T,
+		from:    fromval.V.Type(),
+		to:      to,
+	}
 }
 
 // Convert ippErrConvert to string.
 // Implements error interface.
 func (err ippErrConvert) Error() string {
-	return fmt.Sprintf("can't convert %s to %s", err.from, err.to)
+	return fmt.Sprintf("can't convert %s to %s", err.fromTag, err.to)
 }
 
 // ippErrIsIntegerToRangeConversion returns true if error is
