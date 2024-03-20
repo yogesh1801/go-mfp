@@ -67,6 +67,9 @@ type ippTestStruct struct {
 	FldURIScheme      string   `ipp:"fld-urischeme,urischeme"`
 	FldURISchemeSlice []string `ipp:"fld-urischeme-slice,urischeme"`
 
+	FldUint16      uint16   `ipp:"fld-uint16"`
+	FldUint16Slice []uint16 `ipp:"fld-uint16-slice"`
+
 	FldVersion      goipp.Version   `ipp:"fld-version"`
 	FldVersionSlice []goipp.Version `ipp:"fld-version-slice"`
 }
@@ -167,18 +170,133 @@ func TestIppEncodeDecode(t *testing.T) {
 // ----- IPP decode test -----
 
 type ippDecodeTest struct {
-	name       string
-	t          reflect.Type
-	err        error
-	attrs      goipp.Attributes
-	data       interface{}
-	skipEncode bool
+	err   error
+	attrs goipp.Attributes
+	data  interface{}
 }
 
 var ippDecodeTestData = []ippDecodeTest{
+	// ----- Test for errors -----
 	{
-		name: "ippTestStruct: success expected",
-		t:    reflect.TypeOf(ippTestStruct{}),
+		attrs: goipp.Attributes{
+			goipp.MakeAttribute("fld-boolean-f",
+				goipp.TagInteger, goipp.Integer(12345)),
+		},
+
+		err: errors.New(`IPP decode ippx.ippTestStruct: "fld-boolean-f": can't convert integer to Boolean`),
+	},
+
+	{
+		attrs: goipp.Attributes{
+			goipp.MakeAttribute("fld-string",
+				goipp.TagInteger, goipp.Integer(12345)),
+		},
+
+		err: errors.New(`IPP decode ippx.ippTestStruct: "fld-string": can't convert integer to String`),
+	},
+
+	{
+		attrs: goipp.Attributes{
+			goipp.MakeAttribute("fld-datetime",
+				goipp.TagInteger, goipp.Integer(12345)),
+		},
+
+		err: errors.New(`IPP decode ippx.ippTestStruct: "fld-datetime": can't convert integer to DateTime`),
+	},
+
+	{
+		attrs: goipp.Attributes{
+			goipp.MakeAttribute("fld-enum",
+				goipp.TagText, goipp.String("12345")),
+		},
+
+		err: errors.New(`IPP decode ippx.ippTestStruct: "fld-enum": can't convert textWithoutLanguage to Integer`),
+	},
+
+	{
+		attrs: goipp.Attributes{
+			goipp.MakeAttribute("fld-range",
+				goipp.TagText, goipp.String("12345")),
+		},
+
+		err: errors.New(`IPP decode ippx.ippTestStruct: "fld-range": can't convert textWithoutLanguage to Range`),
+	},
+
+	{
+		attrs: goipp.Attributes{
+			goipp.MakeAttribute("fld-resolution",
+				goipp.TagInteger, goipp.Integer(12345)),
+		},
+
+		err: errors.New(`IPP decode ippx.ippTestStruct: "fld-resolution": can't convert integer to Resolution`),
+	},
+
+	{
+		attrs: goipp.Attributes{
+			goipp.MakeAttribute("fld-uint16",
+				goipp.TagInteger, goipp.Integer(65536)),
+		},
+
+		err: errors.New(`IPP decode ippx.ippTestStruct: "fld-uint16": Value 65536 out of range`),
+	},
+
+	{
+		attrs: goipp.Attributes{
+			goipp.MakeAttribute("fld-uint16",
+				goipp.TagInteger, goipp.Integer(-1)),
+		},
+
+		err: errors.New(`IPP decode ippx.ippTestStruct: "fld-uint16": Value -1 out of range`),
+	},
+
+	{
+		attrs: goipp.Attributes{
+			goipp.MakeAttribute("fld-uint16",
+				goipp.TagText, goipp.String("12345")),
+		},
+
+		err: errors.New(`IPP decode ippx.ippTestStruct: "fld-uint16": can't convert textWithoutLanguage to Integer`),
+	},
+
+	{
+		attrs: goipp.Attributes{
+			goipp.MakeAttribute("fld-version",
+				goipp.TagText, goipp.String("12345")),
+		},
+
+		err: errors.New(`IPP decode ippx.ippTestStruct: "fld-version": "12345": invalid version string`),
+	},
+
+	{
+		attrs: goipp.Attributes{
+			goipp.MakeAttribute("fld-version",
+				goipp.TagText, goipp.String("aaa.bbb")),
+		},
+
+		err: errors.New(`IPP decode ippx.ippTestStruct: "fld-version": "aaa.bbb": invalid version string`),
+	},
+
+	{
+		attrs: goipp.Attributes{
+			goipp.MakeAttribute("fld-version",
+				goipp.TagText, goipp.String("123.bbb")),
+		},
+
+		err: errors.New(`IPP decode ippx.ippTestStruct: "fld-version": "123.bbb": invalid version string`),
+	},
+
+	{
+		attrs: goipp.Attributes{
+			goipp.MakeAttribute("fld-version",
+				goipp.TagInteger, goipp.Integer(12345)),
+		},
+
+		err: errors.New(`IPP decode ippx.ippTestStruct: "fld-version": can't convert integer to String`),
+	},
+
+	// ----- Big test of successful decoding -----
+	{
+
 		attrs: goipp.Attributes{
 			goipp.MakeAttribute("fld-boolean-f",
 				goipp.TagBoolean, goipp.Boolean(false)),
@@ -345,6 +463,17 @@ var ippDecodeTestData = []ippDecodeTest{
 				},
 			},
 
+			goipp.MakeAttribute("fld-uint16",
+				goipp.TagInteger, goipp.Integer(4567)),
+			goipp.Attribute{
+				Name: "fld-uint16-slice",
+				Values: goipp.Values{
+					{goipp.TagInteger, goipp.Integer(11)},
+					{goipp.TagInteger, goipp.Integer(22)},
+					{goipp.TagInteger, goipp.Integer(33)},
+				},
+			},
+
 			goipp.MakeAttribute("fld-version",
 				goipp.TagKeyword, goipp.String("2.0")),
 			goipp.Attribute{
@@ -420,6 +549,9 @@ var ippDecodeTestData = []ippDecodeTest{
 			FldURIScheme:      "http",
 			FldURISchemeSlice: []string{"tel", "mailto"},
 
+			FldUint16:      4567,
+			FldUint16Slice: []uint16{11, 22, 33},
+
 			FldVersion: goipp.MakeVersion(2, 0),
 			FldVersionSlice: []goipp.Version{
 				goipp.MakeVersion(2, 0),
@@ -428,85 +560,24 @@ var ippDecodeTestData = []ippDecodeTest{
 			},
 		},
 	},
-	{
-		name:       "PrinterAttributes: success expected",
-		skipEncode: true,
-		t:          reflect.TypeOf(PrinterAttributes{}),
-		attrs: goipp.Attributes{
-			goipp.Attribute{
-				Name: "charset-configured",
-				Values: goipp.Values{
-					{
-						goipp.TagString,
-						goipp.String("utf-8"),
-					},
-				},
-			},
-		},
-		data: &PrinterAttributes{
-			CharsetConfigured: DefaultCharsetConfigured,
-		},
-	},
-	{
-		name: "string field: Integer passed",
-		t:    reflect.TypeOf(PrinterAttributes{}),
-		err:  errors.New(`IPP decode ippx.PrinterAttributes: "charset-configured": can't convert Integer to String`),
-		attrs: goipp.Attributes{
-			goipp.Attribute{
-				Name: "charset-configured",
-				Values: goipp.Values{
-					{
-						goipp.TagInteger,
-						goipp.Integer(0),
-					},
-				},
-			},
-		},
-	},
-	{
-		name: "string field: no values passed",
-		t:    reflect.TypeOf(PrinterAttributes{}),
-		err:  errors.New(`IPP decode ippx.PrinterAttributes: "charset-configured": at least 1 value required`),
-		attrs: goipp.Attributes{
-			goipp.Attribute{
-				Name: "charset-configured",
-			},
-		},
-	},
-	{
-		name: "[]string field: Integer passed",
-		t:    reflect.TypeOf(PrinterAttributes{}),
-		err:  errors.New(`IPP decode ippx.PrinterAttributes: "charset-supported": can't convert Integer to String`),
-		attrs: goipp.Attributes{
-			goipp.Attribute{
-				Name: "charset-supported",
-				Values: goipp.Values{
-					{
-						goipp.TagInteger,
-						goipp.Integer(0),
-					},
-				},
-			},
-		},
-	},
 }
 
 func (test ippDecodeTest) exec(t *testing.T) {
 	// Compile the codec
-	codec := ippCodecMustGenerate(test.t)
+	ttype := reflect.TypeOf(ippTestStruct{})
+	codec := ippCodecMustGenerate(ttype)
 
 	// Decode IPP attributes
-	out := reflect.New(test.t).Interface()
+	out := reflect.New(ttype).Interface()
 	err := codec.decode(out, test.attrs)
 
-	checkError(t, test.name, err, test.err)
+	checkError(t, "TestIppDecode", err, test.err)
 	if err != nil {
 		return
 	}
 
 	// Compare result against expected
 	if !reflect.DeepEqual(test.data, out) {
-		t.Errorf("in test %q:", test.name)
 		t.Errorf("decode: input/output mismatch")
 		t.Errorf("expected: %#v\n", test.data)
 		t.Errorf("present: %#v\n", out)
@@ -516,11 +587,6 @@ func (test ippDecodeTest) exec(t *testing.T) {
 	// Now encode it back
 	var attrs goipp.Attributes
 	codec.encode(out, &attrs)
-
-	// End compare encoded attributes
-	if test.skipEncode {
-		return
-	}
 
 	// Note, as decoding/encoding doesn't preserve
 	// original order of attributes, we need to
@@ -537,7 +603,6 @@ func (test ippDecodeTest) exec(t *testing.T) {
 	})
 
 	if !attrs.Equal(attrs2) {
-		t.Errorf("in test %q:", test.name)
 		t.Errorf("encode: input/output mismatch")
 
 		var msg goipp.Message
