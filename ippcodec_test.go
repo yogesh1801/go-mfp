@@ -20,11 +20,15 @@ import (
 
 // ----- ippCodecGenerate test -----
 
+// ippCodecGenerateTest represents a single test't data
+// for ippCodecGenerate
 type ippCodecGenerateTest struct {
-	data interface{}
-	err  error
+	data interface{} // Input structure
+	err  error       // Expected error
 }
 
+// ippCodecGenerateTestData contains collection of
+// ippCodecGenerate tests
 var ippCodecGenerateTestData = []ippCodecGenerateTest{
 	{
 		data: struct {
