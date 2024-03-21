@@ -27,6 +27,11 @@ type ippCodecGenerateTest struct {
 	err  error       // Expected error
 }
 
+// Anonymous used as embedded structure for ippCodecGenerate test
+type Anonymous struct {
+	X int
+}
+
 // ippCodecGenerateTestData contains collection of
 // ippCodecGenerate tests
 var ippCodecGenerateTestData = []ippCodecGenerateTest{
@@ -34,6 +39,7 @@ var ippCodecGenerateTestData = []ippCodecGenerateTest{
 		data: struct {
 			FldOk      int `ipp:"fld-ok"`
 			unexported string
+			Anonymous
 		}{},
 	},
 
