@@ -75,6 +75,31 @@ func TestIppCodecGenerate(t *testing.T) {
 	}
 }
 
+// ----- Decode panic test -----
+func TestDecodePanic(t *testing.T) {
+	// Compile the codec
+	ttype := reflect.TypeOf(ippTestStruct{})
+	codec := ippCodecMustGenerate(ttype)
+
+	var attrs goipp.Attributes
+	attrs.Add(goipp.MakeAttribute("test", goipp.TagInteger, goipp.Integer(5)))
+
+	p := &PrinterAttributes{}
+	errExpected := errors.New(`Decoder for "*ippx.ippTestStruct" applied to "**ippx.PrinterAttributes"`)
+
+	defer func() {
+		p := recover()
+		err, ok := p.(error)
+		if !ok {
+			panic(p)
+		}
+
+		checkError(t, "TestDecodePanic", err, errExpected)
+	}()
+
+	codec.decode(&p, attrs)
+}
+
 // ----- Decode test -----
 
 // ippTestStruct is the structure, intended for testing
