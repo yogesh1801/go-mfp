@@ -275,15 +275,14 @@ func (codec ippCodec) doDecode(out interface{}, attrs goipp.Attributes) error {
 	// Build map of attributes
 	attrByName := make(map[string]goipp.Attribute)
 	for _, attr := range attrs {
-		// If we see some attribute twice, we simply concatenate
-		// values
+		// If we see some attribute, the second occurrence
+		// Silently ignored. Note, CUPS does the same
 		//
-		// FIXME: check against IPP specs what is better to do
-		// here
-		if prev, found := attrByName[attr.Name]; found {
-			attr.Values = append(prev.Values, attr.Values...)
+		// For details, see discussion here:
+		//   https://lore.kernel.org/printing-architecture/84EEF38C-152E-4779-B1E8-578D6BB896E6@msweet.org/
+		if _, found := attrByName[attr.Name]; !found {
+			attrByName[attr.Name] = attr
 		}
-		attrByName[attr.Name] = attr
 	}
 
 	// Now decode, step by step

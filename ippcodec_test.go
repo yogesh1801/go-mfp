@@ -485,6 +485,15 @@ var ippDecodeTestData = []ippDecodeTest{
 					{goipp.TagKeyword, goipp.String("1.0")},
 				},
 			},
+
+			goipp.Attribute{
+				// Note: "fld-version-slice" purposely duplicated
+				Name: "fld-version-slice",
+				Values: goipp.Values{
+					{goipp.TagKeyword, goipp.String("0.0")},
+					{goipp.TagKeyword, goipp.String("0.1")},
+				},
+			},
 		},
 		data: &ippTestStruct{
 			FldBooleanF:     false,
@@ -595,13 +604,15 @@ func (test ippDecodeTest) exec(t *testing.T) {
 	attrs2 := make(goipp.Attributes, len(test.attrs))
 	copy(attrs2, test.attrs)
 
-	sort.Slice(attrs, func(i, j int) bool {
+	sort.SliceStable(attrs, func(i, j int) bool {
 		return attrs[i].Name < attrs[j].Name
 	})
 
-	sort.Slice(attrs2, func(i, j int) bool {
+	sort.SliceStable(attrs2, func(i, j int) bool {
 		return attrs2[i].Name < attrs2[j].Name
 	})
+
+	attrs2 = attrsDedup(attrs2)
 
 	if !attrs.Equal(attrs2) {
 		t.Errorf("encode: input/output mismatch")
@@ -736,6 +747,19 @@ func checkError(t *testing.T, name string, err, expected error) {
 		t.Errorf("in test %q:", name)
 		t.Errorf("error expected: %s, got: %s", expected, err)
 	}
+}
+
+// attrsDedup removes duplicated attributes
+func attrsDedup(attrs goipp.Attributes) goipp.Attributes {
+	newattrs := make(goipp.Attributes, 0, len(attrs))
+
+	for _, attr := range attrs {
+		if len(newattrs) == 0 || newattrs[len(newattrs)-1].Name != attr.Name {
+			newattrs = append(newattrs, attr)
+		}
+	}
+
+	return newattrs
 }
 
 var (
