@@ -295,6 +295,16 @@ var ippDecodeTestData = []ippDecodeTest{
 		err: errors.New(`IPP decode ippx.ippTestStruct: "fld-version": can't convert integer to String`),
 	},
 
+	{
+		attrs: goipp.Attributes{
+			goipp.Attribute{
+				Name: "fld-integer",
+			},
+		},
+
+		err: errors.New(`IPP decode ippx.ippTestStruct: "fld-integer": at least 1 value required`),
+	},
+
 	// ----- Big test of successful decoding -----
 	{
 
