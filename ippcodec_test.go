@@ -143,6 +143,8 @@ type ippTestStruct struct {
 	FldName      string   `ipp:"fld-name,name"`
 	FldNameSlice []string `ipp:"fld-name-slice,name"`
 
+	FlgNilSlice []int `ipp:"fld-nil-slice`
+
 	FldRange      goipp.Range   `ipp:"fld-range,rangeOfInteger"`
 	FldRangeSlice []goipp.Range `ipp:"fld-range-slice,rangeOfIntege"`
 
