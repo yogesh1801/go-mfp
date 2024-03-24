@@ -162,6 +162,20 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 			step.attrTag = methods.ippTag
 		}
 
+		t1 := step.attrTag.Type()
+		t2 := methods.ippTag.Type()
+
+		ok := t1 == t2 ||
+			t1 == goipp.TypeBinary && t2 == goipp.TypeString ||
+			t2 == goipp.TypeBinary && t1 == goipp.TypeString
+
+		if !ok {
+			err := fmt.Errorf("%s.%s: can't represent %s as %s",
+				t, fld.Name, fld.Type, step.attrTag)
+
+			return nil, err
+		}
+
 		if slice {
 			t := reflect.SliceOf(fldType)
 			step.encode = func(p unsafe.Pointer) []goipp.Value {

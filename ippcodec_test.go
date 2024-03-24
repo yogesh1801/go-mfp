@@ -88,6 +88,27 @@ var ippCodecGenerateTestData = []ippCodecGenerateTest{
 		}{},
 		err: errors.New(`struct { FldBadTag int "ipp:\"fld-bad-tag,unknown\"" }.FldBadTag: unknown keyword "unknown"`),
 	},
+
+	{
+		data: struct {
+			FldConv int `ipp:"fld-conv,string"`
+		}{},
+		err: errors.New(`struct { FldConv int "ipp:\"fld-conv,string\"" }.FldConv: can't represent int as octetString`),
+	},
+
+	{
+		data: struct {
+			FldConv string `ipp:"fld-conv,enum"`
+		}{},
+		err: errors.New(`struct { FldConv string "ipp:\"fld-conv,enum\"" }.FldConv: can't represent string as enum`),
+	},
+
+	{
+		data: struct {
+			FldConv bool `ipp:"fld-conv,keyword"`
+		}{},
+		err: errors.New(`struct { FldConv bool "ipp:\"fld-conv,keyword\"" }.FldConv: can't represent bool as keyword`),
+	},
 }
 
 func (test ippCodecGenerateTest) exec(t *testing.T) {
