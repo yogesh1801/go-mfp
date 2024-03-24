@@ -72,6 +72,22 @@ var ippCodecGenerateTestData = []ippCodecGenerateTest{
 		}{},
 		err: errors.New(`struct { Nested struct { FldBad float64 "ipp:\"flg-bad\"" } "ipp:\"flg-nested\"" }.Nested: struct { FldBad float64 "ipp:\"flg-bad\"" }.FldBad: float64 type not supported`),
 	},
+
+	{
+		data: struct {
+			// ipp: tag misses closing quote (")
+			FldBadTag int `ipp:"fld-bad-tag`
+		}{},
+		err: errors.New(`struct { FldBadTag int "ipp:\"fld-bad-tag" }.FldBadTag: invalid tag "ipp:\"fld-bad-tag"`),
+	},
+
+	{
+		data: struct {
+			// ipp: tag contains unknown keyword
+			FldBadTag int `ipp:"fld-bad-tag,unknown"`
+		}{},
+		err: errors.New(`struct { FldBadTag int "ipp:\"fld-bad-tag,unknown\"" }.FldBadTag: unknown keyword "unknown"`),
+	},
 }
 
 func (test ippCodecGenerateTest) exec(t *testing.T) {
@@ -143,10 +159,10 @@ type ippTestStruct struct {
 	FldName      string   `ipp:"fld-name,name"`
 	FldNameSlice []string `ipp:"fld-name-slice,name"`
 
-	FlgNilSlice []int `ipp:"fld-nil-slice`
+	FldNilSlice []int `ipp:"fld-nil-slice"`
 
 	FldRange      goipp.Range   `ipp:"fld-range,rangeOfInteger"`
-	FldRangeSlice []goipp.Range `ipp:"fld-range-slice,rangeOfIntege"`
+	FldRangeSlice []goipp.Range `ipp:"fld-range-slice,rangeOfInteger"`
 
 	FldResolution      goipp.Resolution   `ipp:"fld-resolution,resolution"`
 	FldResolutionSlice []goipp.Resolution `ipp:"fld-resolution-slice,resolution"`

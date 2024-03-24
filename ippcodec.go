@@ -90,6 +90,12 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 
 		tagStr, found := fld.Tag.Lookup("ipp")
 		if !found {
+			if strings.HasPrefix(string(fld.Tag), "ipp:") {
+				err := fmt.Errorf("%s.%s: invalid tag %q",
+					t, fld.Name, fld.Tag)
+				return nil, err
+			}
+
 			continue
 		}
 
@@ -375,6 +381,10 @@ func ippStructTagParse(s string) (*ippStructTag, error) {
 				tag.flgRange = true
 			case "norange":
 				tag.flgNorange = true
+
+			default:
+				err := fmt.Errorf("unknown keyword %q", part)
+				return nil, err
 			}
 		}
 	}
