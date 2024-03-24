@@ -344,6 +344,21 @@ var ippDecodeTestData = []ippDecodeTest{
 		err: errors.New(`IPP decode ippx.ippTestStruct: "fld-integer": at least 1 value required`),
 	},
 
+	{
+		attrs: goipp.Attributes{
+			goipp.Attribute{
+				Name: "fld-boolean-slice",
+				Values: goipp.Values{
+					{goipp.TagBoolean, goipp.Boolean(true)},
+					{goipp.TagBoolean, goipp.Boolean(false)},
+					{goipp.TagString, goipp.String("hello")},
+				},
+			},
+		},
+
+		err: errors.New(`IPP decode ippx.ippTestStruct: "fld-boolean-slice": can't convert octetString to Boolean`),
+	},
+
 	// ----- Big test of successful decoding -----
 	{
 
