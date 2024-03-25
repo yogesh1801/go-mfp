@@ -153,6 +153,14 @@ func TestDecodePanic(t *testing.T) {
 type ippTestCollection struct {
 	CollInt    int    `ipp:"coll-int"`
 	CollString string `ipp:"coll-string"`
+	CollU16    uint16 `ipp:"coll-u16"`
+}
+
+// goipp.Range vs Integer variant of ippTestCollection
+type ippTestCollectionRange struct {
+	CollInt    goipp.Range `ipp:"coll-int"`
+	CollString string      `ipp:"coll-string"`
+	CollU16    uint16      `ipp:"coll-u16"`
 }
 
 // ippTestStruct is the structure, intended for testing
@@ -165,9 +173,10 @@ type ippTestStruct struct {
 	FldCharset      string   `ipp:"fld-charset,charset"`
 	FldCharsetSlice []string `ipp:"fld-charset-slice,charset"`
 
-	FldColl         ippTestCollection   `ipp:"fld-coll"`
-	FldCollSlice    []ippTestCollection `ipp:"fld-coll-slice"`
-	FldCollNilSlice []ippTestCollection `ipp:"fld-coll-nil-slice"`
+	FldColl           ippTestCollection        `ipp:"fld-coll"`
+	FldCollSlice      []ippTestCollection      `ipp:"fld-coll-slice,norange"`
+	FldCollSliceRange []ippTestCollectionRange `ipp:"fld-coll-slice,range"`
+	FldCollNilSlice   []ippTestCollection      `ipp:"fld-coll-nil-slice"`
 
 	FldDateTime      time.Time   `ipp:"fld-datetime,datetime"`
 	FldDateTimeSlice []time.Time `ipp:"fld-datetime-slice,datetime"`
@@ -278,6 +287,8 @@ var ippDecodeTestData = []ippDecodeTest{
 						goipp.TagBoolean, goipp.Boolean(true)),
 					goipp.MakeAttribute("coll-string",
 						goipp.TagText, goipp.String("hello")),
+					goipp.MakeAttribute("coll-u16",
+						goipp.TagInteger, goipp.Integer(5)),
 				},
 			),
 		},
@@ -294,11 +305,50 @@ var ippDecodeTestData = []ippDecodeTest{
 						goipp.TagBoolean, goipp.Boolean(true)),
 					goipp.MakeAttribute("coll-string",
 						goipp.TagText, goipp.String("hello")),
+					goipp.MakeAttribute("coll-u16",
+						goipp.TagInteger, goipp.Integer(5)),
 				},
 			),
 		},
 
 		err: errors.New(`IPP decode ippx.ippTestStruct: "fld-coll-slice": "coll-int": can't convert boolean to Integer`),
+	},
+
+	{
+		attrs: goipp.Attributes{
+			goipp.MakeAttribute("fld-coll-slice",
+				goipp.TagBeginCollection,
+				goipp.Collection{
+					goipp.MakeAttribute("coll-int",
+						goipp.TagInteger, goipp.Integer(0)),
+					goipp.MakeAttribute("coll-string",
+						goipp.TagText, goipp.String("hello")),
+					goipp.MakeAttribute("coll-u16",
+						goipp.TagInteger, goipp.Integer(65536)),
+				},
+			),
+		},
+
+		err: errors.New(`IPP decode ippx.ippTestStruct: "fld-coll-slice": "coll-u16": Value 65536 out of range`),
+	},
+
+	{
+		attrs: goipp.Attributes{
+			goipp.MakeAttribute("fld-coll-slice",
+				goipp.TagBeginCollection,
+				goipp.Collection{
+					goipp.MakeAttribute("coll-int",
+						goipp.TagRange,
+						goipp.Range{Lower: 5, Upper: 7}),
+					goipp.MakeAttribute("coll-string",
+						goipp.TagText, goipp.String("hello")),
+					goipp.MakeAttribute("coll-u16",
+						goipp.TagInteger, goipp.Integer(65536)),
+				},
+			),
+		},
+
+		err: errors.New(`IPP decode ippx.ippTestStruct: "fld-coll-slice": "coll-u16": Value 65536 out of range`),
 	},
 
 	{
@@ -444,6 +494,8 @@ var ippDecodeTestData = []ippDecodeTest{
 						goipp.TagInteger, goipp.Integer(5)),
 					goipp.MakeAttribute("coll-string",
 						goipp.TagText, goipp.String("hello")),
+					goipp.MakeAttribute("coll-u16",
+						goipp.TagInteger, goipp.Integer(15)),
 				},
 			),
 
@@ -457,6 +509,8 @@ var ippDecodeTestData = []ippDecodeTest{
 								goipp.TagInteger, goipp.Integer(1)),
 							goipp.MakeAttribute("coll-string",
 								goipp.TagText, goipp.String("one")),
+							goipp.MakeAttribute("coll-u16",
+								goipp.TagInteger, goipp.Integer(10)),
 						},
 					},
 					{
@@ -466,6 +520,20 @@ var ippDecodeTestData = []ippDecodeTest{
 								goipp.TagInteger, goipp.Integer(2)),
 							goipp.MakeAttribute("coll-string",
 								goipp.TagText, goipp.String("two")),
+							goipp.MakeAttribute("coll-u16",
+								goipp.TagInteger, goipp.Integer(20)),
+						},
+					},
+					{
+						goipp.TagBeginCollection,
+						goipp.Collection{
+							goipp.MakeAttribute("coll-int",
+								goipp.TagRange,
+								goipp.Range{Lower: 5, Upper: 7}),
+							goipp.MakeAttribute("coll-string",
+								goipp.TagText, goipp.String("many")),
+							goipp.MakeAttribute("coll-u16",
+								goipp.TagInteger, goipp.Integer(30)),
 						},
 					},
 				},
@@ -659,10 +727,21 @@ var ippDecodeTestData = []ippDecodeTest{
 			FldBooleanT:     true,
 			FldBooleanSlice: []bool{true, false},
 
-			FldColl: ippTestCollection{CollInt: 5, CollString: "hello"},
+			FldColl: ippTestCollection{
+				CollInt:    5,
+				CollU16:    15,
+				CollString: "hello",
+			},
 			FldCollSlice: []ippTestCollection{
-				{CollInt: 1, CollString: "one"},
-				{CollInt: 2, CollString: "two"},
+				{CollInt: 1, CollU16: 10, CollString: "one"},
+				{CollInt: 2, CollU16: 20, CollString: "two"},
+			},
+			FldCollSliceRange: []ippTestCollectionRange{
+				{
+					CollInt:    goipp.Range{Lower: 5, Upper: 7},
+					CollU16:    30,
+					CollString: "many",
+				},
 			},
 
 			FldCharset:      "utf-8",
