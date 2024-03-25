@@ -149,6 +149,12 @@ func TestDecodePanic(t *testing.T) {
 
 // ----- Decode test -----
 
+// ippTestCollection embedded into ippTestStruct as IPP collection
+type ippTestCollection struct {
+	CollInt    int    `ipp:"coll-int"`
+	CollString string `ipp:"coll-string"`
+}
+
 // ippTestStruct is the structure, intended for testing
 // of the IPP codec
 type ippTestStruct struct {
@@ -158,6 +164,10 @@ type ippTestStruct struct {
 
 	FldCharset      string   `ipp:"fld-charset,charset"`
 	FldCharsetSlice []string `ipp:"fld-charset-slice,charset"`
+
+	FldColl         ippTestCollection   `ipp:"fld-coll"`
+	FldCollSlice    []ippTestCollection `ipp:"fld-coll-slice"`
+	FldCollNilSlice []ippTestCollection `ipp:"fld-coll-nil-slice"`
 
 	FldDateTime      time.Time   `ipp:"fld-datetime,datetime"`
 	FldDateTimeSlice []time.Time `ipp:"fld-datetime-slice,datetime"`
@@ -386,6 +396,50 @@ var ippDecodeTestData = []ippDecodeTest{
 				},
 			},
 
+			goipp.MakeAttribute("fld-coll",
+				goipp.TagBeginCollection,
+				goipp.Collection{
+					goipp.MakeAttribute("coll-int",
+						goipp.TagInteger, goipp.Integer(5)),
+					goipp.MakeAttribute("coll-string",
+						goipp.TagText, goipp.String("hello")),
+				},
+			),
+
+			goipp.Attribute{
+				Name: "fld-coll-slice",
+				Values: goipp.Values{
+					{
+						goipp.TagBeginCollection,
+						goipp.Collection{
+							goipp.MakeAttribute("coll-int",
+								goipp.TagInteger, goipp.Integer(1)),
+							goipp.MakeAttribute("coll-string",
+								goipp.TagText, goipp.String("one")),
+						},
+					},
+					{
+						goipp.TagBeginCollection,
+						goipp.Collection{
+							goipp.MakeAttribute("coll-int",
+								goipp.TagInteger, goipp.Integer(2)),
+							goipp.MakeAttribute("coll-string",
+								goipp.TagText, goipp.String("two")),
+						},
+					},
+				},
+			},
+
+			goipp.MakeAttribute("fld-coll-slice",
+				goipp.TagBeginCollection,
+				goipp.Collection{
+					goipp.MakeAttribute("coll-int",
+						goipp.TagInteger, goipp.Integer(5)),
+					goipp.MakeAttribute("coll-string",
+						goipp.TagText, goipp.String("hello")),
+				},
+			),
+
 			goipp.MakeAttribute("fld-datetime",
 				goipp.TagDateTime, goipp.Time{Time: testTime1}),
 			goipp.Attribute{
@@ -563,6 +617,12 @@ var ippDecodeTestData = []ippDecodeTest{
 			FldBooleanF:     false,
 			FldBooleanT:     true,
 			FldBooleanSlice: []bool{true, false},
+
+			FldColl: ippTestCollection{CollInt: 5, CollString: "hello"},
+			FldCollSlice: []ippTestCollection{
+				{CollInt: 1, CollString: "one"},
+				{CollInt: 2, CollString: "two"},
+			},
 
 			FldCharset:      "utf-8",
 			FldCharsetSlice: []string{"ibm866", "iso-8859-5", "windows-1251"},
