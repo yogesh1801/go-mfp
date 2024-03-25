@@ -262,6 +262,47 @@ var ippDecodeTestData = []ippDecodeTest{
 
 	{
 		attrs: goipp.Attributes{
+			goipp.MakeAttribute("fld-coll",
+				goipp.TagInteger, goipp.Integer(12345)),
+		},
+
+		err: errors.New(`IPP decode ippx.ippTestStruct: "fld-coll": can't convert integer to Collection`),
+	},
+
+	{
+		attrs: goipp.Attributes{
+			goipp.MakeAttribute("fld-coll",
+				goipp.TagBeginCollection,
+				goipp.Collection{
+					goipp.MakeAttribute("coll-int",
+						goipp.TagBoolean, goipp.Boolean(true)),
+					goipp.MakeAttribute("coll-string",
+						goipp.TagText, goipp.String("hello")),
+				},
+			),
+		},
+
+		err: errors.New(`IPP decode ippx.ippTestStruct: "fld-coll": "coll-int": can't convert boolean to Integer`),
+	},
+
+	{
+		attrs: goipp.Attributes{
+			goipp.MakeAttribute("fld-coll-slice",
+				goipp.TagBeginCollection,
+				goipp.Collection{
+					goipp.MakeAttribute("coll-int",
+						goipp.TagBoolean, goipp.Boolean(true)),
+					goipp.MakeAttribute("coll-string",
+						goipp.TagText, goipp.String("hello")),
+				},
+			),
+		},
+
+		err: errors.New(`IPP decode ippx.ippTestStruct: "fld-coll-slice": "coll-int": can't convert boolean to Integer`),
+	},
+
+	{
+		attrs: goipp.Attributes{
 			goipp.MakeAttribute("fld-enum",
 				goipp.TagText, goipp.String("12345")),
 		},
