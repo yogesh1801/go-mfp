@@ -40,15 +40,19 @@ const (
 // PrinterAttributes represents IPP Printer Attributes
 type PrinterAttributes struct {
 	// RFC8011, 5.4: Printer Description and Status Attributes
-	CharsetConfigured       string                         `ipp:"charset-configured,charset"`
-	CharsetSupported        []string                       `ipp:"charset-supported,charset"`
-	ColorSupported          bool                           `ipp:"color-supported"`
-	CompressionSupported    []string                       `ipp:"compression-supported,keyword"`
-	IppFeaturesSupported    []string                       `ipp:"ipp-features-supported,keyword"`
-	IppVersionsSupported    []goipp.Version                `ipp:"ipp-versions-supported"`
-	MediaSizeSupported      []PrinterMediaSizeSupported    `ipp:"media-size-supported,norange"`
-	MediaSizeSupportedRange PrinterMediaSizeSupportedRange `ipp:"media-size-supported,range"`
-	OperationsSupported     []goipp.Op                     `ipp:"operations-supported,enum"`
+	CharsetConfigured                 string                         `ipp:"charset-configured,charset"`
+	CharsetSupported                  []string                       `ipp:"charset-supported,charset"`
+	ColorSupported                    bool                           `ipp:"color-supported"`
+	CompressionSupported              []string                       `ipp:"compression-supported,keyword"`
+	DocumentFormatDefault             string                         `ipp:"document-format-default,mimeMediaType"`
+	DocumentFormatSupported           []string                       `ipp:"document-format-supported,mimeMediaType"`
+	GeneratedNaturalLanguageSupported []string                       `ipp:"generated-natural-language-supported,naturalLanguage"`
+	IppFeaturesSupported              []string                       `ipp:"ipp-features-supported,keyword"`
+	IppVersionsSupported              []goipp.Version                `ipp:"ipp-versions-supported"`
+	JobImpressionsSupported           goipp.Range                    `ipp:"job-impressions-supported"`
+	MediaSizeSupported                []PrinterMediaSizeSupported    `ipp:"media-size-supported,norange"`
+	MediaSizeSupportedRange           PrinterMediaSizeSupportedRange `ipp:"media-size-supported,range"`
+	OperationsSupported               []goipp.Op                     `ipp:"operations-supported,enum"`
 }
 
 // PrinterMediaSizeSupported represents "media-size-supported"
