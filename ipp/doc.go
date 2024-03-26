@@ -5,4 +5,4 @@
 //
 // Package documentation
 
-package ippx
+package ipp

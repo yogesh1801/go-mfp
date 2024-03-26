@@ -5,7 +5,7 @@
 //
 // Client-side Printer object
 
-package ippx
+package ipp
 
 import (
 	"net/http"

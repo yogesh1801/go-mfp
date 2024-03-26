@@ -5,7 +5,7 @@
 //
 // IPP-specific URL parsing
 
-package ippx
+package ipp
 
 import (
 	"errors"

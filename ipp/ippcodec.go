@@ -5,7 +5,7 @@
 //
 // Encoding and decoding structures to/from IPP attributes
 
-package ippx
+package ipp
 
 import (
 	"errors"

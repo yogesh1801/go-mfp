@@ -5,7 +5,7 @@
 //
 // Printer Attributes
 
-package ippx
+package ipp
 
 import (
 	"github.com/OpenPrinting/goipp"
