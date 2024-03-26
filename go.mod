@@ -1,4 +1,4 @@
-module github.com/alexpevzner/ippx
+module github.com/alexpevzner/mfp
 
 go 1.13
 
