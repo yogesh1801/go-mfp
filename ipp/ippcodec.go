@@ -38,6 +38,7 @@ type ippCodecStep struct {
 	attrTag              goipp.Tag // IPP attribute tag
 	slice                bool      // It's a slice of values
 	flgRange, flgNorange bool      // Range/NoRange classification
+	optional             bool      // Optional parameter
 
 	// Encode/decode functions
 	encode func(p unsafe.Pointer) []goipp.Value
@@ -156,6 +157,7 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 			slice:      slice,
 			flgRange:   tag.flgRange,
 			flgNorange: tag.flgNorange,
+			optional:   tag.optional,
 		}
 
 		if step.attrTag == 0 {
@@ -345,6 +347,7 @@ type ippStructTag struct {
 	name                 string    // Attribute name
 	ippTag               goipp.Tag // IPP tag
 	flgRange, flgNorange bool      // "range"/"norange" flags
+	optional             bool      // Optional parameter
 }
 
 // ippStructTagToIppTag maps ipp: struct tag keyword to the
@@ -377,12 +380,17 @@ func ippStructTagParse(s string) (*ippStructTag, error) {
 		parts[i] = strings.TrimSpace(parts[i])
 	}
 
-	if len(parts) < 1 || parts[0] == "" {
+	if len(parts) < 1 || parts[0] == "" || parts[0] == "?" {
 		return nil, errors.New("missed attribute name")
 	}
 
 	tag := &ippStructTag{
 		name: parts[0],
+	}
+
+	if tag.name[0] == '?' {
+		tag.optional = true
+		tag.name = tag.name[1:]
 	}
 
 	for _, part := range parts[1:] {
