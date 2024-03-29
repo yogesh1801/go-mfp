@@ -832,9 +832,8 @@ func (test ippDecodeTest) exec(t *testing.T) {
 
 	// Compare result against expected
 	if !reflect.DeepEqual(test.data, out) {
-		t.Errorf("decode: input/output mismatch")
-		t.Errorf("expected: %#v\n", test.data)
-		t.Errorf("present: %#v\n", out)
+		t.Errorf("decode: input/output mismatch:\n%s",
+			testDiffStruct(t, test.data, out))
 		return
 	}
 
