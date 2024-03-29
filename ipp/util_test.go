@@ -127,3 +127,17 @@ func testDiffAttrs(attrs1, attrs2 goipp.Attributes) string {
 
 	return buf.String()
 }
+
+// testIPPMessage decodes IPP Message from a byte slice
+// it panics if slice cannot be decoded
+func testIPPMessage(data []byte) *goipp.Message {
+	msg := &goipp.Message{}
+	err := msg.DecodeBytesEx(data,
+		goipp.DecoderOptions{EnableWorkarounds: true})
+
+	if err != nil {
+		panic(err)
+	}
+
+	return msg
+}
