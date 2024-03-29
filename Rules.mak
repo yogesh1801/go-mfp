@@ -9,6 +9,7 @@
 
 TOPDIR  := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 GOFILES := $(wildcard *.go)
+PACKAGE	:= $(shell basename $(PWD))
 
 # ----- Parameters -----
 
@@ -49,6 +50,8 @@ ifneq   ($(GOFILES),)
 
 do_all:
 	$(GO) build
+	$(GO) test -c
+	rm -f $(PACKAGE).test
 
 do_cover:
 	go test -coverprofile=coverage.out
