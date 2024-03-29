@@ -109,7 +109,7 @@ func testDiffAttrs(attrs1, attrs2 goipp.Attributes) string {
 	}
 
 	sort.Slice(diffList, func(i, j int) bool {
-		return diffList[i].name < diffList[2].name
+		return diffList[i].name < diffList[j].name
 	})
 
 	// Generate output
@@ -118,11 +118,33 @@ func testDiffAttrs(attrs1, attrs2 goipp.Attributes) string {
 	for _, diff := range diffList {
 		fmt.Fprintf(buf, "%s:\n", diff.name)
 		if diff.v1 != nil {
-			fmt.Fprintf(buf, "  <<< %s\n", diff.v1)
+			fmt.Fprintf(buf, "  <<< %s\n", testDumpValues(diff.v1))
 		}
 		if diff.v2 != nil {
-			fmt.Fprintf(buf, "  >>> %s\n", diff.v2)
+			fmt.Fprintf(buf, "  >>> %s\n", testDumpValues(diff.v2))
 		}
+	}
+
+	return buf.String()
+}
+
+// testDumpValues dumps goipp.Values into string
+func testDumpValues(vals goipp.Values) string {
+	buf := &bytes.Buffer{}
+	prevTag := ""
+
+	for _, v := range vals {
+		tag := v.T.String()
+		val := v.V.String()
+
+		if tag != prevTag {
+			prevTag = tag
+			fmt.Fprintf(buf, "%s: ", tag)
+		} else {
+			fmt.Fprintf(buf, ",")
+		}
+
+		fmt.Fprintf(buf, "%s", val)
 	}
 
 	return buf.String()
