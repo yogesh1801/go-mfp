@@ -17,6 +17,7 @@ import (
 func TestKyoceraM2040dnPrinterAttributes(t *testing.T) {
 	msg := testIPPMessage(testdataKyoceraM2040dnPrinterAttributes)
 
+	// Decode printer attributes from real printer
 	var pa PrinterAttributes
 	err := pa.DecodeMsg(msg)
 
@@ -25,6 +26,7 @@ func TestKyoceraM2040dnPrinterAttributes(t *testing.T) {
 		return
 	}
 
+	// Perform few tests
 	if !pa.IsCharsetSupported("utf-8") {
 		t.Errorf("TestKyoceraM2040dnPrinterAttributes:" +
 			"IsCharsetSupported must be true for utf-8")
@@ -46,6 +48,12 @@ func TestKyoceraM2040dnPrinterAttributes(t *testing.T) {
 			"IsOperationSupported must be false for %s",
 			goipp.OpCupsGetPrinters)
 	}
+
+	// Now encode and compare
+	attrs := pa.EncodeAttrs()
+	diff := testDiffAttrs(msg.Printer, attrs)
+	_ = diff
+	println(diff)
 }
 
 //go:embed "testdata/Kyocera-ECOSYS-M2040dn/printer-attributes.ipp"
