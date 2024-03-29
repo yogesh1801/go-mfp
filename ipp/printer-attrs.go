@@ -79,6 +79,18 @@ type PrinterAttributes struct {
 	ReferenceUriSchemesSupported      []string                       `ipp:"?reference-uri-schemes-supported,uriScheme"`
 	UriAuthenticationSupported        []string                       `ipp:"uri-authentication-supported,keyword"`
 	UriSecuritySupported              []string                       `ipp:"uri-security-supported,keyword"`
+
+	// RFC8011, 5.2: Job Template Attributes
+	CopiesDefault         int         `ipp:"?copies-default"`
+	CopiesSupported       goipp.Range `ipp:"?copies-supported"`
+	FinishingsDefault     []int       `ipp:"?finishings-default,enum"`
+	FinishingsSupported   []int       `ipp:"?finishings-supported,enum"`
+	JobHoldUntilDefault   string      `ipp:"?job-hold-until-default,keyword"`
+	JobHoldUntilSupported []string    `ipp:"?job-hold-until-supported,keyword"`
+	JobPriorityDefault    int         `ipp:"?job-priority-default"`
+	JobPrioritySupported  int         `ipp:"?job-priority-supported"`
+	JobSheetsDefault      string      `ipp:"?job-sheets-default,keyword"`
+	JobSheetsSupported    []string    `ipp:"?job-sheets-supported"`
 }
 
 // PrinterMediaSizeSupported represents "media-size-supported"
