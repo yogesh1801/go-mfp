@@ -43,6 +43,7 @@ type ippCodecStep struct {
 	// Encode/decode functions
 	encode func(p unsafe.Pointer) []goipp.Value
 	decode func(p unsafe.Pointer, v goipp.Values) error
+	iszero func(p unsafe.Pointer) bool
 }
 
 // Standard codecs, precompiled
@@ -198,6 +199,10 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 			step.decode = methods.decode
 		}
 
+		step.iszero = func(p unsafe.Pointer) bool {
+			return reflect.NewAt(fldType, p).Elem().IsZero()
+		}
+
 		// Append step to the codec
 		codec.steps = append(codec.steps, step)
 	}
@@ -239,7 +244,13 @@ func (codec ippCodec) encode(in interface{}, attrs *goipp.Attributes) {
 
 	for _, step := range codec.steps {
 		attr := goipp.Attribute{Name: step.attrName}
-		val := step.encode(unsafe.Pointer(uintptr(p) + step.offset))
+		ptr := unsafe.Pointer(uintptr(p) + step.offset)
+
+		if step.optional && step.iszero(ptr) {
+			continue
+		}
+
+		val := step.encode(ptr)
 
 		if len(val) != 0 {
 			for _, v := range val {
