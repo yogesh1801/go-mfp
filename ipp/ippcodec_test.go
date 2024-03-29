@@ -8,10 +8,8 @@
 package ipp
 
 import (
-	"bytes"
 	"errors"
 	"reflect"
-	"sort"
 	"testing"
 	"time"
 
@@ -831,9 +829,9 @@ func (test ippDecodeTest) exec(t *testing.T) {
 	}
 
 	// Compare result against expected
-	if !reflect.DeepEqual(test.data, out) {
-		t.Errorf("decode: input/output mismatch:\n%s",
-			testDiffStruct(t, test.data, out))
+	diff := testDiffStruct(test.data, out)
+	if diff != "" {
+		t.Errorf("decode: input/output mismatch:\n%s", diff)
 		return
 	}
 
@@ -841,36 +839,9 @@ func (test ippDecodeTest) exec(t *testing.T) {
 	var attrs goipp.Attributes
 	codec.encode(out, &attrs)
 
-	// Note, as decoding/encoding doesn't preserve
-	// original order of attributes, we need to
-	// sort them before comparison
-	attrs2 := make(goipp.Attributes, len(test.attrs))
-	copy(attrs2, test.attrs)
-
-	sort.SliceStable(attrs, func(i, j int) bool {
-		return attrs[i].Name < attrs[j].Name
-	})
-
-	sort.SliceStable(attrs2, func(i, j int) bool {
-		return attrs2[i].Name < attrs2[j].Name
-	})
-
-	attrs2 = attrsDedup(attrs2)
-
-	if !attrs.Equal(attrs2) {
-		t.Errorf("encode: input/output mismatch")
-
-		var msg goipp.Message
-		buf := &bytes.Buffer{}
-
-		msg = goipp.Message{Printer: attrs2}
-		msg.Print(buf, true)
-		t.Errorf("expected:\n%s", buf)
-
-		buf.Reset()
-		msg = goipp.Message{Printer: attrs}
-		msg.Print(buf, true)
-		t.Errorf("present:\n%s", buf)
+	diff = testDiffAttrs(test.attrs, attrs)
+	if diff != "" {
+		t.Errorf("encode: input/output mismatch:\n%s", diff)
 	}
 }
 
