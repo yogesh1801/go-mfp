@@ -78,7 +78,7 @@ type PrinterAttributes struct {
 	QueuedJobCount                    int                            `ipp:"queued-job-count"`
 	ReferenceUriSchemesSupported      []string                       `ipp:"?reference-uri-schemes-supported,uriScheme"`
 	UriAuthenticationSupported        []string                       `ipp:"uri-authentication-supported,keyword"`
-	UriSecuritySupported              []string                       `ipp:"uri-security-supported,uri"`
+	UriSecuritySupported              []string                       `ipp:"uri-security-supported,keyword"`
 }
 
 // PrinterMediaSizeSupported represents "media-size-supported"
