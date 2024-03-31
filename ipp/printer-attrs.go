@@ -40,42 +40,42 @@ const (
 // PrinterAttributes represents IPP Printer Attributes
 type PrinterAttributes struct {
 	// RFC8011, 5.4: Printer Description and Status Attributes
-	CharsetConfigured                 string                         `ipp:"charset-configured,charset"`
-	CharsetSupported                  []string                       `ipp:"charset-supported,charset"`
-	ColorSupported                    bool                           `ipp:"?color-supported"`
-	CompressionSupported              []string                       `ipp:"compression-supported,keyword"`
-	DocumentFormatDefault             string                         `ipp:"document-format-default,mimeMediaType"`
-	DocumentFormatSupported           []string                       `ipp:"document-format-supported,mimeMediaType"`
-	GeneratedNaturalLanguageSupported []string                       `ipp:"generated-natural-language-supported,naturalLanguage"`
-	IppFeaturesSupported              []string                       `ipp:"ipp-features-supported,keyword"`
-	IppVersionsSupported              []goipp.Version                `ipp:"ipp-versions-supported"`
+	CharsetConfigured                 string                         `ipp:"!charset-configured,charset"`
+	CharsetSupported                  []string                       `ipp:"!charset-supported,charset"`
+	ColorSupported                    bool                           `ipp:"color-supported"`
+	CompressionSupported              []string                       `ipp:"!compression-supported,keyword"`
+	DocumentFormatDefault             string                         `ipp:"!document-format-default,mimeMediaType"`
+	DocumentFormatSupported           []string                       `ipp:"!document-format-supported,mimeMediaType"`
+	GeneratedNaturalLanguageSupported []string                       `ipp:"!generated-natural-language-supported,naturalLanguage"`
+	IppFeaturesSupported              []string                       `ipp:"?ipp-features-supported,keyword"`
+	IppVersionsSupported              []goipp.Version                `ipp:"!ipp-versions-supported"`
 	JobImpressionsSupported           goipp.Range                    `ipp:"?job-impressions-supported"`
 	JobKOctetsSupported               goipp.Range                    `ipp:"?job-k-octets-supported"`
 	JobMediaSheetsSupported           goipp.Range                    `ipp:"?job-media-sheets-supported"`
-	MediaSizeSupported                []PrinterMediaSizeSupported    `ipp:"media-size-supported,norange"`
-	MediaSizeSupportedRange           PrinterMediaSizeSupportedRange `ipp:"media-size-supported,range"`
+	MediaSizeSupported                []PrinterMediaSizeSupported    `ipp:"!media-size-supported,norange"`
+	MediaSizeSupportedRange           PrinterMediaSizeSupportedRange `ipp:"!media-size-supported,range"`
 	MultipleDocumentJobsSupported     bool                           `ipp:"?multiple-document-jobs-supported"`
 	MultipleOperationTimeOut          int                            `ipp:"?multiple-operation-time-out"`
-	NaturalLanguageConfigured         string                         `ipp:"natural-language-configured,naturalLanguage"`
-	OperationsSupported               []goipp.Op                     `ipp:"operations-supported,enum"`
+	NaturalLanguageConfigured         string                         `ipp:"!natural-language-configured,naturalLanguage"`
+	OperationsSupported               []goipp.Op                     `ipp:"!operations-supported,enum"`
 	PagesPerMinuteColor               int                            `ipp:"?pages-per-minute-color"`
 	PagesPerMinute                    int                            `ipp:"?pages-per-minute"`
-	PdlOverrideSupported              string                         `ipp:"pdl-override-supported,keyword"`
+	PdlOverrideSupported              string                         `ipp:"!pdl-override-supported,keyword"`
 	PrinterDriverInstaller            string                         `ipp:"?printer-driver-installer,uri"`
 	PrinterInfo                       string                         `ipp:"?printer-info,text"`
-	PrinterIsAcceptingJobs            bool                           `ipp:"printer-is-accepting-jobs"`
+	PrinterIsAcceptingJobs            bool                           `ipp:"!printer-is-accepting-jobs"`
 	PrinterLocation                   string                         `ipp:"?printer-location,text"`
 	PrinterMakeAndModel               string                         `ipp:"?printer-make-and-model,text"`
 	PrinterMessageFromOperator        string                         `ipp:"?printer-message-from-operator,text"`
 	PrinterMoreInfoManufacturer       string                         `ipp:"?printer-more-info-manufacturer,uri"`
 	PrinterMoreInfo                   string                         `ipp:"?printer-more-info,uri"`
 	PrinterName                       string                         `ipp:"printer-name,name"`
-	PrinterState                      int                            `ipp:"printer-state,enum"`
-	PrinterStateMessage               string                         `ipp:"?printer-state-message,text"`
-	PrinterStateReasons               []string                       `ipp:"printer-state-reasons,keyword"`
-	PrinterUpTime                     int                            `ipp:"printer-up-time"`
-	PrinterURISupported               []string                       `ipp:"printer-uri-supported,uri"`
-	QueuedJobCount                    int                            `ipp:"queued-job-count"`
+	PrinterState                      int                            `ipp:"!printer-state,enum"`
+	PrinterStateMessage               string                         `ipp:"printer-state-message,text"`
+	PrinterStateReasons               []string                       `ipp:"!printer-state-reasons,keyword"`
+	PrinterUpTime                     int                            `ipp:"!printer-up-time"`
+	PrinterURISupported               []string                       `ipp:"!printer-uri-supported,uri"`
+	QueuedJobCount                    int                            `ipp:"!queued-job-count"`
 	ReferenceURISchemesSupported      []string                       `ipp:"?reference-uri-schemes-supported,uriScheme"`
 	URIAuthenticationSupported        []string                       `ipp:"uri-authentication-supported,keyword"`
 	URISecuritySupported              []string                       `ipp:"uri-security-supported,keyword"`
@@ -136,14 +136,14 @@ type PrinterAttributes struct {
 	SaveNameSupported                bool                        `ipp:"?save-name-supported"`
 
 	// Other
-	MarkerChangeTime int      `ipp:"marker-change-time,>-1"`
-	MarkerColors     []string `ipp:"marker-colors,name"`
-	MarkerHighLevels []int    `ipp:"marker-high-levels,0:100"`
-	MarkerLevels     []int    `ipp:"marker-levels,-3:100"`
-	MarkerLowLevels  []int    `ipp:"marker-low-levels,0:100"`
-	MarkerMessage    string   `ipp:"marker-message,text"`
-	MarkerNames      []string `ipp:"marker-names,name"`
-	MarkerTypes      []string `ipp:"marker-types,keyword"`
+	MarkerChangeTime int      `ipp:"?marker-change-time,>-1"`
+	MarkerColors     []string `ipp:"?marker-colors,name"`
+	MarkerHighLevels []int    `ipp:"?marker-high-levels,0:100"`
+	MarkerLevels     []int    `ipp:"?marker-levels,-3:100"`
+	MarkerLowLevels  []int    `ipp:"?marker-low-levels,0:100"`
+	MarkerMessage    string   `ipp:"?marker-message,text"`
+	MarkerNames      []string `ipp:"?marker-names,name"`
+	MarkerTypes      []string `ipp:"?marker-types,keyword"`
 }
 
 // PrinterMediaSizeSupported represents "media-size-supported"
