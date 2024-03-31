@@ -74,11 +74,11 @@ type PrinterAttributes struct {
 	PrinterStateMessage               string                         `ipp:"?printer-state-message,text"`
 	PrinterStateReasons               []string                       `ipp:"printer-state-reasons,keyword"`
 	PrinterUpTime                     int                            `ipp:"printer-up-time"`
-	PrinterUriSupported               []string                       `ipp:"printer-uri-supported,uri"`
+	PrinterURISupported               []string                       `ipp:"printer-uri-supported,uri"`
 	QueuedJobCount                    int                            `ipp:"queued-job-count"`
-	ReferenceUriSchemesSupported      []string                       `ipp:"?reference-uri-schemes-supported,uriScheme"`
-	UriAuthenticationSupported        []string                       `ipp:"uri-authentication-supported,keyword"`
-	UriSecuritySupported              []string                       `ipp:"uri-security-supported,keyword"`
+	ReferenceURISchemesSupported      []string                       `ipp:"?reference-uri-schemes-supported,uriScheme"`
+	URIAuthenticationSupported        []string                       `ipp:"uri-authentication-supported,keyword"`
+	URISecuritySupported              []string                       `ipp:"uri-security-supported,keyword"`
 
 	// RFC8011, 5.2: Job Template Attributes
 	CopiesDefault                     int                `ipp:"?copies-default,>0"`
