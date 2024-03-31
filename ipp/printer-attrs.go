@@ -91,6 +91,15 @@ type PrinterAttributes struct {
 	JobPrioritySupported  int         `ipp:"?job-priority-supported"`
 	JobSheetsDefault      string      `ipp:"?job-sheets-default,keyword"`
 	JobSheetsSupported    []string    `ipp:"?job-sheets-supported"`
+
+	// Other
+	MarkerChangeTime int      `ipp:"marker-change-time"`
+	MarkerHighLevels []int    `ipp:"marker-high-levels"`
+	MarkerLevels     []int    `ipp:"marker-levels"`
+	MarkerLowLevels  []int    `ipp:"marker-low-levels"`
+	MarkerMessage    string   `ipp:"marker-message,text"`
+	MarkerNames      []string `ipp:"marker-names,name"`
+	MarkerTypes      []string `ipp:"marker-types,keyword"`
 }
 
 // PrinterMediaSizeSupported represents "media-size-supported"
