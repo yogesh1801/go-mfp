@@ -57,6 +57,13 @@ var ippCodecGenerateTestData = []ippCodecGenerateTest{
 
 	{
 		data: struct {
+			FldBad int `ipp:"?"`
+		}{},
+		err: errors.New(`struct { FldBad int "ipp:\"?\"" }.FldBad: missed attribute name`),
+	},
+
+	{
+		data: struct {
 			FldBad float64 `ipp:"flg-bad"`
 		}{},
 		err: errors.New(`struct { FldBad float64 "ipp:\"flg-bad\"" }.FldBad: float64 type not supported`),
@@ -84,7 +91,92 @@ var ippCodecGenerateTestData = []ippCodecGenerateTest{
 			// ipp: tag contains unknown keyword
 			FldBadTag int `ipp:"fld-bad-tag,unknown"`
 		}{},
-		err: errors.New(`struct { FldBadTag int "ipp:\"fld-bad-tag,unknown\"" }.FldBadTag: unknown keyword "unknown"`),
+		err: errors.New(`struct { FldBadTag int "ipp:\"fld-bad-tag,unknown\"" }.FldBadTag: "unknown": unknown keyword`),
+	},
+
+	{
+		data: struct {
+			// ipp: tag contains empty keyword; it's not an error
+			FldGootTag int `ipp:"fld-good-tag,,integer"`
+		}{},
+	},
+
+	{
+		data: struct {
+			// ipp: tag contains invalid (empty) limit constraint
+			FldBadTag int `ipp:"fld-bad-tag,<"`
+		}{},
+		err: errors.New(`struct { FldBadTag int "ipp:\"fld-bad-tag,<\"" }.FldBadTag: "<": invalid limit`),
+	},
+
+	{
+		data: struct {
+			// ipp: tag contains invalid (parse error) limit constraint
+			FldBadTag int `ipp:"fld-bad-tag,<XXX"`
+		}{},
+		err: errors.New(`struct { FldBadTag int "ipp:\"fld-bad-tag,<XXX\"" }.FldBadTag: "<XXX": invalid limit`),
+	},
+
+	{
+		data: struct {
+			// ipp: tag contains invalid (out of range) upper limit
+			FldBadTag int `ipp:"fld-bad-tag,<4294967296"`
+		}{},
+		err: errors.New(`struct { FldBadTag int "ipp:\"fld-bad-tag,<4294967296\"" }.FldBadTag: "<4294967296": limit out of range`),
+	},
+
+	{
+		data: struct {
+			// ipp: tag contains invalid (out of range) lower limit
+			FldBadTag int `ipp:"fld-bad-tag,>4294967296"`
+		}{},
+		err: errors.New(`struct { FldBadTag int "ipp:\"fld-bad-tag,>4294967296\"" }.FldBadTag: ">4294967296": limit out of range`),
+	},
+
+	{
+		data: struct {
+			// ipp: tag contains valid limit constraint
+			FldGoodTag int `ipp:"fld-good-tag,>-3,<100"`
+		}{},
+	},
+
+	{
+		data: struct {
+			// ipp: range constraint syntactically invalid
+			FldBadTag int `ipp:"fld-bad-tag,0:XXX"`
+		}{},
+		err: errors.New(`struct { FldBadTag int "ipp:\"fld-bad-tag,0:XXX\"" }.FldBadTag: "0:XXX": unknown keyword`),
+	},
+
+	{
+		data: struct {
+			// ipp: range lower bound doesn't fit int32
+			FldGoodTag int `ipp:"fld-good-tag,4294967296:5"`
+		}{},
+		err: errors.New(`struct { FldGoodTag int "ipp:\"fld-good-tag,4294967296:5\"" }.FldGoodTag: "4294967296:5": 4294967296 out of range`),
+	},
+
+	{
+		data: struct {
+			// ipp: range upper bound doesn't fit int32
+			FldGoodTag int `ipp:"fld-good-tag,5:4294967296"`
+		}{},
+		err: errors.New(`struct { FldGoodTag int "ipp:\"fld-good-tag,5:4294967296\"" }.FldGoodTag: "5:4294967296": 4294967296 out of range`),
+	},
+
+	{
+		data: struct {
+			// ipp: range min > max
+			FldGoodTag int `ipp:"fld-good-tag,10:5"`
+		}{},
+		err: errors.New(`struct { FldGoodTag int "ipp:\"fld-good-tag,10:5\"" }.FldGoodTag: "10:5": range min>max`),
+	},
+
+	{
+		data: struct {
+			// ipp: tag contains valid range constraint
+			FldGoodTag int `ipp:"fld-good-tag,0:100"`
+		}{},
 	},
 
 	{

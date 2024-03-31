@@ -39,6 +39,7 @@ type ippCodecStep struct {
 	slice                bool      // It's a slice of values
 	flgRange, flgNorange bool      // Range/NoRange classification
 	optional             bool      // Optional parameter
+	min, max             int       // Range constraints for integer values
 
 	// Encode/decode functions
 	encode func(p unsafe.Pointer) []goipp.Value
@@ -159,6 +160,8 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 			flgRange:   tag.flgRange,
 			flgNorange: tag.flgNorange,
 			optional:   tag.optional,
+			min:        tag.min,
+			max:        tag.max,
 		}
 
 		if step.attrTag == 0 {
@@ -359,6 +362,7 @@ type ippStructTag struct {
 	ippTag               goipp.Tag // IPP tag
 	flgRange, flgNorange bool      // "range"/"norange" flags
 	optional             bool      // Optional parameter
+	min, max             int       // Range constraints for integer values
 }
 
 // ippStructTagToIppTag maps ipp: struct tag keyword to the
@@ -391,38 +395,169 @@ func ippStructTagParse(s string) (*ippStructTag, error) {
 		parts[i] = strings.TrimSpace(parts[i])
 	}
 
-	if len(parts) < 1 || parts[0] == "" || parts[0] == "?" {
+	if len(parts) < 1 || parts[0] == "" {
 		return nil, errors.New("missed attribute name")
 	}
 
-	tag := &ippStructTag{
+	stag := &ippStructTag{
 		name: parts[0],
+		min:  math.MinInt32,
+		max:  math.MaxInt32,
 	}
 
-	if tag.name[0] == '?' {
-		tag.optional = true
-		tag.name = tag.name[1:]
+	if stag.name[0] == '?' {
+		stag.optional = true
+		stag.name = stag.name[1:]
+	}
+
+	if stag.name == "" {
+		return nil, errors.New("missed attribute name")
 	}
 
 	for _, part := range parts[1:] {
-		kw := strings.ToLower(part)
+		if part == "" {
+			continue
+		}
 
-		tag.ippTag = ippStructTagToIppTag[kw]
-		if tag.ippTag == 0 {
-			switch strings.ToLower(kw) {
-			case "range":
-				tag.flgRange = true
-			case "norange":
-				tag.flgNorange = true
+		// Apply available parsers until OK or error
+		ok, err := stag.parseKeyword(part)
+		if !ok && err == nil {
+			ok, err = stag.parseMinMax(part)
+		}
+		if !ok && err == nil {
+			ok, err = stag.parseRange(part)
+		}
 
-			default:
-				err := fmt.Errorf("unknown keyword %q", part)
-				return nil, err
-			}
+		// Check for result
+		if !ok && err == nil {
+			err = errors.New("unknown keyword")
+		}
+
+		if err != nil {
+			err = fmt.Errorf("%q: %s", part, err)
+			return nil, err
 		}
 	}
 
-	return tag, nil
+	return stag, nil
+}
+
+// parseKeyword parses keyword parameter of the ipp: struct tag:
+//    - IPP tag ("int", "name" etc)
+//    - flags ("range", "norange" etc)
+//
+// Return value:
+//    - true, nil  - parameter was parsed and applied
+//    - false, nil - parameter is not keyword
+//    - false, err - invalid parameter
+func (stag *ippStructTag) parseKeyword(s string) (bool, error) {
+	kw := strings.ToLower(s)
+
+	if tag, ok := ippStructTagToIppTag[kw]; ok {
+		stag.ippTag = tag
+		return true, nil
+	}
+
+	switch kw {
+	case "range":
+		stag.flgRange = true
+		return true, nil
+
+	case "norange":
+		stag.flgNorange = true
+		return true, nil
+
+	default:
+		return false, nil
+	}
+
+}
+
+// parseRange parses min/max limit constraints:
+//   >NNN - min range
+//   <NNN - max range
+//
+// Return value:
+//    - true, nil  - parameter was parsed and applied
+//    - false, nil - parameter is not keyword
+//    - false, err - invalid parameter
+func (stag *ippStructTag) parseMinMax(s string) (bool, error) {
+	// Limit starts with '<' or '>'
+	pfx := s[0]
+	if pfx != '<' && pfx != '>' {
+		return false, nil
+	}
+
+	// Parse limit
+	v, err := strconv.ParseInt(s[1:], 10, 64)
+	if err != nil {
+		err = errors.New("invalid limit")
+		return false, err
+	}
+
+	// Save limit; check for range
+	switch pfx {
+	case '>':
+		if math.MinInt32-1 <= v && v <= math.MaxInt32-1 {
+			stag.min = int(v + 1)
+		} else {
+			err = errors.New("limit out of range")
+		}
+
+	case '<':
+		if math.MinInt32+1 <= v && v <= math.MaxInt32+1 {
+			stag.max = int(v - 1)
+		} else {
+			err = errors.New("limit out of range")
+		}
+	}
+
+	return true, err
+}
+
+// parseRange parses range constraints:
+//   MIN:MAX
+//
+// Return value:
+//    - true, nil  - parameter was parsed and applied
+//    - false, nil - parameter is not keyword
+//    - false, err - invalid parameter
+func (stag *ippStructTag) parseRange(s string) (bool, error) {
+	fields := strings.Split(s, ":")
+	if len(fields) != 2 || fields[0] == "" || fields[1] == "" {
+		return false, nil
+	}
+
+	var min, max int64
+	var err error
+
+	// Parse min/max. Don't propagate syntax here, just
+	// reject the parameter
+	min, err = strconv.ParseInt(fields[0], 10, 64)
+	if err == nil {
+		max, err = strconv.ParseInt(fields[1], 10, 64)
+	}
+
+	if err != nil {
+		return false, nil
+	}
+
+	// Check range
+	switch {
+	case min < math.MinInt32 || min > math.MaxInt32:
+		err = fmt.Errorf("%v out of range", min)
+	case max < math.MinInt32 || max > math.MaxInt32:
+		err = fmt.Errorf("%v out of range", max)
+	case min > max:
+		err = fmt.Errorf("range min>max")
+	}
+
+	if err == nil {
+		stag.min = int(min)
+		stag.max = int(max)
+	}
+
+	return true, err
 }
 
 // ippCodecMethods contains per-reflect.Kind encode and decode
