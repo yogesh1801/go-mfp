@@ -21,6 +21,16 @@ import (
 	"github.com/OpenPrinting/goipp"
 )
 
+// ippAttrConformance represents conformance level of each
+// particular attribute
+type ippAttrConformance int
+
+const (
+	ipAttrOptional    ippAttrConformance = iota // Optional attribute
+	ipAttrRecommended                           // Recommended attribute
+	ipAttrRequired                              // Required attribute
+)
+
 // ippCodec represents actions required to encode/decode structures
 // of the particular type. Codecs are generated at initialization and
 // then reused, to minimize performance overhead associated with
@@ -33,13 +43,13 @@ type ippCodec struct {
 // ippCodecStep represents a single encoding/decoding step for the
 // ippCodec
 type ippCodecStep struct {
-	offset               uintptr   // Field offset within the structure
-	attrName             string    // IPP attribute name
-	attrTag              goipp.Tag // IPP attribute tag
-	slice                bool      // It's a slice of values
-	flgRange, flgNorange bool      // Range/NoRange classification
-	optional             bool      // Optional parameter
-	min, max             int       // Range constraints for integer values
+	offset               uintptr            // Field offset within structure
+	attrName             string             // IPP attribute name
+	attrTag              goipp.Tag          // IPP attribute tag
+	slice                bool               // It's a slice of values
+	flgRange, flgNorange bool               // Range/NoRange classification
+	conformance          ippAttrConformance // Attribute conformance
+	min, max             int                // Range limits for integers
 
 	// Encode/decode functions
 	encode func(p unsafe.Pointer) []goipp.Value
@@ -153,15 +163,15 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 
 		// Generate encoding/decoding step
 		step := ippCodecStep{
-			offset:     fld.Offset,
-			attrName:   tag.name,
-			attrTag:    tag.ippTag,
-			slice:      slice,
-			flgRange:   tag.flgRange,
-			flgNorange: tag.flgNorange,
-			optional:   tag.optional,
-			min:        tag.min,
-			max:        tag.max,
+			offset:      fld.Offset,
+			attrName:    tag.name,
+			attrTag:     tag.ippTag,
+			slice:       slice,
+			flgRange:    tag.flgRange,
+			flgNorange:  tag.flgNorange,
+			conformance: tag.conformance,
+			min:         tag.min,
+			max:         tag.max,
 		}
 
 		if step.attrTag == 0 {
@@ -249,7 +259,7 @@ func (codec ippCodec) encode(in interface{}, attrs *goipp.Attributes) {
 		attr := goipp.Attribute{Name: step.attrName}
 		ptr := unsafe.Pointer(uintptr(p) + step.offset)
 
-		if step.optional && step.iszero(ptr) {
+		if step.conformance == ipAttrOptional && step.iszero(ptr) {
 			continue
 		}
 
@@ -358,11 +368,11 @@ func (codec ippCodec) doDecode(out interface{}, attrs goipp.Attributes) error {
 
 // ippStructTag represents parsed ipp: struct tag
 type ippStructTag struct {
-	name                 string    // Attribute name
-	ippTag               goipp.Tag // IPP tag
-	flgRange, flgNorange bool      // "range"/"norange" flags
-	optional             bool      // Optional parameter
-	min, max             int       // Range constraints for integer values
+	name                 string             // Attribute name
+	ippTag               goipp.Tag          // IPP tag
+	flgRange, flgNorange bool               // "range"/"norange" flags
+	conformance          ippAttrConformance // Attribute conformance
+	min, max             int                // Range limits for integers
 }
 
 // ippStructTagToIppTag maps ipp: struct tag keyword to the
@@ -390,30 +400,46 @@ var ippStructTagToIppTag = map[string]goipp.Tag{
 // ippStructTagParse parses ipp: struct tag into the
 // ippStructTag structure
 func ippStructTagParse(s string) (*ippStructTag, error) {
+	// split struct tag into parts.
 	parts := strings.Split(s, ",")
 	for i := range parts {
 		parts[i] = strings.TrimSpace(parts[i])
 	}
 
+	// first part must be attribute name
 	if len(parts) < 1 || parts[0] == "" {
 		return nil, errors.New("missed attribute name")
 	}
 
+	// Initialize ippStructTag
 	stag := &ippStructTag{
 		name: parts[0],
 		min:  math.MinInt32,
 		max:  math.MaxInt32,
 	}
 
-	if stag.name[0] == '?' {
-		stag.optional = true
+	// Parse attribute conformance:
+	//   ?name - optional attribute
+	//   !name - required attribute
+	//   name  - recommended attribute
+	switch stag.name[0] {
+	case '?':
+		stag.conformance = ipAttrOptional
 		stag.name = stag.name[1:]
+
+	case '!':
+		stag.conformance = ipAttrRequired
+		stag.name = stag.name[1:]
+
+	default:
+		stag.conformance = ipAttrRecommended
 	}
 
 	if stag.name == "" {
 		return nil, errors.New("missed attribute name")
 	}
 
+	// Parse remaining parameters
 	for _, part := range parts[1:] {
 		if part == "" {
 			continue
