@@ -109,6 +109,32 @@ type PrinterAttributes struct {
 	SidesDefault                      string             `ipp:"?sides-default,keyword"`
 	SidesSupported                    []string           `ipp:"?sides-supported,keyword"`
 
+	// PWG5100.11, 7: Job Template Attributes
+	FeedOrientationDefault           string                      `ipp:"?feed-orientation-default,keyword"`
+	FeedOrientationSupported         []string                    `ipp:"?feed-orientation-supported,keyword"`
+	FontNameRequestedDefault         string                      `ipp:"?font-name-requested-default,name"`
+	FontNameRequestedSupported       []string                    `ipp:"?font-name-requested-supported,name"`
+	FontSizeRequestedDefault         int                         `ipp:"?font-size-requested-default,>0"`
+	FontSizeRequestedSupported       []int                       `ipp:"?font-size-requested-supported,>0"`
+	JobDelayOutputUntilDefault       string                      `ipp:"?job-delay-output-until-default,keyword"`
+	JobDelayOutputUntilSupported     []string                    `ipp:"?job-delay-output-until-supported,keyword"`
+	JobDelayOutputUntilTimeSupported goipp.Range                 `ipp:"?job-delay-output-until-time-supported,>-1"`
+	JobHoldUntilTimeSupported        goipp.Range                 `ipp:"?job-hold-until-time-supported,>-1"`
+	JobPhoneNumberDefault            string                      `ipp:"?job-phone-number-default,uri"`
+	JobPhoneNumberSupported          bool                        `ipp:"?job-phone-number-supported"`
+	JobRecipientNameDefault          string                      `ipp:"?job-recipient-name-default,name"`
+	JobRecipientNameSupported        bool                        `ipp:"?job-recipient-name-supported"`
+	JobSaveDispositionDefault        []PrinterJobSaveDisposition `ipp:"?job-save-disposition-default"`
+	JobSaveDispositionSupported      []string                    `ipp:"?job-save-disposition-supported,keyword"`
+	SaveDispositionSupported         string                      `ipp:"?save-disposition-supported,keyword"`
+	SaveDocumentFormatDefault        string                      `ipp:"?save-document-format-default,mimeMediaType"`
+	SaveDocumentFormatSupported      []string                    `ipp:"?save-document-format-supported,mimeMediaType"`
+	SaveInfoSupported                []string                    `ipp:"?save-info-supported,keyword"`
+	SaveLocationDefault              string                      `ipp:"?save-location-default,uri"`
+	SaveLocationSupported            []string                    `ipp:"?save-location-supported,uri"`
+	SaveNameSubdirectorySupported    bool                        `ipp:"?save-name-subdirectory-supported"`
+	SaveNameSupported                bool                        `ipp:"?save-name-supported"`
+
 	// Other
 	MarkerChangeTime int      `ipp:"marker-change-time,>-1"`
 	MarkerColors     []string `ipp:"marker-colors,name"`
@@ -132,6 +158,21 @@ type PrinterMediaSizeSupported struct {
 type PrinterMediaSizeSupportedRange struct {
 	XDimension goipp.Range `ipp:"x-dimension"`
 	YDimension goipp.Range `ipp:"y-dimension"`
+}
+
+// PrinterJobSaveDisposition represents "job-save-disposition-default"
+// collection entry in PrinterAttributes
+type PrinterJobSaveDisposition struct {
+	SaveDisposition string            `ipp:"save-disposition,keyword"`
+	SaveInfo        []PrinterSaveInfo `ipp:"?save-info"`
+}
+
+// PrinterSaveInfo represents "save-info" collection entry
+// in PrinterJobSaveDisposition
+type PrinterSaveInfo struct {
+	SaveLocation       string `ipp:"?save-location,uri"`
+	SaveName           string `ipp:"?save-name,name"`
+	SaveDocumentFormat string `ipp:"?save-document-format,mimeMediaType"`
 }
 
 // EncodeAttrs encodes printer attributes into goipp.Attributes
