@@ -94,6 +94,7 @@ type PrinterAttributes struct {
 
 	// Other
 	MarkerChangeTime int      `ipp:"marker-change-time"`
+	MarkerColors     []string `ipp:"marker-colors,name"`
 	MarkerHighLevels []int    `ipp:"marker-high-levels"`
 	MarkerLevels     []int    `ipp:"marker-levels"`
 	MarkerLowLevels  []int    `ipp:"marker-low-levels"`
