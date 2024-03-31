@@ -81,16 +81,33 @@ type PrinterAttributes struct {
 	UriSecuritySupported              []string                       `ipp:"uri-security-supported,keyword"`
 
 	// RFC8011, 5.2: Job Template Attributes
-	CopiesDefault         int         `ipp:"?copies-default"`
-	CopiesSupported       goipp.Range `ipp:"?copies-supported"`
-	FinishingsDefault     []int       `ipp:"?finishings-default,enum"`
-	FinishingsSupported   []int       `ipp:"?finishings-supported,enum"`
-	JobHoldUntilDefault   string      `ipp:"?job-hold-until-default,keyword"`
-	JobHoldUntilSupported []string    `ipp:"?job-hold-until-supported,keyword"`
-	JobPriorityDefault    int         `ipp:"?job-priority-default"`
-	JobPrioritySupported  int         `ipp:"?job-priority-supported"`
-	JobSheetsDefault      string      `ipp:"?job-sheets-default,keyword"`
-	JobSheetsSupported    []string    `ipp:"?job-sheets-supported"`
+	CopiesDefault                     int                `ipp:"?copies-default,>0"`
+	CopiesSupported                   goipp.Range        `ipp:"?copies-supported,>0"`
+	FinishingsDefault                 []int              `ipp:"?finishings-default,enum"`
+	FinishingsSupported               []int              `ipp:"?finishings-supported,enum"`
+	JobHoldUntilDefault               string             `ipp:"?job-hold-until-default,keyword"`
+	JobHoldUntilSupported             []string           `ipp:"?job-hold-until-supported,keyword"`
+	JobPriorityDefault                int                `ipp:"?job-priority-default,1:100"`
+	JobPrioritySupported              int                `ipp:"?job-priority-supported,1:100"`
+	JobSheetsDefault                  string             `ipp:"?job-sheets-default,keyword"`
+	JobSheetsSupported                []string           `ipp:"?job-sheets-supported"`
+	MediaDefault                      string             `ipp:"?media-default,keyword"`
+	MediaReady                        []string           `ipp:"?media-ready,keyword"`
+	MediaSupported                    []string           `ipp:"?media-supported,keyword"`
+	MultipleDocumentHandlingDefault   string             `ipp:"?multiple-document-handling-default,keyword"`
+	MultipleDocumentHandlingSupported []string           `ipp:"?multiple-document-handling-supported,keyword"`
+	NumberUpDefault                   int                `ipp:"?number-up-default,>0"`
+	NumberUpSupported                 []int              `ipp:"?number-up-supported,>0,norange"`
+	NumberUpSupportedRange            []int              `ipp:"?number-up-supported,>0,range"`
+	OrientationRequestedDefault       int                `ipp:"?orientation-requested-default,enum"`
+	OrientationRequestedSupported     []int              `ipp:"?orientation-requested-supported,enum"`
+	PageRangesSupported               bool               `ipp:"?page-ranges-supported"`
+	PrinterResolutionDefault          goipp.Resolution   `ipp:"?printer-resolution-default"`
+	PrinterResolutionSupported        []goipp.Resolution `ipp:"?printer-resolution-supported"`
+	PrintQualityDefault               int                `ipp:"?print-quality-default,enum"`
+	PrintQualitySupported             []int              `ipp:"?print-quality-supported,enum"`
+	SidesDefault                      string             `ipp:"?sides-default,keyword"`
+	SidesSupported                    []string           `ipp:"?sides-supported,keyword"`
 
 	// Other
 	MarkerChangeTime int      `ipp:"marker-change-time,>-1"`
