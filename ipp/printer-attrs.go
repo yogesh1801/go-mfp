@@ -93,11 +93,11 @@ type PrinterAttributes struct {
 	JobSheetsSupported    []string    `ipp:"?job-sheets-supported"`
 
 	// Other
-	MarkerChangeTime int      `ipp:"marker-change-time"`
+	MarkerChangeTime int      `ipp:"marker-change-time,>-1"`
 	MarkerColors     []string `ipp:"marker-colors,name"`
-	MarkerHighLevels []int    `ipp:"marker-high-levels"`
-	MarkerLevels     []int    `ipp:"marker-levels"`
-	MarkerLowLevels  []int    `ipp:"marker-low-levels"`
+	MarkerHighLevels []int    `ipp:"marker-high-levels,0:100"`
+	MarkerLevels     []int    `ipp:"marker-levels,-3:100"`
+	MarkerLowLevels  []int    `ipp:"marker-low-levels,0:100"`
 	MarkerMessage    string   `ipp:"marker-message,text"`
 	MarkerNames      []string `ipp:"marker-names,name"`
 	MarkerTypes      []string `ipp:"marker-types,keyword"`
