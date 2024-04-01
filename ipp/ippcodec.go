@@ -84,6 +84,8 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 		t: t,
 	}
 
+	attrNames := make(map[string]string)
+
 	for i := 0; i < t.NumField(); i++ {
 		// Fetch field by field
 		//
@@ -118,6 +120,14 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 				diagTypeName(t), fld.Name, err)
 			return nil, err
 		}
+
+		// Check for duplicates
+		if found := attrNames[tag.name]; found != "" {
+			err := fmt.Errorf("%s.%s: attribute %q already used by %s",
+				diagTypeName(t), fld.Name, tag.name, found)
+			return nil, err
+		}
+		attrNames[tag.name] = fld.Name
 
 		// Obtain ippCodecMethods
 		fldType := fld.Type

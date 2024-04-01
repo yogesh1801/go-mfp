@@ -199,6 +199,14 @@ var ippCodecGenerateTestData = []ippCodecGenerateTest{
 		}{},
 		err: errors.New(`struct {...}.FldConv: can't represent bool as keyword`),
 	},
+
+	{
+		data: struct {
+			Fld1 int `ipp:"fld"`
+			Fld2 int `ipp:"fld"`
+		}{},
+		err: errors.New(`struct {...}.Fld2: attribute "fld" already used by Fld1`),
+	},
 }
 
 func (test ippCodecGenerateTest) exec(t *testing.T) {
