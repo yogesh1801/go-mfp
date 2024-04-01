@@ -75,6 +75,34 @@ func ippCodecMustGenerate(t reflect.Type) *ippCodec {
 
 // ippCodecGenerate generates codec for the particular type.
 func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
+	attrNames := make(map[string]string)
+	codec, err := ippCodecGenerateInternal(t, attrNames)
+
+	// At least 1 step must be generated
+	if err == nil && len(codec.steps) == 0 {
+		err = fmt.Errorf("%s: contains no IPP fields",
+			diagTypeName(t))
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return codec, nil
+}
+
+// ippCodecGenerateInternal is the internal function
+// behind the ippCodecGenerate()
+//
+// It calls itself recursively, to implement support of
+// nested (embedded) structures
+//
+// attrNames is the map of IPP attribute names into
+// field names, used for detection and reporting of
+// duplicate usage of attribute names
+func ippCodecGenerateInternal(t reflect.Type,
+	attrNames map[string]string) (*ippCodec, error) {
+
 	if t.Kind() != reflect.Struct {
 		err := fmt.Errorf("%s: is not struct", diagTypeName(t))
 		return nil, err
@@ -84,8 +112,6 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 		t: t,
 	}
 
-	attrNames := make(map[string]string)
-
 	for i := 0; i < t.NumField(); i++ {
 		// Fetch field by field
 		//
@@ -94,6 +120,18 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 		fld := t.Field(i)
 
 		if fld.Anonymous {
+			if fld.IsExported() &&
+				fld.Type.Kind() == reflect.Struct {
+
+				nested, err := ippCodecGenerateInternal(
+					fld.Type, attrNames)
+
+				if err != nil {
+					return nil, err
+				}
+
+				codec.embed(fld.Offset, nested)
+			}
 			continue
 		}
 
@@ -214,14 +252,15 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 		codec.steps = append(codec.steps, step)
 	}
 
-	// At least 1 step must be generated
-	if len(codec.steps) == 0 {
-		err := fmt.Errorf("%s: contains no IPP fields",
-			diagTypeName(t))
-		return nil, err
-	}
-
 	return codec, nil
+}
+
+// Embed nesded codec
+func (codec *ippCodec) embed(offset uintptr, nested *ippCodec) {
+	for _, step := range nested.steps {
+		step.offset += offset
+		codec.steps = append(codec.steps, step)
+	}
 }
 
 // Encode structure into the goipp.Attributes

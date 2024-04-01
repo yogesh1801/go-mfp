@@ -44,6 +44,10 @@ func testDiffStruct(s1, s2 interface{}) string {
 
 	for i := 0; i < stype.NumField(); i++ {
 		fld := stype.Field(i)
+		if !fld.IsExported() {
+			continue
+		}
+
 		v1 := struct1.Field(i).Interface()
 		v2 := struct2.Field(i).Interface()
 

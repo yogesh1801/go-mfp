@@ -25,9 +25,14 @@ type ippCodecGenerateTest struct {
 	err  error       // Expected error
 }
 
-// Anonymous used as embedded structure for ippCodecGenerate test
-type Anonymous struct {
+// GoodEmbedded used as embedded structure for ippCodecGenerate test
+type GoodEmbedded struct {
 	X int
+}
+
+// BadEmbedded is bad embedded structure, for ippCodecGenerate test
+type BadEmbedded struct {
+	X int `ipp:x,"boolean"`
 }
 
 // ippCodecGenerateTestData contains collection of
@@ -37,8 +42,16 @@ var ippCodecGenerateTestData = []ippCodecGenerateTest{
 		data: struct {
 			FldOk      int `ipp:"fld-ok"`
 			unexported string
-			Anonymous
+			GoodEmbedded
 		}{},
+	},
+
+	{
+		data: struct {
+			FldOk int `ipp:"fld-ok"`
+			BadEmbedded
+		}{},
+		err: errors.New(`ipp.BadEmbedded.X: invalid tag "ipp:x,\"boolean\""`),
 	},
 
 	{
@@ -254,16 +267,24 @@ func TestDecodePanic(t *testing.T) {
 
 // ----- Decode test -----
 
-// ippTestCollection embedded into ippTestStruct as IPP collection
+// ippTestCollection used to test collection members
+// of ippTestStruct
 type ippTestCollection struct {
 	CollInt    goipp.IntegerOrRange `ipp:"coll-int"`
 	CollString string               `ipp:"coll-string"`
 	CollU16    uint16               `ipp:"coll-u16"`
 }
 
+// TestEmbedded used to test embedding
+type TestEmbedded struct {
+	FldEmbedded int `ipp:"fld-embedded"`
+}
+
 // ippTestStruct is the structure, intended for testing
 // of the IPP codec
 type ippTestStruct struct {
+	TestEmbedded
+
 	FldBooleanF     bool   `ipp:"fld-boolean-f,boolean"`
 	FldBooleanSlice []bool `ipp:"fld-boolean-slice,boolean"`
 	FldBooleanT     bool   `ipp:"fld-boolean-t,boolean"`
@@ -561,6 +582,9 @@ var ippDecodeTestData = []ippDecodeTest{
 	{
 
 		attrs: goipp.Attributes{
+			goipp.MakeAttribute("fld-embedded",
+				goipp.TagInteger, goipp.Integer(123)),
+
 			goipp.MakeAttribute("fld-boolean-f",
 				goipp.TagBoolean, goipp.Boolean(false)),
 			goipp.MakeAttribute("fld-boolean-t",
@@ -820,6 +844,8 @@ var ippDecodeTestData = []ippDecodeTest{
 			},
 		},
 		data: &ippTestStruct{
+			TestEmbedded: TestEmbedded{123},
+
 			FldBooleanF:     false,
 			FldBooleanT:     true,
 			FldBooleanSlice: []bool{true, false},
