@@ -90,15 +90,10 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 		// Fetch field by field
 		//
 		// - Ignore anonymous fields
-		// - Ignore unexported fields
 		// - Ignore fields without ipp: tag
 		fld := t.Field(i)
 
 		if fld.Anonymous {
-			continue
-		}
-
-		if !fld.IsExported() {
 			continue
 		}
 
@@ -111,6 +106,13 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 			}
 
 			continue
+		}
+
+		// Field must be exported
+		if !fld.IsExported() {
+			err := fmt.Errorf("%s.%s: ipp: tag used with unexported field",
+				diagTypeName(t), fld.Name)
+			return nil, err
 		}
 
 		// Parse ipp: struct tag

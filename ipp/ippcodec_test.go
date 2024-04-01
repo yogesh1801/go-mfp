@@ -207,6 +207,13 @@ var ippCodecGenerateTestData = []ippCodecGenerateTest{
 		}{},
 		err: errors.New(`struct {...}.Fld2: attribute "fld" already used by Fld1`),
 	},
+
+	{
+		data: struct {
+			unexported int `ipp:"unexported"`
+		}{},
+		err: errors.New(`struct {...}.unexported: ipp: tag used with unexported field`),
+	},
 }
 
 func (test ippCodecGenerateTest) exec(t *testing.T) {
