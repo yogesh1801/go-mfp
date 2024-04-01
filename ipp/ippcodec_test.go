@@ -241,16 +241,9 @@ func TestDecodePanic(t *testing.T) {
 
 // ippTestCollection embedded into ippTestStruct as IPP collection
 type ippTestCollection struct {
-	CollInt    int    `ipp:"coll-int"`
-	CollString string `ipp:"coll-string"`
-	CollU16    uint16 `ipp:"coll-u16"`
-}
-
-// goipp.Range vs Integer variant of ippTestCollection
-type ippTestCollectionRange struct {
-	CollInt    goipp.Range `ipp:"coll-int"`
-	CollString string      `ipp:"coll-string"`
-	CollU16    uint16      `ipp:"coll-u16"`
+	CollInt    goipp.IntegerOrRange `ipp:"coll-int"`
+	CollString string               `ipp:"coll-string"`
+	CollU16    uint16               `ipp:"coll-u16"`
 }
 
 // ippTestStruct is the structure, intended for testing
@@ -263,10 +256,9 @@ type ippTestStruct struct {
 	FldCharset      string   `ipp:"fld-charset,charset"`
 	FldCharsetSlice []string `ipp:"fld-charset-slice,charset"`
 
-	FldColl           ippTestCollection        `ipp:"fld-coll"`
-	FldCollSlice      []ippTestCollection      `ipp:"fld-coll-slice,norange"`
-	FldCollSliceRange []ippTestCollectionRange `ipp:"fld-coll-slice,range"`
-	FldCollNilSlice   []ippTestCollection      `ipp:"fld-coll-nil-slice"`
+	FldColl         ippTestCollection   `ipp:"fld-coll"`
+	FldCollSlice    []ippTestCollection `ipp:"fld-coll-slice"`
+	FldCollNilSlice []ippTestCollection `ipp:"fld-coll-nil-slice"`
 
 	FldDateTime      time.Time   `ipp:"fld-datetime,datetime"`
 	FldDateTimeSlice []time.Time `ipp:"fld-datetime-slice,datetime"`
@@ -383,7 +375,7 @@ var ippDecodeTestData = []ippDecodeTest{
 			),
 		},
 
-		err: errors.New(`IPP decode ipp.ippTestStruct: "fld-coll": "coll-int": can't convert boolean to Integer`),
+		err: errors.New(`IPP decode ipp.ippTestStruct: "fld-coll": "coll-int": can't convert boolean to Integer or RangeOfInteger`),
 	},
 
 	{
@@ -401,7 +393,7 @@ var ippDecodeTestData = []ippDecodeTest{
 			),
 		},
 
-		err: errors.New(`IPP decode ipp.ippTestStruct: "fld-coll-slice": "coll-int": can't convert boolean to Integer`),
+		err: errors.New(`IPP decode ipp.ippTestStruct: "fld-coll-slice": "coll-int": can't convert boolean to Integer or RangeOfInteger`),
 	},
 
 	{
@@ -818,15 +810,21 @@ var ippDecodeTestData = []ippDecodeTest{
 			FldBooleanSlice: []bool{true, false},
 
 			FldColl: ippTestCollection{
-				CollInt:    5,
+				CollInt:    goipp.Integer(5),
 				CollU16:    15,
 				CollString: "hello",
 			},
 			FldCollSlice: []ippTestCollection{
-				{CollInt: 1, CollU16: 10, CollString: "one"},
-				{CollInt: 2, CollU16: 20, CollString: "two"},
-			},
-			FldCollSliceRange: []ippTestCollectionRange{
+				{
+					CollInt:    goipp.Integer(1),
+					CollU16:    10,
+					CollString: "one",
+				},
+				{
+					CollInt:    goipp.Integer(2),
+					CollU16:    20,
+					CollString: "two",
+				},
 				{
 					CollInt:    goipp.Range{Lower: 5, Upper: 7},
 					CollU16:    30,
@@ -1087,12 +1085,18 @@ var testdataPrinterAttributes = PrinterAttributes{
 	},
 	IppVersionsSupported: DefaultIppVersionsSupported,
 	MediaSizeSupported: []PrinterMediaSizeSupported{
-		{21590, 27940},
-		{21000, 29700},
-	},
-	MediaSizeSupportedRange: PrinterMediaSizeSupportedRange{
-		XDimension: goipp.Range{Lower: 10000, Upper: 14800},
-		YDimension: goipp.Range{Lower: 21600, Upper: 35600},
+		{
+			XDimension: goipp.Integer(21590),
+			YDimension: goipp.Integer(27940),
+		},
+		{
+			XDimension: goipp.Integer(21000),
+			YDimension: goipp.Integer(29700),
+		},
+		{
+			XDimension: goipp.Range{Lower: 10000, Upper: 14800},
+			YDimension: goipp.Range{Lower: 21600, Upper: 35600},
+		},
 	},
 	OperationsSupported: []goipp.Op{
 		goipp.OpGetPrinterAttributes,

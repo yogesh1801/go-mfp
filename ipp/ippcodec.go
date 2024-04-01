@@ -12,7 +12,6 @@ import (
 	"fmt"
 	"math"
 	"reflect"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -43,18 +42,18 @@ type ippCodec struct {
 // ippCodecStep represents a single encoding/decoding step for the
 // ippCodec
 type ippCodecStep struct {
-	offset               uintptr            // Field offset within structure
-	attrName             string             // IPP attribute name
-	attrTag              goipp.Tag          // IPP attribute tag
-	slice                bool               // It's a slice of values
-	flgRange, flgNorange bool               // Range/NoRange classification
-	conformance          ippAttrConformance // Attribute conformance
-	min, max             int                // Range limits for integers
+	offset      uintptr            // Field offset within structure
+	attrName    string             // IPP attribute name
+	attrTag     goipp.Tag          // IPP attribute tag
+	slice       bool               // It's a slice of values
+	conformance ippAttrConformance // Attribute conformance
+	min, max    int                // Range limits for integers
 
 	// Encode/decode functions
 	encode func(p unsafe.Pointer) []goipp.Value
 	decode func(p unsafe.Pointer, v goipp.Values) error
 	iszero func(p unsafe.Pointer) bool
+	enctag func(v goipp.Value) goipp.Tag
 }
 
 // Standard codecs, precompiled
@@ -136,17 +135,7 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 			methods = ippCodecMethodsByKind[fldKind]
 		}
 		if methods == nil && fldKind == reflect.Struct {
-			var skip func(error) bool
-
-			if tag.flgRange {
-				skip = ippErrIsIntegerToRangeConversion
-			} else if tag.flgNorange {
-				skip = ippErrIsRangeToIntegerConversion
-			}
-
-			methods, err = ippCodecMethodsCollection(fldType,
-				slice, skip)
-
+			methods, err = ippCodecMethodsCollection(fldType, slice)
 			if err != nil {
 				err = fmt.Errorf("%s.%s: %w",
 					diagTypeName(t), fld.Name, err)
@@ -169,8 +158,6 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 			attrName:    tag.name,
 			attrTag:     tag.ippTag,
 			slice:       slice,
-			flgRange:    tag.flgRange,
-			flgNorange:  tag.flgNorange,
 			conformance: tag.conformance,
 			min:         tag.min,
 			max:         tag.max,
@@ -218,6 +205,8 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 			return reflect.NewAt(fldType, p).Elem().IsZero()
 		}
 
+		step.enctag = methods.enctag
+
 		// Append step to the codec
 		codec.steps = append(codec.steps, step)
 	}
@@ -244,20 +233,8 @@ func (codec ippCodec) encode(in interface{}, attrs *goipp.Attributes) {
 	}
 
 	// Now encode, step by step
-	//
-	// Note, attribute names may duplicate, because the same
-	// name can be used twice in Go structure: first time for
-	// the Integer values and second time for the RangeOfInteger
-	// values. In IPP it is encoded under the same attribute name,
-	// but in Go structure there will be two fields
-	//
-	// So we cannot encode into the linear sequence of attributes
-	// directly (otherwise we may have duplicate attributes on
-	// output). Instead, first we collect attributes into the
-	// map, indexed by attribute name, them export this map
-	// into the final linear sequence
 	p := unsafe.Pointer(v.Pointer())
-	attrByName := make(map[string]goipp.Attribute)
+	newattrs := make(goipp.Attributes, 0, len(codec.steps))
 
 	for _, step := range codec.steps {
 		attr := goipp.Attribute{Name: step.attrName}
@@ -271,31 +248,19 @@ func (codec ippCodec) encode(in interface{}, attrs *goipp.Attributes) {
 
 		if len(val) != 0 {
 			for _, v := range val {
-				attr.Values.Add(step.attrTag, v)
+				tag := step.attrTag
+				if tag == goipp.TagZero {
+					tag = step.enctag(v)
+				}
+
+				attr.Values.Add(tag, v)
 			}
 
-			if prev, found := attrByName[step.attrName]; found {
-				attr.Values = append(prev.Values,
-					attr.Values...)
-			}
-			attrByName[step.attrName] = attr
+			newattrs.Add(attr)
 		}
 	}
 
-	// Export encoded attributes from the attrByName
-	//
-	// We sort resulting attributes by name with the purpose
-	// to have always reproducible result. IPP doesn't dictate
-	// any particular order of attributes, but Go map traversal
-	// will always produce a different order of attributes, which
-	// we want to avoid
-	newattrs := make(goipp.Attributes, 0, len(attrByName))
-	for _, attr := range attrByName {
-		newattrs.Add(attr)
-	}
-	sort.Slice(newattrs, func(i, j int) bool {
-		return newattrs[i].Name < newattrs[j].Name
-	})
+	// Now export newly encoded attributes
 	*attrs = append(*attrs, newattrs...)
 }
 
@@ -373,11 +338,10 @@ func (codec ippCodec) doDecode(out interface{}, attrs goipp.Attributes) error {
 
 // ippStructTag represents parsed ipp: struct tag
 type ippStructTag struct {
-	name                 string             // Attribute name
-	ippTag               goipp.Tag          // IPP tag
-	flgRange, flgNorange bool               // "range"/"norange" flags
-	conformance          ippAttrConformance // Attribute conformance
-	min, max             int                // Range limits for integers
+	name        string             // Attribute name
+	ippTag      goipp.Tag          // IPP tag
+	conformance ippAttrConformance // Attribute conformance
+	min, max    int                // Range limits for integers
 }
 
 // ippStructTagToIppTag maps ipp: struct tag keyword to the
@@ -475,7 +439,7 @@ func ippStructTagParse(s string) (*ippStructTag, error) {
 
 // parseKeyword parses keyword parameter of the ipp: struct tag:
 //    - IPP tag ("int", "name" etc)
-//    - flags ("range", "norange" etc)
+//    - May be, some flags in a future
 //
 // Return value:
 //    - true, nil  - parameter was parsed and applied
@@ -489,19 +453,7 @@ func (stag *ippStructTag) parseKeyword(s string) (bool, error) {
 		return true, nil
 	}
 
-	switch kw {
-	case "range":
-		stag.flgRange = true
-		return true, nil
-
-	case "norange":
-		stag.flgNorange = true
-		return true, nil
-
-	default:
-		return false, nil
-	}
-
+	return false, nil
 }
 
 // parseRange parses min/max limit constraints:
@@ -597,6 +549,7 @@ type ippCodecMethods struct {
 	ippTag goipp.Tag
 	encode func(p unsafe.Pointer) []goipp.Value
 	decode func(p unsafe.Pointer, v goipp.Values) error
+	enctag func(v goipp.Value) goipp.Tag
 }
 
 // ----- ippCodecMethods for slices -----
@@ -654,8 +607,8 @@ func ippDecSlice(p unsafe.Pointer, vals goipp.Values,
 
 // ippCodecMethodsCollection creates ippCodecMethods for encoding
 // nested structure or slice of structures as IPP Collection
-func ippCodecMethodsCollection(t reflect.Type, slice bool,
-	skip func(error) bool) (*ippCodecMethods, error) {
+func ippCodecMethodsCollection(t reflect.Type, slice bool) (
+	*ippCodecMethods, error) {
 
 	codec, err := ippCodecGenerate(t)
 	if err != nil {
@@ -672,11 +625,11 @@ func ippCodecMethodsCollection(t reflect.Type, slice bool,
 
 	if slice {
 		m.decode = func(p unsafe.Pointer, v goipp.Values) error {
-			return ippDecCollectionSlice(p, v, codec, skip)
+			return ippDecCollectionSlice(p, v, codec)
 		}
 	} else {
 		m.decode = func(p unsafe.Pointer, v goipp.Values) error {
-			return ippDecCollection(p, v, codec, skip)
+			return ippDecCollection(p, v, codec)
 		}
 	}
 
@@ -696,9 +649,9 @@ func ippEncCollection(p unsafe.Pointer, codec *ippCodec) []goipp.Value {
 
 // Decode: single nested structure from collection
 func ippDecCollection(p unsafe.Pointer, vals goipp.Values,
-	codec *ippCodec, skip func(error) bool) error {
+	codec *ippCodec) error {
 
-	slice, err := ippDecCollectionInternal(p, vals, codec, skip)
+	slice, err := ippDecCollectionInternal(p, vals, codec)
 	if err != nil {
 		return err
 	}
@@ -711,9 +664,9 @@ func ippDecCollection(p unsafe.Pointer, vals goipp.Values,
 
 // Decode: nested slice of structures from collection
 func ippDecCollectionSlice(p unsafe.Pointer, vals goipp.Values,
-	codec *ippCodec, skip func(error) bool) error {
+	codec *ippCodec) error {
 
-	slice, err := ippDecCollectionInternal(p, vals, codec, skip)
+	slice, err := ippDecCollectionInternal(p, vals, codec)
 	if err != nil {
 		return err
 	}
@@ -727,21 +680,10 @@ func ippDecCollectionSlice(p unsafe.Pointer, vals goipp.Values,
 // ippDecCollectionInternal decodes collection as a slice
 // of decoded structures of type codec.t
 //
-// If some of attribute values decodes with error and skip
-// is not nil and skip(err) == true, this value simply skipped
-// instead of propagation the error up to the stack.
-
-// The purpose of this mechanism is to allow attributes with either
-// Integer or RangeOfInteger values within underlying collections,
-// like "media-size-supported" in printer attributes. In Go structure
-// such an attribute take 2 fields with different range/noRange types,
-// and this mechanism is used to filter values between these two
-// fields when decoding.
-//
 // It returns slice of decodes structures, represented
 // as reflect.Value.
 func ippDecCollectionInternal(p unsafe.Pointer, vals goipp.Values,
-	codec *ippCodec, skip func(error) bool) (reflect.Value, error) {
+	codec *ippCodec) (reflect.Value, error) {
 
 	slice := reflect.Zero(reflect.SliceOf(codec.t))
 	for i := range vals {
@@ -756,10 +698,6 @@ func ippDecCollectionInternal(p unsafe.Pointer, vals goipp.Values,
 
 		err := codec.doDecode(ss.Interface(), attrs)
 		if err != nil {
-			if skip != nil && skip(err) {
-				continue
-			}
-
 			return reflect.Value{}, err
 		}
 
@@ -774,6 +712,13 @@ func ippDecCollectionInternal(p unsafe.Pointer, vals goipp.Values,
 // ippCodecMethodsByType maps reflect.Type to the particular
 // ippCodecMethods structure
 var ippCodecMethodsByType = map[reflect.Type]*ippCodecMethods{
+	reflect.TypeOf((*goipp.IntegerOrRange)(nil)).Elem(): &ippCodecMethods{
+		ippTag: goipp.TagZero,
+		encode: ippEncIntegerOrRange,
+		decode: ippDecIntegerOrRange,
+		enctag: ippTagIntegerOrRange,
+	},
+
 	reflect.TypeOf(goipp.Range{}): &ippCodecMethods{
 		ippTag: goipp.TagRange,
 		encode: ippEncRange,
@@ -797,6 +742,37 @@ var ippCodecMethodsByType = map[reflect.Type]*ippCodecMethods{
 		encode: ippEncDateTime,
 		decode: ippDecDateTime,
 	},
+}
+
+// Encode: goipp.IntegerOrRange
+func ippEncIntegerOrRange(p unsafe.Pointer) []goipp.Value {
+	in := *(*goipp.IntegerOrRange)(p)
+	out := []goipp.Value{in}
+	return out
+}
+
+// Decode: goipp.IntegerOrRange
+func ippDecIntegerOrRange(p unsafe.Pointer, vals goipp.Values) error {
+	res, ok := vals[0].V.(goipp.IntegerOrRange)
+	if !ok {
+		err := fmt.Errorf("can't convert %s to Integer or RangeOfInteger",
+			vals[0].T)
+		return err
+	}
+
+	*(*goipp.IntegerOrRange)(p) = res
+	return nil
+}
+
+// Encode tag: goipp.IntegerOrRange
+func ippTagIntegerOrRange(v goipp.Value) (tag goipp.Tag) {
+	switch v.(type) {
+	case goipp.Integer:
+		tag = goipp.TagInteger
+	case goipp.Range:
+		tag = goipp.TagRange
+	}
+	return
 }
 
 // Encode: goipp.Range
@@ -859,7 +835,6 @@ func ippDecVersion(p unsafe.Pointer, vals goipp.Values) error {
 }
 
 // Decode: IPP version string (X.Y).
-// Common function for ippDecVersion() and ippDecVersionSlice()
 func ippDecVersionString(s string) (goipp.Version, error) {
 	var major, minor uint64
 	var err error
@@ -1034,26 +1009,4 @@ func ippErrConvertMake(fromval struct {
 // Implements error interface.
 func (err ippErrConvert) Error() string {
 	return fmt.Sprintf("can't convert %s to %s", err.fromTag, err.to)
-}
-
-// ippErrIsIntegerToRangeConversion returns true if error is
-// ippErrConvert caused by Integer->Range conversion
-func ippErrIsIntegerToRangeConversion(err error) bool {
-	var conv ippErrConvert
-	if errors.As(err, &conv) {
-		return conv.from == goipp.TypeInteger &&
-			conv.to == goipp.TypeRange
-	}
-	return false
-}
-
-// ippErrIsIntegerToRangeConversion returns true if error is
-// ippErrConvert caused by Range->Integer conversion
-func ippErrIsRangeToIntegerConversion(err error) bool {
-	var conv ippErrConvert
-	if errors.As(err, &conv) {
-		return conv.to == goipp.TypeInteger &&
-			conv.from == goipp.TypeRange
-	}
-	return false
 }
