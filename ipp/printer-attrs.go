@@ -108,30 +108,35 @@ type PrinterAttributes struct {
 
 	// PWG5100.11: IPP Job and Printer Extensions – Set 2 (JPS2)
 	// 7 Job Template Attributes
-	FeedOrientationDefault           string                      `ipp:"?feed-orientation-default,keyword"`
-	FeedOrientationSupported         []string                    `ipp:"?feed-orientation-supported,keyword"`
-	FontNameRequestedDefault         string                      `ipp:"?font-name-requested-default,name"`
-	FontNameRequestedSupported       []string                    `ipp:"?font-name-requested-supported,name"`
-	FontSizeRequestedDefault         int                         `ipp:"?font-size-requested-default,>0"`
-	FontSizeRequestedSupported       []int                       `ipp:"?font-size-requested-supported,>0"`
-	JobDelayOutputUntilDefault       string                      `ipp:"?job-delay-output-until-default,keyword"`
-	JobDelayOutputUntilSupported     []string                    `ipp:"?job-delay-output-until-supported,keyword"`
-	JobDelayOutputUntilTimeSupported goipp.Range                 `ipp:"?job-delay-output-until-time-supported,>-1"`
-	JobHoldUntilTimeSupported        goipp.Range                 `ipp:"?job-hold-until-time-supported,>-1"`
-	JobPhoneNumberDefault            string                      `ipp:"?job-phone-number-default,uri"`
-	JobPhoneNumberSupported          bool                        `ipp:"?job-phone-number-supported"`
-	JobRecipientNameDefault          string                      `ipp:"?job-recipient-name-default,name"`
-	JobRecipientNameSupported        bool                        `ipp:"?job-recipient-name-supported"`
-	JobSaveDispositionDefault        []PrinterJobSaveDisposition `ipp:"?job-save-disposition-default"`
-	JobSaveDispositionSupported      []string                    `ipp:"?job-save-disposition-supported,keyword"`
-	SaveDispositionSupported         string                      `ipp:"?save-disposition-supported,keyword"`
-	SaveDocumentFormatDefault        string                      `ipp:"?save-document-format-default,mimeMediaType"`
-	SaveDocumentFormatSupported      []string                    `ipp:"?save-document-format-supported,mimeMediaType"`
-	SaveInfoSupported                []string                    `ipp:"?save-info-supported,keyword"`
-	SaveLocationDefault              string                      `ipp:"?save-location-default,uri"`
-	SaveLocationSupported            []string                    `ipp:"?save-location-supported,uri"`
-	SaveNameSubdirectorySupported    bool                        `ipp:"?save-name-subdirectory-supported"`
-	SaveNameSupported                bool                        `ipp:"?save-name-supported"`
+	FeedOrientationDefault               string                      `ipp:"?feed-orientation-default,keyword"`
+	FeedOrientationSupported             []string                    `ipp:"?feed-orientation-supported,keyword"`
+	FontNameRequestedDefault             string                      `ipp:"?font-name-requested-default,name"`
+	FontNameRequestedSupported           []string                    `ipp:"?font-name-requested-supported,name"`
+	FontSizeRequestedDefault             int                         `ipp:"?font-size-requested-default,>0"`
+	FontSizeRequestedSupported           []int                       `ipp:"?font-size-requested-supported,>0"`
+	JobDelayOutputUntilDefault           string                      `ipp:"?job-delay-output-until-default,keyword"`
+	JobDelayOutputUntilSupported         []string                    `ipp:"?job-delay-output-until-supported,keyword"`
+	JobDelayOutputUntilTimeSupported     goipp.Range                 `ipp:"?job-delay-output-until-time-supported,>-1"`
+	JobHoldUntilTimeSupported            goipp.Range                 `ipp:"?job-hold-until-time-supported,>-1"`
+	JobPhoneNumberDefault                string                      `ipp:"?job-phone-number-default,uri"`
+	JobPhoneNumberSupported              bool                        `ipp:"?job-phone-number-supported"`
+	JobRecipientNameDefault              string                      `ipp:"?job-recipient-name-default,name"`
+	JobRecipientNameSupported            bool                        `ipp:"?job-recipient-name-supported"`
+	JobSaveDispositionDefault            []PrinterJobSaveDisposition `ipp:"?job-save-disposition-default"`
+	JobSaveDispositionSupported          []string                    `ipp:"?job-save-disposition-supported,keyword"`
+	PdlInitFileDefault                   []JobPdlInitFile            `ipp:"?pdl-init-file-default"`
+	PdlInitFileEntrySupported            []string                    `ipp:"?pdl-init-file-entry-supported,name"`
+	PdlInitFileNameSubdirectorySupported bool                        `ipp:"?pdl-init-file-name-subdirectory-supported"`
+	PdlInitFileNameSupported             []string                    `ipp:"?pdl-init-file-name-supported,name"`
+	PdlInitFileSupported                 []string                    `ipp:"? pdl-init-file-supported,name"`
+	SaveDispositionSupported             []string                    `ipp:"?save-disposition-supported,keyword"`
+	SaveDocumentFormatDefault            string                      `ipp:"?save-document-format-default,mimeMediaType"`
+	SaveDocumentFormatSupported          []string                    `ipp:"?save-document-format-supported,mimeMediaType"`
+	SaveInfoSupported                    []string                    `ipp:"?save-info-supported,keyword"`
+	SaveLocationDefault                  string                      `ipp:"?save-location-default,uri"`
+	SaveLocationSupported                []string                    `ipp:"?save-location-supported,uri"`
+	SaveNameSubdirectorySupported        bool                        `ipp:"?save-name-subdirectory-supported"`
+	SaveNameSupported                    bool                        `ipp:"?save-name-supported"`
 
 	// PWG5100.13: IPP Driver Replacement Extensions v2.0 (NODRIVER)
 	// 6.5 Printer Description Attribute
