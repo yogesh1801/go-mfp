@@ -77,7 +77,7 @@ func ippCodecMustGenerate(t reflect.Type) *ippCodec {
 // ippCodecGenerate generates codec for the particular type.
 func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 	if t.Kind() != reflect.Struct {
-		err := fmt.Errorf("%s: is not struct", t)
+		err := fmt.Errorf("%s: is not struct", diagTypeName(t))
 		return nil, err
 	}
 
@@ -105,7 +105,7 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 		if !found {
 			if strings.HasPrefix(string(fld.Tag), "ipp:") {
 				err := fmt.Errorf("%s.%s: invalid tag %q",
-					t, fld.Name, fld.Tag)
+					diagTypeName(t), fld.Name, fld.Tag)
 				return nil, err
 			}
 
@@ -115,7 +115,9 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 		// Parse ipp: struct tag
 		tag, err := ippStructTagParse(tagStr)
 		if err != nil {
-			return nil, fmt.Errorf("%s.%s: %w", t, fld.Name, err)
+			err := fmt.Errorf("%s.%s: %w",
+				diagTypeName(t), fld.Name, err)
+			return nil, err
 		}
 
 		// Obtain ippCodecMethods
@@ -147,7 +149,7 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 
 			if err != nil {
 				err = fmt.Errorf("%s.%s: %w",
-					t, fld.Name, err)
+					diagTypeName(t), fld.Name, err)
 				return nil, err
 			}
 
@@ -156,7 +158,7 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 
 		if methods == nil {
 			err := fmt.Errorf("%s.%s: %s type not supported",
-				t, fld.Name, fldKind)
+				diagTypeName(t), fld.Name, fldKind)
 
 			return nil, err
 		}
@@ -187,7 +189,7 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 
 		if !ok {
 			err := fmt.Errorf("%s.%s: can't represent %s as %s",
-				t, fld.Name, fld.Type, step.attrTag)
+				diagTypeName(t), fld.Name, fld.Type, step.attrTag)
 
 			return nil, err
 		}
@@ -222,7 +224,8 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 
 	// At least 1 step must be generated
 	if len(codec.steps) == 0 {
-		err := fmt.Errorf("%s: contains no IPP fields", t)
+		err := fmt.Errorf("%s: contains no IPP fields",
+			diagTypeName(t))
 		return nil, err
 	}
 
@@ -235,7 +238,8 @@ func (codec ippCodec) encode(in interface{}, attrs *goipp.Attributes) {
 	v := reflect.ValueOf(in)
 	if v.Kind() != reflect.Pointer || v.Elem().Type() != codec.t {
 		err := fmt.Errorf("Encoder for %q applied to %q",
-			reflect.PtrTo(codec.t), reflect.TypeOf(in))
+			diagTypeName(reflect.PtrTo(codec.t)),
+			diagTypeName(reflect.TypeOf(in)))
 		panic(err)
 	}
 
@@ -302,7 +306,8 @@ func (codec ippCodec) encode(in interface{}, attrs *goipp.Attributes) {
 func (codec ippCodec) decode(out interface{}, attrs goipp.Attributes) error {
 	err := codec.doDecode(out, attrs)
 	if err != nil {
-		err = fmt.Errorf("IPP decode %s: %w", codec.t, err)
+		err = fmt.Errorf("IPP decode %s: %w",
+			diagTypeName(codec.t), err)
 	}
 	return err
 }

@@ -45,28 +45,28 @@ var ippCodecGenerateTestData = []ippCodecGenerateTest{
 		data: struct {
 			FldNoIPPTag int
 		}{},
-		err: errors.New(`struct { FldNoIPPTag int }: contains no IPP fields`),
+		err: errors.New(`struct {...}: contains no IPP fields`),
 	},
 
 	{
 		data: struct {
 			FldBad int `ipp:""`
 		}{},
-		err: errors.New(`struct { FldBad int "ipp:\"\"" }.FldBad: missed attribute name`),
+		err: errors.New(`struct {...}.FldBad: missed attribute name`),
 	},
 
 	{
 		data: struct {
 			FldBad int `ipp:"?"`
 		}{},
-		err: errors.New(`struct { FldBad int "ipp:\"?\"" }.FldBad: missed attribute name`),
+		err: errors.New(`struct {...}.FldBad: missed attribute name`),
 	},
 
 	{
 		data: struct {
 			FldBad float64 `ipp:"flg-bad"`
 		}{},
-		err: errors.New(`struct { FldBad float64 "ipp:\"flg-bad\"" }.FldBad: float64 type not supported`),
+		err: errors.New(`struct {...}.FldBad: float64 type not supported`),
 	},
 
 	{
@@ -75,7 +75,7 @@ var ippCodecGenerateTestData = []ippCodecGenerateTest{
 				FldBad float64 `ipp:"flg-bad"`
 			} `ipp:"flg-nested"`
 		}{},
-		err: errors.New(`struct { Nested struct { FldBad float64 "ipp:\"flg-bad\"" } "ipp:\"flg-nested\"" }.Nested: struct { FldBad float64 "ipp:\"flg-bad\"" }.FldBad: float64 type not supported`),
+		err: errors.New(`struct {...}.Nested: struct {...}.FldBad: float64 type not supported`),
 	},
 
 	{
@@ -83,7 +83,7 @@ var ippCodecGenerateTestData = []ippCodecGenerateTest{
 			// ipp: tag misses closing quote (")
 			FldBadTag int `ipp:"fld-bad-tag`
 		}{},
-		err: errors.New(`struct { FldBadTag int "ipp:\"fld-bad-tag" }.FldBadTag: invalid tag "ipp:\"fld-bad-tag"`),
+		err: errors.New(`struct {...}.FldBadTag: invalid tag "ipp:\"fld-bad-tag"`),
 	},
 
 	{
@@ -91,7 +91,7 @@ var ippCodecGenerateTestData = []ippCodecGenerateTest{
 			// ipp: tag contains unknown keyword
 			FldBadTag int `ipp:"fld-bad-tag,unknown"`
 		}{},
-		err: errors.New(`struct { FldBadTag int "ipp:\"fld-bad-tag,unknown\"" }.FldBadTag: "unknown": unknown keyword`),
+		err: errors.New(`struct {...}.FldBadTag: "unknown": unknown keyword`),
 	},
 
 	{
@@ -106,7 +106,7 @@ var ippCodecGenerateTestData = []ippCodecGenerateTest{
 			// ipp: tag contains invalid (empty) limit constraint
 			FldBadTag int `ipp:"fld-bad-tag,<"`
 		}{},
-		err: errors.New(`struct { FldBadTag int "ipp:\"fld-bad-tag,<\"" }.FldBadTag: "<": invalid limit`),
+		err: errors.New(`struct {...}.FldBadTag: "<": invalid limit`),
 	},
 
 	{
@@ -114,7 +114,7 @@ var ippCodecGenerateTestData = []ippCodecGenerateTest{
 			// ipp: tag contains invalid (parse error) limit constraint
 			FldBadTag int `ipp:"fld-bad-tag,<XXX"`
 		}{},
-		err: errors.New(`struct { FldBadTag int "ipp:\"fld-bad-tag,<XXX\"" }.FldBadTag: "<XXX": invalid limit`),
+		err: errors.New(`struct {...}.FldBadTag: "<XXX": invalid limit`),
 	},
 
 	{
@@ -122,7 +122,7 @@ var ippCodecGenerateTestData = []ippCodecGenerateTest{
 			// ipp: tag contains invalid (out of range) upper limit
 			FldBadTag int `ipp:"fld-bad-tag,<4294967296"`
 		}{},
-		err: errors.New(`struct { FldBadTag int "ipp:\"fld-bad-tag,<4294967296\"" }.FldBadTag: "<4294967296": limit out of range`),
+		err: errors.New(`struct {...}.FldBadTag: "<4294967296": limit out of range`),
 	},
 
 	{
@@ -130,7 +130,7 @@ var ippCodecGenerateTestData = []ippCodecGenerateTest{
 			// ipp: tag contains invalid (out of range) lower limit
 			FldBadTag int `ipp:"fld-bad-tag,>4294967296"`
 		}{},
-		err: errors.New(`struct { FldBadTag int "ipp:\"fld-bad-tag,>4294967296\"" }.FldBadTag: ">4294967296": limit out of range`),
+		err: errors.New(`struct {...}.FldBadTag: ">4294967296": limit out of range`),
 	},
 
 	{
@@ -145,7 +145,7 @@ var ippCodecGenerateTestData = []ippCodecGenerateTest{
 			// ipp: range constraint syntactically invalid
 			FldBadTag int `ipp:"fld-bad-tag,0:XXX"`
 		}{},
-		err: errors.New(`struct { FldBadTag int "ipp:\"fld-bad-tag,0:XXX\"" }.FldBadTag: "0:XXX": unknown keyword`),
+		err: errors.New(`struct {...}.FldBadTag: "0:XXX": unknown keyword`),
 	},
 
 	{
@@ -153,7 +153,7 @@ var ippCodecGenerateTestData = []ippCodecGenerateTest{
 			// ipp: range lower bound doesn't fit int32
 			FldGoodTag int `ipp:"fld-good-tag,4294967296:5"`
 		}{},
-		err: errors.New(`struct { FldGoodTag int "ipp:\"fld-good-tag,4294967296:5\"" }.FldGoodTag: "4294967296:5": 4294967296 out of range`),
+		err: errors.New(`struct {...}.FldGoodTag: "4294967296:5": 4294967296 out of range`),
 	},
 
 	{
@@ -161,7 +161,7 @@ var ippCodecGenerateTestData = []ippCodecGenerateTest{
 			// ipp: range upper bound doesn't fit int32
 			FldGoodTag int `ipp:"fld-good-tag,5:4294967296"`
 		}{},
-		err: errors.New(`struct { FldGoodTag int "ipp:\"fld-good-tag,5:4294967296\"" }.FldGoodTag: "5:4294967296": 4294967296 out of range`),
+		err: errors.New(`struct {...}.FldGoodTag: "5:4294967296": 4294967296 out of range`),
 	},
 
 	{
@@ -169,7 +169,7 @@ var ippCodecGenerateTestData = []ippCodecGenerateTest{
 			// ipp: range min > max
 			FldGoodTag int `ipp:"fld-good-tag,10:5"`
 		}{},
-		err: errors.New(`struct { FldGoodTag int "ipp:\"fld-good-tag,10:5\"" }.FldGoodTag: "10:5": range min>max`),
+		err: errors.New(`struct {...}.FldGoodTag: "10:5": range min>max`),
 	},
 
 	{
@@ -183,21 +183,21 @@ var ippCodecGenerateTestData = []ippCodecGenerateTest{
 		data: struct {
 			FldConv int `ipp:"fld-conv,string"`
 		}{},
-		err: errors.New(`struct { FldConv int "ipp:\"fld-conv,string\"" }.FldConv: can't represent int as octetString`),
+		err: errors.New(`struct {...}.FldConv: can't represent int as octetString`),
 	},
 
 	{
 		data: struct {
 			FldConv string `ipp:"fld-conv,enum"`
 		}{},
-		err: errors.New(`struct { FldConv string "ipp:\"fld-conv,enum\"" }.FldConv: can't represent string as enum`),
+		err: errors.New(`struct {...}.FldConv: can't represent string as enum`),
 	},
 
 	{
 		data: struct {
 			FldConv bool `ipp:"fld-conv,keyword"`
 		}{},
-		err: errors.New(`struct { FldConv bool "ipp:\"fld-conv,keyword\"" }.FldConv: can't represent bool as keyword`),
+		err: errors.New(`struct {...}.FldConv: can't represent bool as keyword`),
 	},
 }
 
