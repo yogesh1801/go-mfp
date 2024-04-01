@@ -47,7 +47,6 @@ type PrinterAttributes struct {
 	DocumentFormatDefault             string                      `ipp:"!document-format-default,mimeMediaType"`
 	DocumentFormatSupported           []string                    `ipp:"!document-format-supported,mimeMediaType"`
 	GeneratedNaturalLanguageSupported []string                    `ipp:"!generated-natural-language-supported,naturalLanguage"`
-	IppFeaturesSupported              []string                    `ipp:"?ipp-features-supported,keyword"`
 	IppVersionsSupported              []goipp.Version             `ipp:"!ipp-versions-supported"`
 	JobImpressionsSupported           goipp.Range                 `ipp:"?job-impressions-supported"`
 	JobKOctetsSupported               goipp.Range                 `ipp:"?job-k-octets-supported"`
@@ -107,7 +106,8 @@ type PrinterAttributes struct {
 	SidesDefault                      string                 `ipp:"?sides-default,keyword"`
 	SidesSupported                    []string               `ipp:"?sides-supported,keyword"`
 
-	// PWG5100.11, 7: Job Template Attributes
+	// PWG5100.11: IPP Job and Printer Extensions – Set 2 (JPS2)
+	// 7 Job Template Attributes
 	FeedOrientationDefault           string                      `ipp:"?feed-orientation-default,keyword"`
 	FeedOrientationSupported         []string                    `ipp:"?feed-orientation-supported,keyword"`
 	FontNameRequestedDefault         string                      `ipp:"?font-name-requested-default,name"`
@@ -132,6 +132,15 @@ type PrinterAttributes struct {
 	SaveLocationSupported            []string                    `ipp:"?save-location-supported,uri"`
 	SaveNameSubdirectorySupported    bool                        `ipp:"?save-name-subdirectory-supported"`
 	SaveNameSupported                bool                        `ipp:"?save-name-supported"`
+
+	// PWG5100.13: IPP Driver Replacement Extensions v2.0 (NODRIVER)
+	// 6.5 Printer Description Attribute
+	DocumentPasswordSupported int      `ipp:"?document-password-supported,0:1023"`
+	IdentifyActionsDefault    []string `ipp:"?identify-actions-default,keyword"`
+	IdentifyActionsSupported  []string `ipp:"?identify-actions-supported,keyword"`
+	IppFeaturesSupported      []string `ipp:"?ipp-features-supported,keyword"`
+	JobErrorActionDefault     string   `ipp:"?job-error-action-default,keyword"`
+	JobErrorActionSupported   []string `ipp:"?job-error-action-supported,keyword"`
 
 	// Other
 	MarkerChangeTime int      `ipp:"?marker-change-time,>-1"`
