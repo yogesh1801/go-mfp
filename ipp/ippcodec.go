@@ -128,8 +128,6 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 			fldKind = fldType.Kind()
 		}
 
-		collection := false
-
 		methods := ippCodecMethodsByType[fldType]
 		if methods == nil {
 			methods = ippCodecMethodsByKind[fldKind]
@@ -141,8 +139,6 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 					diagTypeName(t), fld.Name, err)
 				return nil, err
 			}
-
-			collection = true
 		}
 
 		if methods == nil {
@@ -161,6 +157,8 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 			conformance: tag.conformance,
 			min:         tag.min,
 			max:         tag.max,
+
+			enctag: methods.enctag,
 		}
 
 		if step.attrTag == 0 {
@@ -183,18 +181,14 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 
 		if slice {
 			t := reflect.SliceOf(fldType)
+
 			step.encode = func(p unsafe.Pointer) []goipp.Value {
 				return ippEncSlice(p, t, methods.encode)
 			}
 
-			if !collection {
-				step.decode = func(p unsafe.Pointer,
-					vals goipp.Values) error {
-					return ippDecSlice(p, vals, t,
-						methods.decode)
-				}
-			} else {
-				step.decode = methods.decode
+			step.decode = func(p unsafe.Pointer,
+				vals goipp.Values) error {
+				return ippDecSlice(p, vals, t, methods.decode)
 			}
 		} else {
 			step.encode = methods.encode
@@ -621,16 +615,10 @@ func ippCodecMethodsCollection(t reflect.Type, slice bool) (
 		encode: func(p unsafe.Pointer) []goipp.Value {
 			return ippEncCollection(p, codec)
 		},
-	}
 
-	if slice {
-		m.decode = func(p unsafe.Pointer, v goipp.Values) error {
-			return ippDecCollectionSlice(p, v, codec)
-		}
-	} else {
-		m.decode = func(p unsafe.Pointer, v goipp.Values) error {
+		decode: func(p unsafe.Pointer, v goipp.Values) error {
 			return ippDecCollection(p, v, codec)
-		}
+		},
 	}
 
 	return m, nil
@@ -658,21 +646,6 @@ func ippDecCollection(p unsafe.Pointer, vals goipp.Values,
 
 	ss := reflect.NewAt(codec.t, p)
 	ss.Elem().Set(slice.Index(0))
-
-	return nil
-}
-
-// Decode: nested slice of structures from collection
-func ippDecCollectionSlice(p unsafe.Pointer, vals goipp.Values,
-	codec *ippCodec) error {
-
-	slice, err := ippDecCollectionInternal(p, vals, codec)
-	if err != nil {
-		return err
-	}
-
-	out := reflect.NewAt(reflect.SliceOf(codec.t), p).Elem()
-	out.Set(slice)
 
 	return nil
 }
