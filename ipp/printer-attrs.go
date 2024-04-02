@@ -99,6 +99,7 @@ type PrinterDescription struct {
 	PdfKOctetsSupported            goipp.Range  `ipp:"?pdf-k-octets-supported,0:MAX"`
 	PdfVersionsSupported           []string     `ipp:"?pdf-versions-supported,keyword"`
 	PreferredAttributesSupported   bool         `ipp:"?preferred-attributes-supported"`
+	PrinterDNSSdName               string       `ipp:"?printer-dns-sd-name,name"`
 
 	// Other
 	MarkerChangeTime int      `ipp:"?marker-change-time,0:MAX"`

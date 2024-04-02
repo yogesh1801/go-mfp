@@ -111,7 +111,6 @@ type JobTemplate struct {
 	PdlInitFileSupported                 []string             `ipp:"? pdl-init-file-supported,name"`
 	PrintColorModeDefault                string               `ipp:"?print-color-mode-default,keyword"`
 	PrintColorModeSupported              []string             `ipp:"?print-color-mode-supported,keyword"`
-	PrinterDNSSdName                     string               `ipp:"?printer-dns-sd-name,name"`
 	PrintProcessingAttributesSupported   []string             `ipp:"?print-processing-attributes-supported,keyword"`
 	PrintRenderingIntentDefault          string               `ipp:"?print-rendering-intent-default,keyword"`
 	PrintRenderingIntentSupported        []string             `ipp:"?print-rendering-intent-supported,keyword"`
