@@ -130,6 +130,7 @@ type JobTemplate struct {
 	MediaOverprintSupported         []string            `ipp:"?media-overprint-supported,keyword"`
 	PrintColorModeDefault           string              `ipp:"?print-color-mode-default,keyword"`
 	PrintColorModeSupported         []string            `ipp:"?print-color-mode-supported,keyword"`
+	PrinterMandatoryJobAttributes   []string            `ipp:"?printer-mandatory-job-attributes,keyword"`
 	PrintRenderingIntentDefault     string              `ipp:"?print-rendering-intent-default,keyword"`
 	PrintRenderingIntentSupported   []string            `ipp:"?print-rendering-intent-supported,keyword"`
 	PrintScalingDefault             string              `ipp:"?print-scaling-default,keyword"`

@@ -100,6 +100,10 @@ type PrinterDescription struct {
 	PdfVersionsSupported           []string     `ipp:"?pdf-versions-supported,keyword"`
 	PreferredAttributesSupported   bool         `ipp:"?preferred-attributes-supported"`
 	PrinterDNSSdName               string       `ipp:"?printer-dns-sd-name,name"`
+	PrinterGeoLocation             string       `ipp:"?printer-geo-location,uri|unknown"`
+	PrinterGetAttributesSupported  []string     `ipp:"?printer-get-attributes-supported,keyword"`
+	PrinterIcons                   []string     `ipp:"?printer-icons,uri"`
+	PrinterKind                    []string     `ipp:"?printer-kind,keyword"`
 
 	// Other
 	MarkerChangeTime int      `ipp:"?marker-change-time,0:MAX"`
