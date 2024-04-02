@@ -32,7 +32,7 @@ type GoodEmbedded struct {
 
 // BadEmbedded is bad embedded structure, for ippCodecGenerate test
 type BadEmbedded struct {
-	X int `ipp:x,"boolean"`
+	X int `ipp:"x,boolean"`
 }
 
 // ippCodecGenerateTestData contains collection of
@@ -51,7 +51,7 @@ var ippCodecGenerateTestData = []ippCodecGenerateTest{
 			FldOk int `ipp:"fld-ok"`
 			BadEmbedded
 		}{},
-		err: errors.New(`ipp.BadEmbedded.X: invalid tag "ipp:x,\"boolean\""`),
+		err: errors.New(`ipp.BadEmbedded.X: can't represent int as boolean`),
 	},
 
 	{
