@@ -560,7 +560,11 @@ func (stag *ippStructTag) parseRange(s string) (bool, error) {
 	// reject the parameter
 	min, err = strconv.ParseInt(fields[0], 10, 64)
 	if err == nil {
-		max, err = strconv.ParseInt(fields[1], 10, 64)
+		if fields[1] == "MAX" {
+			max = math.MaxInt32
+		} else {
+			max, err = strconv.ParseInt(fields[1], 10, 64)
+		}
 	}
 
 	if err != nil {
