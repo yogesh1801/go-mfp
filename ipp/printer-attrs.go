@@ -85,16 +85,23 @@ type PrinterDescription struct {
 	URISecuritySupported              []string                    `ipp:"uri-security-supported,keyword"`
 
 	// PWG5100.13: IPP Driver Replacement Extensions v2.0 (NODRIVER)
-	// 6.5 Printer Description Attribute
-	DocumentPasswordSupported int      `ipp:"?document-password-supported,0:1023"`
-	IdentifyActionsDefault    []string `ipp:"?identify-actions-default,keyword"`
-	IdentifyActionsSupported  []string `ipp:"?identify-actions-supported,keyword"`
-	IppFeaturesSupported      []string `ipp:"?ipp-features-supported,keyword"`
-	JobErrorActionDefault     string   `ipp:"?job-error-action-default,keyword"`
-	JobErrorActionSupported   []string `ipp:"?job-error-action-supported,keyword"`
+	// 6.5 Printer Description Attributes
+	DocumentPasswordSupported      int          `ipp:"?document-password-supported,0:1023"`
+	IdentifyActionsDefault         []string     `ipp:"?identify-actions-default,keyword"`
+	IdentifyActionsSupported       []string     `ipp:"?identify-actions-supported,keyword"`
+	IppFeaturesSupported           []string     `ipp:"?ipp-features-supported,keyword"`
+	JobPresetsSupported            []JobPresets `ipp:"?job-presets-supported"`
+	JpegFeaturesSupported          []string     `ipp:"?jpeg-features-supported,keyword"`
+	JpegKOctetsSupported           goipp.Range  `ipp:"?jpeg-k-octets-supported,0:MAX"`
+	JpegXDimensionSupported        goipp.Range  `ipp:"?jpeg-x-dimension-supported,0:65535"`
+	JpegYDimensionSupported        goipp.Range  `ipp:"?jpeg-y-dimension-supported,0:65535"`
+	MultipleOperationTimeOutAction string       `ipp:"?multiple-operation-time-out-action,keyword"`
+	PdfKOctetsSupported            goipp.Range  `ipp:"?pdf-k-octets-supported,0:MAX"`
+	PdfVersionsSupported           []string     `ipp:"?pdf-versions-supported,keyword"`
+	PreferredAttributesSupported   bool         `ipp:"?preferred-attributes-supported"`
 
 	// Other
-	MarkerChangeTime int      `ipp:"?marker-change-time,>-1"`
+	MarkerChangeTime int      `ipp:"?marker-change-time,0:MAX"`
 	MarkerColors     []string `ipp:"?marker-colors,name"`
 	MarkerHighLevels []int    `ipp:"?marker-high-levels,0:100"`
 	MarkerLevels     []int    `ipp:"?marker-levels,-3:100"`

@@ -44,6 +44,14 @@ type JobAttributes struct {
 	JobRecipientName        string               `ipp:"?job-recipient-name,name"`
 	JobSaveDisposition      []JobSaveDisposition `ipp:"?job-save-disposition"`
 	PdlInitFile             []JobPdlInitFile     `ipp:"?pdl-init-file"`
+
+	// PWG5100.13: IPP Driver Replacement Extensions v2.0 (NODRIVER)
+	// 6.2 Job and Document Template Attributes
+	JobErrorAction       string              `ipp:"?job-error-action,keyword"`
+	MediaOverprint       []JobMediaOverprint `ipp:"?media-overprint"`
+	PrintColorMode       string              `ipp:"?print-color-mode,keyword"`
+	PrintRenderingIntent string              `ipp:"?print-rendering-intent,keyword"`
+	PrintScaling         string              `ipp:"?print-scaling,keyword"`
 }
 
 // JobTemplate are attributes, included into the Printer Description and
@@ -88,8 +96,8 @@ type JobTemplate struct {
 	FontSizeRequestedSupported           []int                `ipp:"?font-size-requested-supported,>0"`
 	JobDelayOutputUntilDefault           string               `ipp:"?job-delay-output-until-default,keyword"`
 	JobDelayOutputUntilSupported         []string             `ipp:"?job-delay-output-until-supported,keyword"`
-	JobDelayOutputUntilTimeSupported     goipp.Range          `ipp:"?job-delay-output-until-time-supported,>-1"`
-	JobHoldUntilTimeSupported            goipp.Range          `ipp:"?job-hold-until-time-supported,>-1"`
+	JobDelayOutputUntilTimeSupported     goipp.Range          `ipp:"?job-delay-output-until-time-supported,0:MAX"`
+	JobHoldUntilTimeSupported            goipp.Range          `ipp:"?job-hold-until-time-supported,0:MAX"`
 	JobPhoneNumberDefault                string               `ipp:"?job-phone-number-default,uri"`
 	JobPhoneNumberSupported              bool                 `ipp:"?job-phone-number-supported"`
 	JobRecipientNameDefault              string               `ipp:"?job-recipient-name-default,name"`
@@ -101,6 +109,14 @@ type JobTemplate struct {
 	PdlInitFileNameSubdirectorySupported bool                 `ipp:"?pdl-init-file-name-subdirectory-supported"`
 	PdlInitFileNameSupported             []string             `ipp:"?pdl-init-file-name-supported,name"`
 	PdlInitFileSupported                 []string             `ipp:"? pdl-init-file-supported,name"`
+	PrintColorModeDefault                string               `ipp:"?print-color-mode-default,keyword"`
+	PrintColorModeSupported              []string             `ipp:"?print-color-mode-supported,keyword"`
+	PrinterDNSSdName                     string               `ipp:"?printer-dns-sd-name,name"`
+	PrintProcessingAttributesSupported   []string             `ipp:"?print-processing-attributes-supported,keyword"`
+	PrintRenderingIntentDefault          string               `ipp:"?print-rendering-intent-default,keyword"`
+	PrintRenderingIntentSupported        []string             `ipp:"?print-rendering-intent-supported,keyword"`
+	PrintScalingDefault                  string               `ipp:"?print-scaling-default,keyword"`
+	PrintScalingSupported                []string             `ipp:"?print-scaling-supported,keyword"`
 	SaveDispositionSupported             []string             `ipp:"?save-disposition-supported,keyword"`
 	SaveDocumentFormatDefault            string               `ipp:"?save-document-format-default,mimeMediaType"`
 	SaveDocumentFormatSupported          []string             `ipp:"?save-document-format-supported,mimeMediaType"`
@@ -109,6 +125,16 @@ type JobTemplate struct {
 	SaveLocationSupported                []string             `ipp:"?save-location-supported,uri"`
 	SaveNameSubdirectorySupported        bool                 `ipp:"?save-name-subdirectory-supported"`
 	SaveNameSupported                    bool                 `ipp:"?save-name-supported"`
+
+	// PWG5100.13: IPP Driver Replacement Extensions v2.0 (NODRIVER)
+	// 6.2 Job and Document Template Attributes
+	// 6.5 Printer Description Attributes
+	JobErrorActionDefault           string              `ipp:"?job-error-action-default,keyword"`
+	JobErrorActionSupported         []string            `ipp:"?job-error-action-supported,keyword"`
+	MediaOverprintDefault           []JobMediaOverprint `ipp:"?media-overprint-default"`
+	MediaOverprintDistanceSupported goipp.Range         `ipp:"?media-overprint-distance-supported,0:MAX"`
+	MediaOverprintMethodSupported   []string            `ipp:"?media-overprint-method-supported,keyword"`
+	MediaOverprintSupported         []string            `ipp:"?media-overprint-supported,keyword"`
 }
 
 // JobSaveDisposition represents "job-save-disposition"
@@ -133,4 +159,19 @@ type JobPdlInitFile struct {
 	PdlInitFileLocation string `ipp:"?pdl-init-file-location,uri"`
 	PdlInitFileName     string `ipp:"?pdl-init-file-name,name"`
 	PdlInitFileEntry    string `ipp:"?pdl-init-file-entry,name"`
+}
+
+// JobMediaOverprint represents "media-overprint" collection entry
+// in JobAttributes
+type JobMediaOverprint struct {
+	MediaOverprintDistance int    `ipp:"media-overprint-distance,0:MAX"`
+	MediaOverprintMethod   string `ipp:"media-overprint-method,keyword"`
+}
+
+// JobPresets represents "job-presets-supported" collection entry
+// in PrinterDescription
+type JobPresets struct {
+	PresetCategory string `ipp:"?preset-category,keyword"`
+	PresetName     string `ipp:"?preset-name,name"`
+	JobAttributes
 }
