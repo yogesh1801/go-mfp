@@ -1115,31 +1115,33 @@ var (
 )
 
 var testdataPrinterAttributes = PrinterAttributes{
-	CharsetConfigured:    DefaultCharsetConfigured,
-	CharsetSupported:     DefaultCharsetSupported,
-	CompressionSupported: []string{"none"},
-	IppFeaturesSupported: []string{
-		"airprint-1.7",
-		"airprint-1.6",
-		"airprint-1.5",
-		"airprint-1.4",
-	},
-	IppVersionsSupported: DefaultIppVersionsSupported,
-	MediaSizeSupported: []PrinterMediaSizeSupported{
-		{
-			XDimension: goipp.Integer(21590),
-			YDimension: goipp.Integer(27940),
+	PrinterDescription: PrinterDescription{
+		CharsetConfigured:    DefaultCharsetConfigured,
+		CharsetSupported:     DefaultCharsetSupported,
+		CompressionSupported: []string{"none"},
+		IppFeaturesSupported: []string{
+			"airprint-1.7",
+			"airprint-1.6",
+			"airprint-1.5",
+			"airprint-1.4",
 		},
-		{
-			XDimension: goipp.Integer(21000),
-			YDimension: goipp.Integer(29700),
+		IppVersionsSupported: DefaultIppVersionsSupported,
+		MediaSizeSupported: []PrinterMediaSizeSupported{
+			{
+				XDimension: goipp.Integer(21590),
+				YDimension: goipp.Integer(27940),
+			},
+			{
+				XDimension: goipp.Integer(21000),
+				YDimension: goipp.Integer(29700),
+			},
+			{
+				XDimension: goipp.Range{Lower: 10000, Upper: 14800},
+				YDimension: goipp.Range{Lower: 21600, Upper: 35600},
+			},
 		},
-		{
-			XDimension: goipp.Range{Lower: 10000, Upper: 14800},
-			YDimension: goipp.Range{Lower: 21600, Upper: 35600},
+		OperationsSupported: []goipp.Op{
+			goipp.OpGetPrinterAttributes,
 		},
-	},
-	OperationsSupported: []goipp.Op{
-		goipp.OpGetPrinterAttributes,
 	},
 }
