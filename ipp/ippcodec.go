@@ -45,15 +45,17 @@ type ippCodecStep struct {
 	offset      uintptr            // Field offset within structure
 	attrName    string             // IPP attribute name
 	attrTag     goipp.Tag          // IPP attribute tag
+	zeroTag     goipp.Tag          // How to encode zero value
 	slice       bool               // It's a slice of values
 	conformance ippAttrConformance // Attribute conformance
 	min, max    int                // Range limits for integers
 
 	// Encode/decode functions
-	encode func(p unsafe.Pointer) []goipp.Value
-	decode func(p unsafe.Pointer, v goipp.Values) error
-	enctag func(v goipp.Value) goipp.Tag
-	iszero func(p unsafe.Pointer) bool
+	encode  func(p unsafe.Pointer) []goipp.Value
+	decode  func(p unsafe.Pointer, v goipp.Values) error
+	enctag  func(v goipp.Value) goipp.Tag
+	iszero  func(p unsafe.Pointer) bool
+	setzero func(p unsafe.Pointer)
 }
 
 // Standard codecs, precompiled
@@ -203,6 +205,7 @@ func ippCodecGenerateInternal(t reflect.Type,
 			offset:      fld.Offset,
 			attrName:    tag.name,
 			attrTag:     tag.ippTag,
+			zeroTag:     tag.zeroTag,
 			slice:       slice,
 			conformance: tag.conformance,
 			min:         tag.min,
@@ -211,6 +214,9 @@ func ippCodecGenerateInternal(t reflect.Type,
 			enctag: methods.enctag,
 			iszero: func(p unsafe.Pointer) bool {
 				return reflect.NewAt(fldType, p).Elem().IsZero()
+			},
+			setzero: func(p unsafe.Pointer) {
+				reflect.NewAt(fldType, p).Elem().SetZero()
 			},
 		}
 
@@ -282,10 +288,19 @@ func (codec ippCodec) encode(in interface{}, attrs *goipp.Attributes) {
 		attr := goipp.Attribute{Name: step.attrName}
 		ptr := unsafe.Pointer(uintptr(p) + step.offset)
 
-		if step.conformance == ipAttrOptional && step.iszero(ptr) {
+		// Check for zero value, if it requires special handling
+		doZero := step.conformance == ipAttrOptional ||
+			step.zeroTag != goipp.TagZero
+
+		if doZero && step.iszero(ptr) {
+			if step.zeroTag != goipp.TagZero {
+				attr.Values.Add(step.zeroTag, goipp.Void{})
+				newattrs.Add(attr)
+			}
 			continue
 		}
 
+		// Normal encode
 		val := step.encode(ptr)
 
 		if len(val) != 0 {
@@ -370,6 +385,12 @@ func (codec ippCodec) doDecode(out interface{}, attrs goipp.Attributes) error {
 		err := step.decode(unsafe.Pointer(uintptr(p)+step.offset),
 			attr.Values)
 
+		var conv ippErrConvert
+		if errors.As(err, &conv) && conv.from == goipp.TypeVoid {
+			step.setzero(unsafe.Pointer(uintptr(p) + step.offset))
+			err = nil
+		}
+
 		if err != nil {
 			return fmt.Errorf("%q: %w", step.attrName, err)
 		}
@@ -382,6 +403,7 @@ func (codec ippCodec) doDecode(out interface{}, attrs goipp.Attributes) error {
 type ippStructTag struct {
 	name        string             // Attribute name
 	ippTag      goipp.Tag          // IPP tag
+	zeroTag     goipp.Tag          // How to encode zero value
 	conformance ippAttrConformance // Attribute conformance
 	min, max    int                // Range limits for integers
 }
@@ -489,9 +511,16 @@ func ippStructTagParse(s string) (*ippStructTag, error) {
 //    - false, err - invalid parameter
 func (stag *ippStructTag) parseKeyword(s string) (bool, error) {
 	kw := strings.ToLower(s)
+	zeroTag := goipp.TagZero
+
+	if strings.HasSuffix(kw, "|unknown") {
+		zeroTag = goipp.TagUnknown
+		kw = kw[:len(kw)-8]
+	}
 
 	if tag, ok := ippStructTagToIppTag[kw]; ok {
 		stag.ippTag = tag
+		stag.zeroTag = zeroTag
 		return true, nil
 	}
 
