@@ -109,13 +109,7 @@ type JobTemplate struct {
 	PdlInitFileNameSubdirectorySupported bool                 `ipp:"?pdl-init-file-name-subdirectory-supported"`
 	PdlInitFileNameSupported             []string             `ipp:"?pdl-init-file-name-supported,name"`
 	PdlInitFileSupported                 []string             `ipp:"? pdl-init-file-supported,name"`
-	PrintColorModeDefault                string               `ipp:"?print-color-mode-default,keyword"`
-	PrintColorModeSupported              []string             `ipp:"?print-color-mode-supported,keyword"`
 	PrintProcessingAttributesSupported   []string             `ipp:"?print-processing-attributes-supported,keyword"`
-	PrintRenderingIntentDefault          string               `ipp:"?print-rendering-intent-default,keyword"`
-	PrintRenderingIntentSupported        []string             `ipp:"?print-rendering-intent-supported,keyword"`
-	PrintScalingDefault                  string               `ipp:"?print-scaling-default,keyword"`
-	PrintScalingSupported                []string             `ipp:"?print-scaling-supported,keyword"`
 	SaveDispositionSupported             []string             `ipp:"?save-disposition-supported,keyword"`
 	SaveDocumentFormatDefault            string               `ipp:"?save-document-format-default,mimeMediaType"`
 	SaveDocumentFormatSupported          []string             `ipp:"?save-document-format-supported,mimeMediaType"`
@@ -134,6 +128,12 @@ type JobTemplate struct {
 	MediaOverprintDistanceSupported goipp.Range         `ipp:"?media-overprint-distance-supported,0:MAX"`
 	MediaOverprintMethodSupported   []string            `ipp:"?media-overprint-method-supported,keyword"`
 	MediaOverprintSupported         []string            `ipp:"?media-overprint-supported,keyword"`
+	PrintColorModeDefault           string              `ipp:"?print-color-mode-default,keyword"`
+	PrintColorModeSupported         []string            `ipp:"?print-color-mode-supported,keyword"`
+	PrintRenderingIntentDefault     string              `ipp:"?print-rendering-intent-default,keyword"`
+	PrintRenderingIntentSupported   []string            `ipp:"?print-rendering-intent-supported,keyword"`
+	PrintScalingDefault             string              `ipp:"?print-scaling-default,keyword"`
+	PrintScalingSupported           []string            `ipp:"?print-scaling-supported,keyword"`
 }
 
 // JobSaveDisposition represents "job-save-disposition"
