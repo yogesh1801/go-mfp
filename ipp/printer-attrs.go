@@ -8,6 +8,8 @@
 package ipp
 
 import (
+	"time"
+
 	"github.com/OpenPrinting/goipp"
 )
 
@@ -86,24 +88,47 @@ type PrinterDescription struct {
 
 	// PWG5100.13: IPP Driver Replacement Extensions v2.0 (NODRIVER)
 	// 6.5 Printer Description Attributes
-	DocumentPasswordSupported      int          `ipp:"?document-password-supported,0:1023"`
-	IdentifyActionsDefault         []string     `ipp:"?identify-actions-default,keyword"`
-	IdentifyActionsSupported       []string     `ipp:"?identify-actions-supported,keyword"`
-	IppFeaturesSupported           []string     `ipp:"?ipp-features-supported,keyword"`
-	JobPresetsSupported            []JobPresets `ipp:"?job-presets-supported"`
-	JpegFeaturesSupported          []string     `ipp:"?jpeg-features-supported,keyword"`
-	JpegKOctetsSupported           goipp.Range  `ipp:"?jpeg-k-octets-supported,0:MAX"`
-	JpegXDimensionSupported        goipp.Range  `ipp:"?jpeg-x-dimension-supported,0:65535"`
-	JpegYDimensionSupported        goipp.Range  `ipp:"?jpeg-y-dimension-supported,0:65535"`
-	MultipleOperationTimeOutAction string       `ipp:"?multiple-operation-time-out-action,keyword"`
-	PdfKOctetsSupported            goipp.Range  `ipp:"?pdf-k-octets-supported,0:MAX"`
-	PdfVersionsSupported           []string     `ipp:"?pdf-versions-supported,keyword"`
-	PreferredAttributesSupported   bool         `ipp:"?preferred-attributes-supported"`
-	PrinterDNSSdName               string       `ipp:"?printer-dns-sd-name,name"`
-	PrinterGeoLocation             string       `ipp:"?printer-geo-location,uri|unknown"`
-	PrinterGetAttributesSupported  []string     `ipp:"?printer-get-attributes-supported,keyword"`
-	PrinterIcons                   []string     `ipp:"?printer-icons,uri"`
-	PrinterKind                    []string     `ipp:"?printer-kind,keyword"`
+	DocumentPasswordSupported         int          `ipp:"?document-password-supported,0:1023"`
+	IdentifyActionsDefault            []string     `ipp:"?identify-actions-default,keyword"`
+	IdentifyActionsSupported          []string     `ipp:"?identify-actions-supported,keyword"`
+	IppFeaturesSupported              []string     `ipp:"?ipp-features-supported,keyword"`
+	JobPresetsSupported               []JobPresets `ipp:"?job-presets-supported"`
+	JpegFeaturesSupported             []string     `ipp:"?jpeg-features-supported,keyword"`
+	JpegKOctetsSupported              goipp.Range  `ipp:"?jpeg-k-octets-supported,0:MAX"`
+	JpegXDimensionSupported           goipp.Range  `ipp:"?jpeg-x-dimension-supported,0:65535"`
+	JpegYDimensionSupported           goipp.Range  `ipp:"?jpeg-y-dimension-supported,0:65535"`
+	MultipleOperationTimeOutAction    string       `ipp:"?multiple-operation-time-out-action,keyword"`
+	PdfKOctetsSupported               goipp.Range  `ipp:"?pdf-k-octets-supported,0:MAX"`
+	PdfVersionsSupported              []string     `ipp:"?pdf-versions-supported,keyword"`
+	PreferredAttributesSupported      bool         `ipp:"?preferred-attributes-supported"`
+	PrinterDNSSdName                  string       `ipp:"?printer-dns-sd-name,name"`
+	PrinterGeoLocation                string       `ipp:"?printer-geo-location,uri|unknown"`
+	PrinterGetAttributesSupported     []string     `ipp:"?printer-get-attributes-supported,keyword"`
+	PrinterIcons                      []string     `ipp:"?printer-icons,uri"`
+	PrinterKind                       []string     `ipp:"?printer-kind,keyword"`
+	PrinterOrganization               []string     `ipp:"?printer-organization,text"`
+	PrinterOrganizationalUnit         []string     `ipp:"?printer-organizational-unit,text"`
+	PrinterStringsLanguagesSupported  []string     `ipp:"?printer-strings-languages-supported,naturalLanguage"`
+	PrinterStringsURI                 string       `ipp:"?printer-strings-uri,uri"`
+	RequestingUserURISupported        bool         `ipp:"?requesting-user-uri-supported"`
+	RequestingUserUriSchemesSupported string       `ipp:"?requesting-user-uri-schemes-supported,uriScheme"`
+
+	// PWG5100.13: IPP Driver Replacement Extensions v2.0 (NODRIVER)
+	// 6.6 Printer Status Attributes
+	DeviceServiceCount           int                  `ipp:"?device-service-count,1:MAX"`
+	DeviceUuid                   string               `ipp:"?device-uuid,uri"`
+	PrinterConfigChangeDateTime  time.Time            `ipp:"?printer-config-change-date-time"`
+	PrinterConfigChangeTime      int                  `ipp:"?printer-config-change-time,1:MAX"`
+	PrinterFirmwareName          string               `ipp:"?printer-firmware-name,name"`
+	PrinterFirmwarePatches       []string             `ipp:"?printer-firmware-patches,text"`
+	PrinterFirmwareStringVersion []string             `ipp:"?printer-firmware-string-version,text"`
+	PrinterFirmwareVersion       []string             `ipp:"?printer-firmware-version,string"`
+	PrinterInputTray             []string             `ipp:"?printer-input-tray,string"`
+	PrinterOutputTray            []string             `ipp:"?printer-output-tray,string"`
+	PrinterSupplyDescription     []goipp.TextWithLang `ipp:"?printer-supply-description"`
+	PrinterSupplyInfoUri         string               `ipp:"?printer-supply-info-uri,uri"`
+	PrinterSupply                []string             `ipp:"?printer-supply.string"`
+	PrinterUuid                  string               `ipp:"?printer-uuid,uri"`
 
 	// Other
 	MarkerChangeTime int      `ipp:"?marker-change-time,0:MAX"`
