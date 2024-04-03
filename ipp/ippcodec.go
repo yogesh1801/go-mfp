@@ -1008,12 +1008,17 @@ func ippEncString(p unsafe.Pointer) []goipp.Value {
 
 // Decode: string
 func ippDecString(p unsafe.Pointer, vals goipp.Values) error {
-	res, ok := vals[0].V.(goipp.String)
-	if !ok {
+	switch res := vals[0].V.(type) {
+	case goipp.String:
+		*(*string)(p) = string(res)
+
+	case goipp.Binary:
+		*(*string)(p) = string(res)
+
+	default:
 		return ippErrConvertMake(vals[0], goipp.TypeString)
 	}
 
-	*(*string)(p) = string(res)
 	return nil
 }
 
