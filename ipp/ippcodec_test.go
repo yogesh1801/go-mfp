@@ -325,6 +325,9 @@ type ippTestStruct struct {
 	FldResolution      goipp.Resolution   `ipp:"fld-resolution,resolution"`
 	FldResolutionSlice []goipp.Resolution `ipp:"fld-resolution-slice,resolution"`
 
+	FldTextWithLang      goipp.TextWithLang   `ipp:"fld-textwithlang,textwithlanguage"`
+	FldTextWithLangSlice []goipp.TextWithLang `ipp:"fld-textwithlang-slice,textwithlanguage"`
+
 	FldString      string   `ipp:"fld-string,string"`
 	FldStringSlice []string `ipp:"fld-string-slice,string"`
 
@@ -504,6 +507,15 @@ var ippDecodeTestData = []ippDecodeTest{
 		},
 
 		err: errors.New(`IPP decode ipp.ippTestStruct: "fld-resolution": can't convert integer to Resolution`),
+	},
+
+	{
+		attrs: goipp.Attributes{
+			goipp.MakeAttribute("fld-textwithlang",
+				goipp.TagInteger, goipp.Integer(12345)),
+		},
+
+		err: errors.New(`IPP decode ipp.ippTestStruct: "fld-textwithlang": can't convert integer to TextWithLang`),
 	},
 
 	{
@@ -770,6 +782,18 @@ var ippDecodeTestData = []ippDecodeTest{
 				},
 			},
 
+			goipp.MakeAttribute("fld-textwithlang",
+				goipp.TagTextLang,
+				goipp.TextWithLang{Lang: "en-US", Text: "Hello"}),
+			goipp.Attribute{
+				Name: "fld-textwithlang-slice",
+				Values: goipp.Values{
+					{goipp.TagTextLang, goipp.TextWithLang{Lang: "be-BY", Text: "Прывітанне"}},
+					{goipp.TagTextLang, goipp.TextWithLang{Lang: "ru-RU", Text: "Привет"}},
+					{goipp.TagTextLang, goipp.TextWithLang{Lang: "uk-UA", Text: "Привіт"}},
+				},
+			},
+
 			goipp.MakeAttribute("fld-string",
 				goipp.TagString, goipp.String("hello, world")),
 			goipp.Attribute{
@@ -917,6 +941,12 @@ var ippDecodeTestData = []ippDecodeTest{
 			FldResolutionSlice: []goipp.Resolution{
 				goipp.Resolution{Xres: 200, Yres: 300, Units: goipp.UnitsDpi},
 				goipp.Resolution{Xres: 400, Yres: 500, Units: goipp.UnitsDpcm}},
+
+			FldTextWithLang: goipp.TextWithLang{Lang: "en-US", Text: "Hello"},
+			FldTextWithLangSlice: []goipp.TextWithLang{
+				goipp.TextWithLang{Lang: "be-BY", Text: "Прывітанне"},
+				goipp.TextWithLang{Lang: "ru-RU", Text: "Привет"},
+				goipp.TextWithLang{Lang: "uk-UA", Text: "Привіт"}},
 
 			FldString:      "hello, world",
 			FldStringSlice: []string{"A", "B", "C"},

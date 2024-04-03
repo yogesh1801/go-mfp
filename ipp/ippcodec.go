@@ -785,6 +785,12 @@ var ippCodecMethodsByType = map[reflect.Type]*ippCodecMethods{
 		decode: ippDecResolution,
 	},
 
+	reflect.TypeOf(goipp.TextWithLang{}): &ippCodecMethods{
+		ippTag: goipp.TagTextLang,
+		encode: ippEncTextWithLang,
+		decode: ippDecTextWithLang,
+	},
+
 	reflect.TypeOf(goipp.Version(0)): &ippCodecMethods{
 		ippTag: goipp.TagKeyword,
 		encode: ippEncVersion,
@@ -862,6 +868,24 @@ func ippDecResolution(p unsafe.Pointer, vals goipp.Values) error {
 	}
 
 	*(*goipp.Resolution)(p) = res
+	return nil
+}
+
+// Encode: goipp.TextWithLang
+func ippEncTextWithLang(p unsafe.Pointer) []goipp.Value {
+	in := *(*goipp.TextWithLang)(p)
+	out := []goipp.Value{goipp.TextWithLang(in)}
+	return out
+}
+
+// Decode: goipp.TextWithLang
+func ippDecTextWithLang(p unsafe.Pointer, vals goipp.Values) error {
+	res, ok := vals[0].V.(goipp.TextWithLang)
+	if !ok {
+		return ippErrConvertMake(vals[0], goipp.TypeTextWithLang)
+	}
+
+	*(*goipp.TextWithLang)(p) = res
 	return nil
 }
 
