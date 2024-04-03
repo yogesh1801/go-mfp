@@ -111,12 +111,12 @@ type PrinterDescription struct {
 	PrinterStringsLanguagesSupported  []string     `ipp:"?printer-strings-languages-supported,naturalLanguage"`
 	PrinterStringsURI                 string       `ipp:"?printer-strings-uri,uri"`
 	RequestingUserURISupported        bool         `ipp:"?requesting-user-uri-supported"`
-	RequestingUserUriSchemesSupported string       `ipp:"?requesting-user-uri-schemes-supported,uriScheme"`
+	RequestingUserURISchemesSupported string       `ipp:"?requesting-user-uri-schemes-supported,uriScheme"`
 
 	// PWG5100.13: IPP Driver Replacement Extensions v2.0 (NODRIVER)
 	// 6.6 Printer Status Attributes
 	DeviceServiceCount           int                  `ipp:"?device-service-count,1:MAX"`
-	DeviceUuid                   string               `ipp:"?device-uuid,uri"`
+	DeviceUUID                   string               `ipp:"?device-uuid,uri"`
 	PrinterConfigChangeDateTime  time.Time            `ipp:"?printer-config-change-date-time"`
 	PrinterConfigChangeTime      int                  `ipp:"?printer-config-change-time,1:MAX"`
 	PrinterFirmwareName          string               `ipp:"?printer-firmware-name,name"`
@@ -126,9 +126,9 @@ type PrinterDescription struct {
 	PrinterInputTray             []string             `ipp:"?printer-input-tray,string"`
 	PrinterOutputTray            []string             `ipp:"?printer-output-tray,string"`
 	PrinterSupplyDescription     []goipp.TextWithLang `ipp:"?printer-supply-description"`
-	PrinterSupplyInfoUri         string               `ipp:"?printer-supply-info-uri,uri"`
+	PrinterSupplyInfoURI         string               `ipp:"?printer-supply-info-uri,uri"`
 	PrinterSupply                []string             `ipp:"?printer-supply.string"`
-	PrinterUuid                  string               `ipp:"?printer-uuid,uri"`
+	PrinterUUID                  string               `ipp:"?printer-uuid,uri"`
 
 	// Other
 	MarkerChangeTime int      `ipp:"?marker-change-time,0:MAX"`
