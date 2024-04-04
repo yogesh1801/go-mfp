@@ -513,9 +513,13 @@ func (stag *ippStructTag) parseKeyword(s string) (bool, error) {
 	kw := strings.ToLower(s)
 	zeroTag := goipp.TagZero
 
-	if strings.HasSuffix(kw, "|unknown") {
+	switch {
+	case strings.HasSuffix(kw, "|unknown"):
 		zeroTag = goipp.TagUnknown
 		kw = kw[:len(kw)-8]
+	case strings.HasSuffix(kw, "|no-value"):
+		zeroTag = goipp.TagNoValue
+		kw = kw[:len(kw)-9]
 	}
 
 	if tag, ok := ippStructTagToIppTag[kw]; ok {
