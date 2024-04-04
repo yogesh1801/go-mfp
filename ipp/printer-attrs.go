@@ -86,6 +86,15 @@ type PrinterDescription struct {
 	URIAuthenticationSupported        []string                    `ipp:"uri-authentication-supported,keyword"`
 	URISecuritySupported              []string                    `ipp:"uri-security-supported,keyword"`
 
+	// PWG5100.7: IPP Job Extensions v2.1 (JOBEXT)
+	// 6.9 Printer Description Attributes
+	ClientInfoSupported              []string `ipp:"?client-info-supported,keyword"`
+	DocumentCharsetDefault           string   `ipp:"?document-charset-default,charset"`
+	DocumentCharsetSupported         []string `ipp:"?document-charset-supported,charset"`
+	DocumentFormatDetailsSupported   []string `ipp:"?document-format-details-supported,keyword"`
+	DocumentNaturalLanguageDefault   string   `ipp:"?document-natural-language-default,naturalLanguage"`
+	DocumentNaturalLanguageSupported []string `ipp:"?document-natural-language-supported,naturalLanguage"`
+
 	// PWG5100.13: IPP Driver Replacement Extensions v2.0 (NODRIVER)
 	// 6.5 Printer Description Attributes
 	DocumentPasswordSupported         int          `ipp:"?document-password-supported,0:1023"`

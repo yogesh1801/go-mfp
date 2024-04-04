@@ -86,6 +86,18 @@ type JobTemplate struct {
 	SidesDefault                      string                 `ipp:"?sides-default,keyword"`
 	SidesSupported                    []string               `ipp:"?sides-supported,keyword"`
 
+	// PWG5100.7: IPP Job Extensions v2.1 (JOBEXT)
+	// 6.9 Printer Description Attributes
+	JobAccountIdDefault            string      `ipp:"job-account-id-default,name|no-value"`
+	JobAccountIdSupported          bool        `ipp:"?job-account-id-supported"`
+	JobAccountingUserIdDefault     string      `ipp:"?job-accounting-user-id-default,name|no-value"`
+	JobAccountingUserIdSupported   bool        `ipp:"?job-accounting-user-id-supported"`
+	JobCancelAfterDefault          int         `ipp:"?job-cancel-after-default,0:MAX"`
+	JobCancelAfterSupported        goipp.Range `ipp:"?job-cancel-after-supported,0:MAX"`
+	JobCreationAttributesSupported []string    `ipp:"?job-creation-attributes-supported,keyword"`
+	JobDelayOutputUntilDefault     string      `ipp:"?job-delay-output-until-default,keyword"`
+	JobDelayOutputUntilSupported   []string    `ipp:"?job-delay-output-until-supported,keyword"`
+
 	// PWG5100.11: IPP Job and Printer Extensions – Set 2 (JPS2)
 	// 7 Job Template Attributes
 	FeedOrientationDefault               string               `ipp:"?feed-orientation-default,keyword"`
@@ -94,8 +106,6 @@ type JobTemplate struct {
 	FontNameRequestedSupported           []string             `ipp:"?font-name-requested-supported,name"`
 	FontSizeRequestedDefault             int                  `ipp:"?font-size-requested-default,>0"`
 	FontSizeRequestedSupported           []int                `ipp:"?font-size-requested-supported,>0"`
-	JobDelayOutputUntilDefault           string               `ipp:"?job-delay-output-until-default,keyword"`
-	JobDelayOutputUntilSupported         []string             `ipp:"?job-delay-output-until-supported,keyword"`
 	JobDelayOutputUntilTimeSupported     goipp.Range          `ipp:"?job-delay-output-until-time-supported,0:MAX"`
 	JobHoldUntilTimeSupported            goipp.Range          `ipp:"?job-hold-until-time-supported,0:MAX"`
 	JobPhoneNumberDefault                string               `ipp:"?job-phone-number-default,uri"`
