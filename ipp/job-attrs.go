@@ -88,10 +88,10 @@ type JobTemplate struct {
 
 	// PWG5100.7: IPP Job Extensions v2.1 (JOBEXT)
 	// 6.9 Printer Description Attributes
-	JobAccountIdDefault            string      `ipp:"job-account-id-default,name|no-value"`
-	JobAccountIdSupported          bool        `ipp:"?job-account-id-supported"`
-	JobAccountingUserIdDefault     string      `ipp:"?job-accounting-user-id-default,name|no-value"`
-	JobAccountingUserIdSupported   bool        `ipp:"?job-accounting-user-id-supported"`
+	JobAccountIDDefault            string      `ipp:"job-account-id-default,name|no-value"`
+	JobAccountIDSupported          bool        `ipp:"?job-account-id-supported"`
+	JobAccountingUserIDDefault     string      `ipp:"?job-accounting-user-id-default,name|no-value"`
+	JobAccountingUserIDSupported   bool        `ipp:"?job-accounting-user-id-supported"`
 	JobCancelAfterDefault          int         `ipp:"?job-cancel-after-default,0:MAX"`
 	JobCancelAfterSupported        goipp.Range `ipp:"?job-cancel-after-supported,0:MAX"`
 	JobCreationAttributesSupported []string    `ipp:"?job-creation-attributes-supported,keyword"`
