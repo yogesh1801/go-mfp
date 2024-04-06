@@ -139,7 +139,11 @@ type PrinterDescription struct {
 	PrinterSupply                []string             `ipp:"?printer-supply.string"`
 	PrinterUUID                  string               `ipp:"?printer-uuid,uri"`
 
-	// Other
+	// These seems to be originated from CUPS. I was unable to
+	// find any RFC or PWG standard describing these attrubutes
+	//
+	// Anyway, these attributes are widely supported by hardware
+	// printers
 	MarkerChangeTime int      `ipp:"?marker-change-time,0:MAX"`
 	MarkerColors     []string `ipp:"?marker-colors,name"`
 	MarkerHighLevels []int    `ipp:"?marker-high-levels,0:100"`
