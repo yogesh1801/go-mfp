@@ -93,14 +93,6 @@ var ippCodecGenerateTestData = []ippCodecGenerateTest{
 
 	{
 		data: struct {
-			// ipp: tag misses closing quote (")
-			FldBadTag int `ipp:"fld-bad-tag`
-		}{},
-		err: errors.New(`struct {...}.FldBadTag: invalid tag "ipp:\"fld-bad-tag"`),
-	},
-
-	{
-		data: struct {
 			// ipp: tag contains unknown keyword
 			FldBadTag int `ipp:"fld-bad-tag,unknown"`
 		}{},
@@ -229,15 +221,40 @@ var ippCodecGenerateTestData = []ippCodecGenerateTest{
 	},
 }
 
+// exec executes the test
 func (test ippCodecGenerateTest) exec(t *testing.T) {
 	_, err := ippCodecGenerate(reflect.TypeOf(test.data))
 	checkError(t, "TestIppCodecGenerate", err, test.err)
 }
 
+// TestIppCodecGenerate executes all tests in ippCodecGenerateTestData
 func TestIppCodecGenerate(t *testing.T) {
 	for _, test := range ippCodecGenerateTestData {
 		test.exec(t)
 	}
+}
+
+// TestIppCodecGenerateBadTag tests ippCodecGenerate behavior
+// when ipp: tag has invalid syntax
+func TestIppCodecGenerateBadTag(t *testing.T) {
+	// Here we construct a struct type with invalid ipp: tag
+	// and test error detection and reporting by ippCodecGenerate
+	//
+	// Note, if we define such a struct directly, as a type,
+	// go vet complains on invalid struct field tag, which we
+	// want to avoid
+	fields := []reflect.StructField{
+		{
+			Name: "FldBadTag",
+			Type: reflect.TypeOf(0),
+			Tag:  `ipp:"fld-bad-tag`, // missed closing quote (")
+		},
+	}
+
+	stype := reflect.StructOf(fields)
+	_, err := ippCodecGenerate(stype)
+	checkError(t, "TestIppCodecGenerateBadTag", err,
+		errors.New(`struct {...}.FldBadTag: invalid tag "ipp:\"fld-bad-tag"`))
 }
 
 // ----- Decode panic test -----
