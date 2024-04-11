@@ -1173,7 +1173,7 @@ var testdataPrinterAttributes = PrinterAttributes{
 			"airprint-1.4",
 		},
 		IppVersionsSupported: DefaultIppVersionsSupported,
-		MediaSizeSupported: []PrinterMediaSizeSupported{
+		MediaSizeSupported: []MediaSize{
 			{
 				XDimension: goipp.Integer(21590),
 				YDimension: goipp.Integer(27940),

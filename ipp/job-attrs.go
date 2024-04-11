@@ -32,18 +32,29 @@ type JobAttributes struct {
 	PrintQuality             int                    `ipp:"?print-quality,enum"`
 	Sides                    string                 `ipp:"?sides,keyword"`
 
+	// PWG5100.7: IPP Job Extensions v2.1 (JOBEXT)
+	// 6.8 Job Template Attributes
+	JobDelayOutputUntil     string      `ipp:"?job-delay-output-until,keyword"`
+	JobDelayOutputUntilTime time.Time   `ipp:"?job-delay-output-until-time"`
+	JobHoldUntilTime        time.Time   `ipp:"?job-hold-until-time"`
+	JobAccountId            string      `ipp:"?job-account-id,name"`
+	JobAccountingUserId     string      `ipp:"?job-accounting-user-id,name"`
+	JobCancelAfter          int         `ipp:"?job-cancel-after,0:MAX"`
+	JobRetainUntil          string      `ipp:"?job-retain-until,keyword"`
+	JobRetainUntilInterval  int         `ipp:"?job-retain-until-interval,0:MAX"`
+	JobRetainUntilTime      time.Time   `ipp:"?job-retain-until-time"`
+	JobSheetMessage         string      `ipp:"?job-sheet-message,text"`
+	JobSheetsCol            []JobSheets `ipp:"?job-sheets-col"`
+
 	// PWG5100.11: IPP Job and Printer Extensions – Set 2 (JPS2)
 	// 7 Job Template Attributes
-	FeedOrientation         string               `ipp:"?feed-orientation,keyword"`
-	FontNameRequested       string               `ipp:"?font-name-requested,name"`
-	FontSizeRequested       int                  `ipp:"?font-size-requested,>0"`
-	JobDelayOutputUntil     string               `ipp:"?job-delay-output-until,keyword"`
-	JobDelayOutputUntilTime time.Time            `ipp:"?job-delay-output-until-time"`
-	JobHoldUntilTime        time.Time            `ipp:"?job-hold-until-time"`
-	JobPhoneNumber          string               `ipp:"?job-phone-number,uri"`
-	JobRecipientName        string               `ipp:"?job-recipient-name,name"`
-	JobSaveDisposition      []JobSaveDisposition `ipp:"?job-save-disposition"`
-	PdlInitFile             []JobPdlInitFile     `ipp:"?pdl-init-file"`
+	FeedOrientation    string               `ipp:"?feed-orientation,keyword"`
+	FontNameRequested  string               `ipp:"?font-name-requested,name"`
+	FontSizeRequested  int                  `ipp:"?font-size-requested,>0"`
+	JobPhoneNumber     string               `ipp:"?job-phone-number,uri"`
+	JobRecipientName   string               `ipp:"?job-recipient-name,name"`
+	JobSaveDisposition []JobSaveDisposition `ipp:"?job-save-disposition"`
+	PdlInitFile        []JobPdlInitFile     `ipp:"?pdl-init-file"`
 
 	// PWG5100.13: IPP Driver Replacement Extensions v2.0 (NODRIVER)
 	// 6.2 Job and Document Template Attributes
@@ -145,6 +156,38 @@ type JobTemplate struct {
 	PrintRenderingIntentSupported   []string            `ipp:"?print-rendering-intent-supported,keyword"`
 	PrintScalingDefault             string              `ipp:"?print-scaling-default,keyword"`
 	PrintScalingSupported           []string            `ipp:"?print-scaling-supported,keyword"`
+}
+
+// MediaCol is the "media-col", "media-col-xxx" collection entry.
+// It is used in many places.
+type MediaCol struct {
+	MediaBackCoating  string    `ipp:"?media-back-coating,keyword"`
+	MediaColor        string    `ipp:"?media-color,keyword"`
+	MediaFrontCoating string    `ipp:"?media-front-coating,keyword"`
+	MediaHoleCount    int       `ipp:"?media-hole-count,0:MAX"`
+	MediaInfo         string    `ipp:"?media-info,text"`
+	MediaKey          string    `ipp:"?media-key,keyword"`
+	MediaOrderCount   int       `ipp:"?media-order-count,1:MAX"`
+	MediaPrePrinted   string    `ipp:"?media-pre-printed,keyword"`
+	MediaRecycled     string    `ipp:"?media-recycled,keyword"`
+	MediaSize         MediaSize `ipp:"?media-size"`
+	MediaType         string    `ipp:"?media-type,keyword"`
+	MediaWeightMetric int       `ipp:"?media-weight-metric,0:MAX"`
+}
+
+// MediaSize represents media size parameters (which may be either
+// pair of integers or pair of ranges) and used in many places
+type MediaSize struct {
+	XDimension goipp.IntegerOrRange `ipp:"x-dimension,0:MAX"`
+	YDimension goipp.IntegerOrRange `ipp:"y-dimension,0:MAX"`
+}
+
+// JobSheets represents "job-sheets-col" collection entry in
+// JobAttributes
+type JobSheets struct {
+	JobSheets string     `ipp:"job-sheets,keyword"`
+	Media     string     `ipp:"media,keyword"`
+	MediaCol  []MediaCol `ipp:"media-col"`
 }
 
 // JobSaveDisposition represents "job-save-disposition"
