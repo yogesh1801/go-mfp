@@ -88,13 +88,19 @@ type PrinterDescription struct {
 
 	// PWG5100.7: IPP Job Extensions v2.1 (JOBEXT)
 	// 6.9 Printer Description Attributes
-	ClientInfoSupported              []string `ipp:"?client-info-supported,keyword"`
-	DocumentCharsetDefault           string   `ipp:"?document-charset-default,charset"`
-	DocumentCharsetSupported         []string `ipp:"?document-charset-supported,charset"`
-	DocumentFormatDetailsSupported   []string `ipp:"?document-format-details-supported,keyword"`
-	DocumentNaturalLanguageDefault   string   `ipp:"?document-natural-language-default,naturalLanguage"`
-	DocumentNaturalLanguageSupported []string `ipp:"?document-natural-language-supported,naturalLanguage"`
-	JobCreationAttributesSupported   []string `ipp:"?job-creation-attributes-supported,keyword"`
+	ClientInfoSupported              []string    `ipp:"?client-info-supported,keyword"`
+	DocumentCharsetDefault           string      `ipp:"?document-charset-default,charset"`
+	DocumentCharsetSupported         []string    `ipp:"?document-charset-supported,charset"`
+	DocumentFormatDetailsSupported   []string    `ipp:"?document-format-details-supported,keyword"`
+	DocumentNaturalLanguageDefault   string      `ipp:"?document-natural-language-default,naturalLanguage"`
+	DocumentNaturalLanguageSupported []string    `ipp:"?document-natural-language-supported,naturalLanguage"`
+	JobCreationAttributesSupported   []string    `ipp:"?job-creation-attributes-supported,keyword"`
+	JobHistoryAttributesConfigured   []string    `ipp:"?job-history-attributes-configured,keyword"`
+	JobHistoryAttributesSupported    []string    `ipp:"?job-history-attributes-supported,keyword"`
+	JobHistoryIntervalConfigured     int         `ipp:"?job-history-interval-configured,0:MAX"`
+	JobHistoryIntervalSupported      goipp.Range `ipp:"?job-history-interval-supported,0:MAX"`
+	JobMandatoryAttributesSupported  bool        `ipp:"?job-mandatory-attributes-supported"`
+	JobSpoolingSupported             string      `ipp:"? job-spooling-supported,keyword"`
 
 	// PWG5100.13: IPP Driver Replacement Extensions v2.0 (NODRIVER)
 	// 6.5 Printer Description Attributes
