@@ -105,7 +105,6 @@ type JobTemplate struct {
 	JobAccountingUserIDSupported     bool        `ipp:"?job-accounting-user-id-supported"`
 	JobCancelAfterDefault            int         `ipp:"?job-cancel-after-default,0:MAX"`
 	JobCancelAfterSupported          goipp.Range `ipp:"?job-cancel-after-supported,0:MAX"`
-	JobCreationAttributesSupported   []string    `ipp:"?job-creation-attributes-supported,keyword"`
 	JobDelayOutputUntilDefault       string      `ipp:"?job-delay-output-until-default,keyword"`
 	JobDelayOutputUntilSupported     []string    `ipp:"?job-delay-output-until-supported,keyword"`
 	JobDelayOutputUntilTimeSupported goipp.Range `ipp:"?job-delay-output-until-time-supported,0:MAX"`

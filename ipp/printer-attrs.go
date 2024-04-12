@@ -94,6 +94,7 @@ type PrinterDescription struct {
 	DocumentFormatDetailsSupported   []string `ipp:"?document-format-details-supported,keyword"`
 	DocumentNaturalLanguageDefault   string   `ipp:"?document-natural-language-default,naturalLanguage"`
 	DocumentNaturalLanguageSupported []string `ipp:"?document-natural-language-supported,naturalLanguage"`
+	JobCreationAttributesSupported   []string `ipp:"?job-creation-attributes-supported,keyword"`
 
 	// PWG5100.13: IPP Driver Replacement Extensions v2.0 (NODRIVER)
 	// 6.5 Printer Description Attributes
