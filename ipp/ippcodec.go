@@ -413,6 +413,7 @@ type ippStructTag struct {
 var ippStructTagToIppTag = map[string]goipp.Tag{
 	"boolean":          goipp.TagBoolean,
 	"charset":          goipp.TagCharset,
+	"collection":       goipp.TagBeginCollection,
 	"datetime":         goipp.TagDateTime,
 	"enum":             goipp.TagEnum,
 	"integer":          goipp.TagInteger,
