@@ -99,15 +99,25 @@ type JobTemplate struct {
 
 	// PWG5100.7: IPP Job Extensions v2.1 (JOBEXT)
 	// 6.9 Printer Description Attributes
-	JobAccountIDDefault            string      `ipp:"job-account-id-default,name|no-value"`
-	JobAccountIDSupported          bool        `ipp:"?job-account-id-supported"`
-	JobAccountingUserIDDefault     string      `ipp:"?job-accounting-user-id-default,name|no-value"`
-	JobAccountingUserIDSupported   bool        `ipp:"?job-accounting-user-id-supported"`
-	JobCancelAfterDefault          int         `ipp:"?job-cancel-after-default,0:MAX"`
-	JobCancelAfterSupported        goipp.Range `ipp:"?job-cancel-after-supported,0:MAX"`
-	JobCreationAttributesSupported []string    `ipp:"?job-creation-attributes-supported,keyword"`
-	JobDelayOutputUntilDefault     string      `ipp:"?job-delay-output-until-default,keyword"`
-	JobDelayOutputUntilSupported   []string    `ipp:"?job-delay-output-until-supported,keyword"`
+	JobAccountIDDefault              string      `ipp:"job-account-id-default,name|no-value"`
+	JobAccountIDSupported            bool        `ipp:"?job-account-id-supported"`
+	JobAccountingUserIDDefault       string      `ipp:"?job-accounting-user-id-default,name|no-value"`
+	JobAccountingUserIDSupported     bool        `ipp:"?job-accounting-user-id-supported"`
+	JobCancelAfterDefault            int         `ipp:"?job-cancel-after-default,0:MAX"`
+	JobCancelAfterSupported          goipp.Range `ipp:"?job-cancel-after-supported,0:MAX"`
+	JobCreationAttributesSupported   []string    `ipp:"?job-creation-attributes-supported,keyword"`
+	JobDelayOutputUntilDefault       string      `ipp:"?job-delay-output-until-default,keyword"`
+	JobDelayOutputUntilSupported     []string    `ipp:"?job-delay-output-until-supported,keyword"`
+	JobDelayOutputUntilTimeSupported goipp.Range `ipp:"?job-delay-output-until-time-supported,0:MAX"`
+	JobHoldUntilTimeSupported        goipp.Range `ipp:"?job-hold-until-time-supported,0:MAX"`
+
+	JobRetainUntilDefault           string      `ipp:"?job-retain-until-default,keyword"`
+	JobRetainUntilSupported         []string    `ipp:"?job-retain-until-supported,keyword"`
+	JobRetainUntilIntervalDefault   int         `ipp:"?job-retain-until-interval-default,0:MAX"`
+	JobRetainUntilIntervalSupported goipp.Range `ipp:"?job-retain-until-interval-supported,0:MAX"`
+	JobRetainUntilTimeSupported     goipp.Range `ipp:"?job-retain-until-time-supported,0:MAX"`
+	JobSheetsColDefault             []JobSheets `ipp:"?job-sheets-col-default,collection|no-value"`
+	JobSheetsColSupported           []string    `ipp:"?job-sheets-col-supported,keyword"`
 
 	// PWG5100.11: IPP Job and Printer Extensions – Set 2 (JPS2)
 	// 7 Job Template Attributes
@@ -117,8 +127,6 @@ type JobTemplate struct {
 	FontNameRequestedSupported           []string             `ipp:"?font-name-requested-supported,name"`
 	FontSizeRequestedDefault             int                  `ipp:"?font-size-requested-default,>0"`
 	FontSizeRequestedSupported           []int                `ipp:"?font-size-requested-supported,>0"`
-	JobDelayOutputUntilTimeSupported     goipp.Range          `ipp:"?job-delay-output-until-time-supported,0:MAX"`
-	JobHoldUntilTimeSupported            goipp.Range          `ipp:"?job-hold-until-time-supported,0:MAX"`
 	JobPhoneNumberDefault                string               `ipp:"?job-phone-number-default,uri"`
 	JobPhoneNumberSupported              bool                 `ipp:"?job-phone-number-supported"`
 	JobRecipientNameDefault              string               `ipp:"?job-recipient-name-default,name"`
