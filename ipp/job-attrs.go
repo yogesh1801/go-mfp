@@ -109,11 +109,10 @@ type JobTemplate struct {
 	JobDelayOutputUntilSupported     []string    `ipp:"?job-delay-output-until-supported,keyword"`
 	JobDelayOutputUntilTimeSupported goipp.Range `ipp:"?job-delay-output-until-time-supported,0:MAX"`
 	JobHoldUntilTimeSupported        goipp.Range `ipp:"?job-hold-until-time-supported,0:MAX"`
-
 	JobRetainUntilDefault           string      `ipp:"?job-retain-until-default,keyword"`
-	JobRetainUntilSupported         []string    `ipp:"?job-retain-until-supported,keyword"`
 	JobRetainUntilIntervalDefault   int         `ipp:"?job-retain-until-interval-default,0:MAX"`
 	JobRetainUntilIntervalSupported goipp.Range `ipp:"?job-retain-until-interval-supported,0:MAX"`
+	JobRetainUntilSupported         []string    `ipp:"?job-retain-until-supported,keyword"`
 	JobRetainUntilTimeSupported     goipp.Range `ipp:"?job-retain-until-time-supported,0:MAX"`
 	JobSheetsColDefault             []JobSheets `ipp:"?job-sheets-col-default,collection|no-value"`
 	JobSheetsColSupported           []string    `ipp:"?job-sheets-col-supported,keyword"`
