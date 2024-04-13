@@ -32,6 +32,24 @@ const (
 	KwCompressionCompress KwCompression = "compress"
 )
 
+// KwJobSpooling represents standard keyword values for
+// "job-spooling-supported" attribute.
+type KwJobSpooling string
+
+const (
+	// KwJobSpoolingAutomatic means that it is up to the
+	// Printer when to process the Document data.
+	KwJobSpoolingAutomatic KwJobSpooling = "automatic"
+
+	// KwJobSpoolingSpool means that the Document data is
+	// processed after it has been spooled (stored).
+	KwJobSpoolingSpool KwJobSpooling = "spool"
+
+	// KwJobSpoolingStream means that the Document data is
+	// processed as it is received.
+	KwJobSpoolingStream KwJobSpooling = "stream"
+)
+
 // KwPdlOverride represents standard keyword values for
 // "pdl-override-supported" attribute.
 //
@@ -186,30 +204,12 @@ const (
 	KwURISecurityTLS KwURISecurity = "tls"
 )
 
-// KwJobSpooling represents standard keyword values for
-// "job-spooling-supported" attribute.
-type KwJobSpooling string
-
-const (
-	// KwJobSpoolingAutomatic means that it is up to the
-	// Printer when to process the Document data.
-	KwJobSpoolingAutomatic KwJobSpooling = "automatic"
-
-	// KwJobSpoolingSpool means that the Document data is
-	// processed after it has been spooled (stored).
-	KwJobSpoolingSpool KwJobSpooling = "spool"
-
-	// KwJobSpoolingStream means that the Document data is
-	// processed as it is received.
-	KwJobSpoolingStream KwJobSpooling = "stream"
-)
-
 // kwRegisteredTypes lists all registered keyword types for IPP codec.
 var kwRegisteredTypes = map[reflect.Type]struct{}{
 	reflect.TypeOf(KwCompression("")):         struct{}{},
+	reflect.TypeOf(KwJobSpooling("")):         struct{}{},
 	reflect.TypeOf(KwPdlOverride("")):         struct{}{},
 	reflect.TypeOf(KwPrinterStateReasons("")): struct{}{},
 	reflect.TypeOf(KwURIAuthentication("")):   struct{}{},
 	reflect.TypeOf(KwURISecurity("")):         struct{}{},
-	reflect.TypeOf(KwJobSpooling("")):         struct{}{},
 }
