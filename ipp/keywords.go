@@ -144,9 +144,53 @@ func (s KwPrinterStateReasons) Severity() KwPrinterStateReasons {
 	return severity
 }
 
+// KwURIAuthentication represents standard keyword values for
+// "uri-authentication-supported" attribute.
+//
+// See RFC8011, 5.4.2.
+type KwURIAuthentication string
+
+const (
+	// KwURIAuthenticationNone means that there is no
+	// authentication mechanism associated with the URI.
+	KwURIAuthenticationNone KwURIAuthentication = "none"
+
+	// KwURIAuthenticationRequestingUserName means that Client
+	// sends authenticated user by the "requesting-user-name"
+	// operation attribute.
+	KwURIAuthenticationRequestingUserName KwURIAuthentication = "requesting-user-name"
+
+	// KwURIAuthenticationBasic means HTTP basic authentication.
+	KwURIAuthenticationBasic KwURIAuthentication = "basic"
+
+	// KwURIAuthenticationDigest means HTTP digest authentication.
+	KwURIAuthenticationDigest KwURIAuthentication = "digest"
+
+	// KwURIAuthenticationCertificate means TLS authentication
+	// based on X.509 certificates.
+	KwURIAuthenticationCertificate KwURIAuthentication = "certificate"
+)
+
+// KwURISecurity represents standard keyword values for
+// "uri-security-supported attribute.
+//
+// See RFC8011, 5.4.3.
+type KwURISecurity string
+
+const (
+	// KwURISecurityNone means that there is no secure communication
+	// channel in use for given URI
+	KwURISecurityNone KwURISecurity = "none"
+
+	// KwURISecurityTLS indicates TLS security
+	KwURISecurityTLS KwURISecurity = "tls"
+)
+
 // kwRegisteredTypes lists all registered keyword types for IPP codec.
 var kwRegisteredTypes = map[reflect.Type]struct{}{
 	reflect.TypeOf(KwCompression("")):         struct{}{},
 	reflect.TypeOf(KwPdlOverride("")):         struct{}{},
 	reflect.TypeOf(KwPrinterStateReasons("")): struct{}{},
+	reflect.TypeOf(KwURIAuthentication("")):   struct{}{},
+	reflect.TypeOf(KwURISecurity("")):         struct{}{},
 }
