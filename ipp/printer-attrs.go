@@ -33,13 +33,6 @@ var (
 	}
 )
 
-// Standard keywords for CompressionSupported attribute
-const (
-	CompressionDeflate  = "deflate"  // RFC 1951 ZIP inflate/deflate
-	CompressionGzip     = "gzip"     // RFC 1952 GNU zip
-	CompressionCompress = "compress" // RFC 1977 UNIX compression
-)
-
 // PrinterAttributes represents IPP Printer Attributes
 type PrinterAttributes struct {
 	PrinterDescription
@@ -52,7 +45,7 @@ type PrinterDescription struct {
 	CharsetConfigured                 string          `ipp:"!charset-configured,charset"`
 	CharsetSupported                  []string        `ipp:"!charset-supported,charset"`
 	ColorSupported                    bool            `ipp:"color-supported"`
-	CompressionSupported              []string        `ipp:"!compression-supported,keyword"`
+	CompressionSupported              []KwCompression `ipp:"!compression-supported"`
 	DocumentFormatDefault             string          `ipp:"!document-format-default,mimeMediaType"`
 	DocumentFormatSupported           []string        `ipp:"!document-format-supported,mimeMediaType"`
 	GeneratedNaturalLanguageSupported []string        `ipp:"!generated-natural-language-supported,naturalLanguage"`

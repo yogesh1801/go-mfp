@@ -221,6 +221,10 @@ func ippCodecGenerateInternal(t reflect.Type,
 			},
 		}
 
+		if _, found := kwRegisteredTypes[fldType]; found {
+			step.attrTag = goipp.TagKeyword
+		}
+
 		if step.attrTag == 0 {
 			step.attrTag = methods.ippTag
 		}

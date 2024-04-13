@@ -1166,7 +1166,7 @@ var testdataPrinterAttributes = PrinterAttributes{
 	PrinterDescription: PrinterDescription{
 		CharsetConfigured:    DefaultCharsetConfigured,
 		CharsetSupported:     DefaultCharsetSupported,
-		CompressionSupported: []string{"none"},
+		CompressionSupported: []KwCompression{KwCompressionNone},
 		IppFeaturesSupported: []string{
 			"airprint-1.7",
 			"airprint-1.6",
