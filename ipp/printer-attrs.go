@@ -77,8 +77,8 @@ type PrinterDescription struct {
 	PrinterURISupported               []string                `ipp:"!printer-uri-supported,uri"`
 	QueuedJobCount                    int                     `ipp:"!queued-job-count"`
 	ReferenceURISchemesSupported      []string                `ipp:"?reference-uri-schemes-supported,uriScheme"`
-	URIAuthenticationSupported        []KwURIAuthentication   `ipp:"uri-authentication-supported,keyword"`
-	URISecuritySupported              []KwURISecurity         `ipp:"uri-security-supported,keyword"`
+	URIAuthenticationSupported        []KwURIAuthentication   `ipp:"uri-authentication-supported"`
+	URISecuritySupported              []KwURISecurity         `ipp:"uri-security-supported"`
 
 	// PWG5100.7: IPP Job Extensions v2.1 (JOBEXT)
 	// 6.9 Printer Description Attributes
