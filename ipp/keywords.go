@@ -172,7 +172,7 @@ const (
 )
 
 // KwURISecurity represents standard keyword values for
-// "uri-security-supported attribute.
+// "uri-security-supported" attribute.
 //
 // See RFC8011, 5.4.3.
 type KwURISecurity string
@@ -184,6 +184,24 @@ const (
 
 	// KwURISecurityTLS indicates TLS security
 	KwURISecurityTLS KwURISecurity = "tls"
+)
+
+// KwJobSpooling represents standard keyword values for
+// "job-spooling-supported" attribute.
+type KwJobSpooling string
+
+const (
+	// KwJobSpoolingAutomatic means that it is up to the
+	// Printer when to process the Document data.
+	KwJobSpoolingAutomatic KwJobSpooling = "automatic"
+
+	// KwJobSpoolingSpool means that the Document data is
+	// processed after it has been spooled (stored).
+	KwJobSpoolingSpool KwJobSpooling = "spool"
+
+	// KwJobSpoolingStream means that the Document data is
+	// processed as it is received.
+	KwJobSpoolingStream KwJobSpooling = "stream"
 )
 
 // kwRegisteredTypes lists all registered keyword types for IPP codec.
