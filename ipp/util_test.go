@@ -149,8 +149,32 @@ func testDumpValues(vals goipp.Values) string {
 			fmt.Fprintf(buf, ",")
 		}
 
-		fmt.Fprintf(buf, "%s", val)
+		if v.T == goipp.TagBeginCollection {
+			col := v.V.(goipp.Collection)
+			buf.WriteString(testDumpCollection(col))
+		} else if v.T.Type() == goipp.TypeString {
+			fmt.Fprintf(buf, "%q", val)
+		} else {
+			fmt.Fprintf(buf, "%s", val)
+		}
 	}
+
+	return buf.String()
+}
+
+// testDumpValues dumps goipp.Collection into string
+func testDumpCollection(col goipp.Collection) string {
+	buf := &bytes.Buffer{}
+
+	buf.Write([]byte("{"))
+	for i, attr := range col {
+		if i > 0 {
+			buf.Write([]byte(", "))
+		}
+		fmt.Fprintf(buf, "%s=%s",
+			attr.Name, testDumpValues(attr.Values))
+	}
+	buf.Write([]byte("}"))
 
 	return buf.String()
 }
