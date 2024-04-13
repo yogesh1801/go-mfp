@@ -22,13 +22,13 @@ const (
 	// KwCompressionNone is no compression
 	KwCompressionNone KwCompression = "none"
 
-	// KwCompressionDeflate is RFC 1951 ZIP inflate/deflate
+	// KwCompressionDeflate is RFC1951 ZIP inflate/deflate
 	KwCompressionDeflate KwCompression = "deflate"
 
-	// KwCompressionGzip is RFC 1952 GNU zip
+	// KwCompressionGzip is RFC1952 GNU zip
 	KwCompressionGzip KwCompression = "gzip"
 
-	// KwCompressionCompress is RFC 1977 UNIX compression
+	// KwCompressionCompress is RFC1977 UNIX compression
 	KwCompressionCompress KwCompression = "compress"
 )
 
