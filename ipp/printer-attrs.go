@@ -94,7 +94,7 @@ type PrinterDescription struct {
 	JobHistoryIntervalConfigured     int         `ipp:"?job-history-interval-configured,0:MAX"`
 	JobHistoryIntervalSupported      goipp.Range `ipp:"?job-history-interval-supported,0:MAX"`
 	JobMandatoryAttributesSupported  bool        `ipp:"?job-mandatory-attributes-supported"`
-	JobSpoolingSupported             string      `ipp:"? job-spooling-supported,keyword"`
+	JobSpoolingSupported             string      `ipp:"?job-spooling-supported,keyword"`
 
 	// PWG5100.13: IPP Driver Replacement Extensions v2.0 (NODRIVER)
 	// 6.5 Printer Description Attributes
