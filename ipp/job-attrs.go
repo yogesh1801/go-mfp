@@ -35,17 +35,17 @@ type JobAttributes struct {
 
 	// PWG5100.7: IPP Job Extensions v2.1 (JOBEXT)
 	// 6.8 Job Template Attributes
-	JobDelayOutputUntil     string      `ipp:"?job-delay-output-until,keyword"`
-	JobDelayOutputUntilTime time.Time   `ipp:"?job-delay-output-until-time"`
-	JobHoldUntilTime        time.Time   `ipp:"?job-hold-until-time"`
-	JobAccountID            string      `ipp:"?job-account-id,name"`
-	JobAccountingUserID     string      `ipp:"?job-accounting-user-id,name"`
-	JobCancelAfter          int         `ipp:"?job-cancel-after,0:MAX"`
-	JobRetainUntil          string      `ipp:"?job-retain-until,keyword"`
-	JobRetainUntilInterval  int         `ipp:"?job-retain-until-interval,0:MAX"`
-	JobRetainUntilTime      time.Time   `ipp:"?job-retain-until-time"`
-	JobSheetMessage         string      `ipp:"?job-sheet-message,text"`
-	JobSheetsCol            []JobSheets `ipp:"?job-sheets-col"`
+	JobDelayOutputUntil     KwJobDelayOutputUntil `ipp:"?job-delay-output-until"`
+	JobDelayOutputUntilTime time.Time             `ipp:"?job-delay-output-until-time"`
+	JobHoldUntilTime        time.Time             `ipp:"?job-hold-until-time"`
+	JobAccountID            string                `ipp:"?job-account-id,name"`
+	JobAccountingUserID     string                `ipp:"?job-accounting-user-id,name"`
+	JobCancelAfter          int                   `ipp:"?job-cancel-after,0:MAX"`
+	JobRetainUntil          string                `ipp:"?job-retain-until,keyword"`
+	JobRetainUntilInterval  int                   `ipp:"?job-retain-until-interval,0:MAX"`
+	JobRetainUntilTime      time.Time             `ipp:"?job-retain-until-time"`
+	JobSheetMessage         string                `ipp:"?job-sheet-message,text"`
+	JobSheetsCol            []JobSheets           `ipp:"?job-sheets-col"`
 
 	// PWG5100.11: IPP Job and Printer Extensions – Set 2 (JPS2)
 	// 7 Job Template Attributes
@@ -100,23 +100,23 @@ type JobTemplate struct {
 
 	// PWG5100.7: IPP Job Extensions v2.1 (JOBEXT)
 	// 6.9 Printer Description Attributes
-	JobAccountIDDefault              string      `ipp:"job-account-id-default,name|no-value"`
-	JobAccountIDSupported            bool        `ipp:"?job-account-id-supported"`
-	JobAccountingUserIDDefault       string      `ipp:"?job-accounting-user-id-default,name|no-value"`
-	JobAccountingUserIDSupported     bool        `ipp:"?job-accounting-user-id-supported"`
-	JobCancelAfterDefault            int         `ipp:"?job-cancel-after-default,0:MAX"`
-	JobCancelAfterSupported          goipp.Range `ipp:"?job-cancel-after-supported,0:MAX"`
-	JobDelayOutputUntilDefault       string      `ipp:"?job-delay-output-until-default,keyword"`
-	JobDelayOutputUntilSupported     []string    `ipp:"?job-delay-output-until-supported,keyword"`
-	JobDelayOutputUntilTimeSupported goipp.Range `ipp:"?job-delay-output-until-time-supported,0:MAX"`
-	JobHoldUntilTimeSupported        goipp.Range `ipp:"?job-hold-until-time-supported,0:MAX"`
-	JobRetainUntilDefault            string      `ipp:"?job-retain-until-default,keyword"`
-	JobRetainUntilIntervalDefault    int         `ipp:"?job-retain-until-interval-default,0:MAX"`
-	JobRetainUntilIntervalSupported  goipp.Range `ipp:"?job-retain-until-interval-supported,0:MAX"`
-	JobRetainUntilSupported          []string    `ipp:"?job-retain-until-supported,keyword"`
-	JobRetainUntilTimeSupported      goipp.Range `ipp:"?job-retain-until-time-supported,0:MAX"`
-	JobSheetsColDefault              []JobSheets `ipp:"?job-sheets-col-default,collection|no-value"`
-	JobSheetsColSupported            []string    `ipp:"?job-sheets-col-supported,keyword"`
+	JobAccountIDDefault              string                  `ipp:"job-account-id-default,name|no-value"`
+	JobAccountIDSupported            bool                    `ipp:"?job-account-id-supported"`
+	JobAccountingUserIDDefault       string                  `ipp:"?job-accounting-user-id-default,name|no-value"`
+	JobAccountingUserIDSupported     bool                    `ipp:"?job-accounting-user-id-supported"`
+	JobCancelAfterDefault            int                     `ipp:"?job-cancel-after-default,0:MAX"`
+	JobCancelAfterSupported          goipp.Range             `ipp:"?job-cancel-after-supported,0:MAX"`
+	JobDelayOutputUntilDefault       KwJobDelayOutputUntil   `ipp:"?job-delay-output-until-default"`
+	JobDelayOutputUntilSupported     []KwJobDelayOutputUntil `ipp:"?job-delay-output-until-supported"`
+	JobDelayOutputUntilTimeSupported goipp.Range             `ipp:"?job-delay-output-until-time-supported,0:MAX"`
+	JobHoldUntilTimeSupported        goipp.Range             `ipp:"?job-hold-until-time-supported,0:MAX"`
+	JobRetainUntilDefault            string                  `ipp:"?job-retain-until-default,keyword"`
+	JobRetainUntilIntervalDefault    int                     `ipp:"?job-retain-until-interval-default,0:MAX"`
+	JobRetainUntilIntervalSupported  goipp.Range             `ipp:"?job-retain-until-interval-supported,0:MAX"`
+	JobRetainUntilSupported          []string                `ipp:"?job-retain-until-supported,keyword"`
+	JobRetainUntilTimeSupported      goipp.Range             `ipp:"?job-retain-until-time-supported,0:MAX"`
+	JobSheetsColDefault              []JobSheets             `ipp:"?job-sheets-col-default,collection|no-value"`
+	JobSheetsColSupported            []string                `ipp:"?job-sheets-col-supported,keyword"`
 
 	// PWG5100.11: IPP Job and Printer Extensions – Set 2 (JPS2)
 	// 7 Job Template Attributes

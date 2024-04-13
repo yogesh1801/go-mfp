@@ -32,6 +32,45 @@ const (
 	KwCompressionCompress KwCompression = "compress"
 )
 
+// KwJobDelayOutputUntil represents standard keyword values for
+// "job-delay-output-until" attribute.
+//
+// See PWG5100.7, 6.8.4.
+type KwJobDelayOutputUntil string
+
+const (
+	// KwJobDelayOutputUntilDayTime means delay output until daylight,
+	// typically 6am to 6pm.
+	KwJobDelayOutputUntilDayTime KwJobDelayOutputUntil = "day-time"
+
+	// KwJobDelayOutputUntilEvening means delay output until the evening,
+	// typically from 6pm to 12am.
+	KwJobDelayOutputUntilEvening KwJobDelayOutputUntil = "evening"
+
+	// KwJobDelayOutputUntilIndefinite means delay output indefinitely;
+	// the time period can be changed using the Set- Job-Attributes
+	// operation
+	KwJobDelayOutputUntilIndefinite KwJobDelayOutputUntil = "indefinite"
+
+	// KwJobDelayOutputUntilNight means delay output until the night,
+	// typically from 12am to 6am.
+	KwJobDelayOutputUntilNight KwJobDelayOutputUntil = "night"
+
+	// KwJobDelayOutputUntilNoDelayOutput means do not delay the output.
+	KwJobDelayOutputUntilNoDelayOutput KwJobDelayOutputUntil = "no-delay-output"
+
+	// KwJobDelayOutputUntilSecondShift means delay output until the
+	// second work shift, typically from 4pm to 12am.
+	KwJobDelayOutputUntilSecondShift KwJobDelayOutputUntil = "second-shift"
+
+	// KwJobDelayOutputUntilThirdShift means delay output until the
+	// third work shift, typically from 12am to 8am.
+	KwJobDelayOutputUntilThirdShift KwJobDelayOutputUntil = "third-shift"
+
+	// KwJobDelayOutputUntilWeekend means delay output until the weekend.
+	KwJobDelayOutputUntilWeekend KwJobDelayOutputUntil = "weekend"
+)
+
 // KwJobSpooling represents standard keyword values for
 // "job-spooling-supported" attribute.
 type KwJobSpooling string
@@ -207,6 +246,7 @@ const (
 // kwRegisteredTypes lists all registered keyword types for IPP codec.
 var kwRegisteredTypes = map[reflect.Type]struct{}{
 	reflect.TypeOf(KwCompression("")):         struct{}{},
+	reflect.TypeOf(KwJobDelayOutputUntil("")): struct{}{},
 	reflect.TypeOf(KwJobSpooling("")):         struct{}{},
 	reflect.TypeOf(KwPdlOverride("")):         struct{}{},
 	reflect.TypeOf(KwPrinterStateReasons("")): struct{}{},
