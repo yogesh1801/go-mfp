@@ -211,4 +211,5 @@ var kwRegisteredTypes = map[reflect.Type]struct{}{
 	reflect.TypeOf(KwPrinterStateReasons("")): struct{}{},
 	reflect.TypeOf(KwURIAuthentication("")):   struct{}{},
 	reflect.TypeOf(KwURISecurity("")):         struct{}{},
+	reflect.TypeOf(KwJobSpooling("")):         struct{}{},
 }
