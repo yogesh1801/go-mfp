@@ -22,7 +22,7 @@ type JobAttributes struct {
 	Finishings               []int                  `ipp:"?finishings,enum"`
 	JobHoldUntil             string                 `ipp:"?job-hold-until,keyword"`
 	JobPriority              int                    `ipp:"?job-priority,1:100"`
-	JobSheets                string                 `ipp:"?job-sheets,keyword"`
+	JobSheets                KwJobSheets            `ipp:"?job-sheets"`
 	Media                    string                 `ipp:"?media,keyword"`
 	MediaReady               []string               `ipp:"?media-ready,keyword"`
 	MultipleDocumentHandling string                 `ipp:"?multiple-document-handling,keyword"`
@@ -79,8 +79,8 @@ type JobTemplate struct {
 	JobHoldUntilSupported             []string               `ipp:"?job-hold-until-supported,keyword"`
 	JobPriorityDefault                int                    `ipp:"?job-priority-default,1:100"`
 	JobPrioritySupported              int                    `ipp:"?job-priority-supported,1:100"`
-	JobSheetsDefault                  string                 `ipp:"?job-sheets-default,keyword"`
-	JobSheetsSupported                []string               `ipp:"?job-sheets-supported"`
+	JobSheetsDefault                  KwJobSheets            `ipp:"?job-sheets-default"`
+	JobSheetsSupported                []KwJobSheets          `ipp:"?job-sheets-supported"`
 	MediaDefault                      string                 `ipp:"?media-default,keyword"`
 	MediaReady                        []string               `ipp:"?media-ready,keyword"`
 	MediaSupported                    []string               `ipp:"?media-supported,keyword"`
@@ -192,9 +192,9 @@ type MediaSize struct {
 // JobSheets represents "job-sheets-col" collection entry in
 // JobAttributes
 type JobSheets struct {
-	JobSheets string     `ipp:"job-sheets,keyword"`
-	Media     string     `ipp:"media,keyword"`
-	MediaCol  []MediaCol `ipp:"media-col"`
+	JobSheets KwJobSheets `ipp:"job-sheets"`
+	Media     string      `ipp:"media,keyword"`
+	MediaCol  []MediaCol  `ipp:"media-col"`
 }
 
 // JobSaveDisposition represents "job-save-disposition"

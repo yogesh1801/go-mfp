@@ -71,8 +71,47 @@ const (
 	KwJobDelayOutputUntilWeekend KwJobDelayOutputUntil = "weekend"
 )
 
+// KwJobSheets represents standard keyword values for
+// "job-sheets" attribute.
+//
+// See: RFC8011, 5.2.3., PWG5100.7, 8.1.
+type KwJobSheets string
+
+const (
+	// ----- RFC8011 values -----
+
+	// KwJobSheetsNone means no Job sheet is printed
+	KwJobSheetsNone KwJobSheets = "none"
+
+	// KwJobSheetsStandard means one or more site-specific
+	// standard Job sheets are printed
+	KwJobSheetsStandard KwJobSheets = "standard"
+
+	// ----- PWG5100.7 values -----
+
+	// KwJobSheetsJobStartSheet means that a ob Sheet is printed to
+	// indicate the start of the Job.
+	KwJobSheetsJobStartSheet KwJobSheets = "job-start-sheet "
+
+	// KwJobSheetsJobEndSheet means that a ob Sheet is printed to
+	// indicate the end of the Job.
+	KwJobSheetsJobEndSheet KwJobSheets = "job-end-sheet"
+
+	// KwJobSheetsJobBothSheets instructs Printer to print
+	// Job Sheets o indicate the start and end of all the
+	// output associated with the Job.
+	KwJobSheetsJobBothSheets KwJobSheets = "job-both-sheets"
+
+	// KwJobSheetsFirstPrintStreamPage instructs Printer to print the
+	// first input Page in the Document Data as the Job Sheet.
+	// The Printer's standard Job Sheet is suppressed.
+	KwJobSheetsFirstPrintStreamPage KwJobSheets = "first-print-stream-page"
+)
+
 // KwJobSpooling represents standard keyword values for
 // "job-spooling-supported" attribute.
+//
+// See PWG5100.7, 6.9.31.
 type KwJobSpooling string
 
 const (
@@ -247,6 +286,7 @@ const (
 var kwRegisteredTypes = map[reflect.Type]struct{}{
 	reflect.TypeOf(KwCompression("")):         struct{}{},
 	reflect.TypeOf(KwJobDelayOutputUntil("")): struct{}{},
+	reflect.TypeOf(KwJobSheets("")):           struct{}{},
 	reflect.TypeOf(KwJobSpooling("")):         struct{}{},
 	reflect.TypeOf(KwPdlOverride("")):         struct{}{},
 	reflect.TypeOf(KwPrinterStateReasons("")): struct{}{},
