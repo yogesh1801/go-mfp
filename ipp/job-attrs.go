@@ -20,7 +20,7 @@ type JobAttributes struct {
 	// 5.2 Job Template Attributes
 	Copies                   int                    `ipp:"?copies,>0"`
 	Finishings               []int                  `ipp:"?finishings,enum"`
-	JobHoldUntil             string                 `ipp:"?job-hold-until,keyword"`
+	JobHoldUntil             KwJobHoldUntil         `ipp:"?job-hold-until"`
 	JobPriority              int                    `ipp:"?job-priority,1:100"`
 	JobSheets                KwJobSheets            `ipp:"?job-sheets"`
 	Media                    string                 `ipp:"?media,keyword"`
@@ -75,8 +75,8 @@ type JobTemplate struct {
 	CopiesSupported                   goipp.Range            `ipp:"?copies-supported,>0"`
 	FinishingsDefault                 []int                  `ipp:"?finishings-default,enum"`
 	FinishingsSupported               []int                  `ipp:"?finishings-supported,enum"`
-	JobHoldUntilDefault               string                 `ipp:"?job-hold-until-default,keyword"`
-	JobHoldUntilSupported             []string               `ipp:"?job-hold-until-supported,keyword"`
+	JobHoldUntilDefault               KwJobHoldUntil         `ipp:"?job-hold-until-default"`
+	JobHoldUntilSupported             []KwJobHoldUntil       `ipp:"?job-hold-until-supported"`
 	JobPriorityDefault                int                    `ipp:"?job-priority-default,1:100"`
 	JobPrioritySupported              int                    `ipp:"?job-priority-supported,1:100"`
 	JobSheetsDefault                  KwJobSheets            `ipp:"?job-sheets-default"`

@@ -71,6 +71,45 @@ const (
 	KwJobDelayOutputUntilWeekend KwJobDelayOutputUntil = "weekend"
 )
 
+// KwJobHoldUntil represents standard keyword values for
+// "job-hold-until" attribute.
+//
+// See PWG5100.7, 5.2.2.
+type KwJobHoldUntil string
+
+const (
+	// KwJobHoldUntilNoHold means do not delay the output.
+	KwJobHoldUntilNoHold KwJobHoldUntil = "no-hold"
+
+	// KwJobHoldUntilIndefinite means delay output indefinitely;
+	// the time period can be changed using the Set- Job-Attributes
+	// operation
+	KwJobHoldUntilIndefinite KwJobHoldUntil = "indefinite"
+
+	// KwJobHoldUntilDayTime means delay output until daylight,
+	// typically 6am to 6pm.
+	KwJobHoldUntilDayTime KwJobHoldUntil = "day-time"
+
+	// KwJobHoldUntilEvening means delay output until the evening,
+	// typically from 6pm to 12am.
+	KwJobHoldUntilEvening KwJobHoldUntil = "evening"
+
+	// KwJobHoldUntilNight means delay output until the night,
+	// typically from 12am to 6am.
+	KwJobHoldUntilNight KwJobHoldUntil = "night"
+
+	// KwJobHoldUntilWeekend means delay output until the weekend.
+	KwJobHoldUntilWeekend KwJobHoldUntil = "weekend"
+
+	// KwJobHoldUntilSecondShift means delay output until the
+	// second work shift, typically from 4pm to 12am.
+	KwJobHoldUntilSecondShift KwJobHoldUntil = "second-shift"
+
+	// KwJobHoldUntilThirdShift means delay output until the
+	// third work shift, typically from 12am to 8am.
+	KwJobHoldUntilThirdShift KwJobHoldUntil = "third-shift"
+)
+
 // KwJobSheets represents standard keyword values for
 // "job-sheets" attribute.
 //
@@ -286,6 +325,7 @@ const (
 var kwRegisteredTypes = map[reflect.Type]struct{}{
 	reflect.TypeOf(KwCompression("")):         struct{}{},
 	reflect.TypeOf(KwJobDelayOutputUntil("")): struct{}{},
+	reflect.TypeOf(KwJobHoldUntil("")):        struct{}{},
 	reflect.TypeOf(KwJobSheets("")):           struct{}{},
 	reflect.TypeOf(KwJobSpooling("")):         struct{}{},
 	reflect.TypeOf(KwPdlOverride("")):         struct{}{},
