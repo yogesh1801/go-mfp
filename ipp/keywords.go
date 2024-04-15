@@ -321,15 +321,63 @@ const (
 	KwURISecurityTLS KwURISecurity = "tls"
 )
 
+// KwMultipleDocumentHandling represents standard keyword values for
+// "multiple-document-handling" attribute.
+//
+// See RFC8011, 5.2.4.
+type KwMultipleDocumentHandling string
+
+// KwMultipleDocumentHandling constants indicate, how Printer handles
+// Job with multiple documents.
+//
+// Imagine we have a Job with documents "a" and "b". Also, we may
+// request a single copy or multiple copies. If multiple copies of,
+// say, document "a" are requested,  we will denote it as a(*).
+//
+// So, depending of the "multiple-document-handling" parameter,
+// Job with multiple documents "a" and "b" will be printed
+// as follows (square brakes means finishing process):
+//
+//   "single-document"
+//   Documents are concatenated,  and "b" may start at the last page of "a",
+//   but each copy of a+b concatenation starts at its own page.
+//     Sungle copy:       [a+b]
+//     Multiple copies:   [a+b] [a+b] ... [a+b]
+//
+//   "single-document-new-sheet"
+//   Like "single-document", but "b" starts at its own page:
+//     Single copy:       [a b]
+//     Multiple copies:   [a b] [a b] ... [a b]
+//
+//   "separate-documents-uncollated-copies"
+//   Each document handled separately. First printed all copies
+//   of "a", then all copies of "b":
+//     Single copy:       [a] [b]
+//     Multiple copies:   [a] [a] ... [a]  [b] [b] ... [b]
+//
+//   "separate-documents-collated-copies"
+//   Like "separate-documents-uncollated-copies", but in a case
+//   of multiple copies, ordering is different:
+//     Single copy:       [a] [b]
+//     Multiple copies:   [a] [b] [a] [b] ... [a] [b]
+const (
+	KwMultipleDocumentHandlingSingleDocument         KwMultipleDocumentHandling = "single-document"
+	KwMultipleDocumentHandlingSingleDocumentNewSheet KwMultipleDocumentHandling = "single-document-new-sheet"
+
+	KwMultipleDocumentHandlingSeparateDocumentsUncollatedCopies KwMultipleDocumentHandling = "separate-documents-uncollated-copies"
+	KwMultipleDocumentHandlingSeparateDocumentsCollatedCopies   KwMultipleDocumentHandling = "separate-documents-collated-copies"
+)
+
 // kwRegisteredTypes lists all registered keyword types for IPP codec.
 var kwRegisteredTypes = map[reflect.Type]struct{}{
-	reflect.TypeOf(KwCompression("")):         struct{}{},
-	reflect.TypeOf(KwJobDelayOutputUntil("")): struct{}{},
-	reflect.TypeOf(KwJobHoldUntil("")):        struct{}{},
-	reflect.TypeOf(KwJobSheets("")):           struct{}{},
-	reflect.TypeOf(KwJobSpooling("")):         struct{}{},
-	reflect.TypeOf(KwPdlOverride("")):         struct{}{},
-	reflect.TypeOf(KwPrinterStateReasons("")): struct{}{},
-	reflect.TypeOf(KwURIAuthentication("")):   struct{}{},
-	reflect.TypeOf(KwURISecurity("")):         struct{}{},
+	reflect.TypeOf(KwCompression("")):              struct{}{},
+	reflect.TypeOf(KwJobDelayOutputUntil("")):      struct{}{},
+	reflect.TypeOf(KwJobHoldUntil("")):             struct{}{},
+	reflect.TypeOf(KwJobSheets("")):                struct{}{},
+	reflect.TypeOf(KwJobSpooling("")):              struct{}{},
+	reflect.TypeOf(KwPdlOverride("")):              struct{}{},
+	reflect.TypeOf(KwPrinterStateReasons("")):      struct{}{},
+	reflect.TypeOf(KwURIAuthentication("")):        struct{}{},
+	reflect.TypeOf(KwURISecurity("")):              struct{}{},
+	reflect.TypeOf(KwMultipleDocumentHandling("")): struct{}{},
 }
