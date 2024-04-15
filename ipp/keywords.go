@@ -279,6 +279,25 @@ func (s KwPrinterStateReasons) Severity() KwPrinterStateReasons {
 	return severity
 }
 
+// KwSides represents standard keyword values for
+// "sides" attribute.
+//
+// See RFC8011, 5.2.8.
+type KwSides string
+
+const (
+	// KwSidesOneSided imposes one-side output
+	KwSidesOneSided KwSides = "one-sided"
+
+	// KwSidesTwoSidedLongEdge imposed two-sided output with
+	// Impressions orientation suitable for the long edge binding
+	KwSidesTwoSidedLongEdge KwSides = "two-sided-long-edge"
+
+	// KwSidesTwoSidedShortEdge imposed two-sided output with
+	// Impressions orientation suitable for the short edge binding
+	KwSidesTwoSidedShortEdge KwSides = "two-sided-short-edge"
+)
+
 // KwURIAuthentication represents standard keyword values for
 // "uri-authentication-supported" attribute.
 //
@@ -375,9 +394,10 @@ var kwRegisteredTypes = map[reflect.Type]struct{}{
 	reflect.TypeOf(KwJobHoldUntil("")):             struct{}{},
 	reflect.TypeOf(KwJobSheets("")):                struct{}{},
 	reflect.TypeOf(KwJobSpooling("")):              struct{}{},
+	reflect.TypeOf(KwMultipleDocumentHandling("")): struct{}{},
 	reflect.TypeOf(KwPdlOverride("")):              struct{}{},
 	reflect.TypeOf(KwPrinterStateReasons("")):      struct{}{},
+	reflect.TypeOf(KwSides("")):                    struct{}{},
 	reflect.TypeOf(KwURIAuthentication("")):        struct{}{},
 	reflect.TypeOf(KwURISecurity("")):              struct{}{},
-	reflect.TypeOf(KwMultipleDocumentHandling("")): struct{}{},
 }

@@ -31,7 +31,7 @@ type JobAttributes struct {
 	PageRanges               []goipp.IntegerOrRange     `ipp:"?page-ranges"`
 	PrinterResolution        goipp.Resolution           `ipp:"?printer-resolution"`
 	PrintQuality             int                        `ipp:"?print-quality,enum"`
-	Sides                    string                     `ipp:"?sides,keyword"`
+	Sides                    KwSides                    `ipp:"?sides"`
 
 	// PWG5100.7: IPP Job Extensions v2.1 (JOBEXT)
 	// 6.8 Job Template Attributes
@@ -95,8 +95,8 @@ type JobTemplate struct {
 	PrinterResolutionSupported        []goipp.Resolution           `ipp:"?printer-resolution-supported"`
 	PrintQualityDefault               int                          `ipp:"?print-quality-default,enum"`
 	PrintQualitySupported             []int                        `ipp:"?print-quality-supported,enum"`
-	SidesDefault                      string                       `ipp:"?sides-default,keyword"`
-	SidesSupported                    []string                     `ipp:"?sides-supported,keyword"`
+	SidesDefault                      KwSides                      `ipp:"?sides-default"`
+	SidesSupported                    []KwSides                    `ipp:"?sides-supported"`
 
 	// PWG5100.7: IPP Job Extensions v2.1 (JOBEXT)
 	// 6.9 Printer Description Attributes
