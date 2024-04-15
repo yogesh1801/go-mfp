@@ -18,20 +18,20 @@ import (
 type JobAttributes struct {
 	// RFC8011, Internet Printing Protocol/1.1: Model and Semantics
 	// 5.2 Job Template Attributes
-	Copies                   int                    `ipp:"?copies,>0"`
-	Finishings               []int                  `ipp:"?finishings,enum"`
-	JobHoldUntil             KwJobHoldUntil         `ipp:"?job-hold-until"`
-	JobPriority              int                    `ipp:"?job-priority,1:100"`
-	JobSheets                KwJobSheets            `ipp:"?job-sheets"`
-	Media                    string                 `ipp:"?media,keyword"`
-	MediaReady               []string               `ipp:"?media-ready,keyword"`
-	MultipleDocumentHandling string                 `ipp:"?multiple-document-handling,keyword"`
-	NumberUp                 int                    `ipp:"?number-up,>0"`
-	OrientationRequested     int                    `ipp:"?orientation-requested,enum"`
-	PageRanges               []goipp.IntegerOrRange `ipp:"?page-ranges"`
-	PrinterResolution        goipp.Resolution       `ipp:"?printer-resolution"`
-	PrintQuality             int                    `ipp:"?print-quality,enum"`
-	Sides                    string                 `ipp:"?sides,keyword"`
+	Copies                   int                        `ipp:"?copies,>0"`
+	Finishings               []int                      `ipp:"?finishings,enum"`
+	JobHoldUntil             KwJobHoldUntil             `ipp:"?job-hold-until"`
+	JobPriority              int                        `ipp:"?job-priority,1:100"`
+	JobSheets                KwJobSheets                `ipp:"?job-sheets"`
+	Media                    string                     `ipp:"?media,keyword"`
+	MediaReady               []string                   `ipp:"?media-ready,keyword"`
+	MultipleDocumentHandling KwMultipleDocumentHandling `ipp:"?multiple-document-handling"`
+	NumberUp                 int                        `ipp:"?number-up,>0"`
+	OrientationRequested     int                        `ipp:"?orientation-requested,enum"`
+	PageRanges               []goipp.IntegerOrRange     `ipp:"?page-ranges"`
+	PrinterResolution        goipp.Resolution           `ipp:"?printer-resolution"`
+	PrintQuality             int                        `ipp:"?print-quality,enum"`
+	Sides                    string                     `ipp:"?sides,keyword"`
 
 	// PWG5100.7: IPP Job Extensions v2.1 (JOBEXT)
 	// 6.8 Job Template Attributes
@@ -71,32 +71,32 @@ type JobAttributes struct {
 type JobTemplate struct {
 	// RFC8011, Internet Printing Protocol/1.1: Model and Semantics
 	// 5.2 Job Template Attributes
-	CopiesDefault                     int                    `ipp:"?copies-default,>0"`
-	CopiesSupported                   goipp.Range            `ipp:"?copies-supported,>0"`
-	FinishingsDefault                 []int                  `ipp:"?finishings-default,enum"`
-	FinishingsSupported               []int                  `ipp:"?finishings-supported,enum"`
-	JobHoldUntilDefault               KwJobHoldUntil         `ipp:"?job-hold-until-default"`
-	JobHoldUntilSupported             []KwJobHoldUntil       `ipp:"?job-hold-until-supported"`
-	JobPriorityDefault                int                    `ipp:"?job-priority-default,1:100"`
-	JobPrioritySupported              int                    `ipp:"?job-priority-supported,1:100"`
-	JobSheetsDefault                  KwJobSheets            `ipp:"?job-sheets-default"`
-	JobSheetsSupported                []KwJobSheets          `ipp:"?job-sheets-supported"`
-	MediaDefault                      string                 `ipp:"?media-default,keyword"`
-	MediaReady                        []string               `ipp:"?media-ready,keyword"`
-	MediaSupported                    []string               `ipp:"?media-supported,keyword"`
-	MultipleDocumentHandlingDefault   string                 `ipp:"?multiple-document-handling-default,keyword"`
-	MultipleDocumentHandlingSupported []string               `ipp:"?multiple-document-handling-supported,keyword"`
-	NumberUpDefault                   int                    `ipp:"?number-up-default,>0"`
-	NumberUpSupported                 []goipp.IntegerOrRange `ipp:"?number-up-supported,>0"`
-	OrientationRequestedDefault       int                    `ipp:"?orientation-requested-default,enum"`
-	OrientationRequestedSupported     []int                  `ipp:"?orientation-requested-supported,enum"`
-	PageRangesSupported               bool                   `ipp:"?page-ranges-supported"`
-	PrinterResolutionDefault          goipp.Resolution       `ipp:"?printer-resolution-default"`
-	PrinterResolutionSupported        []goipp.Resolution     `ipp:"?printer-resolution-supported"`
-	PrintQualityDefault               int                    `ipp:"?print-quality-default,enum"`
-	PrintQualitySupported             []int                  `ipp:"?print-quality-supported,enum"`
-	SidesDefault                      string                 `ipp:"?sides-default,keyword"`
-	SidesSupported                    []string               `ipp:"?sides-supported,keyword"`
+	CopiesDefault                     int                          `ipp:"?copies-default,>0"`
+	CopiesSupported                   goipp.Range                  `ipp:"?copies-supported,>0"`
+	FinishingsDefault                 []int                        `ipp:"?finishings-default,enum"`
+	FinishingsSupported               []int                        `ipp:"?finishings-supported,enum"`
+	JobHoldUntilDefault               KwJobHoldUntil               `ipp:"?job-hold-until-default"`
+	JobHoldUntilSupported             []KwJobHoldUntil             `ipp:"?job-hold-until-supported"`
+	JobPriorityDefault                int                          `ipp:"?job-priority-default,1:100"`
+	JobPrioritySupported              int                          `ipp:"?job-priority-supported,1:100"`
+	JobSheetsDefault                  KwJobSheets                  `ipp:"?job-sheets-default"`
+	JobSheetsSupported                []KwJobSheets                `ipp:"?job-sheets-supported"`
+	MediaDefault                      string                       `ipp:"?media-default,keyword"`
+	MediaReady                        []string                     `ipp:"?media-ready,keyword"`
+	MediaSupported                    []string                     `ipp:"?media-supported,keyword"`
+	MultipleDocumentHandlingDefault   KwMultipleDocumentHandling   `ipp:"?multiple-document-handling-default"`
+	MultipleDocumentHandlingSupported []KwMultipleDocumentHandling `ipp:"?multiple-document-handling-supported"`
+	NumberUpDefault                   int                          `ipp:"?number-up-default,>0"`
+	NumberUpSupported                 []goipp.IntegerOrRange       `ipp:"?number-up-supported,>0"`
+	OrientationRequestedDefault       int                          `ipp:"?orientation-requested-default,enum"`
+	OrientationRequestedSupported     []int                        `ipp:"?orientation-requested-supported,enum"`
+	PageRangesSupported               bool                         `ipp:"?page-ranges-supported"`
+	PrinterResolutionDefault          goipp.Resolution             `ipp:"?printer-resolution-default"`
+	PrinterResolutionSupported        []goipp.Resolution           `ipp:"?printer-resolution-supported"`
+	PrintQualityDefault               int                          `ipp:"?print-quality-default,enum"`
+	PrintQualitySupported             []int                        `ipp:"?print-quality-supported,enum"`
+	SidesDefault                      string                       `ipp:"?sides-default,keyword"`
+	SidesSupported                    []string                     `ipp:"?sides-supported,keyword"`
 
 	// PWG5100.7: IPP Job Extensions v2.1 (JOBEXT)
 	// 6.9 Printer Description Attributes
