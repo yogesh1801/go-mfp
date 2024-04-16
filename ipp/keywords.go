@@ -340,6 +340,116 @@ const (
 	KwURISecurityTLS KwURISecurity = "tls"
 )
 
+// KwJobStateReasons represents standard keyword values for
+// "job-state-reasons" attribute.
+//
+// RFC8011: 5.3.8.
+type KwJobStateReasons string
+
+// Standard values for KwJobStateReasons attribute.
+const (
+	// rfc3998: 9.1.
+	KwJobStateReasonsJobSuspended KwJobStateReasons = "job-suspended"
+
+	// RFC8011: 5.3.8.
+	KwJobStateReasonsNone KwJobStateReasons = "none"
+
+	KwJobStateReasonsAbortedBySystem           KwJobStateReasons = "aborted-by-system"
+	KwJobStateReasonsCompressionError          KwJobStateReasons = "compression-error"
+	KwJobStateReasonsDocumentAccessError       KwJobStateReasons = "document-access-error"
+	KwJobStateReasonsDocumentFormatError       KwJobStateReasons = "document-format-error"
+	KwJobStateReasonsJobCanceledAtDevice       KwJobStateReasons = "job-canceled-at-device"
+	KwJobStateReasonsJobCanceledByOperator     KwJobStateReasons = "job-canceled-by-operator"
+	KwJobStateReasonsJobCanceledByUser         KwJobStateReasons = "job-canceled-by-user"
+	KwJobStateReasonsJobCompletedSuccessfully  KwJobStateReasons = "job-completed-successfully"
+	KwJobStateReasonsJobCompletedWithErrors    KwJobStateReasons = "job-completed-with-errors"
+	KwJobStateReasonsJobCompletedWithWarnings  KwJobStateReasons = "job-completed-with-warnings"
+	KwJobStateReasonsJobDataInsufficient       KwJobStateReasons = "job-data-insufficient"
+	KwJobStateReasonsJobHoldUntilSpecified     KwJobStateReasons = "job-hold-until-specified"
+	KwJobStateReasonsJobIncoming               KwJobStateReasons = "job-incoming"
+	KwJobStateReasonsJobInterpreting           KwJobStateReasons = "job-interpreting"
+	KwJobStateReasonsJobOutgoing               KwJobStateReasons = "job-outgoing"
+	KwJobStateReasonsJobPrinting               KwJobStateReasons = "job-printing"
+	KwJobStateReasonsJobQueuedForMarker        KwJobStateReasons = "job-queued-for-marker"
+	KwJobStateReasonsJobQueued                 KwJobStateReasons = "job-queued"
+	KwJobStateReasonsJobRestartable            KwJobStateReasons = "job-restartable"
+	KwJobStateReasonsJobTransforming           KwJobStateReasons = "job-transforming"
+	KwJobStateReasonsPrinterStoppedPartly      KwJobStateReasons = "printer-stopped-partly"
+	KwJobStateReasonsPrinterStopped            KwJobStateReasons = "printer-stopped"
+	KwJobStateReasonsProcessingToStopPoint     KwJobStateReasons = "processing-to-stop-point"
+	KwJobStateReasonsQueuedInDevice            KwJobStateReasons = "queued-in-device"
+	KwJobStateReasonsResourcesAreNotReady      KwJobStateReasons = "resources-are-not-ready"
+	KwJobStateReasonsServiceOffLine            KwJobStateReasons = "service-off-line"
+	KwJobStateReasonsSubmissionInterrupted     KwJobStateReasons = "submission-interrupted"
+	KwJobStateReasonsUnsupportedCompression    KwJobStateReasons = "unsupported-compression"
+	KwJobStateReasonsUnsupportedDocumentFormat KwJobStateReasons = "unsupported-document-format"
+
+	// PWG5100.3: 6.1
+	KwJobStateReasonsResourcesAreNotSupported KwJobStateReasons = "resources-are-not-supported"
+
+	// PWG5100.7: 8.2, 11.1.
+	KwJobStateReasonsDigitalSignatureDidNotVerify     KwJobStateReasons = "digital-signature-did-not-verify"
+	KwJobStateReasonsDigitalSignatureTypeNotSupported KwJobStateReasons = "digital-signature-type-not-supported"
+	KwJobStateReasonsErrorsDetected                   KwJobStateReasons = "errors-detected"
+	KwJobStateReasonsJobDelayOutputUntilSpecified     KwJobStateReasons = "job-delay-output-until-specified"
+	KwJobStateReasonsJobDigitalSignatureWait          KwJobStateReasons = "job-digital-signature-wait"
+	KwJobStateReasonsJobSpooling                      KwJobStateReasons = "job-spooling"
+	KwJobStateReasonsJobStreaming                     KwJobStateReasons = "job-streaming"
+	KwJobStateReasonsWarningsDetected                 KwJobStateReasons = "warnings-detected"
+
+	// PWG5100.11: 11.3.
+	KwJobStateReasonsjobPasswordWait        KwJobStateReasons = "job-password-wait"
+	KwJobStateReasonsjobPrintedSuccessfully KwJobStateReasons = "job-printed-successfully"
+	KwJobStateReasonsjobPrintedWithErrors   KwJobStateReasons = "job-printed-with-errors"
+	KwJobStateReasonsjobPrintedWithWarnings KwJobStateReasons = "job-printed-with-warnings"
+	KwJobStateReasonsjobResuming            KwJobStateReasons = "job-resuming"
+	KwJobStateReasonsjobSavedSuccessfully   KwJobStateReasons = "job-saved-successfully"
+	KwJobStateReasonsjobSavedWithErrors     KwJobStateReasons = "job-saved-with-errors"
+	KwJobStateReasonsjobSavedWithWarnings   KwJobStateReasons = "job-saved-with-warnings"
+	KwJobStateReasonsjobSaving              KwJobStateReasons = "job-saving"
+	KwJobStateReasonsjobSuspendedByOperator KwJobStateReasons = "job-suspended-by-operator"
+	KwJobStateReasonsjobSuspendedBySystem   KwJobStateReasons = "job-suspended-by-system"
+	KwJobStateReasonsjobSuspendedByUser     KwJobStateReasons = "job-suspended-by-user"
+	KwJobStateReasonsjobSuspending          KwJobStateReasons = "job-suspending"
+
+	// PWG5100.13: 9.1.
+	KwJobStateReasonsDocumentPasswordError    KwJobStateReasons = "document-password-error"
+	KwJobStateReasonsDocumentPermissionError  KwJobStateReasons = "document-permission-error"
+	KwJobStateReasonsDocumentSecurityError    KwJobStateReasons = "document-security-error"
+	KwJobStateReasonsDocumentUnprintableError KwJobStateReasons = "document-unprintable-error"
+
+	// PWG5100.15: 8.2
+	KwJobStateReasonsConnectedToDestination    KwJobStateReasons = "connected-to-destination"
+	KwJobStateReasonsConnectingToDestination   KwJobStateReasons = "connecting-to-destination"
+	KwJobStateReasonsDestinationURIFailed      KwJobStateReasons = "destination-uri-failed"
+	KwJobStateReasonsFaxModemCarrierLost       KwJobStateReasons = "fax-modem-carrier-lost"
+	KwJobStateReasonsFaxModemEquipmentFailure  KwJobStateReasons = "fax-modem-equipment-failure"
+	KwJobStateReasonsFaxModemInactivityTimeout KwJobStateReasons = "fax-modem-inactivity-timeout"
+	KwJobStateReasonsFaxModemLineBusy          KwJobStateReasons = "fax-modem-line-busy"
+	KwJobStateReasonsFaxModemNoAnswer          KwJobStateReasons = "fax-modem-no-answer"
+	KwJobStateReasonsFaxModemNoDialTone        KwJobStateReasons = "fax-modem-no-dial-tone"
+	KwJobStateReasonsFaxModemProtocolError     KwJobStateReasons = "fax-modem-protocol-error"
+	KwJobStateReasonsFaxModemTrainingFailure   KwJobStateReasons = "fax-modem-training-failure"
+	KwJobStateReasonsFaxModemVoiceDetected     KwJobStateReasons = "fax-modem-voice-detected"
+	KwJobStateReasonsJobTransferring           KwJobStateReasons = "job-transferring"
+
+	// PWG5100.16: 8.1
+	KwJobStateReasonsAccountAuthorizationFailed    KwJobStateReasons = "account-authorization-failed"
+	KwJobStateReasonsAccountClosed                 KwJobStateReasons = "account-closed"
+	KwJobStateReasonsAccountInfoNeeded             KwJobStateReasons = "account-info-needed"
+	KwJobStateReasonsAccountLimitReached           KwJobStateReasons = "account-limit-reached"
+	KwJobStateReasonsConflictingAttributes         KwJobStateReasons = "conflicting-attributes"
+	KwJobStateReasonsJobHeldForReview              KwJobStateReasons = "job-held-for-review"
+	KwJobStateReasonsJobReleaseWait                KwJobStateReasons = "job-release-wait"
+	KwJobStateReasonsUnsupportedAttributesOrValues KwJobStateReasons = "unsupported-attributes-or-values"
+
+	// PWG5100.17: 9.3.
+	KwJobStateReasonsWaitingForUserAction KwJobStateReasons = "waiting-for-user-action"
+
+	// PWG5100.18: 9.4.
+	KwJobStateReasonsJobFetchable KwJobStateReasons = "job-fetchable"
+)
+
 // KwMultipleDocumentHandling represents standard keyword values for
 // "multiple-document-handling" attribute.
 //
@@ -394,6 +504,7 @@ var kwRegisteredTypes = map[reflect.Type]struct{}{
 	reflect.TypeOf(KwJobHoldUntil("")):             struct{}{},
 	reflect.TypeOf(KwJobSheets("")):                struct{}{},
 	reflect.TypeOf(KwJobSpooling("")):              struct{}{},
+	reflect.TypeOf(KwJobStateReasons("")):          struct{}{},
 	reflect.TypeOf(KwMultipleDocumentHandling("")): struct{}{},
 	reflect.TypeOf(KwPdlOverride("")):              struct{}{},
 	reflect.TypeOf(KwPrinterStateReasons("")):      struct{}{},
