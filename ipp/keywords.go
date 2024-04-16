@@ -450,6 +450,71 @@ const (
 	KwJobStateReasonsJobFetchable KwJobStateReasons = "job-fetchable"
 )
 
+// KwWhichJobs represents standard keyword values for
+// "which-jobs" attribute.
+//
+// RFC8011: 4.2.6.1.
+// PWG5100.7: 8.5.
+// PWG5100.11: 11.2.
+// PWG5100.18: 9.8.
+type KwWhichJobs string
+
+const (
+	// ----- RFC8011 -----
+
+	// KwWhichJobsCompleted means all completed jobs, i.e. jobs
+	// whose state is 'completed', 'canceled', or 'aborted'.
+	KwWhichJobsCompleted KwWhichJobs = "completed"
+
+	// KwWhichJobsNotCompleted means all non-completed jobs, i.e.
+	// Job whose state is 'pending', 'processing', 'processing-stopped',
+	// or 'pending-held'.
+	KwWhichJobsNotCompleted KwWhichJobs = "not-completed"
+
+	// ----- PWG5100.7 -----
+
+	// KwWhichJobsAborted means all jobs in the 'aborted' state.
+	KwWhichJobsAborted KwWhichJobs = "aborted"
+
+	// KwWhichJobsAll means all jobs regardless of state.
+	KwWhichJobsAll KwWhichJobs = "all"
+
+	// KwWhichJobsCanceled means all jobs in the 'canceled' state.
+	KwWhichJobsCanceled KwWhichJobs = "canceled"
+
+	// KwWhichJobsPending means all jobs in the 'pending' state.
+	KwWhichJobsPending KwWhichJobs = "pending"
+
+	// KwWhichJobsPendingHeld means all jobs in the 'pending-held' state.
+	KwWhichJobsPendingHeld KwWhichJobs = "pending-held"
+
+	// KwWhichJobsProcessing means all jobs in the 'processing' state.
+	KwWhichJobsProcessing KwWhichJobs = "processing"
+
+	// KwWhichJobsProcessinStopped means all jobs in the
+	// 'processing-stopped' state
+	KwWhichJobsProcessinStopped KwWhichJobs = "processing-stopped"
+
+	// ----- PWG5100.11 -----
+
+	// KwWhichJobsproofPrint means all jobs that have been submitted
+	// using the "proof-print" Job Template attribute and which are in
+	// the ‘completed’, ‘canceled’, or ‘aborted’ state.
+	KwWhichJobsproofPrint KwWhichJobs = "proof-print"
+
+	// KwWhichJobsSaved means all jobs that have been saved using the
+	// "job-save-disposition" Job Template attribute and which are in
+	// the ‘completed’, ‘canceled’, or ‘aborted’ state.
+	KwWhichJobsSaved KwWhichJobs = "saved"
+
+	// ----- PWG5100.18 -----
+
+	// KwWhichJobsFetchable means those jobs whose "job-state-reasons"
+	// Job Description attribute contains the value 'job-fetchable' are to
+	// be returned by the Get-Jobs operation.
+	KwWhichJobsFetchable KwWhichJobs = "fetchable"
+)
+
 // KwMultipleDocumentHandling represents standard keyword values for
 // "multiple-document-handling" attribute.
 //
@@ -511,4 +576,5 @@ var kwRegisteredTypes = map[reflect.Type]struct{}{
 	reflect.TypeOf(KwSides("")):                    struct{}{},
 	reflect.TypeOf(KwURIAuthentication("")):        struct{}{},
 	reflect.TypeOf(KwURISecurity("")):              struct{}{},
+	reflect.TypeOf(KwWhichJobs("")):                struct{}{},
 }
