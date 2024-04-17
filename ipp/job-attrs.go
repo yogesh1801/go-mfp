@@ -167,7 +167,11 @@ type JobTemplate struct {
 
 // MediaCol is the "media-col", "media-col-xxx" collection entry.
 // It is used in many places.
+//
+// PWG5100.3: 3.13., Table 10.
+// PWG5100.7: 6.3.1., Table 6.
 type MediaCol struct {
+	// ----- PWG5100.3 -----
 	MediaBackCoating  string    `ipp:"?media-back-coating,keyword"`
 	MediaColor        string    `ipp:"?media-color,keyword"`
 	MediaFrontCoating string    `ipp:"?media-front-coating,keyword"`
@@ -180,6 +184,18 @@ type MediaCol struct {
 	MediaSize         MediaSize `ipp:"?media-size"`
 	MediaType         string    `ipp:"?media-type,keyword"`
 	MediaWeightMetric int       `ipp:"?media-weight-metric,0:MAX"`
+
+	// ----- PWG5100.7 -----
+	MediaBottomMargin     int                   `ipp:"?media-bottom-margin,0:MAX"`
+	MediaGrain            string                `ipp:"?media-grain,keyword"`
+	MediaLeftMargin       int                   `ipp:"?media-left-margin,0:MAX"`
+	MediaRightMargin      int                   `ipp:"?media-right-margin,0:MAX"`
+	MediaSizeName         string                `ipp:"?media-size-name,keyword"`
+	MediaSourceProperties MediaSourceProperties `ipp:"?media-source-properties"`
+	MediaSource           string                `ipp:"?media-source,keyword"`
+	MediaThickness        int                   `ipp:"?media-thickness,1:MAX"`
+	MediaTooth            string                `ipp:"?media-tooth,keyword"`
+	MediaTopMargin        int                   `ipp:"?media-top-margin,0:MAX"`
 }
 
 // MediaSize represents media size parameters (which may be either
@@ -187,6 +203,13 @@ type MediaCol struct {
 type MediaSize struct {
 	XDimension goipp.IntegerOrRange `ipp:"x-dimension,0:MAX"`
 	YDimension goipp.IntegerOrRange `ipp:"y-dimension,0:MAX"`
+}
+
+// MediaSourceProperties represents "media-source-properties"
+// collectiobn in MediaCol
+type MediaSourceProperties struct {
+	MediaSourceFeedDirection   string `ipp:"?media-source-feed-direction,keyword"`
+	MediaSourceFeedOrientation int    `ipp:"?media-source-feed-orientation,enum"`
 }
 
 // JobSheets represents "job-sheets-col" collection entry in
