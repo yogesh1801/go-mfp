@@ -91,7 +91,7 @@ func testDiffAttrs(attrs1, attrs2 goipp.Attributes) string {
 	for name, attr1 := range m1 {
 		attr2 := m2[name]
 
-		if !attr1.Equal(attr2) {
+		if !attr1.Similar(attr2) {
 			diffList = append(diffList,
 				diffItem{
 					name: name,
@@ -167,6 +167,13 @@ func testDumpCollection(col goipp.Collection) string {
 	buf := &bytes.Buffer{}
 
 	buf.Write([]byte("{"))
+
+	sorted := make(goipp.Collection, len(col))
+	copy(sorted, col)
+	sort.Slice(sorted, func(i, j int) bool {
+		return sorted[i].Name < sorted[j].Name
+	})
+
 	for i, attr := range col {
 		if i > 0 {
 			buf.Write([]byte(", "))
