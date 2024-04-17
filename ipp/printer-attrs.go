@@ -95,6 +95,9 @@ type PrinterDescription struct {
 	JobHistoryIntervalSupported      goipp.Range   `ipp:"?job-history-interval-supported,0:MAX"`
 	JobMandatoryAttributesSupported  bool          `ipp:"?job-mandatory-attributes-supported"`
 	JobSpoolingSupported             KwJobSpooling `ipp:"?job-spooling-supported"`
+	MediaColDatabase                 []MediaCol    `ipp:"!media-col-database"`
+	MediaColDefault                  MediaCol      `ipp:"!media-col-default"`
+	MediaColReady                    []MediaCol    `ipp:"!media-col-ready"`
 
 	// PWG5100.13: IPP Driver Replacement Extensions v2.0 (NODRIVER)
 	// 6.5 Printer Description Attributes
