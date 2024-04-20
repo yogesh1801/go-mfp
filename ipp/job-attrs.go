@@ -173,7 +173,7 @@ type JobTemplate struct {
 type MediaCol struct {
 	// ----- PWG5100.3 -----
 	KwMediaBackCoating string    `ipp:"?media-back-coating"`
-	MediaColor         string    `ipp:"?media-color,keyword"`
+	MediaColor         KwColor   `ipp:"?media-color"`
 	MediaFrontCoating  string    `ipp:"?media-front-coating,keyword"`
 	MediaHoleCount     int       `ipp:"?media-hole-count,0:MAX"`
 	MediaInfo          string    `ipp:"?media-info,text"`
