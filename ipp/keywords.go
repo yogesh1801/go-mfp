@@ -277,6 +277,34 @@ const (
 	KwJobStateReasonsJobFetchable KwJobStateReasons = "job-fetchable"
 )
 
+// KwMediaBackCoating represents standard keyword values for
+// "media-back-coating" attribute.
+//
+// PWG5100.7: 6.3.1.2
+type KwMediaBackCoating string
+
+const (
+	// KwMediaBackCoatingNone means the media does not have any coating.
+	KwMediaBackCoatingNone KwMediaBackCoating = "none"
+
+	// KwMediaBackCoatingGlossy means the media has a "glossy" coating.
+	KwMediaBackCoatingGlossy KwMediaBackCoating = "glossy"
+
+	// KwMediaBackCoatingHighGloss means the media has a "high-gloss"
+	// coating.
+	KwMediaBackCoatingHighGloss KwMediaBackCoating = "high-gloss"
+
+	// KwMediaBackCoatingSemiGloss means the media has a "semi-gloss"
+	// coating.
+	KwMediaBackCoatingSemiGloss KwMediaBackCoating = "semi-gloss"
+
+	// KwMediaBackCoatingSatin means the media has a "satin" coating.
+	KwMediaBackCoatingSatin KwMediaBackCoating = "satin"
+
+	// KwMediaBackCoatingMatte means the media has a "matte" coating.
+	KwMediaBackCoatingMatte KwMediaBackCoating = "matte"
+)
+
 // KwMultipleDocumentHandling represents standard keyword values for
 // "multiple-document-handling" attribute.
 //
@@ -570,6 +598,7 @@ var kwRegisteredTypes = map[reflect.Type]struct{}{
 	reflect.TypeOf(KwJobSheets("")):                struct{}{},
 	reflect.TypeOf(KwJobSpooling("")):              struct{}{},
 	reflect.TypeOf(KwJobStateReasons("")):          struct{}{},
+	reflect.TypeOf(KwMediaBackCoating("")):         struct{}{},
 	reflect.TypeOf(KwMultipleDocumentHandling("")): struct{}{},
 	reflect.TypeOf(KwPdlOverride("")):              struct{}{},
 	reflect.TypeOf(KwPrinterStateReasons("")):      struct{}{},
