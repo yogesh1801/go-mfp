@@ -112,7 +112,7 @@ func (cn KwColor) LocalizedName() string {
 		return "Transparent"
 	}
 
-	_, found := colorNameTable[cn]
+	_, found := kwColorByName[cn]
 	if found {
 		parts := strings.Split(string(cn), "-")
 		name := ""
@@ -128,7 +128,8 @@ func (cn KwColor) LocalizedName() string {
 	return ""
 }
 
-var colorNameTable = map[KwColor]Color{
+// kwColorByName maps standard color names to their RGBA value
+var kwColorByName = map[KwColor]Color{
 	"no-color":        0xFFFFFF00,
 	"black":           0x000000FF,
 	"clear-black":     0x0000007F,
