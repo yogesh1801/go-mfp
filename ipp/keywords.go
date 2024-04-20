@@ -592,6 +592,7 @@ const (
 
 // kwRegisteredTypes lists all registered keyword types for IPP codec.
 var kwRegisteredTypes = map[reflect.Type]struct{}{
+	// Types, defined here
 	reflect.TypeOf(KwCompression("")):              struct{}{},
 	reflect.TypeOf(KwJobDelayOutputUntil("")):      struct{}{},
 	reflect.TypeOf(KwJobHoldUntil("")):             struct{}{},
@@ -606,4 +607,7 @@ var kwRegisteredTypes = map[reflect.Type]struct{}{
 	reflect.TypeOf(KwURIAuthentication("")):        struct{}{},
 	reflect.TypeOf(KwURISecurity("")):              struct{}{},
 	reflect.TypeOf(KwWhichJobs("")):                struct{}{},
+
+	// Types, defined at separate source files
+	reflect.TypeOf(KwColor("")): struct{}{},
 }
