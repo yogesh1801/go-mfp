@@ -82,40 +82,41 @@ type PrinterDescription struct {
 
 	// PWG5100.7: IPP Job Extensions v2.1 (JOBEXT)
 	// 6.9 Printer Description Attributes
-	ClientInfoSupported              []string      `ipp:"?client-info-supported,keyword"`
-	DocumentCharsetDefault           string        `ipp:"?document-charset-default,charset"`
-	DocumentCharsetSupported         []string      `ipp:"?document-charset-supported,charset"`
-	DocumentFormatDetailsSupported   []string      `ipp:"?document-format-details-supported,keyword"`
-	DocumentNaturalLanguageDefault   string        `ipp:"?document-natural-language-default,naturalLanguage"`
-	DocumentNaturalLanguageSupported []string      `ipp:"?document-natural-language-supported,naturalLanguage"`
-	JobCreationAttributesSupported   []string      `ipp:"?job-creation-attributes-supported,keyword"`
-	JobHistoryAttributesConfigured   []string      `ipp:"?job-history-attributes-configured,keyword"`
-	JobHistoryAttributesSupported    []string      `ipp:"?job-history-attributes-supported,keyword"`
-	JobHistoryIntervalConfigured     int           `ipp:"?job-history-interval-configured,0:MAX"`
-	JobHistoryIntervalSupported      goipp.Range   `ipp:"?job-history-interval-supported,0:MAX"`
-	JobMandatoryAttributesSupported  bool          `ipp:"?job-mandatory-attributes-supported"`
-	JobSpoolingSupported             KwJobSpooling `ipp:"?job-spooling-supported"`
-	MediaBottomMarginSupported       []int         `ipp:"!media-bottom-margin-supported,0:MAX"`
-	MediaColDatabase                 []MediaCol    `ipp:"!media-col-database"`
-	MediaColDefault                  MediaCol      `ipp:"!media-col-default"`
-	MediaColorSupported              []string      `ipp:"?media-color-supported,keyword"`
-	MediaColReady                    []MediaCol    `ipp:"!media-col-ready"`
-	MediaColSupported                []string      `ipp:"!media-col-supported,keyword"`
-	MediaFrontCoatingSupported       []string      `ipp:"?media-front-coating-supported,keyword"`
-	MediaGrainSupported              []string      `ipp:"?media-grain-supported,keyword"`
-	MediaHoleCountSupported          []goipp.Range `ipp:"?media-hole-count-supported,0:MAX"`
-	MediaKeySupported                []string      `ipp:"?media-key-supported,keyword"`
-	MediaLeftMarginSupported         []int         `ipp:"!media-left-margin-supported,0:MAX"`
-	MediaOrderCountSupported         []goipp.Range `ipp:"?media-order-count-supported,1:MAX"`
-	MediaPrePrintedSupported         []string      `ipp:"?media-pre-printed-supported,keyword"`
-	MediaRecycledSupported           []string      `ipp:"?media-recycled-supported,keyword"`
-	MediaRightMarginSupported        []int         `ipp:"!media-right-margin-supported,0:MAX"`
-	MediaSourceSupported             []string      `ipp:"!media-source-supported,keyword"`
-	MediaThicknessSupported          []goipp.Range `ipp:"?media-thickness-supported,1:MAX"`
-	MediaToothSupported              []string      `ipp:"?media-tooth-supported,keyword"`
-	MediaTopMarginSupported          []int         `ipp:"!media-top-margin-supported,0:MAX"`
-	MediaTypeSupported               []string      `ipp:"!media-type-supported,keyword"`
-	MediaWeightMetricSupported       []goipp.Range `ipp:"?media-weight-metric-supported,1:MAX"`
+	ClientInfoSupported              []string             `ipp:"?client-info-supported,keyword"`
+	DocumentCharsetDefault           string               `ipp:"?document-charset-default,charset"`
+	DocumentCharsetSupported         []string             `ipp:"?document-charset-supported,charset"`
+	DocumentFormatDetailsSupported   []string             `ipp:"?document-format-details-supported,keyword"`
+	DocumentNaturalLanguageDefault   string               `ipp:"?document-natural-language-default,naturalLanguage"`
+	DocumentNaturalLanguageSupported []string             `ipp:"?document-natural-language-supported,naturalLanguage"`
+	JobCreationAttributesSupported   []string             `ipp:"?job-creation-attributes-supported,keyword"`
+	JobHistoryAttributesConfigured   []string             `ipp:"?job-history-attributes-configured,keyword"`
+	JobHistoryAttributesSupported    []string             `ipp:"?job-history-attributes-supported,keyword"`
+	JobHistoryIntervalConfigured     int                  `ipp:"?job-history-interval-configured,0:MAX"`
+	JobHistoryIntervalSupported      goipp.Range          `ipp:"?job-history-interval-supported,0:MAX"`
+	JobMandatoryAttributesSupported  bool                 `ipp:"?job-mandatory-attributes-supported"`
+	JobSpoolingSupported             KwJobSpooling        `ipp:"?job-spooling-supported"`
+	MediaBackCoatingSupported        []KwMediaBackCoating `ipp:"?media-back-coating-supported"`
+	MediaBottomMarginSupported       []int                `ipp:"!media-bottom-margin-supported,0:MAX"`
+	MediaColDatabase                 []MediaCol           `ipp:"!media-col-database"`
+	MediaColDefault                  MediaCol             `ipp:"!media-col-default"`
+	MediaColorSupported              []string             `ipp:"?media-color-supported,keyword"`
+	MediaColReady                    []MediaCol           `ipp:"!media-col-ready"`
+	MediaColSupported                []string             `ipp:"!media-col-supported,keyword"`
+	MediaFrontCoatingSupported       []KwMediaBackCoating `ipp:"?media-front-coating-supported"`
+	MediaGrainSupported              []string             `ipp:"?media-grain-supported,keyword"`
+	MediaHoleCountSupported          []goipp.Range        `ipp:"?media-hole-count-supported,0:MAX"`
+	MediaKeySupported                []string             `ipp:"?media-key-supported,keyword"`
+	MediaLeftMarginSupported         []int                `ipp:"!media-left-margin-supported,0:MAX"`
+	MediaOrderCountSupported         []goipp.Range        `ipp:"?media-order-count-supported,1:MAX"`
+	MediaPrePrintedSupported         []string             `ipp:"?media-pre-printed-supported,keyword"`
+	MediaRecycledSupported           []string             `ipp:"?media-recycled-supported,keyword"`
+	MediaRightMarginSupported        []int                `ipp:"!media-right-margin-supported,0:MAX"`
+	MediaSourceSupported             []string             `ipp:"!media-source-supported,keyword"`
+	MediaThicknessSupported          []goipp.Range        `ipp:"?media-thickness-supported,1:MAX"`
+	MediaToothSupported              []string             `ipp:"?media-tooth-supported,keyword"`
+	MediaTopMarginSupported          []int                `ipp:"!media-top-margin-supported,0:MAX"`
+	MediaTypeSupported               []string             `ipp:"!media-type-supported,keyword"`
+	MediaWeightMetricSupported       []goipp.Range        `ipp:"?media-weight-metric-supported,1:MAX"`
 
 	// PWG5100.13: IPP Driver Replacement Extensions v2.0 (NODRIVER)
 	// 6.5 Printer Description Attributes
