@@ -172,18 +172,18 @@ type JobTemplate struct {
 // PWG5100.7: 6.3.1., Table 6.
 type MediaCol struct {
 	// ----- PWG5100.3 -----
-	KwMediaBackCoating string    `ipp:"?media-back-coating"`
-	MediaColor         KwColor   `ipp:"?media-color"`
-	MediaFrontCoating  string    `ipp:"?media-front-coating,keyword"`
-	MediaHoleCount     int       `ipp:"?media-hole-count,0:MAX"`
-	MediaInfo          string    `ipp:"?media-info,text"`
-	MediaKey           string    `ipp:"?media-key,keyword"`
-	MediaOrderCount    int       `ipp:"?media-order-count,1:MAX"`
-	MediaPrePrinted    string    `ipp:"?media-pre-printed,keyword"`
-	MediaRecycled      string    `ipp:"?media-recycled,keyword"`
-	MediaSize          MediaSize `ipp:"?media-size"`
-	MediaType          string    `ipp:"?media-type,keyword"`
-	MediaWeightMetric  int       `ipp:"?media-weight-metric,0:MAX"`
+	KwMediaBackCoating KwMediaBackCoating `ipp:"?media-back-coating"`
+	MediaColor         KwColor            `ipp:"?media-color"`
+	MediaFrontCoating  KwMediaBackCoating `ipp:"?media-front-coating,keyword"`
+	MediaHoleCount     int                `ipp:"?media-hole-count,0:MAX"`
+	MediaInfo          string             `ipp:"?media-info,text"`
+	MediaKey           string             `ipp:"?media-key,keyword"`
+	MediaOrderCount    int                `ipp:"?media-order-count,1:MAX"`
+	MediaPrePrinted    string             `ipp:"?media-pre-printed,keyword"`
+	MediaRecycled      string             `ipp:"?media-recycled,keyword"`
+	MediaSize          MediaSize          `ipp:"?media-size"`
+	MediaType          string             `ipp:"?media-type,keyword"`
+	MediaWeightMetric  int                `ipp:"?media-weight-metric,0:MAX"`
 
 	// ----- PWG5100.7 -----
 	MediaBottomMargin     int                   `ipp:"?media-bottom-margin,0:MAX"`
