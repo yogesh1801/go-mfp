@@ -8,7 +8,7 @@
 
 package ipp
 
-// KwMedia represents standard media size. Used in many places`
+// KwMedia represents standard media size. Used in many places
 type KwMedia string
 
 // Standard constants for KwMedia
