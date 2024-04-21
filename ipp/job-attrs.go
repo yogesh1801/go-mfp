@@ -23,8 +23,7 @@ type JobAttributes struct {
 	JobHoldUntil             KwJobHoldUntil             `ipp:"?job-hold-until"`
 	JobPriority              int                        `ipp:"?job-priority,1:100"`
 	JobSheets                KwJobSheets                `ipp:"?job-sheets"`
-	Media                    string                     `ipp:"?media,keyword"`
-	MediaReady               []string                   `ipp:"?media-ready,keyword"`
+	Media                    KwMedia                    `ipp:"?media"`
 	MultipleDocumentHandling KwMultipleDocumentHandling `ipp:"?multiple-document-handling"`
 	NumberUp                 int                        `ipp:"?number-up,>0"`
 	OrientationRequested     int                        `ipp:"?orientation-requested,enum"`
@@ -81,9 +80,9 @@ type JobTemplate struct {
 	JobPrioritySupported              int                          `ipp:"?job-priority-supported,1:100"`
 	JobSheetsDefault                  KwJobSheets                  `ipp:"?job-sheets-default"`
 	JobSheetsSupported                []KwJobSheets                `ipp:"?job-sheets-supported"`
-	MediaDefault                      string                       `ipp:"?media-default,keyword"`
-	MediaReady                        []string                     `ipp:"?media-ready,keyword"`
-	MediaSupported                    []string                     `ipp:"?media-supported,keyword"`
+	MediaDefault                      KwMedia                      `ipp:"?media-default"`
+	MediaReady                        []KwMedia                    `ipp:"?media-ready"`
+	MediaSupported                    []KwMedia                    `ipp:"?media-supported"`
 	MultipleDocumentHandlingDefault   KwMultipleDocumentHandling   `ipp:"?multiple-document-handling-default"`
 	MultipleDocumentHandlingSupported []KwMultipleDocumentHandling `ipp:"?multiple-document-handling-supported"`
 	NumberUpDefault                   int                          `ipp:"?number-up-default,>0"`
@@ -177,7 +176,7 @@ type MediaCol struct {
 	MediaFrontCoating  KwMediaBackCoating `ipp:"?media-front-coating"`
 	MediaHoleCount     int                `ipp:"?media-hole-count,0:MAX"`
 	MediaInfo          string             `ipp:"?media-info,text"`
-	MediaKey           string             `ipp:"?media-key,keyword"`
+	MediaKey           KwMedia            `ipp:"?media-key"`
 	MediaOrderCount    int                `ipp:"?media-order-count,1:MAX"`
 	MediaPrePrinted    string             `ipp:"?media-pre-printed,keyword"`
 	MediaRecycled      string             `ipp:"?media-recycled,keyword"`

@@ -105,7 +105,7 @@ type PrinterDescription struct {
 	MediaFrontCoatingSupported       []KwMediaBackCoating `ipp:"?media-front-coating-supported"`
 	MediaGrainSupported              []string             `ipp:"?media-grain-supported,keyword"`
 	MediaHoleCountSupported          []goipp.Range        `ipp:"?media-hole-count-supported,0:MAX"`
-	MediaKeySupported                []string             `ipp:"?media-key-supported,keyword"`
+	MediaKeySupported                []KwMedia            `ipp:"?media-key-supported"`
 	MediaLeftMarginSupported         []int                `ipp:"!media-left-margin-supported,0:MAX"`
 	MediaOrderCountSupported         []goipp.Range        `ipp:"?media-order-count-supported,1:MAX"`
 	MediaPrePrintedSupported         []string             `ipp:"?media-pre-printed-supported,keyword"`
