@@ -174,7 +174,7 @@ type MediaCol struct {
 	// ----- PWG5100.3 -----
 	KwMediaBackCoating KwMediaBackCoating `ipp:"?media-back-coating"`
 	MediaColor         KwColor            `ipp:"?media-color"`
-	MediaFrontCoating  KwMediaBackCoating `ipp:"?media-front-coating,keyword"`
+	MediaFrontCoating  KwMediaBackCoating `ipp:"?media-front-coating"`
 	MediaHoleCount     int                `ipp:"?media-hole-count,0:MAX"`
 	MediaInfo          string             `ipp:"?media-info,text"`
 	MediaKey           string             `ipp:"?media-key,keyword"`
