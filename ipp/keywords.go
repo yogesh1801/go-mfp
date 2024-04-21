@@ -610,4 +610,5 @@ var kwRegisteredTypes = map[reflect.Type]struct{}{
 
 	// Types, defined at separate source files
 	reflect.TypeOf(KwColor("")): struct{}{},
+	reflect.TypeOf(KwMedia("")): struct{}{},
 }
