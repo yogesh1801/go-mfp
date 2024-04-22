@@ -14,15 +14,47 @@ import (
 	"github.com/OpenPrinting/goipp"
 )
 
+// Commonly used Operation Attributes.
+const (
+	// AttrOperationAttributesCharset specifies character set
+	// for all attributes in the message.
+	//
+	// It must be very first attribute in the message (RFC8011, 4.1.4.).
+	AttrOperationAttributesCharset = "attributes-charset"
+
+	// AttrOperationAttributesNaturalLanguage specifies natural
+	// language for all textWithoutLanguage and nameWithoutLanguage
+	// attributes in the message.
+	//
+	// It must be second attribute in the message (RFC8011, 4.1.4.).
+	AttrOperationAttributesNaturalLanguage = "attributes-natural-language"
+
+	// AttrOperationPrinterURI uses in requests to specify Printer URI,
+	// where appropriate.
+	AttrOperationPrinterURI = "printer-uri"
+
+	// AttrOperationRequestedAttributes used in Get-Printer-Attributes
+	// request to specify list of requested attributes.
+	AttrOperationRequestedAttributes = "requested-attributes"
+
+	// AttrOperationStatusMessage provides a short textual description
+	// of the status of the operation.
+	AttrOperationStatusMessage = "status-message"
+)
+
 // Default values for common attributes
 var (
 	// DefaultCharsetConfigured is the default value for
-	// ""charset-configured" printer attribute
+	// "charset-configured" printer attribute
 	DefaultCharsetConfigured = "utf-8"
 
 	// DefaultCharsetSupported is the default value for
 	// ""charset-supported" printer attribute
 	DefaultCharsetSupported = []string{DefaultCharsetConfigured}
+
+	// DefaultNaturalLanguage is the default value for
+	// "attributes-natural-language"
+	DefaultNaturalLanguage = "en-us"
 
 	// DefaultIppVersionsSupported is the default value for
 	// "ipp-features-supported" printer attribute
