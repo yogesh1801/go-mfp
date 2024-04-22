@@ -44,17 +44,17 @@ const (
 
 // Default values for common attributes
 var (
-	// DefaultCharsetConfigured is the default value for
-	// "charset-configured" printer attribute
-	DefaultCharsetConfigured = "utf-8"
+	// DefaultCharset is the default value for the "attributes-charset"
+	// operation attribute and the "charset-configured" printer attribute
+	DefaultCharset = "utf-8"
+
+	// DefaultNaturalLanguage is the default value for
+	// "attributes-natural-language" operation attribute.
+	DefaultNaturalLanguage = "en-us"
 
 	// DefaultCharsetSupported is the default value for
 	// ""charset-supported" printer attribute
-	DefaultCharsetSupported = []string{DefaultCharsetConfigured}
-
-	// DefaultNaturalLanguage is the default value for
-	// "attributes-natural-language"
-	DefaultNaturalLanguage = "en-us"
+	DefaultCharsetSupported = []string{DefaultCharset}
 
 	// DefaultIppVersionsSupported is the default value for
 	// "ipp-features-supported" printer attribute

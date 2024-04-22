@@ -1164,7 +1164,7 @@ var (
 
 var testdataPrinterAttributes = PrinterAttributes{
 	PrinterDescription: PrinterDescription{
-		CharsetConfigured:    DefaultCharsetConfigured,
+		CharsetConfigured:    DefaultCharset,
 		CharsetSupported:     DefaultCharsetSupported,
 		CompressionSupported: []KwCompression{KwCompressionNone},
 		IppFeaturesSupported: []string{
