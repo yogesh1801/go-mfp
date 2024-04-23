@@ -11,6 +11,9 @@ package main
 import (
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
 	"unicode"
 
 	"github.com/alexpevzner/mfp/mains"
@@ -20,49 +23,74 @@ import (
 // main function for the mfp-shell command
 func main() {
 	// Setup liner library
-	liner := liner.NewLiner()
-	defer liner.Close()
+	editline := liner.NewLiner()
+	defer editline.Close()
 
-	liner.SetCtrlCAborts(true)
+	editline.SetCtrlCAborts(true)
+
+	// Setup history
+	historyPath := mains.PathUserConfDir("mfp")
+	os.MkdirAll(historyPath, 0755)
+
+	historyPath = filepath.Join(historyPath, "mfp-shell.history")
+
+	if file, err := os.Open(historyPath); err == nil {
+		editline.ReadHistory(file)
+		file.Close()
+	}
 
 	// Read and execute line by line
 	for {
-		line, err := liner.Prompt("MFP> ")
+		line, err := editline.Prompt("MFP> ")
 		if err != nil {
 			fmt.Printf("\n")
 			break
 		}
 
-		err = exec(line)
+		savehistory, err := exec(line)
+		if savehistory {
+			editline.AppendHistory(strings.Trim(line, " "))
+			if file, err := os.Create(historyPath); err == nil {
+				editline.WriteHistory(file)
+				file.Close()
+			}
+
+		}
+
 		if err != nil {
 			fmt.Printf("%s\n", err)
 		}
 	}
 }
 
-// exec parses and executes the command
-func exec(line string) error {
+// exec parses and executes the command.
+//
+// Returned savehistory is true if line is "good enough" to
+// be saved to the history file.
+func exec(line string) (savehistory bool, err error) {
 	// Tokenize string
 	tokens, err := tokenize(line)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	// Ignore empty lines
 	if len(tokens) == 0 {
-		return nil
+		return false, nil
 	}
+
+	// Update history
 
 	// Lookup the command
 	cmd := mains.CommandByName(tokens[0])
 	if cmd == nil {
 		err = fmt.Errorf("%q: command not found", tokens[0])
-		return err
+		return true, err
 	}
 
 	cmd.Main(tokens[1:])
 
-	return nil
+	return true, nil
 }
 
 // tokenize splits string into tokens.
