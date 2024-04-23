@@ -1,3 +1,3 @@
-include Rules.mak
+SUBDIRS	= cmd ipp mains
 
-SUBDIRS	= ipp
+include Rules.mak

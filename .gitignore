@@ -1,2 +1,7 @@
 tags
 *.swp
+coverage.out
+
+cmd/mfp-cups/mfp-cups
+cmd/mfp/mfp
+cmd/mfp-shell/mfp-shell

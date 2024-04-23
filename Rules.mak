@@ -9,7 +9,8 @@
 
 TOPDIR  := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 GOFILES := $(wildcard *.go)
-PACKAGE	:= $(shell basename $(PWD))
+GOTESTS := $(wildcard *_test.go)
+PACKAGE	:= $(shell basename $(shell pwd))
 
 # ----- Parameters -----
 
@@ -50,16 +51,22 @@ ifneq   ($(GOFILES),)
 
 do_all:
 	$(GO) build
+ifneq	($(GOTESTS),)
 	$(GO) test -c
 	rm -f $(PACKAGE).test
+endif
 
 do_cover:
+ifneq	($(GOTESTS),)
 	go test -coverprofile=coverage.out
 	go tool cover -html=coverage.out
 	rm -f coverage.out
+endif
 
 do_test:
+ifneq	($(GOTESTS),)
 	$(GO) test
+endif
 
 do_vet:
 	$(GO) vet
@@ -70,6 +77,11 @@ endif
 ifneq	($(GOTAGS),)
 tags:
 	cd $(TOPDIR); gotags -R . > tags
+endif
+
+ifneq	($(CLEAN),)
+do_clean:
+	rm -f $(CLEAN)
 endif
 
 # ----- Subdirs handling
