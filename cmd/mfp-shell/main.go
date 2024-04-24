@@ -88,7 +88,7 @@ func exec(line string) (savehistory bool, err error) {
 		return true, err
 	}
 
-	cmd.Main(tokens[1:])
+	cmd.Main(tokens)
 
 	return true, nil
 }
