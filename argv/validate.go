@@ -1,0 +1,14 @@
+// MFP  - Miulti-Function Printers and scanners toolkit
+// argv - Argv parsing mini-library
+//
+// Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
+// See LICENSE for license terms and conditions
+//
+// Value validators
+
+package argv
+
+// ValidateAny accepts any string
+func ValidateAny(string) error {
+	return nil
+}
