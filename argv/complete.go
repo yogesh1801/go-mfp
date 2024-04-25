@@ -36,7 +36,9 @@ func CompleteStrings(s []string) func(string) []string {
 
 // CompleteFs returns a completer, that performs file name auto-completion
 // on a top of fs.GlobFS.
-func CompleteFs(filesystem fs.GlobFS) func(string) []string {
+//
+// filesystem must implement fs.ReadDirFS or fs.GlobFS interfaces.
+func CompleteFs(filesystem fs.FS) func(string) []string {
 	return func(in string) []string {
 		// Don't allow special characters within the string
 		if strings.IndexAny(in, "/?*") >= 0 {
@@ -44,7 +46,7 @@ func CompleteFs(filesystem fs.GlobFS) func(string) []string {
 		}
 
 		// Lookup matching file names
-		names, err := filesystem.Glob(in + "*")
+		names, err := fs.Glob(filesystem, in+"*")
 		if err != nil {
 			return nil
 		}
