@@ -572,10 +572,10 @@ const (
 
 	// ----- PWG5100.11 -----
 
-	// KwWhichJobsproofPrint means all jobs that have been submitted
+	// KwWhichJobsProofPrint means all jobs that have been submitted
 	// using the "proof-print" Job Template attribute and which are in
 	// the ‘completed’, ‘canceled’, or ‘aborted’ state.
-	KwWhichJobsproofPrint KwWhichJobs = "proof-print"
+	KwWhichJobsProofPrint KwWhichJobs = "proof-print"
 
 	// KwWhichJobsSaved means all jobs that have been saved using the
 	// "job-save-disposition" Job Template attribute and which are in
