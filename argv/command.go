@@ -54,7 +54,7 @@ type Command struct {
 // of Command that defines them (sub-commands have their own scopes).
 //
 // Name and Aliases may use either short or long syntax. Short Name
-// consist of single dash (-) character, long Name starts with double
+// starts with single dash (-) character, long Name starts with double
 // dash (--):
 //
 //   -c           - the short name
