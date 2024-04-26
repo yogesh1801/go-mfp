@@ -8,6 +8,13 @@
 
 package argv
 
+import (
+	"errors"
+	"fmt"
+	"strings"
+	"unicode"
+)
+
 // Command defines a command.
 //
 // Every command MUST have a name and MAY have Options,
@@ -184,10 +191,34 @@ type Action struct {
 
 // ----- Command methods -----
 
-// Validate verifies Command definition. It fails if any
-// error is found and returns description of the first caught
-// error
-func (cmd *Command) Validate() error {
+// Verify checks correctness of Command definition. It fails if any
+// error is found and returns description of the first caught error
+func (cmd *Command) Verify() error {
+	// Command must have a name
+	if cmd.Name == "" {
+		return errors.New("missed command name")
+	}
+
+	// Verify options. Also check that option names doesn't duplicate
+	optnames := make(map[string]struct{})
+	for _, opt := range cmd.Options {
+		err := opt.verify()
+		if err != nil {
+			return fmt.Errorf("%s: %s", cmd.Name, err)
+		}
+
+		names := []string{opt.Name}
+		names = append(names, opt.Aliases...)
+		for _, name := range names {
+			if _, found := optnames[name]; found {
+				return fmt.Errorf("%s: duplicated option %q",
+					cmd.Name, name)
+			}
+
+			optnames[name] = struct{}{}
+		}
+	}
+
 	return nil
 }
 
@@ -201,6 +232,45 @@ func (cmd *Command) Apply(argv []string) (*Action, error) {
 // the Command when used with specified (probably incomplete)
 // command line.
 func (cmd *Command) Complete(cmdline string) []string {
+	return nil
+}
+
+// ----- Option methods -----
+
+// verify checks correctness of Option definition. It fails if any
+// error is found and returns description of the first caught error
+func (opt *Option) verify() error {
+	// Option must have a name
+	if opt.Name == "" {
+		return errors.New("found option without name")
+	}
+
+	// Verify name syntax
+	names := append([]string{opt.Name}, opt.Aliases...)
+	for _, name := range names {
+		var check string
+
+		switch {
+		case strings.HasPrefix(name, "--"):
+			check = name[2:]
+		case strings.HasPrefix(name, "-"):
+			check = name[1:]
+
+		default:
+			return fmt.Errorf("option must start with dash (-): %q",
+				name)
+		}
+
+		if check == "" {
+			return fmt.Errorf("empty option name: %q", name)
+		}
+
+		if c := nameCheck(check); c >= 0 {
+			return fmt.Errorf("invalid char '%c' in option: %q",
+				c, name)
+		}
+	}
+
 	return nil
 }
 
@@ -218,4 +288,31 @@ func (act *Action) Getopt(name string) (val string, found bool) {
 // If option is not found, it returns nil
 func (act *Action) GetoptSlice(name string) (val []string) {
 	return nil
+}
+
+// ----- Miscellaneous functions -----
+
+// nameCheck function verifies syntax of Options and
+// Parameters names. Valid name starts with letter or
+// digit and then consist of letters, digits and dash
+// characters.
+//
+// It returns the first invalid character, if one is
+// encountered, or -1 otherwise.
+func nameCheck(name string) rune {
+	for i, c := range name {
+		switch {
+		// Letters and digits always allowed
+		case unicode.IsLetter(c) || unicode.IsDigit(c):
+
+		// Dash allowed expect the very first character
+		case i > 0 && c == '-':
+
+		// Other characters not allowed
+		default:
+			return c
+		}
+	}
+
+	return -1
 }
