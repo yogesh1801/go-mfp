@@ -122,9 +122,9 @@ type Option struct {
 // All parameters after non-repeated optional parameters
 // must be optional:
 //
-//   cmd param1 param2 [param3] [param4]     - OK
-//   cmd param1 param2 [param3] [param4...]  - OK
-//   cmd param1 param2 [param3] param4       - error
+//   cmd param1 param2 [param3] [param4]      - OK
+//   cmd param1 param2 [param3] [param4...]   - OK
+//   cmd param1 param2 [param3] param4        - error
 //
 // In the last case, if we have only 3 parameter values,
 // we can't tell unambiguously, if it param1 param2 param3
@@ -133,16 +133,21 @@ type Option struct {
 // After repeated (optional or not) parameter, more
 // non-optional may follow:
 //
-//   cmd param1 param2 param3... param4    - OK
-//   cmd param1 param2 [param3...] param4  - OK
+//   cmd param1 param2 param3... param4     - OK
+//   cmd param1 param2 [param3...] param4   - OK
 //
 // At this case, if we have N parameter values, we first
 // assign values to the non-optional ones, the remaining
 // values assigned to the repeated parameter.
 //
+// But optional parameter after repeated is not allowed:
+//
+//   cmd param1 param2 param3... [param4]   - error
+//   cmd param1 param2 [param3...] [param4] - error
+//
 // Only one parameter may be repeated:
-//   cmd param1 param2 param3... param4    - OK
-//   cmd param1 param2 param3... param4..  - error
+//   cmd param1 param2 param3... param4     - OK
+//   cmd param1 param2 param3... param4..   - error
 //
 // Without this rule, this is hard to say unambiguously,
 // how to distribute values between param3... and param4...
