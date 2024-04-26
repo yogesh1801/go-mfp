@@ -53,9 +53,16 @@ type Command struct {
 // Name and Aliases of all Options MUST be unique within a scope
 // of Command that defines them (sub-commands have their own scopes).
 //
-// Name and Aliases may use either short or long syntax. Short Name
-// starts with single dash (-) character, long Name starts with double
-// dash (--):
+// Option MAY have a value. Presence of name is indicated by the
+// non-nil ValDef field.
+//
+// Option name must start with single or double dash (- or --), followed
+// by alphanumeric character, optionally followed by a sequence of
+// characters, that include only alphanumeric characters and dashes.
+//
+// Option names may be either short or long. Name that consist of a
+// single dash, followed by a single alphanumeric character considered
+// short:
 //
 //   -c           - the short name
 //   --long-name  - the long name
@@ -64,9 +71,6 @@ type Command struct {
 //
 //   -c XXX                             - the short name with value
 //   --long-name XXX or --long-name=XXX - the long name with value
-//
-// Option MAY have a value. Presence of name is indicated by the
-// non-nil ValDef field.
 type Option struct {
 	// Name is the option name.
 	Name string
