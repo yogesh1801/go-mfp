@@ -37,7 +37,7 @@ func TestCommandVerify(t *testing.T) {
 					},
 				},
 			},
-			err: `test: found option without name`,
+			err: `test: option must have a name`,
 		},
 
 		{
@@ -147,6 +147,99 @@ func TestCommandVerify(t *testing.T) {
 				},
 			},
 			err: `test: duplicated option "-help"`,
+		},
+
+		// Test Parameters
+		{
+			cmd: &Command{
+				Name: "test",
+				Parameters: []Parameter{
+					{
+						Name: "param1",
+					},
+				},
+				SubCommands: []Command{
+					{
+						Name: "param1",
+					},
+				},
+			},
+			err: `test: Parameters and SubCommands are mutually exclusive`,
+		},
+
+		{
+			cmd: &Command{
+				Name: "test",
+				Parameters: []Parameter{
+					{
+						Name: "param1",
+					},
+					{
+						Name: "param1",
+					},
+				},
+			},
+			err: `test: duplicated option "param1"`,
+		},
+
+		{
+			cmd: &Command{
+				Name: "test",
+				Parameters: []Parameter{
+					{
+						Name: "",
+					},
+				},
+			},
+			err: `test: parameter must have a name`,
+		},
+
+		{
+			cmd: &Command{
+				Name: "test",
+				Parameters: []Parameter{
+					{
+						Name: "[]",
+					},
+				},
+			},
+			err: `test: parameter name is empty: "[]"`,
+		},
+
+		{
+			cmd: &Command{
+				Name: "test",
+				Parameters: []Parameter{
+					{
+						Name: "...",
+					},
+				},
+			},
+			err: `test: parameter name is empty: "..."`,
+		},
+
+		{
+			cmd: &Command{
+				Name: "test",
+				Parameters: []Parameter{
+					{
+						Name: "[...]",
+					},
+				},
+			},
+			err: `test: parameter name is empty: "[...]"`,
+		},
+
+		{
+			cmd: &Command{
+				Name: "test",
+				Parameters: []Parameter{
+					{
+						Name: "[param",
+					},
+				},
+			},
+			err: `test: missed closing ']' character`,
 		},
 	}
 

@@ -39,11 +39,11 @@ type Command struct {
 	// Options, if any.
 	Options []Option
 
-	// Sub-commands, if any.
-	SubCommands []Command
-
 	// Positional parameters, if any.
 	Parameters []Parameter
+
+	// Sub-commands, if any.
+	SubCommands []Command
 }
 
 // Option defines an option.
@@ -211,8 +211,7 @@ func (cmd *Command) Verify() error {
 			return fmt.Errorf("%s: %s", cmd.Name, err)
 		}
 
-		names := []string{opt.Name}
-		names = append(names, opt.Aliases...)
+		names := append([]string{opt.Name}, opt.Aliases...)
 		for _, name := range names {
 			if _, found := optnames[name]; found {
 				return fmt.Errorf("%s: duplicated option %q",
@@ -221,6 +220,28 @@ func (cmd *Command) Verify() error {
 
 			optnames[name] = struct{}{}
 		}
+	}
+
+	// Verify parameters
+	if cmd.Parameters != nil && cmd.SubCommands != nil {
+		return fmt.Errorf(
+			"%s: Parameters and SubCommands are mutually exclusive",
+			cmd.Name)
+	}
+
+	paramnames := make(map[string]struct{})
+	for _, param := range cmd.Parameters {
+		err := param.verify()
+		if err != nil {
+			return fmt.Errorf("%s: %s", cmd.Name, err)
+		}
+
+		if _, found := paramnames[param.Name]; found {
+			return fmt.Errorf("%s: duplicated option %q",
+				cmd.Name, param.Name)
+		}
+
+		paramnames[param.Name] = struct{}{}
 	}
 
 	return nil
@@ -246,7 +267,7 @@ func (cmd *Command) Complete(cmdline string) []string {
 func (opt *Option) verify() error {
 	// Option must have a name
 	if opt.Name == "" {
-		return errors.New("found option without name")
+		return errors.New("option must have a name")
 	}
 
 	// Verify name syntax
@@ -276,6 +297,57 @@ func (opt *Option) verify() error {
 	}
 
 	return nil
+}
+
+// ----- Parameter methods -----
+
+// verify checks correctness of Parameter definition. It fails if any
+// error is found and returns description of the first caught error
+func (param *Parameter) verify() error {
+	// Parameter must have a name
+	if param.Name == "" {
+		return errors.New("parameter must have a name")
+	}
+
+	// Verify name syntax
+	check := param.Name
+	if strings.HasPrefix(check, "[") {
+		// If name starts with "[", this is optional parameter,
+		// and it must end with "]"
+		if strings.HasSuffix(check, "]") {
+			check = check[1 : len(check)-1]
+		} else {
+			return errors.New("missed closing ']' character")
+		}
+	}
+
+	if strings.HasSuffix(check, "...") {
+		// Strip trailing "...", if any
+		check = check[0 : len(check)-3]
+	}
+
+	// Check remaining name
+	if check == "" {
+		return fmt.Errorf("parameter name is empty: %q", param.Name)
+	}
+
+	if c := nameCheck(check); c >= 0 {
+		return fmt.Errorf("invalid char '%c' in parameter: %q",
+			c, param.Name)
+	}
+
+	return nil
+}
+
+// optional returns true if parameter is optional
+func (param *Parameter) optional() bool {
+	return strings.HasPrefix(param.Name, "[")
+}
+
+// repeated returns true if parameter is repeated
+func (param *Parameter) repeated() bool {
+	return strings.HasSuffix(param.Name, "...") ||
+		strings.HasSuffix(param.Name, "...]")
 }
 
 // ----- Action methods -----
