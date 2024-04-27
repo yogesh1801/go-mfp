@@ -317,7 +317,9 @@ func (param *Parameter) verify() error {
 		if strings.HasSuffix(check, "]") {
 			check = check[1 : len(check)-1]
 		} else {
-			return errors.New("missed closing ']' character")
+			err := fmt.Errorf("missed closing ']' character in parameter %q",
+				param.Name)
+			return err
 		}
 	}
 

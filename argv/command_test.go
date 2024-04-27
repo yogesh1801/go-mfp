@@ -239,7 +239,31 @@ func TestCommandVerify(t *testing.T) {
 					},
 				},
 			},
-			err: `test: missed closing ']' character`,
+			err: `test: missed closing ']' character in parameter "[param"`,
+		},
+
+		{
+			cmd: &Command{
+				Name: "test",
+				Parameters: []Parameter{
+					{
+						Name: "-param",
+					},
+				},
+			},
+			err: `test: invalid char '-' in parameter: "-param"`,
+		},
+
+		{
+			cmd: &Command{
+				Name: "test",
+				Parameters: []Parameter{
+					{
+						Name: "pa-ram",
+					},
+				},
+			},
+			err: "",
 		},
 	}
 
