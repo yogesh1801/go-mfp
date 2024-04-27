@@ -179,7 +179,7 @@ func TestCommandVerify(t *testing.T) {
 					},
 				},
 			},
-			err: `test: duplicated option "param1"`,
+			err: `test: duplicated parameter "param1"`,
 		},
 
 		{

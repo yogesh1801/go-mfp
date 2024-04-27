@@ -237,7 +237,7 @@ func (cmd *Command) Verify() error {
 		}
 
 		if _, found := paramnames[param.Name]; found {
-			return fmt.Errorf("%s: duplicated option %q",
+			return fmt.Errorf("%s: duplicated parameter %q",
 				cmd.Name, param.Name)
 		}
 
