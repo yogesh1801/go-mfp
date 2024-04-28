@@ -200,7 +200,27 @@ func (cmd *Command) Verify() error {
 		return errors.New("missed command name")
 	}
 
-	// Verify options. Also check that option names doesn't duplicate
+	// Parameters and SubCommands are mutually exclusive
+	if cmd.Parameters != nil && cmd.SubCommands != nil {
+		return fmt.Errorf(
+			"%s: Parameters and SubCommands are mutually exclusive",
+			cmd.Name)
+	}
+
+	// Verify Options, Parameters and SubCommands
+	err := cmd.verifyOptions()
+	if err == nil {
+		err = cmd.verifyParameters()
+	}
+	if err == nil {
+		err = cmd.verifySubCommands()
+	}
+
+	return err
+}
+
+// verifyOptions verifies command options
+func (cmd *Command) verifyOptions() error {
 	optnames := make(map[string]struct{})
 	for _, opt := range cmd.Options {
 		err := opt.verify()
@@ -219,13 +239,11 @@ func (cmd *Command) Verify() error {
 		}
 	}
 
-	// Verify parameters
-	if cmd.Parameters != nil && cmd.SubCommands != nil {
-		return fmt.Errorf(
-			"%s: Parameters and SubCommands are mutually exclusive",
-			cmd.Name)
-	}
+	return nil
+}
 
+// verifyParameters verifies command parameters
+func (cmd *Command) verifyParameters() error {
 	paramnames := make(map[string]struct{})
 	for _, param := range cmd.Parameters {
 		err := param.verify()
@@ -241,6 +259,11 @@ func (cmd *Command) Verify() error {
 		paramnames[param.Name] = struct{}{}
 	}
 
+	return nil
+}
+
+// verifySubCommands verifies command SubCommands
+func (cmd *Command) verifySubCommands() error {
 	return nil
 }
 
