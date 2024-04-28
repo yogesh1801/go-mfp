@@ -212,6 +212,10 @@ func (cmd *Command) Verify() error {
 		err = cmd.verifySubCommands()
 	}
 
+	if err != nil {
+		err = fmt.Errorf("%s: %s", cmd.Name, err)
+	}
+
 	return err
 }
 
@@ -221,14 +225,14 @@ func (cmd *Command) verifyOptions() error {
 	for _, opt := range cmd.Options {
 		err := opt.verify()
 		if err != nil {
-			return fmt.Errorf("%s: %s", cmd.Name, err)
+			return err
 		}
 
 		names := append([]string{opt.Name}, opt.Aliases...)
 		for _, name := range names {
 			if _, found := optnames[name]; found {
-				return fmt.Errorf("%s: duplicated option %q",
-					cmd.Name, name)
+				return fmt.Errorf(
+					"duplicated option %q", name)
 			}
 
 			optnames[name] = struct{}{}
@@ -245,12 +249,12 @@ func (cmd *Command) verifyParameters() error {
 	for _, param := range cmd.Parameters {
 		err := param.verify()
 		if err != nil {
-			return fmt.Errorf("%s: %s", cmd.Name, err)
+			return err
 		}
 
 		if _, found := paramnames[param.Name]; found {
-			return fmt.Errorf("%s: duplicated parameter %q",
-				cmd.Name, param.Name)
+			return fmt.Errorf(
+				"duplicated parameter %q", param.Name)
 		}
 
 		paramnames[param.Name] = struct{}{}
@@ -265,24 +269,24 @@ func (cmd *Command) verifyParameters() error {
 		if param.optional() {
 			if repeated != nil {
 				return fmt.Errorf(
-					"%s: optional parameter %q used after repeated %q",
-					cmd.Name, param.Name, repeated.Name)
+					"optional parameter %q used after repeated %q",
+					param.Name, repeated.Name)
 			}
 
 			optional = param
 		} else {
 			if optional != nil {
 				return fmt.Errorf(
-					"%s: required parameter %q used after optional %q",
-					cmd.Name, param.Name, optional.Name)
+					"required parameter %q used after optional %q",
+					param.Name, optional.Name)
 			}
 		}
 
 		if param.repeated() {
 			if repeated != nil {
 				return fmt.Errorf(
-					"%s: repeated parameter used twice (%q and %q)",
-					cmd.Name, repeated.Name, param.Name)
+					"repeated parameter used twice (%q and %q)",
+					repeated.Name, param.Name)
 			}
 
 			repeated = param
