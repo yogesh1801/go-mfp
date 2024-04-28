@@ -130,38 +130,35 @@ type Option struct {
 // parameter values. Optional repeated parameter will consume
 // 0 or more parameter values.
 //
-// All parameters after non-repeated optional parameters
-// must be optional:
+// Not all combinations of required, optional and repeated
+// parameters are valid.
+//
+// Valid combinations:
 //
 //   cmd param1 param2 [param3] [param4]      - OK
 //   cmd param1 param2 [param3] [param4...]   - OK
-//   cmd param1 param2 [param3] param4        - error
+//   cmd param1 param2 param3... param4       - OK
+//   cmd param1 param2... param3 param4       - OK
 //
-// In the last case, if we have only 3 parameter values,
-// we can't tell unambiguously, if it param1 param2 param3
-// or param1 param2 param4.
+// Inlaid combinations:
 //
-// After repeated (optional or not) parameter, more
-// non-optional may follow:
+//   Required parameter       cmd param1 [param2] param3
+//   can't follow optional
+//   parameter
 //
-//   cmd param1 param2 param3... param4     - OK
-//   cmd param1 param2 [param3...] param4   - OK
+//   Optional parameter       cmd param1 param2... [param3]
+//   can't follow repeated
+//   parameter
 //
-// At this case, if we have N parameter values, we first
-// assign values to the non-optional ones, the remaining
-// values assigned to the repeated parameter.
+//   Oprional parameter       cmd param1 [param2...] [param3]
+//   can't follow repeated
+//   parameter
 //
-// But optional parameter after repeated is not allowed:
+//   Only one repeated        cmd param1 param2... param3...
+//   parameter is allowed
 //
-//   cmd param1 param2 param3... [param4]   - error
-//   cmd param1 param2 [param3...] [param4] - error
-//
-// Only one parameter may be repeated:
-//   cmd param1 param2 param3... param4     - OK
-//   cmd param1 param2 param3... param4..   - error
-//
-// Without this rule, this is hard to say unambiguously,
-// how to distribute values between param3... and param4...
+// These rules exist so simplify unambiguous matching of actual
+// parameters against formal (declared) ones.
 type Parameter struct {
 	// Name is the parameter name.
 	Name string
