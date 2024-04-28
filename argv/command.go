@@ -147,11 +147,7 @@ type Option struct {
 //   parameter
 //
 //   Optional parameter       cmd param1 param2... [param3]
-//   can't follow repeated
-//   parameter
-//
-//   Oprional parameter       cmd param1 [param2...] [param3]
-//   can't follow repeated
+//   can't follow repeated    cmd param1 [param2...] [param3]
 //   parameter
 //
 //   Only one repeated        cmd param1 param2... param3...
@@ -244,6 +240,7 @@ func (cmd *Command) verifyOptions() error {
 
 // verifyParameters verifies command parameters
 func (cmd *Command) verifyParameters() error {
+	// Verify each parameter individually
 	paramnames := make(map[string]struct{})
 	for _, param := range cmd.Parameters {
 		err := param.verify()
@@ -257,6 +254,39 @@ func (cmd *Command) verifyParameters() error {
 		}
 
 		paramnames[param.Name] = struct{}{}
+	}
+
+	// Verify parameters disposition
+	var repeated, optional *Parameter
+
+	for i := range cmd.Parameters {
+		param := &cmd.Parameters[i]
+
+		if param.optional() {
+			if repeated != nil {
+				return fmt.Errorf(
+					"%s: optional parameter %q used after repeated %q",
+					cmd.Name, param.Name, repeated.Name)
+			}
+
+			optional = param
+		} else {
+			if optional != nil {
+				return fmt.Errorf(
+					"%s: required parameter %q used after optional %q",
+					cmd.Name, param.Name, optional.Name)
+			}
+		}
+
+		if param.repeated() {
+			if repeated != nil {
+				return fmt.Errorf(
+					"%s: repeated parameter used twice (%q and %q)",
+					cmd.Name, repeated.Name, param.Name)
+			}
+
+			repeated = param
+		}
 	}
 
 	return nil

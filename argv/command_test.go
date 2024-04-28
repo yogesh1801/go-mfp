@@ -27,7 +27,7 @@ func TestCommandVerify(t *testing.T) {
 			err: `missed command name`,
 		},
 
-		// Test for malformed options
+		// Tests for malformed Options
 		{
 			cmd: &Command{
 				Name: "test",
@@ -100,7 +100,7 @@ func TestCommandVerify(t *testing.T) {
 			err: `test: invalid char '@' in option: "-long123@"`,
 		},
 
-		// Test for duplicated options
+		// Tests for duplicated options
 		{
 			cmd: &Command{
 				Name: "test",
@@ -149,7 +149,7 @@ func TestCommandVerify(t *testing.T) {
 			err: `test: duplicated option "-help"`,
 		},
 
-		// Test Parameters
+		// Tests for malformed Parameters
 		{
 			cmd: &Command{
 				Name: "test",
@@ -264,6 +264,67 @@ func TestCommandVerify(t *testing.T) {
 				},
 			},
 			err: "",
+		},
+
+		// Tests for Parameters disposition
+		{
+			cmd: &Command{
+				Name: "test",
+				Parameters: []Parameter{
+					{Name: "param1"},
+					{Name: "param2"},
+					{Name: "param3"},
+				},
+			},
+			err: "",
+		},
+
+		{
+			cmd: &Command{
+				Name: "test",
+				Parameters: []Parameter{
+					{Name: "param1"},
+					{Name: "[param2]"},
+					{Name: "param3"},
+				},
+			},
+			err: `test: required parameter "param3" used after optional "[param2]"`,
+		},
+
+		{
+			cmd: &Command{
+				Name: "test",
+				Parameters: []Parameter{
+					{Name: "param1"},
+					{Name: "param2..."},
+					{Name: "[param3]"},
+				},
+			},
+			err: `test: optional parameter "[param3]" used after repeated "param2..."`,
+		},
+
+		{
+			cmd: &Command{
+				Name: "test",
+				Parameters: []Parameter{
+					{Name: "param1"},
+					{Name: "[param2...]"},
+					{Name: "[param3]"},
+				},
+			},
+			err: `test: optional parameter "[param3]" used after repeated "[param2...]"`,
+		},
+
+		{
+			cmd: &Command{
+				Name: "test",
+				Parameters: []Parameter{
+					{Name: "param1"},
+					{Name: "param2..."},
+					{Name: "param3..."},
+				},
+			},
+			err: `test: repeated parameter used twice ("param2..." and "param3...")`,
 		},
 	}
 
