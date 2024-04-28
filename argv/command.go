@@ -203,17 +203,20 @@ func (cmd *Command) Verify() error {
 			cmd.Name)
 	}
 
-	// Verify Options, Parameters and SubCommands
+	// Verify Options and Parameters
 	err := cmd.verifyOptions()
 	if err == nil {
 		err = cmd.verifyParameters()
 	}
-	if err == nil {
-		err = cmd.verifySubCommands()
-	}
 
 	if err != nil {
-		err = fmt.Errorf("%s: %s", cmd.Name, err)
+		return fmt.Errorf("%s: %s", cmd.Name, err)
+	}
+
+	// Verify SubCommands
+	err = cmd.verifySubCommands()
+	if err != nil {
+		return fmt.Errorf("%s.%s", cmd.Name, err)
 	}
 
 	return err
@@ -298,6 +301,13 @@ func (cmd *Command) verifyParameters() error {
 
 // verifySubCommands verifies command SubCommands
 func (cmd *Command) verifySubCommands() error {
+	for _, subcmd := range cmd.SubCommands {
+		err := subcmd.Verify()
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
