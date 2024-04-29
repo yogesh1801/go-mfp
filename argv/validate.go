@@ -90,15 +90,15 @@ func ValidateUintRange(base int, min, max uint64) func(string) error {
 //
 // It panics, if number of bits is out of range
 func ValidateIntBits(base, bits int) func(string) error {
-	if base < 1 || base > 64 {
+	if bits < 1 || bits > 64 {
 		err := fmt.Errorf(
-			"ValidateIntBits: base (%d) out of range (1...64)",
-			base)
+			"ValidateIntBits: bits (%d) out of range (1...64)",
+			bits)
 		panic(err)
 	}
 
 	var min, max int64
-	switch base {
+	switch bits {
 	case 1:
 		min, max = 0, 1
 	default:
@@ -128,15 +128,15 @@ func ValidateIntBits(base, bits int) func(string) error {
 //
 // It panics, if number of bits is out of range
 func ValidateUintBits(base, bits int) func(string) error {
-	if base < 1 || base > 64 {
+	if bits < 1 || bits > 64 {
 		err := fmt.Errorf(
-			"ValidateIntBits: base (%d) out of range (1...64)",
-			base)
+			"ValidateUintBits: bits (%d) out of range (1...64)",
+			bits)
 		panic(err)
 	}
 
 	var max uint64
-	switch base {
+	switch bits {
 	case 64:
 		max = math.MaxUint64
 
