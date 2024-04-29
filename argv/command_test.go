@@ -344,6 +344,17 @@ func TestCommandVerify(t *testing.T) {
 			},
 			err: `test.subcmd: repeated parameter used twice ("param2..." and "param3...")`,
 		},
+
+		{
+			cmd: &Command{
+				Name: "test",
+				SubCommands: []Command{
+					{Name: "subcmd"},
+					{Name: "subcmd"},
+				},
+			},
+			err: `test.duplicated subcommand "subcmd"`,
+		},
 	}
 
 	for _, test := range tests {

@@ -301,7 +301,15 @@ func (cmd *Command) verifyParameters() error {
 
 // verifySubCommands verifies command SubCommands
 func (cmd *Command) verifySubCommands() error {
+	subcmdnames := make(map[string]struct{})
 	for _, subcmd := range cmd.SubCommands {
+		if _, found := subcmdnames[subcmd.Name]; found {
+			return fmt.Errorf(
+				"duplicated subcommand %q", subcmd.Name)
+		}
+
+		subcmdnames[subcmd.Name] = struct{}{}
+
 		err := subcmd.Verify()
 		if err != nil {
 			return err
