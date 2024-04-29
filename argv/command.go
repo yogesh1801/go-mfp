@@ -312,7 +312,7 @@ func (cmd *Command) verifySubCommands() error {
 }
 
 // Apply applies Command to argument. On success
-// it returns Action which defines further procession.
+// it returns Action which defines further processing.
 func (cmd *Command) Apply(argv []string) (*Action, error) {
 	return nil, nil
 }
