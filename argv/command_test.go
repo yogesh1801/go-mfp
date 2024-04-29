@@ -327,7 +327,7 @@ func TestCommandVerify(t *testing.T) {
 			err: `test: repeated parameter used twice ("param2..." and "param3...")`,
 		},
 
-		// Tests for SubCommands disposition
+		// Tests SubCommands
 		{
 			cmd: &Command{
 				Name: "test",
