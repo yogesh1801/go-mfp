@@ -42,7 +42,7 @@ func newParser(cmd *Command, argv []string) *parser {
 func (prs *parser) parse() error {
 	// Parse arguments, one by one.
 	var doneOptions bool
-	var parameters []string
+	var paramValues []string
 
 	paramsMin, paramsMax := prs.cmd.paramsInfo()
 
@@ -64,8 +64,8 @@ func (prs *parser) parse() error {
 		case !doneOptions && prs.cmd.hasSubCommands():
 			err = prs.handleSubCommand(arg)
 
-		case len(parameters) < paramsMax:
-			parameters = append(parameters, arg)
+		case len(paramValues) < paramsMax:
+			paramValues = append(paramValues, arg)
 
 		default:
 			err = fmt.Errorf("unexpected parameter: %q", arg)
@@ -76,9 +76,9 @@ func (prs *parser) parse() error {
 		}
 	}
 
-	// Toss parameters
-	if len(parameters) < paramsMin {
-		missed := &prs.cmd.Parameters[len(parameters)]
+	// Toss paramValues
+	if len(paramValues) < paramsMin {
+		missed := &prs.cmd.Parameters[len(paramValues)]
 		return fmt.Errorf("missed parameter: %q", missed.Name)
 	}
 
@@ -86,7 +86,11 @@ func (prs *parser) parse() error {
 		return fmt.Errorf("missed sub-command name")
 	}
 
-	return prs.handleParameters(parameters)
+	if prs.cmd.hasParameters() {
+		return prs.handleParameters(paramValues)
+	}
+
+	return nil
 }
 
 // handleShortOption handles a short option
@@ -186,7 +190,44 @@ func (prs *parser) handleSubCommand(arg string) error {
 }
 
 // handleParameters handles positional parameters
-func (prs *parser) handleParameters(parameters []string) error {
+func (prs *parser) handleParameters(paramValues []string) error {
+	// Build slice of parameters' descriptors
+	paramDescs := make([]*Parameter, len(paramValues))
+	rept := -1
+
+	for i := 0; i < len(prs.cmd.Parameters); i++ {
+		paramDescs[i] = &prs.cmd.Parameters[i]
+		if paramDescs[i].repeated() {
+			rept = i
+			break
+		}
+	}
+
+	if rept >= 0 {
+		for i := len(prs.cmd.Parameters) - 1; i >= rept; i-- {
+			paramDescs[i] = &prs.cmd.Parameters[i]
+		}
+
+		for i := rept + 1; i < len(paramDescs); i++ {
+			if paramDescs[i] == nil {
+				paramDescs[i] = paramDescs[rept]
+			}
+		}
+	}
+
+	// Validate parameters one by one
+	for i := range paramValues {
+		val := paramValues[i]
+		desc := paramDescs[i]
+
+		if desc.Validate != nil {
+			err := desc.Validate(val)
+			if err != nil {
+				return fmt.Errorf("%w: %q", err, desc.Name)
+			}
+		}
+	}
+
 	return nil
 }
 
