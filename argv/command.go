@@ -336,7 +336,10 @@ func (cmd *Command) verifySubCommands() error {
 // Apply applies Command to argument. On success
 // it returns Action which defines further processing.
 func (cmd *Command) Apply(argv []string) (*Action, error) {
-	return nil, nil
+	prs := newParser(cmd, argv)
+	err := prs.parse()
+
+	return nil, err
 }
 
 // Complete returns array of completion suggestions for
@@ -390,6 +393,11 @@ func (opt *Option) verify() error {
 	}
 
 	return nil
+}
+
+// withValue tells if Option has a value
+func (opt *Option) withValue() bool {
+	return opt.Validate != nil
 }
 
 // ----- Parameter methods -----
