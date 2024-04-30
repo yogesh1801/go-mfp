@@ -11,6 +11,7 @@ package argv
 import (
 	"errors"
 	"fmt"
+	"math"
 	"strings"
 	"unicode"
 )
@@ -211,7 +212,7 @@ func (cmd *Command) Verify() error {
 	}
 
 	// Parameters and SubCommands are mutually exclusive
-	if cmd.Parameters != nil && cmd.SubCommands != nil {
+	if cmd.hasParameters() && cmd.hasSubCommands() {
 		return fmt.Errorf(
 			"%s: Parameters and SubCommands are mutually exclusive",
 			cmd.Name)
@@ -349,6 +350,43 @@ func (cmd *Command) Complete(cmdline string) []string {
 	return nil
 }
 
+// hasParameters tells if Command has Parameters
+func (cmd *Command) hasParameters() bool {
+	return cmd.Parameters != nil
+}
+
+// hasSubCommands tells if Command has SubCommands
+func (cmd *Command) hasSubCommands() bool {
+	return cmd.SubCommands != nil
+}
+
+// paramsInfo returns information on a command parameters:
+//   minParams - minimal count of parameters
+//   maxParams - maximal count of parameters
+//
+// If Command can accept unlimited amount of parameters
+// (i.e., it has repeated parameters), maxParams will be
+// reported as math.MaxInt
+func (cmd *Command) paramsInfo() (minParams, maxParams int) {
+	for i := range cmd.Parameters {
+		param := &cmd.Parameters[i]
+
+		if param.required() {
+			minParams++
+		}
+
+		if param.repeated() {
+			maxParams = math.MaxInt
+		}
+	}
+
+	if maxParams != math.MaxInt {
+		maxParams = len(cmd.Parameters)
+	}
+
+	return
+}
+
 // ----- Option methods -----
 
 // verify checks correctness of Option definition. It fails if any
@@ -440,6 +478,11 @@ func (param *Parameter) verify() error {
 	}
 
 	return nil
+}
+
+// optional returns true if parameter is required
+func (param *Parameter) required() bool {
+	return !param.optional()
 }
 
 // optional returns true if parameter is optional

@@ -19,6 +19,7 @@ type parser struct {
 	argv    []string                  // Arguments being parsed
 	nextarg int                       // Index of the next argument
 	options map[*Option]*parserOptVal // Actually parsed options
+	subcmd  *Command                  // Sub-command discovered
 }
 
 // parserOptVal represents parsed option with value
@@ -48,6 +49,7 @@ func (prs *parser) parse() error {
 		}
 
 		var err error
+		var parameters []string
 
 		switch {
 		case prs.isShortOption(arg):
@@ -55,6 +57,12 @@ func (prs *parser) parse() error {
 
 		case prs.isLongOption(arg):
 			err = prs.handleLongOption(arg)
+
+		case prs.cmd.hasSubCommands():
+			err = prs.handleSubCommand(arg)
+
+		default:
+			parameters = append(parameters, arg)
 		}
 
 		if err != nil {
@@ -146,9 +154,24 @@ func (prs *parser) handleLongOption(arg string) error {
 	return nil
 }
 
+// handleSubCommand handles a sub-command
+func (prs *parser) handleSubCommand(arg string) error {
+	subcommands := prs.findSubCommand(arg)
+
+	switch {
+	case len(subcommands) == 0:
+		return fmt.Errorf("unknown sub-command: %q", arg)
+	case len(subcommands) >= 1:
+		return fmt.Errorf("ambiguous sub-command: %q", arg)
+	}
+
+	prs.subcmd = subcommands[0]
+	return nil
+}
+
 // done returns true if all arguments are consumed
 func (prs *parser) done() bool {
-	return prs.nextarg == len(prs.argv)
+	return prs.nextarg == len(prs.argv) || prs.subcmd != nil
 }
 
 // next returns the next argument.
@@ -209,7 +232,7 @@ func (prs *parser) splitOptVal(arg string) (name, val string, novalue bool) {
 	return
 }
 
-// findOption find Command's Option by name.
+// findOption finds Command's Option by name.
 func (prs *parser) findOption(name string) *Option {
 	// If option name and value mixed in a same argument,
 	// pick out the name:
@@ -244,6 +267,33 @@ func (prs *parser) findOption(name string) *Option {
 	}
 
 	return nil
+}
+
+// findSubCommand finds Command's SubCommand by name.
+//
+// The name may be abbreviated, so in a case of inexact
+// match it may return more that one possible candidates.
+//
+// If no matches found it will return nil and in a case
+// of exact match it will return just a single command,
+// even if more inexact matches exist
+//
+// This is up to the caller how to handle this ambiguity.
+func (prs *parser) findSubCommand(name string) []*Command {
+	var inexact []*Command
+	for i := range prs.cmd.SubCommands {
+		subcmd := &prs.cmd.SubCommands[i]
+
+		if name == subcmd.Name {
+			return []*Command{subcmd}
+		}
+
+		if strings.HasSuffix(subcmd.Name, name) {
+			inexact = append(inexact, subcmd)
+		}
+	}
+
+	return inexact
 }
 
 // appendOptVal validates option value and appends
