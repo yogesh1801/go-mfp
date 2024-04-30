@@ -361,27 +361,27 @@ func (cmd *Command) hasSubCommands() bool {
 }
 
 // paramsInfo returns information on a command parameters:
-//   minParams - minimal count of parameters
-//   maxParams - maximal count of parameters
+//   paramsMin - minimal count of parameters
+//   paramsMax - maximal count of parameters
 //
 // If Command can accept unlimited amount of parameters
-// (i.e., it has repeated parameters), maxParams will be
+// (i.e., it has repeated parameters), paramsMax will be
 // reported as math.MaxInt
-func (cmd *Command) paramsInfo() (minParams, maxParams int) {
+func (cmd *Command) paramsInfo() (paramsMin, paramsMax int) {
 	for i := range cmd.Parameters {
 		param := &cmd.Parameters[i]
 
 		if param.required() {
-			minParams++
+			paramsMin++
 		}
 
 		if param.repeated() {
-			maxParams = math.MaxInt
+			paramsMax = math.MaxInt
 		}
 	}
 
-	if maxParams != math.MaxInt {
-		maxParams = len(cmd.Parameters)
+	if paramsMax != math.MaxInt {
+		paramsMax = len(cmd.Parameters)
 	}
 
 	return

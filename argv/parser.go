@@ -40,29 +40,35 @@ func newParser(cmd *Command, argv []string) *parser {
 
 // parse parses the argv
 func (prs *parser) parse() error {
-	// Parse mix of options and other arguments
+	// Parse arguments, one by one.
+	var doneOptions bool
+	var parameters []string
+
+	paramsMin, paramsMax := prs.cmd.paramsInfo()
 
 	for !prs.done() {
 		arg := prs.next()
-		if arg == "--" {
-			break
-		}
 
 		var err error
-		var parameters []string
 
 		switch {
-		case prs.isShortOption(arg):
+		case !doneOptions && arg == "--":
+			doneOptions = true
+
+		case !doneOptions && prs.isShortOption(arg):
 			err = prs.handleShortOption(arg)
 
-		case prs.isLongOption(arg):
+		case !doneOptions && prs.isLongOption(arg):
 			err = prs.handleLongOption(arg)
 
-		case prs.cmd.hasSubCommands():
+		case !doneOptions && prs.cmd.hasSubCommands():
 			err = prs.handleSubCommand(arg)
 
-		default:
+		case len(parameters) < paramsMax:
 			parameters = append(parameters, arg)
+
+		default:
+			err = fmt.Errorf("unexpected parameter: %q", arg)
 		}
 
 		if err != nil {
@@ -70,7 +76,17 @@ func (prs *parser) parse() error {
 		}
 	}
 
-	return nil
+	// Toss parameters
+	if len(parameters) < paramsMin {
+		missed := &prs.cmd.Parameters[len(parameters)]
+		return fmt.Errorf("missed parameter: %q", missed.Name)
+	}
+
+	if prs.cmd.hasSubCommands() && prs.subcmd == nil {
+		return fmt.Errorf("missed sub-command name")
+	}
+
+	return prs.handleParameters(parameters)
 }
 
 // handleShortOption handles a short option
@@ -166,6 +182,11 @@ func (prs *parser) handleSubCommand(arg string) error {
 	}
 
 	prs.subcmd = subcommands[0]
+	return nil
+}
+
+// handleParameters handles positional parameters
+func (prs *parser) handleParameters(parameters []string) error {
 	return nil
 }
 
