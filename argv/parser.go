@@ -15,97 +15,160 @@ import (
 
 // parser implements command line parsing.
 type parser struct {
-	cmd     *Command       // Command being parsed
-	argv    []string       // Arguments being parsed
-	options []parserOptVal // Actually parsed options
+	cmd     *Command                  // Command being parsed
+	argv    []string                  // Arguments being parsed
+	nextarg int                       // Index of the next argument
+	options map[*Option]*parserOptVal // Actually parsed options
 }
 
 // parserOptVal represents parsed option with value
 type parserOptVal struct {
-	opt   *Option  // Option description
-	name  string   // Actual name being used
-	value []string // Option values
+	opt    *Option  // Option description
+	name   string   // Actual name being used
+	values []string // Option values
 }
 
 // newParser creates a new parser
 func newParser(cmd *Command, argv []string) *parser {
 	return &parser{
-		cmd:  cmd,
-		argv: argv,
+		cmd:     cmd,
+		argv:    argv,
+		options: make(map[*Option]*parserOptVal),
 	}
 }
 
 // parse parses the argv
 func (prs *parser) parse() error {
 	// Parse mix of options and other arguments
-	for i := 0; i < len(prs.argv); i++ {
-		arg := prs.argv[i]
+
+	for !prs.done() {
+		arg := prs.next()
 		if arg == "--" {
 			break
 		}
 
+		var err error
+
 		switch {
 		case prs.isShortOption(arg):
-			// Split into name and value and try to find Option
-			name, val, novalue := prs.splitOptVal(arg)
-			opt := prs.findOption(name)
-			if opt == nil {
-				err := fmt.Errorf("unknown option: %q", name)
-				return err
-			}
+			err = prs.handleShortOption(arg)
 
-			// Two simple cases:
-			//   - no value
-			//   - option requires a value
-			//
-			// prs.appendOptVal() will handle all errors checking
-			// here, so just call it and we are done.
-			if novalue || opt.withValue() {
-				err := prs.appendOptVal(opt, name, val, novalue)
-				if err != nil {
-					return err
-				}
-				break
-			}
+		case prs.isLongOption(arg):
+			err = prs.handleLongOption(arg)
+		}
 
-			// Short options without value can be combined:
-			//
-			//   -cru equals to -c -r -u
-			//
-			// If we are here, we have a fist option without the value
-			// and non-empty value.
-			//
-			// So try to consider value as a sequence of short options
-			err := prs.appendOptVal(opt, name, "", true)
-			if err != nil {
-				return err
-			}
-
-			for _, c := range val {
-				name2 := "-" + string(c)
-
-				opt2 := prs.findOption(name2)
-				if opt2 == nil {
-					err := fmt.Errorf(
-						"unknown option: %q",
-						name2)
-					return err
-				}
-
-				err := prs.appendOptVal(opt2, name2, "", true)
-				if err != nil {
-					return err
-				}
-			}
+		if err != nil {
+			return err
 		}
 	}
 
 	return nil
 }
 
-// isOption tells if argument is option name
-func (prs *parser) isOption(arg string) bool {
-	return prs.isShortOption(arg) || prs.isLongOption(arg)
+// handleShortOption handles a short option
+func (prs *parser) handleShortOption(arg string) error {
+	// Split into name and value and try to find Option
+	name, val, novalue := prs.splitOptVal(arg)
+	opt := prs.findOption(name)
+	if opt == nil {
+		err := fmt.Errorf("unknown option: %q", name)
+		return err
+	}
+
+	// Two simple cases:
+	//   - option argument doesn't contain a value (i.e., -c, not -cXXX)
+	//   - option requires a value, so argument cannot be treated as
+	//     a multi-options argument
+	//
+	// These cases are handled the same way: we attempt to fetch
+	// the next argument as option value, if value is required, and
+	// let prs.appendOptVal() to do the rest.
+	if novalue || opt.withValue() {
+		if novalue && opt.withValue() {
+			val, novalue = prs.nextValue()
+		}
+
+		return prs.appendOptVal(opt, name, val, novalue)
+	}
+
+	// Short options without value can be combined:
+	//
+	//   -cru equals to -c -r -u
+	//
+	// If we are here, we have a fist option without the value
+	// and non-empty value.
+	//
+	// So try to consider value as a sequence of short options
+	err := prs.appendOptVal(opt, name, "", true)
+	if err != nil {
+		return err
+	}
+
+	for _, c := range val {
+		name2 := "-" + string(c)
+
+		opt2 := prs.findOption(name2)
+		if opt2 == nil {
+			err := fmt.Errorf(
+				"unknown option: %q",
+				name2)
+			return err
+		}
+
+		err := prs.appendOptVal(opt2, name2, "", true)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// handleLongOption handles a long option
+func (prs *parser) handleLongOption(arg string) error {
+	name, val, novalue := prs.splitOptVal(arg)
+
+	opt := prs.findOption(name)
+	if opt == nil {
+		err := fmt.Errorf("unknown option: %q", name)
+		return err
+	}
+
+	if novalue && opt.withValue() {
+		val, novalue = prs.nextValue()
+	}
+
+	err := prs.appendOptVal(opt, name, val, novalue)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// done returns true if all arguments are consumed
+func (prs *parser) done() bool {
+	return prs.nextarg == len(prs.argv)
+}
+
+// next returns the next argument.
+func (prs *parser) next() string {
+	if prs.nextarg < len(prs.argv) {
+		arg := prs.argv[prs.nextarg]
+		prs.nextarg++
+		return arg
+	}
+
+	return ""
+}
+
+// nextValue returns the next argument, of one exist.
+func (prs *parser) nextValue() (val string, novalue bool) {
+	if !prs.done() {
+		return prs.next(), false
+	}
+
+	return "", true
 }
 
 // isShortOption tells if argument is a short option
@@ -188,10 +251,31 @@ func (prs *parser) findOption(name string) *Option {
 func (prs *parser) appendOptVal(opt *Option, name, value string,
 	novalue bool) error {
 
+	// Validate things
 	if novalue && opt.withValue() {
-		err := fmt.Errorf("option requires "+"an argument: %q", name)
+		err := fmt.Errorf("option requires operand: %q", name)
 		return err
 	}
+
+	if !novalue {
+		err := opt.Validate(value)
+		if err != nil {
+			return fmt.Errorf("%w: %q", err, name)
+		}
+	}
+
+	// Save the option
+	optval := prs.options[opt]
+	if optval == nil {
+		optval = &parserOptVal{
+			opt:  opt,
+			name: name,
+		}
+
+		prs.options[opt] = optval
+	}
+
+	optval.values = append(optval.values, value)
 
 	return nil
 }
