@@ -81,6 +81,18 @@ func TestCommandVerify(t *testing.T) {
 				Name: "test",
 				Options: []Option{
 					{
+						Name: "-long",
+					},
+				},
+			},
+			err: `test: short option with long name: "-long"`,
+		},
+
+		{
+			cmd: &Command{
+				Name: "test",
+				Options: []Option{
+					{
 						Name: "---long",
 					},
 				},
@@ -138,15 +150,15 @@ func TestCommandVerify(t *testing.T) {
 				Options: []Option{
 					{
 						Name:    "-c",
-						Aliases: []string{"-help"},
+						Aliases: []string{"--help"},
 					},
 					{
 						Name:    "-v",
-						Aliases: []string{"-help"},
+						Aliases: []string{"--help"},
 					},
 				},
 			},
-			err: `test: duplicated option "-help"`,
+			err: `test: duplicated option "--help"`,
 		},
 
 		// Tests for malformed Parameters

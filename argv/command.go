@@ -54,23 +54,37 @@ type Command struct {
 // of Command that defines them (sub-commands have their own scopes).
 //
 // Option MAY have a value. Presence of name is indicated by the
-// non-nil ValDef field.
+// non-nil Validate field.
 //
-// Option name must start with single or double dash (- or --), followed
-// by alphanumeric character, optionally followed by a sequence of
-// characters, that include only alphanumeric characters and dashes.
+// Option may have either short or long syntax:
 //
-// Option names may be either short or long. Name that consist of a
-// single dash, followed by a single alphanumeric character considered
-// short:
+//   -c                                 - short option without value
+//   --long-name                        - long option without value
+//   -c XXX or -cXXX                    - short name with value
+//   --long-name XXX or --long-name=XXX - long name with value
 //
-//   -c           - the short name
-//   --long-name  - the long name
+// Short options without value can be combined:
 //
-// And if used with value:
+//   -cru equals to -c -r -u
 //
-//   -c XXX                             - the short name with value
-//   --long-name XXX or --long-name=XXX - the long name with value
+// Short name starts with a single dash (-) character followed
+// by a single alphanumeric character.
+//
+// Long name starts with a double dash (--) characters followed
+// by an alphanumeric character, optionally followed by a sequence
+// of characters, that include only alphanumeric characters and dashes.
+//
+//   -x            - valid
+//   -abc          - invalid; short option with a long name
+//   --x           - valid (the long option, though name is 1-character)
+//   --long        - valid
+//   --long-option - valid
+//   ---long       - invalid; character after -- must be alphanumerical
+//
+// This naming convention is consistent with GNU extensions to the POSIX
+// recommendations for command-line options:
+//
+//   https://www.gnu.org/software/libc/manual/html_node/Argument-Syntax.html
 type Option struct {
 	// Name is the option name.
 	Name string
@@ -346,16 +360,18 @@ func (opt *Option) verify() error {
 	names := append([]string{opt.Name}, opt.Aliases...)
 	for _, name := range names {
 		var check string
+		var short bool
 
 		switch {
 		case strings.HasPrefix(name, "--"):
 			check = name[2:]
 		case strings.HasPrefix(name, "-"):
+			short = true
 			check = name[1:]
 
 		default:
-			return fmt.Errorf("option must start with dash (-): %q",
-				name)
+			return fmt.Errorf(
+				"option must start with dash (-): %q", name)
 		}
 
 		if check == "" {
@@ -363,8 +379,13 @@ func (opt *Option) verify() error {
 		}
 
 		if c := nameCheck(check); c >= 0 {
-			return fmt.Errorf("invalid char '%c' in option: %q",
-				c, name)
+			return fmt.Errorf(
+				"invalid char '%c' in option: %q", c, name)
+		}
+
+		if short && len(check) > 1 {
+			return fmt.Errorf(
+				"short option with long name: %q", name)
 		}
 	}
 
