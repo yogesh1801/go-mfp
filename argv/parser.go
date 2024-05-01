@@ -37,8 +37,15 @@ type parserParamVal struct {
 	value string
 }
 
-// newParser creates a new parser
+// newParser creates a new parser.
+//
+// It panics, if cmd.Verify() returns an error.
 func newParser(cmd *Command, argv []string) *parser {
+	err := cmd.Verify()
+	if err != nil {
+		panic(err)
+	}
+
 	return &parser{
 		cmd:     cmd,
 		argv:    argv,
@@ -96,7 +103,10 @@ func (prs *parser) parse() error {
 	}
 
 	if prs.cmd.hasParameters() {
-		return prs.handleParameters(paramValues)
+		err := prs.handleParameters(paramValues)
+		if err != nil {
+			return err
+		}
 	}
 
 	// Export results
@@ -231,7 +241,7 @@ func (prs *parser) handleParameters(paramValues []string) error {
 	paramDescs := make([]*Parameter, len(paramValues))
 	rept := -1
 
-	for i := 0; i < len(prs.cmd.Parameters); i++ {
+	for i := 0; i < len(paramValues); i++ {
 		paramDescs[i] = &prs.cmd.Parameters[i]
 		if paramDescs[i].repeated() {
 			rept = i
@@ -321,12 +331,12 @@ func (prs *parser) splitOptVal(arg string) (name, val string, novalue bool) {
 		val = arg[2:]
 		novalue = val == ""
 
-	case prs.isLongOption(name):
+	case prs.isLongOption(arg):
 		// For --name=value, pick out the name
-		idx := strings.IndexByte(name, '=')
+		idx := strings.IndexByte(arg, '=')
 		if idx >= 0 {
 			name = arg[:idx]
-			val = arg[idx:]
+			val = arg[idx+1:]
 			novalue = false
 		} else {
 			name = arg
@@ -339,25 +349,6 @@ func (prs *parser) splitOptVal(arg string) (name, val string, novalue bool) {
 
 // findOption finds Command's Option by name.
 func (prs *parser) findOption(name string) *Option {
-	// If option name and value mixed in a same argument,
-	// pick out the name:
-	//
-	//   -cVAL     - short option case
-	//   -long=val - long option case
-	switch {
-	case prs.isShortOption(name):
-		// In a short option case, name is a dash plus
-		// single character
-		name = name[:2]
-
-	case prs.isLongOption(name):
-		// For --name=value, pick out the name
-		idx := strings.IndexByte(name, '=')
-		if idx >= 0 {
-			name = name[:idx]
-		}
-	}
-
 	for i := range prs.cmd.Options {
 		opt := &prs.cmd.Options[i]
 		if name == opt.Name {
