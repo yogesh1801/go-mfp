@@ -19,6 +19,54 @@ func ValidateAny(string) error {
 	return nil
 }
 
+// ValidateInt8 accepts signed 8-bit integers.
+// Base is selected automatically.
+func ValidateInt8(in string) error {
+	return validateInt8(in)
+}
+
+// ValidateInt16 accepts signed 16-bit integers.
+// Base is selected automatically.
+func ValidateInt16(in string) error {
+	return validateInt16(in)
+}
+
+// ValidateInt32 accepts signed 32-bit integers.
+// Base is selected automatically.
+func ValidateInt32(in string) error {
+	return validateInt32(in)
+}
+
+// ValidateInt64 accepts signed 64-bit integers.
+// Base is selected automatically.
+func ValidateInt64(in string) error {
+	return validateInt64(in)
+}
+
+// ValidateUint8 accepts unsigned 8-bit integers.
+// Base is selected automatically.
+func ValidateUint8(in string) error {
+	return validateUint8(in)
+}
+
+// ValidateUint16 accepts unsigned 16-bit integers.
+// Base is selected automatically.
+func ValidateUint16(in string) error {
+	return validateUint16(in)
+}
+
+// ValidateUint32 accepts unsigned 32-bit integers.
+// Base is selected automatically.
+func ValidateUint32(in string) error {
+	return validateUint32(in)
+}
+
+// ValidateUint64 accepts unsigned 64-bit integers.
+// Base is selected automatically.
+func ValidateUint64(in string) error {
+	return validateUint64(in)
+}
+
 // ValidateStrings returns validator that accepts any of supplied strings
 func ValidateStrings(s []string) func(string) error {
 	// Create a copy of input, to protect from callers
@@ -158,3 +206,15 @@ func ValidateUintBits(base, bits int) func(string) error {
 		return nil
 	}
 }
+
+var (
+	// Some commonly used precomputed validators.
+	validateInt8   = ValidateIntBits(0, 8)
+	validateInt16  = ValidateIntBits(0, 16)
+	validateInt32  = ValidateIntBits(0, 32)
+	validateInt64  = ValidateIntBits(0, 64)
+	validateUint8  = ValidateUintBits(0, 8)
+	validateUint16 = ValidateUintBits(0, 16)
+	validateUint32 = ValidateUintBits(0, 32)
+	validateUint64 = ValidateUintBits(0, 64)
+)

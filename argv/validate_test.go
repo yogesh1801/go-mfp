@@ -171,100 +171,100 @@ func TestValidators(t *testing.T) {
 		},
 
 		{
-			name:     "ValidateIntBits",
+			name:     "ValidateInt8",
 			input:    fmt.Sprintf("%d", math.MinInt8),
-			validate: ValidateIntBits(0, 8),
+			validate: ValidateInt8,
 			err:      "",
 		},
 
 		{
-			name:     "ValidateIntBits",
+			name:     "ValidateInt8",
 			input:    fmt.Sprintf("%d", math.MinInt8-1),
-			validate: ValidateIntBits(0, 8),
+			validate: ValidateInt8,
 			err:      `"-129": value doesn't fit 8 bits`,
 		},
 
 		{
-			name:     "ValidateIntBits",
+			name:     "ValidateInt8",
 			input:    fmt.Sprintf("%d", math.MaxInt8),
-			validate: ValidateIntBits(0, 8),
+			validate: ValidateInt8,
 			err:      "",
 		},
 
 		{
-			name:     "ValidateIntBits",
+			name:     "ValidateInt8",
 			input:    fmt.Sprintf("%d", math.MaxInt8+1),
-			validate: ValidateIntBits(0, 8),
+			validate: ValidateInt8,
 			err:      `"128": value doesn't fit 8 bits`,
 		},
 
 		{
-			name:     "ValidateIntBits",
+			name:     "ValidateInt16",
 			input:    fmt.Sprintf("%d", math.MinInt16),
-			validate: ValidateIntBits(0, 16),
+			validate: ValidateInt16,
 			err:      "",
 		},
 
 		{
-			name:     "ValidateIntBits",
+			name:     "ValidateInt16",
 			input:    fmt.Sprintf("%d", math.MinInt16-1),
-			validate: ValidateIntBits(0, 16),
+			validate: ValidateInt16,
 			err:      `"-32769": value doesn't fit 16 bits`,
 		},
 
 		{
-			name:     "ValidateIntBits",
+			name:     "ValidateInt16",
 			input:    fmt.Sprintf("%d", math.MaxInt16),
-			validate: ValidateIntBits(0, 16),
+			validate: ValidateInt16,
 			err:      "",
 		},
 
 		{
-			name:     "ValidateIntBits",
+			name:     "ValidateInt16",
 			input:    fmt.Sprintf("%d", math.MaxInt16+1),
-			validate: ValidateIntBits(0, 16),
+			validate: ValidateInt16,
 			err:      `"32768": value doesn't fit 16 bits`,
 		},
 
 		{
-			name:     "ValidateIntBits",
+			name:     "ValidateInt32",
 			input:    fmt.Sprintf("%d", math.MinInt32),
-			validate: ValidateIntBits(0, 32),
+			validate: ValidateInt32,
 			err:      "",
 		},
 
 		{
-			name:     "ValidateIntBits",
+			name:     "ValidateInt32",
 			input:    fmt.Sprintf("%d", math.MinInt32-1),
-			validate: ValidateIntBits(0, 32),
+			validate: ValidateInt32,
 			err:      `"-2147483649": value doesn't fit 32 bits`,
 		},
 
 		{
-			name:     "ValidateIntBits",
+			name:     "ValidateInt32",
 			input:    fmt.Sprintf("%d", math.MaxInt32),
-			validate: ValidateIntBits(0, 32),
+			validate: ValidateInt32,
 			err:      "",
 		},
 
 		{
-			name:     "ValidateIntBits",
+			name:     "ValidateInt32",
 			input:    fmt.Sprintf("%d", math.MaxInt32+1),
-			validate: ValidateIntBits(0, 32),
+			validate: ValidateInt32,
 			err:      `"2147483648": value doesn't fit 32 bits`,
 		},
 
 		{
-			name:     "ValidateIntBits",
+			name:     "ValidateInt64",
 			input:    fmt.Sprintf("%d", math.MinInt64),
-			validate: ValidateIntBits(0, 64),
+			validate: ValidateInt64,
 			err:      "",
 		},
 
 		{
-			name:     "ValidateIntBits",
+			name:     "ValidateInt64",
 			input:    fmt.Sprintf("%d", math.MaxInt64),
-			validate: ValidateIntBits(0, 64),
+			validate: ValidateInt64,
 			err:      "",
 		},
 
@@ -313,58 +313,58 @@ func TestValidators(t *testing.T) {
 		},
 
 		{
-			name:     "ValidateUintBits",
+			name:     "ValidateUint8",
 			input:    fmt.Sprintf("%d", math.MaxUint8),
-			validate: ValidateUintBits(0, 8),
+			validate: ValidateUint8,
 			err:      "",
 		},
 
 		{
-			name:     "ValidateUintBits",
+			name:     "ValidateUint8",
 			input:    fmt.Sprintf("%d", math.MaxUint8+1),
-			validate: ValidateUintBits(0, 8),
+			validate: ValidateUint8,
 			err:      `"256": value doesn't fit 8 bits`,
 		},
 
 		{
-			name:     "ValidateUintBits",
+			name:     "ValidateUint16",
 			input:    fmt.Sprintf("%d", math.MaxUint16),
-			validate: ValidateUintBits(0, 16),
+			validate: ValidateUint16,
 			err:      "",
 		},
 
 		{
-			name:     "ValidateUintBits",
+			name:     "ValidateUint16",
 			input:    fmt.Sprintf("%d", math.MaxUint16+1),
-			validate: ValidateUintBits(0, 16),
+			validate: ValidateUint16,
 			err:      `"65536": value doesn't fit 16 bits`,
 		},
 
 		{
-			name:     "ValidateUintBits",
+			name:     "ValidateUint32",
 			input:    fmt.Sprintf("%d", math.MaxUint32),
-			validate: ValidateUintBits(0, 32),
+			validate: ValidateUint32,
 			err:      "",
 		},
 
 		{
-			name:     "ValidateUintBits",
+			name:     "ValidateUint32",
 			input:    fmt.Sprintf("%d", math.MaxUint32+1),
-			validate: ValidateUintBits(0, 32),
+			validate: ValidateUint32,
 			err:      `"4294967296": value doesn't fit 32 bits`,
 		},
 
 		{
-			name:     "ValidateUintBits",
+			name:     "ValidateUint64",
 			input:    "0",
-			validate: ValidateUintBits(0, 64),
+			validate: ValidateUint64,
 			err:      "",
 		},
 
 		{
-			name:     "ValidateUintBits",
+			name:     "ValidateUint64",
 			input:    "18446744073709551615",
-			validate: ValidateUintBits(0, 64),
+			validate: ValidateUint64,
 			err:      "",
 		},
 
