@@ -250,8 +250,13 @@ func (prs *parser) handleParameters(paramValues []string) error {
 	}
 
 	if rept >= 0 {
-		for i := len(prs.cmd.Parameters) - 1; i >= rept; i-- {
-			paramDescs[i] = &prs.cmd.Parameters[i]
+		i := len(paramDescs) - 1
+		j := len(prs.cmd.Parameters) - 1
+
+		for !prs.cmd.Parameters[j].repeated() {
+			paramDescs[i] = &prs.cmd.Parameters[j]
+			i--
+			j--
 		}
 
 		for i := rept + 1; i < len(paramDescs); i++ {

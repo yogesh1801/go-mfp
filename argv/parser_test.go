@@ -88,6 +88,42 @@ func TestParser(t *testing.T) {
 				"param1":   {"value1"},
 			},
 		},
+
+		// Test 1: repeated parameters
+		{
+			argv: []string{
+				"a", "b", "c",
+			},
+			cmd: Command{
+				Name: "test",
+				Parameters: []Parameter{
+					{Name: "param1"},
+					{Name: "param2..."},
+				},
+			},
+			out: map[string][]string{
+				"param1":    {"a"},
+				"param2...": {"b", "c"},
+			},
+		},
+
+		// Test 2: repeated parameters, followed by required parameter
+		{
+			argv: []string{
+				"a", "b", "c",
+			},
+			cmd: Command{
+				Name: "test",
+				Parameters: []Parameter{
+					{Name: "param1..."},
+					{Name: "param2"},
+				},
+			},
+			out: map[string][]string{
+				"param1...": {"a", "b"},
+				"param2":    {"c"},
+			},
+		},
 	}
 
 	for i, test := range tests {
