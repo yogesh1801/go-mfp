@@ -15,11 +15,13 @@ import (
 
 // parser implements command line parsing.
 type parser struct {
-	cmd     *Command                  // Command being parsed
-	argv    []string                  // Arguments being parsed
-	nextarg int                       // Index of the next argument
-	options map[*Option]*parserOptVal // Actually parsed options
-	subcmd  *Command                  // Sub-command discovered
+	cmd        *Command                  // Command being parsed
+	argv       []string                  // Arguments being parsed
+	nextarg    int                       // Index of the next argument
+	options    map[*Option]*parserOptVal // Actually parsed options
+	parameters []parserParamVal          // Parameters by number
+	byName     map[string][]string       // Options and parameters by name
+	subcmd     *Command                  // Sub-command discovered
 }
 
 // parserOptVal represents parsed option with value
@@ -29,12 +31,19 @@ type parserOptVal struct {
 	values []string // Option values
 }
 
+// parserParamVal represents parsed positional parameter with value
+type parserParamVal struct {
+	param *Parameter
+	value string
+}
+
 // newParser creates a new parser
 func newParser(cmd *Command, argv []string) *parser {
 	return &parser{
 		cmd:     cmd,
 		argv:    argv,
 		options: make(map[*Option]*parserOptVal),
+		byName:  make(map[string][]string),
 	}
 }
 
@@ -89,6 +98,9 @@ func (prs *parser) parse() error {
 	if prs.cmd.hasParameters() {
 		return prs.handleParameters(paramValues)
 	}
+
+	// Export results
+	prs.exportResults()
 
 	return nil
 }
@@ -189,6 +201,30 @@ func (prs *parser) handleSubCommand(arg string) error {
 	return nil
 }
 
+// exportResults rearranges parsing results into the usable form
+func (prs *parser) exportResults() {
+	// Save options values
+	for _, optval := range prs.options {
+		opt := optval.opt
+		prs.byName[opt.Name] = optval.values
+
+		for _, name := range opt.Aliases {
+			prs.byName[name] = optval.values
+		}
+	}
+
+	// Save parameters values
+	//
+	// Note, repeated parameters may have multiple values associated
+	// with the same parameter
+	for _, paramval := range prs.parameters {
+		name := paramval.param.Name
+		values := prs.byName[name]
+		values = append(values, paramval.value)
+		prs.byName[name] = values
+	}
+}
+
 // handleParameters handles positional parameters
 func (prs *parser) handleParameters(paramValues []string) error {
 	// Build slice of parameters' descriptors
@@ -226,6 +262,13 @@ func (prs *parser) handleParameters(paramValues []string) error {
 				return fmt.Errorf("%w: %q", err, desc.Name)
 			}
 		}
+	}
+
+	// Save parameters
+	prs.parameters = make([]parserParamVal, len(paramValues))
+	for i := range paramValues {
+		prs.parameters[i].param = paramDescs[i]
+		prs.parameters[i].value = paramValues[i]
 	}
 
 	return nil
