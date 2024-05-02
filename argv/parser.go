@@ -276,7 +276,7 @@ func (prs *parser) handleParameters(paramValues []string) error {
 		if desc.Validate != nil {
 			err := desc.Validate(val)
 			if err != nil {
-				return fmt.Errorf("%w: %q", err, desc.Name)
+				return fmt.Errorf("%q: %w %q", desc.Name, err, val)
 			}
 		}
 	}
@@ -413,7 +413,7 @@ func (prs *parser) appendOptVal(opt *Option, name, value string,
 	if !novalue {
 		err := opt.Validate(value)
 		if err != nil {
-			return fmt.Errorf("%w: %q", err, name)
+			return fmt.Errorf("%w: %s %q", err, name, value)
 		}
 	}
 

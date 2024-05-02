@@ -52,7 +52,7 @@ func TestValidators(t *testing.T) {
 			name:     "ValidateStrings",
 			input:    "hello",
 			validate: ValidateStrings([]string{"one", "two", "three"}),
-			err:      `"hello": invalid argument`,
+			err:      `invalid argument`,
 		},
 
 		// ValidateIntRange tests
@@ -81,21 +81,21 @@ func TestValidators(t *testing.T) {
 			name:     "ValidateIntRange",
 			input:    "0x123",
 			validate: ValidateIntRange(10, -1000, 1000),
-			err:      `"0x123": invalid integer`,
+			err:      `invalid integer`,
 		},
 
 		{
 			name:     "ValidateIntRange",
 			input:    "hello",
 			validate: ValidateIntRange(0, -1000, 1000),
-			err:      `"hello": invalid integer`,
+			err:      `invalid integer`,
 		},
 
 		{
 			name:     "ValidateIntRange",
 			input:    "10000",
 			validate: ValidateIntRange(0, -1000, 1000),
-			err:      `"10000": value out of range (-1000...1000)`,
+			err:      `value out of range (-1000...1000)`,
 		},
 
 		// ValidateUintRange tests
@@ -110,35 +110,35 @@ func TestValidators(t *testing.T) {
 			name:     "ValidateUintRange",
 			input:    "+0x123",
 			validate: ValidateUintRange(0, 100, 1000),
-			err:      `"+0x123": invalid integer`,
+			err:      `invalid integer`,
 		},
 
 		{
 			name:     "ValidateUintRange",
 			input:    "-0x123",
 			validate: ValidateUintRange(0, 100, 1000),
-			err:      `"-0x123": invalid integer`,
+			err:      `invalid integer`,
 		},
 
 		{
 			name:     "ValidateUintRange",
 			input:    "0x123",
 			validate: ValidateUintRange(10, 100, 1000),
-			err:      `"0x123": invalid integer`,
+			err:      `invalid integer`,
 		},
 
 		{
 			name:     "ValidateUintRange",
 			input:    "hello",
 			validate: ValidateUintRange(0, 100, 1000),
-			err:      `"hello": invalid integer`,
+			err:      `invalid integer`,
 		},
 
 		{
 			name:     "ValidateUintRange",
 			input:    "10000",
 			validate: ValidateUintRange(0, 100, 1000),
-			err:      `"10000": value out of range (100...1000)`,
+			err:      `value out of range (100...1000)`,
 		},
 
 		// ValidateIntBits tests
@@ -160,14 +160,14 @@ func TestValidators(t *testing.T) {
 			name:     "ValidateIntBits",
 			input:    "-1",
 			validate: ValidateIntBits(0, 1),
-			err:      `"-1": value doesn't fit 1 bits`,
+			err:      `value doesn't fit 1 bits`,
 		},
 
 		{
 			name:     "ValidateIntBits",
 			input:    "2",
 			validate: ValidateIntBits(0, 1),
-			err:      `"2": value doesn't fit 1 bits`,
+			err:      `value doesn't fit 1 bits`,
 		},
 
 		{
@@ -181,7 +181,7 @@ func TestValidators(t *testing.T) {
 			name:     "ValidateInt8",
 			input:    fmt.Sprintf("%d", math.MinInt8-1),
 			validate: ValidateInt8,
-			err:      `"-129": value doesn't fit 8 bits`,
+			err:      `value doesn't fit 8 bits`,
 		},
 
 		{
@@ -195,7 +195,7 @@ func TestValidators(t *testing.T) {
 			name:     "ValidateInt8",
 			input:    fmt.Sprintf("%d", math.MaxInt8+1),
 			validate: ValidateInt8,
-			err:      `"128": value doesn't fit 8 bits`,
+			err:      `value doesn't fit 8 bits`,
 		},
 
 		{
@@ -209,7 +209,7 @@ func TestValidators(t *testing.T) {
 			name:     "ValidateInt16",
 			input:    fmt.Sprintf("%d", math.MinInt16-1),
 			validate: ValidateInt16,
-			err:      `"-32769": value doesn't fit 16 bits`,
+			err:      `value doesn't fit 16 bits`,
 		},
 
 		{
@@ -223,7 +223,7 @@ func TestValidators(t *testing.T) {
 			name:     "ValidateInt16",
 			input:    fmt.Sprintf("%d", math.MaxInt16+1),
 			validate: ValidateInt16,
-			err:      `"32768": value doesn't fit 16 bits`,
+			err:      `value doesn't fit 16 bits`,
 		},
 
 		{
@@ -237,7 +237,7 @@ func TestValidators(t *testing.T) {
 			name:     "ValidateInt32",
 			input:    fmt.Sprintf("%d", math.MinInt32-1),
 			validate: ValidateInt32,
-			err:      `"-2147483649": value doesn't fit 32 bits`,
+			err:      `value doesn't fit 32 bits`,
 		},
 
 		{
@@ -251,7 +251,7 @@ func TestValidators(t *testing.T) {
 			name:     "ValidateInt32",
 			input:    fmt.Sprintf("%d", math.MaxInt32+1),
 			validate: ValidateInt32,
-			err:      `"2147483648": value doesn't fit 32 bits`,
+			err:      `value doesn't fit 32 bits`,
 		},
 
 		{
@@ -286,7 +286,7 @@ func TestValidators(t *testing.T) {
 			name:     "ValidateIntBits",
 			input:    "hello",
 			validate: ValidateIntBits(0, 32),
-			err:      `"hello": invalid integer`,
+			err:      `invalid integer`,
 		},
 
 		//////////////////////
@@ -309,7 +309,7 @@ func TestValidators(t *testing.T) {
 			name:     "ValidateUintBits",
 			input:    "2",
 			validate: ValidateUintBits(0, 1),
-			err:      `"2": value doesn't fit 1 bits`,
+			err:      `value doesn't fit 1 bits`,
 		},
 
 		{
@@ -323,7 +323,7 @@ func TestValidators(t *testing.T) {
 			name:     "ValidateUint8",
 			input:    fmt.Sprintf("%d", math.MaxUint8+1),
 			validate: ValidateUint8,
-			err:      `"256": value doesn't fit 8 bits`,
+			err:      `value doesn't fit 8 bits`,
 		},
 
 		{
@@ -337,7 +337,7 @@ func TestValidators(t *testing.T) {
 			name:     "ValidateUint16",
 			input:    fmt.Sprintf("%d", math.MaxUint16+1),
 			validate: ValidateUint16,
-			err:      `"65536": value doesn't fit 16 bits`,
+			err:      `value doesn't fit 16 bits`,
 		},
 
 		{
@@ -351,7 +351,7 @@ func TestValidators(t *testing.T) {
 			name:     "ValidateUint32",
 			input:    fmt.Sprintf("%d", math.MaxUint32+1),
 			validate: ValidateUint32,
-			err:      `"4294967296": value doesn't fit 32 bits`,
+			err:      `value doesn't fit 32 bits`,
 		},
 
 		{
@@ -372,21 +372,21 @@ func TestValidators(t *testing.T) {
 			name:     "ValidateUintBits",
 			input:    "+5",
 			validate: ValidateUintBits(0, 32),
-			err:      `"+5": invalid integer`,
+			err:      `invalid integer`,
 		},
 
 		{
 			name:     "ValidateUintBits",
 			input:    "-5",
 			validate: ValidateUintBits(0, 32),
-			err:      `"-5": invalid integer`,
+			err:      `invalid integer`,
 		},
 
 		{
 			name:     "ValidateUintBits",
 			input:    "hello",
 			validate: ValidateUintBits(0, 32),
-			err:      `"hello": invalid integer`,
+			err:      `invalid integer`,
 		},
 	}
 

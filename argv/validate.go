@@ -9,6 +9,7 @@
 package argv
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"strconv"
@@ -82,7 +83,7 @@ func ValidateStrings(s []string) func(string) error {
 			}
 		}
 
-		return fmt.Errorf("%q: invalid argument", in)
+		return errors.New("invalid argument")
 	}
 }
 
@@ -94,13 +95,12 @@ func ValidateIntRange(base int, min, max int64) func(string) error {
 	return func(in string) error {
 		v, err := strconv.ParseInt(in, base, 64)
 		if err != nil {
-			return fmt.Errorf("%q: invalid integer", in)
+			return errors.New("invalid integer")
 		}
 
 		if v < min || v > max {
 			return fmt.Errorf(
-				"%q: value out of range (%d...%d)",
-				in, min, max)
+				"value out of range (%d...%d)", min, max)
 		}
 
 		return nil
@@ -118,13 +118,12 @@ func ValidateUintRange(base int, min, max uint64) func(string) error {
 	return func(in string) error {
 		v, err := strconv.ParseUint(in, base, 64)
 		if err != nil {
-			return fmt.Errorf("%q: invalid integer", in)
+			return errors.New("invalid integer")
 		}
 
 		if v < min || v > max {
 			return fmt.Errorf(
-				"%q: value out of range (%d...%d)",
-				in, min, max)
+				"value out of range (%d...%d)", min, max)
 		}
 
 		return nil
@@ -157,12 +156,12 @@ func ValidateIntBits(base, bits int) func(string) error {
 	return func(in string) error {
 		v, err := strconv.ParseInt(in, base, 64)
 		if err != nil {
-			return fmt.Errorf("%q: invalid integer", in)
+			return errors.New("invalid integer")
 		}
 
 		if v < min || v > max {
 			return fmt.Errorf(
-				"%q: value doesn't fit %d bits", in, bits)
+				"value doesn't fit %d bits", bits)
 		}
 
 		return nil
@@ -195,12 +194,12 @@ func ValidateUintBits(base, bits int) func(string) error {
 	return func(in string) error {
 		v, err := strconv.ParseUint(in, base, 64)
 		if err != nil {
-			return fmt.Errorf("%q: invalid integer", in)
+			return errors.New("invalid integer")
 		}
 
 		if v > max {
 			return fmt.Errorf(
-				"%q: value doesn't fit %d bits", in, bits)
+				"value doesn't fit %d bits", bits)
 		}
 
 		return nil
