@@ -22,6 +22,7 @@ type parser struct {
 	parameters []parserParamVal          // Parameters by number
 	byName     map[string][]string       // Options and parameters by name
 	subcmd     *Command                  // Sub-command discovered
+	subargv    []string                  // Sub-command argv
 }
 
 // parserOptVal represents parsed option with value
@@ -203,11 +204,12 @@ func (prs *parser) handleSubCommand(arg string) error {
 	switch {
 	case len(subcommands) == 0:
 		return fmt.Errorf("unknown sub-command: %q", arg)
-	case len(subcommands) >= 1:
+	case len(subcommands) > 1:
 		return fmt.Errorf("ambiguous sub-command: %q", arg)
 	}
 
 	prs.subcmd = subcommands[0]
+	prs.subargv = prs.argv[prs.nextarg:]
 	return nil
 }
 
@@ -389,7 +391,7 @@ func (prs *parser) findSubCommand(name string) []*Command {
 			return []*Command{subcmd}
 		}
 
-		if strings.HasSuffix(subcmd.Name, name) {
+		if strings.HasPrefix(subcmd.Name, name) {
 			inexact = append(inexact, subcmd)
 		}
 	}

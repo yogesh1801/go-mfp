@@ -19,10 +19,12 @@ import (
 // TestParser tests argv parser
 func TestParser(t *testing.T) {
 	type testData struct {
-		argv []string            // Input
-		cmd  Command             // Command description
-		err  string              // Expected error, "" if none
-		out  map[string][]string // Expected options values
+		argv    []string            // Input
+		cmd     Command             // Command description
+		err     string              // Expected error, "" if none
+		out     map[string][]string // Expected options values
+		subcmd  string              // Expected sub-command
+		subargv []string            // Expected sub-command argv
 	}
 
 	tests := []testData{
@@ -124,6 +126,60 @@ func TestParser(t *testing.T) {
 				"param2":    {"c"},
 			},
 		},
+
+		// Test 3: sub-commands
+		{
+			argv: []string{
+				"sub-2",
+			},
+			cmd: Command{
+				Name: "test",
+				SubCommands: []Command{
+					{Name: "sub-1"},
+					{Name: "sub-2"},
+					{Name: "sub-3"},
+				},
+			},
+			subcmd:  "sub-2",
+			subargv: []string{},
+		},
+
+		// Test 3: options and abbreviated sub-command with params
+		{
+			argv: []string{
+				"--long", "l1",
+				"-x", "xxx",
+				"sub-2", "param1", "param2", "param3",
+			},
+			cmd: Command{
+				Name: "test",
+				Options: []Option{
+					{
+						Name:     "-l",
+						Aliases:  []string{"--long"},
+						Validate: ValidateAny,
+					},
+					{
+						Name:     "-x",
+						Aliases:  []string{"--xxl"},
+						Validate: ValidateAny,
+					},
+				},
+				SubCommands: []Command{
+					{Name: "sub-1-cmd"},
+					{Name: "sub-2-cmd"},
+					{Name: "sub-3-cmd"},
+				},
+			},
+			out: map[string][]string{
+				"--long": {"l1"},
+				"--xxl":  {"xxx"},
+				"-l":     {"l1"},
+				"-x":     {"xxx"},
+			},
+			subcmd:  "sub-2-cmd",
+			subargv: []string{"param1", "param2", "param3"},
+		},
 	}
 
 	for i, test := range tests {
@@ -144,6 +200,22 @@ func TestParser(t *testing.T) {
 				for _, s := range diff {
 					t.Errorf("  %s", s)
 				}
+			}
+
+			subcmd := ""
+			if prs.subcmd != nil {
+				subcmd = prs.subcmd.Name
+			}
+
+			if subcmd != test.subcmd {
+				t.Errorf("[%d}: subcmd mismatch: expected %q present %q",
+					i, test.subcmd, subcmd)
+			}
+
+			if !reflect.DeepEqual(test.subargv, prs.subargv) {
+				t.Errorf("[%d}: subargv mismatch:", i)
+				t.Errorf("  expected: %q", test.subargv)
+				t.Errorf("  present:  %q", prs.subargv)
 			}
 		}
 	}
