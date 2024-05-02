@@ -16,6 +16,21 @@ import (
 	"testing"
 )
 
+// TestNewParserPanic tests panic from newParser()
+func TestNewParserPanic(t *testing.T) {
+	defer func() {
+		v := recover()
+		err, ok := v.(error)
+		if !ok || err.Error() != "missed command name" {
+			panic(v)
+		}
+
+	}()
+
+	// It must panic, because empty Command is invalid
+	newParser(&Command{}, []string{})
+}
+
 // TestParser tests argv parser
 func TestParser(t *testing.T) {
 	type testData struct {
@@ -144,7 +159,7 @@ func TestParser(t *testing.T) {
 			subargv: []string{},
 		},
 
-		// Test 3: options and abbreviated sub-command with params
+		// Test 4: options and abbreviated sub-command with params
 		{
 			argv: []string{
 				"--long", "l1",
@@ -180,6 +195,204 @@ func TestParser(t *testing.T) {
 			subcmd:  "sub-2-cmd",
 			subargv: []string{"param1", "param2", "param3"},
 		},
+
+		// Test 5: "unexpected parameter"
+		{
+			argv: []string{"a", "b", "c"},
+			cmd: Command{
+				Name: "test",
+				Parameters: []Parameter{
+					{Name: "param1"},
+					{Name: "param2"},
+				},
+			},
+			err: `unexpected parameter: "c"`,
+		},
+
+		// Test 6: "unexpected parameter" with optional parameters
+		{
+			argv: []string{"a", "b", "c"},
+			cmd: Command{
+				Name: "test",
+				Parameters: []Parameter{
+					{Name: "param1"},
+					{Name: "[param2]"},
+				},
+			},
+			err: `unexpected parameter: "c"`,
+		},
+
+		// Test 7: "missed parameter"
+		{
+			argv: []string{"a"},
+			cmd: Command{
+				Name: "test",
+				Parameters: []Parameter{
+					{Name: "param1"},
+					{Name: "param2"},
+				},
+			},
+			err: `missed parameter: "param2"`,
+		},
+
+		// Test 8: "missed sub-comman name"
+		{
+			argv: []string{"-x", "5"},
+			cmd: Command{
+				Name: "test",
+				Options: []Option{
+					{Name: "-x", Validate: ValidateAny},
+				},
+				SubCommands: []Command{
+					{Name: "sub-1"},
+					{Name: "sub-2"},
+					{Name: "sub-3"},
+				},
+			},
+			err: `missed sub-command name`,
+		},
+
+		// Test 9: "unknown option" for short option
+		{
+			argv: []string{"-x", "5"},
+			cmd: Command{
+				Name: "test",
+				Options: []Option{
+					{Name: "-a", Validate: ValidateAny},
+					{Name: "-b", Validate: ValidateAny},
+					{Name: "-c", Validate: ValidateAny},
+				},
+			},
+			err: `unknown option: "-x"`,
+		},
+
+		// Test 10: "unknown option" for long optiob
+		{
+			argv: []string{"--unknown=5"},
+			cmd: Command{
+				Name: "test",
+				Options: []Option{
+					{Name: "-a", Validate: ValidateAny},
+					{Name: "-b", Validate: ValidateAny},
+					{Name: "-c", Validate: ValidateAny},
+				},
+			},
+			err: `unknown option: "--unknown"`,
+		},
+
+		// Test 11: "unknown option" from combined options
+		{
+			argv: []string{"-abx"},
+			cmd: Command{
+				Name: "test",
+				Options: []Option{
+					{Name: "-a"},
+					{Name: "-b"},
+					{Name: "-c"},
+				},
+			},
+			err: `unknown option: "-x"`,
+		},
+
+		// Test 12: "option requires operand"
+		{
+			argv: []string{"-x"},
+			cmd: Command{
+				Name: "test",
+				Options: []Option{
+					{Name: "-x", Validate: ValidateAny},
+				},
+			},
+			err: `option requires operand: "-x"`,
+		},
+
+		// Test 13: "option requires operand" from combined options
+		{
+			argv: []string{"-abc"},
+			cmd: Command{
+				Name: "test",
+				Options: []Option{
+					{Name: "-a"},
+					{Name: "-b", Validate: ValidateAny},
+					{Name: "-c"},
+				},
+			},
+			err: `option requires operand: "-b"`,
+		},
+
+		// Test 14: "unknown sub-command"
+		{
+			argv: []string{
+				"unknown",
+			},
+			cmd: Command{
+				Name: "test",
+				SubCommands: []Command{
+					{Name: "sub-1"},
+					{Name: "sub-2"},
+					{Name: "sub-3"},
+				},
+			},
+			err: `unknown sub-command: "unknown"`,
+		},
+
+		// Test 15: "ambiguous sub-command"
+		{
+			argv: []string{
+				"sub",
+			},
+			cmd: Command{
+				Name: "test",
+				SubCommands: []Command{
+					{Name: "sub-1"},
+					{Name: "sub-2"},
+					{Name: "sub-3"},
+				},
+			},
+			err: `ambiguous sub-command: "sub"`,
+		},
+
+		// Test 16: "invalid option value" for short option
+		{
+			argv: []string{"-b", "hello"},
+			cmd: Command{
+				Name: "test",
+				Options: []Option{
+					{Name: "-a", Validate: ValidateInt32},
+					{Name: "-b", Validate: ValidateInt32},
+					{Name: "-c", Validate: ValidateInt32},
+				},
+			},
+			err: `invalid integer: -b "hello"`,
+		},
+
+		// Test 17: "invalid option value" for long option
+		{
+			argv: []string{"--long-b", "hello"},
+			cmd: Command{
+				Name: "test",
+				Options: []Option{
+					{Name: "--long-a", Validate: ValidateInt32},
+					{Name: "--long-b", Validate: ValidateInt32},
+					{Name: "--long-c", Validate: ValidateInt32},
+				},
+			},
+			err: `invalid integer: --long-b "hello"`,
+		},
+
+		// Test 18: "invalid parameter value"
+		{
+			argv: []string{"1", "hello", "2"},
+			cmd: Command{
+				Name: "test",
+				Parameters: []Parameter{
+					{Name: "a", Validate: ValidateInt32},
+					{Name: "b", Validate: ValidateInt32},
+					{Name: "c", Validate: ValidateInt32},
+				},
+			},
+			err: `"b": invalid integer "hello"`,
+		},
 	}
 
 	for i, test := range tests {
@@ -190,12 +403,12 @@ func TestParser(t *testing.T) {
 		}
 
 		if err.Error() != test.err {
-			t.Errorf("[%d}: error mismatch: expected `%s`, present `%s`",
+			t.Errorf("[%d]: error mismatch: expected `%s`, present `%s`",
 				i, test.err, err)
 		} else if test.err == "" {
 			diff := testDiffValues(test.out, prs.byName)
 			if len(diff) != 0 {
-				t.Errorf("[%d}: results mismatch (<<< expected, >>> present):", i)
+				t.Errorf("[%d]: results mismatch (<<< expected, >>> present):", i)
 
 				for _, s := range diff {
 					t.Errorf("  %s", s)

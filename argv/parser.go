@@ -150,12 +150,7 @@ func (prs *parser) handleShortOption(arg string) error {
 	// and non-empty value.
 	//
 	// So try to consider value as a sequence of short options
-	err := prs.appendOptVal(opt, name, "", true)
-	if err != nil {
-		return err
-	}
-
-	for _, c := range val {
+	for _, c := range name[1:] + val {
 		name2 := "-" + string(c)
 
 		opt2 := prs.findOption(name2)
@@ -297,14 +292,13 @@ func (prs *parser) done() bool {
 }
 
 // next returns the next argument.
-func (prs *parser) next() string {
+func (prs *parser) next() (arg string) {
 	if prs.nextarg < len(prs.argv) {
-		arg := prs.argv[prs.nextarg]
+		arg = prs.argv[prs.nextarg]
 		prs.nextarg++
-		return arg
 	}
 
-	return ""
+	return
 }
 
 // nextValue returns the next argument, of one exist.
