@@ -177,14 +177,6 @@ type Parameter struct {
 	// Usage string, a single-line description.
 	Usage string
 
-	// Conflicts, if not nit, contains names of Options
-	// that MUST NOT be used together with this Parameter.
-	Conflicts []string
-
-	// Requires, if not nil, contains names of Options,
-	// that MUST be used together with this Parameter.
-	Requires []string
-
 	// Validate callback called to validate parameter
 	Validate func(string) error
 
