@@ -393,6 +393,52 @@ func TestParser(t *testing.T) {
 			},
 			err: `"b": invalid integer "hello"`,
 		},
+
+		// Test 19: "option conflicts with..."
+		{
+			argv: []string{"-a", "-b", "-c"},
+			cmd: Command{
+				Name: "test",
+				Options: []Option{
+					{Name: "-a"},
+					{Name: "-b", Conflicts: []string{"-c"}},
+					{Name: "-c"},
+				},
+			},
+			err: `option "-c" conflicts with "-b"`,
+		},
+
+		// Test 20: "missed option..."
+		{
+			argv: []string{"-a", "-b"},
+			cmd: Command{
+				Name: "test",
+				Options: []Option{
+					{Name: "-a", Requires: []string{"-c"}},
+					{Name: "-b"},
+					{Name: "-c"},
+				},
+			},
+			err: `missed option "-c", required by "-a"`,
+		},
+
+		// Test 21: option required and present
+		{
+			argv: []string{"-a", "-b", "-c"},
+			cmd: Command{
+				Name: "test",
+				Options: []Option{
+					{Name: "-a", Requires: []string{"-c"}},
+					{Name: "-b"},
+					{Name: "-c"},
+				},
+			},
+			out: map[string][]string{
+				"-a": {""},
+				"-b": {""},
+				"-c": {""},
+			},
+		},
 	}
 
 	for i, test := range tests {

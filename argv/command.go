@@ -96,13 +96,13 @@ type Option struct {
 	// Usage string, a single-line description.
 	Usage string
 
-	// Requires, if not nil, contains names of other Options,
-	// that MUST be used together with this option.
-	Requires []string
-
 	// Conflicts, if not nit, contains names of other Options
 	// that MUST NOT be used together with this option.
 	Conflicts []string
+
+	// Requires, if not nil, contains names of other Options,
+	// that MUST be used together with this option.
+	Requires []string
 
 	// Validate callback called to validate parameter.
 	//
@@ -177,13 +177,13 @@ type Parameter struct {
 	// Usage string, a single-line description.
 	Usage string
 
-	// Requires, if not nil, contains names of Options,
-	// that MUST be used together with this option.
-	Requires []string
-
 	// Conflicts, if not nit, contains names of Options
-	// that MUST NOT be used together with this option.
+	// that MUST NOT be used together with this Parameter.
 	Conflicts []string
+
+	// Requires, if not nil, contains names of Options,
+	// that MUST be used together with this Parameter.
+	Requires []string
 
 	// Validate callback called to validate parameter
 	Validate func(string) error
@@ -397,37 +397,62 @@ func (opt *Option) verify() error {
 		return errors.New("option must have a name")
 	}
 
-	// Verify name syntax
+	// Verify syntax of option Name and Aliases
 	names := append([]string{opt.Name}, opt.Aliases...)
 	for _, name := range names {
-		var check string
-		var short bool
-
-		switch {
-		case strings.HasPrefix(name, "--"):
-			check = name[2:]
-		case strings.HasPrefix(name, "-"):
-			short = true
-			check = name[1:]
-
-		default:
-			return fmt.Errorf(
-				"option must start with dash (-): %q", name)
+		err := opt.verifyNameSyntax(name)
+		if err != nil {
+			return err
 		}
+	}
 
-		if check == "" {
-			return fmt.Errorf("empty option name: %q", name)
+	// Verify name syntax of Conflicts and Requires
+	for _, name := range opt.Conflicts {
+		err := opt.verifyNameSyntax(name)
+		if err != nil {
+			return fmt.Errorf("Conflicts: %w", err)
 		}
+	}
 
-		if c := nameCheck(check); c >= 0 {
-			return fmt.Errorf(
-				"invalid char '%c' in option: %q", c, name)
+	for _, name := range opt.Requires {
+		err := opt.verifyNameSyntax(name)
+		if err != nil {
+			return fmt.Errorf("Requires: %w", err)
 		}
+	}
 
-		if short && len(check) > 1 {
-			return fmt.Errorf(
-				"short option with long name: %q", name)
-		}
+	return nil
+}
+
+// verifyNameSyntax verifies option name syntax
+func (opt *Option) verifyNameSyntax(name string) error {
+	var check string
+	var short bool
+
+	switch {
+	case strings.HasPrefix(name, "--"):
+		check = name[2:]
+	case strings.HasPrefix(name, "-"):
+		short = true
+		check = name[1:]
+
+	default:
+		return fmt.Errorf(
+			"option must start with dash (-): %q", name)
+	}
+
+	if check == "" {
+		return fmt.Errorf("empty option name: %q", name)
+	}
+
+	if c := nameCheck(check); c >= 0 {
+		return fmt.Errorf(
+			"invalid char '%c' in option: %q", c, name)
+	}
+
+	if short && len(check) > 1 {
+		return fmt.Errorf(
+			"short option with long name: %q", name)
 	}
 
 	return nil

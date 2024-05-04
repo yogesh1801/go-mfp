@@ -14,15 +14,27 @@ import (
 )
 
 // parser implements command line parsing.
+//
+// Notes.
+//
+// optConflicts["-opt1"] -> "-opt2" means, that previously
+// processed option "-opt2" has declared option "-opt1" as
+// conflicting.
+//
+// optRequires["-opt1"] -> "-opt2" means, that previously
+// processed option "-opt2" has declared option "-opt1" as
+// required.
 type parser struct {
-	cmd        *Command                  // Command being parsed
-	argv       []string                  // Arguments being parsed
-	nextarg    int                       // Index of the next argument
-	options    map[*Option]*parserOptVal // Actually parsed options
-	parameters []parserParamVal          // Parameters by number
-	byName     map[string][]string       // Options and parameters by name
-	subcmd     *Command                  // Sub-command discovered
-	subargv    []string                  // Sub-command argv
+	cmd          *Command                  // Command being parsed
+	argv         []string                  // Arguments being parsed
+	nextarg      int                       // Index of the next argument
+	optConflicts map[string]string         // Conflicting options
+	optRequired  map[string]string         // Required options
+	options      map[*Option]*parserOptVal // Actually parsed options
+	parameters   []parserParamVal          // Parameters by number
+	byName       map[string][]string       // Options and parameters by name
+	subcmd       *Command                  // Sub-command discovered
+	subargv      []string                  // Sub-command argv
 }
 
 // parserOptVal represents parsed option with value
@@ -48,10 +60,12 @@ func newParser(cmd *Command, argv []string) *parser {
 	}
 
 	return &parser{
-		cmd:     cmd,
-		argv:    argv,
-		options: make(map[*Option]*parserOptVal),
-		byName:  make(map[string][]string),
+		cmd:          cmd,
+		argv:         argv,
+		optConflicts: make(map[string]string),
+		optRequired:  make(map[string]string),
+		options:      make(map[*Option]*parserOptVal),
+		byName:       make(map[string][]string),
 	}
 }
 
@@ -110,8 +124,13 @@ func (prs *parser) parse() error {
 		}
 	}
 
-	// Export results
-	prs.exportResults()
+	// Build prs.byName map
+	prs.buildByName()
+
+	// Validate things
+	if err := prs.validateThings(); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -208,8 +227,20 @@ func (prs *parser) handleSubCommand(arg string) error {
 	return nil
 }
 
-// exportResults rearranges parsing results into the usable form
-func (prs *parser) exportResults() {
+// validateThings validates things that can only be verified
+// when parsing is done, like missed options requirements etc
+func (prs *parser) validateThings() error {
+	for required, byWhom := range prs.optRequired {
+		if _, found := prs.byName[required]; !found {
+			return fmt.Errorf("missed option %q, required by %q",
+				required, byWhom)
+		}
+	}
+	return nil
+}
+
+// buildByName populates prs.byName map
+func (prs *parser) buildByName() {
 	// Save options values
 	for _, optval := range prs.options {
 		opt := optval.opt
@@ -411,6 +442,11 @@ func (prs *parser) appendOptVal(opt *Option, name, value string,
 		}
 	}
 
+	if conflict, found := prs.optConflicts[name]; found {
+		return fmt.Errorf("option %q conflicts with %q",
+			name, conflict)
+	}
+
 	// Save the option
 	optval := prs.options[opt]
 	if optval == nil {
@@ -423,6 +459,19 @@ func (prs *parser) appendOptVal(opt *Option, name, value string,
 	}
 
 	optval.values = append(optval.values, value)
+
+	// Update optConflicts and optRequired
+	for _, conflict := range opt.Conflicts {
+		if _, found := prs.optConflicts[conflict]; !found {
+			prs.optConflicts[conflict] = name
+		}
+	}
+
+	for _, required := range opt.Requires {
+		if _, found := prs.optRequired[required]; !found {
+			prs.optRequired[required] = name
+		}
+	}
 
 	return nil
 }

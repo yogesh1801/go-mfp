@@ -161,6 +161,33 @@ func TestCommandVerify(t *testing.T) {
 			err: `test: duplicated option "--help"`,
 		},
 
+		// Tests for options with malformed Conflicts/Requires
+		{
+			cmd: &Command{
+				Name: "test",
+				Options: []Option{
+					{
+						Name:      "-c",
+						Conflicts: []string{"hello"},
+					},
+				},
+			},
+			err: `test: Conflicts: option must start with dash (-): "hello"`,
+		},
+
+		{
+			cmd: &Command{
+				Name: "test",
+				Options: []Option{
+					{
+						Name:     "-c",
+						Requires: []string{"hello"},
+					},
+				},
+			},
+			err: `test: Requires: option must start with dash (-): "hello"`,
+		},
+
 		// Tests for malformed Parameters
 		{
 			cmd: &Command{
@@ -376,7 +403,7 @@ func TestCommandVerify(t *testing.T) {
 		}
 
 		if err.Error() != test.err {
-			t.Errorf("(*Command) Verify(): expected %q, present %q",
+			t.Errorf("(*Command) Verify(): expected `%s`, present `%s`",
 				test.err, err)
 		}
 	}
