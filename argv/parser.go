@@ -10,6 +10,7 @@ package argv
 
 import (
 	"fmt"
+	"math"
 	"strings"
 )
 
@@ -75,7 +76,7 @@ func (prs *parser) parse() error {
 	var doneOptions bool
 	var paramValues []string
 
-	paramsMin, paramsMax := prs.cmd.paramsInfo()
+	paramsMin, paramsMax := prs.paramsInfo()
 
 	for !prs.done() {
 		arg := prs.next()
@@ -395,6 +396,33 @@ func (prs *parser) findOption(name string) *Option {
 	}
 
 	return nil
+}
+
+// paramsInfo returns information on a command parameters:
+//   paramsMin - minimal count of parameters
+//   paramsMax - maximal count of parameters
+//
+// If Command can accept unlimited amount of parameters
+// (i.e., it has repeated parameters), paramsMax will be
+// reported as math.MaxInt
+func (prs *parser) paramsInfo() (paramsMin, paramsMax int) {
+	for i := range prs.cmd.Parameters {
+		param := &prs.cmd.Parameters[i]
+
+		if param.required() {
+			paramsMin++
+		}
+
+		if param.repeated() {
+			paramsMax = math.MaxInt
+		}
+	}
+
+	if paramsMax != math.MaxInt {
+		paramsMax = len(prs.cmd.Parameters)
+	}
+
+	return
 }
 
 // findSubCommand finds Command's SubCommand by name.

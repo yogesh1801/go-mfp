@@ -11,7 +11,6 @@ package argv
 import (
 	"errors"
 	"fmt"
-	"math"
 	"strings"
 	"unicode"
 )
@@ -350,33 +349,6 @@ func (cmd *Command) hasParameters() bool {
 // hasSubCommands tells if Command has SubCommands
 func (cmd *Command) hasSubCommands() bool {
 	return cmd.SubCommands != nil
-}
-
-// paramsInfo returns information on a command parameters:
-//   paramsMin - minimal count of parameters
-//   paramsMax - maximal count of parameters
-//
-// If Command can accept unlimited amount of parameters
-// (i.e., it has repeated parameters), paramsMax will be
-// reported as math.MaxInt
-func (cmd *Command) paramsInfo() (paramsMin, paramsMax int) {
-	for i := range cmd.Parameters {
-		param := &cmd.Parameters[i]
-
-		if param.required() {
-			paramsMin++
-		}
-
-		if param.repeated() {
-			paramsMax = math.MaxInt
-		}
-	}
-
-	if paramsMax != math.MaxInt {
-		paramsMax = len(cmd.Parameters)
-	}
-
-	return
 }
 
 // ----- Option methods -----
