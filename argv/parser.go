@@ -136,6 +136,39 @@ func (prs *parser) parse() error {
 	return nil
 }
 
+// complete handles command auto-completion
+func (prs *parser) complete() []string {
+	doneOptions := false
+	paramCount := 0
+
+	for !prs.done() {
+		arg := prs.next()
+
+		switch {
+		case !doneOptions && arg == "--":
+			doneOptions = true
+
+		case !doneOptions && prs.isShortOption(arg):
+			done, compl := prs.completeShortOption(arg)
+			if done {
+				return compl
+			}
+			//err = prs.handleShortOption(arg)
+
+		case !doneOptions && prs.isLongOption(arg):
+			//err = prs.handleLongOption(arg)
+
+		case !doneOptions && prs.cmd.hasSubCommands():
+			//err = prs.handleSubCommand(arg)
+
+		default:
+			paramCount++
+		}
+	}
+
+	return nil
+}
+
 // handleShortOption handles a short option
 func (prs *parser) handleShortOption(arg string) error {
 	// Split into name and value and try to find Option
@@ -280,6 +313,43 @@ func (prs *parser) handleSubCommand(arg string) error {
 	prs.subcmd = subcommands[0]
 	prs.subargv = prs.argv[prs.nextarg:]
 	return nil
+}
+
+// completeShortOption performs auto-completion tasks for short options.
+func (prs *parser) completeShortOption(arg string) (bool, []string) {
+	// Split into name and value and try to find Option
+	name, val, novalue := prs.splitOptVal(arg)
+	opt := prs.findOption(name)
+	if opt == nil {
+		// If option is unknown, terminate auto-completion,
+		// because it will be hard to know if the last argument
+		// is a part of option, so synchronization will be lost.
+		return true, nil
+	}
+
+	// Do nothing if this is an Option without argument.
+	// This is a good choice even if this is a sequence
+	// of combined options.
+	if !opt.withValue() {
+		return false, nil
+	}
+
+	// Short option with value in the next argument. We must
+	// consume this argument here.
+	if novalue {
+		val = prs.next()
+	}
+
+	// If we are at the end of argv, auto-complete
+	if prs.done() {
+		return true, opt.complete(val)
+	}
+
+	return false, nil
+}
+
+func (prs *parser) completeLongOption(arg string) (bool, []string) {
+	return true, nil
 }
 
 // buildByName populates prs.byName map

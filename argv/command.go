@@ -427,6 +427,15 @@ func (opt *Option) withValue() bool {
 	return opt.Validate != nil
 }
 
+// complete is the convenience wrapper around Option.Complete
+// callback. It call callback only if one is not nil.
+func (opt *Option) complete(prefix string) (compl []string) {
+	if opt.Complete != nil {
+		compl = opt.Complete(prefix)
+	}
+	return
+}
+
 // ----- Parameter methods -----
 
 // verify checks correctness of Parameter definition. It fails if any
@@ -483,6 +492,15 @@ func (param *Parameter) optional() bool {
 func (param *Parameter) repeated() bool {
 	return strings.HasSuffix(param.Name, "...") ||
 		strings.HasSuffix(param.Name, "...]")
+}
+
+// complete is the convenience wrapper around Parameter.Complete
+// callback. It call callback only if one is not nil.
+func (param *Parameter) complete(prefix string) (compl []string) {
+	if param.Complete != nil {
+		compl = param.Complete(prefix)
+	}
+	return
 }
 
 // ----- Action methods -----

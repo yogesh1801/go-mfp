@@ -480,6 +480,115 @@ func TestParser(t *testing.T) {
 	}
 }
 
+// TestParserCompletion tests (*parser) complete()
+func TestParserCompletion(t *testing.T) {
+	type testData struct {
+		argv []string // Input
+		cmd  Command  // Command description
+		out  []string // Expected output
+	}
+
+	tests := []testData{
+		// Test 0: short option, separate argument
+		{
+			argv: []string{"-x", "Ro"},
+			cmd: Command{
+				Name: "test",
+				Options: []Option{
+					{
+						Name:     "-x",
+						Validate: ValidateAny,
+						Complete: CompleteStrings(
+							[]string{
+								"Roger",
+								"Robert",
+							},
+						),
+					},
+				},
+			},
+			out: []string{"bert", "ger"},
+		},
+
+		// Test 1: short option with embedded argument
+		{
+			argv: []string{"-xRo"},
+			cmd: Command{
+				Name: "test",
+				Options: []Option{
+					{
+						Name:     "-x",
+						Validate: ValidateAny,
+						Complete: CompleteStrings(
+							[]string{
+								"Roger",
+								"Robert",
+							},
+						),
+					},
+				},
+			},
+			out: []string{"bert", "ger"},
+		},
+
+		// Test 2: short option, missed argument
+		{
+			argv: []string{"-x"},
+			cmd: Command{
+				Name: "test",
+				Options: []Option{
+					{
+						Name:     "-x",
+						Validate: ValidateAny,
+						Complete: CompleteStrings(
+							[]string{
+								"Roger",
+								"Robert",
+							},
+						),
+					},
+				},
+			},
+			out: []string{"Robert", "Roger"},
+		},
+
+		// Test 3: short option with preceding unknown optipn
+		{
+			argv: []string{"-a", "-x", "Ro"},
+			cmd: Command{
+				Name: "test",
+				Options: []Option{
+					{
+						Name:     "-x",
+						Validate: ValidateAny,
+						Complete: CompleteStrings(
+							[]string{
+								"Roger",
+								"Robert",
+							},
+						),
+					},
+				},
+			},
+			out: []string{},
+		},
+	}
+
+	for i, test := range tests {
+		prs := newParser(&test.cmd, test.argv)
+		out := prs.complete()
+
+		diff := testDiffCompletion(test.out, out)
+		if len(diff) != 0 {
+			t.Errorf("[%d]: results mismatch (<<< expected, >>> present):", i)
+
+			for _, s := range diff {
+				t.Errorf("  %s", s)
+			}
+		}
+	}
+}
+
 // testDiffValues compares two maps of named values and returns formatted
 // diff as slice of strings
 func testDiffValues(m1, m2 map[string][]string) []string {
@@ -542,5 +651,30 @@ func testDiffValues(m1, m2 map[string][]string) []string {
 		out = append(out, s)
 	}
 
+	return out
+}
+
+// testDiffCompletion computes a difference between completion results
+func testDiffCompletion(expected, received []string) []string {
+	expected = testCopySliceOfStrings(expected)
+	received = testCopySliceOfStrings(received)
+
+	sort.Strings(expected)
+	sort.Strings(received)
+
+	out := []string{}
+
+	if !reflect.DeepEqual(expected, received) {
+		out = append(out, fmt.Sprintf("<<< %q", expected))
+		out = append(out, fmt.Sprintf(">>> %q", received))
+	}
+
+	return out
+}
+
+// testCopySliceOfStrings creates a copy of slice of strings
+func testCopySliceOfStrings(in []string) []string {
+	out := make([]string, len(in))
+	copy(out, in)
 	return out
 }
