@@ -25,8 +25,9 @@ func CompleteStrings(s []string) func(string) []string {
 	return func(in string) []string {
 		out := []string{}
 		for _, member := range set {
-			if len(in) < len(member) && strings.HasPrefix(member, in) {
-				compl := member[:len(in)]
+			if len(in) < len(member) &&
+				strings.HasPrefix(member, in) {
+				compl := member[len(in):]
 				out = append(out, compl)
 			}
 		}
