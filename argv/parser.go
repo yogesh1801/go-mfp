@@ -212,58 +212,6 @@ func (prs *parser) handleLongOption(arg string) error {
 	return nil
 }
 
-// handleSubCommand handles a sub-command
-func (prs *parser) handleSubCommand(arg string) error {
-	subcommands := prs.findSubCommand(arg)
-
-	switch {
-	case len(subcommands) == 0:
-		return fmt.Errorf("unknown sub-command: %q", arg)
-	case len(subcommands) > 1:
-		return fmt.Errorf("ambiguous sub-command: %q", arg)
-	}
-
-	prs.subcmd = subcommands[0]
-	prs.subargv = prs.argv[prs.nextarg:]
-	return nil
-}
-
-// validateThings validates things that can only be verified
-// when parsing is done, like missed options requirements etc
-func (prs *parser) validateThings() error {
-	for required, byWhom := range prs.optRequired {
-		if _, found := prs.byName[required]; !found {
-			return fmt.Errorf("missed option %q, required by %q",
-				required, byWhom)
-		}
-	}
-	return nil
-}
-
-// buildByName populates prs.byName map
-func (prs *parser) buildByName() {
-	// Save options values
-	for _, optval := range prs.options {
-		opt := optval.opt
-		prs.byName[opt.Name] = optval.values
-
-		for _, name := range opt.Aliases {
-			prs.byName[name] = optval.values
-		}
-	}
-
-	// Save parameters values
-	//
-	// Note, repeated parameters may have multiple values associated
-	// with the same parameter
-	for _, paramval := range prs.parameters {
-		name := paramval.param.Name
-		values := prs.byName[name]
-		values = append(values, paramval.value)
-		prs.byName[name] = values
-	}
-}
-
 // handleParameters handles positional parameters
 func (prs *parser) handleParameters(paramValues []string) error {
 	// Build slice of parameters' descriptors
@@ -318,28 +266,56 @@ func (prs *parser) handleParameters(paramValues []string) error {
 	return nil
 }
 
-// done returns true if all arguments are consumed
-func (prs *parser) done() bool {
-	return prs.nextarg == len(prs.argv) || prs.subcmd != nil
-}
+// handleSubCommand handles a sub-command
+func (prs *parser) handleSubCommand(arg string) error {
+	subcommands := prs.findSubCommand(arg)
 
-// next returns the next argument.
-func (prs *parser) next() (arg string) {
-	if prs.nextarg < len(prs.argv) {
-		arg = prs.argv[prs.nextarg]
-		prs.nextarg++
+	switch {
+	case len(subcommands) == 0:
+		return fmt.Errorf("unknown sub-command: %q", arg)
+	case len(subcommands) > 1:
+		return fmt.Errorf("ambiguous sub-command: %q", arg)
 	}
 
-	return
+	prs.subcmd = subcommands[0]
+	prs.subargv = prs.argv[prs.nextarg:]
+	return nil
 }
 
-// nextValue returns the next argument, of one exist.
-func (prs *parser) nextValue() (val string, novalue bool) {
-	if !prs.done() {
-		return prs.next(), false
+// buildByName populates prs.byName map
+func (prs *parser) buildByName() {
+	// Save options values
+	for _, optval := range prs.options {
+		opt := optval.opt
+		prs.byName[opt.Name] = optval.values
+
+		for _, name := range opt.Aliases {
+			prs.byName[name] = optval.values
+		}
 	}
 
-	return "", true
+	// Save parameters values
+	//
+	// Note, repeated parameters may have multiple values associated
+	// with the same parameter
+	for _, paramval := range prs.parameters {
+		name := paramval.param.Name
+		values := prs.byName[name]
+		values = append(values, paramval.value)
+		prs.byName[name] = values
+	}
+}
+
+// validateThings validates things that can only be verified
+// when parsing is done, like missed options requirements etc
+func (prs *parser) validateThings() error {
+	for required, byWhom := range prs.optRequired {
+		if _, found := prs.byName[required]; !found {
+			return fmt.Errorf("missed option %q, required by %q",
+				required, byWhom)
+		}
+	}
+	return nil
 }
 
 // isShortOption tells if argument is a short option
@@ -502,4 +478,28 @@ func (prs *parser) appendOptVal(opt *Option, name, value string,
 	}
 
 	return nil
+}
+
+// done returns true if all arguments are consumed
+func (prs *parser) done() bool {
+	return prs.nextarg == len(prs.argv) || prs.subcmd != nil
+}
+
+// next returns the next argument.
+func (prs *parser) next() (arg string) {
+	if prs.nextarg < len(prs.argv) {
+		arg = prs.argv[prs.nextarg]
+		prs.nextarg++
+	}
+
+	return
+}
+
+// nextValue returns the next argument, of one exist.
+func (prs *parser) nextValue() (val string, novalue bool) {
+	if !prs.done() {
+		return prs.next(), false
+	}
+
+	return "", true
 }
