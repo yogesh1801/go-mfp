@@ -572,6 +572,42 @@ func TestParserCompletion(t *testing.T) {
 			},
 			out: []string{},
 		},
+
+		// Test 4: short option without value
+		{
+			argv: []string{"-x"},
+			cmd: Command{
+				Name: "test",
+				Options: []Option{
+					{Name: "-x"},
+				},
+			},
+			out: []string{},
+		},
+
+		// Test 5: short option without value, then option with value
+		{
+			argv: []string{"-x"},
+			cmd: Command{
+				Name: "test",
+				Options: []Option{
+					{
+						Name: "-a",
+					},
+					{
+						Name:     "-x",
+						Validate: ValidateAny,
+						Complete: CompleteStrings(
+							[]string{
+								"Roger",
+								"Robert",
+							},
+						),
+					},
+				},
+			},
+			out: []string{"Robert", "Roger"},
+		},
 	}
 
 	for i, test := range tests {
