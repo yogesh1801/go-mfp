@@ -93,7 +93,7 @@ func (prs *parser) parse() error {
 		case !doneOptions && prs.isLongOption(arg):
 			err = prs.handleLongOption(arg)
 
-		case !doneOptions && prs.cmd.hasSubCommands():
+		case prs.cmd.hasSubCommands():
 			err = prs.handleSubCommand(arg)
 
 		case len(paramValues) < paramsMax:
@@ -155,7 +155,7 @@ func (prs *parser) complete() (compl []string) {
 		case !doneOptions && prs.isLongOption(arg):
 			done, compl = prs.completeLongOption(arg)
 
-		case !doneOptions && prs.cmd.hasSubCommands():
+		case prs.cmd.hasSubCommands():
 			done, compl = prs.completeSubCommand(arg)
 
 		default:

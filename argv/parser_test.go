@@ -439,6 +439,41 @@ func TestParser(t *testing.T) {
 				"-c": {""},
 			},
 		},
+
+		// Test 22: parameters after '--'
+		{
+			argv: []string{
+				"a", "--", "-b", "--long",
+			},
+			cmd: Command{
+				Name: "test",
+				Parameters: []Parameter{
+					{Name: "param1..."},
+					{Name: "param2"},
+				},
+			},
+			out: map[string][]string{
+				"param1...": {"a", "-b"},
+				"param2":    {"--long"},
+			},
+		},
+
+		// Test 23: '--', followed by sub-commands
+		{
+			argv: []string{
+				"--", "sub-2",
+			},
+			cmd: Command{
+				Name: "test",
+				SubCommands: []Command{
+					{Name: "sub-1"},
+					{Name: "sub-2"},
+					{Name: "sub-3"},
+				},
+			},
+			subcmd:  "sub-2",
+			subargv: []string{},
+		},
 	}
 
 	for i, test := range tests {
