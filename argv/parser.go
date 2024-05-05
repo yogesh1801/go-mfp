@@ -137,11 +137,12 @@ func (prs *parser) parse() error {
 }
 
 // complete handles command auto-completion
-func (prs *parser) complete() []string {
+func (prs *parser) complete() (compl []string) {
+	done := false
 	doneOptions := false
 	paramCount := 0
 
-	for !prs.done() {
+	for !done && !prs.done() {
 		arg := prs.next()
 
 		switch {
@@ -149,24 +150,20 @@ func (prs *parser) complete() []string {
 			doneOptions = true
 
 		case !doneOptions && prs.isShortOption(arg):
-			done, compl := prs.completeShortOption(arg)
-			if done {
-				return compl
-			}
-			//err = prs.handleShortOption(arg)
+			done, compl = prs.completeShortOption(arg)
 
 		case !doneOptions && prs.isLongOption(arg):
-			//err = prs.handleLongOption(arg)
+			done, compl = prs.completeLongOption(arg)
 
 		case !doneOptions && prs.cmd.hasSubCommands():
-			//err = prs.handleSubCommand(arg)
+			done, compl = prs.completeSubCommand(arg)
 
 		default:
 			paramCount++
 		}
 	}
 
-	return nil
+	return
 }
 
 // handleShortOption handles a short option
@@ -315,7 +312,7 @@ func (prs *parser) handleSubCommand(arg string) error {
 	return nil
 }
 
-// completeShortOption performs auto-completion tasks for short options.
+// completeShortOption handles auto-completion for short options.
 func (prs *parser) completeShortOption(arg string) (bool, []string) {
 	// Split into name and value and try to find Option
 	name, val, novalue := prs.splitOptVal(arg)
@@ -348,7 +345,13 @@ func (prs *parser) completeShortOption(arg string) (bool, []string) {
 	return false, nil
 }
 
+// completeShortOption handles auto-completion for long options.
 func (prs *parser) completeLongOption(arg string) (bool, []string) {
+	return true, nil
+}
+
+// completeShortOption handles auto-completion for sub-commands
+func (prs *parser) completeSubCommand(arg string) (bool, []string) {
 	return true, nil
 }
 
