@@ -314,25 +314,45 @@ func (prs *parser) handleSubCommand(arg string) error {
 
 // completeShortOption handles auto-completion for short options.
 func (prs *parser) completeShortOption(arg string) (bool, []string) {
+	return prs.completeOption(arg, false)
+}
+
+// completeLongOption handles auto-completion for long options.
+func (prs *parser) completeLongOption(arg string) (bool, []string) {
+	return prs.completeOption(arg, true)
+}
+
+// completeOption handles auto-completion for options.
+// It's a common procedure for both short and long options
+func (prs *parser) completeOption(arg string, long bool) (bool, []string) {
 	// Split into name and value and try to find Option
 	name, val, novalue := prs.splitOptVal(arg)
 	opt := prs.findOption(name)
 	if opt == nil {
-		// If option is unknown, terminate auto-completion,
-		// because it will be hard to know if the last argument
-		// is a part of option, so synchronization will be lost.
+		// Unknown option; try name auto-completion, if we are
+		// at the end of argv
+		if prs.done() {
+			return false, prs.completeOptionName(arg)
+		}
+
+		// Option is unknown and we are not at the end of argv.
+		//
+		// We have to terminate auto-completion, terminate
+		// auto-completion, because we can't tell if the next
+		// argument is part of the option, so synchronization
+		// is lost here.
 		return true, nil
 	}
 
 	// Do nothing if this is an Option without argument.
 	// This is a good choice even if this is a sequence
-	// of combined options.
+	// of combined short options.
 	if !opt.withValue() {
 		return false, nil
 	}
 
-	// Short option with value in the next argument. We must
-	// consume this argument here.
+	// Option with value in the next argument. We must consume
+	// this argument here.
 	if novalue {
 		val = prs.next()
 	}
@@ -345,9 +365,20 @@ func (prs *parser) completeShortOption(arg string) (bool, []string) {
 	return false, nil
 }
 
-// completeShortOption handles auto-completion for long options.
-func (prs *parser) completeLongOption(arg string) (bool, []string) {
-	return true, nil
+// completeOptionName returns slice of completion candidates for
+// Option name
+func (prs *parser) completeOptionName(arg string) (compl []string) {
+	for _, opt := range prs.cmd.Options {
+		if strings.HasPrefix(opt.Name, arg) {
+			compl = append(compl, opt.Name[len(arg):])
+		}
+
+		for _, name := range opt.Aliases {
+			compl = append(compl, name[len(arg):])
+		}
+	}
+
+	return
 }
 
 // completeShortOption handles auto-completion for sub-commands

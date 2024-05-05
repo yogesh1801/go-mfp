@@ -620,9 +620,10 @@ func TestParserCompletion(t *testing.T) {
 			out: []string{},
 		},
 
-		// Test 5: short option without value, then option with value
+		// Test 5: short option without value,
+		// then option that needs value
 		{
-			argv: []string{"-x"},
+			argv: []string{"-a", "-x"},
 			cmd: Command{
 				Name: "test",
 				Options: []Option{
@@ -631,6 +632,127 @@ func TestParserCompletion(t *testing.T) {
 					},
 					{
 						Name:     "-x",
+						Validate: ValidateAny,
+						Complete: CompleteStrings(
+							[]string{
+								"Roger",
+								"Robert",
+							},
+						),
+					},
+				},
+			},
+			out: []string{"Robert", "Roger"},
+		},
+
+		// Test 6: long option, separate argument
+		{
+			argv: []string{"--long", "Ro"},
+			cmd: Command{
+				Name: "test",
+				Options: []Option{
+					{
+						Name:     "--long",
+						Validate: ValidateAny,
+						Complete: CompleteStrings(
+							[]string{
+								"Roger",
+								"Robert",
+							},
+						),
+					},
+				},
+			},
+			out: []string{"bert", "ger"},
+		},
+
+		// Test 7: long option with embedded argument
+		{
+			argv: []string{"--long=Ro"},
+			cmd: Command{
+				Name: "test",
+				Options: []Option{
+					{
+						Name:     "--long",
+						Validate: ValidateAny,
+						Complete: CompleteStrings(
+							[]string{
+								"Roger",
+								"Robert",
+							},
+						),
+					},
+				},
+			},
+			out: []string{"bert", "ger"},
+		},
+
+		// Test 8: long option, missed argument
+		{
+			argv: []string{"--long"},
+			cmd: Command{
+				Name: "test",
+				Options: []Option{
+					{
+						Name:     "--long",
+						Validate: ValidateAny,
+						Complete: CompleteStrings(
+							[]string{
+								"Roger",
+								"Robert",
+							},
+						),
+					},
+				},
+			},
+			out: []string{"Robert", "Roger"},
+		},
+
+		// Test 9: long option with preceding unknown optipn
+		{
+			argv: []string{"--unknown", "--long", "Ro"},
+			cmd: Command{
+				Name: "test",
+				Options: []Option{
+					{
+						Name:     "--long",
+						Validate: ValidateAny,
+						Complete: CompleteStrings(
+							[]string{
+								"Roger",
+								"Robert",
+							},
+						),
+					},
+				},
+			},
+			out: []string{},
+		},
+
+		// Test 10: long option without value
+		{
+			argv: []string{"--long"},
+			cmd: Command{
+				Name: "test",
+				Options: []Option{
+					{Name: "--long"},
+				},
+			},
+			out: []string{},
+		},
+
+		// Test 11: long option without value,
+		// then option that needs value
+		{
+			argv: []string{"--void", "--long"},
+			cmd: Command{
+				Name: "test",
+				Options: []Option{
+					{
+						Name: "--void",
+					},
+					{
+						Name:     "--long",
 						Validate: ValidateAny,
 						Complete: CompleteStrings(
 							[]string{
