@@ -163,6 +163,10 @@ func (prs *parser) complete() (compl []string) {
 		}
 	}
 
+	if compl == nil && prs.cmd.hasSubCommands() {
+		_, compl = prs.completeSubCommand("")
+	}
+
 	return
 }
 
@@ -368,7 +372,9 @@ func (prs *parser) completeOption(arg string, long bool) (bool, []string) {
 // completeOptionName returns slice of completion candidates for
 // Option name
 func (prs *parser) completeOptionName(arg string) (compl []string) {
-	for _, opt := range prs.cmd.Options {
+	for i := range prs.cmd.Options {
+		opt := &prs.cmd.Options[i]
+
 		if strings.HasPrefix(opt.Name, arg) {
 			compl = append(compl, opt.Name[len(arg):])
 		}
@@ -383,7 +389,15 @@ func (prs *parser) completeOptionName(arg string) (compl []string) {
 
 // completeShortOption handles auto-completion for sub-commands
 func (prs *parser) completeSubCommand(arg string) (bool, []string) {
-	return true, nil
+	var compl []string
+	for i := range prs.cmd.SubCommands {
+		subcmd := &prs.cmd.SubCommands[i]
+		if strings.HasPrefix(subcmd.Name, arg) {
+			compl = append(compl, subcmd.Name[len(arg):])
+		}
+	}
+
+	return true, compl
 }
 
 // buildByName populates prs.byName map

@@ -765,6 +765,32 @@ func TestParserCompletion(t *testing.T) {
 			},
 			out: []string{"Robert", "Roger"},
 		},
+
+		// Test 12: sub-commands, successful completion with prefix
+		{
+			argv: []string{"Ro"},
+			cmd: Command{
+				Name: "test",
+				SubCommands: []Command{
+					{Name: "Roger"},
+					{Name: "Robert"},
+				},
+			},
+			out: []string{"bert", "ger"},
+		},
+
+		// Test 12: sub-commands, successful completion without prefix
+		{
+			argv: []string{},
+			cmd: Command{
+				Name: "test",
+				SubCommands: []Command{
+					{Name: "Roger"},
+					{Name: "Robert"},
+				},
+			},
+			out: []string{"Robert", "Roger"},
+		},
 	}
 
 	for i, test := range tests {
