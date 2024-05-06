@@ -92,8 +92,8 @@ type Option struct {
 	// Aliases are the option aliases, if any.
 	Aliases []string
 
-	// Usage string, a single-line description.
-	Usage string
+	// Help string, a single-line description.
+	Help string
 
 	// Conflicts, if not nit, contains names of other Options
 	// that MUST NOT be used together with this option.
@@ -173,8 +173,8 @@ type Parameter struct {
 	// Name is the parameter name.
 	Name string
 
-	// Usage string, a single-line description.
-	Usage string
+	// Help string, a single-line description.
+	Help string
 
 	// Validate callback called to validate parameter
 	Validate func(string) error
@@ -341,14 +341,19 @@ func (cmd *Command) Complete(cmdline string) []string {
 	return nil
 }
 
+// hasOptions tells if Command has Options
+func (cmd *Command) hasOptions() bool {
+	return len(cmd.Options) != 0
+}
+
 // hasParameters tells if Command has Parameters
 func (cmd *Command) hasParameters() bool {
-	return cmd.Parameters != nil
+	return len(cmd.Parameters) != 0
 }
 
 // hasSubCommands tells if Command has SubCommands
 func (cmd *Command) hasSubCommands() bool {
-	return cmd.SubCommands != nil
+	return len(cmd.SubCommands) != 0
 }
 
 // ----- Option methods -----
