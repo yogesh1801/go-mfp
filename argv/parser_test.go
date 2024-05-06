@@ -666,7 +666,38 @@ func TestParserCompletion(t *testing.T) {
 			out: []string{"bert", "ger"},
 		},
 
-		// Test 7: long option with embedded argument
+		// Test 7: two options, second completes
+		{
+			argv: []string{"--first", "1", "--second", "Ro"},
+			cmd: Command{
+				Name: "test",
+				Options: []Option{
+					{
+						Name:     "--first",
+						Validate: ValidateAny,
+						Complete: CompleteStrings(
+							[]string{
+								"1",
+								"2",
+							},
+						),
+					},
+					{
+						Name:     "--second",
+						Validate: ValidateAny,
+						Complete: CompleteStrings(
+							[]string{
+								"Roger",
+								"Robert",
+							},
+						),
+					},
+				},
+			},
+			out: []string{"bert", "ger"},
+		},
+
+		// Test 8: long option with embedded argument
 		{
 			argv: []string{"--long=Ro"},
 			cmd: Command{
@@ -687,7 +718,7 @@ func TestParserCompletion(t *testing.T) {
 			out: []string{"bert", "ger"},
 		},
 
-		// Test 8: long option, missed argument
+		// Test 9: long option, missed argument
 		{
 			argv: []string{"--long"},
 			cmd: Command{
@@ -708,7 +739,7 @@ func TestParserCompletion(t *testing.T) {
 			out: []string{"Robert", "Roger"},
 		},
 
-		// Test 9: long option with preceding unknown optipn
+		// Test 10: long option with preceding unknown optipn
 		{
 			argv: []string{"--unknown", "--long", "Ro"},
 			cmd: Command{
@@ -729,7 +760,7 @@ func TestParserCompletion(t *testing.T) {
 			out: []string{},
 		},
 
-		// Test 10: long option without value
+		// Test 11: long option without value
 		{
 			argv: []string{"--long"},
 			cmd: Command{
@@ -741,7 +772,7 @@ func TestParserCompletion(t *testing.T) {
 			out: []string{},
 		},
 
-		// Test 11: long option without value,
+		// Test 12: long option without value,
 		// then option that needs value
 		{
 			argv: []string{"--void", "--long"},
@@ -766,7 +797,21 @@ func TestParserCompletion(t *testing.T) {
 			out: []string{"Robert", "Roger"},
 		},
 
-		// Test 12: sub-commands, successful completion with prefix
+		// Test 13: long option name auto-completion
+		{
+			argv: []string{"--long"},
+			cmd: Command{
+				Name: "test",
+				Options: []Option{
+					{Name: "--long-1"},
+					{Name: "--long-2"},
+					{Name: "--other", Aliases: []string{"--long-3"}},
+				},
+			},
+			out: []string{"-1", "-2", "-3"},
+		},
+
+		// Test 14: sub-commands, successful completion with prefix
 		{
 			argv: []string{"Ro"},
 			cmd: Command{
@@ -779,7 +824,7 @@ func TestParserCompletion(t *testing.T) {
 			out: []string{"bert", "ger"},
 		},
 
-		// Test 12: sub-commands, successful completion without prefix
+		// Test 15: sub-commands, successful completion without prefix
 		{
 			argv: []string{},
 			cmd: Command{
@@ -790,6 +835,144 @@ func TestParserCompletion(t *testing.T) {
 				},
 			},
 			out: []string{"Robert", "Roger"},
+		},
+
+		// Test 16: option, "--", sub-commands
+		{
+			argv: []string{"--long", "value", "--", "Ro"},
+			cmd: Command{
+				Name: "test",
+				Options: []Option{
+					{Name: "--long", Validate: ValidateAny},
+				},
+				SubCommands: []Command{
+					{Name: "Roger"},
+					{Name: "Robert"},
+				},
+			},
+			out: []string{"bert", "ger"},
+		},
+
+		// Test 17: sub-commands, extra parameter
+		{
+			argv: []string{"extra", "Ro"},
+			cmd: Command{
+				Name: "test",
+				SubCommands: []Command{
+					{Name: "Roger"},
+					{Name: "Robert"},
+				},
+			},
+			out: []string{},
+		},
+
+		// Test 18: parameter completion
+		{
+			argv: []string{"Ro"},
+			cmd: Command{
+				Name: "test",
+				Parameters: []Parameter{
+					{
+						Name: "param",
+						Complete: CompleteStrings(
+							[]string{
+								"Roger",
+								"Robert",
+							},
+						),
+					},
+				},
+			},
+			out: []string{"bert", "ger"},
+		},
+
+		// Test 19: options, '--', parameter
+		{
+			argv: []string{"-c", "--", "Ro"},
+			cmd: Command{
+				Name: "test",
+				Options: []Option{
+					{Name: "-c"},
+				},
+				Parameters: []Parameter{
+					{
+						Name: "param",
+						Complete: CompleteStrings(
+							[]string{
+								"Roger",
+								"Robert",
+							},
+						),
+					},
+				},
+			},
+			out: []string{"bert", "ger"},
+		},
+
+		// Test 20: parameter completion, extra parameter
+		{
+			argv: []string{"extra", "Ro"},
+			cmd: Command{
+				Name: "test",
+				Parameters: []Parameter{
+					{
+						Name: "param",
+						Complete: CompleteStrings(
+							[]string{
+								"Roger",
+								"Robert",
+							},
+						),
+					},
+				},
+			},
+			out: []string{},
+		},
+
+		// Test 21: parameter completion, repeated first
+		{
+			argv: []string{"extra", "Ro"},
+			cmd: Command{
+				Name: "test",
+				Parameters: []Parameter{
+					{
+						Name: "param1...",
+						Complete: CompleteStrings(
+							[]string{
+								"Roger",
+								"Robert",
+							},
+						),
+					},
+					{
+						Name: "param2",
+					},
+				},
+			},
+			out: []string{"bert", "ger"},
+		},
+
+		// Test 22: parameter completion, repeated last
+		{
+			argv: []string{"extra", "Ro"},
+			cmd: Command{
+				Name: "test",
+				Parameters: []Parameter{
+					{
+						Name: "param1...",
+					},
+					{
+						Name: "param1",
+						Complete: CompleteStrings(
+							[]string{
+								"Roger",
+								"Robert",
+							},
+						),
+					},
+				},
+			},
+			out: []string{},
 		},
 	}
 

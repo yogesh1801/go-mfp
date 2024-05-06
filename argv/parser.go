@@ -141,8 +141,10 @@ func (prs *parser) complete() (compl []string) {
 	done := false
 	doneOptions := false
 	paramCount := 0
+	paramLast := ""
 
-	for !done && !prs.done() {
+	// Roll over all arguments. Options completions handled here, in-line
+	for !prs.done() {
 		arg := prs.next()
 
 		switch {
@@ -155,16 +157,27 @@ func (prs *parser) complete() (compl []string) {
 		case !doneOptions && prs.isLongOption(arg):
 			done, compl = prs.completeLongOption(arg)
 
-		case prs.cmd.hasSubCommands():
-			done, compl = prs.completeSubCommand(arg)
-
 		default:
-			paramCount++
+			paramLast = arg
+			if !prs.done() {
+				paramCount++
+			}
+		}
+
+		if done {
+			return
 		}
 	}
 
-	if compl == nil && prs.cmd.hasSubCommands() {
-		_, compl = prs.completeSubCommand("")
+	// Handle completion of sub-commands or last parameter
+	if compl == nil {
+		switch {
+		case prs.cmd.hasParameters():
+			_, compl = prs.completeParameter(paramLast, paramCount)
+
+		case prs.cmd.hasSubCommands() && paramCount == 0:
+			_, compl = prs.completeSubCommand(paramLast)
+		}
 	}
 
 	return
@@ -369,6 +382,39 @@ func (prs *parser) completeOption(arg string, long bool) (bool, []string) {
 	return false, nil
 }
 
+// completeShortOption handles auto-completion for positional
+// Parameters. 'n' is the count of preceding Parameters.
+func (prs *parser) completeParameter(arg string, n int) (bool, []string) {
+	var paramFound *Parameter
+
+	for i := range prs.cmd.Parameters {
+		param := &prs.cmd.Parameters[i]
+		if i == n || param.repeated() {
+			paramFound = param
+			break
+		}
+	}
+
+	if paramFound != nil {
+		return true, paramFound.complete(arg)
+	}
+
+	return true, nil
+}
+
+// completeShortOption handles auto-completion for sub-commands
+func (prs *parser) completeSubCommand(arg string) (bool, []string) {
+	var compl []string
+	for i := range prs.cmd.SubCommands {
+		subcmd := &prs.cmd.SubCommands[i]
+		if strings.HasPrefix(subcmd.Name, arg) {
+			compl = append(compl, subcmd.Name[len(arg):])
+		}
+	}
+
+	return true, compl
+}
+
 // completeOptionName returns slice of completion candidates for
 // Option name
 func (prs *parser) completeOptionName(arg string) (compl []string) {
@@ -385,19 +431,6 @@ func (prs *parser) completeOptionName(arg string) (compl []string) {
 	}
 
 	return
-}
-
-// completeShortOption handles auto-completion for sub-commands
-func (prs *parser) completeSubCommand(arg string) (bool, []string) {
-	var compl []string
-	for i := range prs.cmd.SubCommands {
-		subcmd := &prs.cmd.SubCommands[i]
-		if strings.HasPrefix(subcmd.Name, arg) {
-			compl = append(compl, subcmd.Name[len(arg):])
-		}
-	}
-
-	return true, compl
 }
 
 // buildByName populates prs.byName map
