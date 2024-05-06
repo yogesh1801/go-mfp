@@ -14,6 +14,10 @@ import (
 
 var testCommandWithParameters = Command{
 	Name: "copy-files",
+	Description: "this command copies multiple input files\n" +
+		"info the single output.\n" +
+		"\n" +
+		"optionally, output can be compressed",
 	Options: []Option{
 		{
 			Name:    "-c",
@@ -49,6 +53,11 @@ Options are:
                     use gzip compression
                     (slower but compresses better)
   -h, --help        print help page
+
+this command copies multiple input files
+info the single output.
+
+optionally, output can be compressed
 `
 
 func TestHelp(t *testing.T) {

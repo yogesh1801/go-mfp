@@ -33,8 +33,8 @@ type Command struct {
 	// Usage string, a single-line description.
 	Usage string
 
-	// Help text, a long description.
-	Help string
+	// Description contains a long command explanation.
+	Description string
 
 	// Options, if any.
 	Options []Option

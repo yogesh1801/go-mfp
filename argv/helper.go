@@ -83,6 +83,7 @@ func newHelper(cmd *Command, out io.Writer) *helper {
 func (hlp *helper) generate() {
 	hlp.describeUsageLine()
 	hlp.describeOptions()
+	hlp.describeCommandLong()
 }
 
 // describeUsageLine describes usage in a single line
@@ -138,6 +139,18 @@ func (hlp *helper) describeOptions() {
 			}
 		}
 	}
+}
+
+// describeCommandLong writes a long command description
+func (hlp *helper) describeCommandLong() {
+	cmd := hlp.cmd
+
+	if cmd.Description != "" {
+		hlp.nl()
+		hlp.puts(cmd.Description)
+		hlp.nl()
+	}
+
 }
 
 // optionNames merges together Option names
