@@ -13,6 +13,12 @@ import (
 	"unicode"
 )
 
+var (
+	// tokErrorUntermString returned by Tokenize(), if input
+	// string contains unbalanced quote characters (")
+	errUntermString = errors.New("unterminated string")
+)
+
 // Tokenize splits command line string into separate arguments.
 //
 // It understands the following syntax:
@@ -60,8 +66,11 @@ func Tokenize(line string) ([]string, error) {
 	acc := 0
 	tokens := []string{}
 
+	// Roll over the string, rune by rune.
+	//
+	// The classical regular finite state machine
+	// is implemented here.
 	for _, c := range line {
-
 		switch state {
 		case tkSpace, tkWord:
 			if c == '"' {
@@ -165,15 +174,22 @@ func Tokenize(line string) ([]string, error) {
 		}
 	}
 
+	// Now look to the final state...
+	var err error
+
 	switch state {
 	case tkWord:
 		tokens = append(tokens, token)
 
-	case tkQuote, tkQuoteBs, tkHex1, tkHex2, tkOct1, tkOct2:
-		return nil, errors.New("unterminated string")
+	case tkQuote, tkQuoteBs:
+		tokens = append(tokens, token)
+		err = errUntermString
+
+	case tkHex1, tkHex2, tkOct1, tkOct2:
+		return nil, errUntermString
 	}
 
-	return tokens, nil
+	return tokens, err
 }
 
 // octal returns numerical value of octal digit c.

@@ -102,6 +102,13 @@ func TestTokenize(t *testing.T) {
 		// Errors handling
 		{
 			in:  `"param1" "param2`,
+			out: []string{"param1", "param2"},
+			err: `unterminated string`,
+		},
+
+		{
+			in:  `"param1" "param2\`,
+			out: []string{"param1", "param2"},
 			err: `unterminated string`,
 		},
 	}
