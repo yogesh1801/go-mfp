@@ -60,6 +60,53 @@ info the single output.
 optionally, output can be compressed
 `
 
+var testCommandWithSubCommands = Command{
+	Name: "test",
+	Options: []Option{
+		{
+			Name:    "-v",
+			Aliases: []string{"--verbose"},
+			Help:    "enable verbose logging",
+		},
+		HelpOption,
+	},
+	SubCommands: []Command{
+		{
+			Name:        "connect",
+			Help:        "connect to the server",
+			Description: "connect establishes server connection",
+		},
+		{
+			Name:        "disconnect",
+			Help:        "disconnect from the server",
+			Description: "disconnect terminates the server connection",
+		},
+
+		{
+			Name:        "send-files-to-server",
+			Help:        "send-files-to-server uploads the files",
+			Description: "send-files-to-server uploads files to server",
+		},
+
+		HelpCommand,
+	},
+}
+
+var testCommandWithSubCommandsHelp = `
+usage: test [options] command [arguments]
+
+Options are:
+  -v, --verbose     enable verbose logging
+  -h, --help        print help page
+
+Commands are:
+  connect           connect to the server
+  disconnect        disconnect from the server
+  send-files-to-server
+                    send-files-to-server uploads the files
+  help              print help page
+`
+
 func TestHelp(t *testing.T) {
 	type testData struct {
 		cmd *Command
@@ -68,6 +115,7 @@ func TestHelp(t *testing.T) {
 
 	tests := []testData{
 		{&testCommandWithParameters, testCommandWithParametersHelp[1:]},
+		{&testCommandWithSubCommands, testCommandWithSubCommandsHelp[1:]},
 	}
 
 	for i, test := range tests {

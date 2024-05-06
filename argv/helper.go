@@ -17,25 +17,39 @@ import (
 
 // Constants (formatting parameters)
 //
-//                                     |<>|<-- hlpMinColumnSpace
+//                                         |<>|<-- hlpMinColumnSpace
 //
-//                     Options are:
-//                       -c, --compress    compress output
-//   hlpOffOptionName -->
-//   hlpOffOptionHelp -------------------->
+//                         Options are:
+//                           -c, --compress    compress output
+//   hlpOffOptionName ------>
+//   hlpOffOptionHelp -----0000--------------->
+//
+//                         Commands are:
+//                           connect           connect to the server
+//   hlpOffSubCommandName -->
+//   hlpOffSubCommandHelp -------------------->
+//
 const (
-	hlpOffOptionName  = 2
-	hlpOffOptionHelp  = 20
-	hlpMinColumnSpace = 2
+	hlpOffOptionName     = 2
+	hlpOffOptionHelp     = 20
+	hlpOffSubCommandName = hlpOffOptionName
+	hlpOffSubCommandHelp = hlpOffOptionHelp
+	hlpMinColumnSpace    = 2
 )
 
 // Precomputed strings
 var (
-	// Prefix before option name
-	hlpPfxOptionName = strings.Repeat(" ", hlpOffOptionName)
+	// Space before option name
+	hlpSpcOptionName = strings.Repeat(" ", hlpOffOptionName)
 
-	// Prefix before option usage text
-	hlpPfxOptionHelp = strings.Repeat(" ", hlpOffOptionHelp)
+	// Space before option usage text
+	hlpSpcOptionHelp = strings.Repeat(" ", hlpOffOptionHelp)
+
+	// Space before sub-command name
+	hlpSpcSubCommandName = strings.Repeat(" ", hlpOffSubCommandName)
+
+	// Space before sub-command help
+	hlpSpcSubCommandHelp = strings.Repeat(" ", hlpOffOptionHelp)
 )
 
 // helper builds help
@@ -83,6 +97,7 @@ func newHelper(cmd *Command, out io.Writer) *helper {
 func (hlp *helper) generate() {
 	hlp.describeUsageLine()
 	hlp.describeOptions()
+	hlp.describeSubCommands()
 	hlp.describeCommandLong()
 }
 
@@ -121,21 +136,69 @@ func (hlp *helper) describeOptions() {
 
 	for i := range cmd.Options {
 		opt := &cmd.Options[i]
-		names := hlpPfxOptionName + hlp.optionNames(opt)
+		names := hlpSpcOptionName + hlp.optionNames(opt)
 		hlp.puts(names)
 
-		usage := strings.Split(opt.Help, "\n")
-		if len(usage) > 0 {
+		help := strings.Split(opt.Help, "\n")
+		if len(help) > 0 {
 			if len(names)+hlpMinColumnSpace <= hlpOffOptionHelp {
-				hlp.space(hlpOffOptionHelp - len(names))
-				hlp.puts(usage[0] + "\n")
-				usage = usage[1:]
+				if help[0] != "" {
+					hlp.space(hlpOffOptionHelp -
+						len(names))
+					hlp.puts(help[0])
+				}
+				hlp.nl()
+				help = help[1:]
 			} else {
 				hlp.nl()
 			}
 
-			for _, line := range usage {
-				hlp.puts(hlpPfxOptionHelp + line + "\n")
+			for _, line := range help {
+				if line != "" {
+					hlp.puts(hlpSpcOptionHelp + line)
+				}
+				hlp.nl()
+			}
+		}
+	}
+}
+
+// describeOptions describes command sub-commands
+func (hlp *helper) describeSubCommands() {
+	cmd := hlp.cmd
+
+	if !cmd.hasSubCommands() {
+		return
+	}
+
+	hlp.nl()
+	hlp.puts("Commands are:\n")
+
+	for i := range cmd.SubCommands {
+		subcmd := &cmd.SubCommands[i]
+
+		name := hlpSpcSubCommandName + subcmd.Name
+		hlp.puts(name)
+
+		help := strings.Split(subcmd.Help, "\n")
+		if len(help) > 0 {
+			if len(name)+hlpMinColumnSpace <= hlpOffSubCommandHelp {
+				if help[0] != "" {
+					hlp.space(hlpOffSubCommandHelp -
+						len(name))
+					hlp.puts(help[0])
+				}
+				hlp.nl()
+				help = help[1:]
+			} else {
+				hlp.nl()
+			}
+
+			for _, line := range help {
+				if line != "" {
+					hlp.puts(hlpSpcOptionHelp + line)
+				}
+				hlp.nl()
 			}
 		}
 	}
