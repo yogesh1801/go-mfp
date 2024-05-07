@@ -15,7 +15,7 @@ import (
 	"strings"
 
 	"github.com/alexpevzner/mfp/argv"
-	"github.com/alexpevzner/mfp/mains"
+	"github.com/alexpevzner/mfp/mainfunc"
 	"github.com/peterh/liner"
 )
 
@@ -28,7 +28,7 @@ func main() {
 	editline.SetCtrlCAborts(true)
 
 	// Setup history
-	historyPath := mains.PathUserConfDir("mfp")
+	historyPath := mainfunc.PathUserConfDir("mfp")
 	os.MkdirAll(historyPath, 0755)
 
 	historyPath = filepath.Join(historyPath, "mfp-shell.history")
@@ -81,7 +81,7 @@ func exec(line string) (savehistory bool, err error) {
 	// Update history
 
 	// Lookup the command
-	cmd := mains.CommandByName(tokens[0])
+	cmd := mainfunc.CommandByName(tokens[0])
 	if cmd == nil {
 		err = fmt.Errorf("%q: command not found", tokens[0])
 		return true, err

@@ -11,10 +11,10 @@ package main
 import (
 	"os"
 
-	"github.com/alexpevzner/mfp/mains"
+	"github.com/alexpevzner/mfp/mainfunc"
 )
 
 // main function for the mfp-cups command
 func main() {
-	mains.MainCups(os.Args)
+	mainfunc.MainCups(os.Args)
 }

@@ -12,7 +12,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/alexpevzner/mfp/mains"
+	"github.com/alexpevzner/mfp/mainfunc"
 )
 
 // main function for the mfp-cups command
@@ -21,14 +21,14 @@ func main() {
 	if len(os.Args) != 2 {
 		fmt.Printf("Usage: mfp command [args...]\n")
 		fmt.Printf("Commands are:\n")
-		for _, cmd := range mains.Commands {
+		for _, cmd := range mainfunc.Commands {
 			fmt.Printf("    %s\n", cmd.Name)
 		}
 		os.Exit(1)
 	}
 
 	// Lookup the command
-	cmd := mains.CommandByName(os.Args[1])
+	cmd := mainfunc.CommandByName(os.Args[1])
 	if cmd == nil {
 		fmt.Printf("%s: command not found\n", os.Args[1])
 		os.Exit(1)

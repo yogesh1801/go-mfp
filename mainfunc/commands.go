@@ -1,12 +1,12 @@
-// MFP   - Miulti-Function Printers and scanners toolkit
-// mains - Main functions for all commands
+// MFP      - Miulti-Function Printers and scanners toolkit
+// mainfunc - Main functions for all commands
 //
 // Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
 // See LICENSE for license terms and conditions
 //
 // List of all commands
 
-package mains
+package mainfunc
 
 // Command contains a command's description
 type Command struct {
