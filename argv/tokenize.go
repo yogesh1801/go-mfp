@@ -49,7 +49,7 @@ var (
 // return value, but it will do it best to pick up tokens correctly; this
 // is useful for auto-completion.
 func Tokenize(line string) ([]string, error) {
-	argv, _, err := TokenizeEx(line)
+	argv, _, _, err := TokenizeEx(line)
 	return argv, err
 }
 
@@ -58,16 +58,20 @@ func Tokenize(line string) ([]string, error) {
 //
 // Additional information, returned by this function:
 //
-//   tail - if string terminates within unfinished escape sequence,
-//          tail contains unprocessed characters of that sequence
+//   tail    - if string terminates within unfinished escape sequence,
+//             tail contains unprocessed characters of that sequence
+//
+//   tailspc - contains space characters, located after the last
+//             recognized token
 //
 // Examples:
 //
-//                 argv      tail
+//                    argv     tail    tailspc
 //
-//   "param   -> ["param"]   ""
-//   "param\  -> ["param"]   "\"
-func TokenizeEx(line string) (argv []string, tail string, err error) {
+//   `"param`   -> ["param"]   ``       ``
+//   `"param\`  -> ["param"]   `\`      ``
+//   `param  `  -> ["param"]   ``       `  `
+func TokenizeEx(line string) (argv []string, tail, tailspc string, err error) {
 	type tkState int
 	const (
 		tkSpace   tkState = iota
@@ -89,11 +93,16 @@ func TokenizeEx(line string) (argv []string, tail string, err error) {
 	// The classical regular finite state machine
 	// is implemented here.
 	for _, c := range line {
+		isspace := unicode.IsSpace(c)
+		if isspace {
+			tailspc += string(c)
+		}
+
 		switch state {
 		case tkSpace, tkWord:
 			if c == '"' {
 				state = tkQuote
-			} else if unicode.IsSpace(c) {
+			} else if isspace {
 				if state != tkSpace {
 					argv = append(argv, token)
 					token = ""
@@ -201,6 +210,10 @@ func TokenizeEx(line string) (argv []string, tail string, err error) {
 		switch state {
 		case tkSpace, tkWord, tkQuote:
 			tail = ""
+		}
+
+		if state != tkSpace {
+			tailspc = ""
 		}
 	}
 

@@ -134,10 +134,11 @@ func TestTokenize(t *testing.T) {
 // TestTokenizeEx performs testing of TokenizExe() function
 func TestTokenizeEx(t *testing.T) {
 	type testData struct {
-		in   string   // Input string
-		argv []string // Expected output
-		tail string   // Expected tail
-		err  string   // Expected error, "" if none
+		in      string   // Input string
+		argv    []string // Expected output
+		tail    string   // Expected tail
+		tailspc string   // Expected tail space
+		err     string   // Expected error, "" if none
 	}
 
 	tests := []testData{
@@ -196,10 +197,34 @@ func TestTokenizeEx(t *testing.T) {
 			tail: ``,
 			err:  `unterminated string`,
 		},
+
+		{
+			in:      `"param1" "param2"  `,
+			argv:    []string{"param1", "param2"},
+			tail:    ``,
+			tailspc: "  ",
+			err:     `unterminated string`,
+		},
+
+		{
+			in:      `"param1" "param2  `,
+			argv:    []string{"param1", "param2  "},
+			tail:    ``,
+			tailspc: "",
+			err:     `unterminated string  `,
+		},
+
+		{
+			in:      `"param1" "param2\  `,
+			argv:    []string{"param1", "param2  "},
+			tail:    ``,
+			tailspc: "",
+			err:     `unterminated string  `,
+		},
 	}
 
 	for i, test := range tests {
-		argv, tail, err := TokenizeEx(test.in)
+		argv, tail, tailspc, err := TokenizeEx(test.in)
 		if err == nil {
 			err = errors.New("")
 		}
@@ -207,6 +232,11 @@ func TestTokenizeEx(t *testing.T) {
 		if tail != test.tail {
 			t.Errorf("[%d]: tail mismatch: expected `%s`, present `%s`",
 				i, test.tail, tail)
+		}
+
+		if tailspc != test.tailspc {
+			t.Errorf("[%d]: tailspc mismatch: expected `%s`, present `%s`",
+				i, test.tailspc, tailspc)
 		}
 
 		if !reflect.DeepEqual(argv, test.argv) {
