@@ -182,9 +182,13 @@ func (cmd *Command) verifySubCommands() error {
 // it returns Action which defines further processing.
 func (cmd *Command) Apply(argv []string) (*Action, error) {
 	prs := newParser(cmd, argv)
-	err := prs.parse()
 
-	return nil, err
+	err := prs.parse()
+	if err != nil {
+		return nil, err
+	}
+
+	return newAction(prs), nil
 }
 
 // Complete returns array of completion suggestions for
