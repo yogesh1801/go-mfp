@@ -24,7 +24,7 @@ var cmdMfp = argv.Command{
 	Main: MainMfp,
 }
 
-// MainMfp implements the 'main' function for the 'mfc' command
+// MainMfp implements the 'main' function for the 'mfp' command
 func MainMfp(argv []string) error {
 	fmt.Printf("%s\n", argv)
 	return nil
