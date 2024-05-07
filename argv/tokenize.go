@@ -49,6 +49,25 @@ var (
 // return value, but it will do it best to pick up tokens correctly; this
 // is useful for auto-completion.
 func Tokenize(line string) ([]string, error) {
+	argv, _, err := TokenizeEx(line)
+	return argv, err
+}
+
+// TokenizeEx does the real work of Tokenize. It returns more information,
+// that Tokenize, and intended for auto-completion.
+//
+// Additional information, returned by this function:
+//
+//   tail - if string terminates within unfinished escape sequence,
+//          tail contains unprocessed characters of that sequence
+//
+// Examples:
+//
+//                 argv      tail
+//
+//   "param   -> ["param"]   ""
+//   "param\  -> ["param"]   "\"
+func TokenizeEx(line string) (argv []string, tail string, err error) {
 	type tkState int
 	const (
 		tkSpace   tkState = iota
@@ -64,7 +83,6 @@ func Tokenize(line string) ([]string, error) {
 	state := tkSpace
 	token := ""
 	acc := 0
-	tokens := []string{}
 
 	// Roll over the string, rune by rune.
 	//
@@ -77,7 +95,7 @@ func Tokenize(line string) ([]string, error) {
 				state = tkQuote
 			} else if unicode.IsSpace(c) {
 				if state != tkSpace {
-					tokens = append(tokens, token)
+					argv = append(argv, token)
 					token = ""
 					state = tkSpace
 				}
@@ -89,6 +107,7 @@ func Tokenize(line string) ([]string, error) {
 		case tkQuote:
 			if c == '\\' {
 				state = tkQuoteBs
+				tail += string(c)
 			} else if c == '"' {
 				state = tkWord
 			} else {
@@ -96,6 +115,8 @@ func Tokenize(line string) ([]string, error) {
 			}
 
 		case tkQuoteBs:
+			tail += string(c)
+
 			switch c {
 			case 'x', 'X':
 				acc = 0
@@ -135,6 +156,8 @@ func Tokenize(line string) ([]string, error) {
 			}
 
 		case tkHex1, tkHex2:
+			tail += string(c)
+
 			if n := hexadecimal(c); n >= 0 {
 				acc = (acc << 4) | n
 				if state == tkHex1 {
@@ -154,6 +177,8 @@ func Tokenize(line string) ([]string, error) {
 			}
 
 		case tkOct1, tkOct2:
+			tail += string(c)
+
 			if n := octal(c); n >= 0 {
 				acc = (acc << 3) | n
 				if state == tkOct1 {
@@ -172,24 +197,23 @@ func Tokenize(line string) ([]string, error) {
 				}
 			}
 		}
+
+		switch state {
+		case tkSpace, tkWord, tkQuote:
+			tail = ""
+		}
 	}
 
 	// Now look to the final state...
-	var err error
-
-	switch state {
-	case tkWord:
-		tokens = append(tokens, token)
-
-	case tkQuote, tkQuoteBs:
-		tokens = append(tokens, token)
+	if state != tkSpace && state != tkWord {
 		err = errUntermString
-
-	case tkHex1, tkHex2, tkOct1, tkOct2:
-		return nil, errUntermString
 	}
 
-	return tokens, err
+	if state != tkSpace {
+		argv = append(argv, token)
+	}
+
+	return
 }
 
 // octal returns numerical value of octal digit c.
