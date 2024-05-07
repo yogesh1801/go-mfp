@@ -9,23 +9,34 @@
 package mainfunc
 
 import (
-	"fmt"
+	"os"
 
 	"github.com/alexpevzner/mfp/argv"
 )
 
 // AllCommands is the argv.Command, that includes all other commands
 // as sub-commands.
-var cmdMfp = argv.Command{
+var cmdMfp = &argv.Command{
 	Name: "mfp",
 	SubCommands: []argv.Command{
 		cmdCups,
+		argv.HelpCommand,
 	},
-	Main: MainMfp,
 }
 
 // MainMfp implements the 'main' function for the 'mfp' command
-func MainMfp(argv []string) error {
-	fmt.Printf("%s\n", argv)
-	return nil
+func MainMfp(args []string) error {
+	act, err := cmdMfp.Apply(args)
+	if err != nil {
+		return err
+	}
+
+	subcmd, subargv := act.SubCommand()
+	if subcmd.Name == argv.HelpCommand.Name {
+		argv.Help(cmdMfp, os.Stdout)
+	} else {
+		err = subcmd.Main(subargv)
+	}
+
+	return err
 }

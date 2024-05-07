@@ -24,7 +24,7 @@ import (
 //           mainfunc.Wrap(mainfunc.MainCups)
 //   }
 func Wrap(main func(argv []string) error) {
-	err := main(os.Args)
+	err := main(os.Args[1:])
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
 		os.Exit(1)
