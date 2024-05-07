@@ -4,10 +4,19 @@
 // Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
 // See LICENSE for license terms and conditions
 //
-// Main function for the cups subcommand
+// Main function for the "cups" command.
 
 package mainfunc
 
-// MainCups implements the 'main' function for the 'cups' subcommand
-func MainCups(args []string) {
+import "github.com/alexpevzner/mfp/argv"
+
+var cmdCups = argv.Command{
+	Name: "cups",
+	Help: "CUPS client",
+	Main: MainCups,
+}
+
+// MainCups implements the 'main' function for the 'cups' command
+func MainCups(argv []string) error {
+	return nil
 }

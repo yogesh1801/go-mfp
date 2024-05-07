@@ -44,6 +44,9 @@ type Command struct {
 
 	// Sub-commands, if any.
 	SubCommands []Command
+
+	// The main function
+	Main func(argv []string) error
 }
 
 // Option defines an option.

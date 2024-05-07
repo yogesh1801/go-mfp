@@ -68,26 +68,18 @@ func main() {
 // be saved to the history file.
 func exec(line string) (savehistory bool, err error) {
 	// Tokenize string
-	tokens, err := argv.Tokenize(line)
+	argv, err := argv.Tokenize(line)
 	if err != nil {
 		return false, err
 	}
 
 	// Ignore empty lines
-	if len(tokens) == 0 {
+	if len(argv) == 0 {
 		return false, nil
 	}
 
-	// Update history
+	// Execute the command
+	err = mainfunc.MainMfp(argv)
 
-	// Lookup the command
-	cmd := mainfunc.CommandByName(tokens[0])
-	if cmd == nil {
-		err = fmt.Errorf("%q: command not found", tokens[0])
-		return true, err
-	}
-
-	cmd.Main(tokens)
-
-	return true, nil
+	return true, err
 }
