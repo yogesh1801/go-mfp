@@ -180,7 +180,7 @@ func (cmd *Command) verifySubCommands() error {
 
 // Apply applies Command to argument. On success
 // it returns Action which defines further processing.
-func (cmd *Command) Apply(argv []string) (*Action, error) {
+func (cmd *Command) Apply(argv []string) (*Invocation, error) {
 	prs := newParser(cmd, argv)
 
 	err := prs.parse()
@@ -188,7 +188,7 @@ func (cmd *Command) Apply(argv []string) (*Action, error) {
 		return nil, err
 	}
 
-	return newAction(prs), nil
+	return newInvocation(prs), nil
 }
 
 // Complete returns array of completion suggestions for

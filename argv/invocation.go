@@ -4,13 +4,15 @@
 // Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
 // See LICENSE for license terms and conditions
 //
-// Action -- contains parsed Command's arguments.
+// Invocation -- contains parsed Command's arguments.
 
 package argv
 
-// Action defines action to be taken when Command is
-// applied to the command line.
-type Action struct {
+// Invocation represents a particular Command invocation.
+//
+// It contains a whole Command execution context, like parsed
+// options and arguments.
+type Invocation struct {
 	// byName contains options and parameters values,
 	// indexed by name.
 	//
@@ -26,28 +28,28 @@ type Action struct {
 	subargv []string
 }
 
-// newAction creates and feels a new Action.
-func newAction(prs *parser) *Action {
-	act := &Action{
+// newInvocation creates and feels a new Invocation.
+func newInvocation(prs *parser) *Invocation {
+	inv := &Invocation{
 		byName:  prs.byName,
 		subcmd:  prs.subcmd,
 		subargv: prs.subargv,
 	}
 
-	act.parameters = make([]string, len(prs.parameters))
+	inv.parameters = make([]string, len(prs.parameters))
 	for i := range prs.parameters {
-		act.parameters[i] = prs.parameters[i].value
+		inv.parameters[i] = prs.parameters[i].value
 	}
 
-	return act
+	return inv
 }
 
 // Get returns the first value of option or parameter by its name.
 //
 // The value of flag options (options that don't expect explicit
 // value) considered to be an empty string.
-func (act *Action) Get(name string) (val string, found bool) {
-	vals, found := act.byName[name]
+func (inv *Invocation) Get(name string) (val string, found bool) {
+	vals, found := inv.byName[name]
 	if found && len(vals) > 0 {
 		val = vals[0]
 	}
@@ -63,13 +65,13 @@ func (act *Action) Get(name string) (val string, found bool) {
 //
 // For repeated flag options, the returned slice will contain one
 // empty string per each occurrence.
-func (act *Action) Values(name string) []string {
-	return act.byName[name]
+func (inv *Invocation) Values(name string) []string {
+	return inv.byName[name]
 }
 
 // ParamCount returns count of positional parameters.
-func (act *Action) ParamCount() int {
-	return len(act.parameters)
+func (inv *Invocation) ParamCount() int {
+	return len(inv.parameters)
 }
 
 // ParamGet returns value of the n-th positional parameter.
@@ -81,9 +83,9 @@ func (act *Action) ParamCount() int {
 // repeated parameters. Repeated parameter will take only one slot
 // in the Parameters slice, but may be repeated (and take many positions)
 // in the Command's argument.
-func (act *Action) ParamGet(n int) string {
-	if 0 <= n && n < len(act.parameters) {
-		return act.parameters[n]
+func (inv *Invocation) ParamGet(n int) string {
+	if 0 <= n && n < len(inv.parameters) {
+		return inv.parameters[n]
 	}
 
 	return ""
@@ -91,6 +93,6 @@ func (act *Action) ParamGet(n int) string {
 
 // SubCommand returns Command's SubCommand and its arguments. If Command
 // doesn't have SubCommands, this function returns (nil, nil).
-func (act *Action) SubCommand() (*Command, []string) {
-	return act.subcmd, act.subargv
+func (inv *Invocation) SubCommand() (*Command, []string) {
+	return inv.subcmd, inv.subargv
 }
