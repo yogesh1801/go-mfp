@@ -44,7 +44,18 @@ func HelpHandler(inv *Invocation) error {
 	if parent == nil {
 		return errors.New("HelpHandler must be used in sub-command")
 	}
-	Help(parent.Cmd(), os.Stdout)
+
+	cmd := inv.parent.Cmd()
+	name, ok := inv.Get("[command]")
+	if ok {
+		subcmd, err := cmd.FindSubCommand(name)
+		if err != nil {
+			return err
+		}
+		cmd = subcmd
+	}
+
+	Help(cmd, os.Stdout)
 
 	return nil
 }
