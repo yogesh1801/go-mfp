@@ -13,6 +13,17 @@ package argv
 // It contains a whole Command execution context, like parsed
 // options and arguments.
 type Invocation struct {
+	// parent is the upper-level Invocation for sub-command
+	// Invocation, nil for the root Invocation.
+	parent *Invocation
+
+	// cmd contains back reference to invoked Command.
+	cmd *Command
+
+	// argv contains original argv being used when Command
+	// was invoked.
+	argv []string
+
 	// byName contains options and parameters values,
 	// indexed by name.
 	//
@@ -28,9 +39,12 @@ type Invocation struct {
 	subargv []string
 }
 
-// newInvocation creates and feels a new Invocation.
-func newInvocation(prs *parser) *Invocation {
+// newInvocation creates and populates a new Invocation.
+func newInvocation(parent *Invocation, prs *parser) *Invocation {
 	inv := &Invocation{
+		parent:  parent,
+		cmd:     prs.cmd,
+		argv:    prs.argv,
 		byName:  prs.byName,
 		subcmd:  prs.subcmd,
 		subargv: prs.subargv,
@@ -42,6 +56,22 @@ func newInvocation(prs *parser) *Invocation {
 	}
 
 	return inv
+}
+
+// Parent returns Invocation's parent, which is the upper-level
+// Invocation in a case of sun-command execution, nil otherwise.
+func (inv *Invocation) Parent() *Invocation {
+	return inv.parent
+}
+
+// Cmd returns a reference to Command, invoked by this Invocation
+func (inv *Invocation) Cmd() *Command {
+	return inv.cmd
+}
+
+// Argv returns the original argv being used when Command was invoked.
+func (inv *Invocation) Argv() []string {
+	return inv.argv
 }
 
 // Get returns the first value of option or parameter by its name.

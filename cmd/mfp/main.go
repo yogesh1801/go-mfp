@@ -14,5 +14,5 @@ import (
 
 // main function for the mfp command
 func main() {
-	mainfunc.Wrap(mainfunc.MainMfp)
+	mainfunc.CmdMfp.Main()
 }

@@ -11,6 +11,7 @@ package argv
 import (
 	"errors"
 	"fmt"
+	"os"
 )
 
 // Command defines a command.
@@ -43,8 +44,9 @@ type Command struct {
 	// Sub-commands, if any.
 	SubCommands []Command
 
-	// The main function
-	Main func(argv []string) error
+	// Handler is called when Command is being invoked.
+	// If Handler is nil, DefaultHandler will be used instead.
+	Handler func(*Invocation) error
 }
 
 // Verify checks correctness of Command definition. It fails if any
@@ -181,6 +183,13 @@ func (cmd *Command) verifySubCommands() error {
 // Parse parses Command's arguments and returns either
 // Invocation or error.
 func (cmd *Command) Parse(argv []string) (*Invocation, error) {
+	return cmd.ParseWithParent(nil, argv)
+}
+
+// ParseWithParent is like (*Command) Parse(), but allows to specify
+// the parent Invocation. It is intended for implementing sub-commands.
+func (cmd *Command) ParseWithParent(parent *Invocation,
+	argv []string) (*Invocation, error) {
 	prs := newParser(cmd, argv)
 
 	err := prs.parse()
@@ -188,7 +197,55 @@ func (cmd *Command) Parse(argv []string) (*Invocation, error) {
 		return nil, err
 	}
 
-	return newInvocation(prs), nil
+	return newInvocation(parent, prs), nil
+}
+
+// Run parses the command, then calls its handler
+func (cmd *Command) Run(argv []string) error {
+	return cmd.RunWithParent(nil, argv)
+}
+
+// RunWithParent is like (*Command) Run(), but allows to specify
+// the parent Invocation. It is intended for implementing sub-commands.
+func (cmd *Command) RunWithParent(parent *Invocation, argv []string) error {
+	inv, err := cmd.ParseWithParent(parent, argv)
+	if err == nil {
+		err = cmd.handler(inv)
+	}
+
+	return err
+}
+
+// Main emulates main function for the command.
+//
+// It is intended to implement the body of the
+// standard main function:
+//
+//   // main function for the MyCommand
+//   func main() {
+//           MyCommand.Main()
+//   }
+//
+// It calls (*Command) Run() passing os.Args as input,
+// prints error message, if any, and returns appropriate
+// status code to the system.
+func (cmd *Command) Main() {
+	err := cmd.Run(os.Args[1:])
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%s\n", err)
+		os.Exit(1)
+	}
+}
+
+// handler calls cmd.Handler, or DefaultHandler, if
+// cmd.Handler is not set.
+func (cmd *Command) handler(inv *Invocation) error {
+	hnd := cmd.Handler
+	if hnd == nil {
+		hnd = DefaultHandler
+	}
+
+	return hnd(inv)
 }
 
 // Complete returns array of completion suggestions for

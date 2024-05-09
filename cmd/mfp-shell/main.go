@@ -79,7 +79,7 @@ func exec(line string) (savehistory bool, err error) {
 	}
 
 	// Execute the command
-	err = mainfunc.MainMfp(argv)
+	err = mainfunc.CmdMfp.Run(argv)
 
 	return true, err
 }

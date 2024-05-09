@@ -10,13 +10,14 @@ package mainfunc
 
 import "github.com/alexpevzner/mfp/argv"
 
-var cmdCups = argv.Command{
-	Name: "cups",
-	Help: "CUPS client",
-	Main: MainCups,
+// CmdCups is the 'cups' command description
+var CmdCups = argv.Command{
+	Name:    "cups",
+	Help:    "CUPS client",
+	Handler: cupsHandler,
 }
 
-// MainCups implements the 'main' function for the 'cups' command
-func MainCups(argv []string) error {
+// MainCups implements the Handler callback of the 'cups' command
+func cupsHandler(*argv.Invocation) error {
 	return nil
 }

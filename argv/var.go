@@ -26,8 +26,9 @@ var (
 		Help: "print help page",
 		Parameters: []Parameter{
 			{
-				Name: "command",
+				Name: "[command]",
 			},
 		},
+		Handler: HelpHandler,
 	}
 )

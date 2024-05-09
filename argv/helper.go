@@ -10,8 +10,10 @@ package argv
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
+	"os"
 	"strings"
 )
 
@@ -76,6 +78,16 @@ func HelpString(cmd *Command) string {
 	buf := &bytes.Buffer{}
 	Help(cmd, buf)
 	return buf.String()
+}
+
+// HelpHandler is the standard Handler for 'help' Command
+func HelpHandler(inv *Invocation) error {
+	parent := inv.Parent()
+	if parent == nil {
+		return errors.New("HelpHandler must be used in sub-command")
+	}
+	Help(parent.Cmd(), os.Stdout)
+	return nil
 }
 
 // newHelper creates a new helper.
