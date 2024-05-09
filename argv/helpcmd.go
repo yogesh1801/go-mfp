@@ -10,6 +10,7 @@ package argv
 
 import (
 	"errors"
+	"io"
 	"os"
 )
 
@@ -36,6 +37,9 @@ var (
 		},
 		Handler: HelpHandler,
 	}
+
+	// HelpOutput is where help output is written
+	HelpOutput io.Writer = os.Stdout
 )
 
 // HelpHandler is the standard Handler for 'help' Command
@@ -55,7 +59,7 @@ func HelpHandler(inv *Invocation) error {
 		cmd = subcmd
 	}
 
-	Help(cmd, os.Stdout)
+	Help(cmd, HelpOutput)
 
 	return nil
 }
