@@ -315,17 +315,14 @@ func (prs *parser) handleParameters(paramValues []string) error {
 
 // handleSubCommand handles a sub-command
 func (prs *parser) handleSubCommand(arg string) error {
-	subcommands := prs.findSubCommand(arg)
-
-	switch {
-	case len(subcommands) == 0:
-		return fmt.Errorf("unknown sub-command: %q", arg)
-	case len(subcommands) > 1:
-		return fmt.Errorf("ambiguous sub-command: %q", arg)
+	subcmd, err := prs.cmd.FindSubCommand(arg)
+	if err != nil {
+		return err
 	}
 
-	prs.subcmd = subcommands[0]
+	prs.subcmd = subcmd
 	prs.subargv = prs.argv[prs.nextarg:]
+
 	return nil
 }
 
@@ -550,33 +547,6 @@ func (prs *parser) paramsInfo() (paramsMin, paramsMax int) {
 	}
 
 	return
-}
-
-// findSubCommand finds Command's SubCommand by name.
-//
-// The name may be abbreviated, so in a case of inexact
-// match it may return more that one possible candidates.
-//
-// If no matches found it will return nil and in a case
-// of exact match it will return just a single command,
-// even if more inexact matches exist
-//
-// This is up to the caller how to handle this ambiguity.
-func (prs *parser) findSubCommand(name string) []*Command {
-	var inexact []*Command
-	for i := range prs.cmd.SubCommands {
-		subcmd := &prs.cmd.SubCommands[i]
-
-		if name == subcmd.Name {
-			return []*Command{subcmd}
-		}
-
-		if strings.HasPrefix(subcmd.Name, name) {
-			inexact = append(inexact, subcmd)
-		}
-	}
-
-	return inexact
 }
 
 // appendOptVal validates option value and appends

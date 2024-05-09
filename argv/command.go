@@ -12,6 +12,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 )
 
 // Command defines a command.
@@ -268,4 +269,54 @@ func (cmd *Command) hasParameters() bool {
 // hasSubCommands tells if Command has SubCommands
 func (cmd *Command) hasSubCommands() bool {
 	return len(cmd.SubCommands) != 0
+}
+
+// FindSubCommand finds a Command's SubCommands by name
+//
+// The name may be abbreviated, and it handles unambiguous
+// abbreviation automatically.
+//
+// If sub-command is not found or ambiguity cannot be resolved,
+// it returns nil and appropriate error.
+//
+// If you want more control, you may want to look to
+// the (*Command) FindSubCommandCandidates() function as well.
+func (cmd *Command) FindSubCommand(name string) (*Command, error) {
+	subcommands := cmd.FindSubCommandCandidates(name)
+
+	switch {
+	case len(subcommands) == 0:
+		return nil, fmt.Errorf("unknown sub-command: %q", name)
+	case len(subcommands) > 1:
+		return nil, fmt.Errorf("ambiguous sub-command: %q", name)
+	}
+
+	return subcommands[0], nil
+}
+
+// FindSubCommandCandidates finds Command's SubCommands by name.
+//
+// The name may be abbreviated, so in a case of inexact
+// match it may return more that one possible candidates.
+//
+// If no matches found it will return nil and in a case
+// of exact match it will return just a single command,
+// even if more inexact matches exist
+//
+// This is up to the caller how to handle this ambiguity.
+func (cmd *Command) FindSubCommandCandidates(name string) []*Command {
+	var inexact []*Command
+	for i := range cmd.SubCommands {
+		subcmd := &cmd.SubCommands[i]
+
+		if name == subcmd.Name {
+			return []*Command{subcmd}
+		}
+
+		if strings.HasPrefix(subcmd.Name, name) {
+			inexact = append(inexact, subcmd)
+		}
+	}
+
+	return inexact
 }
