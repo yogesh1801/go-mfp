@@ -178,9 +178,9 @@ func (cmd *Command) verifySubCommands() error {
 	return nil
 }
 
-// Apply applies Command to argument. On success
-// it returns Action which defines further processing.
-func (cmd *Command) Apply(argv []string) (*Invocation, error) {
+// Parse parses Command's arguments and returns either
+// Invocation or error.
+func (cmd *Command) Parse(argv []string) (*Invocation, error) {
 	prs := newParser(cmd, argv)
 
 	err := prs.parse()

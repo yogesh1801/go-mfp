@@ -26,12 +26,12 @@ var cmdMfp = &argv.Command{
 
 // MainMfp implements the 'main' function for the 'mfp' command
 func MainMfp(args []string) error {
-	act, err := cmdMfp.Apply(args)
+	inv, err := cmdMfp.Parse(args)
 	if err != nil {
 		return err
 	}
 
-	subcmd, subargv := act.SubCommand()
+	subcmd, subargv := inv.SubCommand()
 	if subcmd.Name == argv.HelpCommand.Name {
 		argv.Help(cmdMfp, os.Stdout)
 	} else {
