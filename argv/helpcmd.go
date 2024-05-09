@@ -4,9 +4,14 @@
 // Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
 // See LICENSE for license terms and conditions
 //
-// Public variables
+// The 'help' command
 
 package argv
+
+import (
+	"errors"
+	"os"
+)
 
 var (
 	// HelpOption intended to be used as Option in Command definition
@@ -32,3 +37,14 @@ var (
 		Handler: HelpHandler,
 	}
 )
+
+// HelpHandler is the standard Handler for 'help' Command
+func HelpHandler(inv *Invocation) error {
+	parent := inv.Parent()
+	if parent == nil {
+		return errors.New("HelpHandler must be used in sub-command")
+	}
+	Help(parent.Cmd(), os.Stdout)
+
+	return nil
+}
