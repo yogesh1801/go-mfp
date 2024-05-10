@@ -37,12 +37,22 @@ type Invocation struct {
 	// subcmd is the Command's SubCommand and subargv is its arguments.
 	subcmd  *Command
 	subargv []string
+
+	// immediate is the first Option's Immediate callback, if any
+	immediate func(*Invocation) error
 }
 
 // Parent returns Invocation's parent, which is the upper-level
 // Invocation in a case of sun-command execution, nil otherwise.
 func (inv *Invocation) Parent() *Invocation {
 	return inv.parent
+}
+
+// IsImmediate returns true, if Invocation contains some active Option
+// with non-nil Immediate callback (see Option description for more
+// information).
+func (inv *Invocation) IsImmediate() bool {
+	return inv.immediate != nil
 }
 
 // Cmd returns a reference to Command, invoked by this Invocation

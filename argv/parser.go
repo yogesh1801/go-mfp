@@ -106,16 +106,21 @@ func (prs *parser) parse(parent *Invocation) (*Invocation, error) {
 		}
 	}
 
+	// Check that we have enough parameters. Note, in the
+	// immediate mode this check is suppressed.
+	if prs.inv.immediate == nil {
+		if len(paramValues) < paramsMin {
+			missed := &prs.inv.cmd.Parameters[len(paramValues)]
+			err := fmt.Errorf("missed parameter: %q", missed.Name)
+			return nil, err
+		}
+
+		if prs.inv.cmd.hasSubCommands() && prs.inv.subcmd == nil {
+			return nil, fmt.Errorf("missed sub-command name")
+		}
+	}
+
 	// Toss paramValues
-	if len(paramValues) < paramsMin {
-		missed := &prs.inv.cmd.Parameters[len(paramValues)]
-		return nil, fmt.Errorf("missed parameter: %q", missed.Name)
-	}
-
-	if prs.inv.cmd.hasSubCommands() && prs.inv.subcmd == nil {
-		return nil, fmt.Errorf("missed sub-command name")
-	}
-
 	if prs.inv.cmd.hasParameters() {
 		err := prs.handleParameters(paramValues)
 		if err != nil {
@@ -465,6 +470,12 @@ func (prs *parser) buildByName() {
 // validateThings validates things that can only be verified
 // when parsing is done, like missed options requirements etc
 func (prs *parser) validateThings() error {
+	// These tests are suppressed if immediate option is in use
+	if prs.inv.immediate != nil {
+		return nil
+	}
+
+	// Check for missed required options
 	for required, byWhom := range prs.optRequired {
 		if _, found := prs.inv.byName[required]; !found {
 			return fmt.Errorf("missed option %q, required by %q",
@@ -592,6 +603,10 @@ func (prs *parser) appendOptVal(opt *Option, name, value string,
 	}
 
 	optval.values = append(optval.values, value)
+
+	if opt.Immediate != nil && prs.inv.immediate == nil {
+		prs.inv.immediate = opt.Immediate
+	}
 
 	// Update optConflicts and optRequired
 	for _, conflict := range opt.Conflicts {

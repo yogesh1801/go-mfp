@@ -81,6 +81,19 @@ type Option struct {
 	// (which may be empty) and must return completion
 	// suggestions without that prefix.
 	Complete func(string) []string
+
+	// Immediate, if not nil and option was encountered in
+	// the Command's argv, overrides the Command's handler
+	// and check for missed parameters and options is suppressed
+	// if Immediate is used.
+	//
+	// It is intended to implement options, like --help, that
+	// works as "immediate sub-command override" (even for commands
+	// without sub-commands).
+	//
+	// If there are multiple "immediate" options in the Command's
+	// Invocation, the first one always wins.
+	Immediate func(*Invocation) error
 }
 
 // verify checks correctness of Option definition. It fails if any

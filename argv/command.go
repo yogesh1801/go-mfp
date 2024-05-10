@@ -236,9 +236,13 @@ func (cmd *Command) Main() {
 // handler calls cmd.Handler, or DefaultHandler, if
 // cmd.Handler is not set.
 func (cmd *Command) handler(inv *Invocation) error {
-	hnd := cmd.Handler
-	if hnd == nil {
-		hnd = DefaultHandler
+	hnd := DefaultHandler
+
+	switch {
+	case inv.immediate != nil:
+		hnd = inv.immediate
+	case cmd.Handler != nil:
+		hnd = cmd.Handler
 	}
 
 	return hnd(inv)
