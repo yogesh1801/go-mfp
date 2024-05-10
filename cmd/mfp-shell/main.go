@@ -39,6 +39,8 @@ func main() {
 	}
 
 	// Read and execute line by line
+	fmt.Println("MFP interactive console.")
+	fmt.Println("Confused? Say help!")
 	for {
 		line, err := editline.Prompt("MFP> ")
 		if err != nil {
