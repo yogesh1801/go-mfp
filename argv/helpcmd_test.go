@@ -9,6 +9,7 @@
 package argv
 
 import (
+	"bytes"
 	"testing"
 )
 
@@ -32,11 +33,7 @@ var testCommandWithParameters = Command{
 				"(slower but compresses better)",
 		},
 
-		{
-			Name:    "-h",
-			Aliases: []string{"--help"},
-			Help:    "print help page",
-		},
+		HelpOption,
 	},
 	Parameters: []Parameter{
 		{Name: "input-file..."},
@@ -109,19 +106,36 @@ Commands are:
 
 func TestHelp(t *testing.T) {
 	type testData struct {
-		cmd *Command
-		hlp string
+		argv []string
+		cmd  *Command
+		hlp  string
 	}
 
 	tests := []testData{
-		{&testCommandWithParameters, testCommandWithParametersHelp[1:]},
-		{&testCommandWithSubCommands, testCommandWithSubCommandsHelp[1:]},
+		{
+			argv: []string{"-h"},
+			cmd:  &testCommandWithParameters,
+			hlp:  testCommandWithParametersHelp[1:],
+		},
+
+		{
+			argv: []string{"help"},
+			cmd:  &testCommandWithSubCommands,
+			hlp:  testCommandWithSubCommandsHelp[1:],
+		},
 	}
 
 	for i, test := range tests {
-		hlp := HelpString(test.cmd)
-		if hlp != test.hlp {
+		buf := &bytes.Buffer{}
+		HelpOutput = buf
+		err := test.cmd.Run(test.argv)
+		hlp := buf.String()
+
+		if err != nil {
+			t.Errorf("Test %d: %s", i, err)
+		} else if hlp != test.hlp {
 			t.Errorf("Test %d:", i)
+			t.Errorf("%s:", err)
 			t.Errorf("expected:\n==========\n%s==========", test.hlp)
 			t.Errorf("received:\n==========\n%s==========", hlp)
 		}
