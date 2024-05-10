@@ -31,8 +31,13 @@ func TestMain(t *testing.T) {
 	}
 
 	saveArgs := os.Args
-	saveDie := die
-	defer func() { os.Args = saveArgs; die = saveDie }()
+	saveDieOutput := dieOutput
+	saveDieExit := dieExit
+	defer func() {
+		os.Args = saveArgs
+		dieOutput = saveDieOutput
+		dieExit = saveDieExit
+	}()
 
 	os.Args = []string{"test", "hello", "world"}
 	cmd.Main()
@@ -46,11 +51,13 @@ func TestMain(t *testing.T) {
 	}
 
 	os.Args = []string{"test"}
-	die = func(err error) { buf.Reset(); buf.WriteString(err.Error()) }
+	dieOutput = buf
+	dieExit = func(int) {}
+	buf.Reset()
 
 	cmd.Main()
 
-	expected = `missed parameter: "greeting..."`
+	expected = "missed parameter: \"greeting...\"\n"
 	received = buf.String()
 
 	if expected != received {

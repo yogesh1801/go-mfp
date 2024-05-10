@@ -10,12 +10,20 @@ package argv
 
 import (
 	"fmt"
+	"io"
 	"os"
 )
 
-// die function writes message into the os.Stderr and dies.
-// Having it a pointer to function allows to hook it in testing.
-var die = func(err error) {
-	fmt.Fprintf(os.Stderr, "%s\n", err)
-	os.Exit(1)
+var (
+	// dieOutput and dieExit variables allows to hook
+	// fatal exit on testing, having 100% coverage evem
+	// on that case
+	dieOutput io.Writer = os.Stderr
+	dieExit             = os.Exit
+)
+
+// die writes message into the os.Stderr and dies.
+func die(err error) {
+	fmt.Fprintf(dieOutput, "%s\n", err)
+	dieExit(1)
 }
