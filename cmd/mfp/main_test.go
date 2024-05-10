@@ -24,6 +24,9 @@ func TestMain(t *testing.T) {
 	buf := &bytes.Buffer{}
 	argv.HelpOutput = buf
 
+	saveArgs := os.Args
+	defer func() { os.Args = saveArgs }()
+
 	os.Args = []string{os.Args[0], "-h"}
 	main()
 
