@@ -477,8 +477,7 @@ func TestParser(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		prs := newParser(&test.cmd, test.argv)
-		inv, err := prs.parse(nil)
+		inv, err := test.cmd.Parse(test.argv)
 		if err == nil {
 			err = errors.New("")
 		}
