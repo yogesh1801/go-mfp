@@ -4,11 +4,14 @@
 // Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
 // See LICENSE for license terms and conditions
 //
-// Standard command handlers
+// DefaultHandler for Command
 
 package argv
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 // DefaultHandler is the default Command's Handler
 func DefaultHandler(inv *Invocation) error {
@@ -17,6 +20,6 @@ func DefaultHandler(inv *Invocation) error {
 		return subcmd.RunWithParent(inv, subargv)
 	}
 
-	fmt.Printf("%s %s\n", inv.Cmd().Name, inv.Argv())
-	return nil
+	argv := append([]string{inv.Cmd().Name}, inv.Argv()...)
+	return fmt.Errorf("unhandled command: %s", strings.Join(argv, " "))
 }
