@@ -193,12 +193,7 @@ func (cmd *Command) ParseWithParent(parent *Invocation,
 	argv []string) (*Invocation, error) {
 	prs := newParser(cmd, argv)
 
-	err := prs.parse()
-	if err != nil {
-		return nil, err
-	}
-
-	return newInvocation(parent, prs), nil
+	return prs.parse(parent)
 }
 
 // Run parses the command, then calls its handler

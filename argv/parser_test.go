@@ -478,7 +478,7 @@ func TestParser(t *testing.T) {
 
 	for i, test := range tests {
 		prs := newParser(&test.cmd, test.argv)
-		err := prs.parse()
+		inv, err := prs.parse(nil)
 		if err == nil {
 			err = errors.New("")
 		}
@@ -487,7 +487,7 @@ func TestParser(t *testing.T) {
 			t.Errorf("[%d]: error mismatch: expected `%s`, present `%s`",
 				i, test.err, err)
 		} else if test.err == "" {
-			diff := testDiffValues(test.out, prs.byName)
+			diff := testDiffValues(test.out, inv.byName)
 			if len(diff) != 0 {
 				t.Errorf("[%d]: results mismatch (<<< expected, >>> present):", i)
 
@@ -497,8 +497,8 @@ func TestParser(t *testing.T) {
 			}
 
 			subcmd := ""
-			if prs.subcmd != nil {
-				subcmd = prs.subcmd.Name
+			if inv.subcmd != nil {
+				subcmd = inv.subcmd.Name
 			}
 
 			if subcmd != test.subcmd {
@@ -506,10 +506,10 @@ func TestParser(t *testing.T) {
 					i, test.subcmd, subcmd)
 			}
 
-			if !reflect.DeepEqual(test.subargv, prs.subargv) {
+			if !reflect.DeepEqual(test.subargv, inv.subargv) {
 				t.Errorf("[%d}: subargv mismatch:", i)
 				t.Errorf("  expected: %q", test.subargv)
-				t.Errorf("  present:  %q", prs.subargv)
+				t.Errorf("  present:  %q", inv.subargv)
 			}
 		}
 	}

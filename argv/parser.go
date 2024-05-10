@@ -26,16 +26,12 @@ import (
 // processed option "-opt2" has declared option "-opt1" as
 // required.
 type parser struct {
-	cmd          *Command                  // Command being parsed
-	argv         []string                  // Arguments being parsed
+	inv          *Invocation               // Invocation being parsed
 	nextarg      int                       // Index of the next argument
 	optConflicts map[string]string         // Conflicting options
 	optRequired  map[string]string         // Required options
 	options      map[*Option]*parserOptVal // Actually parsed options
 	parameters   []parserParamVal          // Parameters by number
-	byName       map[string][]string       // Options and parameters by name
-	subcmd       *Command                  // Sub-command discovered
-	subargv      []string                  // Sub-command argv
 }
 
 // parserOptVal represents parsed option with value
@@ -61,17 +57,19 @@ func newParser(cmd *Command, argv []string) *parser {
 	}
 
 	return &parser{
-		cmd:          cmd,
-		argv:         argv,
+		inv: &Invocation{
+			cmd:    cmd,
+			argv:   argv,
+			byName: make(map[string][]string),
+		},
 		optConflicts: make(map[string]string),
 		optRequired:  make(map[string]string),
 		options:      make(map[*Option]*parserOptVal),
-		byName:       make(map[string][]string),
 	}
 }
 
-// parse parses the argv
-func (prs *parser) parse() error {
+// parse parses the argv and returns parsed Invocation
+func (prs *parser) parse(parent *Invocation) (*Invocation, error) {
 	// Parse arguments, one by one.
 	var doneOptions bool
 	var paramValues []string
@@ -93,7 +91,7 @@ func (prs *parser) parse() error {
 		case !doneOptions && prs.isLongOption(arg):
 			err = prs.handleLongOption(arg)
 
-		case prs.cmd.hasSubCommands():
+		case prs.inv.cmd.hasSubCommands():
 			err = prs.handleSubCommand(arg)
 
 		case len(paramValues) < paramsMax:
@@ -104,36 +102,46 @@ func (prs *parser) parse() error {
 		}
 
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
 	// Toss paramValues
 	if len(paramValues) < paramsMin {
-		missed := &prs.cmd.Parameters[len(paramValues)]
-		return fmt.Errorf("missed parameter: %q", missed.Name)
+		missed := &prs.inv.cmd.Parameters[len(paramValues)]
+		return nil, fmt.Errorf("missed parameter: %q", missed.Name)
 	}
 
-	if prs.cmd.hasSubCommands() && prs.subcmd == nil {
-		return fmt.Errorf("missed sub-command name")
+	if prs.inv.cmd.hasSubCommands() && prs.inv.subcmd == nil {
+		return nil, fmt.Errorf("missed sub-command name")
 	}
 
-	if prs.cmd.hasParameters() {
+	if prs.inv.cmd.hasParameters() {
 		err := prs.handleParameters(paramValues)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
-	// Build prs.byName map
+	// Build prs.inv.byName map
 	prs.buildByName()
 
 	// Validate things
 	if err := prs.validateThings(); err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	// Finish Invocation
+	inv := prs.inv
+
+	inv.parent = parent
+	inv.parameters = make([]string, len(prs.parameters))
+
+	for i := range prs.parameters {
+		inv.parameters[i] = prs.parameters[i].value
+	}
+
+	return inv, nil
 }
 
 // complete handles command auto-completion
@@ -172,10 +180,10 @@ func (prs *parser) complete() (compl []string) {
 	// Handle completion of sub-commands or last parameter
 	if compl == nil {
 		switch {
-		case prs.cmd.hasParameters():
+		case prs.inv.cmd.hasParameters():
 			_, compl = prs.completeParameter(paramLast, paramCount)
 
-		case prs.cmd.hasSubCommands() && paramCount == 0:
+		case prs.inv.cmd.hasSubCommands() && paramCount == 0:
 			_, compl = prs.completeSubCommand(paramLast)
 		}
 	}
@@ -266,7 +274,7 @@ func (prs *parser) handleParameters(paramValues []string) error {
 	rept := -1
 
 	for i := 0; i < len(paramValues); i++ {
-		paramDescs[i] = &prs.cmd.Parameters[i]
+		paramDescs[i] = &prs.inv.cmd.Parameters[i]
 		if paramDescs[i].repeated() {
 			rept = i
 			break
@@ -275,10 +283,10 @@ func (prs *parser) handleParameters(paramValues []string) error {
 
 	if rept >= 0 {
 		i := len(paramDescs) - 1
-		j := len(prs.cmd.Parameters) - 1
+		j := len(prs.inv.cmd.Parameters) - 1
 
-		for !prs.cmd.Parameters[j].repeated() {
-			paramDescs[i] = &prs.cmd.Parameters[j]
+		for !prs.inv.cmd.Parameters[j].repeated() {
+			paramDescs[i] = &prs.inv.cmd.Parameters[j]
 			i--
 			j--
 		}
@@ -315,13 +323,13 @@ func (prs *parser) handleParameters(paramValues []string) error {
 
 // handleSubCommand handles a sub-command
 func (prs *parser) handleSubCommand(arg string) error {
-	subcmd, err := prs.cmd.FindSubCommand(arg)
+	subcmd, err := prs.inv.cmd.FindSubCommand(arg)
 	if err != nil {
 		return err
 	}
 
-	prs.subcmd = subcmd
-	prs.subargv = prs.argv[prs.nextarg:]
+	prs.inv.subcmd = subcmd
+	prs.inv.subargv = prs.inv.argv[prs.nextarg:]
 
 	return nil
 }
@@ -384,8 +392,8 @@ func (prs *parser) completeOption(arg string, long bool) (bool, []string) {
 func (prs *parser) completeParameter(arg string, n int) (bool, []string) {
 	var paramFound *Parameter
 
-	for i := range prs.cmd.Parameters {
-		param := &prs.cmd.Parameters[i]
+	for i := range prs.inv.cmd.Parameters {
+		param := &prs.inv.cmd.Parameters[i]
 		if i == n || param.repeated() {
 			paramFound = param
 			break
@@ -402,8 +410,8 @@ func (prs *parser) completeParameter(arg string, n int) (bool, []string) {
 // completeShortOption handles auto-completion for sub-commands
 func (prs *parser) completeSubCommand(arg string) (bool, []string) {
 	var compl []string
-	for i := range prs.cmd.SubCommands {
-		subcmd := &prs.cmd.SubCommands[i]
+	for i := range prs.inv.cmd.SubCommands {
+		subcmd := &prs.inv.cmd.SubCommands[i]
 		if strings.HasPrefix(subcmd.Name, arg) {
 			compl = append(compl, subcmd.Name[len(arg):])
 		}
@@ -415,8 +423,8 @@ func (prs *parser) completeSubCommand(arg string) (bool, []string) {
 // completeOptionName returns slice of completion candidates for
 // Option name
 func (prs *parser) completeOptionName(arg string) (compl []string) {
-	for i := range prs.cmd.Options {
-		opt := &prs.cmd.Options[i]
+	for i := range prs.inv.cmd.Options {
+		opt := &prs.inv.cmd.Options[i]
 
 		if strings.HasPrefix(opt.Name, arg) {
 			compl = append(compl, opt.Name[len(arg):])
@@ -430,15 +438,15 @@ func (prs *parser) completeOptionName(arg string) (compl []string) {
 	return
 }
 
-// buildByName populates prs.byName map
+// buildByName populates prs.inv.byName map
 func (prs *parser) buildByName() {
 	// Save options values
 	for _, optval := range prs.options {
 		opt := optval.opt
-		prs.byName[opt.Name] = optval.values
+		prs.inv.byName[opt.Name] = optval.values
 
 		for _, name := range opt.Aliases {
-			prs.byName[name] = optval.values
+			prs.inv.byName[name] = optval.values
 		}
 	}
 
@@ -448,9 +456,9 @@ func (prs *parser) buildByName() {
 	// with the same parameter
 	for _, paramval := range prs.parameters {
 		name := paramval.param.Name
-		values := prs.byName[name]
+		values := prs.inv.byName[name]
 		values = append(values, paramval.value)
-		prs.byName[name] = values
+		prs.inv.byName[name] = values
 	}
 }
 
@@ -458,7 +466,7 @@ func (prs *parser) buildByName() {
 // when parsing is done, like missed options requirements etc
 func (prs *parser) validateThings() error {
 	for required, byWhom := range prs.optRequired {
-		if _, found := prs.byName[required]; !found {
+		if _, found := prs.inv.byName[required]; !found {
 			return fmt.Errorf("missed option %q, required by %q",
 				required, byWhom)
 		}
@@ -506,8 +514,8 @@ func (prs *parser) splitOptVal(arg string) (name, val string, novalue bool) {
 
 // findOption finds Command's Option by name.
 func (prs *parser) findOption(name string) *Option {
-	for i := range prs.cmd.Options {
-		opt := &prs.cmd.Options[i]
+	for i := range prs.inv.cmd.Options {
+		opt := &prs.inv.cmd.Options[i]
 		if name == opt.Name {
 			return opt
 		}
@@ -530,8 +538,8 @@ func (prs *parser) findOption(name string) *Option {
 // (i.e., it has repeated parameters), paramsMax will be
 // reported as math.MaxInt
 func (prs *parser) paramsInfo() (paramsMin, paramsMax int) {
-	for i := range prs.cmd.Parameters {
-		param := &prs.cmd.Parameters[i]
+	for i := range prs.inv.cmd.Parameters {
+		param := &prs.inv.cmd.Parameters[i]
 
 		if param.required() {
 			paramsMin++
@@ -543,7 +551,7 @@ func (prs *parser) paramsInfo() (paramsMin, paramsMax int) {
 	}
 
 	if paramsMax != math.MaxInt {
-		paramsMax = len(prs.cmd.Parameters)
+		paramsMax = len(prs.inv.cmd.Parameters)
 	}
 
 	return
@@ -603,13 +611,13 @@ func (prs *parser) appendOptVal(opt *Option, name, value string,
 
 // done returns true if all arguments are consumed
 func (prs *parser) done() bool {
-	return prs.nextarg == len(prs.argv) || prs.subcmd != nil
+	return prs.nextarg == len(prs.inv.argv) || prs.inv.subcmd != nil
 }
 
 // next returns the next argument.
 func (prs *parser) next() (arg string) {
-	if prs.nextarg < len(prs.argv) {
-		arg = prs.argv[prs.nextarg]
+	if prs.nextarg < len(prs.inv.argv) {
+		arg = prs.inv.argv[prs.nextarg]
 		prs.nextarg++
 	}
 

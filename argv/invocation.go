@@ -39,25 +39,6 @@ type Invocation struct {
 	subargv []string
 }
 
-// newInvocation creates and populates a new Invocation.
-func newInvocation(parent *Invocation, prs *parser) *Invocation {
-	inv := &Invocation{
-		parent:  parent,
-		cmd:     prs.cmd,
-		argv:    prs.argv,
-		byName:  prs.byName,
-		subcmd:  prs.subcmd,
-		subargv: prs.subargv,
-	}
-
-	inv.parameters = make([]string, len(prs.parameters))
-	for i := range prs.parameters {
-		inv.parameters[i] = prs.parameters[i].value
-	}
-
-	return inv
-}
-
 // Parent returns Invocation's parent, which is the upper-level
 // Invocation in a case of sun-command execution, nil otherwise.
 func (inv *Invocation) Parent() *Invocation {
