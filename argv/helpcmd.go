@@ -4,7 +4,7 @@
 // Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
 // See LICENSE for license terms and conditions
 //
-// The 'help' command
+// The standard 'help' command and '--help' option.
 
 package argv
 
@@ -19,9 +19,10 @@ var (
 	// to indicate that the Command implements commonly used -h and --help
 	// flags.
 	HelpOption = Option{
-		Name:    "-h",
-		Aliases: []string{"--help"},
-		Help:    "print help page",
+		Name:      "-h",
+		Aliases:   []string{"--help"},
+		Help:      "print help page",
+		Immediate: HelpHandler,
 	}
 
 	// HelpCommand to be used as SubCommand in Command definition
@@ -44,12 +45,28 @@ var (
 
 // HelpHandler is the standard Handler for 'help' Command
 func HelpHandler(inv *Invocation) error {
-	parent := inv.Parent()
-	if parent == nil {
-		return errors.New("HelpHandler must be used in sub-command")
+	// If we run in the immediate mode (i.e., as result of -h option being
+	// used with current command, our "target" is the current command.
+	//
+	// Otherwise, we are called as a sub-command of parent command, so we
+	// must switch to that parent command.
+	//
+	// In the later case, if parent cannot be figured, it is an error. Looks
+	// that somebody is calling HelpCommand directly, not as a part of
+	// sub-commands hierarchy.
+	var cmd *Command
+	if inv.IsImmediate() {
+		cmd = inv.Cmd()
+	} else {
+		parent := inv.Parent()
+		if parent == nil {
+			return errors.New("HelpHandler must be used in sub-command")
+		}
+		cmd = parent.Cmd()
 	}
 
-	cmd := inv.parent.Cmd()
+	// The 'help' command may have an optional parameter,
+	// catch and handle it now
 	name, ok := inv.Get("[command]")
 	if ok {
 		subcmd, err := cmd.FindSubCommand(name)
@@ -59,6 +76,7 @@ func HelpHandler(inv *Invocation) error {
 		cmd = subcmd
 	}
 
+	// And if it is OK so far, it's a time to generate a help page
 	Help(cmd, HelpOutput)
 
 	return nil
