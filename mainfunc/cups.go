@@ -12,8 +12,11 @@ import "github.com/alexpevzner/mfp/argv"
 
 // CmdCups is the 'cups' command description
 var CmdCups = argv.Command{
-	Name:    "cups",
-	Help:    "CUPS client",
+	Name: "cups",
+	Help: "CUPS client",
+	Options: []argv.Option{
+		argv.HelpOption,
+	},
 	Handler: cupsHandler,
 }
 

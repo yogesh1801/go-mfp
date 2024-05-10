@@ -16,6 +16,9 @@ import (
 // as sub-commands.
 var CmdMfp = &argv.Command{
 	Name: "mfp",
+	Options: []argv.Option{
+		argv.HelpOption,
+	},
 	SubCommands: []argv.Command{
 		CmdCups,
 		argv.HelpCommand,
