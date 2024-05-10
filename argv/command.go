@@ -228,8 +228,7 @@ func (cmd *Command) RunWithParent(parent *Invocation, argv []string) error {
 func (cmd *Command) Main() {
 	err := cmd.Run(os.Args[1:])
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s\n", err)
-		os.Exit(1)
+		die(err)
 	}
 }
 
