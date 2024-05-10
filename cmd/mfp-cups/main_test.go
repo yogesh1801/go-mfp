@@ -1,10 +1,10 @@
-// MFP   - Miulti-Function Printers and scanners toolkit
-// mains - Main functions for all commands
+// MFP          - Miulti-Function Printers and scanners toolkit
+// cmd/mfp-cups - CUPS client
 //
 // Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
 // See LICENSE for license terms and conditions
 //
-// mfp-cups command implementation
+// Test of main() function
 
 package main
 
