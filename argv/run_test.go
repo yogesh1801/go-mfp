@@ -162,6 +162,9 @@ func TestHelp(t *testing.T) {
 		},
 	}
 
+	saveHelpOutput := HelpOutput
+	defer func() { HelpOutput = saveHelpOutput }()
+
 	for i, test := range tests {
 		buf := &bytes.Buffer{}
 		HelpOutput = buf
