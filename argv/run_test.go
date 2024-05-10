@@ -112,7 +112,7 @@ connect establishes server connection
 `
 
 // TestRun is a test for (*Command) Run()
-func TestHelp(t *testing.T) {
+func TestRun(t *testing.T) {
 	type testData struct {
 		argv []string // Command's arguments
 		cmd  *Command // The Command
