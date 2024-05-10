@@ -10,6 +10,7 @@ package argv
 
 import (
 	"bytes"
+	"errors"
 	"testing"
 )
 
@@ -104,11 +105,19 @@ Commands are:
   help              print help page
 `
 
+var testCommandWithSubCommandsHelpConnect = `
+usage: connect
+
+connect establishes server connection
+`
+
+// TestHelp tests 'help' subcommand and '--help' option
 func TestHelp(t *testing.T) {
 	type testData struct {
-		argv []string
-		cmd  *Command
-		hlp  string
+		argv []string // Command's arguments
+		cmd  *Command // The Command
+		hlp  string   // Expected help text
+		err  string   // Expected error
 	}
 
 	tests := []testData{
@@ -123,6 +132,18 @@ func TestHelp(t *testing.T) {
 			cmd:  &testCommandWithSubCommands,
 			hlp:  testCommandWithSubCommandsHelp[1:],
 		},
+
+		{
+			argv: []string{"help", "connect"},
+			cmd:  &testCommandWithSubCommands,
+			hlp:  testCommandWithSubCommandsHelpConnect[1:],
+		},
+
+		{
+			argv: []string{"help", "unknown"},
+			cmd:  &testCommandWithSubCommands,
+			err:  `unknown sub-command: "unknown"`,
+		},
 	}
 
 	for i, test := range tests {
@@ -131,13 +152,33 @@ func TestHelp(t *testing.T) {
 		err := test.cmd.Run(test.argv)
 		hlp := buf.String()
 
-		if err != nil {
-			t.Errorf("Test %d: %s", i, err)
+		if err == nil {
+			err = errors.New("")
+		}
+
+		if err.Error() != test.err {
+			t.Errorf("Test %d: error mismatch", i)
+			t.Errorf("expected: `%s`", test.err)
+			t.Errorf("received: `%s`", err)
 		} else if hlp != test.hlp {
 			t.Errorf("Test %d:", i)
-			t.Errorf("%s:", err)
 			t.Errorf("expected:\n==========\n%s==========", test.hlp)
 			t.Errorf("received:\n==========\n%s==========", hlp)
 		}
+	}
+}
+
+// TestHelpMisuse tests HelpCommand behavior when miss-used
+func TestHelpMisuse(t *testing.T) {
+	err := HelpCommand.Run(nil)
+	if err == nil {
+		err = errors.New("")
+	}
+
+	expected := `HelpHandler must be used in sub-command`
+	if err.Error() != expected {
+		t.Errorf("Error mismatch")
+		t.Errorf("expected: `%s`", expected)
+		t.Errorf("received: `%s`", err)
 	}
 }
