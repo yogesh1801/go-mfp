@@ -27,3 +27,29 @@ func TestHelpMisuse(t *testing.T) {
 		t.Errorf("received: `%s`", err)
 	}
 }
+
+// TestHelpString tests HelpString() function
+func TestHelpString(t *testing.T) {
+	expected := "usage: help [command]\n"
+	received := HelpString(&HelpCommand)
+	if expected != received {
+		t.Errorf("output mismatch")
+		t.Errorf("expected: `%s`", expected)
+		t.Errorf("received: `%s`", received)
+	}
+}
+
+// TestHelpPanic tests that help panics on the invalid Command
+func TestHelpPanic(t *testing.T) {
+	defer func() {
+		v := recover()
+		err, ok := v.(error)
+		if !ok || err.Error() != "missed command name" {
+			panic(v)
+		}
+
+	}()
+
+	// It must panic, because empty Command is invalid
+	HelpString(&Command{})
+}
