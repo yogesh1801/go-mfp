@@ -976,8 +976,7 @@ func TestParserCompletion(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		prs := newParser(&test.cmd, test.argv)
-		out := prs.complete()
+		out := test.cmd.Complete(test.argv)
 
 		diff := testDiffCompletion(test.out, out)
 		if len(diff) != 0 {

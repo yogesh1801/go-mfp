@@ -251,8 +251,9 @@ func (cmd *Command) handler(inv *Invocation) error {
 // Complete returns array of completion suggestions for
 // the Command when used with specified (probably incomplete)
 // command line.
-func (cmd *Command) Complete(cmdline string) []string {
-	return nil
+func (cmd *Command) Complete(argv []string) []string {
+	prs := newParser(cmd, argv)
+	return prs.complete()
 }
 
 // hasOptions tells if Command has Options
