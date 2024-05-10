@@ -38,6 +38,7 @@ func TestParser(t *testing.T) {
 		cmd     Command             // Command description
 		err     string              // Expected error, "" if none
 		out     map[string][]string // Expected options values
+		params  []string            // Expected positional parameters
 		subcmd  string              // Expected sub-command
 		subargv []string            // Expected sub-command argv
 	}
@@ -104,6 +105,7 @@ func TestParser(t *testing.T) {
 				"[param3]": {"--value3"},
 				"param1":   {"value1"},
 			},
+			params: []string{"value1", "value2", "--value3"},
 		},
 
 		// Test 1: repeated parameters
@@ -122,6 +124,7 @@ func TestParser(t *testing.T) {
 				"param1":    {"a"},
 				"param2...": {"b", "c"},
 			},
+			params: []string{"a", "b", "c"},
 		},
 
 		// Test 2: repeated parameters, followed by required parameter
@@ -140,6 +143,7 @@ func TestParser(t *testing.T) {
 				"param1...": {"a", "b"},
 				"param2":    {"c"},
 			},
+			params: []string{"a", "b", "c"},
 		},
 
 		// Test 3: sub-commands
@@ -456,6 +460,7 @@ func TestParser(t *testing.T) {
 				"param1...": {"a", "-b"},
 				"param2":    {"--long"},
 			},
+			params: []string{"a", "-b", "--long"},
 		},
 
 		// Test 23: '--', followed by sub-commands
@@ -495,18 +500,29 @@ func TestParser(t *testing.T) {
 				}
 			}
 
+			var params []string
+			for n := 0; n < inv.ParamCount(); n++ {
+				params = append(params, inv.ParamGet(n))
+			}
+
+			if !reflect.DeepEqual(test.params, params) {
+				t.Errorf("[%d]: params mismatch:", i)
+				t.Errorf("  expected: %#v", test.params)
+				t.Errorf("  present:  %#v", params)
+			}
+
 			subcmd := ""
 			if inv.subcmd != nil {
 				subcmd = inv.subcmd.Name
 			}
 
 			if subcmd != test.subcmd {
-				t.Errorf("[%d}: subcmd mismatch: expected %q present %q",
+				t.Errorf("[%d]: subcmd mismatch: expected %q present %q",
 					i, test.subcmd, subcmd)
 			}
 
 			if !reflect.DeepEqual(test.subargv, inv.subargv) {
-				t.Errorf("[%d}: subargv mismatch:", i)
+				t.Errorf("[%d]: subargv mismatch:", i)
 				t.Errorf("  expected: %q", test.subargv)
 				t.Errorf("  present:  %q", inv.subargv)
 			}

@@ -104,12 +104,12 @@ func (inv *Invocation) ParamCount() int {
 // repeated parameters. Repeated parameter will take only one slot
 // in the Parameters slice, but may be repeated (and take many positions)
 // in the Command's argument.
-func (inv *Invocation) ParamGet(n int) string {
+func (inv *Invocation) ParamGet(n int) (param string) {
 	if 0 <= n && n < len(inv.parameters) {
-		return inv.parameters[n]
+		param = inv.parameters[n]
 	}
 
-	return ""
+	return
 }
 
 // SubCommand returns Command's SubCommand and its arguments. If Command
