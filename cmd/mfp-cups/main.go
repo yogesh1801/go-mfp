@@ -14,5 +14,5 @@ import (
 
 // main function for the mfp-cups command
 func main() {
-	mainfunc.CmdMfp.Main()
+	mainfunc.CmdCups.Main()
 }
