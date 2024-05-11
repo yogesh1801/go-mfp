@@ -27,8 +27,7 @@ func CompleteStrings(s []string) func(string) []string {
 		for _, member := range set {
 			if len(in) < len(member) &&
 				strings.HasPrefix(member, in) {
-				compl := member[len(in):]
-				out = append(out, compl)
+				out = append(out, member)
 			}
 		}
 		return out
@@ -55,8 +54,7 @@ func CompleteFs(filesystem fs.FS) func(string) []string {
 		out := []string{}
 		for _, name := range names {
 			if len(in) < len(name) && strings.HasPrefix(name, in) {
-				compl := name[:len(in)]
-				out = append(out, compl)
+				out = append(out, name)
 			}
 		}
 		return out

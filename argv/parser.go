@@ -196,6 +196,18 @@ func (prs *parser) complete() (compl []string) {
 	return
 }
 
+// completePostProcess post-processes completion candidates for
+// the given argument.
+func (prs *parser) completePostProcess(arg string, compl []string) []string {
+	out := make([]string, 0, len(compl))
+	for _, s := range compl {
+		if s2, ok := strings.CutPrefix(s, arg); ok {
+			out = append(out, s2)
+		}
+	}
+	return out
+}
+
 // handleShortOption handles a short option
 func (prs *parser) handleShortOption(arg string) error {
 	// Split into name and value and try to find Option
@@ -386,7 +398,9 @@ func (prs *parser) completeOption(arg string, long bool) (bool, []string) {
 
 	// If we are at the end of argv, auto-complete
 	if prs.done() {
-		return true, opt.complete(val)
+		compl := opt.complete(val)
+		compl = prs.completePostProcess(val, compl)
+		return true, compl
 	}
 
 	return false, nil
@@ -406,7 +420,9 @@ func (prs *parser) completeParameter(arg string, n int) (bool, []string) {
 	}
 
 	if paramFound != nil {
-		return true, paramFound.complete(arg)
+		compl := paramFound.complete(arg)
+		compl = prs.completePostProcess(arg, compl)
+		return true, compl
 	}
 
 	return true, nil
@@ -418,9 +434,11 @@ func (prs *parser) completeSubCommand(arg string) (bool, []string) {
 	for i := range prs.inv.cmd.SubCommands {
 		subcmd := &prs.inv.cmd.SubCommands[i]
 		if strings.HasPrefix(subcmd.Name, arg) {
-			compl = append(compl, subcmd.Name[len(arg):])
+			compl = append(compl, subcmd.Name)
 		}
 	}
+
+	compl = prs.completePostProcess(arg, compl)
 
 	return true, compl
 }
@@ -432,13 +450,15 @@ func (prs *parser) completeOptionName(arg string) (compl []string) {
 		opt := &prs.inv.cmd.Options[i]
 
 		if strings.HasPrefix(opt.Name, arg) {
-			compl = append(compl, opt.Name[len(arg):])
+			compl = append(compl, opt.Name)
 		}
 
 		for _, name := range opt.Aliases {
-			compl = append(compl, name[len(arg):])
+			compl = append(compl, name)
 		}
 	}
+
+	compl = prs.completePostProcess(arg, compl)
 
 	return
 }

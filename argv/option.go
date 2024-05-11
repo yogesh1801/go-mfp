@@ -76,10 +76,20 @@ type Option struct {
 	// Use nil to indicate that this option has no value.
 	Validate func(string) error
 
-	// Complete callback called for auto-completion.
-	// It receives the prefix, already typed by user
-	// (which may be empty) and must return completion
-	// suggestions without that prefix.
+	// Complete is the callback called for auto-completion.
+	//
+	// It receives the Option's value prefix, already typed
+	// by user, and must return a slice of completion candidates
+	// that match the prefix.
+	//
+	// For example, if possible option values are "Richard", "Roger"
+	// and  "Robert", then, depending of supplied prefix, the following
+	// output is expected:
+	//
+	//   "R"   -> ["Richard", "Roger", "Robert"]
+	//   "Ro"  -> ["Roger", "Robert"]
+	//   "Rog" -> ["Roger"]
+	//   "Rol" -> []
 	Complete func(string) []string
 
 	// Immediate, if not nil and option was encountered in
