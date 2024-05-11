@@ -199,12 +199,40 @@ func (prs *parser) complete() (compl []string) {
 // completePostProcess post-processes completion candidates for
 // the given argument.
 func (prs *parser) completePostProcess(arg string, compl []string) []string {
-	out := make([]string, 0, len(compl))
-	for _, s := range compl {
-		if s2, ok := strings.CutPrefix(s, arg); ok {
-			out = append(out, s2)
+	// For sanity: drop candidates, that doesn't contain arg
+	// as prefix. It actually should never happen, but..
+	var complCount int
+	for i := range compl {
+		if strings.HasPrefix(compl[i], arg) {
+			compl[complCount] = compl[i]
+			complCount++
 		}
 	}
+
+	compl = compl[:complCount]
+
+	// If we have multiple candidates with the common prefix
+	// that is longer that arg, just return that common prefix
+	// as a single candidate, so when user presses Tab, the
+	// completion will go to that common point
+	if len(compl) > 1 {
+		prefix := strCommonPrefixSlice(compl)
+
+		// If prefix is longer that arg, it means that all possible
+		// candidates has common prefix, so just return it as a single
+		// suggestion, so completion will go to that point.
+		if len(prefix) > len(arg) {
+			return []string{prefix}
+		}
+	}
+
+	// Otherwise, append " " to the each candidate to indicate that
+	// this is a whole-word completion and return a slice.
+	out := make([]string, len(compl))
+	for i := range compl {
+		out[i] = compl[i] + " "
+	}
+
 	return out
 }
 

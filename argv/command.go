@@ -248,8 +248,19 @@ func (cmd *Command) handler(inv *Invocation) error {
 }
 
 // Complete returns array of completion suggestions for
-// the Command when used with specified (probably incomplete)
-// command line.
+// the specified (probably incomplete) command line.
+//
+// Completion suggestions always related to the last argument
+// and propose possible replacements for this argument.
+//
+// To indicate that user has not typed any prefix for the
+// last argument, pass last argument as "":
+//
+//   prompt> hello    ->  ["hello"]
+//     Cursor     ^
+//
+//   prompt> hello    ->  ["hello", ""]
+//     Cursor      ^
 func (cmd *Command) Complete(argv []string) []string {
 	prs := newParser(cmd, argv)
 	return prs.complete()

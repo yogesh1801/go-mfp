@@ -557,7 +557,7 @@ func TestParserCompletion(t *testing.T) {
 					},
 				},
 			},
-			out: []string{"bert", "ger"},
+			out: []string{"Robert ", "Roger "},
 		},
 
 		// Test 1: short option with embedded argument
@@ -578,7 +578,7 @@ func TestParserCompletion(t *testing.T) {
 					},
 				},
 			},
-			out: []string{"bert", "ger"},
+			out: []string{"Robert ", "Roger "},
 		},
 
 		// Test 2: short option, missed argument
@@ -599,7 +599,7 @@ func TestParserCompletion(t *testing.T) {
 					},
 				},
 			},
-			out: []string{"Robert", "Roger"},
+			out: []string{"Ro"},
 		},
 
 		// Test 3: short option with preceding unknown optipn
@@ -657,7 +657,7 @@ func TestParserCompletion(t *testing.T) {
 					},
 				},
 			},
-			out: []string{"Robert", "Roger"},
+			out: []string{"Ro"},
 		},
 
 		// Test 6: long option, separate argument
@@ -678,7 +678,7 @@ func TestParserCompletion(t *testing.T) {
 					},
 				},
 			},
-			out: []string{"bert", "ger"},
+			out: []string{"Robert ", "Roger "},
 		},
 
 		// Test 7: two options, second completes
@@ -709,7 +709,7 @@ func TestParserCompletion(t *testing.T) {
 					},
 				},
 			},
-			out: []string{"bert", "ger"},
+			out: []string{"Robert ", "Roger "},
 		},
 
 		// Test 8: long option with embedded argument
@@ -730,7 +730,7 @@ func TestParserCompletion(t *testing.T) {
 					},
 				},
 			},
-			out: []string{"bert", "ger"},
+			out: []string{"Robert ", "Roger "},
 		},
 
 		// Test 9: long option, missed argument
@@ -751,7 +751,7 @@ func TestParserCompletion(t *testing.T) {
 					},
 				},
 			},
-			out: []string{"Robert", "Roger"},
+			out: []string{"Ro"},
 		},
 
 		// Test 10: long option with preceding unknown optipn
@@ -809,7 +809,7 @@ func TestParserCompletion(t *testing.T) {
 					},
 				},
 			},
-			out: []string{"Robert", "Roger"},
+			out: []string{"Ro"},
 		},
 
 		// Test 13: long option name auto-completion
@@ -823,7 +823,7 @@ func TestParserCompletion(t *testing.T) {
 					{Name: "--other", Aliases: []string{"--long-3"}},
 				},
 			},
-			out: []string{"-1", "-2", "-3"},
+			out: []string{"--long-"},
 		},
 
 		// Test 14: sub-commands, successful completion with prefix
@@ -836,10 +836,22 @@ func TestParserCompletion(t *testing.T) {
 					{Name: "Robert"},
 				},
 			},
-			out: []string{"bert", "ger"},
+			out: []string{"Robert ", "Roger "},
 		},
 
-		// Test 15: sub-commands, successful completion without prefix
+		// Test 15: a single sub-command, successful completion with prefix
+		{
+			argv: []string{"Ro"},
+			cmd: Command{
+				Name: "test",
+				SubCommands: []Command{
+					{Name: "Roger"},
+				},
+			},
+			out: []string{"Roger "},
+		},
+
+		// Test 16: sub-commands, successful completion without prefix
 		{
 			argv: []string{},
 			cmd: Command{
@@ -849,10 +861,10 @@ func TestParserCompletion(t *testing.T) {
 					{Name: "Robert"},
 				},
 			},
-			out: []string{"Robert", "Roger"},
+			out: []string{"Ro"},
 		},
 
-		// Test 16: option, "--", sub-commands
+		// Test 17: option, "--", sub-commands
 		{
 			argv: []string{"--long", "value", "--", "Ro"},
 			cmd: Command{
@@ -865,10 +877,10 @@ func TestParserCompletion(t *testing.T) {
 					{Name: "Robert"},
 				},
 			},
-			out: []string{"bert", "ger"},
+			out: []string{"Robert ", "Roger "},
 		},
 
-		// Test 17: sub-commands, extra parameter
+		// Test 18: sub-commands, extra parameter
 		{
 			argv: []string{"extra", "Ro"},
 			cmd: Command{
@@ -881,7 +893,7 @@ func TestParserCompletion(t *testing.T) {
 			out: []string{},
 		},
 
-		// Test 18: parameter completion
+		// Test 19: parameter completion
 		{
 			argv: []string{"Ro"},
 			cmd: Command{
@@ -898,10 +910,10 @@ func TestParserCompletion(t *testing.T) {
 					},
 				},
 			},
-			out: []string{"bert", "ger"},
+			out: []string{"Robert ", "Roger "},
 		},
 
-		// Test 19: options, '--', parameter
+		// Test 20: options, '--', parameter
 		{
 			argv: []string{"-c", "--", "Ro"},
 			cmd: Command{
@@ -921,10 +933,10 @@ func TestParserCompletion(t *testing.T) {
 					},
 				},
 			},
-			out: []string{"bert", "ger"},
+			out: []string{"Robert ", "Roger "},
 		},
 
-		// Test 20: parameter completion, extra parameter
+		// Test 21: parameter completion, extra parameter
 		{
 			argv: []string{"extra", "Ro"},
 			cmd: Command{
@@ -944,7 +956,7 @@ func TestParserCompletion(t *testing.T) {
 			out: []string{},
 		},
 
-		// Test 21: parameter completion, repeated first
+		// Test 22: parameter completion, repeated first
 		{
 			argv: []string{"extra", "Ro"},
 			cmd: Command{
@@ -964,10 +976,10 @@ func TestParserCompletion(t *testing.T) {
 					},
 				},
 			},
-			out: []string{"bert", "ger"},
+			out: []string{"Robert ", "Roger "},
 		},
 
-		// Test 22: parameter completion, repeated last
+		// Test 23: parameter completion, repeated last
 		{
 			argv: []string{"extra", "Ro"},
 			cmd: Command{
