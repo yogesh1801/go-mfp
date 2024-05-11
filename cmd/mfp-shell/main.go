@@ -27,6 +27,9 @@ func main() {
 
 	editline.SetCtrlCAborts(true)
 
+	// Setup completion
+	editline.SetCompleter(completer)
+
 	// Setup history
 	historyPath := mainfunc.PathUserConfDir("mfp")
 	os.MkdirAll(historyPath, 0755)
@@ -62,6 +65,27 @@ func main() {
 			fmt.Printf("%s\n", err)
 		}
 	}
+}
+
+// completer handles command-line completion
+func completer(line string) (out []string) {
+	args, tail, tailspace, _ := argv.TokenizeEx(line)
+	if tailspace != "" {
+		args = append(args, "")
+	}
+
+	strip := len(tail)
+	if len(args) > 0 {
+		strip += len(args[len(args)-1])
+	}
+
+	line = line[:len(line)-strip]
+	compl := mainfunc.CmdMfp.Complete(args)
+	for _, c := range compl {
+		out = append(out, line+c)
+	}
+
+	return
 }
 
 // exec parses and executes the command.
