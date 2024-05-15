@@ -171,9 +171,13 @@ func (opt *Option) withValue() bool {
 
 // complete is the convenience wrapper around Option.Complete
 // callback. It call callback only if one is not nil.
-func (opt *Option) complete(prefix string) (compl []string) {
+func (opt *Option) complete(prefix string) ([]string, CompleterFlags) {
+	var compl []string
+	var flags CompleterFlags
+
 	if opt.Complete != nil {
-		compl = opt.Complete(prefix)
+		compl, flags = opt.Complete(prefix)
 	}
-	return
+
+	return compl, flags
 }

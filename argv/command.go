@@ -261,7 +261,7 @@ func (cmd *Command) handler(inv *Invocation) error {
 //
 //   prompt> hello    ->  ["hello", ""]
 //     Cursor      ^
-func (cmd *Command) Complete(argv []string) []string {
+func (cmd *Command) Complete(argv []string) ([]string, CompleterFlags) {
 	prs := newParser(cmd, argv)
 	return prs.complete()
 }

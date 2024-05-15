@@ -150,7 +150,7 @@ func (prs *parser) parse(parent *Invocation) (*Invocation, error) {
 }
 
 // complete handles command auto-completion
-func (prs *parser) complete() (compl []string) {
+func (prs *parser) complete() (compl []string, flags CompleterFlags) {
 	done := false
 	doneOptions := false
 	paramCount := 0
@@ -165,10 +165,10 @@ func (prs *parser) complete() (compl []string) {
 			doneOptions = true
 
 		case !doneOptions && prs.isShortOption(arg):
-			done, compl = prs.completeShortOption(arg)
+			done, compl, flags = prs.completeShortOption(arg)
 
 		case !doneOptions && prs.isLongOption(arg):
-			done, compl = prs.completeLongOption(arg)
+			done, compl, flags = prs.completeLongOption(arg)
 
 		default:
 			paramLast = arg
@@ -189,7 +189,7 @@ func (prs *parser) complete() (compl []string) {
 			_, compl = prs.completeParameter(paramLast, paramCount)
 
 		case prs.inv.cmd.hasSubCommands() && paramCount == 0:
-			_, compl = prs.completeSubCommand(paramLast)
+			_, compl, flags = prs.completeSubCommand(paramLast)
 		}
 	}
 
@@ -198,7 +198,8 @@ func (prs *parser) complete() (compl []string) {
 
 // completePostProcess post-processes completion candidates for
 // the given argument.
-func (prs *parser) completePostProcess(arg string, compl []string) []string {
+func (prs *parser) completePostProcess(arg string,
+	compl []string, flags CompleterFlags) ([]string, CompleterFlags) {
 	// For sanity: drop candidates, that doesn't contain arg
 	// as prefix. It actually should never happen, but..
 	var complCount int
@@ -222,18 +223,11 @@ func (prs *parser) completePostProcess(arg string, compl []string) []string {
 		// candidates has common prefix, so just return it as a single
 		// suggestion, so completion will go to that point.
 		if len(prefix) > len(arg) {
-			return []string{prefix}
+			return []string{prefix}, flags | CompleterNoSpace
 		}
 	}
 
-	// Otherwise, append " " to the each candidate to indicate that
-	// this is a whole-word completion and return a slice.
-	out := make([]string, len(compl))
-	for i := range compl {
-		out[i] = compl[i] + " "
-	}
-
-	return out
+	return compl, flags
 }
 
 // handleShortOption handles a short option
@@ -380,18 +374,22 @@ func (prs *parser) handleSubCommand(arg string) error {
 }
 
 // completeShortOption handles auto-completion for short options.
-func (prs *parser) completeShortOption(arg string) (bool, []string) {
+func (prs *parser) completeShortOption(arg string) (bool,
+	[]string, CompleterFlags) {
 	return prs.completeOption(arg, false)
 }
 
 // completeLongOption handles auto-completion for long options.
-func (prs *parser) completeLongOption(arg string) (bool, []string) {
+func (prs *parser) completeLongOption(arg string) (bool,
+	[]string, CompleterFlags) {
 	return prs.completeOption(arg, true)
 }
 
 // completeOption handles auto-completion for options.
 // It's a common procedure for both short and long options
-func (prs *parser) completeOption(arg string, long bool) (bool, []string) {
+func (prs *parser) completeOption(arg string,
+	long bool) (bool, []string, CompleterFlags) {
+
 	// Split into name and value and try to find Option
 	name, val, novalue := prs.splitOptVal(arg)
 	opt := prs.findOption(name)
@@ -399,7 +397,8 @@ func (prs *parser) completeOption(arg string, long bool) (bool, []string) {
 		// Unknown option; try name auto-completion, if we are
 		// at the end of argv
 		if prs.done() {
-			return false, prs.completeOptionName(arg)
+			compl, flags := prs.completeOptionName(arg)
+			return false, compl, flags
 		}
 
 		// Option is unknown and we are not at the end of argv.
@@ -408,14 +407,14 @@ func (prs *parser) completeOption(arg string, long bool) (bool, []string) {
 		// auto-completion, because we can't tell if the next
 		// argument is part of the option, so synchronization
 		// is lost here.
-		return true, nil
+		return true, nil, 0
 	}
 
 	// Do nothing if this is an Option without argument.
 	// This is a good choice even if this is a sequence
 	// of combined short options.
 	if !opt.withValue() {
-		return false, nil
+		return false, nil, 0
 	}
 
 	// Option with value in the next argument. We must consume
@@ -426,12 +425,12 @@ func (prs *parser) completeOption(arg string, long bool) (bool, []string) {
 
 	// If we are at the end of argv, auto-complete
 	if prs.done() {
-		compl := opt.complete(val)
-		compl = prs.completePostProcess(val, compl)
-		return true, compl
+		compl, flags := opt.complete(val)
+		compl, flags = prs.completePostProcess(val, compl, flags)
+		return true, compl, flags
 	}
 
-	return false, nil
+	return false, nil, 0
 }
 
 // completeShortOption handles auto-completion for positional
@@ -448,8 +447,8 @@ func (prs *parser) completeParameter(arg string, n int) (bool, []string) {
 	}
 
 	if paramFound != nil {
-		compl := paramFound.complete(arg)
-		compl = prs.completePostProcess(arg, compl)
+		compl, flags := paramFound.complete(arg)
+		compl, flags = prs.completePostProcess(arg, compl, flags)
 		return true, compl
 	}
 
@@ -457,8 +456,12 @@ func (prs *parser) completeParameter(arg string, n int) (bool, []string) {
 }
 
 // completeShortOption handles auto-completion for sub-commands
-func (prs *parser) completeSubCommand(arg string) (bool, []string) {
+func (prs *parser) completeSubCommand(arg string) (bool,
+	[]string, CompleterFlags) {
+
 	var compl []string
+	var flags CompleterFlags
+
 	for i := range prs.inv.cmd.SubCommands {
 		subcmd := &prs.inv.cmd.SubCommands[i]
 		if strings.HasPrefix(subcmd.Name, arg) {
@@ -466,14 +469,17 @@ func (prs *parser) completeSubCommand(arg string) (bool, []string) {
 		}
 	}
 
-	compl = prs.completePostProcess(arg, compl)
+	compl, flags = prs.completePostProcess(arg, compl, 0)
 
-	return true, compl
+	return true, compl, flags
 }
 
 // completeOptionName returns slice of completion candidates for
 // Option name
-func (prs *parser) completeOptionName(arg string) (compl []string) {
+func (prs *parser) completeOptionName(arg string) ([]string, CompleterFlags) {
+	var compl []string
+	var flags CompleterFlags
+
 	for i := range prs.inv.cmd.Options {
 		opt := &prs.inv.cmd.Options[i]
 
@@ -486,9 +492,9 @@ func (prs *parser) completeOptionName(arg string) (compl []string) {
 		}
 	}
 
-	compl = prs.completePostProcess(arg, compl)
+	compl, flags = prs.completePostProcess(arg, compl, 0)
 
-	return
+	return compl, flags
 }
 
 // buildByName populates prs.inv.byName map

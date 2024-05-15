@@ -80,9 +80,15 @@ func completer(line string) (out []string) {
 	}
 
 	line = line[:len(line)-strip]
-	compl := mainfunc.CmdMfp.Complete(args)
+	compl, flags := mainfunc.CmdMfp.Complete(args)
+
+	space := " "
+	if flags&argv.CompleterNoSpace != 0 {
+		space = ""
+	}
+
 	for _, c := range compl {
-		out = append(out, line+c)
+		out = append(out, line+c+space)
 	}
 
 	return

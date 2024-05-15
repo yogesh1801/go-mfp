@@ -142,9 +142,13 @@ func (param *Parameter) repeated() bool {
 
 // complete is the convenience wrapper around Parameter.Complete
 // callback. It call callback only if one is not nil.
-func (param *Parameter) complete(prefix string) (compl []string) {
+func (param *Parameter) complete(prefix string) ([]string, CompleterFlags) {
+	var compl []string
+	var flags CompleterFlags
+
 	if param.Complete != nil {
-		compl = param.Complete(prefix)
+		compl, flags = param.Complete(prefix)
 	}
-	return
+
+	return compl, flags
 }

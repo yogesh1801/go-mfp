@@ -37,7 +37,7 @@ func newFscompleter(fsys fs.FS, getwd func() (string, error)) *fscompleter {
 
 // complete performs filesystem paths completion and returns
 // completion candidates.
-func (fscompl *fscompleter) complete(arg string) (compl []string) {
+func (fscompl *fscompleter) complete(arg string) ([]string, CompleterFlags) {
 	// Split argument into directory and relative path
 	dir, file := fscompl.splitPath(arg)
 	_ = file
@@ -45,10 +45,12 @@ func (fscompl *fscompleter) complete(arg string) (compl []string) {
 	// Read the directory
 	entries, err := fscompl.readDir(dir)
 	if err != nil {
-		return nil
+		return nil, 0
 	}
 
 	// Match file name against the directory entries
+	var compl []string
+
 	for _, ent := range entries {
 		name := ent.Name()
 		if strings.HasPrefix(name, file) {
@@ -57,7 +59,7 @@ func (fscompl *fscompleter) complete(arg string) (compl []string) {
 		}
 	}
 
-	return
+	return compl, 0
 }
 
 func (fscompl *fscompleter) readDir(dir string) ([]fs.DirEntry, error) {

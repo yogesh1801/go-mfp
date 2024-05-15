@@ -19,9 +19,10 @@ import (
 // TestCompleteStrings tests CompleteStrings
 func TestCompleteStrings(t *testing.T) {
 	type testData struct {
-		strings []string // Strings to choose from
-		arg     string   // Input string
-		out     []string // Expected output
+		strings []string       // Strings to choose from
+		arg     string         // Input string
+		out     []string       // Expected output
+		flags   CompleterFlags // Expected flags
 	}
 
 	tests := []testData{
@@ -46,10 +47,17 @@ func TestCompleteStrings(t *testing.T) {
 
 	for _, test := range tests {
 		completer := CompleteStrings(test.strings)
-		out := completer(test.arg)
+		out, flags := completer(test.arg)
+
 		if !reflect.DeepEqual(out, test.out) {
 			t.Errorf("CompleteStrings(%#v): %q\nexpected: %#v\nreceived: %#v\n",
 				test.strings, test.arg, test.out, out)
+		}
+
+		if flags != test.flags {
+			t.Errorf("CompleteStrings(%#v) %q:"+
+				"\nflags expected: %b\nflags received: %b\n",
+				test.strings, test.arg, test.flags, flags)
 		}
 	}
 }
@@ -66,6 +74,7 @@ func TestCompleteFs(t *testing.T) {
 		getwd func() (string, error) // getwd function
 		in    string                 // Input string
 		out   []string               // Expected output
+		flags CompleterFlags         // Expected flags
 	}
 
 	tests := []testData{
@@ -116,10 +125,16 @@ func TestCompleteFs(t *testing.T) {
 
 	for _, test := range tests {
 		complete := CompleteFs(testFs, test.getwd)
-		out := complete(test.in)
+		out, flags := complete(test.in)
+
 		if !reflect.DeepEqual(out, test.out) {
 			t.Errorf("%q:\nexpected: %#v\nreceived: %#v\n",
 				test.in, test.out, out)
+		}
+
+		if flags != test.flags {
+			t.Errorf("%q flags:\nexpected: %#v\nreceived: %#v\n",
+				test.in, test.flags, flags)
 		}
 	}
 }

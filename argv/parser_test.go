@@ -533,9 +533,10 @@ func TestParser(t *testing.T) {
 // TestParserCompletion tests (*parser) complete()
 func TestParserCompletion(t *testing.T) {
 	type testData struct {
-		argv []string // Input
-		cmd  Command  // Command description
-		out  []string // Expected output
+		argv  []string       // Input
+		cmd   Command        // Command description
+		out   []string       // Expected output
+		flags CompleterFlags // Expected flags
 	}
 
 	tests := []testData{
@@ -557,7 +558,8 @@ func TestParserCompletion(t *testing.T) {
 					},
 				},
 			},
-			out: []string{"Robert ", "Roger "},
+			out:   []string{"Robert", "Roger"},
+			flags: 0,
 		},
 
 		// Test 1: short option with embedded argument
@@ -578,7 +580,8 @@ func TestParserCompletion(t *testing.T) {
 					},
 				},
 			},
-			out: []string{"Robert ", "Roger "},
+			out:   []string{"Robert", "Roger"},
+			flags: 0,
 		},
 
 		// Test 2: short option, missed argument
@@ -599,7 +602,8 @@ func TestParserCompletion(t *testing.T) {
 					},
 				},
 			},
-			out: []string{"Ro"},
+			out:   []string{"Ro"},
+			flags: CompleterNoSpace,
 		},
 
 		// Test 3: short option with preceding unknown optipn
@@ -657,7 +661,8 @@ func TestParserCompletion(t *testing.T) {
 					},
 				},
 			},
-			out: []string{"Ro"},
+			out:   []string{"Ro"},
+			flags: CompleterNoSpace,
 		},
 
 		// Test 6: long option, separate argument
@@ -678,7 +683,7 @@ func TestParserCompletion(t *testing.T) {
 					},
 				},
 			},
-			out: []string{"Robert ", "Roger "},
+			out: []string{"Robert", "Roger"},
 		},
 
 		// Test 7: two options, second completes
@@ -709,7 +714,7 @@ func TestParserCompletion(t *testing.T) {
 					},
 				},
 			},
-			out: []string{"Robert ", "Roger "},
+			out: []string{"Robert", "Roger"},
 		},
 
 		// Test 8: long option with embedded argument
@@ -730,7 +735,7 @@ func TestParserCompletion(t *testing.T) {
 					},
 				},
 			},
-			out: []string{"Robert ", "Roger "},
+			out: []string{"Robert", "Roger"},
 		},
 
 		// Test 9: long option, missed argument
@@ -751,7 +756,8 @@ func TestParserCompletion(t *testing.T) {
 					},
 				},
 			},
-			out: []string{"Ro"},
+			out:   []string{"Ro"},
+			flags: CompleterNoSpace,
 		},
 
 		// Test 10: long option with preceding unknown optipn
@@ -809,7 +815,8 @@ func TestParserCompletion(t *testing.T) {
 					},
 				},
 			},
-			out: []string{"Ro"},
+			out:   []string{"Ro"},
+			flags: CompleterNoSpace,
 		},
 
 		// Test 13: long option name auto-completion
@@ -823,7 +830,8 @@ func TestParserCompletion(t *testing.T) {
 					{Name: "--other", Aliases: []string{"--long-3"}},
 				},
 			},
-			out: []string{"--long-"},
+			out:   []string{"--long-"},
+			flags: CompleterNoSpace,
 		},
 
 		// Test 14: sub-commands, successful completion with prefix
@@ -836,7 +844,7 @@ func TestParserCompletion(t *testing.T) {
 					{Name: "Robert"},
 				},
 			},
-			out: []string{"Robert ", "Roger "},
+			out: []string{"Robert", "Roger"},
 		},
 
 		// Test 15: a single sub-command, successful completion with prefix
@@ -848,7 +856,7 @@ func TestParserCompletion(t *testing.T) {
 					{Name: "Roger"},
 				},
 			},
-			out: []string{"Roger "},
+			out: []string{"Roger"},
 		},
 
 		// Test 16: sub-commands, successful completion without prefix
@@ -861,7 +869,8 @@ func TestParserCompletion(t *testing.T) {
 					{Name: "Robert"},
 				},
 			},
-			out: []string{"Ro"},
+			out:   []string{"Ro"},
+			flags: CompleterNoSpace,
 		},
 
 		// Test 17: option, "--", sub-commands
@@ -877,7 +886,7 @@ func TestParserCompletion(t *testing.T) {
 					{Name: "Robert"},
 				},
 			},
-			out: []string{"Robert ", "Roger "},
+			out: []string{"Robert", "Roger"},
 		},
 
 		// Test 18: sub-commands, extra parameter
@@ -910,7 +919,7 @@ func TestParserCompletion(t *testing.T) {
 					},
 				},
 			},
-			out: []string{"Robert ", "Roger "},
+			out: []string{"Robert", "Roger"},
 		},
 
 		// Test 20: options, '--', parameter
@@ -933,7 +942,7 @@ func TestParserCompletion(t *testing.T) {
 					},
 				},
 			},
-			out: []string{"Robert ", "Roger "},
+			out: []string{"Robert", "Roger"},
 		},
 
 		// Test 21: parameter completion, extra parameter
@@ -976,7 +985,7 @@ func TestParserCompletion(t *testing.T) {
 					},
 				},
 			},
-			out: []string{"Robert ", "Roger "},
+			out: []string{"Robert", "Roger"},
 		},
 
 		// Test 23: parameter completion, repeated last
@@ -1004,7 +1013,7 @@ func TestParserCompletion(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		out := test.cmd.Complete(test.argv)
+		out, flags := test.cmd.Complete(test.argv)
 
 		diff := testDiffCompletion(test.out, out)
 		if len(diff) != 0 {
@@ -1013,6 +1022,11 @@ func TestParserCompletion(t *testing.T) {
 			for _, s := range diff {
 				t.Errorf("  %s", s)
 			}
+		}
+
+		if flags != test.flags {
+			t.Errorf("[%d]: flags mismatch\nextected: %b\nreceived: %b",
+				i, test.flags, flags)
 		}
 	}
 }

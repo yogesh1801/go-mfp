@@ -29,7 +29,25 @@ import (
 //   "Ro"  -> ["Roger", "Robert"]
 //   "Rog" -> ["Roger"]
 //   "Rol" -> []
-type Completer func(string) []string
+type Completer func(string) ([]string, CompleterFlags)
+
+// CompleterFlags returned as a second return value from Completer
+// and provides some hints how caller should interpret returned
+// completion candidates.
+//
+// See each flag's documentation for more details.
+type CompleterFlags int
+
+const (
+	// CompleterNoSpace indicates that caller should not
+	// append a space after completion.
+	//
+	// This is useful, for example, for file path completion
+	// that ends with path separator character (i.e., '/')
+	// and user is prompted to continue entering a full
+	// file name.
+	CompleterNoSpace CompleterFlags = 1 << iota
+)
 
 // CompleteStrings returns a completer, that performs auto-completion,
 // choosing from a set of supplied strings.
@@ -40,7 +58,7 @@ func CompleteStrings(s []string) Completer {
 	copy(set, s)
 
 	// Create completer
-	return func(in string) []string {
+	return func(in string) ([]string, CompleterFlags) {
 		out := []string{}
 		for _, member := range set {
 			if len(in) < len(member) &&
@@ -48,7 +66,7 @@ func CompleteStrings(s []string) Completer {
 				out = append(out, member)
 			}
 		}
-		return out
+		return out, 0
 	}
 }
 
@@ -62,7 +80,7 @@ func CompleteStrings(s []string) Completer {
 // If getwd is nil, current directory assumed to be "/"
 func CompleteFs(fsys fs.FS, getwd func() (string, error)) Completer {
 	fscompl := newFscompleter(fsys, getwd)
-	return func(arg string) []string {
+	return func(arg string) ([]string, CompleterFlags) {
 		return fscompl.complete(arg)
 	}
 }
