@@ -35,28 +35,20 @@ func CompleteStrings(s []string) func(string) []string {
 }
 
 // CompleteFs returns a completer, that performs file name auto-completion
-// on a top of fs.GlobFS.
+// on a top of a virtual (or real) filesystem, represented as fs.FS,
 //
 // filesystem must implement fs.ReadDirFS or fs.GlobFS interfaces.
-func CompleteFs(filesystem fs.FS) func(string) []string {
-	return func(in string) []string {
-		// Don't allow special characters within the string
-		if strings.IndexAny(in, "/?*") >= 0 {
-			return nil
-		}
+//
+// getwd callback returns a current directory within that file system.
+// It's signature is compatible with os.Getwd(), so this function can
+// be used directly.
+//
+// If getwd is nil, current directory assumed to be "/"
+func CompleteFs(fsys fs.FS,
+	getwd func() (string, error)) func(string) []string {
 
-		// Lookup matching file names
-		names, err := fs.Glob(filesystem, in+"*")
-		if err != nil {
-			return nil
-		}
-
-		out := []string{}
-		for _, name := range names {
-			if len(in) < len(name) && strings.HasPrefix(name, in) {
-				out = append(out, name)
-			}
-		}
-		return out
+	fscompl := newFscompleter(fsys, getwd)
+	return func(arg string) []string {
+		return fscompl.complete(arg)
 	}
 }
