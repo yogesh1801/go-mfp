@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-// DefaultHandler is the default Command's Handler
+// DefaultHandler is the default Handler for [Command]
 func DefaultHandler(inv *Invocation) error {
 	subcmd, subargv := inv.SubCommand()
 	if subcmd != nil {
