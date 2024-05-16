@@ -25,7 +25,7 @@ type fscompleter struct {
 func newFscompleter(fsys fs.FS, getwd func() (string, error)) *fscompleter {
 	if getwd == nil {
 		getwd = func() (string, error) {
-			return "/", nil
+			return string(filepath.Separator), nil
 		}
 	}
 
@@ -64,7 +64,7 @@ func (fscompl *fscompleter) complete(arg string) ([]string, CompleterFlags) {
 	}
 
 	if len(compl) == 1 && lasIsDir {
-		compl[0] += "/"
+		compl[0] += string(filepath.Separator)
 		flags |= CompleterNoSpace
 	}
 
@@ -98,7 +98,7 @@ func (fscompl fscompleter) splitPath(path string) (dir, file string) {
 	case i < 0:
 		return "", path
 	case i == 0:
-		return "/", path[1:]
+		return string(filepath.Separator), path[1:]
 	case i == len(path)-1:
 		return path[0:i], ""
 	default:
@@ -129,10 +129,10 @@ func (fscompl *fscompleter) absPath(path string) (string, error) {
 	abspath := filepath.Clean(path)
 
 	// Adjust abspath. fs.FS requires it to be without starting '/'
-	switch abspath {
-	case "", "/":
+	if abspath == "" ||
+		(len(abspath) == 1 && os.IsPathSeparator(abspath[0])) {
 		abspath = "."
-	default:
+	} else {
 		abspath = abspath[1:]
 	}
 
