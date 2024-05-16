@@ -9,7 +9,9 @@
 package argv
 
 import (
+	"fmt"
 	"io/fs"
+	"math/bits"
 	"strings"
 )
 
@@ -48,6 +50,41 @@ const (
 	// file name.
 	CompleterNoSpace CompleterFlags = 1 << iota
 )
+
+// completerFlagsNames contains names of CompleterFlags,
+// for debugging
+var completerFlagsNames = map[CompleterFlags]string{}
+
+func init() {
+	// Pupulate completerFlagsNames table
+	for i := 0; i < bits.UintSize; i++ {
+		f := CompleterFlags(1 << i)
+		switch f {
+		case CompleterNoSpace:
+			completerFlagsNames[f] = "CompleterNoSpace"
+		default:
+			completerFlagsNames[f] = fmt.Sprintf("0x%x", i)
+		}
+	}
+}
+
+// String converts CompleterFlags into string, for debugging
+func (flags CompleterFlags) String() string {
+	if flags == 0 {
+		return "0"
+	}
+
+	var s []string
+
+	for i := CompleterFlags(1); flags != 0; i <<= 1 {
+		if flags&i != 0 {
+			s = append(s, completerFlagsNames[i])
+		}
+		flags &^= i
+	}
+
+	return strings.Join(s, ",")
+}
 
 // CompleteStrings returns a completer, that performs auto-completion,
 // choosing from a set of supplied strings.
