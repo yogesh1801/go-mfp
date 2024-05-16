@@ -65,9 +65,11 @@ func TestCompleteStrings(t *testing.T) {
 // TestCompleteFs tests CompleteFs
 func TestCompleteFs(t *testing.T) {
 	var testFs fs.FS = fstest.MapFS{
-		"etc/hosts":  &fstest.MapFile{Mode: 0755},
-		"usr/bin/ls": &fstest.MapFile{Mode: 0755},
-		"usr/bin/ps": &fstest.MapFile{Mode: 0755},
+		"etc/hosts":        &fstest.MapFile{Mode: 0755},
+		"usr/bin/ls":       &fstest.MapFile{Mode: 0755},
+		"usr/bin/ps":       &fstest.MapFile{Mode: 0755},
+		"test/subdir/file": &fstest.MapFile{Mode: 0755},
+		"test/subdirfile":  &fstest.MapFile{Mode: 0755},
 	}
 
 	type testData struct {
@@ -81,12 +83,12 @@ func TestCompleteFs(t *testing.T) {
 		// Simple tests
 		{
 			in:  "/",
-			out: []string{"/etc", "/usr"},
+			out: []string{"/etc", "/test", "/usr"},
 		},
 
 		{
 			in:  "./",
-			out: []string{"./etc", "./usr"},
+			out: []string{"./etc", "./test", "./usr"},
 		},
 
 		{
@@ -98,6 +100,11 @@ func TestCompleteFs(t *testing.T) {
 			in:    "/usr/bin",
 			out:   []string{"/usr/bin/"},
 			flags: CompleterNoSpace,
+		},
+
+		{
+			in:  "test/subdir",
+			out: []string{"test/subdir", "test/subdirfile"},
 		},
 
 		// Tests with getwd()
