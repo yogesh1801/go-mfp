@@ -50,16 +50,25 @@ func (fscompl *fscompleter) complete(arg string) ([]string, CompleterFlags) {
 
 	// Match file name against the directory entries
 	var compl []string
+	var lasIsDir bool
+	var flags CompleterFlags
 
 	for _, ent := range entries {
 		name := ent.Name()
+		lasIsDir = ent.IsDir()
+
 		if strings.HasPrefix(name, file) {
 			candidate := fscompl.mergePath(dir, name)
 			compl = append(compl, candidate)
 		}
 	}
 
-	return compl, 0
+	if len(compl) == 1 && lasIsDir {
+		compl[0] += "/"
+		flags |= CompleterNoSpace
+	}
+
+	return compl, flags
 }
 
 func (fscompl *fscompleter) readDir(dir string) ([]fs.DirEntry, error) {
