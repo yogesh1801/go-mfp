@@ -78,6 +78,7 @@ func TestCompleteFs(t *testing.T) {
 	}
 
 	tests := []testData{
+		// Simple tests
 		{
 			in:  "/",
 			out: []string{"/etc", "/usr"},
@@ -93,6 +94,24 @@ func TestCompleteFs(t *testing.T) {
 			out: []string{"/usr/bin/ls"},
 		},
 
+		// Tests with getwd()
+		{
+			getwd: func() (string, error) {
+				return "/usr/bin", nil
+			},
+			in:  "",
+			out: []string{"ls", "ps"},
+		},
+
+		{
+			getwd: func() (string, error) {
+				return "/usr/bin", nil
+			},
+			in:  "",
+			out: []string{"ls", "ps"},
+		},
+
+		// Errors handling
 		{
 			in:  "/path/not/exist",
 			out: nil,
@@ -104,22 +123,6 @@ func TestCompleteFs(t *testing.T) {
 				return "", errors.New("oops")
 			},
 			out: nil,
-		},
-
-		{
-			getwd: func() (string, error) {
-				return "/usr/bin", nil
-			},
-			in:  "",
-			out: []string{"ls", "ps"},
-		},
-
-		{
-			getwd: func() (string, error) {
-				return "/usr/bin", nil
-			},
-			in:  "",
-			out: []string{"ls", "ps"},
 		},
 	}
 
