@@ -56,7 +56,7 @@ func TestCompleteStrings(t *testing.T) {
 
 		if flags != test.flags {
 			t.Errorf("CompleteStrings(%#v) %q:"+
-				"\nflags expected: %b\nflags received: %b\n",
+				"\nflags expected: %s\nflags received: %s\n",
 				test.strings, test.arg, test.flags, flags)
 		}
 	}
@@ -92,6 +92,12 @@ func TestCompleteFs(t *testing.T) {
 		{
 			in:  "/usr/bin/ls",
 			out: []string{"/usr/bin/ls"},
+		},
+
+		{
+			in:    "/usr/bin",
+			out:   []string{"/usr/bin/"},
+			flags: CompleterNoSpace,
 		},
 
 		// Tests with getwd()
@@ -133,11 +139,55 @@ func TestCompleteFs(t *testing.T) {
 		if !reflect.DeepEqual(out, test.out) {
 			t.Errorf("%q:\nexpected: %#v\nreceived: %#v\n",
 				test.in, test.out, out)
+			//os.Exit(1)
 		}
 
 		if flags != test.flags {
-			t.Errorf("%q flags:\nexpected: %#v\nreceived: %#v\n",
+			t.Errorf("%q flags:\nexpected: %s\nreceived: %s\n",
 				test.in, test.flags, flags)
+		}
+	}
+}
+
+// TestCompleterFlags tests (CompleterFlags) String()
+func TestCompleterFlagsString(t *testing.T) {
+	type testData struct {
+		in  CompleterFlags // Input value
+		out string         // Expected output
+	}
+
+	tests := []testData{
+		{
+			in:  0,
+			out: "0",
+		},
+
+		{
+			in:  1 << 0,
+			out: "CompleterNoSpace",
+		},
+
+		{
+			in:  1 << 2,
+			out: "0x2",
+		},
+
+		{
+			in:  1 << 4,
+			out: "0x4",
+		},
+
+		{
+			in:  12345,
+			out: "CompleterNoSpace,0x3,0x4,0x5,0xc,0xd",
+		},
+	}
+
+	for _, test := range tests {
+		out := test.in.String()
+		if out != test.out {
+			t.Errorf("%x:\nexpected: %s\nreceived: %s",
+				uint(test.in), test.out, out)
 		}
 	}
 }

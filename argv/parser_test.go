@@ -1025,7 +1025,8 @@ func TestParserCompletion(t *testing.T) {
 		}
 
 		if flags != test.flags {
-			t.Errorf("[%d]: flags mismatch\nextected: %b\nreceived: %b",
+			t.Errorf("[%d]: flags mismatch\n"+
+				"extected: %s\nreceived: %s",
 				i, test.flags, flags)
 		}
 	}
