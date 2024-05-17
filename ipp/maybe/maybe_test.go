@@ -11,6 +11,8 @@ package maybe_test
 import (
 	"fmt"
 	"reflect"
+	"runtime"
+	"strings"
 	"testing"
 	"time"
 
@@ -111,5 +113,56 @@ func TestVoidValues(t *testing.T) {
 				}
 			}
 		}
+	}
+}
+
+// TestNoVoid tests no-void values
+func TestNoVoid(t *testing.T) {
+	type testData struct {
+		newfn interface{} // Constructor function
+		param interface{} // Constructor parameter
+	}
+
+	tests := []testData{
+		{maybe.NewBinary, []byte{'h', 'e', 'l', 'l', 'o'}},
+		{maybe.NewBoolean, true},
+		{maybe.NewCollection, goipp.Collection{}},
+		{maybe.NewInteger, int32(12345)},
+		{maybe.NewRange, goipp.Range{}},
+		{maybe.NewResolution, goipp.Resolution{}},
+		{maybe.NewString, "hello"},
+		{maybe.NewTextWithLang, goipp.TextWithLang{}},
+		{maybe.NewTime, time.Now()},
+	}
+
+	for _, test := range tests {
+		newfn := reflect.ValueOf(test.newfn)
+		param := reflect.ValueOf(test.param)
+
+		// Obtain constructor name and extract type name
+		// from it.
+		//
+		// Note, constructor names looks like:
+		//   github.com/alexpevzner/mfp/ipp/maybe.NewBinary
+		fn := runtime.FuncForPC(newfn.Pointer())
+		nm := fn.Name()
+		cut := strings.LastIndex(nm, ".New")
+		nm = nm[cut+4:]
+
+		// Call the constructor
+		instance := newfn.Call([]reflect.Value{param})[0]
+
+		// Locate getter (it's named after the type name)
+		// and extract value back.
+		getter := instance.MethodByName(nm)
+		ret := getter.Call(nil)
+
+		// Compare returned value with parameter
+		out := ret[0].Interface()
+		if !reflect.DeepEqual(test.param, out) {
+			t.Errorf("%s(%#v):\nunexpected value %#v",
+				nm, test.param, out)
+		}
+
 	}
 }
