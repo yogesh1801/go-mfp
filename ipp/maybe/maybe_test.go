@@ -80,7 +80,7 @@ func TestVoidValues(t *testing.T) {
 
 	methods := []string{
 		"Binary", "Boolean", "Collection", "Integer",
-		"Range", "Resolution", "String", "Time",
+		"Range", "Resolution", "String", "TextWithLang", "Time",
 	}
 
 	for _, test := range tests {
