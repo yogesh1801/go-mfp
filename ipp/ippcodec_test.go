@@ -17,221 +17,216 @@ import (
 	"github.com/OpenPrinting/goipp"
 )
 
-// ----- ippCodecGenerate test -----
-
-// ippCodecGenerateTest represents a single test't data
-// for ippCodecGenerate
-type ippCodecGenerateTest struct {
-	data interface{} // Input structure
-	err  error       // Expected error
-}
-
-// GoodEmbedded used as embedded structure for ippCodecGenerate test
-type GoodEmbedded struct {
-	X int
-}
-
-// BadEmbedded is bad embedded structure, for ippCodecGenerate test
-type BadEmbedded struct {
-	X int `ipp:"x,boolean"`
-}
-
-// ippCodecGenerateTestData contains collection of
-// ippCodecGenerate tests
-var ippCodecGenerateTestData = []ippCodecGenerateTest{
-	{
-		data: struct {
-			FldOk      int `ipp:"fld-ok"`
-			unexported string
-			GoodEmbedded
-		}{},
-	},
-
-	{
-		data: struct {
-			FldOk int `ipp:"fld-ok"`
-			BadEmbedded
-		}{},
-		err: errors.New(`ipp.BadEmbedded.X: can't represent int as boolean`),
-	},
-
-	{
-		data: struct {
-			FldNoIPPTag int
-		}{},
-		err: errors.New(`struct {...}: contains no IPP fields`),
-	},
-
-	{
-		data: struct {
-			FldBad int `ipp:""`
-		}{},
-		err: errors.New(`struct {...}.FldBad: missed attribute name`),
-	},
-
-	{
-		data: struct {
-			FldBad int `ipp:"?"`
-		}{},
-		err: errors.New(`struct {...}.FldBad: missed attribute name`),
-	},
-
-	{
-		data: struct {
-			FldBad float64 `ipp:"flg-bad"`
-		}{},
-		err: errors.New(`struct {...}.FldBad: float64 type not supported`),
-	},
-
-	{
-		data: struct {
-			Nested struct {
-				FldBad float64 `ipp:"flg-bad"`
-			} `ipp:"flg-nested"`
-		}{},
-		err: errors.New(`struct {...}.Nested: struct {...}.FldBad: float64 type not supported`),
-	},
-
-	{
-		data: struct {
-			// ipp: tag contains unknown keyword
-			FldBadTag int `ipp:"fld-bad-tag,unknown"`
-		}{},
-		err: errors.New(`struct {...}.FldBadTag: "unknown": unknown keyword`),
-	},
-
-	{
-		data: struct {
-			// ipp: tag contains empty keyword; it's not an error
-			FldGootTag int `ipp:"fld-good-tag,,integer"`
-		}{},
-	},
-
-	{
-		data: struct {
-			// ipp: tag contains invalid (empty) limit constraint
-			FldBadTag int `ipp:"fld-bad-tag,<"`
-		}{},
-		err: errors.New(`struct {...}.FldBadTag: "<": invalid limit`),
-	},
-
-	{
-		data: struct {
-			// ipp: tag contains invalid (parse error) limit constraint
-			FldBadTag int `ipp:"fld-bad-tag,<XXX"`
-		}{},
-		err: errors.New(`struct {...}.FldBadTag: "<XXX": invalid limit`),
-	},
-
-	{
-		data: struct {
-			// ipp: tag contains invalid (out of range) upper limit
-			FldBadTag int `ipp:"fld-bad-tag,<4294967296"`
-		}{},
-		err: errors.New(`struct {...}.FldBadTag: "<4294967296": limit out of range`),
-	},
-
-	{
-		data: struct {
-			// ipp: tag contains invalid (out of range) lower limit
-			FldBadTag int `ipp:"fld-bad-tag,>4294967296"`
-		}{},
-		err: errors.New(`struct {...}.FldBadTag: ">4294967296": limit out of range`),
-	},
-
-	{
-		data: struct {
-			// ipp: tag contains valid limit constraint
-			FldGoodTag int `ipp:"fld-good-tag,>-3,<100"`
-		}{},
-	},
-
-	{
-		data: struct {
-			// ipp: range constraint syntactically invalid
-			FldBadTag int `ipp:"fld-bad-tag,0:XXX"`
-		}{},
-		err: errors.New(`struct {...}.FldBadTag: "0:XXX": unknown keyword`),
-	},
-
-	{
-		data: struct {
-			// ipp: range lower bound doesn't fit int32
-			FldGoodTag int `ipp:"fld-good-tag,4294967296:5"`
-		}{},
-		err: errors.New(`struct {...}.FldGoodTag: "4294967296:5": 4294967296 out of range`),
-	},
-
-	{
-		data: struct {
-			// ipp: range upper bound doesn't fit int32
-			FldGoodTag int `ipp:"fld-good-tag,5:4294967296"`
-		}{},
-		err: errors.New(`struct {...}.FldGoodTag: "5:4294967296": 4294967296 out of range`),
-	},
-
-	{
-		data: struct {
-			// ipp: range min > max
-			FldGoodTag int `ipp:"fld-good-tag,10:5"`
-		}{},
-		err: errors.New(`struct {...}.FldGoodTag: "10:5": range min>max`),
-	},
-
-	{
-		data: struct {
-			// ipp: tag contains valid range constraint
-			FldGoodTag int `ipp:"fld-good-tag,0:100"`
-		}{},
-	},
-
-	{
-		data: struct {
-			FldConv int `ipp:"fld-conv,string"`
-		}{},
-		err: errors.New(`struct {...}.FldConv: can't represent int as octetString`),
-	},
-
-	{
-		data: struct {
-			FldConv string `ipp:"fld-conv,enum"`
-		}{},
-		err: errors.New(`struct {...}.FldConv: can't represent string as enum`),
-	},
-
-	{
-		data: struct {
-			FldConv bool `ipp:"fld-conv,keyword"`
-		}{},
-		err: errors.New(`struct {...}.FldConv: can't represent bool as keyword`),
-	},
-
-	{
-		data: struct {
-			Fld1 int `ipp:"fld"`
-			Fld2 int `ipp:"fld"`
-		}{},
-		err: errors.New(`struct {...}.Fld2: attribute "fld" already used by Fld1`),
-	},
-
-	{
-		data: struct {
-			unexported int `ipp:"unexported"`
-		}{},
-		err: errors.New(`struct {...}.unexported: ipp: tag used with unexported field`),
-	},
-}
-
-// exec executes the test
-func (test ippCodecGenerateTest) exec(t *testing.T) {
-	_, err := ippCodecGenerate(reflect.TypeOf(test.data))
-	checkError(t, "TestIppCodecGenerate", err, test.err)
-}
-
-// TestIppCodecGenerate executes all tests in ippCodecGenerateTestData
+// TestIppCodecGenerate tests ippCodecGenerate() function
 func TestIppCodecGenerate(t *testing.T) {
-	for _, test := range ippCodecGenerateTestData {
-		test.exec(t)
+	type testData struct {
+		data interface{} // Input structure
+		err  string      // Expected error, "" if none
+	}
+
+	// GoodEmbedded used as embedded structure for ippCodecGenerate test
+	type GoodEmbedded struct {
+		X int
+	}
+
+	// BadEmbedded is bad embedded structure, for ippCodecGenerate test
+	type BadEmbedded struct {
+		X int `ipp:"x,boolean"`
+	}
+
+	tests := []testData{
+		{
+			data: struct {
+				FldOk      int `ipp:"fld-ok"`
+				unexported string
+				GoodEmbedded
+			}{},
+		},
+
+		{
+			data: struct {
+				FldOk int `ipp:"fld-ok"`
+				BadEmbedded
+			}{},
+			err: `ipp.BadEmbedded.X: can't represent int as boolean`,
+		},
+
+		{
+			data: struct {
+				FldNoIPPTag int
+			}{},
+			err: `struct {...}: contains no IPP fields`,
+		},
+
+		{
+			data: struct {
+				FldBad int `ipp:""`
+			}{},
+			err: `struct {...}.FldBad: missed attribute name`,
+		},
+
+		{
+			data: struct {
+				FldBad int `ipp:"?"`
+			}{},
+			err: `struct {...}.FldBad: missed attribute name`,
+		},
+
+		{
+			data: struct {
+				FldBad float64 `ipp:"flg-bad"`
+			}{},
+			err: `struct {...}.FldBad: float64 type not supported`,
+		},
+
+		{
+			data: struct {
+				Nested struct {
+					FldBad float64 `ipp:"flg-bad"`
+				} `ipp:"flg-nested"`
+			}{},
+			err: `struct {...}.Nested: struct {...}.FldBad: float64 type not supported`,
+		},
+
+		{
+			data: struct {
+				// ipp: tag contains unknown keyword
+				FldBadTag int `ipp:"fld-bad-tag,unknown"`
+			}{},
+			err: `struct {...}.FldBadTag: "unknown": unknown keyword`,
+		},
+
+		{
+			data: struct {
+				// ipp: tag contains empty keyword; it's not an error
+				FldGootTag int `ipp:"fld-good-tag,,integer"`
+			}{},
+		},
+
+		{
+			data: struct {
+				// ipp: tag contains invalid (empty) limit constraint
+				FldBadTag int `ipp:"fld-bad-tag,<"`
+			}{},
+			err: `struct {...}.FldBadTag: "<": invalid limit`,
+		},
+
+		{
+			data: struct {
+				// ipp: tag contains invalid (parse error) limit constraint
+				FldBadTag int `ipp:"fld-bad-tag,<XXX"`
+			}{},
+			err: `struct {...}.FldBadTag: "<XXX": invalid limit`,
+		},
+
+		{
+			data: struct {
+				// ipp: tag contains invalid (out of range) upper limit
+				FldBadTag int `ipp:"fld-bad-tag,<4294967296"`
+			}{},
+			err: `struct {...}.FldBadTag: "<4294967296": limit out of range`,
+		},
+
+		{
+			data: struct {
+				// ipp: tag contains invalid (out of range) lower limit
+				FldBadTag int `ipp:"fld-bad-tag,>4294967296"`
+			}{},
+			err: `struct {...}.FldBadTag: ">4294967296": limit out of range`,
+		},
+
+		{
+			data: struct {
+				// ipp: tag contains valid limit constraint
+				FldGoodTag int `ipp:"fld-good-tag,>-3,<100"`
+			}{},
+		},
+
+		{
+			data: struct {
+				// ipp: range constraint syntactically invalid
+				FldBadTag int `ipp:"fld-bad-tag,0:XXX"`
+			}{},
+			err: `struct {...}.FldBadTag: "0:XXX": unknown keyword`,
+		},
+
+		{
+			data: struct {
+				// ipp: range lower bound doesn't fit int32
+				FldGoodTag int `ipp:"fld-good-tag,4294967296:5"`
+			}{},
+			err: `struct {...}.FldGoodTag: "4294967296:5": 4294967296 out of range`,
+		},
+
+		{
+			data: struct {
+				// ipp: range upper bound doesn't fit int32
+				FldGoodTag int `ipp:"fld-good-tag,5:4294967296"`
+			}{},
+			err: `struct {...}.FldGoodTag: "5:4294967296": 4294967296 out of range`,
+		},
+
+		{
+			data: struct {
+				// ipp: range min > max
+				FldGoodTag int `ipp:"fld-good-tag,10:5"`
+			}{},
+			err: `struct {...}.FldGoodTag: "10:5": range min>max`,
+		},
+
+		{
+			data: struct {
+				// ipp: tag contains valid range constraint
+				FldGoodTag int `ipp:"fld-good-tag,0:100"`
+			}{},
+		},
+
+		{
+			data: struct {
+				FldConv int `ipp:"fld-conv,string"`
+			}{},
+			err: `struct {...}.FldConv: can't represent int as octetString`,
+		},
+
+		{
+			data: struct {
+				FldConv string `ipp:"fld-conv,enum"`
+			}{},
+			err: `struct {...}.FldConv: can't represent string as enum`,
+		},
+
+		{
+			data: struct {
+				FldConv bool `ipp:"fld-conv,keyword"`
+			}{},
+			err: `struct {...}.FldConv: can't represent bool as keyword`,
+		},
+
+		{
+			data: struct {
+				Fld1 int `ipp:"fld"`
+				Fld2 int `ipp:"fld"`
+			}{},
+			err: `struct {...}.Fld2: attribute "fld" already used by Fld1`,
+		},
+
+		{
+			data: struct {
+				unexported int `ipp:"unexported"`
+			}{},
+			err: `struct {...}.unexported: ipp: tag used with unexported field`,
+		},
+	}
+
+	for _, test := range tests {
+		_, err := ippCodecGenerate(reflect.TypeOf(test.data))
+
+		var errExpected error
+		if test.err != "" {
+			errExpected = errors.New(test.err)
+		}
+
+		checkError(t, "TestIppCodecGenerate", err, errExpected)
 	}
 }
 
@@ -258,7 +253,7 @@ func TestIppCodecGenerateBadTag(t *testing.T) {
 		errors.New(`struct {...}.FldBadTag: invalid tag "ipp:\"fld-bad-tag"`))
 }
 
-// ----- Decode panic test -----
+// TestDecodePanic tests panics in (*ippCodec) decode()
 func TestDecodePanic(t *testing.T) {
 	// Compile the codec
 	ttype := reflect.TypeOf(ippTestStruct{})
