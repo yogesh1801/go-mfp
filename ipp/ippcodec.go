@@ -52,9 +52,8 @@ type ippCodecStep struct {
 	min, max    int                // Range limits for integers
 
 	// Encode/decode functions
-	encode  func(p unsafe.Pointer) []goipp.Value
+	encode  func(p unsafe.Pointer) goipp.Values
 	decode  func(p unsafe.Pointer, v goipp.Values) error
-	enctag  func(v goipp.Value) goipp.Tag
 	iszero  func(p unsafe.Pointer) bool
 	setzero func(p unsafe.Pointer)
 }
@@ -212,7 +211,6 @@ func ippCodecGenerateInternal(t reflect.Type,
 			min:         tag.min,
 			max:         tag.max,
 
-			enctag: methods.enctag,
 			iszero: func(p unsafe.Pointer) bool {
 				return reflect.NewAt(fldType, p).Elem().IsZero()
 			},
@@ -226,11 +224,11 @@ func ippCodecGenerateInternal(t reflect.Type,
 		}
 
 		if step.attrTag == 0 {
-			step.attrTag = methods.ippTag
+			step.attrTag = methods.defaultIppTag
 		}
 
 		t1 := step.attrTag.Type()
-		t2 := methods.ippTag.Type()
+		t2 := methods.defaultIppTag.Type()
 
 		ok := t1 == t2 ||
 			t1 == goipp.TypeBinary && t2 == goipp.TypeString ||
@@ -246,7 +244,7 @@ func ippCodecGenerateInternal(t reflect.Type,
 		if slice {
 			t := reflect.SliceOf(fldType)
 
-			step.encode = func(p unsafe.Pointer) []goipp.Value {
+			step.encode = func(p unsafe.Pointer) goipp.Values {
 				return ippEncSlice(p, t, methods.encode)
 			}
 
@@ -306,16 +304,16 @@ func (codec ippCodec) encode(in interface{}, attrs *goipp.Attributes) {
 		}
 
 		// Normal encode
-		val := step.encode(ptr)
+		values := step.encode(ptr)
 
-		if len(val) != 0 {
-			for _, v := range val {
+		if len(values) != 0 {
+			for _, v := range values {
 				tag := step.attrTag
-				if tag == goipp.TagZero {
-					tag = step.enctag(v)
+				if v.T != goipp.TagZero {
+					tag = v.T
 				}
 
-				attr.Values.Add(tag, v)
+				attr.Values.Add(tag, v.V)
 			}
 
 			newattrs.Add(attr)
@@ -628,13 +626,24 @@ func (stag *ippStructTag) parseRange(s string) (bool, error) {
 	return true, err
 }
 
-// ippCodecMethods contains per-reflect.Kind encode and decode
-// functions
+// ippCodecMethods contains per-type encode and decode functions
 type ippCodecMethods struct {
-	ippTag goipp.Tag
-	encode func(p unsafe.Pointer) []goipp.Value
+	// Default IPP tag. Used if there is no per-attribute tag
+	// override (encoded as a part of struct tag).
+	defaultIppTag goipp.Tag
+
+	// Encode function
+	//
+	// IPP, at the wire protocol level, doesn't distinguish between
+	// scalar and vector values (scalars are encoded as a single-value
+	// vectors), so encode always returns slice of values.
+	//
+	// IPP tag, returned by encode (as a part of goipp.Values slice),
+	// if not goipp.TagZero, overrides per-attribute tag setting.
+	encode func(p unsafe.Pointer) goipp.Values
+
+	// Decode function
 	decode func(p unsafe.Pointer, v goipp.Values) error
-	enctag func(v goipp.Value) goipp.Tag
 }
 
 // ----- ippCodecMethods for slices -----
@@ -648,14 +657,14 @@ type ippCodecMethods struct {
 // encode is the single-value encoder (i.e., ippEncString for slice
 // of strings)
 func ippEncSlice(p unsafe.Pointer,
-	t reflect.Type, encode func(unsafe.Pointer) []goipp.Value) []goipp.Value {
+	t reflect.Type, encode func(unsafe.Pointer) goipp.Values) goipp.Values {
 
 	slice := reflect.NewAt(t, p).Elem()
 	if slice.IsNil() {
 		return nil
 	}
 
-	vals := make([]goipp.Value, slice.Len())
+	vals := make(goipp.Values, slice.Len())
 	for i := range vals {
 		p2 := unsafe.Pointer(slice.Index(i).Addr().Pointer())
 		v := encode(p2)
@@ -701,9 +710,9 @@ func ippCodecMethodsCollection(t reflect.Type, slice bool) (
 	}
 
 	m := &ippCodecMethods{
-		ippTag: goipp.TagBeginCollection,
+		defaultIppTag: goipp.TagBeginCollection,
 
-		encode: func(p unsafe.Pointer) []goipp.Value {
+		encode: func(p unsafe.Pointer) goipp.Values {
 			return ippEncCollection(p, codec)
 		},
 
@@ -716,14 +725,14 @@ func ippCodecMethodsCollection(t reflect.Type, slice bool) (
 }
 
 // Encode: nested structure as collection
-func ippEncCollection(p unsafe.Pointer, codec *ippCodec) []goipp.Value {
+func ippEncCollection(p unsafe.Pointer, codec *ippCodec) goipp.Values {
 
 	ss := reflect.NewAt(codec.t, p).Interface()
 
 	var attrs goipp.Attributes
 	codec.encode(ss, &attrs)
 
-	return []goipp.Value{goipp.Collection(attrs)}
+	return goipp.Values{{goipp.TagBeginCollection, goipp.Collection(attrs)}}
 }
 
 // Decode: single nested structure from collection
@@ -777,47 +786,53 @@ func ippDecCollectionInternal(p unsafe.Pointer, vals goipp.Values,
 // ippCodecMethods structure
 var ippCodecMethodsByType = map[reflect.Type]*ippCodecMethods{
 	reflect.TypeOf((*goipp.IntegerOrRange)(nil)).Elem(): &ippCodecMethods{
-		ippTag: goipp.TagZero,
-		encode: ippEncIntegerOrRange,
-		decode: ippDecIntegerOrRange,
-		enctag: ippTagIntegerOrRange,
+		defaultIppTag: goipp.TagZero,
+		encode:        ippEncIntegerOrRange,
+		decode:        ippDecIntegerOrRange,
 	},
 
 	reflect.TypeOf(goipp.Range{}): &ippCodecMethods{
-		ippTag: goipp.TagRange,
-		encode: ippEncRange,
-		decode: ippDecRange,
+		defaultIppTag: goipp.TagRange,
+		encode:        ippEncRange,
+		decode:        ippDecRange,
 	},
 
 	reflect.TypeOf(goipp.Resolution{}): &ippCodecMethods{
-		ippTag: goipp.TagResolution,
-		encode: ippEncResolution,
-		decode: ippDecResolution,
+		defaultIppTag: goipp.TagResolution,
+		encode:        ippEncResolution,
+		decode:        ippDecResolution,
 	},
 
 	reflect.TypeOf(goipp.TextWithLang{}): &ippCodecMethods{
-		ippTag: goipp.TagTextLang,
-		encode: ippEncTextWithLang,
-		decode: ippDecTextWithLang,
+		defaultIppTag: goipp.TagTextLang,
+		encode:        ippEncTextWithLang,
+		decode:        ippDecTextWithLang,
 	},
 
 	reflect.TypeOf(goipp.Version(0)): &ippCodecMethods{
-		ippTag: goipp.TagKeyword,
-		encode: ippEncVersion,
-		decode: ippDecVersion,
+		defaultIppTag: goipp.TagKeyword,
+		encode:        ippEncVersion,
+		decode:        ippDecVersion,
 	},
 
 	reflect.TypeOf(time.Time{}): &ippCodecMethods{
-		ippTag: goipp.TagDateTime,
-		encode: ippEncDateTime,
-		decode: ippDecDateTime,
+		defaultIppTag: goipp.TagDateTime,
+		encode:        ippEncDateTime,
+		decode:        ippDecDateTime,
 	},
 }
 
 // Encode: goipp.IntegerOrRange
-func ippEncIntegerOrRange(p unsafe.Pointer) []goipp.Value {
+func ippEncIntegerOrRange(p unsafe.Pointer) goipp.Values {
 	in := *(*goipp.IntegerOrRange)(p)
-	out := []goipp.Value{in}
+	var tag goipp.Tag
+	switch in.(type) {
+	case goipp.Integer:
+		tag = goipp.TagInteger
+	case goipp.Range:
+		tag = goipp.TagRange
+	}
+	out := goipp.Values{{tag, in}}
 	return out
 }
 
@@ -834,21 +849,10 @@ func ippDecIntegerOrRange(p unsafe.Pointer, vals goipp.Values) error {
 	return nil
 }
 
-// Encode tag: goipp.IntegerOrRange
-func ippTagIntegerOrRange(v goipp.Value) (tag goipp.Tag) {
-	switch v.(type) {
-	case goipp.Integer:
-		tag = goipp.TagInteger
-	case goipp.Range:
-		tag = goipp.TagRange
-	}
-	return
-}
-
 // Encode: goipp.Range
-func ippEncRange(p unsafe.Pointer) []goipp.Value {
+func ippEncRange(p unsafe.Pointer) goipp.Values {
 	in := *(*goipp.Range)(p)
-	out := []goipp.Value{goipp.Range(in)}
+	out := goipp.Values{{goipp.TagZero, goipp.Range(in)}}
 	return out
 }
 
@@ -864,9 +868,9 @@ func ippDecRange(p unsafe.Pointer, vals goipp.Values) error {
 }
 
 // Encode: goipp.Resolution
-func ippEncResolution(p unsafe.Pointer) []goipp.Value {
+func ippEncResolution(p unsafe.Pointer) goipp.Values {
 	in := *(*goipp.Resolution)(p)
-	out := []goipp.Value{goipp.Resolution(in)}
+	out := goipp.Values{{goipp.TagZero, goipp.Resolution(in)}}
 	return out
 }
 
@@ -882,9 +886,9 @@ func ippDecResolution(p unsafe.Pointer, vals goipp.Values) error {
 }
 
 // Encode: goipp.TextWithLang
-func ippEncTextWithLang(p unsafe.Pointer) []goipp.Value {
+func ippEncTextWithLang(p unsafe.Pointer) goipp.Values {
 	in := *(*goipp.TextWithLang)(p)
-	out := []goipp.Value{goipp.TextWithLang(in)}
+	out := goipp.Values{{goipp.TagZero, goipp.TextWithLang(in)}}
 	return out
 }
 
@@ -900,9 +904,9 @@ func ippDecTextWithLang(p unsafe.Pointer, vals goipp.Values) error {
 }
 
 // Encode: goipp.Version
-func ippEncVersion(p unsafe.Pointer) []goipp.Value {
+func ippEncVersion(p unsafe.Pointer) goipp.Values {
 	in := *(*goipp.Version)(p)
-	out := []goipp.Value{goipp.String(in.String())}
+	out := goipp.Values{{goipp.TagZero, goipp.String(in.String())}}
 	return out
 }
 
@@ -949,9 +953,9 @@ ERROR:
 }
 
 // Encode: time.Time
-func ippEncDateTime(p unsafe.Pointer) []goipp.Value {
+func ippEncDateTime(p unsafe.Pointer) goipp.Values {
 	in := *(*time.Time)(p)
-	out := []goipp.Value{goipp.Time{Time: in}}
+	out := goipp.Values{{goipp.TagZero, goipp.Time{Time: in}}}
 	return out
 }
 
@@ -973,34 +977,34 @@ func ippDecDateTime(p unsafe.Pointer, vals goipp.Values) error {
 // ippCodecMethods structure
 var ippCodecMethodsByKind = map[reflect.Kind]*ippCodecMethods{
 	reflect.Bool: &ippCodecMethods{
-		ippTag: goipp.TagBoolean,
-		encode: ippEncBool,
-		decode: ippDecBool,
+		defaultIppTag: goipp.TagBoolean,
+		encode:        ippEncBool,
+		decode:        ippDecBool,
 	},
 
 	reflect.Int: &ippCodecMethods{
-		ippTag: goipp.TagInteger,
-		encode: ippEncInt,
-		decode: ippDecInt,
+		defaultIppTag: goipp.TagInteger,
+		encode:        ippEncInt,
+		decode:        ippDecInt,
 	},
 
 	reflect.String: &ippCodecMethods{
-		ippTag: goipp.TagText,
-		encode: ippEncString,
-		decode: ippDecString,
+		defaultIppTag: goipp.TagText,
+		encode:        ippEncString,
+		decode:        ippDecString,
 	},
 
 	reflect.Uint16: &ippCodecMethods{
-		ippTag: goipp.TagInteger,
-		encode: ippEncUint16,
-		decode: ippDecUint16,
+		defaultIppTag: goipp.TagInteger,
+		encode:        ippEncUint16,
+		decode:        ippDecUint16,
 	},
 }
 
 // Encode: bool
-func ippEncBool(p unsafe.Pointer) []goipp.Value {
+func ippEncBool(p unsafe.Pointer) goipp.Values {
 	in := *(*bool)(p)
-	out := []goipp.Value{goipp.Boolean(in)}
+	out := goipp.Values{{goipp.TagZero, goipp.Boolean(in)}}
 	return out
 }
 
@@ -1016,9 +1020,9 @@ func ippDecBool(p unsafe.Pointer, vals goipp.Values) error {
 }
 
 // Encode: int
-func ippEncInt(p unsafe.Pointer) []goipp.Value {
+func ippEncInt(p unsafe.Pointer) goipp.Values {
 	in := *(*int)(p)
-	out := []goipp.Value{goipp.Integer(in)}
+	out := goipp.Values{{goipp.TagZero, goipp.Integer(in)}}
 	return out
 }
 
@@ -1034,9 +1038,9 @@ func ippDecInt(p unsafe.Pointer, vals goipp.Values) error {
 }
 
 // Encode: string
-func ippEncString(p unsafe.Pointer) []goipp.Value {
+func ippEncString(p unsafe.Pointer) goipp.Values {
 	in := *(*string)(p)
-	out := []goipp.Value{goipp.String(in)}
+	out := goipp.Values{{goipp.TagZero, goipp.String(in)}}
 	return out
 }
 
@@ -1057,9 +1061,9 @@ func ippDecString(p unsafe.Pointer, vals goipp.Values) error {
 }
 
 // Encode: uint16
-func ippEncUint16(p unsafe.Pointer) []goipp.Value {
+func ippEncUint16(p unsafe.Pointer) goipp.Values {
 	in := *(*uint16)(p)
-	out := []goipp.Value{goipp.Integer(in)}
+	out := goipp.Values{{goipp.TagZero, goipp.Integer(in)}}
 	return out
 }
 
