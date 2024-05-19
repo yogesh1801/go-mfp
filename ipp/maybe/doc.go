@@ -13,8 +13,8 @@
 // with a reason. IPP represents such a values with Tag that provides
 // some information why value is missed.
 //
-// RFC 8011 calls this mechanism "Out-of-Band Values", see section
-// 5.1.1 for details.
+// [RFC 8011] calls this mechanism "Out-of-Band Values", see
+// [RFC 8011, 5.1.1] for details.
 //
 // Three IPP tags are defined for this purpose:
 //
@@ -31,7 +31,7 @@
 // values which either have a particular value or reason why value
 // is missed.
 //
-// For example, "date-time-at-processing" attribute, which RFC 8011
+// For example, "date-time-at-processing" attribute, which [RFC 8011]
 // defines as (dateTime|unknown|no-value), can be represented in Go
 // with the following variable (or structure field):
 //
@@ -66,5 +66,7 @@
 // The predefined values [NoValue], [Unknown] and [Unsupported] are
 // assignable to any of these types.
 //
+// [RFC 8011]: https://datatracker.ietf.org/doc/html/rfc8011
+// [RFC 8011, 5.1.1]: https://datatracker.ietf.org/doc/html/rfc8011#section-5.1.1
 // [Maybe (a.k.a. Option) type]: https://en.wikipedia.org/wiki/Option_type
 package maybe
