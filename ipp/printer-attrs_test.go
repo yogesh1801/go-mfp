@@ -54,7 +54,7 @@ func TestKyoceraM2040dnPrinterAttributes(t *testing.T) {
 	attrs := pa.EncodeAttrs()
 	diff := testDiffAttrs(msg.Printer, attrs)
 	_ = diff
-	println(diff)
+	//println(diff)
 }
 
 //go:embed "testdata/Kyocera-ECOSYS-M2040dn/printer-attributes.ipp"
