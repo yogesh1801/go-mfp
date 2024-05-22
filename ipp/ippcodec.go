@@ -114,6 +114,8 @@ func ippCodecGenerateInternal(t reflect.Type,
 		t: t,
 	}
 
+	maybeCodecType := reflect.TypeOf((*maybeCodecInterface)(nil)).Elem()
+
 	for i := 0; i < t.NumField(); i++ {
 		// Fetch field by field
 		//
@@ -171,8 +173,16 @@ func ippCodecGenerateInternal(t reflect.Type,
 		}
 		attrNames[tag.name] = fld.Name
 
-		// Obtain ippCodecMethods
+		// Obtain fldType. Handle Maybe[T].
 		fldType := fld.Type
+		var maybe maybeCodecInterface
+
+		if reflect.PointerTo(fldType).Implements(maybeCodecType) {
+			maybe = reflect.NewAt(fldType, nil).Interface().(maybeCodecInterface)
+			fldType = maybe.typeof()
+		}
+
+		// Obtain ippCodecMethods
 		fldKind := fldType.Kind()
 		slice := fldKind == reflect.Slice
 		if slice {
@@ -241,20 +251,37 @@ func ippCodecGenerateInternal(t reflect.Type,
 			return nil, err
 		}
 
+		step.encode = methods.encode
+		step.decode = methods.decode
+
 		if slice {
 			t := reflect.SliceOf(fldType)
 
+			encode := step.encode
+			decode := step.decode
+
 			step.encode = func(p unsafe.Pointer) goipp.Values {
-				return ippEncSlice(p, t, methods.encode)
+				return ippEncSlice(p, t, encode)
 			}
 
 			step.decode = func(p unsafe.Pointer,
 				vals goipp.Values) error {
-				return ippDecSlice(p, vals, t, methods.decode)
+				return ippDecSlice(p, vals, t, decode)
 			}
-		} else {
-			step.encode = methods.encode
-			step.decode = methods.decode
+		}
+
+		if maybe != nil {
+			encode := step.encode
+			decode := step.decode
+
+			step.encode = func(p unsafe.Pointer) goipp.Values {
+				return maybe.encode(p, encode)
+			}
+
+			step.decode = func(p unsafe.Pointer,
+				vals goipp.Values) error {
+				return maybe.decode(p, vals, decode)
+			}
 		}
 
 		// Append step to the codec
@@ -506,13 +533,13 @@ func ippStructTagParse(s string) (*ippStructTag, error) {
 }
 
 // parseKeyword parses keyword parameter of the ipp: struct tag:
-//    - IPP tag ("int", "name" etc)
-//    - May be, some flags in a future
+//   - IPP tag ("int", "name" etc)
+//   - May be, some flags in a future
 //
 // Return value:
-//    - true, nil  - parameter was parsed and applied
-//    - false, nil - parameter is not keyword
-//    - false, err - invalid parameter
+//   - true, nil  - parameter was parsed and applied
+//   - false, nil - parameter is not keyword
+//   - false, err - invalid parameter
 func (stag *ippStructTag) parseKeyword(s string) (bool, error) {
 	kw := strings.ToLower(s)
 	zeroTag := goipp.TagZero
@@ -536,13 +563,14 @@ func (stag *ippStructTag) parseKeyword(s string) (bool, error) {
 }
 
 // parseRange parses min/max limit constraints:
-//   >NNN - min range
-//   <NNN - max range
+//
+//	>NNN - min range
+//	<NNN - max range
 //
 // Return value:
-//    - true, nil  - parameter was parsed and applied
-//    - false, nil - parameter is not keyword
-//    - false, err - invalid parameter
+//   - true, nil  - parameter was parsed and applied
+//   - false, nil - parameter is not keyword
+//   - false, err - invalid parameter
 func (stag *ippStructTag) parseMinMax(s string) (bool, error) {
 	// Limit starts with '<' or '>'
 	pfx := s[0]
@@ -578,12 +606,13 @@ func (stag *ippStructTag) parseMinMax(s string) (bool, error) {
 }
 
 // parseRange parses range constraints:
-//   MIN:MAX
+//
+//	MIN:MAX
 //
 // Return value:
-//    - true, nil  - parameter was parsed and applied
-//    - false, nil - parameter is not keyword
-//    - false, err - invalid parameter
+//   - true, nil  - parameter was parsed and applied
+//   - false, nil - parameter is not keyword
+//   - false, err - invalid parameter
 func (stag *ippStructTag) parseRange(s string) (bool, error) {
 	fields := strings.Split(s, ":")
 	if len(fields) != 2 || fields[0] == "" || fields[1] == "" {
@@ -696,8 +725,6 @@ func ippDecSlice(p unsafe.Pointer, vals goipp.Values,
 
 	return nil
 }
-
-// ----- ippCodecMethods for nested structures -----
 
 // ippCodecMethodsCollection creates ippCodecMethods for encoding
 // nested structure or slice of structures as IPP Collection

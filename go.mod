@@ -1,8 +1,13 @@
 module github.com/alexpevzner/mfp
 
-go 1.16
+go 1.18
 
 require (
 	github.com/OpenPrinting/goipp v1.1.1-0.20240517111835-bd5d831e78af
-	github.com/peterh/liner v1.2.2 // indirect
+	github.com/peterh/liner v1.2.2
+)
+
+require (
+	github.com/mattn/go-runewidth v0.0.3 // indirect
+	golang.org/x/sys v0.0.0-20211117180635-dee7805ff2e1 // indirect
 )
