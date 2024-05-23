@@ -123,6 +123,7 @@ func ippCodecGenerateInternal(t reflect.Type,
 		// - Ignore fields without ipp: tag
 		fld := t.Field(i)
 
+		// Handle embedded structures
 		if fld.Anonymous {
 			if fld.IsExported() &&
 				fld.Type.Kind() == reflect.Struct {
@@ -139,6 +140,7 @@ func ippCodecGenerateInternal(t reflect.Type,
 			continue
 		}
 
+		// Fetch ipp: struct tag string. Ignore fields without this tags.
 		tagStr, found := fld.Tag.Lookup("ipp")
 		if !found {
 			if strings.HasPrefix(string(fld.Tag), "ipp:") {
@@ -150,14 +152,14 @@ func ippCodecGenerateInternal(t reflect.Type,
 			continue
 		}
 
-		// Field must be exported
+		// Field with ipp: tag must be exported.
 		if !fld.IsExported() {
 			err := fmt.Errorf("%s.%s: ipp: tag used with unexported field",
 				diagTypeName(t), fld.Name)
 			return nil, err
 		}
 
-		// Parse ipp: struct tag
+		// Parse ipp: struct tag.
 		tag, err := ippStructTagParse(tagStr)
 		if err != nil {
 			err := fmt.Errorf("%s.%s: %w",
@@ -165,7 +167,7 @@ func ippCodecGenerateInternal(t reflect.Type,
 			return nil, err
 		}
 
-		// Check for duplicates
+		// Check attribute name for duplicates.
 		if found := attrNames[tag.name]; found != "" {
 			err := fmt.Errorf("%s.%s: attribute %q already used by %s",
 				diagTypeName(t), fld.Name, tag.name, found)
@@ -173,16 +175,30 @@ func ippCodecGenerateInternal(t reflect.Type,
 		}
 		attrNames[tag.name] = fld.Name
 
-		// Obtain fldType. Handle Maybe[T].
+		// Obtain fldType.
+		//
+		// Field may be wrapped into Maybe[T], handle it here.
 		fldType := fld.Type
 		var maybe maybeCodecInterface
 
 		if reflect.PointerTo(fldType).Implements(maybeCodecType) {
+			// If type implements maybeCodecType, it is value
+			// wrapped into Maybe[T].
+			//
+			// We need the underlying type to generate encode/decode steps,
+			// but Maybe[T] wrapper will be saved as nil pointer to
+			// maybeCodecType. We will need it later to generate Maybe[T]
+			// wrappers.
 			maybe = reflect.NewAt(fldType, nil).Interface().(maybeCodecInterface)
 			fldType = maybe.typeof()
 		}
 
-		// Obtain ippCodecMethods
+		// Handle slices.
+		//
+		// Like Maybe[T], slices are handled as wrapper of actual data type.
+		// So if we are at slice, move fldType down to the underlying data
+		// type and remember the fact; we will need it later to generate
+		// slice wrappers.
 		fldKind := fldType.Kind()
 		slice := fldKind == reflect.Slice
 		if slice {
@@ -190,6 +206,8 @@ func ippCodecGenerateInternal(t reflect.Type,
 			fldKind = fldType.Kind()
 		}
 
+		// Now fldType points to the actual type to be encoded and decoded.
+		// Obtain its ippCodecMethods.
 		methods := ippCodecMethodsByType[fldType]
 		if methods == nil {
 			methods = ippCodecMethodsByKind[fldKind]
@@ -210,7 +228,7 @@ func ippCodecGenerateInternal(t reflect.Type,
 			return nil, err
 		}
 
-		// Generate encoding/decoding step
+		// Generate encoding/decoding step for underlying type.
 		step := ippCodecStep{
 			offset:      fld.Offset,
 			attrName:    tag.name,
@@ -229,14 +247,28 @@ func ippCodecGenerateInternal(t reflect.Type,
 			},
 		}
 
+		// Guess actual attribute Tag.
 		if _, found := kwRegisteredTypes[fldType]; found {
+			// Underlying type registered as keyword.
+			// Use goipp.TagKeyword.
 			step.attrTag = goipp.TagKeyword
 		}
 
 		if step.attrTag == 0 {
+			// There is no Tag override from the struct tag.
+			// Use default tag for the data type.
 			step.attrTag = methods.defaultIppTag
 		}
 
+		// Check for compatibility between IPP representation
+		// for the Tag being chosen and Tag implied by the
+		// underlying field type.
+		//
+		// They must be the same (i.e., both are goipp.TypeInteger or
+		// both are goipp.TypeResolution and so on).
+		//
+		// The only exception, goipp.TypeString can be converted
+		// into goipp.TypeBinary and visa versa.
 		t1 := step.attrTag.Type()
 		t2 := methods.defaultIppTag.Type()
 
@@ -251,9 +283,11 @@ func ippCodecGenerateInternal(t reflect.Type,
 			return nil, err
 		}
 
+		// Save encode/decode methods for the underlying type.
 		step.encode = methods.encode
 		step.decode = methods.decode
 
+		// Generate slice wrapper for slice fields.
 		if slice {
 			t := reflect.SliceOf(fldType)
 
@@ -270,6 +304,7 @@ func ippCodecGenerateInternal(t reflect.Type,
 			}
 		}
 
+		// Generate Maybe[T] wrapper where appropriate.
 		if maybe != nil {
 			encode := step.encode
 			decode := step.decode
