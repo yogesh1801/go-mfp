@@ -42,29 +42,6 @@ const (
 	AttrOperationStatusMessage = "status-message"
 )
 
-// Default values for common attributes
-var (
-	// DefaultCharset is the default value for the "attributes-charset"
-	// operation attribute and the "charset-configured" printer attribute
-	DefaultCharset = "utf-8"
-
-	// DefaultNaturalLanguage is the default value for
-	// "attributes-natural-language" operation attribute.
-	DefaultNaturalLanguage = "en-us"
-
-	// DefaultCharsetSupported is the default value for
-	// ""charset-supported" printer attribute
-	DefaultCharsetSupported = []string{DefaultCharset}
-
-	// DefaultIppVersionsSupported is the default value for
-	// "ipp-features-supported" printer attribute
-	DefaultIppVersionsSupported = []goipp.Version{
-		goipp.MakeVersion(2, 0),
-		goipp.MakeVersion(1, 0),
-		goipp.MakeVersion(1, 1),
-	}
-)
-
 // PrinterAttributes represents IPP Printer Attributes
 type PrinterAttributes struct {
 	PrinterDescription
