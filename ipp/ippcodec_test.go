@@ -1010,8 +1010,7 @@ func (test ippDecodeTest) exec(t *testing.T) {
 	}
 
 	// Now encode it back
-	var attrs goipp.Attributes
-	codec.encode(out, &attrs)
+	attrs := codec.encode(out)
 
 	diff = testDiffAttrs(test.attrs, attrs)
 	if diff != "" {
@@ -1091,8 +1090,7 @@ func (test ippEncodeDecodeTest) exec(t *testing.T) {
 	codec := ippCodecMustGenerate(test.t)
 
 	// Test encoding
-	var attrs goipp.Attributes
-	codec.encode(test.data, &attrs)
+	attrs := codec.encode(test.data)
 
 	// Test decoding
 	out := reflect.New(test.t).Interface()

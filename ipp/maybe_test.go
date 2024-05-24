@@ -52,8 +52,7 @@ func TestMaybe(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		var attrs goipp.Attributes
-		codec.encode(&test.data, &attrs)
+		attrs := codec.encode(&test.data)
 
 		diff := testDiffAttrs(test.attrs, attrs)
 		if diff != "" {

@@ -201,30 +201,6 @@ type PrinterSaveInfo struct {
 	SaveDocumentFormat string `ipp:"?save-document-format,mimeMediaType"`
 }
 
-// EncodeAttrs encodes printer attributes into goipp.Attributes
-func (pa *PrinterAttributes) EncodeAttrs() goipp.Attributes {
-	var attrs goipp.Attributes
-	ippCodecPrinterAttributes.encode(pa, &attrs)
-	return attrs
-}
-
-// DecodeAttrs decodes printer attributes from goipp.Attributes
-func (pa *PrinterAttributes) DecodeAttrs(attrs goipp.Attributes) error {
-	return ippCodecPrinterAttributes.decode(pa, attrs)
-}
-
-// EncodeMsg encodes printer attributes into the appropriate group
-// of attributes of the IPP message
-func (pa *PrinterAttributes) EncodeMsg(msg *goipp.Message) {
-	msg.Printer = pa.EncodeAttrs()
-}
-
-// DecodeMsg decodes printer attributes from the appropriate group
-// of attributes of the IPP message
-func (pa *PrinterAttributes) DecodeMsg(msg *goipp.Message) error {
-	return pa.DecodeAttrs(msg.Printer)
-}
-
 // IsCharsetSupported tells if charset is supported
 func (pa *PrinterAttributes) IsCharsetSupported(cs string) bool {
 	for _, supp := range pa.CharsetSupported {

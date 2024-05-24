@@ -344,7 +344,7 @@ func (codec *ippCodec) embed(offset uintptr, nested *ippCodec) {
 }
 
 // Encode structure into the goipp.Attributes
-func (codec ippCodec) encode(in interface{}, attrs *goipp.Attributes) {
+func (codec *ippCodec) encode(in interface{}) (attrs goipp.Attributes) {
 	// Check for type mismatch
 	v := reflect.ValueOf(in)
 	if v.Kind() != reflect.Pointer || v.Elem().Type() != codec.t {
@@ -356,7 +356,7 @@ func (codec ippCodec) encode(in interface{}, attrs *goipp.Attributes) {
 
 	// Now encode, step by step
 	p := unsafe.Pointer(v.Pointer())
-	newattrs := make(goipp.Attributes, 0, len(codec.steps))
+	attrs = make(goipp.Attributes, 0, len(codec.steps))
 
 	for _, step := range codec.steps {
 		attr := goipp.Attribute{Name: step.attrName}
@@ -369,7 +369,7 @@ func (codec ippCodec) encode(in interface{}, attrs *goipp.Attributes) {
 		if doZero && step.iszero(ptr) {
 			if step.zeroTag != goipp.TagZero {
 				attr.Values.Add(step.zeroTag, goipp.Void{})
-				newattrs.Add(attr)
+				attrs.Add(attr)
 			}
 			continue
 		}
@@ -387,19 +387,18 @@ func (codec ippCodec) encode(in interface{}, attrs *goipp.Attributes) {
 				attr.Values.Add(tag, v.V)
 			}
 
-			newattrs.Add(attr)
+			attrs.Add(attr)
 		}
 	}
 
-	// Now export newly encoded attributes
-	*attrs = append(*attrs, newattrs...)
+	return
 }
 
 // Decode structure from the goipp.Attributes
 //
 // This function wraps (ippCodec) doDecode, adding some common
 // error handling and so on
-func (codec ippCodec) decode(out interface{}, attrs goipp.Attributes) error {
+func (codec *ippCodec) decode(out interface{}, attrs goipp.Attributes) error {
 	err := codec.doDecode(out, attrs)
 	if err != nil {
 		err = fmt.Errorf("IPP decode %s: %w",
@@ -800,8 +799,7 @@ func ippEncCollection(p unsafe.Pointer, codec *ippCodec) goipp.Values {
 
 	ss := reflect.NewAt(codec.t, p).Interface()
 
-	var attrs goipp.Attributes
-	codec.encode(ss, &attrs)
+	attrs := codec.encode(ss)
 
 	return goipp.Values{{goipp.TagBeginCollection, goipp.Collection(attrs)}}
 }
