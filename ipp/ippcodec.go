@@ -239,6 +239,9 @@ func ippCodecGenerateInternal(t reflect.Type,
 			min:         tag.min,
 			max:         tag.max,
 
+			encode: methods.encode,
+			decode: methods.decode,
+
 			iszero: func(p unsafe.Pointer) bool {
 				return reflect.NewAt(fldType, p).Elem().IsZero()
 			},
@@ -282,10 +285,6 @@ func ippCodecGenerateInternal(t reflect.Type,
 
 			return nil, err
 		}
-
-		// Save encode/decode methods for the underlying type.
-		step.encode = methods.encode
-		step.decode = methods.decode
 
 		// Generate slice wrapper for slice fields.
 		if slice {
