@@ -32,6 +32,48 @@ const (
 	ipAttrRequired                              // Required attribute
 )
 
+// ippEncodeAttrs encodes attributes defined by particular structure
+// into goipp.Attributes.
+//
+// in must be pointer to structure. Codec will be generated on demand.
+// This function will panic, if codec cannot be generated
+func ippEncodeAttrs(in any) goipp.Attributes {
+	t := reflect.TypeOf(in)
+	if t.Kind() != reflect.Pointer {
+		err := fmt.Errorf("%s is not pointer to structure",
+			diagTypeName(t))
+		panic(err)
+	}
+
+	codec, err := ippCodecGenerate(t.Elem())
+	if err != nil {
+		panic(err)
+	}
+
+	return codec.encode(in)
+}
+
+// ippDecodeAttrs encodes attributes defined by particular structure
+// into goipp.Attributes.
+//
+// in must be pointer to structure. Codec will be generated on demand.
+// This function will panic, if codec cannot be generated
+func ippDecodeAttrs(in any, attrs goipp.Attributes) error {
+	t := reflect.TypeOf(in)
+	if t.Kind() != reflect.Pointer {
+		err := fmt.Errorf("%s is not pointer to structure",
+			diagTypeName(t))
+		panic(err)
+	}
+
+	codec, err := ippCodecGenerate(t.Elem())
+	if err != nil {
+		panic(err)
+	}
+
+	return codec.decode(in, attrs)
+}
+
 // ippCodec represents actions required to encode/decode structures
 // of the particular type. Codecs are generated at initialization and
 // then reused, to minimize performance overhead associated with
@@ -62,14 +104,6 @@ type ippCodecStep struct {
 // Cache of generated codecs
 // Works as map[reflect.Type]*ippCodec
 var ippCodecCache = sync.Map{}
-
-// Standard codecs, precompiled
-var (
-
-	// ippCodecPrinterAttributes is PrinterAttributes codec
-	ippCodecPrinterAttributes = ippCodecMustGenerate(
-		reflect.TypeOf(PrinterAttributes{}))
-)
 
 // ippCodecMustGenerate calls ippCodecGenerate for the particular
 // type and panics if it fails

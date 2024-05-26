@@ -20,7 +20,7 @@ func TestKyoceraM2040dnPrinterAttributes(t *testing.T) {
 
 	// Decode printer attributes from real printer
 	var pa PrinterAttributes
-	err := ippCodecPrinterAttributes.decode(&pa, msg.Printer)
+	err := ippDecodeAttrs(&pa, msg.Printer)
 
 	if err != nil {
 		t.Errorf("%s", err)
@@ -51,7 +51,7 @@ func TestKyoceraM2040dnPrinterAttributes(t *testing.T) {
 	}
 
 	// Now encode and compare
-	attrs := ippCodecPrinterAttributes.encode(&pa)
+	attrs := ippEncodeAttrs(&pa)
 	diff := testDiffAttrs(msg.Printer, attrs)
 	_ = diff
 	//println(diff)
