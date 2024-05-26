@@ -52,7 +52,7 @@ func TestMaybe(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		attrs := codec.encode(&test.data)
+		attrs := codec.encodeAttrs(&test.data)
 
 		diff := testDiffAttrs(test.attrs, attrs)
 		if diff != "" {
@@ -60,7 +60,7 @@ func TestMaybe(t *testing.T) {
 		}
 
 		var data TestStruct
-		err := codec.decode(&data, attrs)
+		err := codec.decodeAttrs(&data, attrs)
 		if err != nil {
 			t.Errorf("decode: %s", err)
 			continue

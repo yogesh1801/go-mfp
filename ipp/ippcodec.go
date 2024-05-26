@@ -50,7 +50,7 @@ func ippEncodeAttrs(in any) goipp.Attributes {
 		panic(err)
 	}
 
-	return codec.encode(in)
+	return codec.encodeAttrs(in)
 }
 
 // ippDecodeAttrs encodes attributes defined by particular structure
@@ -71,7 +71,7 @@ func ippDecodeAttrs(in any, attrs goipp.Attributes) error {
 		panic(err)
 	}
 
-	return codec.decode(in, attrs)
+	return codec.decodeAttrs(in, attrs)
 }
 
 // ippCodec represents actions required to encode/decode structures
@@ -393,7 +393,7 @@ func (codec *ippCodec) embed(offset uintptr, nested *ippCodec) {
 }
 
 // Encode structure into the goipp.Attributes
-func (codec *ippCodec) encode(in interface{}) (attrs goipp.Attributes) {
+func (codec *ippCodec) encodeAttrs(in interface{}) (attrs goipp.Attributes) {
 	// Check for type mismatch
 	v := reflect.ValueOf(in)
 	if v.Kind() != reflect.Pointer || v.Elem().Type() != codec.t {
@@ -447,7 +447,9 @@ func (codec *ippCodec) encode(in interface{}) (attrs goipp.Attributes) {
 //
 // This function wraps (ippCodec) doDecode, adding some common
 // error handling and so on
-func (codec *ippCodec) decode(out interface{}, attrs goipp.Attributes) error {
+func (codec *ippCodec) decodeAttrs(out interface{},
+	attrs goipp.Attributes) error {
+
 	err := codec.doDecode(out, attrs)
 	if err != nil {
 		err = fmt.Errorf("IPP decode %s: %w",
@@ -848,7 +850,7 @@ func ippEncCollection(p unsafe.Pointer, codec *ippCodec) goipp.Values {
 
 	ss := reflect.NewAt(codec.t, p).Interface()
 
-	attrs := codec.encode(ss)
+	attrs := codec.encodeAttrs(ss)
 
 	return goipp.Values{{goipp.TagBeginCollection, goipp.Collection(attrs)}}
 }

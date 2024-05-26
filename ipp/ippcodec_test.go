@@ -275,7 +275,7 @@ func TestDecodePanic(t *testing.T) {
 		checkError(t, "TestDecodePanic", err, errExpected)
 	}()
 
-	codec.decode(&p, attrs)
+	codec.decodeAttrs(&p, attrs)
 }
 
 // ----- Decode test -----
@@ -995,7 +995,7 @@ func (test ippDecodeTest) exec(t *testing.T) {
 
 	// Decode IPP attributes
 	out := reflect.New(ttype).Interface()
-	err := codec.decode(out, test.attrs)
+	err := codec.decodeAttrs(out, test.attrs)
 
 	checkError(t, "TestIppDecode", err, test.err)
 	if err != nil {
@@ -1010,7 +1010,7 @@ func (test ippDecodeTest) exec(t *testing.T) {
 	}
 
 	// Now encode it back
-	attrs := codec.encode(out)
+	attrs := codec.encodeAttrs(out)
 
 	diff = testDiffAttrs(test.attrs, attrs)
 	if diff != "" {
@@ -1090,11 +1090,11 @@ func (test ippEncodeDecodeTest) exec(t *testing.T) {
 	codec := ippCodecMustGenerate(test.t)
 
 	// Test encoding
-	attrs := codec.encode(test.data)
+	attrs := codec.encodeAttrs(test.data)
 
 	// Test decoding
 	out := reflect.New(test.t).Interface()
-	err := codec.decode(out, attrs)
+	err := codec.decodeAttrs(out, attrs)
 
 	checkError(t, test.name, err, test.err)
 	if err != nil {
