@@ -216,6 +216,11 @@ func TestIppCodecGenerate(t *testing.T) {
 			}{},
 			err: `struct {...}.unexported: ipp: tag used with unexported field`,
 		},
+
+		{
+			data: struct{}{},
+			err:  `struct {...}: contains no IPP fields`,
+		},
 	}
 
 	for _, test := range tests {
@@ -276,6 +281,48 @@ func TestDecodePanic(t *testing.T) {
 	}()
 
 	codec.decodeAttrs(&p, attrs)
+}
+
+// TestIppEncodeDecodeAttrsPanic tests panic in
+// ippEncodeAttrs and ippDecodeAttrs
+func TestIppEncodeDecodePanic(t *testing.T) {
+	doTest := func(action func(), errExpected error) {
+		defer func() {
+			p := recover()
+			var err error
+			if p != nil {
+				var ok bool
+				err, ok = p.(error)
+				if !ok {
+					panic(p)
+				}
+			}
+
+			checkError(t, "TestDecodePanic", err, errExpected)
+		}()
+
+		action()
+	}
+
+	doTest(func() {}, nil)
+
+	doTest(func() { ippEncodeAttrs(new(int)) },
+		errors.New("int: is not struct"))
+
+	doTest(func() { ippEncodeAttrs(struct{}{}) },
+		errors.New("struct {...} is not pointer to structure"))
+
+	doTest(func() { ippEncodeAttrs(&struct{}{}) },
+		errors.New("struct {...}: contains no IPP fields"))
+
+	doTest(func() { ippDecodeAttrs(new(int), nil) },
+		errors.New("int: is not struct"))
+
+	doTest(func() { ippDecodeAttrs(struct{}{}, nil) },
+		errors.New("struct {...} is not pointer to structure"))
+
+	doTest(func() { ippDecodeAttrs(&struct{}{}, nil) },
+		errors.New("struct {...}: contains no IPP fields"))
 }
 
 // ----- Decode test -----

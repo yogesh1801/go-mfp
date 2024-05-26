@@ -375,7 +375,7 @@ func ippCodecGenerateInternal(t reflect.Type,
 	return codec, nil
 }
 
-// Embed nesded codec
+// Embed nested codec
 //
 // Embedded structures are handled this way:
 //  1. The separate nested codec is generated for the embedded
