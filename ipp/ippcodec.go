@@ -15,6 +15,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 	"unsafe"
 
@@ -58,8 +59,13 @@ type ippCodecStep struct {
 	setzero func(p unsafe.Pointer)
 }
 
+// Cache of generated codecs
+// Works as map[reflect.Type]*ippCodec
+var ippCodecCache = sync.Map{}
+
 // Standard codecs, precompiled
 var (
+
 	// ippCodecPrinterAttributes is PrinterAttributes codec
 	ippCodecPrinterAttributes = ippCodecMustGenerate(
 		reflect.TypeOf(PrinterAttributes{}))
@@ -76,7 +82,14 @@ func ippCodecMustGenerate(t reflect.Type) *ippCodec {
 }
 
 // ippCodecGenerate generates codec for the particular type.
+// It manages and uses a cache of successfully generated codecs.
 func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
+	// Lookup cache
+	if cached, ok := ippCodecCache.Load(t); ok {
+		return cached.(*ippCodec), nil
+	}
+
+	// Compile new codec
 	attrNames := make(map[string]string)
 	codec, err := ippCodecGenerateInternal(t, attrNames)
 
@@ -89,6 +102,9 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// Update cache and return
+	ippCodecCache.Store(t, codec)
 
 	return codec, nil
 }
