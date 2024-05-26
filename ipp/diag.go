@@ -14,6 +14,10 @@ import "reflect"
 // for diagnostic purposes
 func diagTypeName(t reflect.Type) string {
 	if t.Kind() == reflect.Struct && t.Name() == "" {
+		if t.Size() == 0 {
+			return "struct {}"
+		}
+
 		return "struct {...}"
 	}
 

@@ -219,7 +219,7 @@ func TestIppCodecGenerate(t *testing.T) {
 
 		{
 			data: struct{}{},
-			err:  `struct {...}: contains no IPP fields`,
+			err:  `struct {}: contains no IPP fields`,
 		},
 	}
 
@@ -310,19 +310,19 @@ func TestIppEncodeDecodePanic(t *testing.T) {
 		errors.New("int: is not struct"))
 
 	doTest(func() { ippEncodeAttrs(struct{}{}) },
-		errors.New("struct {...} is not pointer to structure"))
+		errors.New("struct {} is not pointer to structure"))
 
 	doTest(func() { ippEncodeAttrs(&struct{}{}) },
-		errors.New("struct {...}: contains no IPP fields"))
+		errors.New("struct {}: contains no IPP fields"))
 
 	doTest(func() { ippDecodeAttrs(new(int), nil) },
 		errors.New("int: is not struct"))
 
 	doTest(func() { ippDecodeAttrs(struct{}{}, nil) },
-		errors.New("struct {...} is not pointer to structure"))
+		errors.New("struct {} is not pointer to structure"))
 
 	doTest(func() { ippDecodeAttrs(&struct{}{}, nil) },
-		errors.New("struct {...}: contains no IPP fields"))
+		errors.New("struct {}: contains no IPP fields"))
 }
 
 // ----- Decode test -----
