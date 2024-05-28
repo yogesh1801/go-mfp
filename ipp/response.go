@@ -18,7 +18,7 @@ type Response interface {
 	// GetRequestID returns IPP request ID.
 	GetRequestID() uint32
 
-	// GetStatus returns Response IPP status code of the Response.
+	// GetStatus returns IPP Status code of the Response.
 	GetStatus() goipp.Status
 
 	// Encode encodes Response into goipp.Message.
