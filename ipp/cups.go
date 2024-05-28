@@ -41,7 +41,9 @@ type (
 		AttributesNaturalLanguage string `ipp:"!attributes-natural-language,naturalLanguage"`
 		StatusMessage             string `ipp:"?status-message,text"`
 
-		Printers []PrinterAttributes
+		// Other attributes.
+		Printers    []PrinterAttributes
+		Unsupported goipp.Attributes
 	}
 )
 
@@ -81,6 +83,14 @@ func (rq *CUPSGetDefaultRequest) Encode() *goipp.Message {
 
 // Decode decodes CUPSGetDefaultRequest from goipp.Groups.
 func (rq *CUPSGetDefaultRequest) Decode(msg *goipp.Message) error {
+	rq.Version = msg.Version
+	rq.RequestID = msg.RequestID
+
+	err := ippDecodeAttrs(rq, msg.Operation)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -128,5 +138,27 @@ func (rsp *CUPSGetDefaultResponse) Encode() *goipp.Message {
 
 // Decode decodes CUPSGetDefaultResponse from goipp.Message.
 func (rsp *CUPSGetDefaultResponse) Decode(msg *goipp.Message) error {
+	rsp.Version = msg.Version
+	rsp.RequestID = msg.RequestID
+
+	err := ippDecodeAttrs(rsp, msg.Operation)
+	if err != nil {
+		return err
+	}
+
+	for _, grp := range msg.Groups {
+		if grp.Tag == goipp.TagPrinterGroup {
+			var pa PrinterAttributes
+			err := ippDecodeAttrs(&pa, grp.Attrs)
+			if err != nil {
+				return err
+			}
+
+			rsp.Printers = append(rsp.Printers, pa)
+		}
+	}
+
+	rsp.Unsupported = msg.Unsupported
+
 	return nil
 }
