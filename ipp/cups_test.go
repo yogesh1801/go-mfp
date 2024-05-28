@@ -10,6 +10,7 @@ package ipp
 
 import (
 	"bytes"
+	"reflect"
 	"testing"
 
 	"github.com/OpenPrinting/goipp"
@@ -79,6 +80,20 @@ func TestCupsRequests(t *testing.T) {
 			msg.Print(buf, true)
 			t.Errorf("Message received:\n%s", buf)
 		}
+
+		rq := reflect.
+			New(reflect.TypeOf(test.rq).Elem()).
+			Interface().(Request)
+
+		err := rq.Decode(msg)
+		println(err)
+
+		diff := testDiffStruct(test.rq, rq)
+		if diff != "" {
+			t.Errorf("\n%s", diff)
+			t.Errorf("%#v", rq)
+		}
+
 	}
 }
 

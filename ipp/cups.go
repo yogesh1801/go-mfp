@@ -71,12 +71,8 @@ func (rq *CUPSGetDefaultRequest) Encode() *goipp.Message {
 		},
 	}
 
-	msg := &goipp.Message{
-		Version:   rq.Version,
-		Code:      goipp.Code(rq.GetOp()),
-		RequestID: rq.RequestID,
-		Groups:    groups,
-	}
+	msg := goipp.NewMessageWithGroups(rq.Version, goipp.Code(rq.GetOp()),
+		rq.RequestID, groups)
 
 	return msg
 }
@@ -126,12 +122,8 @@ func (rsp *CUPSGetDefaultResponse) Encode() *goipp.Message {
 		})
 	}
 
-	msg := &goipp.Message{
-		Version:   rsp.Version,
-		Code:      goipp.Code(rsp.Status),
-		RequestID: rsp.RequestID,
-		Groups:    groups,
-	}
+	msg := goipp.NewMessageWithGroups(rsp.Version, goipp.Code(rsp.Status),
+		rsp.RequestID, groups)
 
 	return msg
 }
