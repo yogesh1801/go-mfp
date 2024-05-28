@@ -130,10 +130,3 @@ func (rsp *CUPSGetDefaultResponse) Encode() *goipp.Message {
 func (rsp *CUPSGetDefaultResponse) Decode(msg *goipp.Message) error {
 	return nil
 }
-
-// CUPSGetDefaultRequestOperation is the Operation attributes
-// for CUPSGetDefaultRequest.
-type CUPSGetDefaultRequestOperation struct {
-	OperationAttributes
-	RequestedAttributes []string `ipp:"requested-attributes,keyword"`
-}

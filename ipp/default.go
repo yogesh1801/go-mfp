@@ -31,11 +31,4 @@ var (
 		goipp.MakeVersion(1, 0),
 		goipp.MakeVersion(1, 1),
 	}
-
-	// DefaultOperationAttributes is the default Operation
-	// attributes suitable for most of the messages.
-	DefaultOperationAttributes = OperationAttributes{
-		AttributesCharset:         DefaultCharset,
-		AttributesNaturalLanguage: DefaultNaturalLanguage,
-	}
 )
