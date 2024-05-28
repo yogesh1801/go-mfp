@@ -3,7 +3,7 @@ module github.com/alexpevzner/mfp
 go 1.18
 
 require (
-	github.com/OpenPrinting/goipp v1.1.1-0.20240528104813-a418a33082b9
+	github.com/OpenPrinting/goipp v1.1.1-0.20240528190113-2624c0df88fd
 	github.com/peterh/liner v1.2.2
 )
 
