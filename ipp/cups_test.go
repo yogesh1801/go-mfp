@@ -10,6 +10,7 @@ package ipp
 
 import (
 	"bytes"
+	"errors"
 	"reflect"
 	"testing"
 
@@ -24,11 +25,13 @@ var (
 // TestCupsRequests tests CUPS requests
 func TestCupsRequests(t *testing.T) {
 	type testData struct {
-		rq  Request       // Request structure
-		msg goipp.Message // Its IPP representation
+		rq  Request        // Request structure
+		msg *goipp.Message // Its IPP representation
+		err string         // expected decode error
 	}
 
 	tests := []testData{
+		// ----- CUPSGetDefaultRequest tests -----
 		{
 			rq: &CUPSGetDefaultRequest{
 				Version:   goipp.DefaultVersion,
@@ -39,12 +42,11 @@ func TestCupsRequests(t *testing.T) {
 				RequestedAttributes:       []string{"all"},
 			},
 
-			msg: goipp.Message{
-				Version:   goipp.DefaultVersion,
-				Code:      goipp.Code(goipp.OpCupsGetDefault),
-				RequestID: 12345,
-
-				Groups: []goipp.Group{
+			msg: goipp.NewMessageWithGroups(
+				goipp.DefaultVersion,
+				goipp.Code(goipp.OpCupsGetDefault),
+				12345,
+				goipp.Groups{
 					{
 						Tag: goipp.TagOperationGroup,
 						Attrs: []goipp.Attribute{
@@ -63,37 +65,77 @@ func TestCupsRequests(t *testing.T) {
 						},
 					},
 				},
-			},
+			),
+		},
+
+		{
+			rq: &CUPSGetDefaultRequest{},
+
+			msg: goipp.NewMessageWithGroups(
+				goipp.DefaultVersion,
+				goipp.Code(goipp.OpCupsGetDefault),
+				12345,
+
+				goipp.Groups{
+					{
+						Tag: goipp.TagOperationGroup,
+						Attrs: []goipp.Attribute{
+							goipp.MakeAttribute(
+								"attributes-charset",
+								goipp.TagInteger,
+								goipp.Integer(111)),
+							goipp.MakeAttribute(
+								"attributes-natural-language",
+								goipp.TagLanguage,
+								goipp.String(DefaultNaturalLanguage)),
+							goipp.MakeAttribute(
+								"requested-attributes",
+								goipp.TagKeyword,
+								goipp.String("all")),
+						},
+					},
+				},
+			),
+
+			err: `IPP decode ipp.CUPSGetDefaultRequest: "attributes-charset": can't convert integer to String`,
 		},
 	}
 
 	for _, test := range tests {
-		msg := test.rq.Encode()
-		if !msg.Similar(test.msg) {
-			buf := &bytes.Buffer{}
+		// Encode test
+		if test.err == "" {
+			msg := test.rq.Encode()
+			if !msg.Similar(*test.msg) {
+				buf := &bytes.Buffer{}
 
-			t.Errorf("Encode error. Message expected:")
-			test.msg.Print(buf, true)
-			t.Errorf("Message expected:\n%s", buf)
+				t.Errorf("Encode error. Message expected:")
+				test.msg.Print(buf, true)
+				t.Errorf("Message expected:\n%s", buf)
 
-			buf.Reset()
-			msg.Print(buf, true)
-			t.Errorf("Message received:\n%s", buf)
+				buf.Reset()
+				msg.Print(buf, true)
+				t.Errorf("Message received:\n%s", buf)
+			}
 		}
 
+		// Decode test
 		rq := reflect.
 			New(reflect.TypeOf(test.rq).Elem()).
 			Interface().(Request)
 
-		err := rq.Decode(msg)
-		println(err)
-
-		diff := testDiffStruct(test.rq, rq)
-		if diff != "" {
-			t.Errorf("\n%s", diff)
-			t.Errorf("%#v", rq)
+		err := rq.Decode(test.msg)
+		if err == nil {
+			err = errors.New("")
 		}
 
+		if err.Error() != test.err {
+			t.Errorf("Error mismatch:\n  <<< %s\n  >>> %s\n", test.err, err)
+		} else if test.err == "" {
+			diff := testDiffStruct(test.rq, rq)
+			if diff != "" {
+				t.Errorf("Decoded data doesn't match:\n%s", diff)
+			}
+		}
 	}
 }
 
