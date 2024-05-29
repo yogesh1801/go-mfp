@@ -25,7 +25,7 @@ var (
 // TestCupsRequests tests CUPS requests
 func TestCupsRequests(t *testing.T) {
 	type testData struct {
-		rq  Request        // Request structure
+		rq  Request        // Pointer to Request structure
 		msg *goipp.Message // Its IPP representation
 		err string         // expected decode error
 	}
@@ -142,11 +142,13 @@ func TestCupsRequests(t *testing.T) {
 // TestCupsRequests tests CUPS responses
 func TestCupsRequesponses(t *testing.T) {
 	type testData struct {
-		rsp Response
-		msg goipp.Message // Its IPP representation
+		rsp Response       // Pointer to Response structure
+		msg *goipp.Message // Its IPP representation
+		err string         // Expected decode error
 	}
 
 	tests := []testData{
+		// ----- CUPSGetDefaultResponse tests -----
 		{
 			rsp: &CUPSGetDefaultResponse{
 				Version:   goipp.DefaultVersion,
@@ -158,12 +160,12 @@ func TestCupsRequesponses(t *testing.T) {
 				StatusMessage:             "success",
 			},
 
-			msg: goipp.Message{
-				Version:   goipp.DefaultVersion,
-				Code:      goipp.Code(goipp.StatusOk),
-				RequestID: 12345,
+			msg: goipp.NewMessageWithGroups(
+				goipp.DefaultVersion,
+				goipp.Code(goipp.StatusOk),
+				12345,
 
-				Groups: []goipp.Group{
+				goipp.Groups{
 					{
 						Tag: goipp.TagOperationGroup,
 						Attrs: []goipp.Attribute{
@@ -182,22 +184,76 @@ func TestCupsRequesponses(t *testing.T) {
 						},
 					},
 				},
-			},
+			),
+		},
+
+		{
+			rsp: &CUPSGetDefaultResponse{},
+
+			msg: goipp.NewMessageWithGroups(
+				goipp.DefaultVersion,
+				goipp.Code(goipp.StatusOk),
+				12345,
+
+				goipp.Groups{
+					{
+						Tag: goipp.TagOperationGroup,
+						Attrs: []goipp.Attribute{
+							goipp.MakeAttribute(
+								"attributes-charset",
+								goipp.TagCharset,
+								goipp.String(DefaultCharset)),
+							goipp.MakeAttribute(
+								"attributes-natural-language",
+								goipp.TagBoolean,
+								goipp.Boolean(true)),
+							goipp.MakeAttribute(
+								"status-message",
+								goipp.TagText,
+								goipp.String("success")),
+						},
+					},
+				},
+			),
+
+			err: `IPP decode ipp.CUPSGetDefaultResponse: "attributes-natural-language": can't convert boolean to String`,
 		},
 	}
 
 	for _, test := range tests {
-		msg := test.rsp.Encode()
-		if !msg.Similar(test.msg) {
-			buf := &bytes.Buffer{}
+		// Encode test
+		if test.err == "" {
+			msg := test.rsp.Encode()
+			if !msg.Similar(*test.msg) {
+				buf := &bytes.Buffer{}
 
-			t.Errorf("Encode error. Message expected:")
-			test.msg.Print(buf, false)
-			t.Errorf("Message expected:\n%s", buf)
+				t.Errorf("Encode error. Message expected:")
+				test.msg.Print(buf, false)
+				t.Errorf("Message expected:\n%s", buf)
 
-			buf.Reset()
-			msg.Print(buf, false)
-			t.Errorf("Message received:\n%s", buf)
+				buf.Reset()
+				msg.Print(buf, false)
+				t.Errorf("Message received:\n%s", buf)
+			}
+		}
+
+		// Decode test
+		rsp := reflect.
+			New(reflect.TypeOf(test.rsp).Elem()).
+			Interface().(Response)
+
+		err := rsp.Decode(test.msg)
+		if err == nil {
+			err = errors.New("")
+		}
+
+		if err.Error() != test.err {
+			t.Errorf("Error mismatch:\n  <<< %s\n  >>> %s\n", test.err, err)
+		} else if test.err == "" {
+			diff := testDiffStruct(test.rsp, rsp)
+			if diff != "" {
+				t.Errorf("Decoded data doesn't match:\n%s", diff)
+			}
 		}
 	}
 }
