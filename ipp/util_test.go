@@ -53,7 +53,7 @@ func testDiffStruct(s1, s2 interface{}) string {
 		v2 := struct2.Field(i).Interface()
 
 		if !reflect.DeepEqual(v1, v2) {
-			fmt.Fprintf(buf, "%s:\n  <<< %#v\n  >>> %#v",
+			fmt.Fprintf(buf, "%s:\n  <<< %#v\n  >>> %#v\n",
 				fld.Name, v1, v2)
 		}
 	}
