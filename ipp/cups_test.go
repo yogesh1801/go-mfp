@@ -24,6 +24,11 @@ var (
 
 // TestCupsRequests tests CUPS requests
 func TestCupsRequests(t *testing.T) {
+	const (
+		ippVersion   = goipp.DefaultVersion
+		ippRequestID = 12345
+	)
+
 	type testData struct {
 		rq  Request        // Pointer to Request structure
 		msg *goipp.Message // Its IPP representation
@@ -34,8 +39,8 @@ func TestCupsRequests(t *testing.T) {
 		// ----- CUPSGetDefaultRequest tests -----
 		{
 			rq: &CUPSGetDefaultRequest{
-				Version:   goipp.DefaultVersion,
-				RequestID: 12345,
+				Version:   ippVersion,
+				RequestID: ippRequestID,
 
 				AttributesCharset:         DefaultCharset,
 				AttributesNaturalLanguage: DefaultNaturalLanguage,
@@ -43,9 +48,9 @@ func TestCupsRequests(t *testing.T) {
 			},
 
 			msg: goipp.NewMessageWithGroups(
-				goipp.DefaultVersion,
+				ippVersion,
 				goipp.Code(goipp.OpCupsGetDefault),
-				12345,
+				ippRequestID,
 				goipp.Groups{
 					{
 						Tag: goipp.TagOperationGroup,
@@ -72,9 +77,9 @@ func TestCupsRequests(t *testing.T) {
 			rq: &CUPSGetDefaultRequest{},
 
 			msg: goipp.NewMessageWithGroups(
-				goipp.DefaultVersion,
+				ippVersion,
 				goipp.Code(goipp.OpCupsGetDefault),
-				12345,
+				ippRequestID,
 
 				goipp.Groups{
 					{
@@ -102,8 +107,20 @@ func TestCupsRequests(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		// Encode test
+		rqType := reflect.TypeOf(test.rq).Elem()
+
+		// Test of Encode and Request interface
 		if test.err == "" {
+			if test.rq.GetVersion() != ippVersion {
+				t.Errorf("%s: GetVersion(): expected %s, present %s",
+					rqType, test.rq.GetVersion(), ippVersion)
+			}
+
+			if test.rq.GetRequestID() != ippRequestID {
+				t.Errorf("%s: GetRequestID(): expected %d, present %d",
+					rqType, test.rq.GetRequestID(), ippRequestID)
+			}
+
 			msg := test.rq.Encode()
 			if !msg.Similar(*test.msg) {
 				buf := &bytes.Buffer{}
@@ -119,9 +136,7 @@ func TestCupsRequests(t *testing.T) {
 		}
 
 		// Decode test
-		rq := reflect.
-			New(reflect.TypeOf(test.rq).Elem()).
-			Interface().(Request)
+		rq := reflect.New(rqType).Interface().(Request)
 
 		err := rq.Decode(test.msg)
 		if err == nil {
@@ -141,6 +156,11 @@ func TestCupsRequests(t *testing.T) {
 
 // TestCupsRequests tests CUPS responses
 func TestCupsRequesponses(t *testing.T) {
+	const (
+		ippVersion   = goipp.DefaultVersion
+		ippRequestID = 12345
+	)
+
 	type testData struct {
 		rsp Response       // Pointer to Response structure
 		msg *goipp.Message // Its IPP representation
@@ -151,9 +171,9 @@ func TestCupsRequesponses(t *testing.T) {
 		// ----- CUPSGetDefaultResponse tests -----
 		{
 			rsp: &CUPSGetDefaultResponse{
-				Version:   goipp.DefaultVersion,
+				Version:   ippVersion,
 				Status:    goipp.StatusOk,
-				RequestID: 12345,
+				RequestID: ippRequestID,
 
 				AttributesCharset:         DefaultCharset,
 				AttributesNaturalLanguage: DefaultNaturalLanguage,
@@ -161,9 +181,9 @@ func TestCupsRequesponses(t *testing.T) {
 			},
 
 			msg: goipp.NewMessageWithGroups(
-				goipp.DefaultVersion,
+				ippVersion,
 				goipp.Code(goipp.StatusOk),
-				12345,
+				ippRequestID,
 
 				goipp.Groups{
 					{
@@ -191,9 +211,9 @@ func TestCupsRequesponses(t *testing.T) {
 			rsp: &CUPSGetDefaultResponse{},
 
 			msg: goipp.NewMessageWithGroups(
-				goipp.DefaultVersion,
+				ippVersion,
 				goipp.Code(goipp.StatusOk),
-				12345,
+				ippRequestID,
 
 				goipp.Groups{
 					{
@@ -221,8 +241,20 @@ func TestCupsRequesponses(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		// Encode test
+		rspType := reflect.TypeOf(test.rsp).Elem()
+
+		// Test of Encode and Response interface
 		if test.err == "" {
+			if test.rsp.GetVersion() != ippVersion {
+				t.Errorf("%s: GetVersion(): expected %s, present %s",
+					rspType, test.rsp.GetVersion(), ippVersion)
+			}
+
+			if test.rsp.GetRequestID() != ippRequestID {
+				t.Errorf("%s: GetRequestID(): expected %d, present %d",
+					rspType, test.rsp.GetRequestID(), ippRequestID)
+			}
+
 			msg := test.rsp.Encode()
 			if !msg.Similar(*test.msg) {
 				buf := &bytes.Buffer{}
@@ -238,9 +270,7 @@ func TestCupsRequesponses(t *testing.T) {
 		}
 
 		// Decode test
-		rsp := reflect.
-			New(reflect.TypeOf(test.rsp).Elem()).
-			Interface().(Response)
+		rsp := reflect.New(rspType).Interface().(Response)
 
 		err := rsp.Decode(test.msg)
 		if err == nil {
