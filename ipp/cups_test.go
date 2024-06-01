@@ -30,6 +30,7 @@ func TestCupsRequests(t *testing.T) {
 	)
 
 	type testData struct {
+		op  goipp.Op       // Operation code
 		rq  Request        // Pointer to Request structure
 		msg *goipp.Message // Its IPP representation
 		err string         // expected decode error
@@ -38,6 +39,8 @@ func TestCupsRequests(t *testing.T) {
 	tests := []testData{
 		// ----- CUPSGetDefaultRequest tests -----
 		{
+			op: 0x4001,
+
 			rq: &CUPSGetDefaultRequest{
 				Version:   ippVersion,
 				RequestID: ippRequestID,
@@ -111,14 +114,19 @@ func TestCupsRequests(t *testing.T) {
 
 		// Test of Encode and Request interface
 		if test.err == "" {
+			if test.rq.GetOp() != test.op {
+				t.Errorf("%s: GetOp(): expected 0x%x, present 0x%x",
+					rqType, int(test.op), int(test.rq.GetOp()))
+			}
+
 			if test.rq.GetVersion() != ippVersion {
 				t.Errorf("%s: GetVersion(): expected %s, present %s",
-					rqType, test.rq.GetVersion(), ippVersion)
+					rqType, ippVersion, test.rq.GetVersion())
 			}
 
 			if test.rq.GetRequestID() != ippRequestID {
 				t.Errorf("%s: GetRequestID(): expected %d, present %d",
-					rqType, test.rq.GetRequestID(), ippRequestID)
+					rqType, ippRequestID, test.rq.GetRequestID())
 			}
 
 			msg := test.rq.Encode()
@@ -247,12 +255,12 @@ func TestCupsRequesponses(t *testing.T) {
 		if test.err == "" {
 			if test.rsp.GetVersion() != ippVersion {
 				t.Errorf("%s: GetVersion(): expected %s, present %s",
-					rspType, test.rsp.GetVersion(), ippVersion)
+					rspType, ippVersion, test.rsp.GetVersion())
 			}
 
 			if test.rsp.GetRequestID() != ippRequestID {
 				t.Errorf("%s: GetRequestID(): expected %d, present %d",
-					rspType, test.rsp.GetRequestID(), ippRequestID)
+					rspType, ippRequestID, test.rsp.GetRequestID())
 			}
 
 			msg := test.rsp.Encode()
