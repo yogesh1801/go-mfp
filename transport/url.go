@@ -1,12 +1,12 @@
-// MFP  - Miulti-Function Printers and scanners toolkit
-// DEST - Destination URLs hanling
+// MFP       - Miulti-Function Printers and scanners toolkit
+// TRANSPORT - Transport protocol implementation
 //
 // Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
 // See LICENSE for license terms and conditions
 //
 // IPP-specific URL parsing
 
-package dest
+package transport
 
 import (
 	"errors"

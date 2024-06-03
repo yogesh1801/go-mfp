@@ -1,3 +1,3 @@
-SUBDIRS	= cmd dest ipp mainfunc
+SUBDIRS	= cmd ipp mainfunc transport
 
 include Rules.mak
