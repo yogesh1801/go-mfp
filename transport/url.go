@@ -15,7 +15,7 @@ import (
 	"strings"
 )
 
-// Default ports, by protocol
+// Default ports, by protocol:
 const (
 	DefaultPortHTTP  = 80
 	DefaultPortHTTPS = 443
@@ -23,7 +23,7 @@ const (
 	DefaultPortIPPS  = 631
 )
 
-// URL errors
+// URL errors:
 var (
 	ErrURLInvalid       = errors.New(`URL: syntax error`)
 	ErrURLSchemeMissed  = errors.New(`URL: missed scheme`)
