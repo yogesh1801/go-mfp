@@ -29,7 +29,7 @@ var (
 	ErrLoopbackBusy   = errors.New("Loopback: too many dial attempts")
 )
 
-// Loopback creates a new [Transport] and corresponding [net.Listener].
+// NewLoopback creates a new [Transport] and corresponding [net.Listener].
 //
 // Every connection created by the Transport appears as incoming
 // connection on the Listener. It is suitable for use with the
@@ -43,7 +43,7 @@ var (
 // a new connection may fail with [ErrLoopbackBusy] error.
 //
 // The primary purpose of this functionality is client/server testing.
-func Loopback() (*Transport, net.Listener) {
+func NewLoopback() (*Transport, net.Listener) {
 	// Create loopback
 	l := &loopback{
 		conns: make(chan net.Conn, LoopbackMaxPendingConnections),
