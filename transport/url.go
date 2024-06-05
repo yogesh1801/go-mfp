@@ -11,12 +11,24 @@ package transport
 import (
 	"errors"
 	"net/url"
+	"path"
+	"strings"
 )
 
+// Default ports, by protocol
+const (
+	DefaultPortHTTP  = 80
+	DefaultPortHTTPS = 443
+	DefaultPortIPP   = 631
+	DefaultPortIPPS  = 631
+)
+
+// URL errors
 var (
-	// URL errors
-	errInvalidURL       = errors.New("Printer URL: invalid URL")
-	errInvalidURLScheme = errors.New("Printer URL: scheme must be ipp or ipps")
+	ErrURLInvalid       = errors.New(`URL: syntax error`)
+	ErrURLSchemeMissed  = errors.New(`URL: missed scheme`)
+	ErrURLSchemeInvalid = errors.New(`URL: invalid scheme`)
+	ErrURLUNIXHost      = errors.New(`URL: host must be "localhost" or empty`)
 )
 
 // ParseUserURL parses URL, entered by user. The 'addr'
@@ -54,53 +66,79 @@ func ParseUserURL(addr, path string) (*url.URL, error) {
 	return nil, nil
 }
 
-// urlParse parses IPP URL ("ipp://..." or "ipps://...")
+// ParseURL is the URL parser. In comparison to the [url.Parse] from the
+// standard library, it adds the following functionality:
 //
-// It returns parsed HTTP URL (with "http" or "https" scheme"),
-// normalized URL string (with IPP scheme) or an error
+//   - allowed schemes are "http", "https", "ipp", "ipps" and "unix"
+//   - "unix" URL specifies HTTP request via UNIX domain sockets.
+//   - Path part of the URL normalized, multiple slashed are replaced
+//     with a single slash, "." and ".." segments are processed.
 //
-// URL normalization implies resolving absolute path per RFC 3986,
-// removing port when not needed and so on.
-func urlParse(printerURL string) (*url.URL, string, error) {
-	// Parse URL
-	parsedURL, err := url.Parse(printerURL)
+// The port number is stripped, if it explicitly set and matches the
+// desired scheme.
+//
+// The "unix" URL schema is similar to the "file" schema, as defined
+// in the [RFC 8089] (surprisingly, there are still no official registration
+// for the "unix" schema). With the following notes:
+//
+//   - "authority" part of URL may be set or omitted. If set, it
+//     must be either or "localhost" (case-insensitive). So valid
+//     forms are: "unix:/path" (no authority), "unix:///path" (empty
+//     authority) or "unix://localhost/path" (localhost authority).
+//   - in any case, the "unix" URL is normalized into "no authority"
+//     short form (i.e., "unix:/path")
+//
+// [RFC 8089]: https://www.rfc-editor.org/rfc/rfc8089.html
+func ParseURL(in string) (*url.URL, error) {
+	// Parse the URL string
+	u, err := url.Parse(in)
 	if err != nil {
-		return nil, "", errInvalidURL
+		return nil, ErrURLInvalid
 	}
 
-	if parsedURL.Scheme == "" || parsedURL.Host == "" {
-		return nil, "", errInvalidURL
-	}
+	// Do schema-specific checks and postprocessing
+	port := ""
 
-	// Normalize URL
-	parsedURL = parsedURL.ResolveReference(parsedURL)
+	switch u.Scheme {
+	case "http":
+		port = "80"
+	case "https":
+		port = "443"
+	case "ipp", "ipps":
+		port = "631"
 
-	// Adjust HTTP URL
-	httpURL := *parsedURL
-	switch httpURL.Scheme {
-	case "ipp":
-		httpURL.Scheme = "http"
-	case "ipps":
-		httpURL.Scheme = "https"
+	case "unix":
+		switch strings.ToLower(u.Host) {
+		case "", "localhost":
+		default:
+			return nil, ErrURLUNIXHost
+		}
+
+		u.Host = ""
+		u.OmitHost = true
+
+	case "":
+		return nil, ErrURLSchemeMissed
 	default:
-		err = errInvalidURLScheme
-		return nil, "", err
+		return nil, ErrURLSchemeInvalid
 	}
 
-	switch {
-	case httpURL.Port() == "":
-		httpURL.Host += ":631"
-	case httpURL.Scheme == "http" && httpURL.Port() == "80":
-		httpURL.Host = httpURL.Hostname()
-	case httpURL.Scheme == "https" && httpURL.Port() == "443":
-		httpURL.Host = httpURL.Hostname()
+	if port != "" && u.Port() == port {
+		u.Host, _ = strings.CutSuffix(u.Host, ":"+port)
 	}
 
-	// Format normalized URL
-	if parsedURL.Port() == "631" {
-		parsedURL.Host = parsedURL.Hostname()
-	}
-	norm := parsedURL.String()
+	// Normalize path
+	endSlash := strings.HasSuffix(u.Path, "/")
 
-	return &httpURL, norm, nil
+	u.Path = path.Clean(u.Path)
+	switch u.Path {
+	case "", ".":
+		u.Path = "/"
+	}
+
+	if endSlash && !strings.HasSuffix(u.Path, "/") {
+		u.Path += "/"
+	}
+
+	return u, nil
 }
