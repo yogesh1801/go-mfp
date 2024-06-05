@@ -127,7 +127,7 @@ func TestTransportDial(t *testing.T) {
 	tr := NewTransport(&template)
 
 	for _, test := range tests {
-		rq, err := http.NewRequest("GET", test.dest, nil)
+		rq, err := NewRequest("GET", test.dest, nil)
 		if err != nil {
 			panic(err)
 		}
@@ -150,8 +150,8 @@ func TestTransport(t *testing.T) {
 
 	//return
 
-	rq, err := http.NewRequest("GET", "unix:/var/run/cups/cups.sock", nil)
-	//rq, err := http.NewRequest("GET", "http://localhost/", nil)
+	rq, err := NewRequest("GET", "unix:/var/run/cups/cups.sock", nil)
+	//rq, err := NewRequest("GET", "http://localhost/", nil)
 
 	if err != nil {
 		panic(err)
