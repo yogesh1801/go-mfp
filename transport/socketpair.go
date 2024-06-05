@@ -26,8 +26,7 @@ var (
 	}
 )
 
-// socketpair creates a pair of interconnected
-// UNIX sockets.
+// socketpair creates a pair of interconnected UNIX sockets.
 func socketpair() (c1, c2 net.Conn, err error) {
 	// Call socketpair(2) syscall
 	fds, err := hookSyscallSocketpair()
