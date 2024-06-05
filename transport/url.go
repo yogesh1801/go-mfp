@@ -142,3 +142,13 @@ func ParseURL(in string) (*url.URL, error) {
 
 	return u, nil
 }
+
+// MustParseURL uses [ParseURL] to parse the URL string.
+// It panics in a case of errors.
+func MustParseURL(in string) *url.URL {
+	u, err := ParseURL(in)
+	if err != nil {
+		panic(err)
+	}
+	return u
+}
