@@ -67,26 +67,28 @@ func ParseUserURL(addr, path string) (*url.URL, error) {
 }
 
 // ParseURL is the URL parser. In comparison to the [url.Parse] from the
-// standard library, it adds the following functionality:
+// standard library it adds the following functionality:
 //
 //   - allowed schemes are "http", "https", "ipp", "ipps" and "unix"
 //   - "unix" URL specifies HTTP request via UNIX domain sockets.
 //   - Path part of the URL normalized, multiple slashed are replaced
 //     with a single slash, "." and ".." segments are processed.
 //
-// The port number is stripped, if it explicitly set and matches the
-// desired scheme.
+// If port number is explicitly set and matches default for the schema
+// (i.e., :80 // for "http" and so on), it is stripped.
 //
 // The "unix" URL schema is similar to the "file" schema, as defined
 // in the [RFC 8089] (surprisingly, there are still no official registration
-// for the "unix" schema). With the following notes:
+// for the "unix" schema), with the following notes:
 //
 //   - "authority" part of URL may be set or omitted. If set, it
-//     must be either or "localhost" (case-insensitive). So valid
-//     forms are: "unix:/path" (no authority), "unix:///path" (empty
+//     must be either empty or "localhost" (case-insensitive). So
+//     valid forms are: "unix:/path" (no authority), "unix:///path" (empty
 //     authority) or "unix://localhost/path" (localhost authority).
 //   - in any case, the "unix" URL is normalized into "no authority"
 //     short form (i.e., "unix:/path")
+//
+// Unlike [url.Parse], any unknown schemes are rejected.
 //
 // [RFC 8089]: https://www.rfc-editor.org/rfc/rfc8089.html
 func ParseURL(in string) (*url.URL, error) {
