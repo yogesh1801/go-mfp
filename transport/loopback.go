@@ -118,14 +118,17 @@ func (l *loopback) Close() error {
 	l.lock.Unlock()
 
 	// Close and purge connections queue
+	err := ErrLoopbackClosed
 	if conns != nil {
 		close(conns)
 		for conn := range conns {
 			conn.Close()
 		}
+
+		err = nil
 	}
 
-	return nil
+	return err
 }
 
 // Addr returns the listener's network address.
