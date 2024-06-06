@@ -111,25 +111,27 @@ func (l *loopback) Accept() (net.Conn, error) {
 
 // Close closes the listener.
 func (l *loopback) Close() error {
+	// Steal the connections queue
 	l.lock.Lock()
+	conns := l.conns
+	l.conns = nil
+	l.lock.Unlock()
 
-	if l.conns != nil {
-		// Close all pending connections
-		for conn := range l.conns {
+	// Close and purge connections queue
+	if conns != nil {
+		close(conns)
+		for conn := range conns {
 			conn.Close()
 		}
-
-		// Close connections queue
-		close(l.conns)
-		l.conns = nil
 	}
-
-	l.lock.Unlock()
 
 	return nil
 }
 
 // Addr returns the listener's network address.
 func (*loopback) Addr() net.Addr {
-	return nil
+	return &net.UnixAddr{
+		Name: "loopback",
+		Net:  "unix",
+	}
 }
