@@ -10,6 +10,7 @@ package transport
 
 import (
 	"errors"
+	"net/netip"
 	"net/url"
 	"path"
 	"strings"
@@ -31,39 +32,115 @@ var (
 	ErrURLUNIXHost      = errors.New(`URL: host must be "localhost" or empty`)
 )
 
-// ParseUserURL parses URL, entered by user. The 'addr'
-// parameter must be either URL with schema set to "ipp",
-// "ipps", "http" or "https" or IPv4 or IPv6 literal address
-// optionally followed by port. If IPv6 address is used,
-// it must be enclosed into the square brackets. IPv6
-// may specify a zone suffix, as defined in [RFC 4007].
+// ParseAddr parses address string and returns result as a destination URL.
 //
-// The 'path' parameter is only used if URL is specified as
-// IP literal. At this case, it defines path part of the
-// URL. In other cases, the 'path' parameter is ignored.
+// This function intended for parsing addresses entered by users (interactively
+// or via configuration files) and less restrictive that [ParseURL].
 //
-// The path part of parsed URL is normalized according
-// rules defined by the [RFC 3986].
+// The following additional forms are accepted:
 //
-// Examples:
+//	Input                	Meaning
+//	=====			=======
+//	192.168.0.1		scheme://192.168.0.1:port/path
+//	2001:db8::1		scheme://[2001:db8::1]:port/path
+//	[2001:db8::1]		scheme://[2001:db8::1]:port/path
+//	192.168.0.1:1234	scheme://192.168.0.1:1234/path
+//	[2001:db8::1]:1234	scheme://[2001:db8::1]:1234/path
+//	/path			unix:/path
 //
-//	ipp://host/...         IPP URL, port 631
-//	ipp://host:port/...    IPP URL, specified port
-//	ipps://host/...        IPPS URL, port 631
-//	ipps://host:port/...   IPPS URL, specified port
-//	http://host/...        IPP URL, port 80
-//	http://host:port/...   IPP URL, specified port
-//	https://host/...       IPPS URL, port 443
-//	https://host:port/...  IPPS URL, specified port
-//	IP4-ADDR               ipp://IP4-ADDR:631/path
-//	IP4-ADDR:PORT          ipp://IP4-ADDR:PORT/path
-//	[IP4-ADDR]             ipp://IP6-ADDR:631/path
-//	[IP6-ADDR]:PORT        ipp://IP6-ADDR:PORT/path
+// Missed scheme, port and path are taken from template. The template
+// must be either URL string that MUST parse, or empty string.
 //
-// [RFC 3986]: https://www.rfc-editor.org/rfc/rfc3986.html
-// [RFC 4007]: https://www.rfc-editor.org/rfc/rfc4007.html
-func ParseUserURL(addr, path string) (*url.URL, error) {
-	return nil, nil
+// If template is empty, the following defaults are used:
+//
+//   - scheme: if port is known and equal to 80, 443, 631, the scheme will
+//     be http", "https" or "ipp", respectively. Otherwise, it will be "http"
+//   - port: 80
+//   - path: "/"
+//
+// If template is not empty and it doesn't parse, this function
+// panics instead of returning an error.
+func ParseAddr(addr, template string) (*url.URL, error) {
+	// Setup default scheme, port and path. Use template, if provided.
+	scheme := "http"
+	port := ""
+	path := "/"
+
+	if template != "" {
+		templateURL := MustParseURL(template)
+		scheme = templateURL.Scheme
+		port = templateURL.Port()
+		if port != "" {
+			port = ":" + port
+		}
+		path = templateURL.Path
+	}
+
+	// Try IP addr, IP addr with port, UNIX path. Rebuild
+	// URL string, if anything of above does match.
+	if host := parseIPAddr(addr); host != "" {
+		addr = scheme + "://" + host + port + path
+	} else if host := parseIPAddrPort(addr); host != "" {
+		if template == "" {
+			switch {
+			case strings.HasSuffix(host, ":80"):
+				scheme = "http"
+			case strings.HasSuffix(host, ":443"):
+				scheme = "https"
+			case strings.HasSuffix(host, ":631"):
+				scheme = "ipp"
+			}
+		}
+
+		addr = scheme + "://" + host + path
+	} else if strings.HasPrefix(addr, "/") {
+		addr = "unix:" + addr
+	}
+
+	// Now parse whatever we have.
+	return ParseURL(addr)
+}
+
+// parseIPAddr parses IP address. It accepts the following forms of addresses:
+//
+//   - IPv4 dotted decimal ("192.0.2.1")
+//   - IPv6 ("2001:db8::1")
+//   - IPv6 in square brackets ("[2001:db8::1]")
+//
+// The returned string is "" on a error, or suitable as the URL.Host on success
+func parseIPAddr(addr string) string {
+	if strings.HasPrefix(addr, "[") && strings.HasSuffix(addr, "]") &&
+		strings.IndexByte(addr, ':') >= 0 {
+		addr = addr[1 : len(addr)-1]
+	}
+
+	ip, err := netip.ParseAddr(addr)
+	if err != nil {
+		return ""
+	}
+
+	host := ip.String()
+	if strings.IndexByte(host, ':') >= 0 {
+		return "[" + host + "]"
+	}
+
+	return host
+}
+
+// parseIPAddrPort parses IP address with port. It accepts the following forms
+// of addresses:
+//
+//   - IPv4 dotted decimal ("192.0.2.1:80")
+//   - IPv6 ("[2001:db8::1]:80")
+//
+// The returned string is "" on a error, or suitable as the URL.Host on success
+func parseIPAddrPort(addr string) string {
+	ip, err := netip.ParseAddrPort(addr)
+	if err != nil {
+		return ""
+	}
+
+	return ip.String()
 }
 
 // ParseURL is the URL parser. In comparison to the [url.Parse] from the

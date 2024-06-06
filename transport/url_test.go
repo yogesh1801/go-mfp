@@ -74,7 +74,7 @@ func TestParseURL(t *testing.T) {
 			out: "ipps://127.0.0.1:632/ipp/print",
 		},
 
-		// UNIX schama
+		// UNIX schema
 		{
 			in:  "unix:///var/run/cups/cups.sock",
 			out: "unix:/var/run/cups/cups.sock",
@@ -147,6 +147,21 @@ func TestParseURL(t *testing.T) {
 			in:  "http://Invalid URL",
 			err: ErrURLInvalid.Error(),
 		},
+
+		{
+			in:  "",
+			err: ErrURLSchemeMissed.Error(),
+		},
+
+		{
+			in:  "unix:///var/run/cups/cups.sock",
+			out: "unix:/var/run/cups/cups.sock",
+		},
+
+		{
+			in:  "unix:/var/run/cups/cups.sock",
+			out: "unix:/var/run/cups/cups.sock",
+		},
 	}
 
 	for _, test := range tests {
@@ -166,7 +181,6 @@ func TestParseURL(t *testing.T) {
 		case u.String() != test.out:
 			t.Errorf("%q: output mismatch:\nexpected: %s\npresent:  %s",
 				test.in, test.out, u)
-			t.Errorf("%#v", u)
 		}
 	}
 }
@@ -182,4 +196,121 @@ func TestMustParseURL(t *testing.T) {
 	}()
 
 	MustParseURL("foo")
+}
+
+// TestParseAddr tests ParseAddr function
+func TestParseAddr(t *testing.T) {
+	type testData struct {
+		in       string // Input address
+		template string // Template URL
+		out      string // Expected output
+		err      string // Expected error
+	}
+
+	tests := []testData{
+		// IP4 and IP4 addresses
+		{
+			in:  "127.0.0.1",
+			out: "http://127.0.0.1/",
+		},
+
+		{
+			in:  "::1",
+			out: "http://[::1]/",
+		},
+
+		{
+			in:  "[::1]",
+			out: "http://[::1]/",
+		},
+
+		// IP4 and IP4 addresses with port
+		{
+			in:  "127.0.0.1:80",
+			out: "http://127.0.0.1/",
+		},
+
+		{
+			in:  "127.0.0.1:81",
+			out: "http://127.0.0.1:81/",
+		},
+
+		{
+			in:  "127.0.0.1:443",
+			out: "https://127.0.0.1/",
+		},
+
+		{
+			in:  "127.0.0.1:631",
+			out: "ipp://127.0.0.1/",
+		},
+
+		{
+			in:  "[::1]:80",
+			out: "http://[::1]/",
+		},
+
+		{
+			in:  "[::1]:81",
+			out: "http://[::1]:81/",
+		},
+
+		// UNIX paths
+		{
+			in:  "/var/run/cups/cups.sock",
+			out: "unix:/var/run/cups/cups.sock",
+		},
+
+		// IP address with template
+		{
+			in:       "127.0.0.1",
+			template: "https://localhost/",
+			out:      "https://127.0.0.1/",
+		},
+
+		{
+			in:       "127.0.0.1",
+			template: "http://localhost:222/",
+			out:      "http://127.0.0.1:222/",
+		},
+
+		// IP address and port with template
+		{
+			in:       "127.0.0.1:1234",
+			template: "https://localhost/path",
+			out:      "https://127.0.0.1:1234/path",
+		},
+
+		// Full URLs
+		{
+			in:  "http://127.0.0.1/ipp/print",
+			out: "http://127.0.0.1/ipp/print",
+		},
+
+		{
+			in:  "http://127.0.0.1:80/ipp/print",
+			out: "http://127.0.0.1/ipp/print",
+		},
+	}
+
+	for _, test := range tests {
+		u, err := ParseAddr(test.in, test.template)
+		if err == nil {
+			err = errors.New("")
+		}
+
+		switch {
+		case err.Error() != test.err:
+			t.Errorf("%q: error mismatch:\nexpected: %s\npresent:  %s",
+				test.in, test.err, err)
+
+		case test.err != "":
+			// Error as expected; nothing to do
+
+		case u.String() != test.out:
+			t.Errorf("%q: output mismatch:\nexpected: %s\npresent:  %s",
+				test.in, test.out, u)
+		}
+
+	}
 }
