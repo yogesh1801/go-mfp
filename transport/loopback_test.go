@@ -163,4 +163,6 @@ func TestLoopbackBysyError(t *testing.T) {
 		t.Errorf("Connection count expected: %d, present: %d",
 			LoopbackMaxPendingConnections, connCount)
 	}
+
+	l.Close()
 }
