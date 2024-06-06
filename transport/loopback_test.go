@@ -24,8 +24,8 @@ func TestLoopbackBasic(t *testing.T) {
 	tr, l := NewLoopback()
 
 	handler := func(w http.ResponseWriter, rq *http.Request) {
-		w.Write(message)
 		w.WriteHeader(200)
+		w.Write(message)
 	}
 
 	srv := &http.Server{Handler: http.HandlerFunc(handler)}
