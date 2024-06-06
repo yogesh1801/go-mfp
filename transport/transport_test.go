@@ -113,6 +113,36 @@ func TestTransportDial(t *testing.T) {
 			network: "tcp",
 			addr:    "[::1%eth0]:80",
 		},
+
+		{
+			dest:    "ipp://localhost:631/",
+			network: "tcp",
+			addr:    "localhost:631",
+		},
+
+		{
+			dest:    "ipp://localhost/",
+			network: "tcp",
+			addr:    "localhost:631",
+		},
+
+		{
+			dest:    "ipps://localhost/",
+			network: "tcp",
+			addr:    "localhost:631",
+		},
+
+		{
+			dest:    "http://localhost/",
+			network: "tcp",
+			addr:    "localhost:80",
+		},
+
+		{
+			dest:    "https://localhost/",
+			network: "tcp",
+			addr:    "localhost:443",
+		},
 	}
 
 	var network, addr string
