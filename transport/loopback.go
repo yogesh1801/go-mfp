@@ -66,31 +66,26 @@ type loopback struct {
 
 // dial establishes a new connection.
 func (l *loopback) dial(ctx context.Context, network, addr string) (net.Conn, error) {
-	// Create a socketpair
-	c1, c2, err := socketpair()
-	if err != nil {
-		return nil, err
-	}
-
 	// Acquire loopback lock
 	l.lock.Lock()
 	defer l.lock.Unlock()
 
-	// loopback closed?
-	if l.conns == nil {
-		return nil, ErrLoopbackClosed
-	}
-
-	// Try to enqueue the connection
-	select {
-	case l.conns <- c2:
-		return c1, nil
+	// Crete piped connection and try to push one into the listener's queue
+	c1, c2 := net.Pipe()
+	err := ErrLoopbackClosed
+	if l.conns != nil {
+		select {
+		case l.conns <- c2:
+			return c1, nil
+		default:
+			err = ErrLoopbackBusy
+		}
 	}
 
 	c1.Close()
 	c2.Close()
 
-	return nil, ErrLoopbackBusy
+	return nil, err
 
 }
 
