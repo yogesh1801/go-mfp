@@ -9,6 +9,8 @@
 package ipp
 
 import (
+	"context"
+	"errors"
 	"net/http"
 	"net/url"
 
@@ -91,4 +93,15 @@ func NewClient(strURL string, conf *ClientConfig) (*Client, error) {
 	}
 
 	return client, nil
+}
+
+// Do sends the Request and waits for Response.
+func (c *Client) Do(rq Request, rsp Response) error {
+	return c.DoContext(context.Background(), rq, rsp)
+}
+
+// DoContext sends the Request and waits for Response.
+// This is a version of [ipp.Client.Do] with [context.Context].
+func (c *Client) DoContext(context.Context, Request, Response) error {
+	return errors.New("not implemented")
 }
