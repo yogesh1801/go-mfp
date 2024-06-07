@@ -21,14 +21,32 @@ var (
 	DefaultNaturalLanguage = "en-us"
 
 	// DefaultCharsetSupported is the default value for
-	// ""charset-supported" printer attribute
+	// ""charset-supported" printer attribute.
 	DefaultCharsetSupported = []string{DefaultCharset}
 
 	// DefaultIppVersionsSupported is the default value for
-	// "ipp-features-supported" printer attribute
+	// "ipp-features-supported" printer attribute.
 	DefaultIppVersionsSupported = []goipp.Version{
 		goipp.MakeVersion(2, 0),
 		goipp.MakeVersion(1, 0),
 		goipp.MakeVersion(1, 1),
+	}
+
+	// DefaultRequestHeader is the default value for the
+	// RequestHeader structure.
+	DefaultRequestHeader = RequestHeader{
+		Version:                   goipp.DefaultVersion,
+		AttributesCharset:         DefaultCharset,
+		AttributesNaturalLanguage: DefaultNaturalLanguage,
+	}
+
+	// DefaultResponseHeader is the default value for the
+	// RequestHeader structure.
+	DefaultResponseHeader = ResponseHeader{
+		Version:                   goipp.DefaultVersion,
+		Status:                    goipp.StatusOk,
+		AttributesCharset:         DefaultCharset,
+		AttributesNaturalLanguage: DefaultNaturalLanguage,
+		StatusMessage:             "success",
 	}
 )

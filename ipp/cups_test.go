@@ -29,6 +29,13 @@ func TestCupsRequests(t *testing.T) {
 		ippRequestID = 12345
 	)
 
+	hdr := RequestHeader{
+		Version:                   ippVersion,
+		RequestID:                 ippRequestID,
+		AttributesCharset:         DefaultCharset,
+		AttributesNaturalLanguage: DefaultNaturalLanguage,
+	}
+
 	type testData struct {
 		op  goipp.Op       // Operation code
 		rq  Request        // Pointer to Request structure
@@ -42,12 +49,8 @@ func TestCupsRequests(t *testing.T) {
 			op: 0x4001,
 
 			rq: &CUPSGetDefaultRequest{
-				Version:   ippVersion,
-				RequestID: ippRequestID,
-
-				AttributesCharset:         DefaultCharset,
-				AttributesNaturalLanguage: DefaultNaturalLanguage,
-				RequestedAttributes:       []string{"all"},
+				RequestHeader:       hdr,
+				RequestedAttributes: []string{"all"},
 			},
 
 			msg: goipp.NewMessageWithGroups(
@@ -169,6 +172,14 @@ func TestCupsRequesponses(t *testing.T) {
 		ippRequestID = 12345
 	)
 
+	hdr := ResponseHeader{
+		Version:                   ippVersion,
+		RequestID:                 ippRequestID,
+		AttributesCharset:         DefaultCharset,
+		AttributesNaturalLanguage: DefaultNaturalLanguage,
+		StatusMessage:             "success",
+	}
+
 	type testData struct {
 		rsp Response       // Pointer to Response structure
 		msg *goipp.Message // Its IPP representation
@@ -179,13 +190,7 @@ func TestCupsRequesponses(t *testing.T) {
 		// ----- CUPSGetDefaultResponse tests -----
 		{
 			rsp: &CUPSGetDefaultResponse{
-				Version:   ippVersion,
-				Status:    goipp.StatusOk,
-				RequestID: ippRequestID,
-
-				AttributesCharset:         DefaultCharset,
-				AttributesNaturalLanguage: DefaultNaturalLanguage,
-				StatusMessage:             "success",
+				ResponseHeader: hdr,
 			},
 
 			msg: goipp.NewMessageWithGroups(

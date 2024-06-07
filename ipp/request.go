@@ -27,3 +27,28 @@ type Request interface {
 	// Decode decodes Request from the goipp.Message.
 	Decode(*goipp.Message) error
 }
+
+// RequestHeader is the common [Request] header. It contains common
+// fields and implements common interfaces.
+//
+// It should be embedded at the beginning of every structure that
+// implements the [Request] interface.
+type RequestHeader struct {
+	// IPP version and RequestID.
+	Version   goipp.Version
+	RequestID uint32
+
+	// Common Operation attributes
+	AttributesCharset         string `ipp:"!attributes-charset,charset"`
+	AttributesNaturalLanguage string `ipp:"!attributes-natural-language,naturalLanguage"`
+}
+
+// GetVersion returns IPP version of the Request.
+func (rqh *RequestHeader) GetVersion() goipp.Version {
+	return rqh.Version
+}
+
+// GetRequestID returns IPP request ID.
+func (rqh *RequestHeader) GetRequestID() uint32 {
+	return rqh.RequestID
+}

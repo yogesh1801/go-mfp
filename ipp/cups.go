@@ -19,43 +19,21 @@ type (
 	// CUPSGetDefaultRequest operation (0x4001) returns the default printer URI
 	// and attributes.
 	CUPSGetDefaultRequest struct {
-		// IPP version and RequestID.
-		Version   goipp.Version
-		RequestID uint32
+		RequestHeader
 
 		// Operation attributes
-		AttributesCharset         string   `ipp:"!attributes-charset,charset"`
-		AttributesNaturalLanguage string   `ipp:"!attributes-natural-language,naturalLanguage"`
-		RequestedAttributes       []string `ipp:"requested-attributes,keyword"`
+		RequestedAttributes []string `ipp:"requested-attributes,keyword"`
 	}
 
 	// CUPSGetDefaultResponse is the CUPS-Get-Default Response.
 	CUPSGetDefaultResponse struct {
-		// IPP version, RequestID, IPP Status code.
-		Version   goipp.Version
-		RequestID uint32
-		Status    goipp.Status
-
-		// Operation attributes.
-		AttributesCharset         string `ipp:"!attributes-charset,charset"`
-		AttributesNaturalLanguage string `ipp:"!attributes-natural-language,naturalLanguage"`
-		StatusMessage             string `ipp:"?status-message,text"`
+		ResponseHeader
 
 		// Other attributes.
 		Printers    []PrinterAttributes
 		Unsupported goipp.Attributes
 	}
 )
-
-// GetVersion returns IPP version of the Request.
-func (rq *CUPSGetDefaultRequest) GetVersion() goipp.Version {
-	return rq.Version
-}
-
-// GetRequestID returns IPP request ID.
-func (rq *CUPSGetDefaultRequest) GetRequestID() uint32 {
-	return rq.RequestID
-}
 
 // GetOp returns CUPSGetDefaultRequest IPP Operation code.
 func (rq *CUPSGetDefaultRequest) GetOp() goipp.Op {
@@ -88,21 +66,6 @@ func (rq *CUPSGetDefaultRequest) Decode(msg *goipp.Message) error {
 	}
 
 	return nil
-}
-
-// GetVersion returns IPP version of the Response.
-func (rsp *CUPSGetDefaultResponse) GetVersion() goipp.Version {
-	return rsp.Version
-}
-
-// GetRequestID returns IPP request ID.
-func (rsp *CUPSGetDefaultResponse) GetRequestID() uint32 {
-	return rsp.RequestID
-}
-
-// GetStatus returns CUPSGetDefaultResponse IPP Status code.
-func (rsp *CUPSGetDefaultResponse) GetStatus() goipp.Status {
-	return rsp.Status
 }
 
 // Encode encodes CUPSGetDefaultResponse into goipp.Message.
