@@ -8,7 +8,11 @@
 
 package ipp
 
-import "github.com/OpenPrinting/goipp"
+import (
+	"io"
+
+	"github.com/OpenPrinting/goipp"
+)
 
 // Response is the IPP response interface.
 type Response interface {
@@ -26,6 +30,12 @@ type Response interface {
 
 	// Decode decodes Response from goipp.Message.
 	Decode(*goipp.Message) error
+
+	// GetBody returns [Response] Body.
+	GetBody() io.ReadCloser
+
+	// SetBody sets [Response] Body.
+	SetBody(body io.ReadCloser)
 }
 
 // ResponseHeader is the common [Response] header. It contains common
@@ -43,6 +53,9 @@ type ResponseHeader struct {
 	AttributesCharset         string `ipp:"!attributes-charset,charset"`
 	AttributesNaturalLanguage string `ipp:"!attributes-natural-language,naturalLanguage"`
 	StatusMessage             string `ipp:"?status-message,text"`
+
+	// Response Body.
+	Body io.ReadCloser
 }
 
 // GetVersion returns IPP version of the [Response].
@@ -58,4 +71,14 @@ func (rsph *ResponseHeader) GetRequestID() uint32 {
 // GetStatus returns [Response] IPP Status code.
 func (rsph *ResponseHeader) GetStatus() goipp.Status {
 	return rsph.Status
+}
+
+// GetBody returns [Response] Body.
+func (rsph *ResponseHeader) GetBody() io.ReadCloser {
+	return rsph.Body
+}
+
+// SetBody sets [Response] Body.
+func (rsph *ResponseHeader) SetBody(body io.ReadCloser) {
+	rsph.Body = body
 }
