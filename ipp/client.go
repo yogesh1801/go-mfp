@@ -98,14 +98,46 @@ func NewClient(strURL string, conf *ClientConfig) (*Client, error) {
 	return client, nil
 }
 
-// Do sends the Request and waits for Response.
+// Do sends the [Request] and waits for [Response].
+//
+// It automatically closes Response Body. This is convenient
+// for most IPP requests, as body is rarely returned by IPP.
+//
+// For requests with returned body, use [Client.DoWithBody] instead.
 func (c *Client) Do(rq Request, rsp Response) error {
 	return c.DoContext(context.Background(), rq, rsp)
 }
 
+// DoWithBody Do sends the [Request] and waits for [Response].
+//
+// On success, caller MUST close Response body after use.
+func (c *Client) DoWithBody(rq Request, rsp Response) error {
+	return c.DoContextWithBody(context.Background(), rq, rsp)
+}
+
 // DoContext sends the Request and waits for Response.
 // This is a version of [ipp.Client.Do] with [context.Context].
-func (c *Client) DoContext(ctx context.Context, rq Request, rsp Response) error {
+//
+// It automatically closes Response Body. This is convenient
+// for most IPP requests, as body is rarely returned by IPP.
+//
+// For requests with returned body, use [Client.DoContextWithBody] instead.
+func (c *Client) DoContext(ctx context.Context,
+	rq Request, rsp Response) error {
+	err := c.DoContextWithBody(ctx, rq, rsp)
+	if err == nil {
+		rsp.GetBody().Close()
+	}
+	return err
+}
+
+// DoContextWithBody sends the Request and waits for Response.
+// This is a version of [ipp.Client.DoWithBody] with [context.Context].
+//
+// On success, caller MUST close Response body after use.
+func (c *Client) DoContextWithBody(ctx context.Context,
+	rq Request, rsp Response) error {
+
 	// Encode IPP message
 	buf := &bytes.Buffer{}
 	msg := rq.Encode()
