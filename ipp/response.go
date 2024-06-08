@@ -10,6 +10,7 @@ package ipp
 
 import (
 	"io"
+	"net/http"
 
 	"github.com/OpenPrinting/goipp"
 )
@@ -73,9 +74,14 @@ func (rsph *ResponseHeader) GetStatus() goipp.Status {
 	return rsph.Status
 }
 
-// GetBody returns [Response] Body.
-func (rsph *ResponseHeader) GetBody() io.ReadCloser {
-	return rsph.Body
+// GetBody returns [Response] Body. It never returns nil.
+// If body is not set, it returns [http.NoBody].
+func (rsph *ResponseHeader) GetBody() (body io.ReadCloser) {
+	body = http.NoBody
+	if rsph.Body != nil {
+		body = rsph.Body
+	}
+	return
 }
 
 // SetBody sets [Response] Body.
