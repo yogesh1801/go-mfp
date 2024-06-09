@@ -16,22 +16,24 @@ import (
 
 // Request is the IPP request interface.
 type Request interface {
-	// GetVersion returns IPP version of the Request.
+	// The following methods are implemented by the RequestHeader.
+	// Each concrete Request implementation inherits them by
+	// embedding this structure:
+	//
+	//   - GetVersion returns IPP version of the Request.
+	//   - GetRequestID returns IPP request ID.
+	//   - GetBody returns Request body or nil if body is not set.
 	GetVersion() goipp.Version
-
-	// GetRequestID returns IPP request ID.
 	GetRequestID() uint32
-
-	// GetBody returns Request body or nil if body is not set.
 	GetBody() io.Reader
 
-	// GetOp returns IPP Operation code of the Request.
+	// The following methods each concrete Request implementation
+	// must define by itself:
+	//   - GetOp returns IPP Operation code of the Request.
+	//   - Encode encodes Request into the goipp.Message.
+	//   - Decode decodes Request from the goipp.Message.
 	GetOp() goipp.Op
-
-	// Encode encodes Request into the goipp.Message.
 	Encode() *goipp.Message
-
-	// Decode decodes Request from the goipp.Message.
 	Decode(*goipp.Message) error
 }
 

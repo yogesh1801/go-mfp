@@ -17,26 +17,27 @@ import (
 
 // Response is the IPP response interface.
 type Response interface {
-	// GetVersion returns IPP version of the Response.
+	// The following methods are implemented by the ResponseHeader.
+	// Each concrete Response implementation inherits them by embedding
+	// that structure:
+	//
+	//   - GetVersion returns IPP version of the Response.
+	//   - GetRequestID returns IPP request ID.
+	//   - GetStatus returns IPP Status code of the Response.
+	//   - GetBody returns [Response] Body.
+	//   - SetBody sets [Response] Body.
 	GetVersion() goipp.Version
-
-	// GetRequestID returns IPP request ID.
 	GetRequestID() uint32
-
-	// GetStatus returns IPP Status code of the Response.
 	GetStatus() goipp.Status
-
-	// Encode encodes Response into goipp.Message.
-	Encode() *goipp.Message
-
-	// Decode decodes Response from goipp.Message.
-	Decode(*goipp.Message) error
-
-	// GetBody returns [Response] Body.
 	GetBody() io.ReadCloser
-
-	// SetBody sets [Response] Body.
 	SetBody(body io.ReadCloser)
+
+	// The following methods each concrete Response implementation
+	// must define by itself:
+	//   - Encode encodes Response into goipp.Message.
+	//   - Decode decodes Response from goipp.Message.
+	Encode() *goipp.Message
+	Decode(*goipp.Message) error
 }
 
 // ResponseHeader is the common [Response] header. It contains common
