@@ -16,86 +16,32 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/OpenPrinting/goipp"
 	"github.com/alexpevzner/mfp/transport"
 )
 
 // Client implements Client-side IPP Printer object.
 type Client struct {
-	URL    string       // Destination URL (ipp://...)
-	Config ClientConfig // Client configuration with all defaults resolved
-
-	// HTTP stuff
-	httpURL *url.URL // Parsed URL
-}
-
-// ClientConfig contains Client configuration options.
-// Used as parameter to the NewClient function.
-type ClientConfig struct {
-	// HTTPClient specifies a HTTP client to use.
-	//
-	// Please notice that in Go stdlib http.Client is the connection
-	// manager. So all Clients that share the same HTTP client will
-	// share pool of active connections.
-	//
-	// If set to nil, DefaultHTTPClient will be used.
-	HTTPClient *http.Client
-
-	// IppVersion specifies IPP protocol version to use.
-	//
-	// If set to 0, goipp.DefaultVersion will be used.
-	IppVersion goipp.Version
-
-	// AttrCharset contains "attributes-charset" value
-	// for all requests.
-	//
-	// If set to "", DefaultCharset will be used.
-	AttrCharset string
-
-	// AttrNaturalLanguage contains "attributes-natural-language"
-	// value for all requests.
-	//
-	// If set to "", DefaultNaturalLanguage will be used.
-	AttrNaturalLanguage string
+	URL        *url.URL     // Destination URL (ipp://...)
+	HTTPClient *http.Client // HTTP Client
 }
 
 // NewClient creates a new IPP client.
-// If conf is nil, reasonable defaults are provided automatically
-func NewClient(strURL string, conf *ClientConfig) (*Client, error) {
-	// Parse and validate Printer URL
-	httpURL, _, err := urlParse(strURL)
-	if err != nil {
-		return nil, err
+//
+// If tr is nil, [transport.NewTransport] will be used to create
+// a new transport.
+func NewClient(u *url.URL, tr http.RoundTripper) *Client {
+	if tr == nil {
+		tr = transport.NewTransport(nil)
 	}
 
-	// Create Client object.
-	client := &Client{
-		URL:     strURL,
-		httpURL: httpURL,
+	c := &Client{
+		URL: u,
+		HTTPClient: &http.Client{
+			Transport: tr,
+		},
 	}
 
-	// Resolve all defaults in the configuration
-	if conf != nil {
-		client.Config = *conf
-	}
-
-	if client.Config.HTTPClient == nil {
-		client.Config.HTTPClient = DefaultHTTPClient
-	}
-
-	if client.Config.IppVersion == 0 {
-		client.Config.IppVersion = goipp.DefaultVersion
-	}
-
-	if client.Config.AttrCharset == "" {
-		client.Config.AttrCharset = DefaultCharset
-	}
-
-	if client.Config.AttrNaturalLanguage == "" {
-		client.Config.AttrNaturalLanguage = DefaultNaturalLanguage
-	}
-
-	return client, nil
+	return c
 }
 
 // Do sends the [Request] and waits for [Response].
@@ -152,7 +98,8 @@ func (c *Client) DoContextWithBody(ctx context.Context,
 	}
 
 	// Create HTTP request
-	httpRq, err := transport.NewRequestWithContext(ctx, "POST", c.URL, body)
+	httpRq, err := transport.NewRequestWithContext(ctx,
+		"POST", c.URL.String(), body)
 	if err != nil {
 		return err
 	}
@@ -160,7 +107,7 @@ func (c *Client) DoContextWithBody(ctx context.Context,
 	httpRq.Header.Set("Content-Type", "application/ipp")
 
 	// Call server
-	httpRsp, err := c.Config.HTTPClient.Do(httpRq)
+	httpRsp, err := c.HTTPClient.Do(httpRq)
 	if err != nil {
 		return err
 	}
