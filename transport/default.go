@@ -8,7 +8,13 @@
 
 package transport
 
-const (
-	// DefaultCupsSocket is the default CUPS socket URL
-	DefaultCupsSocket = "unix:/var/run/cups/cups.sock"
+// Default URLs
+var (
+	// DefaultCupsUNIX is the default CUPS socket URL using
+	// UNIX domain sockets
+	DefaultCupsUNIX = MustParseURL("unix:/var/run/cups/cups.sock")
+
+	// DefaultCupsLocalhost is the default CUPS socket URL using
+	// Localhost TCP connection
+	DefaultCupsLocalhost = MustParseURL("ipp://localhost/")
 )
