@@ -15,7 +15,9 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"sync/atomic"
 
+	"github.com/OpenPrinting/goipp"
 	"github.com/alexpevzner/mfp/transport"
 )
 
@@ -23,6 +25,7 @@ import (
 type Client struct {
 	URL        *url.URL     // Destination URL (ipp://...)
 	HTTPClient *http.Client // HTTP Client
+	RequestID  uint32       // RequestID of the next request
 }
 
 // NewClient creates a new IPP client.
@@ -44,7 +47,23 @@ func NewClient(u *url.URL, tr http.RoundTripper) *Client {
 	return c
 }
 
+// requestid generates a next RequestID
+func (c *Client) requestid() uint32 {
+	// IPP doesn't allow RequestID to be zero, so roll
+	// until first non-zero value
+	var id uint32
+	for id == 0 {
+		id = atomic.AddUint32(&c.RequestID, 1)
+	}
+
+	return id
+}
+
 // Do sends the [Request] and waits for [Response].
+//
+// The following Request fields are filled automatically:
+//   - Version, if zero, will be set to goipp.DefaultVersion
+//   - RequestID will be set to next Client's RequestID in sequence
 //
 // It automatically closes Response Body. This is convenient
 // for most IPP requests, as body is rarely returned by IPP.
@@ -55,6 +74,10 @@ func (c *Client) Do(rq Request, rsp Response) error {
 }
 
 // DoWithBody Do sends the [Request] and waits for [Response].
+//
+// The following Request fields are filled automatically:
+//   - Version, if zero, will be set to goipp.DefaultVersion
+//   - RequestID will be set to next Client's RequestID in sequence
 //
 // On success, caller MUST close Response body after use.
 func (c *Client) DoWithBody(rq Request, rsp Response) error {
@@ -80,6 +103,10 @@ func (c *Client) DoContext(ctx context.Context,
 // DoContextWithBody sends the Request and waits for Response.
 // This is a version of [ipp.Client.DoWithBody] with [context.Context].
 //
+// The following Request fields are filled automatically:
+//   - Version, if zero, will be set to goipp.DefaultVersion
+//   - RequestID will be set to next Client's RequestID in sequence
+//
 // On success, caller MUST close Response body after use.
 func (c *Client) DoContextWithBody(ctx context.Context,
 	rq Request, rsp Response) error {
@@ -87,6 +114,15 @@ func (c *Client) DoContextWithBody(ctx context.Context,
 	// Encode IPP message
 	buf := &bytes.Buffer{}
 	msg := rq.Encode()
+
+	if msg.Version == 0 {
+		msg.Version = goipp.DefaultVersion
+	}
+
+	if msg.RequestID == 0 {
+		msg.RequestID = c.requestid()
+	}
+
 	msg.Encode(buf)
 
 	// Attach Request body, if any
