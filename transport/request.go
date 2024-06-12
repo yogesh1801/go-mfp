@@ -28,17 +28,10 @@ func NewRequest(method string,
 func NewRequestWithContext(ctx context.Context, method string,
 	u *url.URL, body io.Reader) (rq *http.Request, err error) {
 
-	// We must Parse URL by ourselves, and then replace rq.URL,
-	// parsed by the http.NewRequestWithContext.
-	//
-	// It guarantees that URL error handling and post-processing are
-	// ours in a cost of double URL parsing.
+	rq, err = http.NewRequestWithContext(ctx, method, u.String(), body)
 	if err == nil {
-		rq, err = http.NewRequestWithContext(ctx, method, u.String(), body)
-		if err == nil {
-			rq.URL = u
-			requestAdjustHost(rq, u)
-		}
+		rq.URL = u
+		requestAdjustHost(rq, u)
 	}
 
 	return
