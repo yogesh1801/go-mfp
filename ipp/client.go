@@ -99,7 +99,7 @@ func (c *Client) DoContextWithBody(ctx context.Context,
 
 	// Create HTTP request
 	httpRq, err := transport.NewRequestWithContext(ctx,
-		"POST", c.URL.String(), body)
+		"POST", c.URL, body)
 	if err != nil {
 		return err
 	}

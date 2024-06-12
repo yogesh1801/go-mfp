@@ -105,7 +105,8 @@ func TestRequestHost(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		rq, err := NewRequest("GET", test.url, nil)
+		u := MustParseURL(test.url)
+		rq, err := NewRequest("GET", u, nil)
 		if err != nil {
 			panic(fmt.Errorf("%q: %w", test.url, err))
 		}

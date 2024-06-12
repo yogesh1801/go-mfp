@@ -18,23 +18,23 @@ import (
 
 // NewRequest is similar to [http.NewRequest], but it uses [ParseURL]
 // for URL string handling.
-func NewRequest(method, url string, body io.Reader) (*http.Request, error) {
-	return NewRequestWithContext(context.Background(), method, url, body)
+func NewRequest(method string,
+	u *url.URL, body io.Reader) (*http.Request, error) {
+	return NewRequestWithContext(context.Background(), method, u, body)
 }
 
 // NewRequestWithContext is similar to [http.NewRequestWithContext],
 // but it uses [ParseURL] for URL string handling.
-func NewRequestWithContext(ctx context.Context,
-	method, url string, body io.Reader) (rq *http.Request, err error) {
+func NewRequestWithContext(ctx context.Context, method string,
+	u *url.URL, body io.Reader) (rq *http.Request, err error) {
 
 	// We must Parse URL by ourselves, and then replace rq.URL,
 	// parsed by the http.NewRequestWithContext.
 	//
 	// It guarantees that URL error handling and post-processing are
 	// ours in a cost of double URL parsing.
-	u, err := ParseURL(url)
 	if err == nil {
-		rq, err = http.NewRequestWithContext(ctx, method, url, body)
+		rq, err = http.NewRequestWithContext(ctx, method, u.String(), body)
 		if err == nil {
 			rq.URL = u
 			requestAdjustHost(rq, u)
