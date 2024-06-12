@@ -95,6 +95,7 @@ func (rsp *CUPSGetDefaultResponse) Encode() *goipp.Message {
 func (rsp *CUPSGetDefaultResponse) Decode(msg *goipp.Message) error {
 	rsp.Version = msg.Version
 	rsp.RequestID = msg.RequestID
+	rsp.Status = goipp.Status(msg.Code)
 
 	err := ippDecodeAttrs(rsp, msg.Operation)
 	if err != nil {
