@@ -11,10 +11,12 @@ package ipp
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"reflect"
 	"testing"
 
 	"github.com/OpenPrinting/goipp"
+	"github.com/alexpevzner/mfp/transport"
 )
 
 var (
@@ -298,5 +300,20 @@ func TestCupsRequesponses(t *testing.T) {
 				t.Errorf("Decoded data doesn't match:\n%s", diff)
 			}
 		}
+	}
+}
+
+func TestCUPS(t *testing.T) {
+	//	return
+
+	c := NewClient(transport.DefaultCupsUNIX, nil)
+	rq := &CUPSGetDefaultRequest{
+		RequestHeader: DefaultRequestHeader,
+	}
+	rsp := &CUPSGetDefaultResponse{}
+	err := c.Do(rq, rsp)
+	println(err)
+	if err == nil {
+		fmt.Printf("%#v", rsp)
 	}
 }
