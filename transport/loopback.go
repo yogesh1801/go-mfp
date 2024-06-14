@@ -65,7 +65,9 @@ type loopback struct {
 }
 
 // dial establishes a new connection.
-func (l *loopback) dial(ctx context.Context, network, addr string) (net.Conn, error) {
+func (l *loopback) dial(ctx context.Context,
+	network, addr string) (net.Conn, error) {
+
 	// Acquire loopback lock
 	l.lock.Lock()
 	defer l.lock.Unlock()
