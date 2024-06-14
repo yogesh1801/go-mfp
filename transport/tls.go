@@ -246,7 +246,7 @@ func (atl *autoTLSListener) detectTLSRawConn(rawconn syscall.RawConn) (
 		withTLS = buf[0] == 0x16
 	}
 
-	return false, nil
+	return withTLS, nil
 }
 
 // Accept waits for and returns the next connection to the listener.
