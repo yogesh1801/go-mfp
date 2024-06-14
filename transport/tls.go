@@ -262,8 +262,7 @@ func (l autoTLSListenerChild) Close() error {
 
 // Addr returns listener address.
 func (l autoTLSListenerChild) Addr() net.Addr {
-	l.parent.Addr()
-	return nil
+	return l.parent.Addr()
 }
 
 // push pushed connection to the queue.
