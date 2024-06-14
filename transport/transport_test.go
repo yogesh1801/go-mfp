@@ -152,9 +152,9 @@ func TestTransportDial(t *testing.T) {
 		return nil, errors.New("not implemented")
 	}
 
-	template := *(http.DefaultTransport.(*http.Transport))
+	template := (http.DefaultTransport.(*http.Transport)).Clone()
 	template.DialContext = dial
-	tr := NewTransport(&template)
+	tr := NewTransport(template)
 
 	for _, test := range tests {
 		u := MustParseURL(test.dest)

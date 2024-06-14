@@ -50,9 +50,9 @@ func NewLoopback() (*Transport, net.Listener) {
 	}
 
 	// Create a Transport
-	template := *(http.DefaultTransport.(*http.Transport))
+	template := (http.DefaultTransport.(*http.Transport)).Clone()
 	template.DialContext = l.dial
-	tr := NewTransport(&template)
+	tr := NewTransport(template)
 
 	return tr, l
 }
