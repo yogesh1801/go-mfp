@@ -242,7 +242,7 @@ func (atl *autoTLSListener) detectTLSRawConn(rawconn syscall.RawConn) (
 		withTLS = buf[0] == 0x16
 	}
 
-	return withTLS, nil
+	return withTLS, err
 }
 
 // testCounters returns counters of queued plain, encrypted and
