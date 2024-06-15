@@ -119,9 +119,9 @@ func testAutoTLSHTTP(t *testing.T, tr *Transport, l net.Listener) {
 	done.Wait()
 }
 
-// testAutoTLServerClose tests that incoming but not yet accepted connections
+// testAutoTLSServerClose tests that incoming but not yet accepted connections
 // are properly closed
-func testAutoTLServerClose(t *testing.T, tr *Transport, l net.Listener) {
+func testAutoTLSServerClose(t *testing.T, tr *Transport, l net.Listener) {
 	// Build http/https URLs
 	addr := l.Addr()
 	urlHTTP := MustParseURL(fmt.Sprintf("http://%s/", addr))
@@ -166,7 +166,7 @@ func testAutoTLServerClose(t *testing.T, tr *Transport, l net.Listener) {
 	for {
 		plain, encrypted, pending := atl.testCounters()
 		total := plain + encrypted + pending
-		println(total, numConn)
+
 		if total == numConn {
 			break
 		}
@@ -222,7 +222,7 @@ func TestAutoTLS(t *testing.T) {
 
 		{
 			prep: prepTCP,
-			test: testAutoTLServerClose,
+			test: testAutoTLSServerClose,
 		},
 	}
 
