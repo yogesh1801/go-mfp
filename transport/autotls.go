@@ -93,6 +93,10 @@ func (atl *autoTLSListener) accept(encrypted bool) (net.Conn, error) {
 		// May be we already have a queued connection?
 		c := queue.pull()
 		if c != nil {
+			if atl.closed {
+				c.Close()
+				continue
+			}
 			return c, nil
 		}
 
@@ -119,27 +123,18 @@ func (atl *autoTLSListener) accept(encrypted bool) (net.Conn, error) {
 	}
 }
 
-// close closes the listener and aborts all pending connections
+// close closes the listener.
 func (atl *autoTLSListener) close() {
 	atl.lock.Lock()
-
 	atl.closed = true
 
-	conns := atl.plain.pullAll()
-	conns = append(conns, atl.encrypted.pullAll()...)
 	for c := range atl.pending {
-		delete(atl.pending, c)
-		conns = append(conns, c)
+		c.Close() // Unblock all pending connections
 	}
 
 	atl.lock.Unlock()
 
 	atl.parent.Close()
-
-	for _, c := range conns {
-		c.Close()
-	}
-
 }
 
 // acceptWait waits for the next incoming connection on a parent listener.
@@ -168,26 +163,14 @@ func (atl *autoTLSListener) acceptWait() error {
 		// Detect TLS, then drop connection from pending.
 		withTLS, err := atl.detectTLS(c)
 
+		// Delete connection from pending and push it into
+		// the appropriate queue.
 		atl.lock.Lock()
 		delete(atl.pending, c)
-		atl.lock.Unlock()
-
-		// connClassify fails if read from connection fails.
-		// It's not a problem of the entire listener, it is
-		// a problem of this particular connection.
-		//
-		// So drop the connection and otherwise ignore an error.
-		if err != nil {
-			c.Close()
-			return nil
-		}
-
-		// Enqueue the connection
-		atl.lock.Lock()
 
 		switch {
-		case atl.closed:
-			c.Close() // No more new connections
+		case err != nil:
+			c.Close()
 		case withTLS:
 			atl.encrypted.push(c)
 		default:
@@ -195,7 +178,6 @@ func (atl *autoTLSListener) acceptWait() error {
 		}
 
 		atl.lock.Unlock()
-
 	}
 	return err
 }
@@ -279,12 +261,4 @@ func (q *autoTLSListenerQueue) pull() (c net.Conn) {
 		q.connections = q.connections[:len(q.connections)-1]
 	}
 	return
-}
-
-// pullAll returns all the connections from the queue
-// and purges the queue.
-func (q *autoTLSListenerQueue) pullAll() []net.Conn {
-	conns := q.connections
-	q.connections = q.connections[:0]
-	return conns
 }
