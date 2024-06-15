@@ -9,6 +9,7 @@
 package transport
 
 import (
+	"context"
 	"crypto/ed25519"
 	"crypto/rand"
 	"crypto/tls"
@@ -149,8 +150,8 @@ func testAutoTLSServerClose(t *testing.T, tr *Transport, l net.Listener) {
 			}
 
 			numConn++
+			done.Add(1)
 			go func() {
-				done.Add(1)
 
 				rsp, err := clnt.Do(rq)
 				if err == nil {
@@ -179,6 +180,96 @@ func testAutoTLSServerClose(t *testing.T, tr *Transport, l net.Listener) {
 	e.Close()
 
 	// Running requests MUST terminate
+	done.Wait()
+}
+
+// testAutoTLSFrozenClient tests AutoTLS behaviour when client
+// connects and doesn't send any data.
+func testAutoTLSFrozenClient(t *testing.T, tr *Transport, l net.Listener) {
+	// Build http URL
+	addr := l.Addr()
+	u := MustParseURL(fmt.Sprintf("http://%s/", addr))
+
+	// Create a client
+	clnt := &http.Client{
+		Transport: tr,
+		Timeout:   5 * time.Second,
+	}
+
+	// Hook Transport.DialContext
+	dial := tr.DialContext
+	tr.DialContext = func(ctx context.Context,
+		network, addr string) (net.Conn, error) {
+
+		// Connect
+		conn, err := dial(ctx, network, addr)
+		if err != nil {
+			return conn, err
+		}
+
+		// And now wait until Context is canceled, effectively
+		// preventing client from sending anything
+		<-ctx.Done()
+		return conn, err
+	}
+
+	// Setup AutoTLS listener
+	atl, p, e := newAutoTLSListener(l)
+
+	// Initiate HTTP request
+	var done sync.WaitGroup
+
+	ctx, cancel := context.WithCancel(context.Background())
+	rq, err := NewRequestWithContext(ctx, "GET", u, nil)
+	if err != nil {
+		t.Errorf("GET %s: %s", u, err)
+		return
+	}
+
+	done.Add(1)
+	go func() {
+		rsp, err := clnt.Do(rq)
+		if err == nil {
+			rsp.Body.Close()
+		}
+
+		done.Done()
+	}()
+
+	// Wait until we have pending connection
+	done.Add(1)
+	go func() {
+		var err error
+		for err == nil {
+			err = atl.acceptWait()
+		}
+		done.Done()
+	}()
+
+	for {
+		plain, encrypted, pending := atl.testCounters()
+		total := plain + encrypted + pending
+
+		if total != 0 {
+			break
+		}
+
+		time.Sleep(10 * time.Millisecond)
+	}
+
+	// Close listeners
+	p.Close()
+	e.Close()
+
+	// Make sure there is no pending connections now
+	plain, encrypted, pending := atl.testCounters()
+	total := plain + encrypted + pending
+	if total != 0 {
+		t.Errorf("testAutoTLSFrozenClient: connections still pending: %d", total)
+	}
+
+	// Unlock the client
+	cancel()
 	done.Wait()
 }
 
@@ -223,6 +314,11 @@ func TestAutoTLS(t *testing.T) {
 		{
 			prep: prepTCP,
 			test: testAutoTLSServerClose,
+		},
+
+		{
+			prep: prepTCP,
+			test: testAutoTLSFrozenClient,
 		},
 	}
 

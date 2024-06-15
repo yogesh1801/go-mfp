@@ -140,15 +140,16 @@ func (atl *autoTLSListener) accept(encrypted bool) (net.Conn, error) {
 // close closes the listener.
 func (atl *autoTLSListener) close() {
 	atl.lock.Lock()
+
+	atl.parent.Close()
 	atl.closed = true
 
 	for c := range atl.pending {
 		connAbort(c)
+		delete(atl.pending, c)
 	}
 
 	atl.lock.Unlock()
-
-	atl.parent.Close()
 }
 
 // acceptWait waits for the next incoming connection on a parent listener.
