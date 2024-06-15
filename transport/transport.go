@@ -78,11 +78,11 @@ func (tr *Transport) RoundTrip(rq *http.Request) (*http.Response, error) {
 		defaultPort = "631"
 
 	case "http":
-		port = "80"
+		defaultPort = "80"
 		proto = "tcp"
 
 	case "https":
-		port = "443"
+		defaultPort = "443"
 		proto = "tcp"
 
 	case "unix":

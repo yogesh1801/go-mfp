@@ -143,6 +143,24 @@ func TestTransportDial(t *testing.T) {
 			network: "tcp",
 			addr:    "localhost:443",
 		},
+
+		{
+			dest:    "http://127.0.0.1:39205/",
+			network: "tcp",
+			addr:    "127.0.0.1:39205",
+		},
+
+		{
+			dest:    "http://[::1]:39205/",
+			network: "tcp",
+			addr:    "[::1]:39205",
+		},
+
+		{
+			dest:    "http://localhost:39205/",
+			network: "tcp",
+			addr:    "localhost:39205",
+		},
 	}
 
 	var network, addr string
