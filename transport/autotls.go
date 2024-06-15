@@ -9,6 +9,7 @@
 package transport
 
 import (
+	"errors"
 	"net"
 	"sync"
 	"syscall"
@@ -60,7 +61,20 @@ type autoTLSWithSyscallConn interface {
 // Closing of any of returned listeners closes the parent listener
 // and unblocks all goroutines waiting for incoming connections.
 func NewAutoTLSListener(parent net.Listener) (plain, encrypted net.Listener) {
-	atl := &autoTLSListener{
+	_, plain, encrypted = newAutoTLSListener(parent)
+	return
+}
+
+// newAutoTLSListener is the internal implementation of the
+// NewAutoTLSListener. It returns an additional value, pointer
+// to the underlying autoTLSListener object.
+//
+// This object provides some testing interfaces. It is not intended
+// for the regular use.
+func newAutoTLSListener(parent net.Listener) (
+	atl *autoTLSListener, plain, encrypted net.Listener) {
+
+	atl = &autoTLSListener{
 		parent:  parent,
 		pending: make(map[net.Conn]struct{}),
 	}
@@ -94,7 +108,7 @@ func (atl *autoTLSListener) accept(encrypted bool) (net.Conn, error) {
 		c := queue.pull()
 		if c != nil {
 			if atl.closed {
-				c.Close()
+				connAbort(c)
 				continue
 			}
 			return c, nil
@@ -129,7 +143,7 @@ func (atl *autoTLSListener) close() {
 	atl.closed = true
 
 	for c := range atl.pending {
-		c.Close() // Unblock all pending connections
+		connAbort(c)
 	}
 
 	atl.lock.Unlock()
@@ -154,14 +168,13 @@ func (atl *autoTLSListener) acceptWait() error {
 
 		atl.lock.Unlock()
 
-		// If listener already closed, just drop the connection
-		if closed {
-			c.Close()
-			return nil
-		}
-
 		// Detect TLS, then drop connection from pending.
-		withTLS, err := atl.detectTLS(c)
+		withTLS := false
+		err := errors.New("listener closed")
+
+		if !closed {
+			withTLS, err = atl.detectTLS(c)
+		}
 
 		// Delete connection from pending and push it into
 		// the appropriate queue.
@@ -170,7 +183,7 @@ func (atl *autoTLSListener) acceptWait() error {
 
 		switch {
 		case err != nil:
-			c.Close()
+			connAbort(c)
 		case withTLS:
 			atl.encrypted.push(c)
 		default:
@@ -231,6 +244,22 @@ func (atl *autoTLSListener) detectTLSRawConn(rawconn syscall.RawConn) (
 	return withTLS, nil
 }
 
+// testCounters returns counters of queued plain, encrypted and
+// pending (being currently tested for TLS) connections.
+//
+// This is a testing interface. It is not intended for regular use.
+func (atl *autoTLSListener) testCounters() (plain, encrypted, pending int) {
+	atl.lock.Lock()
+
+	plain = len(atl.plain.connections)
+	encrypted = len(atl.encrypted.connections)
+	pending = len(atl.pending)
+
+	atl.lock.Unlock()
+
+	return
+}
+
 // Accept waits for and returns the next connection to the listener.
 func (l autoTLSListenerChild) Accept() (net.Conn, error) {
 	return l.accept(l.encrypted)
@@ -239,6 +268,8 @@ func (l autoTLSListenerChild) Accept() (net.Conn, error) {
 // Close closes the listener.
 func (l autoTLSListenerChild) Close() error {
 	l.close()
+	l.Accept() // This will purge queued connections
+
 	return nil
 }
 

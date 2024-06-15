@@ -134,13 +134,13 @@ func testAutoTLServerClose(t *testing.T, tr *Transport, l net.Listener) {
 	}
 
 	// Setup AutoTLS listener
-	p, e := NewAutoTLSListener(l)
+	atl, p, e := newAutoTLSListener(l)
 
 	// Initiate incoming requests
-	const numconn = 64
-
 	var done sync.WaitGroup
-	for i := 0; i < numconn; i++ {
+	numConn := 0
+
+	for i := 0; i < 64; i++ {
 		for _, u := range []*url.URL{urlHTTP, urlHTTPS} {
 			rq, err := NewRequest("GET", u, nil)
 			if err != nil {
@@ -148,6 +148,7 @@ func testAutoTLServerClose(t *testing.T, tr *Transport, l net.Listener) {
 				continue
 			}
 
+			numConn++
 			go func() {
 				done.Add(1)
 
@@ -161,24 +162,20 @@ func testAutoTLServerClose(t *testing.T, tr *Transport, l net.Listener) {
 		}
 	}
 
-	for i := 0; i < numconn; i++ {
-		conn, err := p.Accept()
-		if err == nil {
-			conn.Close()
-		}
-	}
-
-	p.Close()
-
+	// Wait until all connections are internally accepted
 	for {
-		conn, err := e.Accept()
-		if err == nil {
-			conn.Close()
-		} else {
+		plain, encrypted, pending := atl.testCounters()
+		total := plain + encrypted + pending
+		println(total, numConn)
+		if total == numConn {
 			break
 		}
+
+		atl.acceptWait()
 	}
 
+	// Close listeners
+	p.Close()
 	e.Close()
 
 	// Running requests MUST terminate
