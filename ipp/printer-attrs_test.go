@@ -13,10 +13,11 @@ import (
 	"testing"
 
 	"github.com/OpenPrinting/goipp"
+	"github.com/alexpevzner/mfp/testutils"
 )
 
 func TestKyoceraM2040dnPrinterAttributes(t *testing.T) {
-	msg := testIPPMessage(testdataKyoceraM2040dnPrinterAttributes)
+	msg := testutils.ParsedKyoceraM2040dnPrinterAttributes
 
 	// Decode printer attributes from real printer
 	var pa PrinterAttributes
@@ -56,6 +57,3 @@ func TestKyoceraM2040dnPrinterAttributes(t *testing.T) {
 	_ = diff
 	//println(diff)
 }
-
-//go:embed "testdata/Kyocera-ECOSYS-M2040dn/printer-attributes.ipp"
-var testdataKyoceraM2040dnPrinterAttributes []byte
