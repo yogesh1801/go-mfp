@@ -31,7 +31,7 @@ func TestLoopbackBasic(t *testing.T) {
 	}
 
 	srv := &http.Server{Handler: http.HandlerFunc(handler)}
-	clnt := &http.Client{Transport: tr}
+	clnt := NewClient(tr)
 
 	// Run srv.Serve() on its own goroutine
 	var done sync.WaitGroup

@@ -55,10 +55,8 @@ func testAutoTLSHTTP(t *testing.T, tr *Transport, l net.Listener) {
 	urlHTTPS := MustParseURL(fmt.Sprintf("https://%s/", addr))
 
 	// Create a client
-	clnt := &http.Client{
-		Transport: tr,
-		Timeout:   5 * time.Second,
-	}
+	clnt := NewClient(tr)
+	clnt.Timeout = 5 * time.Second
 
 	// Create http.Server
 	handler := func(w http.ResponseWriter, rq *http.Request) {
@@ -130,10 +128,8 @@ func testAutoTLSServerClose(t *testing.T, tr *Transport, l net.Listener) {
 	urlHTTPS := MustParseURL(fmt.Sprintf("https://%s/", addr))
 
 	// Create a client
-	clnt := &http.Client{
-		Transport: tr,
-		Timeout:   5 * time.Second,
-	}
+	clnt := NewClient(tr)
+	clnt.Timeout = 5 * time.Second
 
 	// Setup AutoTLS listener
 	atl, p, e := newAutoTLSListener(l)
@@ -192,10 +188,8 @@ func testAutoTLSFrozenClient(t *testing.T, tr *Transport, l net.Listener) {
 	u := MustParseURL(fmt.Sprintf("http://%s/", addr))
 
 	// Create a client
-	clnt := &http.Client{
-		Transport: tr,
-		Timeout:   5 * time.Second,
-	}
+	clnt := NewClient(tr)
+	clnt.Timeout = 5 * time.Second
 
 	// Hook Transport.DialContext
 	dial := tr.DialContext
@@ -282,10 +276,8 @@ func testAutoTLSAbortingClient(t *testing.T, tr *Transport, l net.Listener) {
 	u := MustParseURL(fmt.Sprintf("http://%s/", addr))
 
 	// Create a client
-	clnt := &http.Client{
-		Transport: tr,
-		Timeout:   5 * time.Second,
-	}
+	clnt := NewClient(tr)
+	clnt.Timeout = 5 * time.Second
 
 	// Hook Transport.DialContext
 	dial := tr.DialContext
