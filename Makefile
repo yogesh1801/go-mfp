@@ -1,3 +1,3 @@
-SUBDIRS	= cmd ipp mainfunc transport
+SUBDIRS	= cmd ipp mainfunc testutils transport
 
 include Rules.mak
