@@ -23,25 +23,19 @@ import (
 
 // Client implements Client-side IPP Printer object.
 type Client struct {
-	URL        *url.URL     // Destination URL (ipp://...)
-	HTTPClient *http.Client // HTTP Client
-	RequestID  uint32       // RequestID of the next request
+	URL        *url.URL          // Destination URL (ipp://...)
+	HTTPClient *transport.Client // HTTP Client
+	RequestID  uint32            // RequestID of the next request
 }
 
 // NewClient creates a new IPP client.
 //
 // If tr is nil, [transport.NewTransport] will be used to create
 // a new transport.
-func NewClient(u *url.URL, tr http.RoundTripper) *Client {
-	if tr == nil {
-		tr = transport.NewTransport(nil)
-	}
-
+func NewClient(u *url.URL, tr *transport.Transport) *Client {
 	c := &Client{
-		URL: u,
-		HTTPClient: &http.Client{
-			Transport: tr,
-		},
+		URL:        u,
+		HTTPClient: transport.NewClient(tr),
 	}
 
 	return c
