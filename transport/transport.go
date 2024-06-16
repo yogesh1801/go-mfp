@@ -27,7 +27,7 @@ type Transport struct {
 	templateDialContext func(ctx context.Context, network, addr string) (net.Conn, error)
 }
 
-// NewTransport creates a new Transport. Provided [http.Transport]r
+// NewTransport creates a new Transport. Provided [http.Transport]
 // is only used as a configuration template.
 func NewTransport(template *http.Transport) *Transport {
 	if template == nil {
