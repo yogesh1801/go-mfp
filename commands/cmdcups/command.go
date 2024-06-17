@@ -8,16 +8,28 @@
 
 package cmdcups
 
-import "github.com/alexpevzner/mfp/argv"
+import (
+	"github.com/alexpevzner/mfp/argv"
+	"github.com/alexpevzner/mfp/transport"
+)
 
 // Command is the 'cups' command description
 var Command = argv.Command{
 	Name: "cups",
 	Help: "CUPS client",
 	Options: []argv.Option{
+		argv.Option{
+			Name:     "-u",
+			Aliases:  []string{"--cups"},
+			Help:     "CUPS server address or URL",
+			Validate: transport.ValidateAddr,
+		},
 		argv.HelpOption,
 	},
-	Handler: cupsHandler,
+	SubCommands: []argv.Command{
+		cmdGetDefault,
+		argv.HelpCommand,
+	},
 }
 
 // MainCups implements the Handler callback of the 'cups' command
