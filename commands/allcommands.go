@@ -1,26 +1,27 @@
-// MFP      - Miulti-Function Printers and scanners toolkit
-// mainfunc - Main functions for all commands
+// MFP - Miulti-Function Printers and scanners toolkit
+// Common functions for all commands
 //
 // Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
 // See LICENSE for license terms and conditions
 //
-// Main function for the "mfc" command.
+// AllCommands super-command.
 
 package commands
 
 import (
 	"github.com/alexpevzner/mfp/argv"
+	"github.com/alexpevzner/mfp/commands/cmdcups"
 )
 
-// CmdMfp is the argv.Command, that includes all other commands
+// AllCommands is the argv.Command, that includes all other commands
 // as sub-commands.
-var CmdMfp = &argv.Command{
+var AllCommands = &argv.Command{
 	Name: "mfp",
 	Options: []argv.Option{
 		argv.HelpOption,
 	},
 	SubCommands: []argv.Command{
-		CmdCups,
+		cmdcups.Command,
 		argv.HelpCommand,
 	},
 }

@@ -1,17 +1,17 @@
-// MFP      - Miulti-Function Printers and scanners toolkit
-// mainfunc - Main functions for all commands
+// MFP - Miulti-Function Printers and scanners toolkit
+// The "cups" command
 //
 // Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
 // See LICENSE for license terms and conditions
 //
-// Main function for the "cups" command.
+// Command description.
 
-package commands
+package cmdcups
 
 import "github.com/alexpevzner/mfp/argv"
 
-// CmdCups is the 'cups' command description
-var CmdCups = argv.Command{
+// Command is the 'cups' command description
+var Command = argv.Command{
 	Name: "cups",
 	Help: "CUPS client",
 	Options: []argv.Option{

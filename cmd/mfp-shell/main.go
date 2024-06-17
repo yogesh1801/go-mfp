@@ -80,7 +80,7 @@ func completer(line string) (out []string) {
 	}
 
 	line = line[:len(line)-strip]
-	compl, flags := commands.CmdMfp.Complete(args)
+	compl, flags := commands.AllCommands.Complete(args)
 
 	space := " "
 	if flags&argv.CompleterNoSpace != 0 {
@@ -111,7 +111,7 @@ func exec(line string) (savehistory bool, err error) {
 	}
 
 	// Execute the command
-	err = commands.CmdMfp.Run(argv)
+	err = commands.AllCommands.Run(argv)
 
 	return true, err
 }
