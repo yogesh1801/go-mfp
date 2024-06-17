@@ -17,7 +17,7 @@ import (
 // Parameter defines a positional parameter.
 //
 // Parameter MUST have a name, and names of all Parameters
-// MUST be unique within a scope  of Command that defines them
+// MUST be unique within a scope of [Command] that defines them
 // (sub-commands have their own scopes).
 //
 // Parameter names used to generate help messages and to
@@ -26,18 +26,18 @@ import (
 // If name of the Parameter ends with ellipsis (...), this is
 // repeated parameter:
 //
-//   copy source... destination
+//	copy source... destination
 //
 // If name of the Parameter is taken into square braces ([name]),
 // this is optional parameter:
 //
-//   print document [format]
+//	print document [format]
 //
 // Optional parameter may be omitted.
 //
-// Ellipses a square braces syntax may be combined:
+// Ellipses and square braces syntax may be combined:
 //
-//   list [file...]
+//	list [file...]
 //
 // Non-optional repeated parameter will consume 1 or more
 // parameter values. Optional repeated parameter will consume
@@ -48,23 +48,23 @@ import (
 //
 // Valid combinations:
 //
-//   cmd param1 param2 [param3] [param4]      - OK
-//   cmd param1 param2 [param3] [param4...]   - OK
-//   cmd param1 param2 param3... param4       - OK
-//   cmd param1 param2... param3 param4       - OK
+//	cmd param1 param2 [param3] [param4]      - OK
+//	cmd param1 param2 [param3] [param4...]   - OK
+//	cmd param1 param2 param3... param4       - OK
+//	cmd param1 param2... param3 param4       - OK
 //
 // Inlaid combinations:
 //
-//   Required parameter       cmd param1 [param2] param3
-//   can't follow optional
-//   parameter
+//	Required parameter       cmd param1 [param2] param3
+//	can't follow optional
+//	parameter
 //
-//   Optional parameter       cmd param1 param2... [param3]
-//   can't follow repeated    cmd param1 [param2...] [param3]
-//   parameter
+//	Optional parameter       cmd param1 param2... [param3]
+//	can't follow repeated    cmd param1 [param2...] [param3]
+//	parameter
 //
-//   Only one repeated        cmd param1 param2... param3...
-//   parameter is allowed
+//	Only one repeated        cmd param1 param2... param3...
+//	parameter is allowed
 //
 // These rules exist so simplify unambiguous matching of actual
 // parameters against formal (declared) ones.

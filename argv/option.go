@@ -26,14 +26,14 @@ import (
 //
 // Option may have either short or long syntax:
 //
-//   -c                                 - short option without value
-//   --long-name                        - long option without value
-//   -c XXX or -cXXX                    - short name with value
-//   --long-name XXX or --long-name=XXX - long name with value
+//	-c                                 - short option without value
+//	--long-name                        - long option without value
+//	-c XXX or -cXXX                    - short name with value
+//	--long-name XXX or --long-name=XXX - long name with value
 //
 // Short options without value can be combined:
 //
-//   -cru equals to -c -r -u
+//	-cru equals to -c -r -u
 //
 // Short name starts with a single dash (-) character followed
 // by a single alphanumeric character.
@@ -42,17 +42,17 @@ import (
 // by an alphanumeric character, optionally followed by a sequence
 // of characters, that include only alphanumeric characters and dashes.
 //
-//   -x            - valid
-//   -abc          - invalid; short option with a long name
-//   --x           - valid (the long option, though name is 1-character)
-//   --long        - valid
-//   --long-option - valid
-//   ---long       - invalid; character after -- must be alphanumerical
+//	-x            - valid
+//	-abc          - invalid; short option with a long name
+//	--x           - valid (the long option, though name is 1-character)
+//	--long        - valid
+//	--long-option - valid
+//	---long       - invalid; character after -- must be alphanumerical
 //
-// This naming convention is consistent with GNU extensions to the POSIX
+// This naming convention is consistent with [GNU extensions] to the POSIX
 // recommendations for command-line options:
 //
-//   https://www.gnu.org/software/libc/manual/html_node/Argument-Syntax.html
+// [GNU extensions]: https://www.gnu.org/software/libc/manual/html_node/Argument-Syntax.html
 type Option struct {
 	// Name is the option name.
 	Name string

@@ -15,60 +15,72 @@ import (
 	"strconv"
 )
 
-// ValidateAny accepts any string
+// ValidateAny is the Option.Validate and Parameter.Validate callback.
+//
+// It accepts any string.
 func ValidateAny(string) error {
 	return nil
 }
 
-// ValidateInt8 accepts signed 8-bit integers.
-// Base is selected automatically.
+// ValidateInt8 is the Option.Validate and Parameter.Validate callback.
+//
+// It accepts signed 8-bit integers.
 func ValidateInt8(in string) error {
 	return validateInt8(in)
 }
 
-// ValidateInt16 accepts signed 16-bit integers.
-// Base is selected automatically.
+// ValidateInt16 is the Option.Validate and Parameter.Validate callback.
+//
+// It accepts signed 16-bit integers.
 func ValidateInt16(in string) error {
 	return validateInt16(in)
 }
 
-// ValidateInt32 accepts signed 32-bit integers.
-// Base is selected automatically.
+// ValidateInt32 is the Option.Validate and Parameter.Validate callback.
+//
+// It accepts signed 32-bit integers.
 func ValidateInt32(in string) error {
 	return validateInt32(in)
 }
 
-// ValidateInt64 accepts signed 64-bit integers.
-// Base is selected automatically.
+// ValidateInt64 is the Option.Validate and Parameter.Validate callback.
+//
+// It accepts signed 64-bit integers.
 func ValidateInt64(in string) error {
 	return validateInt64(in)
 }
 
-// ValidateUint8 accepts unsigned 8-bit integers.
-// Base is selected automatically.
+// ValidateUint8 is the Option.Validate and Parameter.Validate callback.
+//
+// It accepts unsigned 8-bit integers.
 func ValidateUint8(in string) error {
 	return validateUint8(in)
 }
 
-// ValidateUint16 accepts unsigned 16-bit integers.
-// Base is selected automatically.
+// ValidateUint16 is the Option.Validate and Parameter.Validate callback.
+//
+// It accepts unsigned 16-bit integers.
 func ValidateUint16(in string) error {
 	return validateUint16(in)
 }
 
-// ValidateUint32 accepts unsigned 32-bit integers.
-// Base is selected automatically.
+// ValidateUint32 is the Option.Validate and Parameter.Validate callback.
+//
+// It accepts unsigned 32-bit integers.
 func ValidateUint32(in string) error {
 	return validateUint32(in)
 }
 
-// ValidateUint64 accepts unsigned 64-bit integers.
-// Base is selected automatically.
+// ValidateUint64 is the Option.Validate and Parameter.Validate callback.
+//
+// It accepts unsigned 64-bit integers.
 func ValidateUint64(in string) error {
 	return validateUint64(in)
 }
 
-// ValidateStrings returns validator that accepts any of supplied strings
+// ValidateStrings creates the Option.Validate and Parameter.Validate callback.
+//
+// It returns validator that accepts any of supplied strings.
 func ValidateStrings(s []string) func(string) error {
 	// Create a copy of input, to protect from callers
 	// that may change the slice after the call.
@@ -87,10 +99,13 @@ func ValidateStrings(s []string) func(string) error {
 	}
 }
 
-// ValidateIntRange returns validator, that accepts signed integer
-// in range (min <= x && x <= max). If base is 0, the actual base
-// is implied automatically based on a string prefix following the
-// sign (2 for "0b", 8 for "0" or "0o", 16 for "0x", and 10 otherwise).
+// ValidateIntRange creates the Option.Validate and Parameter.Validate
+// callback.
+//
+// It returns validator, that accepts signed integer in range
+// (min <= x && x <= max). If base is 0, the actual base is implied
+// automatically based on a string prefix following the sign
+// (2 for "0b", 8 for "0" or "0o", 16 for "0x", and 10 otherwise).
 func ValidateIntRange(base int, min, max int64) func(string) error {
 	return func(in string) error {
 		v, err := strconv.ParseInt(in, base, 64)
@@ -107,12 +122,15 @@ func ValidateIntRange(base int, min, max int64) func(string) error {
 	}
 }
 
-// ValidateUintRange returns validator, that accepts unsigned integer
-// in range (min <= x && x <= max). If base is 0, the actual base
-// is implied automatically based on a string prefix (2 for "0b",
-// 8 for "0" or "0o", 16 for "0x", and 10 otherwise).
+// ValidateUintRange creates the Option.Validate and Parameter.Validate
+// callback.
 //
-// It is like ValidateIntRange but for unsigned numbers. The sign
+// It returns validator, that accepts unsigned integer in range
+// (min <= x && x <= max). If base is 0, the actual base is implied
+// automatically based on a string prefix following the sign
+// (2 for "0b", 8 for "0" or "0o", 16 for "0x", and 10 otherwise).
+//
+// It is like [ValidateIntRange] but for unsigned numbers. The sign
 // prefix is not accepted.
 func ValidateUintRange(base int, min, max uint64) func(string) error {
 	return func(in string) error {

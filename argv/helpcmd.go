@@ -25,7 +25,7 @@ var (
 		Immediate: HelpHandler,
 	}
 
-	// HelpCommand to be used as SubCommand in Command definition
+	// HelpCommand intended to be used as SubCommand in Command definition
 	// to indicate that the Command implements commonly used "help"
 	// sub-command.
 	HelpCommand = Command{
@@ -43,7 +43,10 @@ var (
 	HelpOutput io.Writer = os.Stdout
 )
 
-// HelpHandler is the standard Handler for 'help' Command
+// HelpHandler is the standard Handler for 'help' [Command].
+//
+// Don't call it directly, use only as a part of sub-command that
+// prints help page.
 func HelpHandler(inv *Invocation) error {
 	// If we run in the immediate mode (i.e., as result of -h option being
 	// used with current command, our "target" is the current command.

@@ -17,18 +17,17 @@ import (
 
 // Constants (formatting parameters)
 //
-//                                         |<>|<-- hlpMinColumnSpace
+//	                                      |<>|<-- hlpMinColumnSpace
 //
-//                         Options are:
-//                           -c, --compress    compress output
-//   hlpOffOptionName ------>
-//   hlpOffOptionHelp -----0000--------------->
+//	                      Options are:
+//	                        -c, --compress    compress output
+//	hlpOffOptionName ------>
+//	hlpOffOptionHelp -----0000--------------->
 //
-//                         Commands are:
-//                           connect           connect to the server
-//   hlpOffSubCommandName -->
-//   hlpOffSubCommandHelp -------------------->
-//
+//	                      Commands are:
+//	                        connect           connect to the server
+//	hlpOffSubCommandName -->
+//	hlpOffSubCommandHelp -------------------->
 const (
 	hlpOffOptionName     = 2
 	hlpOffOptionHelp     = 20
@@ -70,8 +69,10 @@ func Help(cmd *Command, out io.Writer) error {
 	return hlp.err
 }
 
-// HelpString generates a help page and returns it as a single string.
-// It panics, if cmd.Verify() returns an error.
+// HelpString generates a help page for the [Command] and returns it as a
+// single string.
+//
+// It panics, if [Command.Verify] returns an error.
 func HelpString(cmd *Command) string {
 	buf := &bytes.Buffer{}
 	Help(cmd, buf)

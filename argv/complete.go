@@ -17,7 +17,7 @@ import (
 
 // Completer is a callback called for auto-completion
 //
-// Any Option or Parameter may have its own Completer.
+// Any [Option] or [Parameter] may have its own Completer.
 //
 // It receives the Option's value prefix, already typed
 // by user, and must return a slice of completion candidates
@@ -27,13 +27,13 @@ import (
 // "Roger" and  "Robert", then, depending of supplied prefix, the following
 // output is expected:
 //
-//   "R"   -> ["Richard", "Roger", "Robert"]
-//   "Ro"  -> ["Roger", "Robert"]
-//   "Rog" -> ["Roger"]
-//   "Rol" -> []
+//	"R"   -> ["Richard", "Roger", "Robert"]
+//	"Ro"  -> ["Roger", "Robert"]
+//	"Rog" -> ["Roger"]
+//	"Rol" -> []
 type Completer func(string) ([]string, CompleterFlags)
 
-// CompleterFlags returned as a second return value from Completer
+// CompleterFlags returned as a second return value from [Completer]
 // and provides some hints how caller should interpret returned
 // completion candidates.
 //
@@ -68,7 +68,7 @@ func init() {
 	}
 }
 
-// String converts CompleterFlags into string, for debugging
+// String converts CompleterFlags into string, for debugging.
 func (flags CompleterFlags) String() string {
 	if flags == 0 {
 		return "0"
@@ -86,7 +86,7 @@ func (flags CompleterFlags) String() string {
 	return strings.Join(s, ",")
 }
 
-// CompleteStrings returns a completer, that performs auto-completion,
+// CompleteStrings returns a [Completer], that performs auto-completion,
 // choosing from a set of supplied strings.
 func CompleteStrings(s []string) Completer {
 	// Create a copy of input, to protect from callers
@@ -107,7 +107,7 @@ func CompleteStrings(s []string) Completer {
 	}
 }
 
-// CompleteFs returns a completer, that performs file name auto-completion
+// CompleteFs returns a [Completer], that performs file name auto-completion
 // on a top of a virtual (or real) filesystem, represented as fs.FS,
 //
 // getwd callback returns a current directory within that file system.

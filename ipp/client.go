@@ -15,6 +15,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"sync/atomic"
 
 	"github.com/OpenPrinting/goipp"
@@ -153,6 +154,8 @@ func (c *Client) DoContextWithBody(ctx context.Context,
 	if err != nil {
 		goto ERROR
 	}
+
+	msg.Print(os.Stdout, false)
 
 	// Decode Response
 	err = rsp.Decode(msg)

@@ -8,10 +8,21 @@
 
 package argv
 
-// Invocation represents a particular Command invocation.
+// Invocation represents a particular [Command] invocation.
 //
-// It contains a whole Command execution context, like parsed
+// It contains a whole [Command] execution context, like parsed
 // options and arguments.
+//
+// If [Command] contains sub-commands, and sub-command is invoked,
+// the following hierarchy of Invocations is constructed:
+//
+//   - root Invocation, that represents top-level Command invocation
+//     with its own parameters
+//   - child Invocation, that represents invocation of the sub-command
+//   - and so-on, if sub-command has its own nested subcommands
+//
+// The [Invocation.Parent] method allows to access parent of current
+// Invocation. For the top-level Invocation it returns nil.
 type Invocation struct {
 	// parent is the upper-level Invocation for sub-command
 	// Invocation, nil for the root Invocation.
@@ -48,19 +59,25 @@ func (inv *Invocation) Parent() *Invocation {
 	return inv.parent
 }
 
-// IsImmediate returns true, if Invocation contains some active Option
+// IsImmediate returns true, if Invocation contains some active [Option]
 // with non-nil Immediate callback (see Option description for more
 // information).
+//
+// See [Option] description for details.
 func (inv *Invocation) IsImmediate() bool {
 	return inv.immediate != nil
 }
 
-// Cmd returns a reference to Command, invoked by this Invocation
+// Cmd returns a reference to [Command], invoked by this Invocation
 func (inv *Invocation) Cmd() *Command {
 	return inv.cmd
 }
 
-// Argv returns the original argv being used when Command was invoked.
+// Argv returns Command's argv, as passed to [Command.Parse] or
+// [Command.Run].
+//
+// For sub-commands it contains only the tail part of argv,
+// related to the sub-command being invoked.
 func (inv *Invocation) Argv() []string {
 	return inv.argv
 }
@@ -98,12 +115,12 @@ func (inv *Invocation) ParamCount() int {
 // ParamGet returns value of the n-th positional parameter.
 // If n is our of range, it returns empty string ("").
 //
-// Parameters are numbered by their actual position within command's
-// arguments, not by their position withing Parameters slice in Command
-// description. This difference becomes important when we come to
-// repeated parameters. Repeated parameter will take only one slot
+// Parameters are numbered, starting from zero, by their actual position
+// within command's arguments, not by their position withing Parameters
+// slice in [Command] description. This difference becomes important when
+// we come to repeated parameters. Repeated parameter will take only one slot
 // in the Parameters slice, but may be repeated (and take many positions)
-// in the Command's argument.
+// in the [Command]'s arguments.
 func (inv *Invocation) ParamGet(n int) (param string) {
 	if 0 <= n && n < len(inv.parameters) {
 		param = inv.parameters[n]

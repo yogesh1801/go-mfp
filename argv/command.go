@@ -22,8 +22,8 @@ import (
 //
 // It corresponds to the following usage syntax:
 //
-//   command [options] [params]
-//   command [options] sub-command ...
+//	command [options] [params]
+//	command [options] sub-command ...
 //
 // Parameters and SubCommands are mutually exclusive.
 type Command struct {
@@ -51,7 +51,10 @@ type Command struct {
 }
 
 // Verify checks correctness of Command definition. It fails if any
-// error is found and returns description of the first caught error
+// error is found and returns description of the first caught error.
+//
+// Most of the other [Command] methods will panic if Command definition
+// contains errors.
 func (cmd *Command) Verify() error {
 	// Command must have a name
 	if cmd.Name == "" {
@@ -181,14 +184,15 @@ func (cmd *Command) verifySubCommands() error {
 	return nil
 }
 
-// Parse parses Command's arguments and returns either
-// Invocation or error.
+// Parse parses Command's arguments. On success, it returns the
+// Command's [Invocation].
 func (cmd *Command) Parse(argv []string) (*Invocation, error) {
 	return cmd.ParseWithParent(nil, argv)
 }
 
-// ParseWithParent is like (*Command) Parse(), but allows to specify
-// the parent Invocation. It is intended for implementing sub-commands.
+// ParseWithParent is like [Command.Parse], but allows to specify
+// the parent [Invocation]. It is used internally for implementing
+// sub-commands.
 func (cmd *Command) ParseWithParent(parent *Invocation,
 	argv []string) (*Invocation, error) {
 	prs := newParser(cmd, argv)
@@ -196,13 +200,14 @@ func (cmd *Command) ParseWithParent(parent *Invocation,
 	return prs.parse(parent)
 }
 
-// Run parses the command, then calls its handler
+// Run parses the command, then calls its handler.
 func (cmd *Command) Run(argv []string) error {
 	return cmd.RunWithParent(nil, argv)
 }
 
-// RunWithParent is like (*Command) Run(), but allows to specify
-// the parent Invocation. It is intended for implementing sub-commands.
+// RunWithParent is like [Command.Run], but allows to specify
+// the parent [Invocation]. t is used internally for implementing
+// sub-commands.
 func (cmd *Command) RunWithParent(parent *Invocation, argv []string) error {
 	inv, err := cmd.ParseWithParent(parent, argv)
 	if err == nil {
@@ -217,12 +222,12 @@ func (cmd *Command) RunWithParent(parent *Invocation, argv []string) error {
 // It is intended to implement the body of the
 // standard main function:
 //
-//   // main function for the MyCommand
-//   func main() {
-//           MyCommand.Main()
-//   }
+//	// main function for the MyCommand
+//	func main() {
+//	        MyCommand.Main()
+//	}
 //
-// It calls (*Command) Run() passing os.Args as input,
+// It calls [Command.Run] passing [os.Args] as input,
 // prints error message, if any, and returns appropriate
 // status code to the system.
 func (cmd *Command) Main() {
@@ -256,11 +261,11 @@ func (cmd *Command) handler(inv *Invocation) error {
 // To indicate that user has not typed any prefix for the
 // last argument, pass last argument as "":
 //
-//   prompt> hello    ->  ["hello"]
-//     Cursor     ^
+//	prompt> hello    ->  ["hello"]
+//	  Cursor     ^
 //
-//   prompt> hello    ->  ["hello", ""]
-//     Cursor      ^
+//	prompt> hello    ->  ["hello", ""]
+//	  Cursor      ^
 func (cmd *Command) Complete(argv []string) ([]string, CompleterFlags) {
 	prs := newParser(cmd, argv)
 	return prs.complete()
