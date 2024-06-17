@@ -6,7 +6,7 @@
 //
 // Common paths
 
-package mainfunc
+package commands
 
 import (
 	"os/user"

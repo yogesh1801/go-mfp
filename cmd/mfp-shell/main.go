@@ -15,7 +15,7 @@ import (
 	"strings"
 
 	"github.com/alexpevzner/mfp/argv"
-	"github.com/alexpevzner/mfp/mainfunc"
+	"github.com/alexpevzner/mfp/commands"
 	"github.com/peterh/liner"
 )
 
@@ -31,7 +31,7 @@ func main() {
 	editline.SetCompleter(completer)
 
 	// Setup history
-	historyPath := mainfunc.PathUserConfDir("mfp")
+	historyPath := commands.PathUserConfDir("mfp")
 	os.MkdirAll(historyPath, 0755)
 
 	historyPath = filepath.Join(historyPath, "mfp-shell.history")
@@ -80,7 +80,7 @@ func completer(line string) (out []string) {
 	}
 
 	line = line[:len(line)-strip]
-	compl, flags := mainfunc.CmdMfp.Complete(args)
+	compl, flags := commands.CmdMfp.Complete(args)
 
 	space := " "
 	if flags&argv.CompleterNoSpace != 0 {
@@ -111,7 +111,7 @@ func exec(line string) (savehistory bool, err error) {
 	}
 
 	// Execute the command
-	err = mainfunc.CmdMfp.Run(argv)
+	err = commands.CmdMfp.Run(argv)
 
 	return true, err
 }

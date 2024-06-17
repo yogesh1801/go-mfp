@@ -6,7 +6,7 @@
 //
 // Main function for the "cups" command.
 
-package mainfunc
+package commands
 
 import "github.com/alexpevzner/mfp/argv"
 

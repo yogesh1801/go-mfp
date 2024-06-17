@@ -9,10 +9,10 @@
 package main
 
 import (
-	"github.com/alexpevzner/mfp/mainfunc"
+	"github.com/alexpevzner/mfp/commands"
 )
 
 // main function for the mfp-cups command
 func main() {
-	mainfunc.CmdCups.Main()
+	commands.CmdCups.Main()
 }

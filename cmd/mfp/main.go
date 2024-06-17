@@ -9,10 +9,10 @@
 package main
 
 import (
-	"github.com/alexpevzner/mfp/mainfunc"
+	"github.com/alexpevzner/mfp/commands"
 )
 
 // main function for the mfp command
 func main() {
-	mainfunc.CmdMfp.Main()
+	commands.CmdMfp.Main()
 }
