@@ -30,8 +30,7 @@ type (
 		ResponseHeader
 
 		// Other attributes.
-		Printers    []PrinterAttributes
-		Unsupported goipp.Attributes
+		Printer *PrinterAttributes
 	}
 )
 
@@ -77,11 +76,10 @@ func (rsp *CUPSGetDefaultResponse) Encode() *goipp.Message {
 		},
 	}
 
-	for i := range rsp.Printers {
-		prn := &rsp.Printers[i]
+	if rsp.Printer != nil {
 		groups.Add(goipp.Group{
 			Tag:   goipp.TagPrinterGroup,
-			Attrs: ippEncodeAttrs(prn),
+			Attrs: ippEncodeAttrs(rsp.Printer),
 		})
 	}
 
@@ -102,19 +100,13 @@ func (rsp *CUPSGetDefaultResponse) Decode(msg *goipp.Message) error {
 		return err
 	}
 
-	for _, grp := range msg.Groups {
-		if grp.Tag == goipp.TagPrinterGroup {
-			var pa PrinterAttributes
-			err := ippDecodeAttrs(&pa, grp.Attrs)
-			if err != nil {
-				return err
-			}
-
-			rsp.Printers = append(rsp.Printers, pa)
+	if len(msg.Printer) != 0 {
+		rsp.Printer = &PrinterAttributes{}
+		err = ippDecodeAttrs(rsp.Printer, msg.Printer)
+		if err != nil {
+			return err
 		}
 	}
-
-	rsp.Unsupported = msg.Unsupported
 
 	return nil
 }
