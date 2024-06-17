@@ -98,7 +98,12 @@ func ParseAddr(addr, template string) (*url.URL, error) {
 	}
 
 	// Now parse whatever we have.
-	return ParseURL(addr)
+	u, err := ParseURL(addr)
+	if err != nil {
+		return nil, errors.New("invalid address or URL")
+	}
+
+	return u, nil
 }
 
 // parseIPAddr parses IP address. It accepts the following forms of addresses:
@@ -230,4 +235,20 @@ func MustParseURL(in string) *url.URL {
 		panic(err)
 	}
 	return u
+}
+
+// ValidateAddr is the argv.Option and argv.Parameter Validate callback.
+//
+// It accepts any string that successfully parses with [ParseAddr] function.
+func ValidateAddr(in string) error {
+	_, err := ParseAddr(in, "")
+	return err
+}
+
+// ValidateURL is the argv.Option and argv.Parameter Validate callback.
+//
+// It accepts any string that successfully parses with [ParseURL] function.
+func ValidateURL(in string) error {
+	_, err := ParseURL(in)
+	return err
 }
