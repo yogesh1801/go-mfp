@@ -1010,6 +1010,25 @@ func TestParserCompletion(t *testing.T) {
 			},
 			out: []string{},
 		},
+
+		// Test 24: nested sub-commands
+		{
+			argv: []string{"cups", "ge"},
+			cmd: Command{
+				Name: "test",
+				SubCommands: []Command{
+					{
+						Name: "cups",
+						SubCommands: []Command{
+							{
+								Name: "get-default",
+							},
+						},
+					},
+				},
+			},
+			out: []string{"get-default"},
+		},
 	}
 
 	for i, test := range tests {

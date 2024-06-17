@@ -170,6 +170,18 @@ func (prs *parser) complete() (compl []string, flags CompleterFlags) {
 		case !doneOptions && prs.isLongOption(arg):
 			done, compl, flags = prs.completeLongOption(arg)
 
+		case prs.inv.cmd.hasSubCommands():
+			subcmd, err := prs.inv.cmd.FindSubCommand(arg)
+			if err == nil && !prs.done() {
+				// If we have a sub-command here and
+				// there are more argv[] arguments,
+				// simply call subcmd.Complete()
+				argv := prs.inv.argv[prs.nextarg:]
+				return subcmd.Complete(argv)
+			}
+
+			fallthrough
+
 		default:
 			paramLast = arg
 			if !prs.done() {
@@ -189,6 +201,9 @@ func (prs *parser) complete() (compl []string, flags CompleterFlags) {
 			_, compl = prs.completeParameter(paramLast, paramCount)
 
 		case prs.inv.cmd.hasSubCommands() && paramCount == 0:
+			// Note, we only complete sub-command name,
+			// if there is no extra parameter on before
+			// the sub-command. Hence, paramCount == 0
 			_, compl, flags = prs.completeSubCommand(paramLast)
 		}
 	}
@@ -552,8 +567,8 @@ func (prs *parser) isLongOption(arg string) bool {
 // splitOptVal splits option argument into name and value in a case
 // when they are placed into the single argument:
 //
-//  -cVAL     - short option case
-//  -long=val - long option case
+//	-cVAL     - short option case
+//	-long=val - long option case
 func (prs *parser) splitOptVal(arg string) (name, val string, novalue bool) {
 	switch {
 	case prs.isShortOption(arg):
@@ -596,8 +611,9 @@ func (prs *parser) findOption(name string) *Option {
 }
 
 // paramsInfo returns information on a command parameters:
-//   paramsMin - minimal count of parameters
-//   paramsMax - maximal count of parameters
+//
+//	paramsMin - minimal count of parameters
+//	paramsMax - maximal count of parameters
 //
 // If Command can accept unlimited amount of parameters
 // (i.e., it has repeated parameters), paramsMax will be
