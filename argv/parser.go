@@ -538,10 +538,12 @@ func (prs *parser) buildByName() {
 	// Note, repeated parameters may have multiple values associated
 	// with the same parameter
 	for _, paramval := range prs.parameters {
-		name := paramval.param.Name
+		name := paramval.param.name()
 		values := prs.inv.byName[name]
 		values = append(values, paramval.value)
+
 		prs.inv.byName[name] = values
+		//prs.inv.byName[paramval.param.Name] = values
 	}
 }
 

@@ -72,7 +72,7 @@ func HelpHandler(inv *Invocation) error {
 
 	// The 'help' command may have an optional parameter,
 	// catch and handle it now
-	name, ok := inv.Get("[command]")
+	name, ok := inv.Get("command")
 	if ok {
 		subcmd, err := cmd.FindSubCommand(name)
 		if err != nil {

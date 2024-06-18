@@ -25,7 +25,7 @@ func TestMain(t *testing.T) {
 		},
 		Handler: func(inv *Invocation) error {
 			buf.WriteString(
-				strings.Join(inv.Values("greeting..."), ", "))
+				strings.Join(inv.Values("greeting"), ", "))
 			return nil
 		},
 	}

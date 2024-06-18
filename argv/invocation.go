@@ -93,6 +93,14 @@ func (inv *Invocation) Argv() []string {
 
 // Get returns the first value of option or parameter by its name.
 //
+// [Option] name is the same as used in option definition (as Name
+// or Aliases). I.e., "-h", "--help" and so on.
+//
+// [Parameter] name is the Parameter.Name without "decorations"
+// (i.e., with removed square braces and elipses:
+//
+//	"name", "[name]", "name...", "[name...]  - access as "name"
+//
 // The value of flag options (options that don't expect explicit
 // value) considered to be an empty string.
 func (inv *Invocation) Get(name string) (val string, found bool) {
@@ -106,6 +114,14 @@ func (inv *Invocation) Get(name string) (val string, found bool) {
 
 // Values returns a slice of all values of option or parameter by
 // its name.
+//
+// [Option] name is the same as used in option definition (as Name
+// or Aliases). I.e., "-h", "--help" and so on.
+//
+// [Parameter] name is the Parameter.Name without "decorations"
+// (i.e., with removed square braces and elipses:
+//
+//	"name", "[name]", "name...", "[name...]  - access as "name"
 //
 // The value of flag options (options that don't expect explicit
 // value) considered to be an empty string.
