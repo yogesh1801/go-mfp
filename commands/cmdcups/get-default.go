@@ -9,9 +9,11 @@
 package cmdcups
 
 import (
-	"errors"
+	"fmt"
 
 	"github.com/alexpevzner/mfp/argv"
+	"github.com/alexpevzner/mfp/cups"
+	"github.com/alexpevzner/mfp/transport"
 )
 
 // cmdGetDefault defines "get-default" command
@@ -22,5 +24,14 @@ var cmdGetDefault = argv.Command{
 }
 
 func cmdGetDefaultHandler(*argv.Invocation) error {
-	return errors.New("not implemented")
+	clnt := cups.NewClient(transport.DefaultCupsUNIX, nil)
+	prn, err := clnt.CUPSGetDefault(nil)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Name: %s\n", prn.PrinterName)
+	fmt.Printf("URL:  %s\n", prn.PrinterURISupported)
+
+	return nil
 }
