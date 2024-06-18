@@ -227,6 +227,16 @@ func ParseURL(in string) (*url.URL, error) {
 	return u, nil
 }
 
+// MustParseAddr uses [ParseAddr] to parse the address string.
+// It panics in a case of errors.
+func MustParseAddr(in, template string) *url.URL {
+	u, err := ParseAddr(in, template)
+	if err != nil {
+		panic(err)
+	}
+	return u
+}
+
 // MustParseURL uses [ParseURL] to parse the URL string.
 // It panics in a case of errors.
 func MustParseURL(in string) *url.URL {
