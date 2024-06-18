@@ -30,7 +30,12 @@ func TestHelpMisuse(t *testing.T) {
 
 // TestHelpString tests HelpString() function
 func TestHelpString(t *testing.T) {
-	expected := "usage: help [command]\n"
+	expected :=
+		"usage: help [command]\n" +
+			"\n" +
+			"Parameters are:\n" +
+			"  command           Command name\n"
+
 	received := HelpString(&HelpCommand)
 	if expected != received {
 		t.Errorf("output mismatch")

@@ -124,6 +124,18 @@ func (param *Parameter) verify() error {
 	return nil
 }
 
+// name returns Parameter name with removed decorations
+// (i.e., without square braces and ellipsis).
+func (param *Parameter) name() string {
+	name := param.Name
+	if strings.HasPrefix(name, "[") && strings.HasSuffix(name, "]") {
+		name = name[1 : len(name)-1]
+	}
+	name, _ = strings.CutSuffix(name, "...")
+
+	return name
+}
+
 // optional returns true if parameter is required
 func (param *Parameter) required() bool {
 	return !param.optional()

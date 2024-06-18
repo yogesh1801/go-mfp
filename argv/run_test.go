@@ -52,6 +52,10 @@ Options are:
                     (slower but compresses better)
   -h, --help        print help page
 
+Parameters are:
+  input-file
+  output-file
+
 this command copies multiple input files
 info the single output.
 
@@ -102,7 +106,7 @@ Commands are:
   disconnect        disconnect from the server
   send-files-to-server
                     send-files-to-server uploads the files
-  help              print help page
+  help, ?           print help page
 `
 
 var testCommandWithSubCommandsHelpConnect = `

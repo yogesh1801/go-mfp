@@ -17,22 +17,29 @@ import (
 
 // Constants (formatting parameters)
 //
-//	                                      |<>|<-- hlpMinColumnSpace
-//
-//	                      Options are:
-//	                        -c, --compress    compress output
-//	hlpOffOptionName ------>
-//	hlpOffOptionHelp -----0000--------------->
-//
-//	                      Commands are:
-//	                        connect           connect to the server
-//	hlpOffSubCommandName -->
-//	hlpOffSubCommandHelp -------------------->
+//	hlpMinColumnSpace:                         |  |
+//	                                           |  |
+//	                         |Options are:     |<>|
+//	                         |  -c, --compress    compress output
+//	hlpOffOptionName:        |<>|                 |
+//	hlpOffOptionHelp:        |<------------------>|
+//	                         |
+//	                         |Parameters are:
+//		                 |  name              description
+//	hlpOffParameterName:     |<>|                 |
+//	hlpOffParameterHelp:     |<------------------>|
+//	                         |
+//			         |Commands are:
+//			         |  connect           connect to the server
+//	hlpOffSubCommandName:    |<>|                 |
+//	hlpOffSubCommandHelp:    |<------------------>|
 const (
 	hlpOffOptionName     = 2
 	hlpOffOptionHelp     = 20
 	hlpOffSubCommandName = hlpOffOptionName
 	hlpOffSubCommandHelp = hlpOffOptionHelp
+	hlpOffParameterName  = hlpOffOptionName
+	hlpOffParameterHelp  = hlpOffOptionHelp
 	hlpMinColumnSpace    = 2
 )
 
@@ -43,6 +50,12 @@ var (
 
 	// Space before option usage text
 	hlpSpcOptionHelp = strings.Repeat(" ", hlpOffOptionHelp)
+
+	// Space before parameter name
+	hlpSpcParameterName = strings.Repeat(" ", hlpOffParameterName)
+
+	// Space before parameter usage text
+	hlpSpcParameterHelp = strings.Repeat(" ", hlpOffOptionHelp)
 
 	// Space before sub-command name
 	hlpSpcSubCommandName = strings.Repeat(" ", hlpOffSubCommandName)
@@ -98,6 +111,7 @@ func newHelper(cmd *Command, out io.Writer) *helper {
 func (hlp *helper) generate() {
 	hlp.describeUsageLine()
 	hlp.describeOptions()
+	hlp.describeParameters()
 	hlp.describeSubCommands()
 	hlp.describeCommandLong()
 }
@@ -164,7 +178,48 @@ func (hlp *helper) describeOptions() {
 	}
 }
 
-// describeOptions describes command sub-commands
+// describeParameters describes command parameters
+func (hlp *helper) describeParameters() {
+	cmd := hlp.cmd
+
+	if !cmd.hasParameters() {
+		return
+	}
+
+	hlp.nl()
+	hlp.puts("Parameters are:\n")
+
+	for i := range cmd.Parameters {
+		param := &cmd.Parameters[i]
+
+		name := hlpSpcParameterName + param.name()
+		hlp.puts(name)
+
+		help := strings.Split(param.Help, "\n")
+		if len(help) > 0 {
+			if len(name)+hlpMinColumnSpace <= hlpOffSubCommandHelp {
+				if help[0] != "" {
+					hlp.space(hlpOffSubCommandHelp -
+						len(name))
+					hlp.puts(help[0])
+				}
+				hlp.nl()
+				help = help[1:]
+			} else {
+				hlp.nl()
+			}
+
+			for _, line := range help {
+				if line != "" {
+					hlp.puts(hlpSpcParameterHelp + line)
+				}
+				hlp.nl()
+			}
+		}
+	}
+}
+
+// describeSubCommands describes command sub-commands
 func (hlp *helper) describeSubCommands() {
 	cmd := hlp.cmd
 
@@ -197,7 +252,7 @@ func (hlp *helper) describeSubCommands() {
 
 			for _, line := range help {
 				if line != "" {
-					hlp.puts(hlpSpcOptionHelp + line)
+					hlp.puts(hlpSpcSubCommandHelp + line)
 				}
 				hlp.nl()
 			}

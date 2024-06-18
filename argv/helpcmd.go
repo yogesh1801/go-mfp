@@ -35,6 +35,7 @@ var (
 		Parameters: []Parameter{
 			{
 				Name: "[command]",
+				Help: "Command name",
 			},
 		},
 		Handler: HelpHandler,
