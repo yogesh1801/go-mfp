@@ -484,8 +484,12 @@ func (prs *parser) completeSubCommand(arg string) (bool,
 
 	for i := range prs.inv.cmd.SubCommands {
 		subcmd := &prs.inv.cmd.SubCommands[i]
-		if strings.HasPrefix(subcmd.Name, arg) {
-			compl = append(compl, subcmd.Name)
+		names := subcmd.names()
+
+		for _, name := range names {
+			if strings.HasPrefix(name, arg) {
+				compl = append(compl, name)
+			}
 		}
 	}
 

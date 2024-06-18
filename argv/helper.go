@@ -178,7 +178,7 @@ func (hlp *helper) describeSubCommands() {
 	for i := range cmd.SubCommands {
 		subcmd := &cmd.SubCommands[i]
 
-		name := hlpSpcSubCommandName + subcmd.Name
+		name := hlpSpcSubCommandName + strings.Join(subcmd.names(), ", ")
 		hlp.puts(name)
 
 		help := strings.Split(subcmd.Help, "\n")

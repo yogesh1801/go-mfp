@@ -30,6 +30,9 @@ type Command struct {
 	// Command name.
 	Name string
 
+	// Aliases are the Name aliases, if any.
+	Aliases []string
+
 	// Help string, a single-line description.
 	Help string
 
@@ -168,12 +171,15 @@ func (cmd *Command) verifyParameters() error {
 func (cmd *Command) verifySubCommands() error {
 	subcmdnames := make(map[string]struct{})
 	for _, subcmd := range cmd.SubCommands {
-		if _, found := subcmdnames[subcmd.Name]; found {
-			return fmt.Errorf(
-				"duplicated subcommand %q", subcmd.Name)
-		}
+		names := subcmd.names()
+		for _, name := range names {
+			if _, found := subcmdnames[name]; found {
+				return fmt.Errorf(
+					"duplicated subcommand %q", name)
+			}
 
-		subcmdnames[subcmd.Name] = struct{}{}
+			subcmdnames[name] = struct{}{}
+		}
 
 		err := subcmd.Verify()
 		if err != nil {
@@ -324,14 +330,25 @@ func (cmd *Command) FindSubCommandCandidates(name string) []*Command {
 	for i := range cmd.SubCommands {
 		subcmd := &cmd.SubCommands[i]
 
-		if name == subcmd.Name {
-			return []*Command{subcmd}
-		}
+		for _, cname := range subcmd.names() {
+			if name == cname {
+				return []*Command{subcmd}
+			}
 
-		if strings.HasPrefix(subcmd.Name, name) {
-			inexact = append(inexact, subcmd)
+			if strings.HasPrefix(cname, name) {
+				inexact = append(inexact, subcmd)
+			}
 		}
 	}
 
 	return inexact
+}
+
+// names returns Command names, including aliases
+func (cmd *Command) names() []string {
+	names := make([]string, len(cmd.Aliases)+1)
+	names[0] = cmd.Name
+	copy(names[1:], cmd.Aliases)
+
+	return names
 }
