@@ -35,8 +35,3 @@ var Command = argv.Command{
 		argv.HelpCommand,
 	},
 }
-
-// MainCups implements the Handler callback of the 'cups' command
-func cupsHandler(*argv.Invocation) error {
-	return nil
-}
