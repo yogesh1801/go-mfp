@@ -16,16 +16,15 @@ import (
 	"strings"
 )
 
-// NewRequest is similar to [http.NewRequest], but it uses [ParseURL]
-// for URL string handling.
-func NewRequest(method string,
-	u *url.URL, body io.Reader) (*http.Request, error) {
-	return NewRequestWithContext(context.Background(), method, u, body)
-}
-
-// NewRequestWithContext is similar to [http.NewRequestWithContext],
-// but it uses [ParseURL] for URL string handling.
-func NewRequestWithContext(ctx context.Context, method string,
+// NewRequest wraps the [http.NewRequestWithContext] with small API
+// difference: it uses parsed [url.URL] instead of the URL string.
+//
+// The convenient method to obtain parsed [url.URL] is to use
+// [ParseURL] or [ParseAddr] functions, provided by this package.
+//
+// See [http.NewRequestWithContext] documentation for details and
+// nuances.
+func NewRequest(ctx context.Context, method string,
 	u *url.URL, body io.Reader) (rq *http.Request, err error) {
 
 	rq, err = http.NewRequestWithContext(ctx, method, u.String(), body)

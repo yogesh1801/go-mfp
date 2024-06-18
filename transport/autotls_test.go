@@ -94,7 +94,7 @@ func testAutoTLSHTTP(t *testing.T, tr *Transport, l net.Listener) {
 
 	// Perform HTTP requests
 	for _, u := range []*url.URL{urlHTTP, urlHTTPS} {
-		rq, err := NewRequest("GET", u, nil)
+		rq, err := NewRequest(context.Background(), "GET", u, nil)
 		if err != nil {
 			t.Errorf("GET %s: %s", u, err)
 			continue
@@ -140,7 +140,7 @@ func testAutoTLSServerClose(t *testing.T, tr *Transport, l net.Listener) {
 
 	for i := 0; i < 64; i++ {
 		for _, u := range []*url.URL{urlHTTP, urlHTTPS} {
-			rq, err := NewRequest("GET", u, nil)
+			rq, err := NewRequest(context.Background(), "GET", u, nil)
 			if err != nil {
 				t.Errorf("GET %s: %s", u, err)
 				continue
@@ -215,7 +215,7 @@ func testAutoTLSFrozenClient(t *testing.T, tr *Transport, l net.Listener) {
 	var done sync.WaitGroup
 
 	ctx, cancel := context.WithCancel(context.Background())
-	rq, err := NewRequestWithContext(ctx, "GET", u, nil)
+	rq, err := NewRequest(ctx, "GET", u, nil)
 	if err != nil {
 		t.Errorf("GET %s: %s", u, err)
 		return
@@ -305,7 +305,7 @@ func testAutoTLSAbortingClient(t *testing.T, tr *Transport, l net.Listener) {
 	var done sync.WaitGroup
 
 	ctx, cancel := context.WithCancel(context.Background())
-	rq, err := NewRequestWithContext(ctx, "GET", u, nil)
+	rq, err := NewRequest(ctx, "GET", u, nil)
 	if err != nil {
 		t.Errorf("GET %s: %s", u, err)
 		return

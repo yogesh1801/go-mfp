@@ -9,6 +9,7 @@
 package cups
 
 import (
+	"context"
 	"net/url"
 
 	"github.com/alexpevzner/mfp/ipp"
@@ -31,8 +32,8 @@ func NewClient(u *url.URL, tr *transport.Transport) *Client {
 }
 
 // CUPSGetDefault returns information on default printer.
-func (c *Client) CUPSGetDefault(attrs []string) (
-	*ipp.PrinterAttributes, error) {
+func (c *Client) CUPSGetDefault(ctx context.Context,
+	attrs []string) (*ipp.PrinterAttributes, error) {
 
 	rq := &ipp.CUPSGetDefaultRequest{
 		RequestHeader:       ipp.DefaultRequestHeader,
@@ -41,7 +42,7 @@ func (c *Client) CUPSGetDefault(attrs []string) (
 
 	rsp := &ipp.CUPSGetDefaultResponse{}
 
-	err := c.IPPClient.Do(rq, rsp)
+	err := c.IPPClient.Do(ctx, rq, rsp)
 	if err != nil {
 		return nil, err
 	}

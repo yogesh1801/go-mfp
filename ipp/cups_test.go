@@ -10,6 +10,7 @@ package ipp
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"reflect"
@@ -311,7 +312,7 @@ func TestCUPS(t *testing.T) {
 		RequestHeader: DefaultRequestHeader,
 	}
 	rsp := &CUPSGetDefaultResponse{}
-	err := c.Do(rq, rsp)
+	err := c.Do(context.Background(), rq, rsp)
 	println(err)
 	if err == nil {
 		fmt.Printf("%#v", rsp)

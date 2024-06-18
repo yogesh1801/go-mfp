@@ -9,6 +9,7 @@
 package transport
 
 import (
+	"context"
 	"fmt"
 	"testing"
 )
@@ -106,7 +107,7 @@ func TestRequestHost(t *testing.T) {
 
 	for _, test := range tests {
 		u := MustParseURL(test.url)
-		rq, err := NewRequest("GET", u, nil)
+		rq, err := NewRequest(context.Background(), "GET", u, nil)
 		if err != nil {
 			panic(fmt.Errorf("%q: %w", test.url, err))
 		}

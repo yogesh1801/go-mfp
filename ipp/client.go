@@ -63,46 +63,22 @@ func (c *Client) requestid() uint32 {
 // for most IPP requests, as body is rarely returned by IPP.
 //
 // For requests with returned body, use [Client.DoWithBody] instead.
-func (c *Client) Do(rq Request, rsp Response) error {
-	return c.DoContext(context.Background(), rq, rsp)
-}
-
-// DoWithBody Do sends the [Request] and waits for [Response].
-//
-// The following Request fields are filled automatically:
-//   - Version, if zero, will be set to goipp.DefaultVersion
-//   - RequestID will be set to next Client's RequestID in sequence
-//
-// On success, caller MUST close Response body after use.
-func (c *Client) DoWithBody(rq Request, rsp Response) error {
-	return c.DoContextWithBody(context.Background(), rq, rsp)
-}
-
-// DoContext sends the Request and waits for Response.
-// This is a version of [ipp.Client.Do] with [context.Context].
-//
-// It automatically closes Response Body. This is convenient
-// for most IPP requests, as body is rarely returned by IPP.
-//
-// For requests with returned body, use [Client.DoContextWithBody] instead.
-func (c *Client) DoContext(ctx context.Context,
-	rq Request, rsp Response) error {
-	err := c.DoContextWithBody(ctx, rq, rsp)
+func (c *Client) Do(ctx context.Context, rq Request, rsp Response) error {
+	err := c.DoWithBody(ctx, rq, rsp)
 	if err == nil {
 		rsp.GetBody().Close()
 	}
 	return err
 }
 
-// DoContextWithBody sends the Request and waits for Response.
-// This is a version of [ipp.Client.DoWithBody] with [context.Context].
+// DoWithBody sends the Request and waits for Response.
 //
 // The following Request fields are filled automatically:
 //   - Version, if zero, will be set to goipp.DefaultVersion
 //   - RequestID will be set to next Client's RequestID in sequence
 //
 // On success, caller MUST close Response body after use.
-func (c *Client) DoContextWithBody(ctx context.Context,
+func (c *Client) DoWithBody(ctx context.Context,
 	rq Request, rsp Response) error {
 
 	// Encode IPP message
@@ -128,8 +104,7 @@ func (c *Client) DoContextWithBody(ctx context.Context,
 	}
 
 	// Create HTTP request
-	httpRq, err := transport.NewRequestWithContext(ctx,
-		"POST", c.URL, body)
+	httpRq, err := transport.NewRequest(ctx, "POST", c.URL, body)
 	if err != nil {
 		return err
 	}

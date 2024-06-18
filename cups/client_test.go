@@ -9,6 +9,7 @@
 package cups
 
 import (
+	"context"
 	"testing"
 
 	"github.com/alexpevzner/mfp/transport"
@@ -16,7 +17,7 @@ import (
 
 func TestCUPS(t *testing.T) {
 	c := NewClient(transport.DefaultCupsUNIX, nil)
-	rsp, err := c.CUPSGetDefault([]string{"all"})
+	rsp, err := c.CUPSGetDefault(context.Background(), []string{"all"})
 
 	if err != nil {
 		t.Errorf("%s", err)

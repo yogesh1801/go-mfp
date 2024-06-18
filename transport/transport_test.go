@@ -176,7 +176,7 @@ func TestTransportDial(t *testing.T) {
 
 	for _, test := range tests {
 		u := MustParseURL(test.dest)
-		rq, err := NewRequest("GET", u, nil)
+		rq, err := NewRequest(context.Background(), "GET", u, nil)
 		if err != nil {
 			panic(err)
 		}
@@ -199,8 +199,8 @@ func TestTransport(t *testing.T) {
 
 	//return
 
-	rq, err := NewRequest("GET",
-		MustParseURL("unix:/var/run/cups/cups.sock"), nil)
+	rq, err := NewRequest(context.Background(),
+		"GET", MustParseURL("unix:/var/run/cups/cups.sock"), nil)
 	//rq, err := NewRequest("GET", "http://localhost/", nil)
 
 	if err != nil {

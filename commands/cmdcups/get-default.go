@@ -43,7 +43,7 @@ func cmdGetDefaultHandler(ctx context.Context, inv *argv.Invocation) error {
 	fmt.Printf("CUPS: %s\n", dest)
 
 	clnt := cups.NewClient(dest, nil)
-	prn, err := clnt.CUPSGetDefault(nil)
+	prn, err := clnt.CUPSGetDefault(ctx, nil)
 	if err != nil {
 		return err
 	}
