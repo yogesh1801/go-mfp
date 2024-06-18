@@ -23,8 +23,16 @@ var cmdGetDefault = argv.Command{
 	Handler: cmdGetDefaultHandler,
 }
 
-func cmdGetDefaultHandler(*argv.Invocation) error {
-	clnt := cups.NewClient(transport.DefaultCupsUNIX, nil)
+func cmdGetDefaultHandler(inv *argv.Invocation) error {
+	dest := transport.DefaultCupsUNIX
+
+	if addr, ok := inv.Parent().Get("-u"); ok {
+		dest = transport.MustParseAddr(addr, "ipp://localhost/")
+	}
+
+	fmt.Printf("CUPS: %s\n", dest)
+
+	clnt := cups.NewClient(dest, nil)
 	prn, err := clnt.CUPSGetDefault(nil)
 	if err != nil {
 		return err
