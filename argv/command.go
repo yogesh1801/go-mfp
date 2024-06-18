@@ -13,6 +13,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/signal"
 	"strings"
 )
 
@@ -240,7 +241,9 @@ func (cmd *Command) RunWithParent(ctx context.Context,
 // prints error message, if any, and returns appropriate
 // status code to the system.
 func (cmd *Command) Main() {
-	err := cmd.Run(context.TODO(), os.Args[1:])
+	ctx, _ := signal.NotifyContext(context.Background(), os.Interrupt)
+
+	err := cmd.Run(ctx, os.Args[1:])
 	if err != nil {
 		die(err)
 	}
