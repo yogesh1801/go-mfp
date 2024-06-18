@@ -140,6 +140,11 @@ func (prs *parser) parse(parent *Invocation) (*Invocation, error) {
 	inv := prs.inv
 
 	inv.parent = parent
+	inv.root = inv
+	if parent != nil {
+		inv.root = parent.root
+	}
+
 	inv.parameters = make([]string, len(prs.parameters))
 
 	for i := range prs.parameters {

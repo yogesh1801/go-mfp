@@ -26,7 +26,9 @@ package argv
 type Invocation struct {
 	// parent is the upper-level Invocation for sub-command
 	// Invocation, nil for the root Invocation.
-	parent *Invocation
+	//
+	// root is the top-level Invocation.
+	parent, root *Invocation
 
 	// cmd contains back reference to invoked Command.
 	cmd *Command
@@ -57,6 +59,13 @@ type Invocation struct {
 // Invocation in a case of sun-command execution, nil otherwise.
 func (inv *Invocation) Parent() *Invocation {
 	return inv.parent
+}
+
+// Root returns the roo Invocation, which is the top-level
+// Invocation in a case of sun-command execution. For the
+// root Invocation this function returns pointer to self.
+func (inv *Invocation) Root() *Invocation {
+	return inv.root
 }
 
 // IsImmediate returns true, if Invocation contains some active [Option]
