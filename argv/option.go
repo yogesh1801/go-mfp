@@ -9,6 +9,7 @@
 package argv
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -92,7 +93,7 @@ type Option struct {
 	//
 	// If there are multiple "immediate" options in the Command's
 	// Invocation, the first one always wins.
-	Immediate func(*Invocation) error
+	Immediate func(context.Context, *Invocation) error
 }
 
 // verify checks correctness of Option definition. It fails if any

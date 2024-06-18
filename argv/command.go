@@ -9,6 +9,7 @@
 package argv
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -50,7 +51,7 @@ type Command struct {
 
 	// Handler is called when Command is being invoked.
 	// If Handler is nil, DefaultHandler will be used instead.
-	Handler func(*Invocation) error
+	Handler func(context.Context, *Invocation) error
 }
 
 // Verify checks correctness of Command definition. It fails if any
@@ -207,17 +208,19 @@ func (cmd *Command) ParseWithParent(parent *Invocation,
 }
 
 // Run parses the command, then calls its handler.
-func (cmd *Command) Run(argv []string) error {
-	return cmd.RunWithParent(nil, argv)
+func (cmd *Command) Run(ctx context.Context, argv []string) error {
+	return cmd.RunWithParent(ctx, nil, argv)
 }
 
 // RunWithParent is like [Command.Run], but allows to specify
 // the parent [Invocation]. t is used internally for implementing
 // sub-commands.
-func (cmd *Command) RunWithParent(parent *Invocation, argv []string) error {
+func (cmd *Command) RunWithParent(ctx context.Context,
+	parent *Invocation, argv []string) error {
+
 	inv, err := cmd.ParseWithParent(parent, argv)
 	if err == nil {
-		err = cmd.handler(inv)
+		err = cmd.handler(ctx, inv)
 	}
 
 	return err
@@ -237,7 +240,7 @@ func (cmd *Command) RunWithParent(parent *Invocation, argv []string) error {
 // prints error message, if any, and returns appropriate
 // status code to the system.
 func (cmd *Command) Main() {
-	err := cmd.Run(os.Args[1:])
+	err := cmd.Run(context.TODO(), os.Args[1:])
 	if err != nil {
 		die(err)
 	}
@@ -245,7 +248,7 @@ func (cmd *Command) Main() {
 
 // handler calls cmd.Handler, or DefaultHandler, if
 // cmd.Handler is not set.
-func (cmd *Command) handler(inv *Invocation) error {
+func (cmd *Command) handler(ctx context.Context, inv *Invocation) error {
 	hnd := DefaultHandler
 
 	switch {
@@ -255,7 +258,7 @@ func (cmd *Command) handler(inv *Invocation) error {
 		hnd = cmd.Handler
 	}
 
-	return hnd(inv)
+	return hnd(ctx, inv)
 }
 
 // Complete returns array of completion suggestions for

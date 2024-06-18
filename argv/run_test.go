@@ -10,6 +10,7 @@ package argv
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"testing"
 )
@@ -172,7 +173,7 @@ func TestRun(t *testing.T) {
 	for i, test := range tests {
 		buf := &bytes.Buffer{}
 		HelpOutput = buf
-		err := test.cmd.Run(test.argv)
+		err := test.cmd.Run(context.Background(), test.argv)
 		hlp := buf.String()
 
 		if err == nil {

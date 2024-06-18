@@ -9,6 +9,7 @@
 package cmdcups
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/alexpevzner/mfp/argv"
@@ -32,7 +33,7 @@ var cmdGetDefault = argv.Command{
 	},
 }
 
-func cmdGetDefaultHandler(inv *argv.Invocation) error {
+func cmdGetDefaultHandler(ctx context.Context, inv *argv.Invocation) error {
 	dest := transport.DefaultCupsUNIX
 
 	if addr, ok := inv.Parent().Get("-u"); ok {

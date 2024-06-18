@@ -9,6 +9,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -111,7 +112,7 @@ func exec(line string) (savehistory bool, err error) {
 	}
 
 	// Execute the command
-	err = commands.AllCommands.Run(argv)
+	err = commands.AllCommands.Run(context.TODO(), argv)
 
 	return true, err
 }

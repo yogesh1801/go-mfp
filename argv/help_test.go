@@ -9,13 +9,14 @@
 package argv
 
 import (
+	"context"
 	"errors"
 	"testing"
 )
 
 // TestHelpMisuse tests HelpCommand behavior when miss-used
 func TestHelpMisuse(t *testing.T) {
-	err := HelpCommand.Run(nil)
+	err := HelpCommand.Run(context.Background(), nil)
 	if err == nil {
 		err = errors.New("")
 	}

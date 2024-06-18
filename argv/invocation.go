@@ -8,6 +8,8 @@
 
 package argv
 
+import "context"
+
 // Invocation represents a particular [Command] invocation.
 //
 // It contains a whole [Command] execution context, like parsed
@@ -52,7 +54,7 @@ type Invocation struct {
 	subargv []string
 
 	// immediate is the first Option's Immediate callback, if any
-	immediate func(*Invocation) error
+	immediate func(context.Context, *Invocation) error
 }
 
 // Parent returns Invocation's parent, which is the upper-level

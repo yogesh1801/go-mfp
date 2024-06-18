@@ -9,15 +9,16 @@
 package argv
 
 import (
+	"context"
 	"fmt"
 	"strings"
 )
 
 // DefaultHandler is the default Handler for [Command]
-func DefaultHandler(inv *Invocation) error {
+func DefaultHandler(ctx context.Context, inv *Invocation) error {
 	subcmd, subargv := inv.SubCommand()
 	if subcmd != nil {
-		return subcmd.RunWithParent(inv, subargv)
+		return subcmd.RunWithParent(ctx, inv, subargv)
 	}
 
 	argv := append([]string{inv.Cmd().Name}, inv.Argv()...)

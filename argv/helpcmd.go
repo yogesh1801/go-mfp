@@ -9,6 +9,7 @@
 package argv
 
 import (
+	"context"
 	"errors"
 	"io"
 	"os"
@@ -49,7 +50,7 @@ var (
 //
 // Don't call it directly, use only as a part of sub-command that
 // prints help page.
-func HelpHandler(inv *Invocation) error {
+func HelpHandler(ctx context.Context, inv *Invocation) error {
 	// If we run in the immediate mode (i.e., as result of -h option being
 	// used with current command, our "target" is the current command.
 	//

@@ -10,6 +10,7 @@ package argv
 
 import (
 	"bytes"
+	"context"
 	"os"
 	"strings"
 	"testing"
@@ -23,7 +24,7 @@ func TestMain(t *testing.T) {
 		Parameters: []Parameter{
 			{Name: "greeting..."},
 		},
-		Handler: func(inv *Invocation) error {
+		Handler: func(ctx context.Context, inv *Invocation) error {
 			buf.WriteString(
 				strings.Join(inv.Values("greeting"), ", "))
 			return nil
