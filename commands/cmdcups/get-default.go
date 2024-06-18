@@ -21,6 +21,15 @@ var cmdGetDefault = argv.Command{
 	Name:    "get-default",
 	Help:    "Get default printer",
 	Handler: cmdGetDefaultHandler,
+	Options: []argv.Option{
+		argv.HelpOption,
+	},
+	Parameters: []argv.Parameter{
+		{
+			Name: "[attr...]",
+			Help: "Requested attributes",
+		},
+	},
 }
 
 func cmdGetDefaultHandler(inv *argv.Invocation) error {
