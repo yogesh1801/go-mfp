@@ -9,6 +9,8 @@
 package cmdcups
 
 import (
+	"fmt"
+
 	"github.com/alexpevzner/mfp/argv"
 	"github.com/alexpevzner/mfp/transport"
 )
@@ -19,9 +21,11 @@ var Command = argv.Command{
 	Help: "CUPS client",
 	Options: []argv.Option{
 		argv.Option{
-			Name:     "-u",
-			Aliases:  []string{"--cups"},
-			Help:     "CUPS server address or URL",
+			Name:    "-u",
+			Aliases: []string{"--cups"},
+			Help: "CUPS server address or URL\n" +
+				fmt.Sprintf("default: %q",
+					transport.DefaultCupsUNIX),
 			Validate: transport.ValidateAddr,
 		},
 		argv.HelpOption,
