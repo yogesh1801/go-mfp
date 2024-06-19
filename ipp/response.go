@@ -21,11 +21,13 @@ type Response interface {
 	// Each concrete Response implementation inherits them by embedding
 	// that structure:
 	//
+	//   - GetHeader returns ResponseHeader
 	//   - GetVersion returns IPP version of the Response.
 	//   - GetRequestID returns IPP request ID.
 	//   - GetStatus returns IPP Status code of the Response.
 	//   - GetBody returns [Response] Body.
 	//   - SetBody sets [Response] Body.
+	GetHeader() *ResponseHeader
 	GetVersion() goipp.Version
 	GetRequestID() uint32
 	GetStatus() goipp.Status
@@ -58,6 +60,12 @@ type ResponseHeader struct {
 
 	// Response Body.
 	Body io.ReadCloser
+}
+
+// GetHeader returns [ResponseHeader], which gives uniform
+// access to the header of any [Response]
+func (rsph *ResponseHeader) GetHeader() *ResponseHeader {
+	return rsph
 }
 
 // GetVersion returns IPP version of the [Response].

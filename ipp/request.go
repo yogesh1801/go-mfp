@@ -20,9 +20,11 @@ type Request interface {
 	// Each concrete Request implementation inherits them by
 	// embedding this structure:
 	//
+	//   - GetHeader returns RequestHeader
 	//   - GetVersion returns IPP version of the Request.
 	//   - GetRequestID returns IPP request ID.
 	//   - GetBody returns Request body or nil if body is not set.
+	GetHeader() *RequestHeader
 	GetVersion() goipp.Version
 	GetRequestID() uint32
 	GetBody() io.Reader
@@ -53,6 +55,12 @@ type RequestHeader struct {
 
 	// Request body. Sent after IPP message. May be nil
 	Body io.Reader
+}
+
+// GetHeader returns [RequestHeader], which gives uniform
+// access to the header of any [Request]
+func (rqh *RequestHeader) GetHeader() *RequestHeader {
+	return rqh
 }
 
 // GetVersion returns IPP version of the Request.
