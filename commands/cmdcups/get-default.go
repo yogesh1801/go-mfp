@@ -55,5 +55,11 @@ func cmdGetDefaultHandler(ctx context.Context, inv *argv.Invocation) error {
 	fmt.Printf("Name: %s\n", prn.PrinterName)
 	fmt.Printf("URL:  %s\n", prn.PrinterURISupported)
 
+	fmt.Printf("Printer attributes:\n")
+
+	for _, attr := range prn.Attrs().All() {
+		fmt.Printf("  %s: %s\n", attr.Name, attr.Values)
+	}
+
 	return nil
 }
