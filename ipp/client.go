@@ -138,8 +138,10 @@ func (c *Client) DoWithBody(ctx context.Context,
 		goto ERROR
 	}
 
-	// Save remainder of body and return
+	// Save IPPMessage, remainder of body and return
+	rsp.Header().IPPMessage = msg
 	rsp.Header().Body = httpRsp.Body
+
 	return nil
 
 ERROR:

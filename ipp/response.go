@@ -46,6 +46,13 @@ type ResponseHeader struct {
 	AttributesNaturalLanguage string `ipp:"!attributes-natural-language,naturalLanguage"`
 	StatusMessage             string `ipp:"?status-message,text"`
 
+	// Raw IPP message.
+	//
+	// This field is filled when Response is received as result
+	// of Client.Do or Client.DoWithBody and contains the raw
+	// IPP message.
+	IPPMessage *goipp.Message
+
 	// Response Body.
 	//
 	// If Response is received as result of Client.DoWithBody,
