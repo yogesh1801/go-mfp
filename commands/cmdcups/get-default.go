@@ -10,10 +10,10 @@ package cmdcups
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/alexpevzner/mfp/argv"
 	"github.com/alexpevzner/mfp/cups"
+	"github.com/alexpevzner/mfp/env"
 	"github.com/alexpevzner/mfp/transport"
 )
 
@@ -44,7 +44,9 @@ func cmdGetDefaultHandler(ctx context.Context, inv *argv.Invocation) error {
 	attrs := inv.Values("attrs")
 	attrs = append(attrs, "printer-name", "printer-uri-supported")
 
-	fmt.Printf("CUPS: %s\n", dest)
+	pager := env.NewPager()
+
+	pager.Printf("CUPS: %s", dest)
 
 	clnt := cups.NewClient(dest, nil)
 	prn, err := clnt.CUPSGetDefault(ctx, attrs)
@@ -52,14 +54,14 @@ func cmdGetDefaultHandler(ctx context.Context, inv *argv.Invocation) error {
 		return err
 	}
 
-	fmt.Printf("Name: %s\n", prn.PrinterName)
-	fmt.Printf("URL:  %s\n", prn.PrinterURISupported)
+	pager.Printf("Name: %s", prn.PrinterName)
+	pager.Printf("URL:  %s", prn.PrinterURISupported)
 
-	fmt.Printf("Printer attributes:\n")
+	pager.Printf("Printer attributes:")
 
 	for _, attr := range prn.Attrs().All() {
-		fmt.Printf("  %s: %s\n", attr.Name, attr.Values)
+		pager.Printf("  %s: %s", attr.Name, attr.Values)
 	}
 
-	return nil
+	return pager.Display()
 }
