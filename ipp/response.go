@@ -47,6 +47,15 @@ type ResponseHeader struct {
 	StatusMessage             string `ipp:"?status-message,text"`
 
 	// Response Body.
+	//
+	// If Response is received as result of Client.DoWithBody,
+	// the Body is never nil and always valid, even if empty.
+	// Caller of Client.DoWithBody MUST Close the response
+	// to avoid leak of resources.
+	//
+	// As IPP requests rarely returns non-empty Body, the
+	// convenience wrapper, Client.Do, is provided. It
+	// closes the Body and sets it to nil.
 	Body io.ReadCloser
 }
 
