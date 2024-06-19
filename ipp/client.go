@@ -66,7 +66,10 @@ func (c *Client) requestid() uint32 {
 func (c *Client) Do(ctx context.Context, rq Request, rsp Response) error {
 	err := c.DoWithBody(ctx, rq, rsp)
 	if err == nil {
-		rsp.GetBody().Close()
+		if body := rsp.Header().Body; body != nil {
+			body.Close()
+			rsp.Header().Body = nil
+		}
 	}
 	return err
 }
@@ -96,7 +99,7 @@ func (c *Client) DoWithBody(ctx context.Context,
 	msg.Encode(buf)
 
 	// Attach Request body, if any
-	body := rq.GetBody()
+	body := rq.Header().Body
 	if body == nil {
 		body = buf
 	} else {
@@ -136,7 +139,7 @@ func (c *Client) DoWithBody(ctx context.Context,
 	}
 
 	// Save remainder of body and return
-	rsp.SetBody(httpRsp.Body)
+	rsp.Header().Body = httpRsp.Body
 	return nil
 
 ERROR:

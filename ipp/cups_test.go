@@ -125,14 +125,14 @@ func TestCupsRequests(t *testing.T) {
 					rqType, int(test.op), int(test.rq.GetOp()))
 			}
 
-			if test.rq.GetVersion() != ippVersion {
-				t.Errorf("%s: GetVersion(): expected %s, present %s",
-					rqType, ippVersion, test.rq.GetVersion())
+			if test.rq.Header().Version != ippVersion {
+				t.Errorf("%s: Header().Version: expected %s, present %s",
+					rqType, ippVersion, test.rq.Header().Version)
 			}
 
-			if test.rq.GetRequestID() != ippRequestID {
-				t.Errorf("%s: GetRequestID(): expected %d, present %d",
-					rqType, ippRequestID, test.rq.GetRequestID())
+			if test.rq.Header().RequestID != ippRequestID {
+				t.Errorf("%s: Header().RequestID: expected %d, present %d",
+					rqType, ippRequestID, test.rq.Header().RequestID)
 			}
 
 			msg := test.rq.Encode()
@@ -261,14 +261,14 @@ func TestCupsRequesponses(t *testing.T) {
 
 		// Test of Encode and Response interface
 		if test.err == "" {
-			if test.rsp.GetVersion() != ippVersion {
-				t.Errorf("%s: GetVersion(): expected %s, present %s",
-					rspType, ippVersion, test.rsp.GetVersion())
+			if test.rsp.Header().Version != ippVersion {
+				t.Errorf("%s: Header().Version: expected %s, present %s",
+					rspType, ippVersion, test.rsp.Header().Version)
 			}
 
-			if test.rsp.GetRequestID() != ippRequestID {
-				t.Errorf("%s: GetRequestID(): expected %d, present %d",
-					rspType, ippRequestID, test.rsp.GetRequestID())
+			if test.rsp.Header().RequestID != ippRequestID {
+				t.Errorf("%s: Header().RequestID: expected %d, present %d",
+					rspType, ippRequestID, test.rsp.Header().RequestID)
 			}
 
 			msg := test.rsp.Encode()

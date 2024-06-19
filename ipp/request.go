@@ -16,18 +16,11 @@ import (
 
 // Request is the IPP request interface.
 type Request interface {
-	// The following methods are implemented by the RequestHeader.
-	// Each concrete Request implementation inherits them by
-	// embedding this structure:
+	// Header() returns *RequestHeader.
 	//
-	//   - GetHeader returns RequestHeader
-	//   - GetVersion returns IPP version of the Request.
-	//   - GetRequestID returns IPP request ID.
-	//   - GetBody returns Request body or nil if body is not set.
-	GetHeader() *RequestHeader
-	GetVersion() goipp.Version
-	GetRequestID() uint32
-	GetBody() io.Reader
+	// Each concrete Request implementation inherits it by
+	// embedding this structure.
+	Header() *RequestHeader
 
 	// The following methods each concrete Request implementation
 	// must define by itself:
@@ -57,25 +50,8 @@ type RequestHeader struct {
 	Body io.Reader
 }
 
-// GetHeader returns [RequestHeader], which gives uniform
+// Header returns [RequestHeader], which gives uniform
 // access to the header of any [Request]
-func (rqh *RequestHeader) GetHeader() *RequestHeader {
+func (rqh *RequestHeader) Header() *RequestHeader {
 	return rqh
-}
-
-// GetVersion returns IPP version of the Request.
-func (rqh *RequestHeader) GetVersion() goipp.Version {
-	return rqh.Version
-}
-
-// GetRequestID returns IPP request ID.
-func (rqh *RequestHeader) GetRequestID() uint32 {
-	return rqh.RequestID
-}
-
-// GetBody request body of request or nil if Request has no body.
-// Request body (PDF document, for example) transmitted after
-// Request IPP message.
-func (rqh *RequestHeader) GetBody() io.Reader {
-	return rqh.Body
 }

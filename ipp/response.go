@@ -10,29 +10,17 @@ package ipp
 
 import (
 	"io"
-	"net/http"
 
 	"github.com/OpenPrinting/goipp"
 )
 
 // Response is the IPP response interface.
 type Response interface {
-	// The following methods are implemented by the ResponseHeader.
-	// Each concrete Response implementation inherits them by embedding
-	// that structure:
+	// Header() returns *ResponseHeader.
 	//
-	//   - GetHeader returns ResponseHeader
-	//   - GetVersion returns IPP version of the Response.
-	//   - GetRequestID returns IPP request ID.
-	//   - GetStatus returns IPP Status code of the Response.
-	//   - GetBody returns [Response] Body.
-	//   - SetBody sets [Response] Body.
-	GetHeader() *ResponseHeader
-	GetVersion() goipp.Version
-	GetRequestID() uint32
-	GetStatus() goipp.Status
-	GetBody() io.ReadCloser
-	SetBody(body io.ReadCloser)
+	// Each concrete Response implementation inherits it by
+	// embedding this structure
+	Header() *ResponseHeader
 
 	// The following methods each concrete Response implementation
 	// must define by itself:
@@ -62,38 +50,8 @@ type ResponseHeader struct {
 	Body io.ReadCloser
 }
 
-// GetHeader returns [ResponseHeader], which gives uniform
+// Header returns [ResponseHeader], which gives uniform
 // access to the header of any [Response]
-func (rsph *ResponseHeader) GetHeader() *ResponseHeader {
+func (rsph *ResponseHeader) Header() *ResponseHeader {
 	return rsph
-}
-
-// GetVersion returns IPP version of the [Response].
-func (rsph *ResponseHeader) GetVersion() goipp.Version {
-	return rsph.Version
-}
-
-// GetRequestID returns IPP request ID of the [Response].
-func (rsph *ResponseHeader) GetRequestID() uint32 {
-	return rsph.RequestID
-}
-
-// GetStatus returns [Response] IPP Status code.
-func (rsph *ResponseHeader) GetStatus() goipp.Status {
-	return rsph.Status
-}
-
-// GetBody returns [Response] Body. It never returns nil.
-// If body is not set, it returns [http.NoBody].
-func (rsph *ResponseHeader) GetBody() (body io.ReadCloser) {
-	body = http.NoBody
-	if rsph.Body != nil {
-		body = rsph.Body
-	}
-	return
-}
-
-// SetBody sets [Response] Body.
-func (rsph *ResponseHeader) SetBody(body io.ReadCloser) {
-	rsph.Body = body
 }
