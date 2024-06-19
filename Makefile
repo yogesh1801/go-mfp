@@ -1,3 +1,3 @@
-SUBDIRS	= cmd commands cups ipp testutils transport
+SUBDIRS	= cmd commands cups env ipp testutils transport
 
 include Rules.mak
