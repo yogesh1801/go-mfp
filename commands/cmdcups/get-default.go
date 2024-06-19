@@ -27,12 +27,13 @@ var cmdGetDefault = argv.Command{
 	},
 	Parameters: []argv.Parameter{
 		{
-			Name: "[attr...]",
+			Name: "[attrs...]",
 			Help: "Requested attributes",
 		},
 	},
 }
 
+// cmdGetDefaultHandler is the "get-default" command handler
 func cmdGetDefaultHandler(ctx context.Context, inv *argv.Invocation) error {
 	dest := transport.DefaultCupsUNIX
 
@@ -40,10 +41,13 @@ func cmdGetDefaultHandler(ctx context.Context, inv *argv.Invocation) error {
 		dest = transport.MustParseAddr(addr, "ipp://localhost/")
 	}
 
+	attrs := inv.Values("attrs")
+	attrs = append(attrs, "printer-name", "printer-uri-supported")
+
 	fmt.Printf("CUPS: %s\n", dest)
 
 	clnt := cups.NewClient(dest, nil)
-	prn, err := clnt.CUPSGetDefault(ctx, nil)
+	prn, err := clnt.CUPSGetDefault(ctx, attrs)
 	if err != nil {
 		return err
 	}
