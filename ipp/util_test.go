@@ -49,6 +49,11 @@ func testDiffStruct(s1, s2 interface{}) string {
 			continue
 		}
 
+		if fld.Type == reflect.TypeOf(ObjectAttrs{}) {
+			// Skip embedded ObjectAttrs; it will never match
+			continue
+		}
+
 		v1 := struct1.Field(i).Interface()
 		v2 := struct2.Field(i).Interface()
 

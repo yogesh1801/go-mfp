@@ -35,10 +35,12 @@ const (
 // ippEncodeAttrs encodes attributes defined by particular structure
 // into goipp.Attributes.
 //
-// in must be pointer to structure. Codec will be generated on demand.
-// This function will panic, if codec cannot be generated
-func ippEncodeAttrs(in any) goipp.Attributes {
-	t := reflect.TypeOf(in)
+// The obj parameter must be pointer to structure that implements
+// the Object interface. Its codec will be generated on demand.
+//
+// This function will panic, if codec cannot be generated.
+func ippEncodeAttrs(obj Object) goipp.Attributes {
+	t := reflect.TypeOf(obj)
 	if t.Kind() != reflect.Pointer {
 		err := fmt.Errorf("%s is not pointer to structure",
 			diagTypeName(t))
@@ -50,16 +52,18 @@ func ippEncodeAttrs(in any) goipp.Attributes {
 		panic(err)
 	}
 
-	return codec.encodeAttrs(in)
+	return codec.encodeAttrs(obj)
 }
 
 // ippDecodeAttrs encodes attributes defined by particular structure
 // into goipp.Attributes.
 //
-// in must be pointer to structure. Codec will be generated on demand.
-// This function will panic, if codec cannot be generated
-func ippDecodeAttrs(in any, attrs goipp.Attributes) error {
-	t := reflect.TypeOf(in)
+// The obj parameter must be pointer to structure that implements
+// the Object interface. Its codec will be generated on demand.
+//
+// This function will panic, if codec cannot be generated.
+func ippDecodeAttrs(obj Object, attrs goipp.Attributes) error {
+	t := reflect.TypeOf(obj)
 	if t.Kind() != reflect.Pointer {
 		err := fmt.Errorf("%s is not pointer to structure",
 			diagTypeName(t))
@@ -71,7 +75,12 @@ func ippDecodeAttrs(in any, attrs goipp.Attributes) error {
 		panic(err)
 	}
 
-	return codec.decodeAttrs(in, attrs)
+	err = codec.decodeAttrs(obj, attrs)
+	if err == nil {
+		obj.Attrs().set(attrs)
+	}
+
+	return err
 }
 
 // ippCodec represents actions required to encode/decode structures

@@ -50,6 +50,8 @@ type PrinterAttributes struct {
 
 // PrinterDescription contains Printer Description and Status Attributes
 type PrinterDescription struct {
+	ObjectAttrs
+
 	// RFC8011, 5.4: Printer Description and Status Attributes
 	CharsetConfigured                 string                  `ipp:"!charset-configured,charset"`
 	CharsetSupported                  []string                `ipp:"!charset-supported,charset"`

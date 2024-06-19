@@ -19,6 +19,7 @@ type (
 	// CUPSGetDefaultRequest operation (0x4001) returns the default printer URI
 	// and attributes.
 	CUPSGetDefaultRequest struct {
+		ObjectAttrs
 		RequestHeader
 
 		// Operation attributes
@@ -27,6 +28,7 @@ type (
 
 	// CUPSGetDefaultResponse is the CUPS-Get-Default Response.
 	CUPSGetDefaultResponse struct {
+		ObjectAttrs
 		ResponseHeader
 
 		// Other attributes.
