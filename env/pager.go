@@ -23,7 +23,8 @@ var (
 )
 
 // Pager scrolls potentially large text in a terminal.
-// Implements io.Writer interface
+//
+// Implements [io.Writer] interface.
 type Pager struct {
 	buf bytes.Buffer
 }
@@ -35,6 +36,8 @@ func NewPager() *Pager {
 
 // Write collects text for display. All subsequent writes
 // are concatenated and displayed as a whole.
+//
+// Implements [io.Writer] interface.
 func (p *Pager) Write(text []byte) (n int, err error) {
 	return p.buf.Write(text)
 }
