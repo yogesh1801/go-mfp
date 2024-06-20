@@ -10,6 +10,7 @@ package cmdcups
 
 import (
 	"context"
+	"sort"
 
 	"github.com/alexpevzner/mfp/argv"
 	"github.com/alexpevzner/mfp/cups"
@@ -41,15 +42,15 @@ func cmdGetDefaultHandler(ctx context.Context, inv *argv.Invocation) error {
 		dest = transport.MustParseAddr(addr, "ipp://localhost/")
 	}
 
-	attrs := inv.Values("attrs")
-	attrs = append(attrs, "printer-name", "printer-uri-supported")
+	attrList := inv.Values("attrs")
+	attrList = append(attrList, "printer-name", "printer-uri-supported")
 
 	pager := env.NewPager()
 
 	pager.Printf("CUPS: %s", dest)
 
 	clnt := cups.NewClient(dest, nil)
-	prn, err := clnt.CUPSGetDefault(ctx, attrs)
+	prn, err := clnt.CUPSGetDefault(ctx, attrList)
 	if err != nil {
 		return err
 	}
@@ -59,7 +60,12 @@ func cmdGetDefaultHandler(ctx context.Context, inv *argv.Invocation) error {
 
 	pager.Printf("Printer attributes:")
 
-	for _, attr := range prn.Attrs().All() {
+	attrs := prn.Attrs().All().Clone()
+	sort.Slice(attrs, func(i, j int) bool {
+		return attrs[i].Name < attrs[j].Name
+	})
+
+	for _, attr := range attrs {
 		pager.Printf("  %s: %s", attr.Name, attr.Values)
 	}
 
