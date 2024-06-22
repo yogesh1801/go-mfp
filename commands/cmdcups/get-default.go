@@ -12,6 +12,7 @@ import (
 	"context"
 	"sort"
 
+	"github.com/OpenPrinting/goipp"
 	"github.com/alexpevzner/mfp/argv"
 	"github.com/alexpevzner/mfp/cups"
 	"github.com/alexpevzner/mfp/env"
@@ -65,9 +66,11 @@ func cmdGetDefaultHandler(ctx context.Context, inv *argv.Invocation) error {
 		return attrs[i].Name < attrs[j].Name
 	})
 
-	for _, attr := range attrs {
-		pager.Printf("  %s: %s", attr.Name, attr.Values)
-	}
+	f := goipp.NewFormatter()
+	f.SetIndent(2)
+	f.FmtAttributes(attrs)
+
+	f.WriteTo(pager)
 
 	return pager.Display()
 }
