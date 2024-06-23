@@ -526,9 +526,8 @@ func (prs *parser) buildByName() {
 	// Save options values
 	for _, optval := range prs.options {
 		opt := optval.opt
-		prs.inv.byName[opt.Name] = optval.values
 
-		for _, name := range opt.Aliases {
+		for _, name := range opt.names() {
 			prs.inv.byName[name] = optval.values
 		}
 	}
@@ -607,12 +606,8 @@ func (prs *parser) splitOptVal(arg string) (name, val string, novalue bool) {
 func (prs *parser) findOption(name string) *Option {
 	for i := range prs.inv.cmd.Options {
 		opt := &prs.inv.cmd.Options[i]
-		if name == opt.Name {
-			return opt
-		}
-
-		for i := range opt.Aliases {
-			if name == opt.Aliases[i] {
+		for _, n := range opt.names() {
+			if name == n {
 				return opt
 			}
 		}

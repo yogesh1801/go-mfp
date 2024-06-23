@@ -151,7 +151,7 @@ func (hlp *helper) describeOptions() {
 
 	for i := range cmd.Options {
 		opt := &cmd.Options[i]
-		names := hlpSpcOptionName + hlp.optionNames(opt)
+		names := hlpSpcOptionName + strings.Join(opt.names(), ", ")
 		hlp.puts(names)
 
 		help := strings.Split(opt.Help, "\n")
@@ -270,15 +270,6 @@ func (hlp *helper) describeCommandLong() {
 		hlp.nl()
 	}
 
-}
-
-// optionNames merges together Option names
-func (hlp *helper) optionNames(opt *Option) string {
-	names := opt.Name
-	for _, name := range opt.Aliases {
-		names += ", " + name
-	}
-	return names
 }
 
 // putc writes a character into the help page

@@ -105,8 +105,7 @@ func (opt *Option) verify() error {
 	}
 
 	// Verify syntax of option Name and Aliases
-	names := append([]string{opt.Name}, opt.Aliases...)
-	for _, name := range names {
+	for _, name := range opt.names() {
 		err := opt.verifyNameSyntax(name)
 		if err != nil {
 			return err
@@ -168,6 +167,15 @@ func (opt *Option) verifyNameSyntax(name string) error {
 // withValue tells if Option has a value
 func (opt *Option) withValue() bool {
 	return opt.Validate != nil
+}
+
+// names returns Option names, including aliases
+func (opt *Option) names() []string {
+	names := make([]string, len(opt.Aliases)+1)
+	names[0] = opt.Name
+	copy(names[1:], opt.Aliases)
+
+	return names
 }
 
 // complete is the convenience wrapper around Option.Complete
