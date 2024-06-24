@@ -105,7 +105,7 @@ func TestAutoCompletion(t *testing.T) {
 					},
 				},
 			},
-			out:   []string{"Robert", "Roger"},
+			out:   []string{"-xRobert", "-xRoger"},
 			flags: 0,
 		},
 
@@ -260,7 +260,7 @@ func TestAutoCompletion(t *testing.T) {
 					},
 				},
 			},
-			out: []string{"Robert", "Roger"},
+			out: []string{"--long=Robert", "--long=Roger"},
 		},
 
 		// Test 11: long option, missed argument
@@ -596,10 +596,6 @@ func TestAutoCompletion(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		if i > 30 {
-			continue
-		}
-
 		out, flags := test.cmd.Complete(test.argv)
 
 		diff := testDiffCompletion(test.out, out)

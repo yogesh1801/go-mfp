@@ -395,7 +395,17 @@ func (prs *parser) complete() (compl []string, flags CompleterFlags) {
 				if opt != nil {
 					// If option is not unknown, we may
 					// try to complete the value.
-					return prs.completeOptionValue(opt, val)
+					compl, flags = prs.
+						completeOptionValue(opt, val)
+
+					prefix := name
+					if prs.isLongOption(name) {
+						prefix += "="
+					}
+
+					prs.completePrepend(compl, prefix)
+
+					return
 				}
 
 				return nil, 0
@@ -549,6 +559,13 @@ func (prs *parser) completePostProcess(arg string,
 	}
 
 	return compl, flags
+}
+
+// completePrepend prepends a prefix to each completion candidate
+func (prs *parser) completePrepend(compl []string, prefix string) {
+	for i := range compl {
+		compl[i] = prefix + compl[i]
+	}
 }
 
 // isShortOption tells if argument is a short option
