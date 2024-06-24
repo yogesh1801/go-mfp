@@ -21,6 +21,10 @@ import "github.com/OpenPrinting/goipp"
 type Object interface {
 	// Attrs returns ObjectAttrs embedded into the structure
 	Attrs() *ObjectAttrs
+
+	// KnownAttributes return information about known
+	// attributes of the Object
+	KnownAttrs() []AttrInfo
 }
 
 // ObjectAttrs MUST be embedded into every IPP-encodable structure.

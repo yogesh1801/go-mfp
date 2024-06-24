@@ -203,6 +203,12 @@ type PrinterSaveInfo struct {
 	SaveDocumentFormat string `ipp:"?save-document-format,mimeMediaType"`
 }
 
+// KnownAttrs returns information about all known IPP attributes
+// of the PrinterAttributes
+func (pa *PrinterAttributes) KnownAttrs() []AttrInfo {
+	return ippKnownAttrs(pa)
+}
+
 // IsCharsetSupported tells if charset is supported
 func (pa *PrinterAttributes) IsCharsetSupported(cs string) bool {
 	for _, supp := range pa.CharsetSupported {

@@ -287,7 +287,8 @@ func TestDecodePanic(t *testing.T) {
 // It is used for testing
 type testFakeObject int
 
-func (testFakeObject) Attrs() *ObjectAttrs { return nil }
+func (testFakeObject) Attrs() *ObjectAttrs    { return nil }
+func (testFakeObject) KnownAttrs() []AttrInfo { return nil }
 
 // TestIppEncodeDecodeAttrsPanic tests panic in
 // ippEncodeAttrs and ippDecodeAttrs

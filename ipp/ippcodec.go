@@ -83,13 +83,33 @@ func ippDecodeAttrs(obj Object, attrs goipp.Attributes) error {
 	return err
 }
 
+// ippKnownAttrs returns information about Object's known attributes
+//
+// This function will panic, if codec cannot be generated.
+func ippKnownAttrs(obj Object) []AttrInfo {
+	t := reflect.TypeOf(obj)
+	if t.Kind() != reflect.Pointer {
+		err := fmt.Errorf("%s is not pointer to structure",
+			diagTypeName(t))
+		panic(err)
+	}
+
+	codec, err := ippCodecGenerate(t.Elem())
+	if err != nil {
+		panic(err)
+	}
+
+	return codec.knownAttrs
+}
+
 // ippCodec represents actions required to encode/decode structures
 // of the particular type. Codecs are generated at initialization and
 // then reused, to minimize performance overhead associated with
 // reflection
 type ippCodec struct {
-	t     reflect.Type   // Type of structure
-	steps []ippCodecStep // Encoding/decoding steps
+	t          reflect.Type   // Type of structure
+	steps      []ippCodecStep // Encoding/decoding steps
+	knownAttrs []AttrInfo     // Known attributes
 }
 
 // ippCodecStep represents a single encoding/decoding step for the
@@ -144,6 +164,13 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 
 	if err != nil {
 		return nil, err
+	}
+
+	// Build knownAttrs
+	codec.knownAttrs = make([]AttrInfo, len(codec.steps))
+	for i := range codec.steps {
+		codec.knownAttrs[i].Name = codec.steps[i].attrName
+		codec.knownAttrs[i].Tag = codec.steps[i].attrTag
 	}
 
 	// Update cache and return

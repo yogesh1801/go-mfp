@@ -41,6 +41,12 @@ func (rq *CUPSGetDefaultRequest) GetOp() goipp.Op {
 	return goipp.OpCupsGetDefault
 }
 
+// KnownAttrs returns information about all known IPP attributes
+// of the CUPSGetDefaultRequest
+func (rq *CUPSGetDefaultRequest) KnownAttrs() []AttrInfo {
+	return ippKnownAttrs(rq)
+}
+
 // Encode encodes CUPSGetDefaultRequest into the goipp.Message.
 func (rq *CUPSGetDefaultRequest) Encode() *goipp.Message {
 	groups := goipp.Groups{
@@ -67,6 +73,12 @@ func (rq *CUPSGetDefaultRequest) Decode(msg *goipp.Message) error {
 	}
 
 	return nil
+}
+
+// KnownAttrs returns information about all known IPP attributes
+// of the CUPSGetDefaultResponse.
+func (rsp *CUPSGetDefaultResponse) KnownAttrs() []AttrInfo {
+	return ippKnownAttrs(rsp)
 }
 
 // Encode encodes CUPSGetDefaultResponse into goipp.Message.
