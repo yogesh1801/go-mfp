@@ -29,6 +29,7 @@ func main() {
 	editline.SetCtrlCAborts(true)
 
 	// Setup completion
+	editline.SetTabCompletionStyle(liner.TabPrints)
 	editline.SetCompleter(completer)
 
 	// Setup history
