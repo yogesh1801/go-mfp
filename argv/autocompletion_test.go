@@ -25,7 +25,47 @@ func TestAutoCompletion(t *testing.T) {
 	}
 
 	tests := []testData{
-		// Test 0: short option, separate argument
+		// ----- Option names auto completion -----
+
+		// Test 0: Misc of short/long options
+		{
+			argv: []string{"-"},
+			cmd: Command{
+				Name: "test",
+				Options: []Option{
+					{Name: "-h"},
+					{Name: "--long-1"},
+					{Name: "--long-2"},
+					{Name: "--other", Aliases: []string{"--long-3"}},
+				},
+			},
+			out: []string{
+				"-h",
+				"--long-1",
+				"--long-2",
+				"--other",
+				"--long-3",
+			},
+		},
+
+		// Test 1: long option name auto-completion
+		{
+			argv: []string{"--long"},
+			cmd: Command{
+				Name: "test",
+				Options: []Option{
+					{Name: "--long-1"},
+					{Name: "--long-2"},
+					{Name: "--other", Aliases: []string{"--long-3"}},
+				},
+			},
+			out:   []string{"--long-"},
+			flags: CompleterNoSpace,
+		},
+
+		// ----- Option arguments auto completion ----
+
+		// Test 2: short option, separate argument
 		{
 			argv: []string{"-x", "Ro"},
 			cmd: Command{
@@ -47,7 +87,7 @@ func TestAutoCompletion(t *testing.T) {
 			flags: 0,
 		},
 
-		// Test 1: short option with embedded argument
+		// Test 3: short option with embedded argument
 		{
 			argv: []string{"-xRo"},
 			cmd: Command{
@@ -69,9 +109,9 @@ func TestAutoCompletion(t *testing.T) {
 			flags: 0,
 		},
 
-		// Test 2: short option, missed argument
+		// Test 4: short option, missed argument
 		{
-			argv: []string{"-x"},
+			argv: []string{"-x", ""},
 			cmd: Command{
 				Name: "test",
 				Options: []Option{
@@ -91,7 +131,7 @@ func TestAutoCompletion(t *testing.T) {
 			flags: CompleterNoSpace,
 		},
 
-		// Test 3: short option with preceding unknown optipn
+		// Test 5: short option with preceding unknown optipn
 		{
 			argv: []string{"-a", "-x", "Ro"},
 			cmd: Command{
@@ -112,9 +152,9 @@ func TestAutoCompletion(t *testing.T) {
 			out: []string{},
 		},
 
-		// Test 4: short option without value
+		// Test 6: short option without value
 		{
-			argv: []string{"-x"},
+			argv: []string{"-x", ""},
 			cmd: Command{
 				Name: "test",
 				Options: []Option{
@@ -124,10 +164,10 @@ func TestAutoCompletion(t *testing.T) {
 			out: []string{},
 		},
 
-		// Test 5: short option without value,
+		// Test 7: short option without value,
 		// then option that needs value
 		{
-			argv: []string{"-a", "-x"},
+			argv: []string{"-a", "-x", ""},
 			cmd: Command{
 				Name: "test",
 				Options: []Option{
@@ -150,7 +190,7 @@ func TestAutoCompletion(t *testing.T) {
 			flags: CompleterNoSpace,
 		},
 
-		// Test 6: long option, separate argument
+		// Test 8: long option, separate argument
 		{
 			argv: []string{"--long", "Ro"},
 			cmd: Command{
@@ -171,7 +211,7 @@ func TestAutoCompletion(t *testing.T) {
 			out: []string{"Robert", "Roger"},
 		},
 
-		// Test 7: two options, second completes
+		// Test 9: two options, second completes
 		{
 			argv: []string{"--first", "1", "--second", "Ro"},
 			cmd: Command{
@@ -202,7 +242,7 @@ func TestAutoCompletion(t *testing.T) {
 			out: []string{"Robert", "Roger"},
 		},
 
-		// Test 8: long option with embedded argument
+		// Test 10: long option with embedded argument
 		{
 			argv: []string{"--long=Ro"},
 			cmd: Command{
@@ -223,9 +263,9 @@ func TestAutoCompletion(t *testing.T) {
 			out: []string{"Robert", "Roger"},
 		},
 
-		// Test 9: long option, missed argument
+		// Test 11: long option, missed argument
 		{
-			argv: []string{"--long"},
+			argv: []string{"--long", ""},
 			cmd: Command{
 				Name: "test",
 				Options: []Option{
@@ -245,7 +285,7 @@ func TestAutoCompletion(t *testing.T) {
 			flags: CompleterNoSpace,
 		},
 
-		// Test 10: long option with preceding unknown optipn
+		// Test 12: long option with preceding unknown optipn
 		{
 			argv: []string{"--unknown", "--long", "Ro"},
 			cmd: Command{
@@ -266,9 +306,9 @@ func TestAutoCompletion(t *testing.T) {
 			out: []string{},
 		},
 
-		// Test 11: long option without value
+		// Test 13: long option without value
 		{
-			argv: []string{"--long"},
+			argv: []string{"--long", ""},
 			cmd: Command{
 				Name: "test",
 				Options: []Option{
@@ -278,10 +318,10 @@ func TestAutoCompletion(t *testing.T) {
 			out: []string{},
 		},
 
-		// Test 12: long option without value,
+		// Test 14: long option without value,
 		// then option that needs value
 		{
-			argv: []string{"--void", "--long"},
+			argv: []string{"--void", "--long", ""},
 			cmd: Command{
 				Name: "test",
 				Options: []Option{
@@ -304,22 +344,33 @@ func TestAutoCompletion(t *testing.T) {
 			flags: CompleterNoSpace,
 		},
 
-		// Test 13: long option name auto-completion
+		// Test 15: unknown short option with value
 		{
-			argv: []string{"--long"},
+			argv: []string{"-xV"},
 			cmd: Command{
 				Name: "test",
 				Options: []Option{
-					{Name: "--long-1"},
-					{Name: "--long-2"},
-					{Name: "--other", Aliases: []string{"--long-3"}},
+					{Name: "-o"},
 				},
 			},
-			out:   []string{"--long-"},
-			flags: CompleterNoSpace,
+			out: []string{},
 		},
 
-		// Test 14: sub-commands, successful completion with prefix
+		// Test 16: unknown long option with value
+		{
+			argv: []string{"--long=val"},
+			cmd: Command{
+				Name: "test",
+				Options: []Option{
+					{Name: "--long-known"},
+				},
+			},
+			out: []string{},
+		},
+
+		// ----- Sub-commands auto-completion -----
+
+		// Test 17: sub-commands, successful completion with prefix
 		{
 			argv: []string{"Ro"},
 			cmd: Command{
@@ -332,7 +383,7 @@ func TestAutoCompletion(t *testing.T) {
 			out: []string{"Robert", "Roger"},
 		},
 
-		// Test 15: a single sub-command, successful completion with prefix
+		// Test 18: a single sub-command, successful completion with prefix
 		{
 			argv: []string{"Ro"},
 			cmd: Command{
@@ -344,7 +395,7 @@ func TestAutoCompletion(t *testing.T) {
 			out: []string{"Roger"},
 		},
 
-		// Test 16: sub-commands, successful completion without prefix
+		// Test 19: sub-commands, successful completion without prefix
 		{
 			argv: []string{},
 			cmd: Command{
@@ -358,7 +409,7 @@ func TestAutoCompletion(t *testing.T) {
 			flags: CompleterNoSpace,
 		},
 
-		// Test 17: option, "--", sub-commands
+		// Test 20: option, "--", sub-commands
 		{
 			argv: []string{"--long", "value", "--", "Ro"},
 			cmd: Command{
@@ -374,7 +425,7 @@ func TestAutoCompletion(t *testing.T) {
 			out: []string{"Robert", "Roger"},
 		},
 
-		// Test 18: sub-commands, extra parameter
+		// Test 21: sub-commands, extra parameter
 		{
 			argv: []string{"extra", "Ro"},
 			cmd: Command{
@@ -387,7 +438,9 @@ func TestAutoCompletion(t *testing.T) {
 			out: []string{},
 		},
 
-		// Test 19: parameter completion
+		// ----- Parameters auto-completion -----
+
+		// Test 22: parameter completion
 		{
 			argv: []string{"Ro"},
 			cmd: Command{
@@ -407,7 +460,7 @@ func TestAutoCompletion(t *testing.T) {
 			out: []string{"Robert", "Roger"},
 		},
 
-		// Test 20: options, '--', parameter
+		// Test 23: options, '--', parameter
 		{
 			argv: []string{"-c", "--", "Ro"},
 			cmd: Command{
@@ -430,7 +483,31 @@ func TestAutoCompletion(t *testing.T) {
 			out: []string{"Robert", "Roger"},
 		},
 
-		// Test 21: parameter completion, extra parameter
+		// Test 24: options, '--', parameter missed
+		{
+			argv: []string{"-c", "--"},
+			cmd: Command{
+				Name: "test",
+				Options: []Option{
+					{Name: "-c"},
+				},
+				Parameters: []Parameter{
+					{
+						Name: "param",
+						Complete: CompleteStrings(
+							[]string{
+								"Roger",
+								"Robert",
+							},
+						),
+					},
+				},
+			},
+			out:   []string{"Ro"},
+			flags: CompleterNoSpace,
+		},
+
+		// Test 25: parameter completion, extra parameter
 		{
 			argv: []string{"extra", "Ro"},
 			cmd: Command{
@@ -450,7 +527,7 @@ func TestAutoCompletion(t *testing.T) {
 			out: []string{},
 		},
 
-		// Test 22: parameter completion, repeated first
+		// Test 26: parameter completion, repeated first
 		{
 			argv: []string{"extra", "Ro"},
 			cmd: Command{
@@ -473,7 +550,7 @@ func TestAutoCompletion(t *testing.T) {
 			out: []string{"Robert", "Roger"},
 		},
 
-		// Test 23: parameter completion, repeated last
+		// Test 27: parameter completion, repeated last
 		{
 			argv: []string{"extra", "Ro"},
 			cmd: Command{
@@ -496,7 +573,9 @@ func TestAutoCompletion(t *testing.T) {
 			out: []string{},
 		},
 
-		// Test 24: nested sub-commands
+		// ----- Real-life examples -----
+
+		// Test 28: nested sub-commands
 		{
 			argv: []string{"cups", "ge"},
 			cmd: Command{
@@ -517,6 +596,10 @@ func TestAutoCompletion(t *testing.T) {
 	}
 
 	for i, test := range tests {
+		if i > 30 {
+			continue
+		}
+
 		out, flags := test.cmd.Complete(test.argv)
 
 		diff := testDiffCompletion(test.out, out)

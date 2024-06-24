@@ -18,12 +18,12 @@ import (
 //
 // Notes.
 //
-// optConflicts["-opt1"] -> "-opt2" means, that previously
-// processed option "-opt2" has declared option "-opt1" as
+// optConflicts["--opt1"] -> "--opt2" means, that previously
+// processed option "--opt2" has declared option "--opt1" as
 // conflicting.
 //
-// optRequires["-opt1"] -> "-opt2" means, that previously
-// processed option "-opt2" has declared option "-opt1" as
+// optRequires["--opt1"] -> "--opt2" means, that previously
+// processed option "-opt2" has declared option "--opt1" as
 // required.
 type parser struct {
 	inv          *Invocation               // Invocation being parsed
@@ -152,102 +152,6 @@ func (prs *parser) parse(parent *Invocation) (*Invocation, error) {
 	}
 
 	return inv, nil
-}
-
-// complete handles command auto-completion
-func (prs *parser) complete() (compl []string, flags CompleterFlags) {
-	done := false
-	doneOptions := false
-	paramCount := 0
-	paramLast := ""
-
-	// Roll over all arguments. Options completions handled here, in-line
-	for !prs.done() {
-		arg := prs.next()
-
-		switch {
-		case !doneOptions && arg == "--":
-			doneOptions = true
-
-		case !doneOptions && prs.isShortOption(arg):
-			done, compl, flags = prs.completeShortOption(arg)
-
-		case !doneOptions && prs.isLongOption(arg):
-			done, compl, flags = prs.completeLongOption(arg)
-
-		case prs.inv.cmd.hasSubCommands():
-			subcmd, err := prs.inv.cmd.FindSubCommand(arg)
-			if err == nil && !prs.done() {
-				// If we have a sub-command here and
-				// there are more argv[] arguments,
-				// simply call subcmd.Complete()
-				argv := prs.inv.argv[prs.nextarg:]
-				return subcmd.Complete(argv)
-			}
-
-			fallthrough
-
-		default:
-			paramLast = arg
-			if !prs.done() {
-				paramCount++
-			}
-		}
-
-		if done {
-			return
-		}
-	}
-
-	// Handle completion of sub-commands or last parameter
-	if compl == nil {
-		switch {
-		case prs.inv.cmd.hasParameters():
-			_, compl = prs.completeParameter(paramLast, paramCount)
-
-		case prs.inv.cmd.hasSubCommands() && paramCount == 0:
-			// Note, we only complete sub-command name,
-			// if there is no extra parameter on before
-			// the sub-command. Hence, paramCount == 0
-			_, compl, flags = prs.completeSubCommand(paramLast)
-		}
-	}
-
-	return
-}
-
-// completePostProcess post-processes completion candidates for
-// the given argument.
-func (prs *parser) completePostProcess(arg string,
-	compl []string, flags CompleterFlags) ([]string, CompleterFlags) {
-	// For sanity: drop candidates, that doesn't contain arg
-	// as prefix. It actually should never happen, but..
-	var complCount int
-	for i := range compl {
-		if strings.HasPrefix(compl[i], arg) {
-			compl[complCount] = compl[i]
-			complCount++
-		}
-	}
-
-	compl = compl[:complCount]
-
-	// If we have multiple candidates with the common prefix
-	// that is longer that arg, just return that common prefix
-	// as a single candidate, so when user presses Tab, the
-	// completion will go to that common point
-	if len(compl) > 1 {
-		prefix := strCommonPrefixSlice(compl)
-
-		// If prefix is longer that arg, it means that all possible
-		// candidates has common prefix, so just return it as a single
-		// suggestion, so completion will go to that point.
-		if len(prefix) > len(arg) {
-			return []string{prefix}, flags | CompleterNoSpace
-		}
-	}
-
-	return compl, flags
 }
 
 // handleShortOption handles a short option
@@ -393,134 +297,6 @@ func (prs *parser) handleSubCommand(arg string) error {
 	return nil
 }
 
-// completeShortOption handles auto-completion for short options.
-func (prs *parser) completeShortOption(arg string) (bool,
-	[]string, CompleterFlags) {
-	return prs.completeOption(arg, false)
-}
-
-// completeLongOption handles auto-completion for long options.
-func (prs *parser) completeLongOption(arg string) (bool,
-	[]string, CompleterFlags) {
-	return prs.completeOption(arg, true)
-}
-
-// completeOption handles auto-completion for options.
-// It's a common procedure for both short and long options
-func (prs *parser) completeOption(arg string,
-	long bool) (bool, []string, CompleterFlags) {
-
-	// Split into name and value and try to find Option
-	name, val, novalue := prs.splitOptVal(arg)
-	opt := prs.findOption(name)
-	if opt == nil {
-		// Unknown option; try name auto-completion, if we are
-		// at the end of argv
-		if prs.done() {
-			compl, flags := prs.completeOptionName(arg)
-			return false, compl, flags
-		}
-
-		// Option is unknown and we are not at the end of argv.
-		//
-		// We have to terminate auto-completion, terminate
-		// auto-completion, because we can't tell if the next
-		// argument is part of the option, so synchronization
-		// is lost here.
-		return true, nil, 0
-	}
-
-	// Do nothing if this is an Option without argument.
-	// This is a good choice even if this is a sequence
-	// of combined short options.
-	if !opt.withValue() {
-		return false, nil, 0
-	}
-
-	// Option with value in the next argument. We must consume
-	// this argument here.
-	if novalue {
-		val = prs.next()
-	}
-
-	// If we are at the end of argv, auto-complete
-	if prs.done() {
-		compl, flags := opt.complete(val)
-		compl, flags = prs.completePostProcess(val, compl, flags)
-		return true, compl, flags
-	}
-
-	return false, nil, 0
-}
-
-// completeShortOption handles auto-completion for positional
-// Parameters. 'n' is the count of preceding Parameters.
-func (prs *parser) completeParameter(arg string, n int) (bool, []string) {
-	var paramFound *Parameter
-
-	for i := range prs.inv.cmd.Parameters {
-		param := &prs.inv.cmd.Parameters[i]
-		if i == n || param.repeated() {
-			paramFound = param
-			break
-		}
-	}
-
-	if paramFound != nil {
-		compl, flags := paramFound.complete(arg)
-		compl, flags = prs.completePostProcess(arg, compl, flags)
-		return true, compl
-	}
-
-	return true, nil
-}
-
-// completeShortOption handles auto-completion for sub-commands
-func (prs *parser) completeSubCommand(arg string) (bool,
-	[]string, CompleterFlags) {
-
-	var compl []string
-	var flags CompleterFlags
-
-	for i := range prs.inv.cmd.SubCommands {
-		subcmd := &prs.inv.cmd.SubCommands[i]
-		names := subcmd.names()
-
-		for _, name := range names {
-			if strings.HasPrefix(name, arg) {
-				compl = append(compl, name)
-			}
-		}
-	}
-
-	compl, flags = prs.completePostProcess(arg, compl, 0)
-
-	return true, compl, flags
-}
-
-// completeOptionName returns slice of completion candidates for
-// Option name
-func (prs *parser) completeOptionName(arg string) ([]string, CompleterFlags) {
-	var compl []string
-	var flags CompleterFlags
-
-	for i := range prs.inv.cmd.Options {
-		opt := &prs.inv.cmd.Options[i]
-
-		if strings.HasPrefix(opt.Name, arg) {
-			compl = append(compl, opt.Name)
-		}
-
-		for _, name := range opt.Aliases {
-			compl = append(compl, name)
-		}
-	}
-
-	compl, flags = prs.completePostProcess(arg, compl, 0)
-
-	return compl, flags
-}
-
 // buildByName populates prs.inv.byName map
 func (prs *parser) buildByName() {
 	// Save options values
@@ -564,6 +340,217 @@ func (prs *parser) validateThings() error {
 	return nil
 }
 
+// complete handles command auto-completion
+func (prs *parser) complete() (compl []string, flags CompleterFlags) {
+	doneOptions := false
+	paramCount := 0
+
+	// Roll over all arguments. Here our goals are:
+	//
+	//   - handle "--" switch, so we know when options end
+	//   - count parameters, so we know what positional parameter
+	//     to complete
+	//   - skip short options arguments, so we don't mess them
+	//     with parameters.
+	//
+	// If we find unknown option in the middle we can't know if
+	// the subsequent argument is the option value or separate
+	// parameter or option - so completion fails at this point.
+	for !prs.done() {
+		arg := prs.next()
+
+		switch {
+		case !doneOptions && arg == "--":
+			doneOptions = true
+
+		case !doneOptions && strings.HasPrefix(arg, "-"):
+			name, val, novalue := prs.splitOptVal(arg)
+			opt := prs.findOption(name)
+
+			needvalue := false
+			if opt != nil {
+				needvalue = novalue && opt.withValue()
+			}
+
+			switch {
+			case !prs.done() && opt == nil:
+				// Abort if we have unknown option
+				// in the middle
+				return nil, 0
+
+			case !prs.done() && needvalue:
+				// Complete or skip the value
+				val = prs.next()
+				if prs.done() {
+					return prs.completeOptionValue(opt, val)
+				}
+
+			case prs.done():
+				if novalue {
+					// Argument doesn't contain option
+					// value, so complete the name.
+					return prs.completeOptionName(arg)
+				}
+
+				if opt != nil {
+					// If option is not unknown, we may
+					// try to complete the value.
+					return prs.completeOptionValue(opt, val)
+				}
+
+				return nil, 0
+			}
+
+		case prs.inv.cmd.hasSubCommands():
+			subcmd, _ := prs.inv.cmd.FindSubCommand(arg)
+
+			// If we have a sub-command here and there are more
+			// argv[] arguments, simply let sub-command to
+			// complete self
+			if subcmd != nil && !prs.done() {
+				argv := prs.inv.argv[prs.nextarg:]
+				return subcmd.Complete(argv)
+			}
+
+			// If we are at the end of argv, complete
+			// sub-command name
+			if prs.done() {
+				return prs.completeSubCommandName(arg)
+			}
+
+			// We are still at the middle of argv and
+			// encountered unknown sub-command. Just abort
+			// at this case.
+			return nil, 0
+
+		default:
+			// This is positional parameter. Count passed
+			// parameters and complete the latest.
+			if !prs.done() {
+				paramCount++
+			} else {
+				return prs.completeParameter(arg, paramCount)
+			}
+		}
+	}
+
+	switch {
+	case prs.inv.cmd.hasParameters():
+		compl, flags = prs.completeParameter("", paramCount)
+
+	case prs.inv.cmd.hasSubCommands():
+		compl, flags = prs.completeSubCommandName("")
+	}
+
+	return
+}
+
+// completeOptionName returns slice of completion candidates for
+// Option name
+func (prs *parser) completeOptionName(arg string) (
+	compl []string, flags CompleterFlags) {
+
+	for i := range prs.inv.cmd.Options {
+		opt := &prs.inv.cmd.Options[i]
+
+		for _, name := range opt.names() {
+			if strings.HasPrefix(name, arg) {
+				compl = append(compl, name)
+			}
+		}
+	}
+
+	return prs.completePostProcess(arg, compl, 0)
+}
+
+// completeOption handles auto-completion for options.
+func (prs *parser) completeOptionValue(opt *Option, arg string) (
+	compl []string, flags CompleterFlags) {
+
+	compl, flags = opt.complete(arg)
+	compl, flags = prs.completePostProcess(arg, compl, flags)
+
+	return
+}
+
+// completeParameter handles auto-completion for positional
+// Parameters. 'n' is the count of preceding Parameters.
+func (prs *parser) completeParameter(arg string, n int) (
+	compl []string, flags CompleterFlags) {
+
+	var paramFound *Parameter
+
+	for i := range prs.inv.cmd.Parameters {
+		param := &prs.inv.cmd.Parameters[i]
+		if i == n || param.repeated() {
+			paramFound = param
+			break
+		}
+	}
+
+	if paramFound != nil {
+		compl, flags := paramFound.complete(arg)
+		return prs.completePostProcess(arg, compl, flags)
+	}
+
+	return
+}
+
+// completeShortOption handles auto-completion for sub-commands
+func (prs *parser) completeSubCommandName(arg string) (
+	compl []string, flags CompleterFlags) {
+
+	for i := range prs.inv.cmd.SubCommands {
+		subcmd := &prs.inv.cmd.SubCommands[i]
+		names := subcmd.names()
+
+		for _, name := range names {
+			if strings.HasPrefix(name, arg) {
+				compl = append(compl, name)
+			}
+		}
+	}
+
+	return prs.completePostProcess(arg, compl, 0)
+}
+
+// completePostProcess post-processes completion candidates for
+// the given argument.
+//
+// Returns (done/compl/flags) tuple.
+func (prs *parser) completePostProcess(arg string,
+	compl []string, flags CompleterFlags) ([]string, CompleterFlags) {
+	// For sanity: drop candidates, that doesn't contain arg
+	// as prefix. It actually should never happen, but..
+	var complCount int
+	for i := range compl {
+		if strings.HasPrefix(compl[i], arg) {
+			compl[complCount] = compl[i]
+			complCount++
+		}
+	}
+
+	compl = compl[:complCount]
+
+	// If we have multiple candidates with the common prefix
+	// that is longer that arg, just return that common prefix
+	// as a single candidate, so when user presses Tab, the
+	// completion will go to that common point
+	if len(compl) > 1 {
+		prefix := strCommonPrefixSlice(compl)
+
+		// If prefix is longer that arg, it means that all possible
+		// candidates has common prefix, so just return it as a single
+		// suggestion, so completion will go to that point.
+		if len(prefix) > len(arg) {
+			compl = []string{prefix}
+			flags |= CompleterNoSpace
+		}
+	}
+
+	return compl, flags
+}
+
 // isShortOption tells if argument is a short option
 func (prs *parser) isShortOption(arg string) bool {
 	return len(arg) >= 2 && arg[0] == '-' && arg[1] != '-'
@@ -579,6 +566,9 @@ func (prs *parser) isLongOption(arg string) bool {
 //
 //	-cVAL     - short option case
 //	-long=val - long option case
+//
+// It returns option name and value and the indication that value
+// is actually missed (which is not necessarily the same as "" value).
 func (prs *parser) splitOptVal(arg string) (name, val string, novalue bool) {
 	switch {
 	case prs.isShortOption(arg):
@@ -597,6 +587,9 @@ func (prs *parser) splitOptVal(arg string) (name, val string, novalue bool) {
 			name = arg
 			novalue = true
 		}
+
+	default:
+		novalue = true
 	}
 
 	return
