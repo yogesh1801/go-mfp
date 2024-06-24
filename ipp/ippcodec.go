@@ -40,18 +40,7 @@ const (
 //
 // This function will panic, if codec cannot be generated.
 func ippEncodeAttrs(obj Object) goipp.Attributes {
-	t := reflect.TypeOf(obj)
-	if t.Kind() != reflect.Pointer {
-		err := fmt.Errorf("%s is not pointer to structure",
-			diagTypeName(t))
-		panic(err)
-	}
-
-	codec, err := ippCodecGenerate(t.Elem())
-	if err != nil {
-		panic(err)
-	}
-
+	codec := ippCodecGet(obj)
 	return codec.encodeAttrs(obj)
 }
 
@@ -63,19 +52,9 @@ func ippEncodeAttrs(obj Object) goipp.Attributes {
 //
 // This function will panic, if codec cannot be generated.
 func ippDecodeAttrs(obj Object, attrs goipp.Attributes) error {
-	t := reflect.TypeOf(obj)
-	if t.Kind() != reflect.Pointer {
-		err := fmt.Errorf("%s is not pointer to structure",
-			diagTypeName(t))
-		panic(err)
-	}
+	codec := ippCodecGet(obj)
 
-	codec, err := ippCodecGenerate(t.Elem())
-	if err != nil {
-		panic(err)
-	}
-
-	err = codec.decodeAttrs(obj, attrs)
+	err := codec.decodeAttrs(obj, attrs)
 	if err == nil {
 		obj.Attrs().set(attrs)
 	}
@@ -87,18 +66,7 @@ func ippDecodeAttrs(obj Object, attrs goipp.Attributes) error {
 //
 // This function will panic, if codec cannot be generated.
 func ippKnownAttrs(obj Object) []AttrInfo {
-	t := reflect.TypeOf(obj)
-	if t.Kind() != reflect.Pointer {
-		err := fmt.Errorf("%s is not pointer to structure",
-			diagTypeName(t))
-		panic(err)
-	}
-
-	codec, err := ippCodecGenerate(t.Elem())
-	if err != nil {
-		panic(err)
-	}
-
+	codec := ippCodecGet(obj)
 	return codec.knownAttrs
 }
 
@@ -144,14 +112,43 @@ func ippCodecMustGenerate(t reflect.Type) *ippCodec {
 	return codec
 }
 
+// ippCodecGet returns codec for the Object. Codecs are generated
+// on demand and cached.
+//
+// This function will panic, if codec generation fails.
+func ippCodecGet(obj Object) *ippCodec {
+	// Check obj type. It MUST be pointer to structure
+	// that implements Object interface.
+	t := reflect.TypeOf(obj)
+	if t.Kind() != reflect.Pointer {
+		err := fmt.Errorf("%s is not pointer to structure",
+			diagTypeName(t))
+		panic(err)
+	}
+
+	// We need reflect.Type of the structure, not pointer
+	t = t.Elem()
+
+	// Lookup cache
+	if cached, ok := ippCodecCache.Load(t); ok {
+		return cached.(*ippCodec)
+	}
+
+	// Generate now
+	codec, err := ippCodecGenerate(t)
+	if err != nil {
+		panic(err)
+	}
+
+	// Update cache and return
+	ippCodecCache.Store(t, codec)
+
+	return codec
+}
+
 // ippCodecGenerate generates codec for the particular type.
 // It manages and uses a cache of successfully generated codecs.
 func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
-	// Lookup cache
-	if cached, ok := ippCodecCache.Load(t); ok {
-		return cached.(*ippCodec), nil
-	}
-
 	// Compile new codec
 	attrNames := make(map[string]string)
 	codec, err := ippCodecGenerateInternal(t, attrNames)
@@ -173,9 +170,7 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 		codec.knownAttrs[i].Tag = codec.steps[i].attrTag
 	}
 
-	// Update cache and return
-	ippCodecCache.Store(t, codec)
-
+	// Done for now!
 	return codec, nil
 }
 
