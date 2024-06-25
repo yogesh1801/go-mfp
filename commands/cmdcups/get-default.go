@@ -19,7 +19,7 @@ import (
 	"github.com/alexpevzner/mfp/transport"
 )
 
-// cmdGetDefault defines "get-default" command
+// cmdGetDefault defines the "get-default" sub-command
 var cmdGetDefault = argv.Command{
 	Name:    "get-default",
 	Help:    "Get default printer",
