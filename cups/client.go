@@ -49,3 +49,37 @@ func (c *Client) CUPSGetDefault(ctx context.Context,
 
 	return rsp.Printer, nil
 }
+
+// CUPSGetPrinters returns printer attributes for printers known
+// to the system.
+//
+// If [GetPrintersSelection] argument is not nil, it allows to
+// specify a subset of printers to be returned.
+func (c *Client) CUPSGetPrinters(ctx context.Context,
+	sel *GetPrintersSelection, attrs []string) (
+	[]*ipp.PrinterAttributes, error) {
+
+	if sel == nil {
+		sel = DefaultGetPrintersSelection
+	}
+
+	rq := &ipp.CUPSGetPrintersRequest{
+		FirstPrinterName:    sel.FirstPrinterName,
+		Limit:               sel.Limit,
+		PrinterID:           sel.PrinterID,
+		PrinterLocation:     sel.PrinterLocation,
+		PrinterType:         sel.PrinterType,
+		PrinterTypeMask:     sel.PrinterTypeMask,
+		RequestedUserName:   sel.RequestedUserName,
+		RequestedAttributes: attrs,
+	}
+
+	rsp := &ipp.CUPSGetPrintersResponse{}
+
+	err := c.IPPClient.Do(ctx, rq, rsp)
+	if err != nil {
+		return nil, err
+	}
+
+	return rsp.Printer, nil
+}
