@@ -34,7 +34,35 @@ type (
 		// Other attributes.
 		Printer *PrinterAttributes
 	}
+
+	// CUPSGetPrintersRequest operation (0x4002) returns the printer
+	// attributes for every printer known to the system.
+	CUPSGetPrintersRequest struct {
+		ObjectAttrs
+		RequestHeader
+
+		// Operation attributes
+		FirstPrinterName    string   `ipp:"?first-printer-name"`
+		Limit               int      `ipp:"?limit"`
+		PrinterID           int      `ipp:"?printer-id"`
+		PrinterLocation     string   `ipp:"?printer-location"`
+		PrinterType         int      `ipp:"?printer-type"`
+		PrinterTypeMask     int      `ipp:"?printer-type-mask"`
+		RequestedUserName   string   `ipp:"?requested-user-name"`
+		RequestedAttributes []string `ipp:"?requested-attributes,keyword"`
+	}
+
+	// CUPSGetPrintersResponse is the CUPS-Get-Printers Response.
+	CUPSGetPrintersResponse struct {
+		ObjectAttrs
+		ResponseHeader
+
+		// Other attributes.
+		Printer *PrinterAttributes
+	}
 )
+
+// ----- CUPS-Get-Default methods -----
 
 // GetOp returns CUPSGetDefaultRequest IPP Operation code.
 func (rq *CUPSGetDefaultRequest) GetOp() goipp.Op {
@@ -105,6 +133,97 @@ func (rsp *CUPSGetDefaultResponse) Encode() *goipp.Message {
 
 // Decode decodes CUPSGetDefaultResponse from goipp.Message.
 func (rsp *CUPSGetDefaultResponse) Decode(msg *goipp.Message) error {
+	rsp.Version = msg.Version
+	rsp.RequestID = msg.RequestID
+	rsp.Status = goipp.Status(msg.Code)
+
+	err := ippDecodeAttrs(rsp, msg.Operation)
+	if err != nil {
+		return err
+	}
+
+	if len(msg.Printer) != 0 {
+		rsp.Printer = &PrinterAttributes{}
+		err = ippDecodeAttrs(rsp.Printer, msg.Printer)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ----- CUPS-Get-Printers methods -----
+
+// GetOp returns CUPSGetPrintersRequest IPP Operation code.
+func (rq *CUPSGetPrintersRequest) GetOp() goipp.Op {
+	return goipp.OpCupsGetPrinters
+}
+
+// KnownAttrs returns information about all known IPP attributes
+// of the CUPSGetPrintersRequest
+func (rq *CUPSGetPrintersRequest) KnownAttrs() []AttrInfo {
+	return ippKnownAttrs(rq)
+}
+
+// Encode encodes CUPSGetPrintersRequest into the goipp.Message.
+func (rq *CUPSGetPrintersRequest) Encode() *goipp.Message {
+	groups := goipp.Groups{
+		{
+			Tag:   goipp.TagOperationGroup,
+			Attrs: ippEncodeAttrs(rq),
+		},
+	}
+
+	msg := goipp.NewMessageWithGroups(rq.Version, goipp.Code(rq.GetOp()),
+		rq.RequestID, groups)
+
+	return msg
+}
+
+// Decode decodes CUPSGetPrintersRequest from goipp.Groups.
+func (rq *CUPSGetPrintersRequest) Decode(msg *goipp.Message) error {
+	rq.Version = msg.Version
+	rq.RequestID = msg.RequestID
+
+	err := ippDecodeAttrs(rq, msg.Operation)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// KnownAttrs returns information about all known IPP attributes
+// of the CUPSGetPrintersResponse.
+func (rsp *CUPSGetPrintersResponse) KnownAttrs() []AttrInfo {
+	return ippKnownAttrs(rsp)
+}
+
+// Encode encodes CUPSGetPrintersResponse into goipp.Message.
+func (rsp *CUPSGetPrintersResponse) Encode() *goipp.Message {
+	groups := goipp.Groups{
+		{
+			Tag:   goipp.TagOperationGroup,
+			Attrs: ippEncodeAttrs(rsp),
+		},
+	}
+
+	if rsp.Printer != nil {
+		groups.Add(goipp.Group{
+			Tag:   goipp.TagPrinterGroup,
+			Attrs: ippEncodeAttrs(rsp.Printer),
+		})
+	}
+
+	msg := goipp.NewMessageWithGroups(rsp.Version, goipp.Code(rsp.Status),
+		rsp.RequestID, groups)
+
+	return msg
+}
+
+// Decode decodes CUPSGetPrintersResponse from goipp.Message.
+func (rsp *CUPSGetPrintersResponse) Decode(msg *goipp.Message) error {
 	rsp.Version = msg.Version
 	rsp.RequestID = msg.RequestID
 	rsp.Status = goipp.Status(msg.Code)
