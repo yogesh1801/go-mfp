@@ -26,8 +26,7 @@ var cmdGetDefault = argv.Command{
 	Handler: cmdGetDefaultHandler,
 	Options: []argv.Option{
 		{
-			Name:     "-a",
-			Aliases:  []string{"--attrs"},
+			Name:     "--attrs",
 			Help:     "Additional attributes",
 			Validate: argv.ValidateAny,
 			Complete: optAttrsComplete,
