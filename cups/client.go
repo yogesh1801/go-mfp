@@ -64,6 +64,7 @@ func (c *Client) CUPSGetPrinters(ctx context.Context,
 	}
 
 	rq := &ipp.CUPSGetPrintersRequest{
+		RequestHeader:       ipp.DefaultRequestHeader,
 		FirstPrinterName:    sel.FirstPrinterName,
 		Limit:               sel.Limit,
 		PrinterID:           sel.PrinterID,
