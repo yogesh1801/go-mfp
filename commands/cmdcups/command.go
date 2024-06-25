@@ -32,6 +32,7 @@ var Command = argv.Command{
 	},
 	SubCommands: []argv.Command{
 		cmdGetDefault,
+		cmdGetPrinters,
 		argv.HelpCommand,
 	},
 }
