@@ -58,7 +58,7 @@ type (
 		ResponseHeader
 
 		// Other attributes.
-		Printer *PrinterAttributes
+		Printer []*PrinterAttributes
 	}
 )
 
@@ -209,10 +209,10 @@ func (rsp *CUPSGetPrintersResponse) Encode() *goipp.Message {
 		},
 	}
 
-	if rsp.Printer != nil {
+	for _, prn := range rsp.Printer {
 		groups.Add(goipp.Group{
 			Tag:   goipp.TagPrinterGroup,
-			Attrs: ippEncodeAttrs(rsp.Printer),
+			Attrs: ippEncodeAttrs(prn),
 		})
 	}
 
@@ -233,11 +233,15 @@ func (rsp *CUPSGetPrintersResponse) Decode(msg *goipp.Message) error {
 		return err
 	}
 
-	if len(msg.Printer) != 0 {
-		rsp.Printer = &PrinterAttributes{}
-		err = ippDecodeAttrs(rsp.Printer, msg.Printer)
-		if err != nil {
-			return err
+	for _, grp := range msg.Groups {
+		if grp.Tag == goipp.TagPrinterGroup && len(grp.Attrs) > 0 {
+			prn := &PrinterAttributes{}
+			err = ippDecodeAttrs(prn, grp.Attrs)
+			if err != nil {
+				return err
+			}
+
+			rsp.Printer = append(rsp.Printer, prn)
 		}
 	}
 
