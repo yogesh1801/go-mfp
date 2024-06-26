@@ -336,6 +336,9 @@ func ippCodecGenerateInternal(t reflect.Type,
 			// Underlying type registered as keyword.
 			// Use goipp.TagKeyword.
 			step.attrTag = goipp.TagKeyword
+		} else if _, found := enRegisteredTypes[fldType]; found {
+			// Use goipp.TagEnum for registered enum types.
+			step.attrTag = goipp.TagEnum
 		}
 
 		if step.attrTag == 0 {
