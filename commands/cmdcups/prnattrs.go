@@ -24,6 +24,7 @@ var prnAttrsRequested = []string{
 	"printer-is-shared",
 	"printer-is-temporary",
 	"printer-name",
+	"printer-type",
 	"printer-uri-supported",
 }
 
@@ -32,10 +33,12 @@ func prnAttrsFormat(w io.Writer, prn *ipp.PrinterAttributes) {
 	fmt.Fprintf(w, "%s:\n", prn.PrinterName)
 
 	fmt.Fprintf(w, "  General information:\n")
-	fmt.Fprintf(w, "    URL:       %s\n", prn.PrinterURISupported)
-	fmt.Fprintf(w, "    ID:        %d\n", prn.PrinterID)
-	fmt.Fprintf(w, "    Shared:    %v\n", prn.PrinterIsShared)
-	fmt.Fprintf(w, "    Temporary: %v\n", prn.PrinterIsTemporary)
+	fmt.Fprintf(w, "    URL:          %s\n", prn.PrinterURISupported)
+	fmt.Fprintf(w, "    ID:           %d\n", prn.PrinterID)
+	fmt.Fprintf(w, "    Shared:       %v\n", prn.PrinterIsShared)
+	fmt.Fprintf(w, "    Temporary:    %v\n", prn.PrinterIsTemporary)
+	fmt.Fprintf(w, "    Printer Type: 0x%x\n", int(prn.PrinterType))
+	fmt.Fprintf(w, "    Decoded Type: %s\n", prn.PrinterType)
 	fmt.Fprintf(w, "\n")
 
 	fmt.Fprintf(w, "  Printer attributes:\n")
