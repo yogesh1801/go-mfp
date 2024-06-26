@@ -92,9 +92,10 @@ type PrinterDescription struct {
 	URISecuritySupported              []KwURISecurity         `ipp:"uri-security-supported"`
 
 	// CUPS extensions to Printer Description Attributes
-	PrinterID          int  `ipp:"?printer-id"`
-	PrinterIsShared    bool `ipp:"?printer-is-shared"`
-	PrinterIsTemporary bool `ipp:"?printer-is-temporary"`
+	PrinterID          int           `ipp:"?printer-id"`
+	PrinterIsShared    bool          `ipp:"?printer-is-shared"`
+	PrinterIsTemporary bool          `ipp:"?printer-is-temporary"`
+	PrinterType        EnPrinterType `ipp:"?printer-type"`
 
 	// PWG5100.7: IPP Job Extensions v2.1 (JOBEXT)
 	// 6.9 Printer Description Attributes
