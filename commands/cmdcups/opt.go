@@ -9,10 +9,12 @@
 package cmdcups
 
 import (
+	"net/url"
 	"strings"
 
 	"github.com/alexpevzner/mfp/argv"
 	"github.com/alexpevzner/mfp/ipp"
+	"github.com/alexpevzner/mfp/transport"
 )
 
 // optAttrsGet returns --attrs option (list of requested attributes).
@@ -48,4 +50,16 @@ func optAttrsComplete(arg string) (compl []string, flags argv.CompleterFlags) {
 	}
 
 	return
+}
+
+// optCUPSURL returns CUPS URL (-u/--cups option).
+// If option is not set, it uses default destination.
+func optCUPSURL(inv *argv.Invocation) *url.URL {
+	dest := transport.DefaultCupsUNIX
+
+	if addr, ok := inv.Parent().Get("-u"); ok {
+		dest = transport.MustParseAddr(addr, "ipp://localhost/")
+	}
+
+	return dest
 }

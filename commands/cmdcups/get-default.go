@@ -16,7 +16,6 @@ import (
 	"github.com/alexpevzner/mfp/argv"
 	"github.com/alexpevzner/mfp/cups"
 	"github.com/alexpevzner/mfp/env"
-	"github.com/alexpevzner/mfp/transport"
 )
 
 // cmdGetDefault defines the "get-default" sub-command
@@ -37,11 +36,7 @@ var cmdGetDefault = argv.Command{
 
 // cmdGetDefaultHandler is the "get-default" command handler
 func cmdGetDefaultHandler(ctx context.Context, inv *argv.Invocation) error {
-	dest := transport.DefaultCupsUNIX
-
-	if addr, ok := inv.Parent().Get("-u"); ok {
-		dest = transport.MustParseAddr(addr, "ipp://localhost/")
-	}
+	dest := optCUPSURL(inv)
 
 	attrList := optAttrsGet(inv)
 	attrList = append(attrList, "printer-name", "printer-uri-supported")

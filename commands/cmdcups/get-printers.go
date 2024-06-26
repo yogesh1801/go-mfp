@@ -18,7 +18,6 @@ import (
 	"github.com/alexpevzner/mfp/argv"
 	"github.com/alexpevzner/mfp/cups"
 	"github.com/alexpevzner/mfp/env"
-	"github.com/alexpevzner/mfp/transport"
 )
 
 // cmdGetPrinters defines the "get-printers" sub-command.
@@ -56,11 +55,7 @@ var cmdGetPrinters = argv.Command{
 // cmdGetPrintersHandler is the "get-printers" command handler
 func cmdGetPrintersHandler(ctx context.Context, inv *argv.Invocation) error {
 	// Prepare arguments
-	dest := transport.DefaultCupsUNIX
-
-	if addr, ok := inv.Parent().Get("-u"); ok {
-		dest = transport.MustParseAddr(addr, "ipp://localhost/")
-	}
+	dest := optCUPSURL(inv)
 
 	sel := &cups.GetPrintersSelection{}
 
