@@ -10,9 +10,7 @@ package cmdcups
 
 import (
 	"context"
-	"sort"
 
-	"github.com/OpenPrinting/goipp"
 	"github.com/alexpevzner/mfp/argv"
 	"github.com/alexpevzner/mfp/cups"
 	"github.com/alexpevzner/mfp/env"
@@ -39,7 +37,7 @@ func cmdGetDefaultHandler(ctx context.Context, inv *argv.Invocation) error {
 	dest := optCUPSURL(inv)
 
 	attrList := optAttrsGet(inv)
-	attrList = append(attrList, "printer-name", "printer-uri-supported")
+	attrList = append(attrList, prnAttrsRequested...)
 
 	pager := env.NewPager()
 
@@ -51,21 +49,7 @@ func cmdGetDefaultHandler(ctx context.Context, inv *argv.Invocation) error {
 		return err
 	}
 
-	pager.Printf("Name: %s", prn.PrinterName)
-	pager.Printf("URL:  %s", prn.PrinterURISupported)
-
-	pager.Printf("Printer attributes:")
-
-	attrs := prn.Attrs().All().Clone()
-	sort.Slice(attrs, func(i, j int) bool {
-		return attrs[i].Name < attrs[j].Name
-	})
-
-	f := goipp.NewFormatter()
-	f.SetIndent(2)
-	f.FmtAttributes(attrs)
-
-	f.WriteTo(pager)
+	prnAttrsFormat(pager, prn)
 
 	return pager.Display()
 }

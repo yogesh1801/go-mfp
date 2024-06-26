@@ -1,0 +1,48 @@
+// MFP - Miulti-Function Printers and scanners toolkit
+// The "cups" command
+//
+// Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
+// See LICENSE for license terms and conditions
+//
+// Printer information pretty-printer
+
+package cmdcups
+
+import (
+	"fmt"
+	"io"
+
+	"github.com/OpenPrinting/goipp"
+	"github.com/alexpevzner/mfp/ipp"
+)
+
+// prnAttrsRequested lists attributes that provide a general printer
+// information, hence they are always requested by commands like
+// "get-default", "get-printers" and similar.
+var prnAttrsRequested = []string{
+	"printer-id",
+	"printer-is-shared",
+	"printer-is-temporary",
+	"printer-name",
+	"printer-uri-supported",
+}
+
+// prnAttrsFormat pretty-prints [ipp.PrinterAttributes]
+func prnAttrsFormat(w io.Writer, prn *ipp.PrinterAttributes) {
+	fmt.Fprintf(w, "%s:\n", prn.PrinterName)
+
+	fmt.Fprintf(w, "  General information:\n")
+	fmt.Fprintf(w, "    URL:       %s\n", prn.PrinterURISupported)
+	fmt.Fprintf(w, "    ID:        %d\n", prn.PrinterID)
+	fmt.Fprintf(w, "    Shared:    %v\n", prn.PrinterIsShared)
+	fmt.Fprintf(w, "    Temporary: %v\n", prn.PrinterIsTemporary)
+	fmt.Fprintf(w, "\n")
+
+	fmt.Fprintf(w, "  Printer attributes:\n")
+
+	f := goipp.NewFormatter()
+	f.SetIndent(4)
+	f.FmtAttributes(prn.Attrs().All().Clone())
+
+	f.WriteTo(w)
+}
