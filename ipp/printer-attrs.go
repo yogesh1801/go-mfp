@@ -91,6 +91,11 @@ type PrinterDescription struct {
 	URIAuthenticationSupported        []KwURIAuthentication   `ipp:"uri-authentication-supported"`
 	URISecuritySupported              []KwURISecurity         `ipp:"uri-security-supported"`
 
+	// CUPS extensions to Printer Description Attributes
+	PrinterID          int  `ipp:"?printer-id"`
+	PrinterIsShared    bool `ipp:"?printer-is-shared"`
+	PrinterIsTemporary bool `ipp:"?printer-is-temporary"`
+
 	// PWG5100.7: IPP Job Extensions v2.1 (JOBEXT)
 	// 6.9 Printer Description Attributes
 	ClientInfoSupported              []string             `ipp:"?client-info-supported,keyword"`
