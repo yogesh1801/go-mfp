@@ -92,6 +92,7 @@ type PrinterDescription struct {
 	URISecuritySupported              []KwURISecurity         `ipp:"uri-security-supported"`
 
 	// CUPS extensions to Printer Description Attributes
+	DeviceURI          []string      `ipp:"?device-uri,uri"`
 	PrinterID          int           `ipp:"?printer-id"`
 	PrinterIsShared    bool          `ipp:"?printer-is-shared"`
 	PrinterIsTemporary bool          `ipp:"?printer-is-temporary"`
