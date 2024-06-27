@@ -19,7 +19,7 @@ type (
 	// CUPSGetDefaultRequest operation (0x4001) returns the default printer URI
 	// and attributes.
 	CUPSGetDefaultRequest struct {
-		ObjectAttrs
+		ObjectRawAttrs
 		RequestHeader
 
 		// Operation attributes
@@ -28,7 +28,7 @@ type (
 
 	// CUPSGetDefaultResponse is the CUPS-Get-Default Response.
 	CUPSGetDefaultResponse struct {
-		ObjectAttrs
+		ObjectRawAttrs
 		ResponseHeader
 
 		// Other attributes.
@@ -38,7 +38,7 @@ type (
 	// CUPSGetPrintersRequest operation (0x4002) returns the printer
 	// attributes for every printer known to the system.
 	CUPSGetPrintersRequest struct {
-		ObjectAttrs
+		ObjectRawAttrs
 		RequestHeader
 
 		// Operation attributes
@@ -54,7 +54,7 @@ type (
 
 	// CUPSGetPrintersResponse is the CUPS-Get-Printers Response.
 	CUPSGetPrintersResponse struct {
-		ObjectAttrs
+		ObjectRawAttrs
 		ResponseHeader
 
 		// Other attributes.

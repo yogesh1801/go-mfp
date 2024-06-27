@@ -49,8 +49,8 @@ func testDiffStruct(s1, s2 interface{}) string {
 			continue
 		}
 
-		if fld.Type == reflect.TypeOf(ObjectAttrs{}) {
-			// Skip embedded ObjectAttrs; it will never match
+		if fld.Type == reflect.TypeOf(ObjectRawAttrs{}) {
+			// Skip embedded ObjectRawAttrs; it will never match
 			continue
 		}
 

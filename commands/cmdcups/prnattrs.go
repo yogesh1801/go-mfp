@@ -47,7 +47,7 @@ func prnAttrsFormat(w io.Writer, prn *ipp.PrinterAttributes) {
 
 	f := goipp.NewFormatter()
 	f.SetIndent(4)
-	f.FmtAttributes(prn.Attrs().All().Clone())
+	f.FmtAttributes(prn.RawAttrs().All().Clone())
 
 	f.WriteTo(w)
 }

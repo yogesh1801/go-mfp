@@ -16,48 +16,48 @@ import "github.com/OpenPrinting/goipp"
 //
 // It gives access to the underlying raw IPP attributes.
 //
-// Every concrete IPP-encodable structure MUST embed ObjectAttrs
+// Every concrete IPP-encodable structure MUST embed ObjectRawAttrs
 // to implement this interface.
 type Object interface {
-	// Attrs returns ObjectAttrs embedded into the structure
-	Attrs() *ObjectAttrs
+	// RawAttrs returns ObjectRawAttrs embedded into the structure
+	RawAttrs() *ObjectRawAttrs
 
 	// KnownAttributes return information about known
 	// attributes of the Object
 	KnownAttrs() []AttrInfo
 }
 
-// ObjectAttrs MUST be embedded into every IPP-encodable structure.
+// ObjectRawAttrs MUST be embedded into every IPP-encodable structure.
 // It gives access to raw IPP attributes and implements [Object]
 // interface.
-type ObjectAttrs struct {
+type ObjectRawAttrs struct {
 	attrs  goipp.Attributes
 	byName map[string]goipp.Attribute
 }
 
-// Attrs returns [ObjectAttrs], which gives uniform
+// RawAttrs returns [ObjecRawtAttrs], which gives uniform
 // access to the header of any [Object]
-func (objattrs *ObjectAttrs) Attrs() *ObjectAttrs {
-	return objattrs
+func (rawattrs *ObjectRawAttrs) RawAttrs() *ObjectRawAttrs {
+	return rawattrs
 }
 
 // All returns all [goipp.Attributes].
-func (objattrs *ObjectAttrs) All() goipp.Attributes {
-	return objattrs.attrs
+func (rawattrs *ObjectRawAttrs) All() goipp.Attributes {
+	return rawattrs.attrs
 }
 
 // Get returns [goipp.Attribute] by name.
-func (objattrs *ObjectAttrs) Get(name string) (
+func (rawattrs *ObjectRawAttrs) Get(name string) (
 	attr goipp.Attribute, found bool) {
 
-	attr, found = objattrs.byName[name]
+	attr, found = rawattrs.byName[name]
 	return
 }
 
 // set saves raw IPP attributes
-func (objattrs *ObjectAttrs) set(attrs goipp.Attributes) {
-	objattrs.attrs = make(goipp.Attributes, 0, len(attrs))
-	objattrs.byName = make(map[string]goipp.Attribute, len(attrs))
+func (rawattrs *ObjectRawAttrs) set(attrs goipp.Attributes) {
+	rawattrs.attrs = make(goipp.Attributes, 0, len(attrs))
+	rawattrs.byName = make(map[string]goipp.Attribute, len(attrs))
 
 	for _, attr := range attrs {
 		// If we see some attribute, the second occurrence is
@@ -65,9 +65,9 @@ func (objattrs *ObjectAttrs) set(attrs goipp.Attributes) {
 		//
 		// For details, see discussion here:
 		//   https://lore.kernel.org/printing-architecture/84EEF38C-152E-4779-B1E8-578D6BB896E6@msweet.org/
-		if _, found := objattrs.byName[attr.Name]; !found {
-			objattrs.byName[attr.Name] = attr
-			objattrs.attrs = append(objattrs.attrs, attr)
+		if _, found := rawattrs.byName[attr.Name]; !found {
+			rawattrs.byName[attr.Name] = attr
+			rawattrs.attrs = append(rawattrs.attrs, attr)
 		}
 	}
 }
