@@ -20,6 +20,7 @@ import (
 // information, hence they are always requested by commands like
 // "get-default", "get-printers" and similar.
 var prnAttrsRequested = []string{
+	"device-uri",
 	"printer-id",
 	"printer-is-shared",
 	"printer-is-temporary",
@@ -34,6 +35,7 @@ func prnAttrsFormat(w io.Writer, prn *ipp.PrinterAttributes) {
 
 	fmt.Fprintf(w, "  General information:\n")
 	fmt.Fprintf(w, "    URL:          %s\n", prn.PrinterURISupported)
+	fmt.Fprintf(w, "    Device URI:   %s\n", prn.DeviceURI)
 	fmt.Fprintf(w, "    ID:           %d\n", prn.PrinterID)
 	fmt.Fprintf(w, "    Shared:       %v\n", prn.PrinterIsShared)
 	fmt.Fprintf(w, "    Temporary:    %v\n", prn.PrinterIsTemporary)
