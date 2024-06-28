@@ -51,6 +51,12 @@ var cmdGetPrinters = argv.Command{
 			HelpArg:  "where",
 			Validate: argv.ValidateAny,
 		},
+		{
+			Name:     "--user",
+			Help:     "Show only printers accessible to that user",
+			HelpArg:  "name",
+			Validate: argv.ValidateAny,
+		},
 		argv.HelpOption,
 	},
 }
@@ -76,6 +82,8 @@ func cmdGetPrintersHandler(ctx context.Context, inv *argv.Invocation) error {
 
 	attrList := optAttrsGet(inv)
 	attrList = append(attrList, prnAttrsRequested...)
+
+	sel.User, _ = inv.Get("--user")
 
 	// Perform the query
 	pager := env.NewPager()
