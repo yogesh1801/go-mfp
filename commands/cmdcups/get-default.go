@@ -25,6 +25,7 @@ var cmdGetDefault = argv.Command{
 		{
 			Name:     "--attrs",
 			Help:     "Additional attributes",
+			HelpArg:  "attr,...",
 			Validate: argv.ValidateAny,
 			Complete: optAttrsComplete,
 		},

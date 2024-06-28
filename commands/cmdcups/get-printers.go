@@ -27,17 +27,20 @@ var cmdGetPrinters = argv.Command{
 		{
 			Name:     "--attrs",
 			Help:     "Additional attributes",
+			HelpArg:  "attr,...",
 			Validate: argv.ValidateAny,
 			Complete: optAttrsComplete,
 		},
 		{
 			Name:     "--id",
 			Help:     "Printer ID (1...65535)",
+			HelpArg:  "id",
 			Validate: argv.ValidateIntRange(0, 1, 65535),
 		},
 		{
 			Name:     "--limit",
 			Help:     "Maximum number of printers",
+			HelpArg:  "N",
 			Validate: argv.ValidateIntRange(0, 1, math.MaxInt32),
 		},
 		{
@@ -45,6 +48,7 @@ var cmdGetPrinters = argv.Command{
 			Help: "" +
 				`Printer location ` +
 				`(e.g., "2nd Floor Computer Lab")`,
+			HelpArg:  "where",
 			Validate: argv.ValidateAny,
 		},
 		argv.HelpOption,
