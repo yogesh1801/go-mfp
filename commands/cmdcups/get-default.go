@@ -22,13 +22,7 @@ var cmdGetDefault = argv.Command{
 	Help:    "Get default printer",
 	Handler: cmdGetDefaultHandler,
 	Options: []argv.Option{
-		{
-			Name:     "--attrs",
-			Help:     "Additional attributes",
-			HelpArg:  "attr,...",
-			Validate: argv.ValidateAny,
-			Complete: optAttrsComplete,
-		},
+		optAttrs,
 		argv.HelpOption,
 	},
 }

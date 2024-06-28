@@ -10,8 +10,6 @@ package cmdcups
 
 import (
 	"context"
-	"math"
-	"strconv"
 
 	"github.com/alexpevzner/mfp/argv"
 	"github.com/alexpevzner/mfp/cups"
@@ -24,39 +22,11 @@ var cmdGetPrinters = argv.Command{
 	Help:    "Get information on configured printers",
 	Handler: cmdGetPrintersHandler,
 	Options: []argv.Option{
-		{
-			Name:     "--attrs",
-			Help:     "Additional attributes",
-			HelpArg:  "attr,...",
-			Validate: argv.ValidateAny,
-			Complete: optAttrsComplete,
-		},
-		{
-			Name:     "--id",
-			Help:     "Printer ID (1...65535)",
-			HelpArg:  "id",
-			Validate: argv.ValidateIntRange(0, 1, 65535),
-		},
-		{
-			Name:     "--limit",
-			Help:     "Maximum number of printers",
-			HelpArg:  "N",
-			Validate: argv.ValidateIntRange(0, 1, math.MaxInt32),
-		},
-		{
-			Name: "--location",
-			Help: "" +
-				`Printer location ` +
-				`(e.g., "2nd Floor Computer Lab")`,
-			HelpArg:  "where",
-			Validate: argv.ValidateAny,
-		},
-		{
-			Name:     "--user",
-			Help:     "Show only printers accessible to that user",
-			HelpArg:  "name",
-			Validate: argv.ValidateAny,
-		},
+		optAttrs,
+		optID,
+		optLimit,
+		optLocation,
+		optUser,
 		argv.HelpOption,
 	},
 }
@@ -66,24 +36,15 @@ func cmdGetPrintersHandler(ctx context.Context, inv *argv.Invocation) error {
 	// Prepare arguments
 	dest := optCUPSURL(inv)
 
-	sel := &cups.GetPrintersSelection{}
-
-	if opt, ok := inv.Get("--id"); ok {
-		sel.PrinterID, _ = strconv.Atoi(opt)
-	}
-
-	if opt, ok := inv.Get("--limit"); ok {
-		sel.Limit, _ = strconv.Atoi(opt)
-	}
-
-	if opt, ok := inv.Get("--location"); ok {
-		sel.PrinterLocation = opt
+	sel := &cups.GetPrintersSelection{
+		PrinterID:       optIDGet(inv),
+		Limit:           optLimitGet(inv),
+		PrinterLocation: optLocationGet(inv),
+		User:            optUserGet(inv),
 	}
 
 	attrList := optAttrsGet(inv)
 	attrList = append(attrList, prnAttrsRequested...)
-
-	sel.User, _ = inv.Get("--user")
 
 	// Perform the query
 	pager := env.NewPager()
