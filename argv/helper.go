@@ -151,15 +151,29 @@ func (hlp *helper) describeOptions() {
 
 	for i := range cmd.Options {
 		opt := &cmd.Options[i]
-		names := hlpSpcOptionName + strings.Join(opt.names(), ", ")
-		hlp.puts(names)
+		names := opt.names()
+		namesHelp := hlpSpcOptionName + strings.Join(opt.names(), ", ")
+
+		if opt.HelpArg != "" {
+			if strings.HasPrefix(names[len(names)-1], "--") {
+				namesHelp += "="
+			} else {
+				namesHelp += " "
+			}
+
+			namesHelp += opt.HelpArg
+		}
+
+		hlp.puts(namesHelp)
 
 		help := strings.Split(opt.Help, "\n")
 		if len(help) > 0 {
-			if len(names)+hlpMinColumnSpace <= hlpOffOptionHelp {
+			if len(namesHelp)+hlpMinColumnSpace <=
+				hlpOffOptionHelp {
+
 				if help[0] != "" {
 					hlp.space(hlpOffOptionHelp -
-						len(names))
+						len(namesHelp))
 					hlp.puts(help[0])
 				}
 				hlp.nl()

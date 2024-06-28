@@ -78,6 +78,20 @@ var testCommandWithSubCommands = Command{
 			Name:        "connect",
 			Help:        "connect to the server",
 			Description: "connect establishes server connection",
+			Options: []Option{
+				{
+					Name:    "--attempts",
+					Aliases: []string{"-a"},
+					Help:    "connection attempts",
+					HelpArg: "N",
+				},
+				{
+					Name:     "--timeout",
+					Help:     "connection timeoit",
+					HelpArg:  "sec",
+					Validate: ValidateAny,
+				},
+			},
 		},
 		{
 			Name:        "disconnect",
@@ -111,7 +125,11 @@ Commands are:
 `
 
 var testCommandWithSubCommandsHelpConnect = `
-usage: connect
+usage: connect [options]
+
+Options are:
+  --attempts, -a N  connection attempts
+  --timeout=sec     connection timeoit
 
 connect establishes server connection
 `

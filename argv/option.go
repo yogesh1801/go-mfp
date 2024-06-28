@@ -64,6 +64,13 @@ type Option struct {
 	// Help string, a single-line description.
 	Help string
 
+	// Optional help on Option's argument. Is set, together with
+	// Option.Help displayed as follows:
+	//
+	// Options are:
+	//   --name=arg        The help string
+	HelpArg string
+
 	// Conflicts, if not nit, contains names of other Options
 	// that MUST NOT be used together with this option.
 	Conflicts []string
