@@ -49,6 +49,7 @@ type GetPrintersSelection struct {
 	PrinterType     int
 	PrinterTypeMask int
 
-	// TODO
-	RequestedUserName string
+	// If not empty, only printers accessible to that user will
+	// be returned. User name is the user's **login** name,
+	User string
 }
