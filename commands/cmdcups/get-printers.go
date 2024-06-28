@@ -42,8 +42,9 @@ var cmdGetPrinters = argv.Command{
 		},
 		{
 			Name: "--location",
-			Help: "Printer location " +
-				"(i.e., \"Printers at reception\")",
+			Help: "" +
+				`Printer location ` +
+				`(e.g., "2nd Floor Computer Lab")`,
 			Validate: argv.ValidateAny,
 		},
 		argv.HelpOption,
