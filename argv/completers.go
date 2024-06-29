@@ -9,9 +9,7 @@
 package argv
 
 import (
-	"fmt"
 	"io/fs"
-	"math/bits"
 	"strings"
 )
 
@@ -31,60 +29,7 @@ import (
 //	"Ro"  -> ["Roger", "Robert"]
 //	"Rog" -> ["Roger"]
 //	"Rol" -> []
-type Completer func(string) ([]string, CompleterFlags)
-
-// CompleterFlags returned as a second return value from [Completer]
-// and provides some hints how caller should interpret returned
-// completion candidates.
-//
-// See each flag's documentation for more details.
-type CompleterFlags int
-
-const (
-	// CompleterNoSpace indicates that caller should not
-	// append a space after completion.
-	//
-	// This is useful, for example, for file path completion
-	// that ends with path separator character (i.e., '/')
-	// and user is prompted to continue entering a full
-	// file name.
-	CompleterNoSpace CompleterFlags = 1 << iota
-)
-
-// completerFlagsNames contains names of CompleterFlags,
-// for debugging
-var completerFlagsNames = map[CompleterFlags]string{}
-
-func init() {
-	// Pupulate completerFlagsNames table
-	for i := 0; i < bits.UintSize; i++ {
-		f := CompleterFlags(1 << i)
-		switch f {
-		case CompleterNoSpace:
-			completerFlagsNames[f] = "CompleterNoSpace"
-		default:
-			completerFlagsNames[f] = fmt.Sprintf("0x%x", i)
-		}
-	}
-}
-
-// String converts CompleterFlags into string, for debugging.
-func (flags CompleterFlags) String() string {
-	if flags == 0 {
-		return "0"
-	}
-
-	var s []string
-
-	for i := CompleterFlags(1); flags != 0; i <<= 1 {
-		if flags&i != 0 {
-			s = append(s, completerFlagsNames[i])
-		}
-		flags &^= i
-	}
-
-	return strings.Join(s, ",")
-}
+type Completer func(string) []Completion
 
 // CompleteStrings returns a [Completer], that performs auto-completion,
 // choosing from a set of supplied strings.
@@ -95,15 +40,14 @@ func CompleteStrings(s []string) Completer {
 	copy(set, s)
 
 	// Create completer
-	return func(in string) ([]string, CompleterFlags) {
-		out := []string{}
+	return func(in string) (compl []Completion) {
 		for _, member := range set {
 			if len(in) < len(member) &&
 				strings.HasPrefix(member, in) {
-				out = append(out, member)
+				compl = append(compl, Completion{member, 0})
 			}
 		}
-		return out, 0
+		return compl
 	}
 }
 
@@ -117,7 +61,7 @@ func CompleteStrings(s []string) Completer {
 // If getwd is nil, current directory assumed to be "/"
 func CompleteFs(fsys fs.FS, getwd func() (string, error)) Completer {
 	fscompl := newFscompleter(fsys, getwd)
-	return func(arg string) ([]string, CompleterFlags) {
+	return func(arg string) []Completion {
 		return fscompl.complete(arg)
 	}
 }

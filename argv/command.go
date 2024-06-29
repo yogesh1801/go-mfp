@@ -278,7 +278,7 @@ func (cmd *Command) handler(ctx context.Context, inv *Invocation) error {
 //
 //	prompt> hello    ->  ["hello", ""]
 //	  Cursor      ^
-func (cmd *Command) Complete(argv []string) ([]string, CompleterFlags) {
+func (cmd *Command) Complete(argv []string) []Completion {
 	prs := newParser(cmd, argv)
 	return prs.complete()
 }

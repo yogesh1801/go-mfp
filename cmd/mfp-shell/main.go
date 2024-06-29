@@ -82,15 +82,14 @@ func completer(line string) (out []string) {
 	}
 
 	line = line[:len(line)-strip]
-	compl, flags := commands.AllCommands.Complete(args)
-
-	space := " "
-	if flags&argv.CompleterNoSpace != 0 {
-		space = ""
-	}
+	compl := commands.AllCommands.Complete(args)
 
 	for _, c := range compl {
-		out = append(out, line+c+space)
+		s := line + c.String
+		if c.Flags&argv.CompletionNoSpace == 0 {
+			s += " "
+		}
+		out = append(out, s)
 	}
 
 	return

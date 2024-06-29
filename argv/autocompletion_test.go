@@ -11,6 +11,7 @@ package argv
 import (
 	"fmt"
 	"reflect"
+	"slices"
 	"sort"
 	"testing"
 )
@@ -18,10 +19,9 @@ import (
 // TestAutoCompletion tests Command.Complete
 func TestAutoCompletion(t *testing.T) {
 	type testData struct {
-		argv  []string       // Input
-		cmd   Command        // Command description
-		out   []string       // Expected output
-		flags CompleterFlags // Expected flags
+		argv []string     // Input
+		cmd  Command      // Command description
+		out  []Completion // Expected output
 	}
 
 	tests := []testData{
@@ -39,12 +39,12 @@ func TestAutoCompletion(t *testing.T) {
 					{Name: "--other", Aliases: []string{"--long-3"}},
 				},
 			},
-			out: []string{
-				"-h",
-				"--long-1",
-				"--long-2",
-				"--other",
-				"--long-3",
+			out: []Completion{
+				{"-h", 0},
+				{"--long-1", 0},
+				{"--long-2", 0},
+				{"--other", 0},
+				{"--long-3", 0},
 			},
 		},
 
@@ -59,8 +59,9 @@ func TestAutoCompletion(t *testing.T) {
 					{Name: "--other", Aliases: []string{"--long-3"}},
 				},
 			},
-			out:   []string{"--long-"},
-			flags: CompleterNoSpace,
+			out: []Completion{
+				{"--long-", CompletionNoSpace},
+			},
 		},
 
 		// ----- Option arguments auto completion ----
@@ -83,8 +84,10 @@ func TestAutoCompletion(t *testing.T) {
 					},
 				},
 			},
-			out:   []string{"Robert", "Roger"},
-			flags: 0,
+			out: []Completion{
+				{"Robert", 0},
+				{"Roger", 0},
+			},
 		},
 
 		// Test 3: short option with embedded argument
@@ -105,8 +108,10 @@ func TestAutoCompletion(t *testing.T) {
 					},
 				},
 			},
-			out:   []string{"-xRobert", "-xRoger"},
-			flags: 0,
+			out: []Completion{
+				{"-xRobert", 0},
+				{"-xRoger", 0},
+			},
 		},
 
 		// Test 4: short option, missed argument
@@ -127,8 +132,9 @@ func TestAutoCompletion(t *testing.T) {
 					},
 				},
 			},
-			out:   []string{"Ro"},
-			flags: CompleterNoSpace,
+			out: []Completion{
+				{"Ro", CompletionNoSpace},
+			},
 		},
 
 		// Test 5: short option with preceding unknown optipn
@@ -149,7 +155,7 @@ func TestAutoCompletion(t *testing.T) {
 					},
 				},
 			},
-			out: []string{},
+			out: []Completion{},
 		},
 
 		// Test 6: short option without value
@@ -161,7 +167,7 @@ func TestAutoCompletion(t *testing.T) {
 					{Name: "-x"},
 				},
 			},
-			out: []string{},
+			out: []Completion{},
 		},
 
 		// Test 7: short option without value,
@@ -186,8 +192,9 @@ func TestAutoCompletion(t *testing.T) {
 					},
 				},
 			},
-			out:   []string{"Ro"},
-			flags: CompleterNoSpace,
+			out: []Completion{
+				{"Ro", CompletionNoSpace},
+			},
 		},
 
 		// Test 8: long option, separate argument
@@ -208,7 +215,10 @@ func TestAutoCompletion(t *testing.T) {
 					},
 				},
 			},
-			out: []string{"Robert", "Roger"},
+			out: []Completion{
+				{"Robert", 0},
+				{"Roger", 0},
+			},
 		},
 
 		// Test 9: two options, second completes
@@ -239,7 +249,10 @@ func TestAutoCompletion(t *testing.T) {
 					},
 				},
 			},
-			out: []string{"Robert", "Roger"},
+			out: []Completion{
+				{"Robert", 0},
+				{"Roger", 0},
+			},
 		},
 
 		// Test 10: long option with embedded argument
@@ -260,7 +273,10 @@ func TestAutoCompletion(t *testing.T) {
 					},
 				},
 			},
-			out: []string{"--long=Robert", "--long=Roger"},
+			out: []Completion{
+				{"--long=Robert", 0},
+				{"--long=Roger", 0},
+			},
 		},
 
 		// Test 11: long option, missed argument
@@ -281,8 +297,9 @@ func TestAutoCompletion(t *testing.T) {
 					},
 				},
 			},
-			out:   []string{"Ro"},
-			flags: CompleterNoSpace,
+			out: []Completion{
+				{"Ro", CompletionNoSpace},
+			},
 		},
 
 		// Test 12: long option with preceding unknown optipn
@@ -303,7 +320,7 @@ func TestAutoCompletion(t *testing.T) {
 					},
 				},
 			},
-			out: []string{},
+			out: []Completion{},
 		},
 
 		// Test 13: long option without value
@@ -315,7 +332,7 @@ func TestAutoCompletion(t *testing.T) {
 					{Name: "--long"},
 				},
 			},
-			out: []string{},
+			out: []Completion{},
 		},
 
 		// Test 14: long option without value,
@@ -340,8 +357,9 @@ func TestAutoCompletion(t *testing.T) {
 					},
 				},
 			},
-			out:   []string{"Ro"},
-			flags: CompleterNoSpace,
+			out: []Completion{
+				{"Ro", CompletionNoSpace},
+			},
 		},
 
 		// Test 15: unknown short option with value
@@ -353,7 +371,7 @@ func TestAutoCompletion(t *testing.T) {
 					{Name: "-o"},
 				},
 			},
-			out: []string{},
+			out: []Completion{},
 		},
 
 		// Test 16: unknown long option with value
@@ -365,7 +383,7 @@ func TestAutoCompletion(t *testing.T) {
 					{Name: "--long-known"},
 				},
 			},
-			out: []string{},
+			out: []Completion{},
 		},
 
 		// ----- Sub-commands auto-completion -----
@@ -380,7 +398,10 @@ func TestAutoCompletion(t *testing.T) {
 					{Name: "Robert"},
 				},
 			},
-			out: []string{"Robert", "Roger"},
+			out: []Completion{
+				{"Robert", 0},
+				{"Roger", 0},
+			},
 		},
 
 		// Test 18: a single sub-command, successful completion with prefix
@@ -392,7 +413,9 @@ func TestAutoCompletion(t *testing.T) {
 					{Name: "Roger"},
 				},
 			},
-			out: []string{"Roger"},
+			out: []Completion{
+				{"Roger", 0},
+			},
 		},
 
 		// Test 19: sub-commands, successful completion without prefix
@@ -405,8 +428,9 @@ func TestAutoCompletion(t *testing.T) {
 					{Name: "Robert"},
 				},
 			},
-			out:   []string{"Ro"},
-			flags: CompleterNoSpace,
+			out: []Completion{
+				{"Ro", CompletionNoSpace},
+			},
 		},
 
 		// Test 20: option, "--", sub-commands
@@ -422,7 +446,10 @@ func TestAutoCompletion(t *testing.T) {
 					{Name: "Robert"},
 				},
 			},
-			out: []string{"Robert", "Roger"},
+			out: []Completion{
+				{"Robert", 0},
+				{"Roger", 0},
+			},
 		},
 
 		// Test 21: sub-commands, extra parameter
@@ -435,7 +462,7 @@ func TestAutoCompletion(t *testing.T) {
 					{Name: "Robert"},
 				},
 			},
-			out: []string{},
+			out: []Completion{},
 		},
 
 		// ----- Parameters auto-completion -----
@@ -457,7 +484,10 @@ func TestAutoCompletion(t *testing.T) {
 					},
 				},
 			},
-			out: []string{"Robert", "Roger"},
+			out: []Completion{
+				{"Robert", 0},
+				{"Roger", 0},
+			},
 		},
 
 		// Test 23: options, '--', parameter
@@ -480,7 +510,10 @@ func TestAutoCompletion(t *testing.T) {
 					},
 				},
 			},
-			out: []string{"Robert", "Roger"},
+			out: []Completion{
+				{"Robert", 0},
+				{"Roger", 0},
+			},
 		},
 
 		// Test 24: options, '--', parameter missed
@@ -503,8 +536,9 @@ func TestAutoCompletion(t *testing.T) {
 					},
 				},
 			},
-			out:   []string{"Ro"},
-			flags: CompleterNoSpace,
+			out: []Completion{
+				{"Ro", CompletionNoSpace},
+			},
 		},
 
 		// Test 25: parameter completion, extra parameter
@@ -524,7 +558,7 @@ func TestAutoCompletion(t *testing.T) {
 					},
 				},
 			},
-			out: []string{},
+			out: []Completion{},
 		},
 
 		// Test 26: parameter completion, repeated first
@@ -547,7 +581,10 @@ func TestAutoCompletion(t *testing.T) {
 					},
 				},
 			},
-			out: []string{"Robert", "Roger"},
+			out: []Completion{
+				{"Robert", 0},
+				{"Roger", 0},
+			},
 		},
 
 		// Test 27: parameter completion, repeated last
@@ -570,7 +607,7 @@ func TestAutoCompletion(t *testing.T) {
 					},
 				},
 			},
-			out: []string{},
+			out: []Completion{},
 		},
 
 		// ----- Real-life examples -----
@@ -591,37 +628,41 @@ func TestAutoCompletion(t *testing.T) {
 					},
 				},
 			},
-			out: []string{"get-default"},
+			out: []Completion{
+				{"get-default", 0},
+			},
 		},
 	}
 
 	for i, test := range tests {
-		out, flags := test.cmd.Complete(test.argv)
+		out := test.cmd.Complete(test.argv)
 
 		diff := testDiffCompletion(test.out, out)
 		if len(diff) != 0 {
-			t.Errorf("[%d]: results mismatch (<<< expected, >>> present):", i)
+			t.Errorf("[%d]: results mismatch:", i)
 
 			for _, s := range diff {
 				t.Errorf("  %s", s)
 			}
 		}
-
-		if flags != test.flags {
-			t.Errorf("[%d]: flags mismatch\n"+
-				"extected: %s\nreceived: %s",
-				i, test.flags, flags)
-		}
 	}
 }
 
 // testDiffCompletion computes a difference between completion results
-func testDiffCompletion(expected, received []string) []string {
-	expected = testCopySliceOfStrings(expected)
-	received = testCopySliceOfStrings(received)
+func testDiffCompletion(expected, received []Completion) []string {
+	if len(expected) == 0 && len(received) == 0 {
+		return []string{}
+	}
 
-	sort.Strings(expected)
-	sort.Strings(received)
+	expected = slices.Clone(expected)
+	received = slices.Clone(received)
+
+	sort.Slice(expected, func(i, j int) bool {
+		return expected[i].String < expected[j].String
+	})
+	sort.Slice(received, func(i, j int) bool {
+		return received[i].String < received[j].String
+	})
 
 	out := []string{}
 

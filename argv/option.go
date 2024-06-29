@@ -187,13 +187,10 @@ func (opt *Option) names() []string {
 
 // complete is the convenience wrapper around Option.Complete
 // callback. It call callback only if one is not nil.
-func (opt *Option) complete(prefix string) ([]string, CompleterFlags) {
-	var compl []string
-	var flags CompleterFlags
-
+func (opt *Option) complete(prefix string) (compl []Completion) {
 	if opt.Complete != nil {
-		compl, flags = opt.Complete(prefix)
+		compl = opt.Complete(prefix)
 	}
 
-	return compl, flags
+	return
 }

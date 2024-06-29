@@ -19,45 +19,47 @@ import (
 // TestCompleteStrings tests CompleteStrings
 func TestCompleteStrings(t *testing.T) {
 	type testData struct {
-		strings []string       // Strings to choose from
-		arg     string         // Input string
-		out     []string       // Expected output
-		flags   CompleterFlags // Expected flags
+		strings []string     // Strings to choose from
+		arg     string       // Input string
+		out     []Completion // Expected output
 	}
 
 	tests := []testData{
 		{
 			strings: []string{"foo", "bar"},
 			arg:     "foo",
-			out:     []string{},
+			out:     []Completion{},
 		},
 
 		{
 			strings: []string{"foo-1", "foo-2"},
 			arg:     "foo",
-			out:     []string{"foo-1", "foo-2"},
+			out: []Completion{
+				{"foo-1", 0},
+				{"foo-2", 0},
+			},
 		},
 
 		{
 			strings: []string{"foo-1", "foo-2"},
 			arg:     "",
-			out:     []string{"foo-1", "foo-2"},
+			out: []Completion{
+				{"foo-1", 0},
+				{"foo-2", 0},
+			},
 		},
 	}
 
 	for _, test := range tests {
 		completer := CompleteStrings(test.strings)
-		out, flags := completer(test.arg)
+		out := completer(test.arg)
 
-		if !reflect.DeepEqual(out, test.out) {
-			t.Errorf("CompleteStrings(%#v): %q\nexpected: %#v\nreceived: %#v\n",
+		if (len(out) != 0 || len(test.out) != 0) &&
+			!reflect.DeepEqual(out, test.out) {
+
+			t.Errorf("CompleteStrings(%#v): %q\n"+
+				"expected: %#v\nreceived: %#v\n",
 				test.strings, test.arg, test.out, out)
-		}
-
-		if flags != test.flags {
-			t.Errorf("CompleteStrings(%#v) %q:"+
-				"\nflags expected: %s\nflags received: %s\n",
-				test.strings, test.arg, test.flags, flags)
 		}
 	}
 }
@@ -75,36 +77,49 @@ func TestCompleteFs(t *testing.T) {
 	type testData struct {
 		getwd func() (string, error) // getwd function
 		in    string                 // Input string
-		out   []string               // Expected output
-		flags CompleterFlags         // Expected flags
+		out   []Completion           // Expected output
 	}
 
 	tests := []testData{
 		// Simple tests
 		{
-			in:  "/",
-			out: []string{"/etc", "/test", "/usr"},
+			in: "/",
+			out: []Completion{
+				{"/etc", 0},
+				{"/test", 0},
+				{"/usr", 0},
+			},
 		},
 
 		{
-			in:  "./",
-			out: []string{"./etc", "./test", "./usr"},
+			in: "./",
+			out: []Completion{
+				{"./etc", 0},
+				{"./test", 0},
+				{"./usr", 0},
+			},
 		},
 
 		{
-			in:  "/usr/bin/ls",
-			out: []string{"/usr/bin/ls"},
+			in: "/usr/bin/ls",
+			out: []Completion{
+				{"/usr/bin/ls", 0},
+			},
 		},
 
 		{
-			in:    "/usr/bin",
-			out:   []string{"/usr/bin/"},
-			flags: CompleterNoSpace,
+			in: "/usr/bin",
+			out: []Completion{
+				{"/usr/bin/", CompletionNoSpace},
+			},
 		},
 
 		{
-			in:  "test/subdir",
-			out: []string{"test/subdir", "test/subdirfile"},
+			in: "test/subdir",
+			out: []Completion{
+				{"test/subdir", 0},
+				{"test/subdirfile", 0},
+			},
 		},
 
 		// Tests with getwd()
@@ -112,16 +127,22 @@ func TestCompleteFs(t *testing.T) {
 			getwd: func() (string, error) {
 				return "/usr/bin", nil
 			},
-			in:  "",
-			out: []string{"ls", "ps"},
+			in: "",
+			out: []Completion{
+				{"ls", 0},
+				{"ps", 0},
+			},
 		},
 
 		{
 			getwd: func() (string, error) {
 				return "/usr/bin", nil
 			},
-			in:  "",
-			out: []string{"ls", "ps"},
+			in: "",
+			out: []Completion{
+				{"ls", 0},
+				{"ps", 0},
+			},
 		},
 
 		// Errors handling
@@ -141,26 +162,20 @@ func TestCompleteFs(t *testing.T) {
 
 	for _, test := range tests {
 		complete := CompleteFs(testFs, test.getwd)
-		out, flags := complete(test.in)
+		out := complete(test.in)
 
 		if !reflect.DeepEqual(out, test.out) {
 			t.Errorf("%q:\nexpected: %#v\nreceived: %#v\n",
 				test.in, test.out, out)
-			//os.Exit(1)
-		}
-
-		if flags != test.flags {
-			t.Errorf("%q flags:\nexpected: %s\nreceived: %s\n",
-				test.in, test.flags, flags)
 		}
 	}
 }
 
-// TestCompleterFlags tests (CompleterFlags) String()
+// TestCompleterFlags tests (CompletionrFlags) String()
 func TestCompleterFlagsString(t *testing.T) {
 	type testData struct {
-		in  CompleterFlags // Input value
-		out string         // Expected output
+		in  CompletionFlags // Input value
+		out string          // Expected output
 	}
 
 	tests := []testData{
@@ -171,7 +186,7 @@ func TestCompleterFlagsString(t *testing.T) {
 
 		{
 			in:  1 << 0,
-			out: "CompleterNoSpace",
+			out: "CompletionNoSpace",
 		},
 
 		{
@@ -186,7 +201,7 @@ func TestCompleterFlagsString(t *testing.T) {
 
 		{
 			in:  12345,
-			out: "CompleterNoSpace,0x3,0x4,0x5,0xc,0xd",
+			out: "CompletionNoSpace,0x3,0x4,0x5,0xc,0xd",
 		},
 	}
 
