@@ -458,13 +458,17 @@ func (prs *parser) complete() (compl []Completion) {
 // completeOptionName returns slice of completion candidates for
 // Option name
 func (prs *parser) completeOptionName(arg string) (compl []Completion) {
-
 	for i := range prs.inv.cmd.Options {
 		opt := &prs.inv.cmd.Options[i]
 
 		for _, name := range opt.names() {
 			if strings.HasPrefix(name, arg) {
-				compl = append(compl, Completion{name, 0})
+				c := Completion{name, 0}
+				if opt.withValue() && prs.isLongOption(name) {
+					c.String += "="
+					c.Flags = CompletionNoSpace
+				}
+				compl = append(compl, c)
 			}
 		}
 	}
