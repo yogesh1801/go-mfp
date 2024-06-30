@@ -52,13 +52,16 @@ func optAttrsComplete(arg string) (compl []argv.Completion) {
 
 	if i := strings.LastIndex(attrName, ","); i >= 0 {
 		attrName = arg[i+1:]
-		prefix = arg[:i]
+		prefix = arg[:i+1]
 	}
 
 	for _, info := range infos {
 		if strings.HasPrefix(info.Name, attrName) {
-			compl = append(compl,
-				argv.Completion{prefix + info.Name, 0})
+			c := argv.Completion{
+				String: prefix + info.Name + ",",
+				Flags:  argv.CompletionNoSpace,
+			}
+			compl = append(compl, c)
 		}
 	}
 
