@@ -16,7 +16,7 @@ import (
 )
 
 // DefaultLogger is the default logging destination.
-var DefaultLogger = NewLogger("", LevelTrace, Console)
+var DefaultLogger = NewLogger("", LevelAll, Console)
 
 // Logger is the logging destination.
 // It can be connected to console, to the disk file etc...

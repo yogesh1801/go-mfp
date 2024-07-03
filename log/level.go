@@ -18,4 +18,8 @@ const (
 	LevelInfo               // Informational messages
 	LevelError              // Error messages
 	LevelFatal              // Fatal errors
+
+	// These constants are useful for filtering
+	LevelAll  = LevelTrace     // Allow all levels
+	LevelNone = LevelFatal + 1 // Allow no levels
 )
