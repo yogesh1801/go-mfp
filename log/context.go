@@ -30,12 +30,16 @@ func NewContext(parent context.Context, dest *Logger) context.Context {
 
 // CtxLogger returns a [Logger] associated with the [context.Context].
 // If no Logger is available, [DefaultLogger] will be returned.
+//
+// Note, [context.Context] parameter may be safely passed as nil.
 func CtxLogger(ctx context.Context) *Logger {
-	v := ctx.Value(ContextKey)
-	if v != nil {
-		ctxv, ok := v.(contextValue)
-		if ok {
-			return ctxv.Logger
+	if ctx != nil {
+		v := ctx.Value(ContextKey)
+		if v != nil {
+			ctxv, ok := v.(contextValue)
+			if ok {
+				return ctxv.Logger
+			}
 		}
 	}
 
