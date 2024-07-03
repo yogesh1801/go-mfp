@@ -36,7 +36,7 @@ func (bk *backendConsole) Send(levels []Level, lines [][]byte) {
 	buf := bufAlloc()
 	defer bufFree(buf)
 
-	for i := range levels {
+	for i := range lines {
 		level := levels[i]
 		line := lines[i]
 
