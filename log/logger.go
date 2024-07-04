@@ -12,8 +12,14 @@ import (
 	"encoding"
 )
 
-// DefaultLogger is the default logging destination.
-var DefaultLogger = NewLogger("", LevelAll, Console)
+// Standard loggers:
+var (
+	// DefaultLogger is the default logging destination.
+	DefaultLogger = NewLogger("", LevelAll, Console)
+
+	// DiscardLogger discards all logs written to.
+	DiscardLogger = NewLogger("", LevelNone, Discard)
+)
 
 // Logger is the logging destination.
 // It can be connected to console, to the disk file etc...
