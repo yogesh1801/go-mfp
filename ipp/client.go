@@ -18,6 +18,7 @@ import (
 	"sync/atomic"
 
 	"github.com/OpenPrinting/goipp"
+	"github.com/alexpevzner/mfp/log"
 	"github.com/alexpevzner/mfp/transport"
 )
 
@@ -98,6 +99,12 @@ func (c *Client) DoWithBody(ctx context.Context,
 
 	msg.Encode(buf)
 
+	// Log the IPP request
+	f := goipp.NewFormatter()
+	f.SetIndent(2)
+	f.FmtRequest(msg)
+	log.Debug(ctx, "IPP request:\n%s", f.Bytes())
+
 	// Attach Request body, if any
 	body := rq.Header().Body
 	if body == nil {
@@ -117,8 +124,12 @@ func (c *Client) DoWithBody(ctx context.Context,
 	// Call server
 	httpRsp, err := c.HTTPClient.Do(httpRq)
 	if err != nil {
+		log.Debug(ctx, "HTTP %s", err)
 		return err
 	}
+
+	log.Debug(ctx, "HTTP %s %s - %s",
+		httpRq.Method, httpRq.URL, httpRsp.Status)
 
 	if httpRsp.StatusCode != http.StatusOK {
 		err = fmt.Errorf("HTTP: %s", httpRsp.Status)
@@ -131,6 +142,12 @@ func (c *Client) DoWithBody(ctx context.Context,
 	if err != nil {
 		goto ERROR
 	}
+
+	// Log the IPP response
+	f.Reset()
+	f.SetIndent(2)
+	f.FmtResponse(msg)
+	log.Debug(ctx, "IPP response:\n%s", f.Bytes())
 
 	// Decode Response
 	err = rsp.Decode(msg)
@@ -145,6 +162,7 @@ func (c *Client) DoWithBody(ctx context.Context,
 	return nil
 
 ERROR:
+	log.Debug(ctx, "HTTP %s %s - %s", httpRq.Method, httpRq.URL, err)
 	httpRsp.Body.Close()
 	return err
 }
