@@ -30,8 +30,8 @@ func TestContext(t *testing.T) {
 	ctx = context.Background()
 	dest2 = CtxLogger(ctx)
 
-	if dest2 != DefaultLogger {
-		t.Errorf("CtxLogger: alien context must return DefaultLogger")
+	if dest2 != DiscardLogger {
+		t.Errorf("CtxLogger: alien context must return DiscardLogger")
 	}
 
 	// Use CtxLogger() with Context that has invalid value associated
@@ -39,7 +39,7 @@ func TestContext(t *testing.T) {
 	ctx = context.WithValue(context.Background(), ContextKey, 5)
 	dest2 = CtxLogger(ctx)
 
-	if dest2 != DefaultLogger {
-		t.Errorf("CtxLogger: incompatible context must return DefaultLogger")
+	if dest2 != DiscardLogger {
+		t.Errorf("CtxLogger: incompatible context must return DiscardLogger")
 	}
 }
