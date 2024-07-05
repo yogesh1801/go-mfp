@@ -1,7 +1,7 @@
 # DNS-SD service discovery for printers and scanners
 
 ```
-import "github.com/alexpevzner/mfp/dnssd"
+import "github.com/alexpevzner/mfp/discovery/dnssd"
 ```
 
 This package provides DNS-SD service discovery for printers and
