@@ -14,5 +14,5 @@ import (
 
 // main function for the mfp command
 func main() {
-	commands.AllCommands.Main()
+	commands.AllCommands.Main(nil)
 }

@@ -234,14 +234,24 @@ func (cmd *Command) RunWithParent(ctx context.Context,
 //
 //	// main function for the MyCommand
 //	func main() {
-//	        MyCommand.Main()
+//	        MyCommand.Main(context.Background())
 //	}
 //
 // It calls [Command.Run] passing [os.Args] as input,
 // prints error message, if any, and returns appropriate
 // status code to the system.
-func (cmd *Command) Main() {
-	ctx, _ := signal.NotifyContext(context.Background(), os.Interrupt)
+//
+// Passing [context.Context] as the function's parameter may be
+// useful in order to send logging context (see log.NewContext for
+// details) or for similar purposes.
+//
+// If this is not required, ctx can be safely passed as nil.
+func (cmd *Command) Main(ctx context.Context) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	ctx, _ = signal.NotifyContext(ctx, os.Interrupt)
 
 	err := cmd.Run(ctx, os.Args[1:])
 	if err != nil {

@@ -41,7 +41,7 @@ func TestMain(t *testing.T) {
 	}()
 
 	os.Args = []string{"test", "hello", "world"}
-	cmd.Main()
+	cmd.Main(nil)
 
 	expected := "hello, world"
 	received := buf.String()
@@ -56,7 +56,7 @@ func TestMain(t *testing.T) {
 	dieExit = func(int) {}
 	buf.Reset()
 
-	cmd.Main()
+	cmd.Main(nil)
 
 	expected = "missed parameter: \"greeting...\"\n"
 	received = buf.String()
