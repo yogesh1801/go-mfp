@@ -609,6 +609,7 @@ var kwRegisteredTypes = map[reflect.Type]struct{}{
 	reflect.TypeOf(KwWhichJobs("")):                struct{}{},
 
 	// Types, defined at separate source files
-	reflect.TypeOf(KwColor("")): struct{}{},
-	reflect.TypeOf(KwMedia("")): struct{}{},
+	reflect.TypeOf(KwColor("")):       struct{}{},
+	reflect.TypeOf(KwDeviceClass("")): struct{}{},
+	reflect.TypeOf(KwMedia("")):       struct{}{},
 }

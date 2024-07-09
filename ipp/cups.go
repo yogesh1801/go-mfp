@@ -45,10 +45,10 @@ type (
 		FirstPrinterName    string   `ipp:"?first-printer-name"`
 		Limit               int      `ipp:"?limit"`
 		PrinterID           int      `ipp:"?printer-id"`
-		PrinterLocation     string   `ipp:"?printer-location"`
-		PrinterType         int      `ipp:"?printer-type"`
-		PrinterTypeMask     int      `ipp:"?printer-type-mask"`
-		RequestedUserName   string   `ipp:"?requested-user-name"`
+		PrinterLocation     string   `ipp:"?printer-location,text"`
+		PrinterType         int      `ipp:"?printer-type,enum"`
+		PrinterTypeMask     int      `ipp:"?printer-type-mask,enum"`
+		RequestedUserName   string   `ipp:"?requested-user-name,name"`
 		RequestedAttributes []string `ipp:"?requested-attributes,keyword"`
 	}
 
@@ -59,6 +59,31 @@ type (
 
 		// Other attributes.
 		Printer []*PrinterAttributes
+	}
+
+	// CUPSGetDevicesRequest operation (0x400b) performs search
+	// for available printers and returns all of the supported
+	// device-uri's
+	CUPSGetDevicesRequest struct {
+		ObjectRawAttrs
+		RequestHeader
+
+		// Operational attributes
+		DeviceClass         KwDeviceClass `ipp:"?device-class"`
+		ExcludeSchemes      []string      `ipp:"?exclude-schemes,name"`
+		IncludeSchemes      []string      `ipp:"?include-schemes,name"`
+		Limit               int           `ipp:"?limit"`
+		RequestedAttributes []string      `ipp:"requested-attributes,keyword"`
+		Timeout             int           `ipp:"?timeout,1:MAX"`
+	}
+
+	// CUPSGetDevicesResponse is the CUPS-Get-Devices Response.
+	CUPSGetDevicesResponse struct {
+		ObjectRawAttrs
+		ResponseHeader
+
+		// Other attributes.
+		Printer []*DeviceAttributes
 	}
 )
 
@@ -242,6 +267,101 @@ func (rsp *CUPSGetPrintersResponse) Decode(msg *goipp.Message) error {
 			}
 
 			rsp.Printer = append(rsp.Printer, prn)
+		}
+	}
+
+	return nil
+}
+
+// ----- CUPS-Get-Devices methods -----
+
+// GetOp returns CUPSGetDevicesRequest IPP Operation code.
+func (rq *CUPSGetDevicesRequest) GetOp() goipp.Op {
+	return goipp.OpCupsGetDevices
+}
+
+// KnownAttrs returns information about all known IPP attributes
+// of the CUPSGetDevicesRequest
+func (rq *CUPSGetDevicesRequest) KnownAttrs() []AttrInfo {
+	return ippKnownAttrs(rq)
+}
+
+// Encode encodes CUPSGetDevicesRequest into the goipp.Message.
+func (rq *CUPSGetDevicesRequest) Encode() *goipp.Message {
+	groups := goipp.Groups{
+		{
+			Tag:   goipp.TagOperationGroup,
+			Attrs: ippEncodeAttrs(rq),
+		},
+	}
+
+	msg := goipp.NewMessageWithGroups(rq.Version, goipp.Code(rq.GetOp()),
+		rq.RequestID, groups)
+
+	return msg
+}
+
+// Decode decodes CUPSGetDevicesRequest from goipp.Groups.
+func (rq *CUPSGetDevicesRequest) Decode(msg *goipp.Message) error {
+	rq.Version = msg.Version
+	rq.RequestID = msg.RequestID
+
+	err := ippDecodeAttrs(rq, msg.Operation)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// KnownAttrs returns information about all known IPP attributes
+// of the CUPSGetDevicesResponse.
+func (rsp *CUPSGetDevicesResponse) KnownAttrs() []AttrInfo {
+	return ippKnownAttrs(rsp)
+}
+
+// Encode encodes CUPSGetDevicesResponse into goipp.Message.
+func (rsp *CUPSGetDevicesResponse) Encode() *goipp.Message {
+	groups := goipp.Groups{
+		{
+			Tag:   goipp.TagOperationGroup,
+			Attrs: ippEncodeAttrs(rsp),
+		},
+	}
+
+	for _, prn := range rsp.Printer {
+		groups.Add(goipp.Group{
+			Tag:   goipp.TagPrinterGroup,
+			Attrs: ippEncodeAttrs(prn),
+		})
+	}
+
+	msg := goipp.NewMessageWithGroups(rsp.Version, goipp.Code(rsp.Status),
+		rsp.RequestID, groups)
+
+	return msg
+}
+
+// Decode decodes CUPSGetDevicesResponse from goipp.Message.
+func (rsp *CUPSGetDevicesResponse) Decode(msg *goipp.Message) error {
+	rsp.Version = msg.Version
+	rsp.RequestID = msg.RequestID
+	rsp.Status = goipp.Status(msg.Code)
+
+	err := ippDecodeAttrs(rsp, msg.Operation)
+	if err != nil {
+		return err
+	}
+
+	for _, grp := range msg.Groups {
+		if grp.Tag == goipp.TagPrinterGroup && len(grp.Attrs) > 0 {
+			dev := &DeviceAttributes{}
+			err = ippDecodeAttrs(dev, grp.Attrs)
+			if err != nil {
+				return err
+			}
+
+			rsp.Printer = append(rsp.Printer, dev)
 		}
 	}
 
