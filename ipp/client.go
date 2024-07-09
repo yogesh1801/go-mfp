@@ -15,6 +15,8 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os/user"
+	"strings"
 	"sync/atomic"
 
 	"github.com/OpenPrinting/goipp"
@@ -120,6 +122,18 @@ func (c *Client) DoWithBody(ctx context.Context,
 	}
 
 	httpRq.Header.Set("Content-Type", "application/ipp")
+
+	// If we are on local socket, set "PeerCred username" as
+	// authentication information...
+	if strings.ToLower(httpRq.URL.Scheme) == "unix" {
+		usr, err := user.Current()
+		if err != nil {
+			return err
+		}
+
+		auth := fmt.Sprintf("PeerCred %s", usr.Username)
+		httpRq.Header.Set("Authorization", auth)
+	}
 
 	// Call server
 	httpRsp, err := c.HTTPClient.Do(httpRq)
