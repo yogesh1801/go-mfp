@@ -22,7 +22,6 @@ var cmdGetDevices = argv.Command{
 	Help:    "Search for available devices",
 	Handler: cmdGetDevicesHandler,
 	Options: []argv.Option{
-		optAttrs,
 		optLimit,
 		argv.HelpOption,
 	},
@@ -37,16 +36,13 @@ func cmdGetDevicesHandler(ctx context.Context, inv *argv.Invocation) error {
 		Limit: optLimitGet(inv),
 	}
 
-	attrList := optAttrsGet(inv)
-	attrList = append(attrList, devAttrsRequested...)
-
 	// Perform the query
 	pager := env.NewPager()
 
 	pager.Printf("CUPS: %s", dest)
 
 	clnt := cups.NewClient(dest, nil)
-	devices, err := clnt.CUPSGetDevices(ctx, sel, attrList)
+	devices, err := clnt.CUPSGetDevices(ctx, sel, []string{"all"})
 	if err != nil {
 		return err
 	}

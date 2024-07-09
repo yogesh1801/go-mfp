@@ -15,13 +15,6 @@ import (
 	"github.com/alexpevzner/mfp/ipp"
 )
 
-// prnAttrsRequested lists attributes that provide a general printer
-// information, hence they are always requested by commands like
-// "get-default", "get-printers" and similar.
-var devAttrsRequested = []string{
-	"all",
-}
-
 // devAttrsFormat pretty-prints [ipp.DeviceAttributes]
 func devAttrsFormat(w io.Writer, dev *ipp.DeviceAttributes) {
 	fmt.Fprintf(w, "Device information:\n")
