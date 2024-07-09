@@ -34,16 +34,17 @@ func cmdGetDefaultHandler(ctx context.Context, inv *argv.Invocation) error {
 	attrList := optAttrsGet(inv)
 	attrList = append(attrList, prnAttrsRequested...)
 
-	pager := env.NewPager()
-
-	pager.Printf("CUPS: %s", dest)
-
+	// Perform the query
 	clnt := cups.NewClient(dest, nil)
 	prn, err := clnt.CUPSGetDefault(ctx, attrList)
 	if err != nil {
 		return err
 	}
 
+	// Format output
+	pager := env.NewPager()
+
+	pager.Printf("CUPS: %s", dest)
 	prnAttrsFormat(pager, prn)
 
 	return pager.Display()

@@ -47,16 +47,16 @@ func cmdGetPrintersHandler(ctx context.Context, inv *argv.Invocation) error {
 	attrList = append(attrList, prnAttrsRequested...)
 
 	// Perform the query
-	pager := env.NewPager()
-
-	pager.Printf("CUPS: %s", dest)
-
 	clnt := cups.NewClient(dest, nil)
 	printers, err := clnt.CUPSGetPrinters(ctx, sel, attrList)
 	if err != nil {
 		return err
 	}
 
+	// Format output
+	pager := env.NewPager()
+
+	pager.Printf("CUPS: %s", dest)
 	for _, prn := range printers {
 		pager.Printf("")
 		prnAttrsFormat(pager, prn)

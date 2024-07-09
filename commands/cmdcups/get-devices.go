@@ -39,16 +39,16 @@ func cmdGetDevicesHandler(ctx context.Context, inv *argv.Invocation) error {
 	}
 
 	// Perform the query
-	pager := env.NewPager()
-
-	pager.Printf("CUPS: %s", dest)
-
 	clnt := cups.NewClient(dest, nil)
 	devices, err := clnt.CUPSGetDevices(ctx, sel, []string{"all"})
 	if err != nil {
 		return err
 	}
 
+	// Format output
+	pager := env.NewPager()
+
+	pager.Printf("CUPS: %s", dest)
 	for _, dev := range devices {
 		pager.Printf("")
 		devAttrsFormat(pager, dev)
