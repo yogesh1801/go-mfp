@@ -322,28 +322,28 @@ type KwMultipleDocumentHandling string
 // Job with multiple documents "a" and "b" will be printed
 // as follows (square brakes means finishing process):
 //
-//   "single-document"
-//   Documents are concatenated,  and "b" may start at the last page of "a",
-//   but each copy of a+b concatenation starts at its own page.
-//     Sungle copy:       [a+b]
-//     Multiple copies:   [a+b] [a+b] ... [a+b]
+//	"single-document"
+//	Documents are concatenated,  and "b" may start at the last page of "a",
+//	but each copy of a+b concatenation starts at its own page.
+//	  Sungle copy:       [a+b]
+//	  Multiple copies:   [a+b] [a+b] ... [a+b]
 //
-//   "single-document-new-sheet"
-//   Like "single-document", but "b" starts at its own page:
-//     Single copy:       [a b]
-//     Multiple copies:   [a b] [a b] ... [a b]
+//	"single-document-new-sheet"
+//	Like "single-document", but "b" starts at its own page:
+//	  Single copy:       [a b]
+//	  Multiple copies:   [a b] [a b] ... [a b]
 //
-//   "separate-documents-uncollated-copies"
-//   Each document handled separately. First printed all copies
-//   of "a", then all copies of "b":
-//     Single copy:       [a] [b]
-//     Multiple copies:   [a] [a] ... [a]  [b] [b] ... [b]
+//	"separate-documents-uncollated-copies"
+//	Each document handled separately. First printed all copies
+//	of "a", then all copies of "b":
+//	  Single copy:       [a] [b]
+//	  Multiple copies:   [a] [a] ... [a]  [b] [b] ... [b]
 //
-//   "separate-documents-collated-copies"
-//   Like "separate-documents-uncollated-copies", but in a case
-//   of multiple copies, ordering is different:
-//     Single copy:       [a] [b]
-//     Multiple copies:   [a] [b] [a] [b] ... [a] [b]
+//	"separate-documents-collated-copies"
+//	Like "separate-documents-uncollated-copies", but in a case
+//	of multiple copies, ordering is different:
+//	  Single copy:       [a] [b]
+//	  Multiple copies:   [a] [b] [a] [b] ... [a] [b]
 const (
 	KwMultipleDocumentHandlingSingleDocument         KwMultipleDocumentHandling = "single-document"
 	KwMultipleDocumentHandlingSingleDocumentNewSheet KwMultipleDocumentHandling = "single-document-new-sheet"
@@ -429,9 +429,9 @@ const (
 // suffix will be returned separately. Otherwise, the first returned
 // value will be unmodified string, and second will be "":
 //
-//     "media-low-warning"  ->  "media-low", "-warning"
-//     "media-jam-error"    ->  "media-jam", "-error"
-//     "shutdown"           ->  "shutdown",  ""
+//	"media-low-warning"  ->  "media-low", "-warning"
+//	"media-jam-error"    ->  "media-jam", "-error"
+//	"shutdown"           ->  "shutdown",  ""
 func (s KwPrinterStateReasons) Split() (
 	reason, severity KwPrinterStateReasons) {
 
