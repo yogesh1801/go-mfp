@@ -111,7 +111,6 @@ func (c *Client) CUPSGetDevices(ctx context.Context,
 
 	rq := &ipp.CUPSGetDevicesRequest{
 		RequestHeader:       ipp.DefaultRequestHeader,
-		DeviceClass:         sel.DeviceClass,
 		ExcludeSchemes:      sel.ExcludeSchemes,
 		IncludeSchemes:      sel.IncludeSchemes,
 		Limit:               sel.Limit,

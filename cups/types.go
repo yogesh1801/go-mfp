@@ -10,8 +10,6 @@ package cups
 
 import (
 	"time"
-
-	"github.com/alexpevzner/mfp/ipp"
 )
 
 // Default values for common types:
@@ -67,15 +65,6 @@ type GetPrintersSelection struct {
 // GetDevicesSelection configures a selection of devices returned by
 // [Client.CUPSGetDevices].
 type GetDevicesSelection struct {
-	// DeviceClass, if set, specifies devices of which class to return.
-	// CUPS knows about the following device classes:
-	//      - "file"    - a disk file (i.e., "print to file")
-	//	- "direct"  - directly connected device (LPT, USB, fixed-rate
-	//	              serial port
-	//	- "serial"  - variable-rate serial port
-	//	- "network" - network printer
-	DeviceClass ipp.KwDeviceClass
-
 	// ExcludeSchemes and IncludeSchemes specifies which schemes
 	// to include into output.
 	//
