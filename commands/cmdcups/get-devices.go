@@ -23,6 +23,7 @@ var cmdGetDevices = argv.Command{
 	Handler: cmdGetDevicesHandler,
 	Options: []argv.Option{
 		optLimit,
+		optTimeout,
 		argv.HelpOption,
 	},
 }
@@ -33,7 +34,8 @@ func cmdGetDevicesHandler(ctx context.Context, inv *argv.Invocation) error {
 	dest := optCUPSURL(inv)
 
 	sel := &cups.GetDevicesSelection{
-		Limit: optLimitGet(inv),
+		Limit:   optLimitGet(inv),
+		Timeout: optTimeoutGet(inv),
 	}
 
 	// Perform the query

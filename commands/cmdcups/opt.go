@@ -13,8 +13,10 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/alexpevzner/mfp/argv"
+	"github.com/alexpevzner/mfp/cups"
 	"github.com/alexpevzner/mfp/ipp"
 	"github.com/alexpevzner/mfp/transport"
 )
@@ -121,7 +123,25 @@ func optLocationGet(inv *argv.Invocation) string {
 	return opt
 }
 
-// optUser rescribes the --user option.
+// optTimeout describes the --timeout=seconds option.
+// It specifies operation timeout
+var optTimeout = argv.Option{
+	Name:     "--timeout",
+	Help:     "operation timeout",
+	HelpArg:  "seconds",
+	Validate: argv.ValidateIntRange(0, 1, math.MaxInt32),
+}
+
+// optTimeoutGet returns --timeout option value.
+func optTimeoutGet(inv *argv.Invocation) time.Duration {
+	if opt, ok := inv.Get(optTimeout.Name); ok {
+		v, _ := strconv.Atoi(opt)
+		return time.Duration(v) * time.Second
+	}
+	return cups.DefaultGetDevicesTimeout
+}
+
+// optUser describes the --user option.
 // It allows to filter printers by the user name
 // Only printers accessible to that user will be returned.
 var optUser = argv.Option{
