@@ -11,6 +11,7 @@ package cups
 import (
 	"context"
 	"net/url"
+	"time"
 
 	"github.com/alexpevzner/mfp/ipp"
 	"github.com/alexpevzner/mfp/transport"
@@ -32,6 +33,7 @@ func NewClient(u *url.URL, tr *transport.Transport) *Client {
 }
 
 // CUPSGetDefault returns information on default printer.
+// The attrs attribute allows to specify list of requested attributes.
 func (c *Client) CUPSGetDefault(ctx context.Context,
 	attrs []string) (*ipp.PrinterAttributes, error) {
 
@@ -55,6 +57,8 @@ func (c *Client) CUPSGetDefault(ctx context.Context,
 //
 // If [GetPrintersSelection] argument is not nil, it allows to
 // specify a subset of printers to be returned.
+//
+// The attrs attribute allows to specify list of requested attributes.
 func (c *Client) CUPSGetPrinters(ctx context.Context,
 	sel *GetPrintersSelection, attrs []string) (
 	[]*ipp.PrinterAttributes, error) {
@@ -76,6 +80,46 @@ func (c *Client) CUPSGetPrinters(ctx context.Context,
 	}
 
 	rsp := &ipp.CUPSGetPrintersResponse{}
+
+	err := c.IPPClient.Do(ctx, rq, rsp)
+	if err != nil {
+		return nil, err
+	}
+
+	return rsp.Printer, nil
+}
+
+// CUPSGetDevices performs search for available devices and returns
+// found devices.
+//
+// If [GetDevicesSelection] argument is not nil, it allows to
+// specify a subset of devices to be returned.
+//
+// The attrs attribute allows to specify list of requested attributes.
+func (c *Client) CUPSGetDevices(ctx context.Context,
+	sel *GetDevicesSelection, attrs []string) (
+	[]*ipp.DeviceAttributes, error) {
+
+	if sel == nil {
+		sel = DefaultGetDevicesSelection
+	}
+
+	tm := 0
+	if sel.Timeout != 0 {
+		tm = int((sel.Timeout + time.Second - 1) / time.Second)
+	}
+
+	rq := &ipp.CUPSGetDevicesRequest{
+		RequestHeader:       ipp.DefaultRequestHeader,
+		DeviceClass:         sel.DeviceClass,
+		ExcludeSchemes:      sel.ExcludeSchemes,
+		IncludeSchemes:      sel.IncludeSchemes,
+		Limit:               sel.Limit,
+		Timeout:             tm,
+		RequestedAttributes: attrs,
+	}
+
+	rsp := &ipp.CUPSGetDevicesResponse{}
 
 	err := c.IPPClient.Do(ctx, rq, rsp)
 	if err != nil {
