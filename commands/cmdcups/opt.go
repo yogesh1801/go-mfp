@@ -123,6 +123,83 @@ func optLocationGet(inv *argv.Invocation) string {
 	return opt
 }
 
+// optSchemesExclude describes the --exclude-schemes=scheme,... option
+// It specifies URL schemes to be excluded
+var optSchemesExclude = argv.Option{
+	Name:     "--exclude-schemes",
+	Help:     "URL schemes to exclude",
+	HelpArg:  "scheme,...",
+	Validate: argv.ValidateAny,
+	Complete: optSchemesComplete,
+}
+
+// optSchemesExcludeGet returns --exclude-schemes option value
+func optSchemesExcludeGet(inv *argv.Invocation) []string {
+	return optSchemesGet(inv, "--exclude-schemes")
+}
+
+// optSchemesInclude describes the --include-schemes=scheme,... option
+// It specifies URL schemes to be included.
+var optSchemesInclude = argv.Option{
+	Name:     "--include-schemes",
+	Help:     "URL schemes to include",
+	HelpArg:  "scheme,...",
+	Validate: argv.ValidateAny,
+	Complete: optSchemesComplete,
+}
+
+// optSchemesIncludeGet returns --include-schemes option value
+func optSchemesIncludeGet(inv *argv.Invocation) []string {
+	return optSchemesGet(inv, "--include-schemes")
+}
+
+// optSchemesGet is the common function for optSchemesExcludeGet
+// and optSchemesIncludeGet
+func optSchemesGet(inv *argv.Invocation, optname string) (schemes []string) {
+	for _, val := range inv.Values(optname) {
+		for _, s := range strings.Split(val, ",") {
+			if s != "" {
+				schemes = append(schemes, s)
+			}
+		}
+	}
+
+	return
+}
+
+// optSchemesComplete is a common completer for --exclude-schemes and
+// --include-schemes options
+func optSchemesComplete(arg string) (compl []argv.Completion) {
+	var prefix, scheme string
+
+	if i := strings.LastIndex(arg, ","); i >= 0 {
+		scheme = arg[i+1:]
+		prefix = arg[:i+1]
+	}
+
+	candidates := []string{
+		"http",
+		"https",
+		"ipp",
+		"ipps",
+		"lpd",
+		"smb",
+		"socket",
+	}
+
+	for _, candidate := range candidates {
+		if strings.HasPrefix(candidate, scheme) {
+			c := argv.Completion{
+				String: prefix + candidate + ",",
+				Flags:  argv.CompletionNoSpace,
+			}
+			compl = append(compl, c)
+		}
+	}
+
+	return
+}
+
 // optTimeout describes the --timeout=seconds option.
 // It specifies operation timeout
 var optTimeout = argv.Option{
