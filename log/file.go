@@ -50,7 +50,7 @@ type backendFile struct {
 // Setting maxsize to 0 disables rotation and setting backups
 // to 0 disables creation of the backup files.
 //
-// Note, file Backend ignores any I/O errors when writting to
+// Note, file Backend ignores any I/O errors when writing to
 // log files, as it has no method to report them.
 func NewFileBackend(path string, maxsize, backups int) Backend {
 	return &backendFile{
