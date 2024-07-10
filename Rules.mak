@@ -16,6 +16,7 @@ PACKAGE	:= $(shell basename $(shell pwd))
 
 GO	:= go
 GOTAGS	:= $(shell which gotags 2>/dev/null)
+GOLINT	:= $(shell which golint 2>/dev/null)
 
 # ----- Common targets -----
 
@@ -29,6 +30,7 @@ GOTAGS	:= $(shell which gotags 2>/dev/null)
 # Recursive targets
 all:	subdirs_all do_all
 clean:	subdirs_clean do_clean
+lint:	subdirs_lint do_lint
 test:	subdirs_test do_test
 vet:	subdirs_vet do_vet
 
@@ -43,6 +45,7 @@ tags:
 do_all:
 do_clean:
 do_cover:
+do_lint:
 do_test:
 do_vet:
 
@@ -63,6 +66,11 @@ ifneq	($(GOTESTS),)
 	rm -f coverage.out
 endif
 
+do_lint:
+ifneq	($(GOLINT),)
+	$(GOLINT) -set_exit_status
+endif
+
 do_test:
 ifneq	($(GOTESTS),)
 	$(GO) test
@@ -72,7 +80,6 @@ do_vet:
 	$(GO) vet
 
 endif
-
 
 ifneq	($(GOTAGS),)
 tags:
@@ -86,7 +93,7 @@ endif
 
 # ----- Subdirs handling
 
-subdirs_all subdirs_test subdirs_vet subdirs_clean:
+subdirs_all subdirs_lint subdirs_test subdirs_vet subdirs_clean:
 	@for i in $(SUBDIRS); do \
                 $(MAKE) -C $$i $(subst subdirs_,,$@) || exit 1; \
         done
