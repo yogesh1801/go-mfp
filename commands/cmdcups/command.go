@@ -9,9 +9,11 @@
 package cmdcups
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/alexpevzner/mfp/argv"
+	"github.com/alexpevzner/mfp/log"
 	"github.com/alexpevzner/mfp/transport"
 )
 
@@ -20,6 +22,16 @@ var Command = argv.Command{
 	Name: "cups",
 	Help: "CUPS client",
 	Options: []argv.Option{
+		argv.Option{
+			Name:    "-d",
+			Aliases: []string{"--debug"},
+			Help:    "Enable debug output",
+		},
+		argv.Option{
+			Name:    "-v",
+			Aliases: []string{"--verbose"},
+			Help:    "Enable verbose debug output",
+		},
 		argv.Option{
 			Name:    "-u",
 			Aliases: []string{"--cups"},
@@ -36,4 +48,26 @@ var Command = argv.Command{
 		cmdGetPrinters,
 		argv.HelpCommand,
 	},
+	Handler: cmdCupsHandler,
+}
+
+// cmdCupsHandler is the top-level handler for the 'cups' command.
+func cmdCupsHandler(ctx context.Context, inv *argv.Invocation) error {
+	// Setup logging
+	_, dbg := inv.Get("-d")
+	_, vrb := inv.Get("-v")
+
+	level := log.LevelInfo
+	if dbg {
+		level = log.LevelDebug
+	}
+	if vrb {
+		level = log.LevelTrace
+	}
+
+	logger := log.NewLogger("", level, log.Console)
+	ctx = log.NewContext(ctx, logger)
+
+	// Execute subcommand
+	return argv.DefaultHandler(ctx, inv)
 }

@@ -17,6 +17,11 @@ import (
 func TestContext(t *testing.T) {
 	dest := &Logger{}
 
+	Trace(nil, "trace")
+	Debug(nil, "debug")
+	Info(nil, "info")
+	Error(nil, "error")
+
 	// Create a valid Context, test that expected logger returned
 	ctx := NewContext(context.Background(), dest)
 	dest2 := CtxLogger(ctx)
