@@ -132,7 +132,11 @@ func (lgr *Logger) send(levels []Level, lines [][]byte) *Logger {
 	}
 
 	// Send message to all destinations
-	for _, dest := range lgr.out {
+	lgr.outLock.Lock()
+	out := lgr.out
+	lgr.outLock.Unlock()
+
+	for _, dest := range out {
 		// Filter lines by level
 		filteredLevels := make([]Level, 0, len(lines))
 		filteredLines := make([][]byte, 0, len(lines))
