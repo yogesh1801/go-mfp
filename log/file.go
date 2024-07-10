@@ -16,6 +16,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"sync"
+	"time"
 )
 
 // backendFile is the Backend that writes log to file.
@@ -77,8 +78,38 @@ func (bk *backendFile) Send(levels []Level, lines [][]byte) {
 		}
 	}
 
+	// Acquire file lock
+	fl, err := FileLockEx(bk.file)
+	if err != nil {
+		return
+	}
+
+	defer fl.Close()
+
 	// Rotate now
 	bk.rotate()
+
+	// Format time prefix
+	now := time.Now()
+
+	year, month, day := now.Date()
+	hour, min, sec := now.Clock()
+
+	prefix := fmt.Sprintf("%2.2d-%2.2d-%4.4d %2.2d:%2.2d:%2.2d: ",
+		day, month, year,
+		hour, min, sec)
+
+	// Write log lines
+	buf := bufAlloc()
+	defer bufFree(buf)
+
+	for _, line := range lines {
+		buf.WriteString(prefix)
+		buf.Write(line)
+		buf.WriteByte('\n')
+	}
+
+	buf.WriteTo(bk.file)
 }
 
 // rotate performs auto-rotation
