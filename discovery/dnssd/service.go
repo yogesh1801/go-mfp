@@ -10,6 +10,7 @@ package dnssd
 
 import "net"
 
+// ServiceCommon is TODO
 type ServiceCommon struct {
 	InstanceName string      // E.g., "My printer"
 	Type         string      // E.g., "_ipp._tcp"
