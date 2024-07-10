@@ -10,6 +10,7 @@ package log
 
 import (
 	"encoding"
+	"sync"
 )
 
 // Standard loggers:
@@ -24,8 +25,9 @@ var (
 // Logger is the logging destination.
 // It can be connected to console, to the disk file etc...
 type Logger struct {
-	prefix string
-	out    []loggerDest
+	prefix  string       // Log prefix
+	out     []loggerDest // Attached destinations
+	outLock sync.Mutex   // Destinations modification lock
 }
 
 // loggerDest represents logging destination
@@ -49,6 +51,27 @@ func NewLogger(prefix string, lvl Level, b Backend) *Logger {
 			},
 		},
 	}
+}
+
+// Attach adds an additional [Backend] to send logs to.
+//
+// If this backend already attached to this logger, it
+// only updates the log level.
+func (lgr *Logger) Attach(lvl Level, b Backend) {
+	// Must do under the lock
+	lgr.outLock.Lock()
+	defer lgr.outLock.Unlock()
+
+	// If Backend already attached just update a Level
+	for i := range lgr.out {
+		if lgr.out[i].backend == b {
+			lgr.out[i].level = lvl
+			return
+		}
+	}
+
+	// Create new attachment
+	lgr.out = append(lgr.out, loggerDest{level: lvl, backend: b})
 }
 
 // Begin initiates creation of a new multi-line log [Record].
