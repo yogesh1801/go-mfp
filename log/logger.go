@@ -98,6 +98,11 @@ func (lgr *Logger) Info(format string, v ...any) *Logger {
 	return lgr.Begin().Info(format, v...).Commit()
 }
 
+// Warning writes a Warning-level message to the Logger.
+func (lgr *Logger) Warning(format string, v ...any) *Logger {
+	return lgr.Begin().Warning(format, v...).Commit()
+}
+
 // Error writes a Error-level message to the Logger.
 func (lgr *Logger) Error(format string, v ...any) *Logger {
 	return lgr.Begin().Error(format, v...).Commit()

@@ -13,11 +13,12 @@ type Level int
 
 // Log levels:
 const (
-	LevelTrace Level = iota // Protocol trace
-	LevelDebug              // Debug messages
-	LevelInfo               // Informational messages
-	LevelError              // Error messages
-	LevelFatal              // Fatal errors
+	LevelTrace   Level = iota // Protocol trace
+	LevelDebug                // Debug messages
+	LevelInfo                 // Informational messages
+	LevelWarning              // Warning messages
+	LevelError                // Error messages
+	LevelFatal                // Fatal errors
 
 	// These constants are useful for filtering
 	LevelAll  = LevelTrace     // Allow all levels

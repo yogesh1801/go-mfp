@@ -49,6 +49,11 @@ func (rec *Record) Info(format string, v ...any) *Record {
 	return rec.format(LevelInfo, format, v...)
 }
 
+// Warning writes a Warning-level message to the Record.
+func (rec *Record) Warning(format string, v ...any) *Record {
+	return rec.format(LevelWarning, format, v...)
+}
+
 // Error writes a Error-level message to the Record.
 func (rec *Record) Error(format string, v ...any) *Record {
 	return rec.format(LevelError, format, v...)

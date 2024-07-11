@@ -50,6 +50,8 @@ func (bk *backendConsole) Send(levels []Level, lines [][]byte) {
 				beg, end = "\033[37;1m", "\033[0m" // White
 			case LevelInfo:
 				beg, end = "\033[32;1m", "\033[0m" // Green
+			case LevelWarning:
+				beg, end = "\033[33m", "\033[0m" // Brown
 			case LevelError, LevelFatal:
 				beg, end = "\033[31;1m", "\033[0m" // Red
 			}
