@@ -1,3 +1,3 @@
-SUBDIRS	= dnssd
+SUBDIRS	= dnssd netstate
 
 include ../Rules.mak
