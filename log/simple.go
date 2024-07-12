@@ -40,6 +40,15 @@ func Info(ctx context.Context, format string, v ...any) {
 	CtxLogger(ctx).Info(format, v...)
 }
 
+// Warning writes a Warning-level message to the [Logger] associated
+// with the Context.
+//
+// If Logger is not available, [DefaultLogger] will be used.
+// The [context.Context] parameter may be safely passed as nil.
+func Warning(ctx context.Context, format string, v ...any) {
+	CtxLogger(ctx).Warning(format, v...)
+}
+
 // Error writes a Error-level message to the [Logger] associated
 // with the Context.
 //
