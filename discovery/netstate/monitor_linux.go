@@ -26,7 +26,7 @@ var monitorInstance *monitor
 // notifications when something changes.
 type monitor struct {
 	lock          sync.Mutex    // Access lock
-	laststate     netstate      // Last known network state
+	snapLast      snapshot      // Last known network state
 	errLast       error         // Last error
 	errSeq        int64         // Error sequence number
 	waitchan      chan struct{} // Channel for clients to wait
@@ -51,12 +51,12 @@ func gewMonitor() *monitor {
 
 // get returns last known network state and channel to wait for updates.
 //
-// The returned channel woll be closed by monitor when state changes.
-func (mon *monitor) get() (netstate, <-chan struct{}) {
+// The returned channel will be closed by monitor when state changes.
+func (mon *monitor) get() (snapshot, <-chan struct{}) {
 	mon.lock.Lock()
 	defer mon.lock.Unlock()
 
-	return mon.laststate, mon.waitchan
+	return mon.snapLast, mon.waitchan
 }
 
 // getError returns the latest error, if its sequence number
@@ -90,15 +90,15 @@ func (mon *monitor) awake() {
 // update re-reads network state, updates monitor and awakes
 // subscribers when appropriate.
 func (mon *monitor) update() {
-	newstate, err := newNetstate()
+	snapNext, err := newSnapshot()
 
 	mon.lock.Lock()
 	defer mon.lock.Unlock()
 
 	if err != nil {
 		mon.setError(err)
-	} else if !mon.laststate.equal(newstate) {
-		mon.laststate = newstate
+	} else if !mon.snapLast.equal(snapNext) {
+		mon.snapLast = snapNext
 		mon.awake()
 	}
 }

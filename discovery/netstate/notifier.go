@@ -12,9 +12,9 @@ import "context"
 
 // Notifier provides network state change events notifications.
 type Notifier struct {
-	laststate netstate   // Last network state known to the client
-	queue     eventqueue // Queue of not yet delivered events
-	errSeq    int64      // Sequence number of next error
+	snapLast snapshot   // Last network state known to the client
+	queue    eventqueue // Queue of not yet delivered events
+	errSeq   int64      // Sequence number of next error
 }
 
 // NewNotifier creates a new Notifier.
@@ -38,7 +38,7 @@ func (not *Notifier) Get(ctx context.Context) (Event, error) {
 	// Wait for an event or context cancellation
 	mon := gewMonitor()
 	for {
-		nextstate, waitchan := mon.get()
+		snapNext, waitchan := mon.get()
 
 		evnt, errSeq := mon.getError(not.errSeq)
 		if evnt != nil {
@@ -46,9 +46,9 @@ func (not *Notifier) Get(ctx context.Context) (Event, error) {
 			return evnt, nil
 		}
 
-		events := not.laststate.sync(nextstate)
+		events := not.snapLast.sync(snapNext)
 		if len(events) != 0 {
-			not.laststate = nextstate
+			not.snapLast = snapNext
 			not.queue.push(events[1:]...)
 			return events[0], nil
 		}

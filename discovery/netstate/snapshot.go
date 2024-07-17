@@ -4,7 +4,7 @@
 // Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
 // See LICENSE for license terms and conditions
 //
-// Network state snapshot and event generation
+// Network state snapshot
 
 package netstate
 
@@ -13,17 +13,17 @@ import (
 	"sort"
 )
 
-// netstate keeps current network state
-type netstate struct {
+// snapshot represents a snapshot of current network state.
+type snapshot struct {
 	addrs []*Addr // Known addresses
 }
 
 // newNetstate creates a snapshot of a current network state
-func newNetstate() (netstate, error) {
+func newSnapshot() (snapshot, error) {
 	// Get interfaces
 	ift, err := net.Interfaces()
 	if err != nil {
-		return netstate{}, err
+		return snapshot{}, err
 	}
 
 	// Get addresses
@@ -50,18 +50,18 @@ func newNetstate() (netstate, error) {
 		return addrs[i].Less(addrs[j])
 	})
 
-	// Return a netstate
-	ns := netstate{
+	// Return a snapshot
+	ns := snapshot{
 		addrs: addrs,
 	}
 
 	return ns, nil
 }
 
-// equal tells if two netstates are equal
-func (ns netstate) equal(ns2 netstate) bool {
-	prev := ns.addrs
-	next := ns2.addrs
+// equal tells if two snapshots are equal
+func (snap snapshot) equal(snap2 snapshot) bool {
+	prev := snap.addrs
+	next := snap2.addrs
 
 	// Skip common addresses
 	for len(prev) > 0 && len(next) > 0 && prev[0].Equal(next[0]) {
@@ -72,12 +72,12 @@ func (ns netstate) equal(ns2 netstate) bool {
 	return len(prev) > 0 || len(next) > 0
 }
 
-// sync generates a series of events in order to bring 'ns'
-// into the same state as nsNext.
-func (ns netstate) sync(nsNext netstate) (events []Event) {
+// sync generates a series of events in order to bring 'snap'
+// into the same state as snap2.
+func (snap snapshot) sync(snap2 snapshot) (events []Event) {
 	// Initialize things
-	prev := ns.addrs
-	next := nsNext.addrs
+	prev := snap.addrs
+	next := snap2.addrs
 
 	interfaces := newSetOfInterfaces()
 	interfaces.addAddrs(prev)
