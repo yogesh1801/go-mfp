@@ -15,17 +15,16 @@ import (
 
 // netstate keeps current network state
 type netstate struct {
-	err        error    // Last error to be reported
 	addrs      []*Addr  // Known addresses
 	interfaces ifnetset // Known interfaces
 }
 
 // newNetstate creates a snapshot of a current network state
-func newNetstate() netstate {
+func newNetstate() (netstate, error) {
 	// Get interfaces
 	ift, err := net.Interfaces()
 	if err != nil {
-		return netstate{err: err}
+		return netstate{}, err
 	}
 
 	// Get addresses
@@ -34,7 +33,7 @@ func newNetstate() netstate {
 		ifat, err := ifi.Addrs()
 		if err != nil {
 			// Interface might disappear just from our hands,
-			// so just skip it in a case of an error.
+			// so just skip it in a case of error.
 			continue
 		}
 
@@ -70,25 +69,16 @@ func newNetstate() netstate {
 	}
 
 	// Return a netstate
-	return netstate{
+	ns := netstate{
 		addrs:      addrs,
 		interfaces: interfaces,
 	}
-}
 
-// setError sets an error. It returns true if something changed
-func (ns *netstate) setError(err error) bool {
-	ret := ns.err != err
-	ns.err = err
-	return ret
+	return ns, nil
 }
 
 // equal tells if two netstates are equal
 func (ns netstate) equal(ns2 netstate) bool {
-	if ns.err != ns2.err {
-		return false
-	}
-
 	if !ns.interfaces.equal(ns2.interfaces) {
 		return false
 	}
@@ -105,11 +95,6 @@ func (ns netstate) equal(ns2 netstate) bool {
 //
 // If two network states are equal, it returns nil.
 func (ns *netstate) sync(nsNext netstate) Event {
-	if ns.err == nil && nsNext.err != nil {
-		ns.err = nsNext.err
-		return EventError{ns.err}
-	}
-
 	// Check for pending EventDelInterface events
 	if ifi, ok := ns.interfaces.missed(nsNext.interfaces); ok {
 		ns.interfaces.del(ifi)

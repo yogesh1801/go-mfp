@@ -27,6 +27,8 @@ var monitorInstance *monitor
 type monitor struct {
 	lock          sync.Mutex    // Access lock
 	laststate     netstate      // Last known network state
+	errLast       error         // Last error
+	errSeq        int64         // Error sequence number
 	waitchan      chan struct{} // Channel for clients to wait
 	rtnetlinkFile *os.File      // rtnetlink socket as os.File
 }
@@ -57,6 +59,27 @@ func (mon *monitor) get() (netstate, <-chan struct{}) {
 	return mon.laststate, mon.waitchan
 }
 
+// getError returns the latest error, if its sequence number
+// is greater that supplied by the caller (i.e., caller has
+// not seen this error yet). The returned error is wrapped into
+// the EventError structure.
+//
+// If there is no new error, it returns nil.
+//
+// Additionally it returns a sequence number for the next call.
+// The first call should use zero sequence number.
+func (mon *monitor) getError(seq int64) (Event, int64) {
+	mon.lock.Lock()
+	defer mon.lock.Unlock()
+
+	var evnt Event
+	if seq < mon.errSeq {
+		evnt = EventError{mon.errLast}
+	}
+
+	return evnt, mon.errSeq
+}
+
 // awake wakes all sleeping clients.
 // It MUST be called under the mon.lock
 func (mon *monitor) awake() {
@@ -67,24 +90,27 @@ func (mon *monitor) awake() {
 // update re-reads network state, updates monitor and awakes
 // subscribers when appropriate.
 func (mon *monitor) update() {
-	newstate := newNetstate()
+	newstate, err := newNetstate()
 
 	mon.lock.Lock()
 	defer mon.lock.Unlock()
 
-	if !mon.laststate.equal(newstate) {
+	if err != nil {
+		mon.setError(err)
+	} else if !mon.laststate.equal(newstate) {
 		mon.laststate = newstate
 		mon.awake()
 	}
 }
 
-// setError saves an error conditions and wakeups subscribers,
-// when appropriate
+// setError saves an error
 func (mon *monitor) setError(err error) {
 	mon.lock.Lock()
 	defer mon.lock.Unlock()
 
-	if mon.laststate.setError(err) {
+	if mon.errLast == nil || mon.errLast.Error() != err.Error() {
+		mon.errLast = err
+		mon.errSeq++
 		mon.awake()
 	}
 }

@@ -13,6 +13,7 @@ import "context"
 // Notifier provides network state change events notifications.
 type Notifier struct {
 	laststate netstate // Last network state known to the client
+	errSeq    int64    // Sequence number of next error
 }
 
 // NewNotifier creates a new Notifier.
@@ -32,7 +33,14 @@ func (not *Notifier) Get(ctx context.Context) (Event, error) {
 	mon := gewMonitor()
 	for {
 		laststate, waitchan := mon.get()
-		evnt := not.laststate.sync(laststate)
+
+		evnt, errSeq := mon.getError(not.errSeq)
+		if evnt != nil {
+			mon.errSeq = errSeq
+			return evnt, nil
+		}
+
+		evnt = not.laststate.sync(laststate)
 		if evnt != nil {
 			return evnt, nil
 		}
