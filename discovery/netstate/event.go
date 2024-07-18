@@ -14,6 +14,23 @@ import (
 )
 
 // Event is the common interface of all events.
+//
+// There are 5 types of events:
+//
+//   - [EventAddInterface] and [EventDelInterface] generated when
+//     network interface is added or deleted.
+//   - [EventAddAddress] and [EventDelAddress] generated when IP
+//     address is added or deleted.
+//   - [EventError] is generated when some error occurs. Errors
+//     are not fatal and EventError intended only for logging.
+//     This is not guaranteed that all errors will be reported this
+//     way, but this mechanism attempts to be as informative as possible.
+//
+// When address is added, events will come in the following order:
+//  1. [EventAddInterface]
+//  2. [EventAddAddress], that used previously added interface.
+//
+// When address is deleted, events will come in reverse order.
 type Event interface {
 	// String returns string representation of the Event,
 	// for logging.
@@ -29,9 +46,12 @@ var (
 	_ Event = EventDelInterface{}
 	_ Event = EventAddAddress{}
 	_ Event = EventDelAddress{}
+	_ Event = EventError{}
 )
 
 // EventAddInterface is fired when new interface added to the system.
+//
+// See [Event] description for details.
 type EventAddInterface struct {
 	Interface net.Interface // Added interface
 }
@@ -46,6 +66,8 @@ func (e EventAddInterface) String() string {
 func (EventAddInterface) event() {}
 
 // EventDelInterface is fired when network interface is removed from the system.
+//
+// See [Event] description for details.
 type EventDelInterface struct {
 	Interface net.Interface // Deleted interface
 }
@@ -61,8 +83,7 @@ func (EventDelInterface) event() {}
 
 // EventAddAddress is fired when new IP address added to some interface.
 //
-// This is guaranteed that [EventAddInterface] will be delivered before
-// corresponding EventAddAddress events.
+// See [Event] description for details.
 type EventAddAddress struct {
 	Addr Addr // Added address
 }
@@ -78,9 +99,7 @@ func (EventAddAddress) event() {}
 
 // EventDelAddress is fired when IP address is removed.
 //
-// This is guaranteed that all appropriate [EventDeldAddress] events
-// will be delivered before [EventDelInterface] of the appropriate
-// interface.
+// See [Event] description for details.
 type EventDelAddress struct {
 	Addr Addr // Deleted address
 }
@@ -96,9 +115,7 @@ func (EventDelAddress) event() {}
 
 // EventError is fired when some error occurs.
 //
-// Errors are not fatal and delivered barely for logging.
-// If series of errors occurs, this is not guaranteed that
-// all will be delivered.
+// See [Event] description for details.
 type EventError struct {
 	Err error // The error
 }
