@@ -10,7 +10,24 @@ package netstate
 
 import "context"
 
-// Notifier provides network state change events notifications.
+// Notifier monitors system connectivity to the network (available
+// network interfaces and assigned IP addresses) and generates [Event]s,
+// when network state changes.
+//
+// Notifier provides the [Notifier.Get] methods to receive these Events.
+//
+// If network state changes faster, that Notifier user reads Events,
+// related Events may collide. For example if some network interface
+// was added and then disappeared, in theory Event receiver should get
+// two events: [EventAddInterface] followed by [EventDelInterface].
+// Actually, depending on how fast is the Event receiver, it will get
+// either both of these events, or none. Two opposing events may
+// annihilate. In any case, Event receiver's view to the network state
+// will be [eventually consistent] with the actual network state.
+//
+// This is safe to use Notifier with multiple goroutines.
+//
+// [eventually consistent]: https://en.wikipedia.org/wiki/Eventual_consistency
 type Notifier struct {
 	snapLast snapshot      // Last network state known to the client
 	queue    eventqueue    // Queue of not yet delivered events
@@ -19,8 +36,6 @@ type Notifier struct {
 }
 
 // NewNotifier creates a new Notifier.
-//
-// This is safe to use Notifier with multiple goroutines.
 func NewNotifier() *Notifier {
 	return &Notifier{
 		lockChan: make(chan struct{}, 1),
