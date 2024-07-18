@@ -45,7 +45,7 @@ func init() {
 
 // getMonitor returns a network event monitor.
 // Monitor is a singleton, shared between all Notifiers.
-func gewMonitor() *monitor {
+func getMonitor() *monitor {
 	return monitorInstance
 }
 

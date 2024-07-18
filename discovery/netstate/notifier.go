@@ -36,7 +36,7 @@ func (not *Notifier) Get(ctx context.Context) (Event, error) {
 	}
 
 	// Wait for an event or context cancellation
-	mon := gewMonitor()
+	mon := getMonitor()
 	for {
 		snapNext, waitchan := mon.get()
 
