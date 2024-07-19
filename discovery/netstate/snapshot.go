@@ -122,6 +122,11 @@ func (snap snapshot) sync(snap2 snapshot) (events []Event) {
 			ifi := addr.Interface
 			cnt := interfaces.del(ifi)
 
+			if addr.Primary {
+				events = append(events,
+					EventDelPrimaryAddress{addr})
+			}
+
 			events = append(events, EventDelAddress{addr})
 
 			if cnt == 1 {
@@ -147,15 +152,31 @@ func (snap snapshot) sync(snap2 snapshot) (events []Event) {
 
 			events = append(events, EventAddAddress{addr})
 
+			if addr.Primary {
+				events = append(events,
+					EventAddPrimaryAddress{addr})
+			}
+
 		default:
 			// Note:
 			//   - Neither prev or next are empty.
 			//   - Neither prev[0].Less(next[0]) or visa versa
 			//
-			// It means, prev[0] and next[0] are equal,
-			// so just skip both
-			prev = prev[1:]
-			next = next[1:]
+			// It means, prev[0] and next[0] are equal.
+			//
+			// So just report change of Primary address
+			// state if it occurs.
+			aprev, anext := *prev[0], *next[0]
+			prev, next = prev[1:], next[1:]
+
+			switch {
+			case aprev.Primary && !anext.Primary:
+				events = append(events,
+					EventDelPrimaryAddress{aprev})
+			case !aprev.Primary && anext.Primary:
+				events = append(events,
+					EventAddPrimaryAddress{anext})
+			}
 		}
 	}
 

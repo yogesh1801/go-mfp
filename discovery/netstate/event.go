@@ -15,12 +15,16 @@ import (
 
 // Event is the common interface of all events.
 //
-// There are 5 types of events:
+// There are 7 types of events:
 //
 //   - [EventAddInterface] and [EventDelInterface] generated when
 //     network interface is added or deleted.
 //   - [EventAddAddress] and [EventDelAddress] generated when IP
 //     address is added or deleted.
+//   - [EventAddPrimaryAddress] and [EventDelPrimaryAddress] generated
+//     when primary address is added or deleted or when existent address
+//     changes its status. See [Addr] description for definition of
+//     the primary address.
 //   - [EventError] is generated when some error occurs. Errors
 //     are not fatal and EventError intended only for logging.
 //     This is not guaranteed that all errors will be reported this
@@ -29,8 +33,13 @@ import (
 // When address is added, events will come in the following order:
 //  1. [EventAddInterface]
 //  2. [EventAddAddress], that used previously added interface.
+//  3. [EventAddPrimaryAddress], that used previously added address.
 //
 // When address is deleted, events will come in reverse order.
+//
+// Please notice, that primary addresses will be reported twice,
+// using EventAddAddress/EventDelAddress events and using
+// EventAddPrimaryAddress/EventDelPrimaryAddress events.
 type Event interface {
 	// String returns string representation of the Event,
 	// for logging.
@@ -46,6 +55,8 @@ var (
 	_ Event = EventDelInterface{}
 	_ Event = EventAddAddress{}
 	_ Event = EventDelAddress{}
+	_ Event = EventAddPrimaryAddress{}
+	_ Event = EventDelPrimaryAddress{}
 	_ Event = EventError{}
 )
 
@@ -112,6 +123,42 @@ func (e EventDelAddress) String() string {
 
 // event implements an Event interface
 func (EventDelAddress) event() {}
+
+// EventAddPrimaryAddress is fired when primary IP address added to some
+// interface or when existing address changes its status to Primary.
+//
+// See [Event] description for details.
+type EventAddPrimaryAddress struct {
+	Addr Addr // Added address
+}
+
+// String returns string representation of [EventAddPrimaryAddress],
+// for logging.
+func (e EventAddPrimaryAddress) String() string {
+	return fmt.Sprintf("add-primary: interface=%q, index=%d, addr=%s",
+		e.Addr.Interface.Name, e.Addr.Interface.Index, e.Addr.String())
+}
+
+// event implements an Event interface
+func (EventAddPrimaryAddress) event() {}
+
+// EventDelPrimaryAddress is fired when Primary IP address is removed
+// or looses its status of the Primary address.
+//
+// See [Event] description for details.
+type EventDelPrimaryAddress struct {
+	Addr Addr // Deleted address
+}
+
+// String returns string representation of [EventDelPrimaryAddress],
+// for logging.
+func (e EventDelPrimaryAddress) String() string {
+	return fmt.Sprintf("del-primary: interface=%q, index=%d, addr=%s",
+		e.Addr.Interface.Name, e.Addr.Interface.Index, e.Addr.String())
+}
+
+// event implements an Event interface
+func (EventDelPrimaryAddress) event() {}
 
 // EventError is fired when some error occurs.
 //
