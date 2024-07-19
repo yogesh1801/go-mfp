@@ -13,10 +13,31 @@ import (
 	"net"
 )
 
-// Addr represents a single IP address assigned to the network interface.
+// Addr represents a single IP address with mask, assigned to the network
+// interface.
+//
+// Interface may have multiple addresses which may belong to the same
+// or different IP networks. Belonging addresses to IP networks divides
+// addresses into groups. One and only one address of each group will
+// be marked as Primary.
+//
+// In another words, if all interface addresses will belong to the different
+// IP networks, all of them will be marked as Primary. If some of the
+// interface addresses belong to the same IP network, only one of these
+// addresses will be chosen as Primary.
+//
+// Addresses considered belonging to the same IP network, if ranges, taking
+// address Mask into account, overlap. [Addr.Overlaps] can be used to
+// test any two addresses for overlapping. Strictly speaking, ranges
+// covered by two overlapping addresses either equal, if masks are the
+// same, or nest, if mask of the "inner" address.
+//
+// For overlapping addresses, [Addr.Narrower] reports whether of addresses
+// are narrower.
 type Addr struct {
 	net.IPNet               // IP address with mask
 	Interface net.Interface // Interface that owns the address
+	Primary   bool          // It's a primary address
 }
 
 // Equal reports if two addresses are equal.
@@ -69,12 +90,38 @@ func (addr *Addr) Less(addr2 *Addr) bool {
 		return bytes.Compare(addr.IP, addr2.IP) < 0
 	default:
 		// Sort by network mask, the narrowed first.
-		// The more network mask contains leading ones,
-		// the narrower it is.
+		return addr.Narrower(addr2)
+	}
+}
+
+// Overlaps reports whether two addresses overlap.
+//
+// Overlapped addressed are addresses for which all following is true:
+//   - they belong to the same network interface
+//   - they belong to the same address family, both either IP4 or IP6
+//   - their address range, taking Mask into account, overlap
+func (addr *Addr) Overlaps(addr2 *Addr) bool {
+	var answer bool
+	if addr.SameInterface(addr2) {
+		answer = addr.Contains(addr2.IP) || addr2.Contains(addr.IP)
+	}
+	return answer
+}
+
+// Narrower reports whether addr is narrowed that addr2.
+//
+// It means the following:
+//   - addr and addr2 overlap (see [Addr.Overlap] for definition).
+//   - mask of addr is narrower (contains more leading ones and less
+//     trailing zeroes) that mask of addr2
+func (addr *Addr) Narrower(addr2 *Addr) bool {
+	var answer bool
+	if addr.Overlaps(addr2) {
 		ones, _ := addr.Mask.Size()
 		ones2, _ := addr.Mask.Size()
 		return ones > ones2
 	}
+	return answer
 }
 
 // Is4 tells is [Addr] is IP4 address.

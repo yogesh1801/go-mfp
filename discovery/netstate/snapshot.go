@@ -29,6 +29,7 @@ func newSnapshot() (snapshot, error) {
 	// Get addresses
 	addrs := []*Addr{}
 	for _, ifi := range ift {
+		// Get addresses of the interface
 		ifat, err := ifi.Addrs()
 		if err != nil {
 			// Interface might disappear just from our hands,
@@ -36,21 +37,35 @@ func newSnapshot() (snapshot, error) {
 			continue
 		}
 
+		// Convert obtained addresses into []*Addr
+		ifaddrs := make([]*Addr, 0, len(ifat))
 		for _, ifa := range ifat {
 			// Interface addresses must be of the type *net.IPNet,
 			// but be prepared if they are not, just in case
 			if ipnet, ok := ifa.(*net.IPNet); ok {
-				addr := &Addr{*ipnet, ifi}
-				addrs = append(addrs, addr)
+				addr := &Addr{*ipnet, ifi, true}
+				ifaddrs = append(addrs, addr)
 			}
 		}
+
+		// Markup Primary addresses
+		for _, a1 := range ifaddrs {
+			for _, a2 := range ifaddrs {
+				if a1 != a2 && a1.Primary && a1.Narrower(a2) {
+					a1.Primary = false
+				}
+			}
+		}
+
+		// Append addresses to the main slice
+		addrs = append(addrs, ifaddrs...)
 	}
 
+	// Return a snapshot
 	sort.Slice(addrs, func(i, j int) bool {
 		return addrs[i].Less(addrs[j])
 	})
 
-	// Return a snapshot
 	ns := snapshot{
 		addrs: addrs,
 	}
@@ -140,7 +155,7 @@ func (snap snapshot) sync(snap2 snapshot) (events []Event) {
 			// It means, prev[0] and next[0] are equal,
 			// so just skip both
 			prev = prev[1:]
-			prev = prev[1:]
+			next = next[1:]
 		}
 	}
 
