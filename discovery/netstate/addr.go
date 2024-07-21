@@ -108,7 +108,7 @@ func (addr *Addr) Overlaps(addr2 *Addr) bool {
 	return answer
 }
 
-// Narrower reports whether addr is narrowed that addr2.
+// Narrower reports whether addr is narrower that addr2.
 //
 // It means the following:
 //   - addr and addr2 overlap (see [Addr.Overlap] for definition).
@@ -118,7 +118,7 @@ func (addr *Addr) Narrower(addr2 *Addr) bool {
 	var answer bool
 	if addr.Overlaps(addr2) {
 		ones, _ := addr.Mask.Size()
-		ones2, _ := addr.Mask.Size()
+		ones2, _ := addr2.Mask.Size()
 		return ones > ones2
 	}
 	return answer
