@@ -4,7 +4,7 @@
 // Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
 // See LICENSE for license terms and conditions
 //
-// Network evens notifications -- the Linux version
+// Network state monitor -- the Linux version
 
 package netstate
 
@@ -20,8 +20,6 @@ import (
 // Poll period, if netlink socket is not available
 const monitorPollPeriod = 5 * time.Second
 
-var monitorInstance *monitor
-
 // monitor keeps track on a current network state and provides
 // notifications when something changes.
 type monitor struct {
@@ -33,20 +31,16 @@ type monitor struct {
 	rtnetlinkFile *os.File      // rtnetlink socket as os.File
 }
 
-// init creates a monitor instance.
-func init() {
+// newMonitor creates a network event monitor.
+// Monitor is designed to run as a singleton shared between all users.
+// Users should call getMonitor() instead.
+func newMonitor() *monitor {
 	mon := &monitor{
 		waitchan: make(chan struct{}),
 	}
 	go mon.poll()
 
-	monitorInstance = mon
-}
-
-// getMonitor returns a network event monitor.
-// Monitor is a singleton, shared between all Notifiers.
-func getMonitor() *monitor {
-	return monitorInstance
+	return mon
 }
 
 // get returns last known network state and channel to wait for updates.
