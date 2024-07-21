@@ -15,6 +15,9 @@ import (
 // Overriding these hooks allows tests to simulate
 // running on real OS:
 var (
-	hookNetInterfaces   = net.Interfaces
-	hookInterfacesAddrs = (*net.Interface).Addrs
+	// net.Interfaces
+	hookNetInterfaces = net.Interfaces
+
+	// net.Interface.Addrs
+	hookNetInterfacesAddrs = (*net.Interface).Addrs
 )

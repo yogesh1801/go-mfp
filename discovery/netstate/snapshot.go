@@ -30,7 +30,7 @@ func newSnapshot() (snapshot, error) {
 	addrs := []*Addr{}
 	for _, ifi := range ift {
 		// Get addresses of the interface
-		ifat, err := hookInterfacesAddrs(&ifi)
+		ifat, err := hookNetInterfacesAddrs(&ifi)
 		if err != nil {
 			// Interface might disappear just from our hands,
 			// so just skip it in a case of error.
