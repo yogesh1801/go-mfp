@@ -21,7 +21,7 @@ type snapshot struct {
 // newNetstate creates a snapshot of a current network state
 func newSnapshot() (snapshot, error) {
 	// Get interfaces
-	ift, err := net.Interfaces()
+	ift, err := hookNetInterfaces()
 	if err != nil {
 		return snapshot{}, err
 	}
@@ -30,7 +30,7 @@ func newSnapshot() (snapshot, error) {
 	addrs := []*Addr{}
 	for _, ifi := range ift {
 		// Get addresses of the interface
-		ifat, err := ifi.Addrs()
+		ifat, err := hookInterfacesAddrs(&ifi)
 		if err != nil {
 			// Interface might disappear just from our hands,
 			// so just skip it in a case of error.
