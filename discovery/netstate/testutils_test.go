@@ -11,6 +11,9 @@ package netstate
 import (
 	"fmt"
 	"net"
+	"slices"
+	"sort"
+	"sync"
 	"sync/atomic"
 )
 
@@ -53,4 +56,50 @@ func testMakeIPNet(cidr string) *net.IPNet {
 	}
 
 	return &net.IPNet{IP: ip, Mask: ipnet.Mask}
+}
+
+// testMonitor implements monitor interface, for testing
+type testMonitor struct {
+	lock     sync.Mutex
+	snapshot snapshot
+	waitchan chan struct{}
+}
+
+var testMonitorInstanse = &testMonitor{
+	waitchan: make(chan struct{}),
+}
+
+// newTestMonitor creates a new testMonitor
+func newTestMonitor() monitor {
+	return testMonitorInstanse
+}
+
+// testMonitorUpdateAddrs updates network addresses, exposed by
+// the testMonitorInstanse
+func testMonitorUpdateAddrs(addrs []*Addr) {
+	addrs = slices.Clone(addrs)
+	sort.Slice(addrs, func(i, j int) bool {
+		return addrs[i].Less(addrs[j])
+	})
+
+	testMonitorInstanse.lock.Lock()
+	defer testMonitorInstanse.lock.Unlock()
+
+	testMonitorInstanse.snapshot = snapshot{addrs}
+	close(testMonitorInstanse.waitchan)
+}
+
+// Get returns last known network state and channel to wait for updates.
+//
+// The returned channel will be closed by monitor when state changes.
+func (mon *testMonitor) Get() (snapshot, <-chan struct{}) {
+	testMonitorInstanse.lock.Lock()
+	defer testMonitorInstanse.lock.Unlock()
+
+	return mon.snapshot, mon.waitchan
+}
+
+// GetError returns the latest error, if its sequence number
+func (mon *testMonitor) GetError(seq int64) (Event, int64) {
+	return nil, 0
 }

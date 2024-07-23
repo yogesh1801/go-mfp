@@ -47,7 +47,7 @@ type monitor interface {
 // If monitor is not exist yet, it will be created on demand.
 func getMonitor() monitor {
 	monitorInitOnce.Do(func() {
-		monitorInstance = newMonitor()
+		monitorInstance = hookNewMonitor()
 	})
 	return monitorInstance
 }

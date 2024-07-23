@@ -20,4 +20,7 @@ var (
 
 	// net.Interface.Addrs
 	hookNetInterfacesAddrs = (*net.Interface).Addrs
+
+	// newMonitor
+	hookNewMonitor = newMonitor
 )
