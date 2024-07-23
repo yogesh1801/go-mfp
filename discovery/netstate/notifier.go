@@ -60,11 +60,11 @@ func (not *Notifier) Get(ctx context.Context) (Event, error) {
 	// Wait for an event or context cancellation
 	mon := getMonitor()
 	for {
-		snapNext, waitchan := mon.get()
+		snapNext, waitchan := mon.Get()
 
-		evnt, errSeq := mon.getError(not.errSeq)
+		evnt, errSeq := mon.GetError(not.errSeq)
 		if evnt != nil {
-			mon.errSeq = errSeq
+			not.errSeq = errSeq
 			return evnt, nil
 		}
 

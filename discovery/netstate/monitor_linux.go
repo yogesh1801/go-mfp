@@ -20,9 +20,11 @@ import (
 // Poll period, if netlink socket is not available
 const monitorPollPeriod = 5 * time.Second
 
-// monitor keeps track on a current network state and provides
+// monitorLinus keeps track on a current network state and provides
 // notifications when something changes.
-type monitor struct {
+//
+// It contains Linux implementation of the monitor interface.
+type monitorLinux struct {
 	lock          sync.Mutex    // Access lock
 	snapLast      snapshot      // Last known network state
 	errLast       error         // Last error
@@ -34,8 +36,8 @@ type monitor struct {
 // newMonitor creates a network event monitor.
 // Monitor is designed to run as a singleton shared between all users.
 // Users should call getMonitor() instead.
-func newMonitor() *monitor {
-	mon := &monitor{
+func newMonitor() monitor {
+	mon := &monitorLinux{
 		waitchan: make(chan struct{}),
 	}
 	go mon.poll()
@@ -43,17 +45,17 @@ func newMonitor() *monitor {
 	return mon
 }
 
-// get returns last known network state and channel to wait for updates.
+// Get returns last known network state and channel to wait for updates.
 //
 // The returned channel will be closed by monitor when state changes.
-func (mon *monitor) get() (snapshot, <-chan struct{}) {
+func (mon *monitorLinux) Get() (snapshot, <-chan struct{}) {
 	mon.lock.Lock()
 	defer mon.lock.Unlock()
 
 	return mon.snapLast, mon.waitchan
 }
 
-// getError returns the latest error, if its sequence number
+// GetError returns the latest error, if its sequence number
 // is greater that supplied by the caller (i.e., caller has
 // not seen this error yet). The returned error is wrapped into
 // the EventError structure.
@@ -62,7 +64,7 @@ func (mon *monitor) get() (snapshot, <-chan struct{}) {
 //
 // Additionally it returns a sequence number for the next call.
 // The first call should use zero sequence number.
-func (mon *monitor) getError(seq int64) (Event, int64) {
+func (mon *monitorLinux) GetError(seq int64) (Event, int64) {
 	mon.lock.Lock()
 	defer mon.lock.Unlock()
 
@@ -76,14 +78,14 @@ func (mon *monitor) getError(seq int64) (Event, int64) {
 
 // awake wakes all sleeping clients.
 // It MUST be called under the mon.lock
-func (mon *monitor) awake() {
+func (mon *monitorLinux) awake() {
 	close(mon.waitchan)
 	mon.waitchan = make(chan struct{})
 }
 
 // update re-reads network state, updates monitor and awakes
 // subscribers when appropriate.
-func (mon *monitor) update() {
+func (mon *monitorLinux) update() {
 	snapNext, err := newSnapshot()
 
 	mon.lock.Lock()
@@ -98,7 +100,7 @@ func (mon *monitor) update() {
 }
 
 // setError saves an error
-func (mon *monitor) setError(err error) {
+func (mon *monitorLinux) setError(err error) {
 	mon.lock.Lock()
 	defer mon.lock.Unlock()
 
@@ -110,7 +112,7 @@ func (mon *monitor) setError(err error) {
 }
 
 // poll performs polling for network state changes.
-func (mon *monitor) poll() {
+func (mon *monitorLinux) poll() {
 	for {
 		// Try opening rtnetlink socket
 		if mon.rtnetlinkFile == nil {
@@ -140,7 +142,7 @@ func (mon *monitor) poll() {
 
 // rtnetlinkRead reads and parses rtnetlink messages.
 // If relevant event is received, it calls mon.update()
-func (mon *monitor) rtnetlinkRead() error {
+func (mon *monitorLinux) rtnetlinkRead() error {
 	buf := make([]byte, 16384)
 
 	n, err := mon.rtnetlinkFile.Read(buf)
@@ -165,7 +167,7 @@ func (mon *monitor) rtnetlinkRead() error {
 }
 
 // rtnetlinkOpen opens the rtnetlink file
-func (mon *monitor) rtnetlinkOpen() error {
+func (mon *monitorLinux) rtnetlinkOpen() error {
 	// Open rtnetlink socket
 	sock, err := unix.Socket(unix.AF_NETLINK,
 		unix.SOCK_RAW|unix.SOCK_CLOEXEC,
