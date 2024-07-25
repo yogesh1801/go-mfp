@@ -62,6 +62,14 @@ func newSnapshot() (snapshot, error) {
 	}
 
 	// Return a snapshot
+	return newSnapshotFromAddrs(addrs), nil
+}
+
+// newNetstate creates a snapshot of a current network state
+// from provided addresses.
+//
+// It takes ownership on slice of addresses and may modify it.
+func newSnapshotFromAddrs(addrs []*Addr) snapshot {
 	sort.Slice(addrs, func(i, j int) bool {
 		return addrs[i].Less(addrs[j])
 	})
@@ -70,7 +78,7 @@ func newSnapshot() (snapshot, error) {
 		addrs: addrs,
 	}
 
-	return ns, nil
+	return ns
 }
 
 // equal tells if two snapshots are equal
@@ -84,7 +92,7 @@ func (snap snapshot) equal(snap2 snapshot) bool {
 		next = next[1:]
 	}
 
-	return len(prev) > 0 || len(next) > 0
+	return len(prev) == 0 && len(next) == 0
 }
 
 // sync generates a series of events in order to bring 'snap'
