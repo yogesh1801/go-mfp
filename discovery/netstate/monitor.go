@@ -51,3 +51,12 @@ func getMonitor() monitor {
 	})
 	return monitorInstance
 }
+
+// testGetMonitorReset resets getMonitor internal state, so the next
+// time getMonitor() will re-create the monitor.
+//
+// This function intended only for testing
+func testGetMonitorReset() {
+	monitorInitOnce = sync.Once{}
+	monitorInstance = nil
+}

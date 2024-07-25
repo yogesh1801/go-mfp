@@ -19,6 +19,7 @@ func TestGetMonitor(t *testing.T) {
 		return newTestMonitor()
 	}
 
+	testGetMonitorReset()
 	saveNewMonitor := hookNewMonitor
 	hookNewMonitor = newMonitorHook
 	defer func() { hookNewMonitor = saveNewMonitor }()
