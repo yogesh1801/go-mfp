@@ -28,21 +28,21 @@ func testNewNetIfMaker() *testNetIfMaker {
 }
 
 // testNetIfMaker makes a new interface
-func (netifmaker *testNetIfMaker) new() net.Interface {
+func (netifmaker *testNetIfMaker) new() NetIf {
 	idx := atomic.AddInt32(&netifmaker.index, 1)
-	ifi := net.Interface{
-		Index: int(idx),
-		Name:  fmt.Sprintf("net%d", idx),
+	nif := NetIf{
+		index: int(idx),
+		name:  fmt.Sprintf("net%d", idx),
 	}
-	return ifi
+	return nif
 }
 
 // testAddr creates a new address for testing
 // It returns address as *Addr
-func testMakeAddr(netif net.Interface, cidr string) *Addr {
+func testMakeAddr(nif NetIf, cidr string) *Addr {
 	return &Addr{
 		IPNet:     *testMakeIPNet(cidr),
-		Interface: netif,
+		Interface: nif,
 		Primary:   true,
 	}
 }

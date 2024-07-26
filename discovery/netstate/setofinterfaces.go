@@ -8,35 +8,21 @@
 
 package netstate
 
-import "net"
-
 // setOfInterfaces represents set of network interfaces with usage counters
 type setOfInterfaces struct {
-	ift map[setOfInterfacesKey]int
-}
-
-// setOfInterfacesKey identifies network interface for the setOfInterfaces.
-type setOfInterfacesKey struct {
-	name  string // Interface name
-	index int    // Interface index<F2>
+	ift map[NetIf]int
 }
 
 // newSetOfInterfaces returns a new setOfInterfaces
 func newSetOfInterfaces() *setOfInterfaces {
 	return &setOfInterfaces{
-		ift: make(map[setOfInterfacesKey]int),
+		ift: make(map[NetIf]int),
 	}
 }
 
-// key returns setOfInterfacesKey for the net.Interface
-func (*setOfInterfaces) key(ifi net.Interface) setOfInterfacesKey {
-	return setOfInterfacesKey{ifi.Name, ifi.Index}
-}
-
 // contains returns usage counter for the network interface in the set.
-func (set *setOfInterfaces) contains(ifi net.Interface) int {
-	key := set.key(ifi)
-	return set.ift[key]
+func (set *setOfInterfaces) contains(nif NetIf) int {
+	return set.ift[nif]
 }
 
 // add adds network interface to the set and returns the previous
@@ -44,19 +30,17 @@ func (set *setOfInterfaces) contains(ifi net.Interface) int {
 //
 // Interface may be added multiple times; each time its usage counter
 // is incremented.
-func (set *setOfInterfaces) add(ifi net.Interface) int {
-	key := set.key(ifi)
-	prev := set.ift[key]
-	set.ift[key] = prev + 1
+func (set *setOfInterfaces) add(nif NetIf) int {
+	prev := set.ift[nif]
+	set.ift[nif] = prev + 1
 	return prev
 }
 
 // del deletes network interface from the set and returns the previous
 // value of the usage counter.
-func (set *setOfInterfaces) del(ifi net.Interface) int {
-	key := set.key(ifi)
-	prev := set.ift[key]
-	set.ift[key] = prev - 1
+func (set *setOfInterfaces) del(nif NetIf) int {
+	prev := set.ift[nif]
+	set.ift[nif] = prev - 1
 	return prev
 }
 

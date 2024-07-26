@@ -38,12 +38,13 @@ func newSnapshot() (snapshot, error) {
 		}
 
 		// Convert obtained addresses into []*Addr
+		nif := NetIfFromInterface(ifi)
 		ifaddrs := make([]*Addr, 0, len(ifat))
 		for _, ifa := range ifat {
 			// Interface addresses must be of the type *net.IPNet,
 			// but be prepared if they are not, just in case
 			if ipnet, ok := ifa.(*net.IPNet); ok {
-				addr := &Addr{*ipnet, ifi, true}
+				addr := &Addr{*ipnet, nif, true}
 				ifaddrs = append(addrs, addr)
 			}
 		}
@@ -127,8 +128,8 @@ func (snap snapshot) sync(snap2 snapshot) (events []Event) {
 			addr := *prev[0]
 			prev = prev[1:]
 
-			ifi := addr.Interface
-			cnt := interfaces.del(ifi)
+			nif := addr.Interface
+			cnt := interfaces.del(nif)
 
 			if addr.Primary {
 				events = append(events,
@@ -140,7 +141,7 @@ func (snap snapshot) sync(snap2 snapshot) (events []Event) {
 			if cnt == 1 {
 				// If interface is not longer in use, report
 				// its removal.
-				events = append(events, EventDelInterface{ifi})
+				events = append(events, EventDelInterface{nif})
 			}
 
 		case len(prev) == 0,

@@ -35,9 +35,9 @@ import (
 // For overlapping addresses, [Addr.Narrower] reports whether of addresses
 // are narrower.
 type Addr struct {
-	net.IPNet               // IP address with mask
-	Interface net.Interface // Interface that owns the address
-	Primary   bool          // It's a primary address
+	net.IPNet       // IP address with mask
+	Interface NetIf // Interface that owns the address
+	Primary   bool  // It's a primary address
 }
 
 // Equal reports if two addresses are equal.
@@ -55,8 +55,7 @@ func (addr *Addr) Equal(addr2 *Addr) bool {
 // of the [net.Interface] considered interface parameters, not
 // interface identity.
 func (addr *Addr) SameInterface(addr2 *Addr) bool {
-	return addr.Interface.Index == addr2.Interface.Index &&
-		addr.Interface.Name == addr2.Interface.Name
+	return addr.Interface == addr2.Interface
 }
 
 // Less orders [Addr] for sorting.
@@ -76,12 +75,9 @@ func (addr *Addr) SameInterface(addr2 *Addr) bool {
 //   - otherwise, addresses are equal
 func (addr *Addr) Less(addr2 *Addr) bool {
 	switch {
-	case addr.Interface.Index != addr2.Interface.Index:
+	case addr.Interface != addr2.Interface:
 		// Sort by net.Interface.Index
-		return addr.Interface.Index < addr2.Interface.Index
-	case addr.Interface.Name != addr2.Interface.Name:
-		// Sort by net.Interface.Name
-		return addr.Interface.Name < addr2.Interface.Name
+		return addr.Interface.Less(addr2.Interface)
 	case addr.Is4() != addr2.Is4():
 		// Sort by address family, IP4 first
 		return addr.Is4()

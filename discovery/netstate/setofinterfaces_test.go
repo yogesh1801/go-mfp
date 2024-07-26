@@ -10,16 +10,15 @@ package netstate
 
 import (
 	"fmt"
-	"net"
 	"testing"
 )
 
 // TestSetOfInterfaces tests setOfInterfaces
 func TestSetOfInterfaces(t *testing.T) {
 	type testData struct {
-		ifi net.Interface // Interface to add/del
-		op  string        // Operation ("add", "del" or "contains")
-		ret int           // Expected return value
+		nif NetIf  // Interface to add/del
+		op  string // Operation ("add", "del" or "contains")
+		ret int    // Expected return value
 	}
 
 	netifmaker := testNewNetIfMaker()
@@ -30,64 +29,64 @@ func TestSetOfInterfaces(t *testing.T) {
 
 	tests := []testData{
 		{
-			ifi: if0,
+			nif: if0,
 			op:  "add",
 			ret: 0,
 		},
 
 		{
-			ifi: if0,
+			nif: if0,
 			op:  "contains",
 			ret: 1,
 		},
 
 		{
-			ifi: if1,
+			nif: if1,
 			op:  "add",
 			ret: 0,
 		},
 
 		{
-			ifi: if1,
+			nif: if1,
 			op:  "del",
 			ret: 1,
 		},
 
 		{
-			ifi: if1,
+			nif: if1,
 			op:  "contains",
 			ret: 0,
 		},
 
 		{
-			ifi: if0,
+			nif: if0,
 			op:  "add",
 			ret: 1,
 		},
 
 		{
-			ifi: if0,
+			nif: if0,
 			op:  "add",
 			ret: 2,
 		},
 
 		{
-			ifi: if0,
+			nif: if0,
 			op:  "contains",
 			ret: 3,
 		},
 	}
 
 	for i, test := range tests {
-		ifi := test.ifi
+		nif := test.nif
 		var ret int
 		switch test.op {
 		case "add":
-			ret = set.add(ifi)
+			ret = set.add(nif)
 		case "del":
-			ret = set.del(ifi)
+			ret = set.del(nif)
 		case "contains":
-			ret = set.contains(ifi)
+			ret = set.contains(nif)
 		default:
 			panic(fmt.Errorf("invalid operation %q", test.op))
 		}
@@ -96,7 +95,7 @@ func TestSetOfInterfaces(t *testing.T) {
 			t.Errorf("%d: %s %s:\n"+
 				"expected: %d\n"+
 				" present: %d",
-				i, test.op, ifi.Name, test.ret, ret)
+				i, test.op, nif.Name(), test.ret, ret)
 
 		}
 	}
@@ -123,10 +122,10 @@ func TestSetOfInterfacesAddAddrs(t *testing.T) {
 	cnt1 := set.contains(if1)
 
 	if cnt0 != 3 {
-		t.Errorf("%s: expected 3, present %d", if0.Name, cnt0)
+		t.Errorf("%s: expected 3, present %d", if0.Name(), cnt0)
 	}
 
 	if cnt1 != 2 {
-		t.Errorf("%s: expected 3, present %d", if0.Name, cnt0)
+		t.Errorf("%s: expected 3, present %d", if0.Name(), cnt0)
 	}
 }
