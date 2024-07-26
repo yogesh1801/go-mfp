@@ -9,12 +9,15 @@
 package netstate
 
 import (
-	"bytes"
 	"net"
+	"net/netip"
 )
 
 // Addr represents a single IP address with mask, assigned to the network
 // interface.
+//
+// Unlike [net.IP] or [net.IPAddr], Addr is a comparable value type
+// (it supports == and can be a map key) and is immutable.
 //
 // Interface may have multiple addresses which may belong to the same
 // or different IP networks. Belonging addresses to IP networks divides
@@ -30,21 +33,34 @@ import (
 // address Mask into account, overlap. [Addr.Overlaps] can be used to
 // test any two addresses for overlapping. Strictly speaking, ranges
 // covered by two overlapping addresses either equal, if masks are the
-// same, or nest, if mask of the "inner" address.
+// same, or nest, if mask of the "inner" address is narrower that mask of
+// the "outer" address.
 //
 // For overlapping addresses, [Addr.Narrower] reports whether of addresses
-// are narrower.
+// is narrower.
 type Addr struct {
-	net.IPNet       // IP address with mask
-	Interface NetIf // Interface that owns the address
-	Primary   bool  // It's a primary address
+	netip.Prefix       // IP address with mask
+	nif          NetIf // Interface that owns the address
+	Primary      bool  // It's a primary address
+}
+
+// AddrFromIPNet makes address from the [net.IPNet]
+func AddrFromIPNet(ipn net.IPNet, nif NetIf) Addr {
+	ip, _ := netip.AddrFromSlice(ipn.IP)
+	ip = ip.Unmap()
+	bits, _ := ipn.Mask.Size()
+	prefix := netip.PrefixFrom(ip, bits)
+	return Addr{prefix, nif, false}
+}
+
+// Interface returns the network interface that owns the address.
+func (addr Addr) Interface() NetIf {
+	return addr.nif
 }
 
 // Equal reports if two addresses are equal.
-func (addr *Addr) Equal(addr2 *Addr) bool {
-	return addr.SameInterface(addr2) &&
-		bytes.Equal(addr.IPNet.IP, addr2.IPNet.IP) &&
-		bytes.Equal(addr.IPNet.Mask, addr2.IPNet.Mask)
+func (addr Addr) Equal(addr2 Addr) bool {
+	return addr.SameInterface(addr2) && addr.Prefix == addr2.Prefix
 }
 
 // SameInterface reports if two addresses belong to the same
@@ -54,8 +70,8 @@ func (addr *Addr) Equal(addr2 *Addr) bool {
 // [net.Interface.Index] and [net.Interface.Name]. Other parts
 // of the [net.Interface] considered interface parameters, not
 // interface identity.
-func (addr *Addr) SameInterface(addr2 *Addr) bool {
-	return addr.Interface == addr2.Interface
+func (addr Addr) SameInterface(addr2 Addr) bool {
+	return addr.Interface() == addr2.Interface()
 }
 
 // Less orders [Addr] for sorting.
@@ -73,17 +89,17 @@ func (addr *Addr) SameInterface(addr2 *Addr) bool {
 //   - otherwise, if masks are different, addresses are sorted by
 //     network mask, the narrowed first
 //   - otherwise, addresses are equal
-func (addr *Addr) Less(addr2 *Addr) bool {
+func (addr Addr) Less(addr2 Addr) bool {
 	switch {
-	case addr.Interface != addr2.Interface:
+	case !addr.SameInterface(addr2):
 		// Sort by net.Interface.Index
-		return addr.Interface.Less(addr2.Interface)
+		return addr.Interface().Less(addr2.Interface())
 	case addr.Is4() != addr2.Is4():
 		// Sort by address family, IP4 first
 		return addr.Is4()
-	case !addr.IP.Equal(addr2.IP):
+	case addr.Addr() != addr2.Addr():
 		// Sort by IP address, lexicographically
-		return bytes.Compare(addr.IP, addr2.IP) < 0
+		return addr.Addr().Less(addr2.Addr())
 	default:
 		// Sort by network mask, the narrowed first.
 		return addr.Narrower(addr2)
@@ -96,10 +112,10 @@ func (addr *Addr) Less(addr2 *Addr) bool {
 //   - they belong to the same network interface
 //   - they belong to the same address family, both either IP4 or IP6
 //   - their address range, taking Mask into account, overlap
-func (addr *Addr) Overlaps(addr2 *Addr) bool {
+func (addr Addr) Overlaps(addr2 Addr) bool {
 	var answer bool
 	if addr.SameInterface(addr2) {
-		answer = addr.Contains(addr2.IP) || addr2.Contains(addr.IP)
+		answer = addr.Prefix.Overlaps(addr2.Prefix)
 	}
 	return answer
 }
@@ -110,17 +126,21 @@ func (addr *Addr) Overlaps(addr2 *Addr) bool {
 //   - addr and addr2 overlap (see [Addr.Overlap] for definition).
 //   - mask of addr is narrower (contains more leading ones and less
 //     trailing zeroes) that mask of addr2
-func (addr *Addr) Narrower(addr2 *Addr) bool {
+func (addr Addr) Narrower(addr2 Addr) bool {
 	var answer bool
 	if addr.Overlaps(addr2) {
-		ones, _ := addr.Mask.Size()
-		ones2, _ := addr2.Mask.Size()
-		return ones > ones2
+		answer = addr.Bits() > addr2.Bits()
 	}
 	return answer
 }
 
 // Is4 tells is [Addr] is IP4 address.
-func (addr *Addr) Is4() bool {
-	return addr.IP.To4() != nil
+func (addr Addr) Is4() bool {
+	return addr.Prefix.Addr().Is4() || addr.Prefix.Addr().Is4In6()
+}
+
+func (addr Addr) String() string {
+	prefix := netip.PrefixFrom(addr.Prefix.Addr().Unmap(),
+		addr.Prefix.Bits())
+	return prefix.String()
 }

@@ -107,7 +107,7 @@ func TestSetOfInterfacesAddAddrs(t *testing.T) {
 	if0 := netifmaker.new()
 	if1 := netifmaker.new()
 
-	addrs := []*Addr{
+	addrs := []Addr{
 		testMakeAddr(if0, "192.168.0.1/24"),
 		testMakeAddr(if1, "192.168.1.1/24"),
 		testMakeAddr(if0, "192.168.0.2/24"),

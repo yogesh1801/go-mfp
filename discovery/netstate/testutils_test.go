@@ -39,12 +39,9 @@ func (netifmaker *testNetIfMaker) new() NetIf {
 
 // testAddr creates a new address for testing
 // It returns address as *Addr
-func testMakeAddr(nif NetIf, cidr string) *Addr {
-	return &Addr{
-		IPNet:     *testMakeIPNet(cidr),
-		Interface: nif,
-		Primary:   true,
-	}
+func testMakeAddr(nif NetIf, cidr string) Addr {
+	ipnet := *testMakeIPNet(cidr)
+	return AddrFromIPNet(ipnet, nif)
 }
 
 // testAddr creates a new address for testing
@@ -76,7 +73,7 @@ func newTestMonitor() monitor {
 
 // testMonitorUpdateAddrs updates network addresses, exposed by
 // the testMonitorInstanse
-func testMonitorUpdateAddrs(addrs []*Addr) {
+func testMonitorUpdateAddrs(addrs []Addr) {
 	addrs = slices.Clone(addrs)
 	sort.Slice(addrs, func(i, j int) bool {
 		return addrs[i].Less(addrs[j])

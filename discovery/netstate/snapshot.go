@@ -15,7 +15,7 @@ import (
 
 // snapshot represents a snapshot of current network state.
 type snapshot struct {
-	addrs []*Addr // Known addresses
+	addrs []Addr // Known addresses
 }
 
 // newNetstate creates a snapshot of a current network state
@@ -27,7 +27,7 @@ func newSnapshot() (snapshot, error) {
 	}
 
 	// Get addresses
-	addrs := []*Addr{}
+	addrs := []Addr{}
 	for _, ifi := range ift {
 		// Get addresses of the interface
 		ifat, err := hookNetInterfacesAddrs(&ifi)
@@ -39,12 +39,12 @@ func newSnapshot() (snapshot, error) {
 
 		// Convert obtained addresses into []*Addr
 		nif := NetIfFromInterface(ifi)
-		ifaddrs := make([]*Addr, 0, len(ifat))
+		ifaddrs := make([]Addr, 0, len(ifat))
 		for _, ifa := range ifat {
 			// Interface addresses must be of the type *net.IPNet,
 			// but be prepared if they are not, just in case
 			if ipnet, ok := ifa.(*net.IPNet); ok {
-				addr := &Addr{*ipnet, nif, true}
+				addr := AddrFromIPNet(*ipnet, nif)
 				ifaddrs = append(addrs, addr)
 			}
 		}
@@ -70,7 +70,7 @@ func newSnapshot() (snapshot, error) {
 // from provided addresses.
 //
 // It takes ownership on slice of addresses and may modify it.
-func newSnapshotFromAddrs(addrs []*Addr) snapshot {
+func newSnapshotFromAddrs(addrs []Addr) snapshot {
 	sort.Slice(addrs, func(i, j int) bool {
 		return addrs[i].Less(addrs[j])
 	})
@@ -125,10 +125,10 @@ func (snap snapshot) sync(snap2 snapshot) (events []Event) {
 		case len(next) == 0,
 			len(prev) > 0 && len(next) > 0 && prev[0].Less(next[0]):
 
-			addr := *prev[0]
+			addr := prev[0]
 			prev = prev[1:]
 
-			nif := addr.Interface
+			nif := addr.Interface()
 			cnt := interfaces.del(nif)
 
 			if addr.Primary {
@@ -147,16 +147,16 @@ func (snap snapshot) sync(snap2 snapshot) (events []Event) {
 		case len(prev) == 0,
 			len(prev) > 0 && len(next) > 0 && next[0].Less(prev[0]):
 
-			addr := *next[0]
+			addr := next[0]
 			next = next[1:]
 
-			ifi := addr.Interface
-			cnt := interfaces.add(ifi)
+			nif := addr.Interface()
+			cnt := interfaces.add(nif)
 
 			if cnt == 0 {
 				// If interface was not in use before, report
 				// its arrival.
-				events = append(events, EventAddInterface{ifi})
+				events = append(events, EventAddInterface{nif})
 			}
 
 			events = append(events, EventAddAddress{addr})
@@ -175,7 +175,7 @@ func (snap snapshot) sync(snap2 snapshot) (events []Event) {
 			//
 			// So just report change of Primary address
 			// state if it occurs.
-			aprev, anext := *prev[0], *next[0]
+			aprev, anext := prev[0], next[0]
 			prev, next = prev[1:], next[1:]
 
 			switch {

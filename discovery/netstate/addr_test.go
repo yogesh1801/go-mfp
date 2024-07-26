@@ -21,7 +21,7 @@ func TestAddr(t *testing.T) {
 	}
 
 	type testData struct {
-		a1, a2 *Addr       // A couple of addresses
+		a1, a2 Addr        // A couple of addresses
 		checks []testCheck // Operations to test
 	}
 
@@ -165,9 +165,9 @@ func TestAddr(t *testing.T) {
 			if val != check.val {
 				t.Errorf("%s@%s %s %s@%s:\n"+
 					"expected %v, present %v",
-					test.a1, test.a1.Interface.Name(),
+					test.a1, test.a1.Interface().Name(),
 					check.op,
-					test.a2, test.a2.Interface.Name(),
+					test.a2, test.a2.Interface().Name(),
 					check.val, val)
 			}
 		}

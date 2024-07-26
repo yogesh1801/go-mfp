@@ -47,8 +47,8 @@ func (set *setOfInterfaces) del(nif NetIf) int {
 // addAddrs adds all interfaces mentioned in the slice of addresses
 // into the set. If interface used multiple times, it will be added
 // multiple times.
-func (set *setOfInterfaces) addAddrs(addrs []*Addr) {
+func (set *setOfInterfaces) addAddrs(addrs []Addr) {
 	for _, addr := range addrs {
-		set.add(addr.Interface)
+		set.add(addr.Interface())
 	}
 }
