@@ -15,7 +15,22 @@ import (
 
 // snapshot represents a snapshot of current network state.
 type snapshot struct {
-	addrs []Addr // Known addresses
+	addrs []snapshotAddr // Known addresses
+}
+
+// snapshotAddr represents network interface address equipped with
+// additional information for internal use
+type snapshotAddr struct {
+	Addr         // Interface address
+	Primary bool // It's a primary address
+}
+
+func (saddr snapshotAddr) Less(saddr2 snapshotAddr) bool {
+	return saddr.Addr.Less(saddr2.Addr)
+}
+
+func (saddr snapshotAddr) Narrower(saddr2 snapshotAddr) bool {
+	return saddr.Addr.Narrower(saddr2.Addr)
 }
 
 // newNetstate creates a snapshot of a current network state
@@ -27,7 +42,7 @@ func newSnapshot() (snapshot, error) {
 	}
 
 	// Get addresses
-	addrs := []Addr{}
+	addrs := []snapshotAddr{}
 	for _, ifi := range ift {
 		// Get addresses of the interface
 		ifat, err := hookNetInterfacesAddrs(&ifi)
@@ -39,13 +54,14 @@ func newSnapshot() (snapshot, error) {
 
 		// Convert obtained addresses into []*Addr
 		nif := NetIfFromInterface(ifi)
-		ifaddrs := make([]Addr, 0, len(ifat))
+		ifaddrs := make([]snapshotAddr, 0, len(ifat))
 		for _, ifa := range ifat {
 			// Interface addresses must be of the type *net.IPNet,
 			// but be prepared if they are not, just in case
 			if ipnet, ok := ifa.(*net.IPNet); ok {
 				addr := AddrFromIPNet(*ipnet, nif)
-				ifaddrs = append(addrs, addr)
+				ifaddrs = append(addrs,
+					snapshotAddr{addr, true})
 			}
 		}
 
@@ -63,23 +79,26 @@ func newSnapshot() (snapshot, error) {
 	}
 
 	// Return a snapshot
-	return newSnapshotFromAddrs(addrs), nil
-}
-
-// newNetstate creates a snapshot of a current network state
-// from provided addresses.
-//
-// It takes ownership on slice of addresses and may modify it.
-func newSnapshotFromAddrs(addrs []Addr) snapshot {
 	sort.Slice(addrs, func(i, j int) bool {
 		return addrs[i].Less(addrs[j])
 	})
 
-	ns := snapshot{
-		addrs: addrs,
+	return snapshot{addrs}, nil
+}
+
+// newNetstate creates a snapshot of a current network state
+// from provided addresses.
+func newSnapshotFromAddrs(addrs []Addr) snapshot {
+	saddrs := make([]snapshotAddr, len(addrs))
+	for i := range addrs {
+		saddrs[i].Addr = addrs[i]
 	}
 
-	return ns
+	sort.Slice(saddrs, func(i, j int) bool {
+		return saddrs[i].Less(saddrs[j])
+	})
+
+	return snapshot{saddrs}
 }
 
 // equal tells if two snapshots are equal
@@ -88,7 +107,7 @@ func (snap snapshot) equal(snap2 snapshot) bool {
 	next := snap2.addrs
 
 	// Skip common addresses
-	for len(prev) > 0 && len(next) > 0 && prev[0].Equal(next[0]) {
+	for len(prev) > 0 && len(next) > 0 && prev[0] == next[0] {
 		prev = prev[1:]
 		next = next[1:]
 	}
@@ -104,7 +123,9 @@ func (snap snapshot) sync(snap2 snapshot) (events []Event) {
 	next := snap2.addrs
 
 	interfaces := newSetOfInterfaces()
-	interfaces.addAddrs(prev)
+	for _, addr := range prev {
+		interfaces.add(addr.Interface())
+	}
 
 	// Generate Events
 	//
@@ -133,10 +154,10 @@ func (snap snapshot) sync(snap2 snapshot) (events []Event) {
 
 			if addr.Primary {
 				events = append(events,
-					EventDelPrimaryAddress{addr})
+					EventDelPrimaryAddress{addr.Addr})
 			}
 
-			events = append(events, EventDelAddress{addr})
+			events = append(events, EventDelAddress{addr.Addr})
 
 			if cnt == 1 {
 				// If interface is not longer in use, report
@@ -159,11 +180,11 @@ func (snap snapshot) sync(snap2 snapshot) (events []Event) {
 				events = append(events, EventAddInterface{nif})
 			}
 
-			events = append(events, EventAddAddress{addr})
+			events = append(events, EventAddAddress{addr.Addr})
 
 			if addr.Primary {
 				events = append(events,
-					EventAddPrimaryAddress{addr})
+					EventAddPrimaryAddress{addr.Addr})
 			}
 
 		default:
@@ -181,10 +202,10 @@ func (snap snapshot) sync(snap2 snapshot) (events []Event) {
 			switch {
 			case aprev.Primary && !anext.Primary:
 				events = append(events,
-					EventDelPrimaryAddress{aprev})
+					EventDelPrimaryAddress{aprev.Addr})
 			case !aprev.Primary && anext.Primary:
 				events = append(events,
-					EventAddPrimaryAddress{anext})
+					EventAddPrimaryAddress{anext.Addr})
 			}
 		}
 	}

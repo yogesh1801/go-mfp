@@ -82,7 +82,7 @@ func testMonitorUpdateAddrs(addrs []Addr) {
 	testMonitorInstanse.lock.Lock()
 	defer testMonitorInstanse.lock.Unlock()
 
-	testMonitorInstanse.snapshot = snapshot{addrs}
+	testMonitorInstanse.snapshot = newSnapshotFromAddrs(addrs)
 	close(testMonitorInstanse.waitchan)
 }
 

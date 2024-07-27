@@ -41,7 +41,6 @@ import (
 type Addr struct {
 	netip.Prefix       // IP address with mask
 	nif          NetIf // Interface that owns the address
-	Primary      bool  // It's a primary address
 }
 
 // AddrFromIPNet makes address from the [net.IPNet]
@@ -50,7 +49,7 @@ func AddrFromIPNet(ipn net.IPNet, nif NetIf) Addr {
 	ip = ip.Unmap()
 	bits, _ := ipn.Mask.Size()
 	prefix := netip.PrefixFrom(ip, bits)
-	return Addr{prefix, nif, false}
+	return Addr{prefix, nif}
 }
 
 // Interface returns the network interface that owns the address.
