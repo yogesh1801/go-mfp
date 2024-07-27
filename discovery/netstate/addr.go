@@ -57,11 +57,6 @@ func (addr Addr) Interface() NetIf {
 	return addr.nif
 }
 
-// Equal reports if two addresses are equal.
-func (addr Addr) Equal(addr2 Addr) bool {
-	return addr.SameInterface(addr2) && addr.Prefix == addr2.Prefix
-}
-
 // SameInterface reports if two addresses belong to the same
 // network interface.
 //

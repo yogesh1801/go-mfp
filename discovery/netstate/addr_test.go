@@ -149,7 +149,7 @@ func TestAddr(t *testing.T) {
 			var val bool
 			switch strings.ToLower(check.op) {
 			case "equal":
-				val = test.a1.Equal(test.a2)
+				val = test.a1 == test.a2
 			case "sameinterface":
 				val = test.a1.SameInterface(test.a2)
 			case "less":
