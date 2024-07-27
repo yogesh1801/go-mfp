@@ -114,9 +114,10 @@ func (snap snapshot) sync(snap2 snapshot) (events []Event) {
 	prev := snap.addrs
 	next := snap2.addrs
 
-	interfaces := newSetOfInterfaces()
+	interfaces := make(map[NetIf]int)
 	for _, addr := range prev {
-		interfaces.add(addr.Interface())
+		nif := addr.Interface()
+		interfaces[nif] = interfaces[nif] + 1
 	}
 
 	// Generate Events
@@ -142,7 +143,8 @@ func (snap snapshot) sync(snap2 snapshot) (events []Event) {
 			prev = prev[1:]
 
 			nif := addr.Interface()
-			cnt := interfaces.del(nif)
+			cnt := interfaces[nif]
+			interfaces[nif] = cnt - 1
 
 			if addr.Primary {
 				events = append(events,
@@ -164,7 +166,8 @@ func (snap snapshot) sync(snap2 snapshot) (events []Event) {
 			next = next[1:]
 
 			nif := addr.Interface()
-			cnt := interfaces.add(nif)
+			cnt := interfaces[nif]
+			interfaces[nif] = cnt + 1
 
 			if cnt == 0 {
 				// If interface was not in use before, report
