@@ -10,6 +10,7 @@ package netstate
 
 import (
 	"net"
+	"slices"
 	"sort"
 )
 
@@ -103,16 +104,7 @@ func newSnapshotFromAddrs(addrs []Addr) snapshot {
 
 // equal tells if two snapshots are equal
 func (snap snapshot) equal(snap2 snapshot) bool {
-	prev := snap.addrs
-	next := snap2.addrs
-
-	// Skip common addresses
-	for len(prev) > 0 && len(next) > 0 && prev[0] == next[0] {
-		prev = prev[1:]
-		next = next[1:]
-	}
-
-	return len(prev) == 0 && len(next) == 0
+	return slices.Equal(snap.addrs, snap2.addrs)
 }
 
 // sync generates a series of events in order to bring 'snap'
