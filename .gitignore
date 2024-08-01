@@ -1,5 +1,6 @@
 tags
 *.swp
+*.orig
 coverage.out
 
 cmd/mfp-cups/mfp-cups
