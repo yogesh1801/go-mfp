@@ -20,8 +20,7 @@ func TestEvent(t *testing.T) {
 		str  string // Expected Event.String output
 	}
 
-	netifmaker := testNewNetIfMaker()
-	if0 := netifmaker.new()
+	if0 := NetIf{1, "net1"}
 	a4 := testMakeAddr(if0, "127.0.0.1/24")
 	a6 := testMakeAddr(if0, "::1/24")
 

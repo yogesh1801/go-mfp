@@ -20,8 +20,7 @@ func TestSnapshotEqual(t *testing.T) {
 		eq                 bool   // Expected snapshot.equal answer
 	}
 
-	netifmaker := testNewNetIfMaker()
-	if0 := netifmaker.new()
+	if0 := NetIf{0, "if0"}
 
 	tests := []testData{
 		{

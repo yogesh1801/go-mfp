@@ -15,8 +15,7 @@ import (
 )
 
 func TestEventQueue(t *testing.T) {
-	netifmaker := testNewNetIfMaker()
-	if0 := netifmaker.new()
+	if0 := NetIf{0, "if0"}
 	a4 := testMakeAddr(if0, "127.0.0.1/24")
 	a6 := testMakeAddr(if0, "::1/24")
 

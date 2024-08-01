@@ -25,9 +25,8 @@ func TestAddr(t *testing.T) {
 		checks []testCheck // Operations to test
 	}
 
-	netifmaker := testNewNetIfMaker()
-	if0 := netifmaker.new()
-	if1 := netifmaker.new()
+	if0 := NetIf{0, "if0"}
+	if1 := NetIf{1, "if1"}
 
 	tests := []testData{
 		// Test: equal addresses on a same interface

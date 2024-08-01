@@ -9,33 +9,11 @@
 package netstate
 
 import (
-	"fmt"
 	"net"
 	"slices"
 	"sort"
 	"sync"
-	"sync/atomic"
 )
-
-// testNetIfMaker makes network interfaces for testing
-type testNetIfMaker struct {
-	index int32
-}
-
-// newTestNetIfMaker makes a new testNetIfMaker
-func testNewNetIfMaker() *testNetIfMaker {
-	return &testNetIfMaker{}
-}
-
-// testNetIfMaker makes a new interface
-func (netifmaker *testNetIfMaker) new() NetIf {
-	idx := atomic.AddInt32(&netifmaker.index, 1)
-	nif := NetIf{
-		index: int(idx),
-		name:  fmt.Sprintf("net%d", idx),
-	}
-	return nif
-}
 
 // testAddr creates a new address for testing
 // It returns address as *Addr
