@@ -122,6 +122,43 @@ func (snap snapshot) Equal(snap2 snapshot) bool {
 	return slices.Equal(snap.addrs, snap2.addrs)
 }
 
+// Interfaces returns slice of network interfaces in the snapshot.
+func (snap snapshot) Interfaces() (netifs []NetIf) {
+	ifset := make(map[NetIf]struct{})
+	for _, addr := range snap.addrs {
+		nif := addr.Interface()
+		if _, found := ifset[nif]; !found {
+			ifset[nif] = struct{}{}
+			netifs = append(netifs, nif)
+		}
+	}
+
+	return
+}
+
+// Addrs returns slice of network addresses in the snapshot.
+func (snap snapshot) Addrs() (addrs []Addr) {
+	addrs = make([]Addr, len(snap.addrs))
+	for i := range snap.addrs {
+		addrs[i] = snap.addrs[i].Addr
+	}
+
+	return
+}
+
+// PrimaryAddrs returns slice of primary network addresses in the snapshot.
+func (snap snapshot) PrimaryAddrs() (addrs []Addr) {
+	addrs = make([]Addr, 0, len(snap.addrs))
+
+	for i := range snap.addrs {
+		if snap.addrs[i].primary {
+			addrs = append(addrs, snap.addrs[i].Addr)
+		}
+	}
+
+	return
+}
+
 // sync generates a series of events in order to bring 'snap'
 // into the same state as snap2.
 func (snap snapshot) Sync(snap2 snapshot) (events []Event) {
