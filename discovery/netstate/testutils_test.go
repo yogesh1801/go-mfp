@@ -55,6 +55,58 @@ func testMakeIPNet(cidr string) *net.IPNet {
 	return &net.IPNet{IP: ip, Mask: ipnet.Mask}
 }
 
+// testNetifsEqual tells if two slices of network interfaces are equal.
+//
+// It ignores difference in addresses interfaces and difference
+// between empty and nil slices.
+func testNetifsEqual(netifs1, netifs2 []NetIf) bool {
+	// Handle empty slices
+	if len(netifs1) == 0 && len(netifs2) == 0 {
+		return true
+	}
+
+	// Clone and sort slices
+	netifs1 = slices.Clone(netifs1)
+	netifs2 = slices.Clone(netifs2)
+
+	sort.Slice(netifs1, func(i, j int) bool {
+		return netifs1[i].Less(netifs1[j])
+	})
+
+	sort.Slice(netifs2, func(i, j int) bool {
+		return netifs2[i].Less(netifs2[j])
+	})
+
+	// Compare slices
+	return slices.Equal(netifs1, netifs2)
+}
+
+// testAddrsEqual tells if two slices of addresses are equal.
+//
+// It ignores difference in addresses ordering and difference
+// between empty and nil slices.
+func testAddrsEqual(addrs1, addrs2 []Addr) bool {
+	// Handle empty slices
+	if len(addrs1) == 0 && len(addrs2) == 0 {
+		return true
+	}
+
+	// Clone and sort slices
+	addrs1 = slices.Clone(addrs1)
+	addrs2 = slices.Clone(addrs2)
+
+	sort.Slice(addrs1, func(i, j int) bool {
+		return addrs1[i].Less(addrs1[j])
+	})
+
+	sort.Slice(addrs2, func(i, j int) bool {
+		return addrs2[i].Less(addrs2[j])
+	})
+
+	// Compare slices
+	return slices.Equal(addrs1, addrs2)
+}
+
 // testMonitor implements monitor interface, for testing
 type testMonitor struct {
 	lock     sync.Mutex
