@@ -22,23 +22,23 @@ type snapshot struct {
 // snapshotAddr represents network interface address equipped with
 // additional information for internal use
 type snapshotAddr struct {
-	Addr         // Interface address
-	Primary bool // It's a primary address
+	Addr         // Wrapped address
+	primary bool // It's a primary address
 }
 
-// Less orders [Addr] for sorting.
-func (saddr snapshotAddr) Less(saddr2 snapshotAddr) bool {
+// less orders [Addr] for sorting.
+func (saddr snapshotAddr) less(saddr2 snapshotAddr) bool {
 	return saddr.Addr.Less(saddr2.Addr)
 }
 
-// Narrower reports whether addr is narrower that addr2.
-func (saddr snapshotAddr) Narrower(saddr2 snapshotAddr) bool {
+// narrower reports whether addr is narrower that addr2.
+func (saddr snapshotAddr) narrower(saddr2 snapshotAddr) bool {
 	return saddr.Addr.Narrower(saddr2.Addr)
 }
 
 // SameInterface reports if two addresses belong to the same
 // network interface.
-func (saddr snapshotAddr) SameInterface(saddr2 snapshotAddr) bool {
+func (saddr snapshotAddr) sameInterface(saddr2 snapshotAddr) bool {
 	return saddr.Addr.SameInterface(saddr2.Addr)
 }
 
@@ -87,14 +87,14 @@ func newSnapshotFromAddrs(addrs []Addr) snapshot {
 	}
 
 	sort.Slice(saddrs, func(i, j int) bool {
-		return saddrs[i].Less(saddrs[j])
+		return saddrs[i].less(saddrs[j])
 	})
 
 	// Markup primary addresses
 	for beg := 0; beg < len(saddrs); {
 		end := beg + 1
 		for end < len(saddrs) &&
-			saddrs[beg].SameInterface(saddrs[end]) {
+			saddrs[beg].sameInterface(saddrs[end]) {
 			end++
 		}
 
@@ -103,9 +103,9 @@ func newSnapshotFromAddrs(addrs []Addr) snapshot {
 		for i := beg; i < end; i++ {
 			for j := beg; j < end; j++ {
 				if i != j {
-					if saddrs[i].Primary &&
-						saddrs[i].Narrower(saddrs[j]) {
-						saddrs[i].Primary = false
+					if saddrs[i].primary &&
+						saddrs[i].narrower(saddrs[j]) {
+						saddrs[i].primary = false
 					}
 				}
 			}
@@ -118,13 +118,13 @@ func newSnapshotFromAddrs(addrs []Addr) snapshot {
 }
 
 // equal tells if two snapshots are equal
-func (snap snapshot) equal(snap2 snapshot) bool {
+func (snap snapshot) Equal(snap2 snapshot) bool {
 	return slices.Equal(snap.addrs, snap2.addrs)
 }
 
 // sync generates a series of events in order to bring 'snap'
 // into the same state as snap2.
-func (snap snapshot) sync(snap2 snapshot) (events []Event) {
+func (snap snapshot) Sync(snap2 snapshot) (events []Event) {
 	// Initialize things
 	prev := snap.addrs
 	next := snap2.addrs
@@ -152,16 +152,16 @@ func (snap snapshot) sync(snap2 snapshot) (events []Event) {
 	for len(prev) > 0 || len(next) > 0 {
 		switch {
 		case len(next) == 0,
-			len(prev) > 0 && len(next) > 0 && prev[0].Less(next[0]):
+			len(prev) > 0 && len(next) > 0 && prev[0].less(next[0]):
 
 			addr := prev[0]
 			prev = prev[1:]
 
-			nif := addr.Interface()
+			nif := addr.Addr.Interface()
 			cnt := interfaces[nif]
 			interfaces[nif] = cnt - 1
 
-			if addr.Primary {
+			if addr.primary {
 				events = append(events,
 					EventDelPrimaryAddress{addr.Addr})
 			}
@@ -175,7 +175,7 @@ func (snap snapshot) sync(snap2 snapshot) (events []Event) {
 			}
 
 		case len(prev) == 0,
-			len(prev) > 0 && len(next) > 0 && next[0].Less(prev[0]):
+			len(prev) > 0 && len(next) > 0 && next[0].less(prev[0]):
 
 			addr := next[0]
 			next = next[1:]
@@ -192,7 +192,7 @@ func (snap snapshot) sync(snap2 snapshot) (events []Event) {
 
 			events = append(events, EventAddAddress{addr.Addr})
 
-			if addr.Primary {
+			if addr.primary {
 				events = append(events,
 					EventAddPrimaryAddress{addr.Addr})
 			}
@@ -210,10 +210,10 @@ func (snap snapshot) sync(snap2 snapshot) (events []Event) {
 			prev, next = prev[1:], next[1:]
 
 			switch {
-			case aprev.Primary && !anext.Primary:
+			case aprev.primary && !anext.primary:
 				events = append(events,
 					EventDelPrimaryAddress{aprev.Addr})
-			case !aprev.Primary && anext.Primary:
+			case !aprev.primary && anext.primary:
 				events = append(events,
 					EventAddPrimaryAddress{anext.Addr})
 			}

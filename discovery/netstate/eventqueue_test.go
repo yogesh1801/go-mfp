@@ -32,11 +32,11 @@ func TestEventQueue(t *testing.T) {
 
 	var q eventqueue
 	for _, evnt := range events {
-		q.push(evnt)
+		q.Push(evnt)
 	}
 
 	for _, expected := range append(events, nil) {
-		evnt := q.pull()
+		evnt := q.Pull()
 		if !reflect.DeepEqual(evnt, expected) {
 			t.Errorf("expected: %v, present: %v", expected, evnt)
 		}

@@ -53,7 +53,7 @@ func (not *Notifier) Get(ctx context.Context) (Event, error) {
 	defer not.unlock()
 
 	// Check for queued events
-	if evnt := not.queue.pull(); evnt != nil {
+	if evnt := not.queue.Pull(); evnt != nil {
 		return evnt, nil
 	}
 
@@ -68,10 +68,10 @@ func (not *Notifier) Get(ctx context.Context) (Event, error) {
 			return evnt, nil
 		}
 
-		events := not.snapLast.sync(snapNext)
+		events := not.snapLast.Sync(snapNext)
 		if len(events) != 0 {
 			not.snapLast = snapNext
-			not.queue.push(events[1:]...)
+			not.queue.Push(events[1:]...)
 			return events[0], nil
 		}
 

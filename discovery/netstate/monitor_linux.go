@@ -93,7 +93,7 @@ func (mon *monitorLinux) update() {
 
 	if err != nil {
 		mon.setError(err)
-	} else if !mon.snapLast.equal(snapNext) {
+	} else if !mon.snapLast.Equal(snapNext) {
 		mon.snapLast = snapNext
 		mon.awake()
 	}

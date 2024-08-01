@@ -13,13 +13,13 @@ type eventqueue struct {
 	events []Event
 }
 
-// push adds Events to the queue.
-func (eq *eventqueue) push(events ...Event) {
+// Push adds Events to the queue.
+func (eq *eventqueue) Push(events ...Event) {
 	eq.events = append(eq.events, events...)
 }
 
-// pull returns first Event from the queue or nil, if queue is empty.
-func (eq *eventqueue) pull() (evnt Event) {
+// Pull returns first Event from the queue or nil, if queue is empty.
+func (eq *eventqueue) Pull() (evnt Event) {
 	if len(eq.events) > 0 {
 		evnt = eq.events[0]
 		copy(eq.events, eq.events[1:])
