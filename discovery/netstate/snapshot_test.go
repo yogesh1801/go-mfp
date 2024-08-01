@@ -9,6 +9,7 @@
 package netstate
 
 import (
+	"fmt"
 	"slices"
 	"testing"
 )
@@ -205,4 +206,171 @@ func TestSnapshotMake(t *testing.T) {
 			}
 		}
 	}
+}
+
+// TestSnapshotSync tests snapshot.Sync
+func TestSnapshotSync(t *testing.T) {
+	type testData struct {
+		addrs []Addr // Addresses at the next step
+	}
+
+	lo := NetIf{0, "lo"}
+	if1 := NetIf{1, "if1"}
+
+	tests := []testData{
+		{
+			[]Addr{
+				testMakeAddr(lo, "127.0.0.1/24"),
+			},
+		},
+		{
+			[]Addr{
+				testMakeAddr(lo, "127.0.0.1/24"),
+				testMakeAddr(if1, "192.168.0.1/24"),
+			},
+		},
+		{
+			[]Addr{
+				testMakeAddr(lo, "127.0.0.1/24"),
+				testMakeAddr(if1, "192.168.0.1/24"),
+				testMakeAddr(if1, "192.168.0.2/32"),
+			},
+		},
+	}
+
+	var prev snapshot
+	for _, test := range tests {
+		next := newSnapshotFromAddrs(test.addrs)
+		events := prev.Sync(next)
+		//t.Errorf("%s", events)
+		err := testVerifyEvents(prev, events)
+		if err != nil {
+			t.Errorf("%s", err)
+			return
+		}
+
+		prev = next
+	}
+}
+
+// testVerifyEvents verifies "received" events against expected
+func testVerifyEvents(snap snapshot, events []Event) error {
+
+	interfaces := make(map[NetIf]struct{})
+	for _, ifnet := range snap.Interfaces() {
+		interfaces[ifnet] = struct{}{}
+	}
+
+	addrs := make(map[Addr]struct{})
+	for _, addr := range snap.Addrs() {
+		addrs[addr] = struct{}{}
+	}
+
+	primary := make(map[Addr]struct{})
+	for _, addr := range snap.PrimaryAddrs() {
+		primary[addr] = struct{}{}
+	}
+
+	hasInterface := func(nif NetIf) bool {
+		_, found := interfaces[nif]
+		return found
+	}
+
+	hasAddr := func(addr Addr) bool {
+		_, found := addrs[addr]
+		return found
+	}
+
+	hasPrimary := func(addr Addr) bool {
+		_, found := primary[addr]
+		return found
+	}
+
+	for _, evnt := range events {
+		makeErr := func(msg string) error {
+			return fmt.Errorf("%s: %s", evnt, msg)
+		}
+
+		switch evnt := evnt.(type) {
+		case EventAddInterface:
+			nif := evnt.Interface
+			if hasInterface(nif) {
+				return makeErr("interface already in set")
+			}
+			interfaces[nif] = struct{}{}
+
+		case EventDelInterface:
+			nif := evnt.Interface
+			if !hasInterface(nif) {
+				return makeErr("interface not in set")
+			}
+			delete(interfaces, nif)
+
+		case EventAddAddress:
+			addr := evnt.Addr
+			nif := addr.Interface()
+
+			if !hasInterface(nif) {
+				return makeErr("interface not in set")
+			}
+
+			if hasAddr(addr) {
+				return makeErr("address already in set")
+			}
+
+			addrs[addr] = struct{}{}
+
+		case EventDelAddress:
+			addr := evnt.Addr
+			nif := addr.Interface()
+
+			if !hasInterface(nif) {
+				return makeErr("interface not in set")
+			}
+
+			if !hasAddr(addr) {
+				return makeErr("address not in set")
+			}
+
+			delete(addrs, addr)
+
+		case EventAddPrimaryAddress:
+			addr := evnt.Addr
+			nif := addr.Interface()
+
+			if !hasInterface(nif) {
+				return makeErr("interface not in set")
+			}
+
+			if !hasAddr(addr) {
+				return makeErr("address not in set")
+			}
+
+			if hasPrimary(addr) {
+				return makeErr("address already primary")
+			}
+
+			primary[addr] = struct{}{}
+
+		case EventDelPrimaryAddress:
+			addr := evnt.Addr
+			nif := addr.Interface()
+
+			if !hasInterface(nif) {
+				return makeErr("interface not in set")
+			}
+
+			if !hasAddr(addr) {
+				return makeErr("address not in set")
+			}
+
+			if !hasPrimary(addr) {
+				return makeErr("address is not primary")
+			}
+
+			delete(primary, addr)
+		}
+	}
+
+	return nil
 }
