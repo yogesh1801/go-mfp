@@ -117,7 +117,12 @@ func newSnapshotFromAddrs(addrs []Addr) snapshot {
 	return snapshot{saddrs}
 }
 
-// equal tells if two snapshots are equal
+// Clone creates a copy of snapshot
+func (snap snapshot) Clone() snapshot {
+	return snapshot{slices.Clone(snap.addrs)}
+}
+
+// Equal tells if two snapshots are equal
 func (snap snapshot) Equal(snap2 snapshot) bool {
 	return slices.Equal(snap.addrs, snap2.addrs)
 }
