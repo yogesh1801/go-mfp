@@ -26,12 +26,20 @@ type snapshotAddr struct {
 	Primary bool // It's a primary address
 }
 
+// Less orders [Addr] for sorting.
 func (saddr snapshotAddr) Less(saddr2 snapshotAddr) bool {
 	return saddr.Addr.Less(saddr2.Addr)
 }
 
+// Narrower reports whether addr is narrower that addr2.
 func (saddr snapshotAddr) Narrower(saddr2 snapshotAddr) bool {
 	return saddr.Addr.Narrower(saddr2.Addr)
+}
+
+// SameInterface reports if two addresses belong to the same
+// network interface.
+func (saddr snapshotAddr) SameInterface(saddr2 snapshotAddr) bool {
+	return saddr.Addr.SameInterface(saddr2.Addr)
 }
 
 // newNetstate creates a snapshot of a current network state
@@ -43,7 +51,7 @@ func newSnapshot() (snapshot, error) {
 	}
 
 	// Get addresses
-	addrs := []snapshotAddr{}
+	addrs := make([]Addr, 0, len(ift))
 	for _, ifi := range ift {
 		// Get addresses of the interface
 		ifat, err := hookNetInterfacesAddrs(&ifi)
@@ -55,49 +63,56 @@ func newSnapshot() (snapshot, error) {
 
 		// Convert obtained addresses into []*Addr
 		nif := NetIfFromInterface(ifi)
-		ifaddrs := make([]snapshotAddr, 0, len(ifat))
 		for _, ifa := range ifat {
 			// Interface addresses must be of the type *net.IPNet,
 			// but be prepared if they are not, just in case
 			if ipnet, ok := ifa.(*net.IPNet); ok {
 				addr := AddrFromIPNet(*ipnet, nif)
-				ifaddrs = append(addrs,
-					snapshotAddr{addr, true})
+				addrs = append(addrs, addr)
 			}
 		}
-
-		// Markup Primary addresses
-		for _, a1 := range ifaddrs {
-			for _, a2 := range ifaddrs {
-				if a1 != a2 && a1.Primary && a1.Narrower(a2) {
-					a1.Primary = false
-				}
-			}
-		}
-
-		// Append addresses to the main slice
-		addrs = append(addrs, ifaddrs...)
 	}
 
-	// Return a snapshot
-	sort.Slice(addrs, func(i, j int) bool {
-		return addrs[i].Less(addrs[j])
-	})
-
-	return snapshot{addrs}, nil
+	// Make a snapshot
+	return newSnapshotFromAddrs(addrs), nil
 }
 
 // newNetstate creates a snapshot of a current network state
 // from provided addresses.
 func newSnapshotFromAddrs(addrs []Addr) snapshot {
+	// Copy and sort addresses
 	saddrs := make([]snapshotAddr, len(addrs))
 	for i := range addrs {
-		saddrs[i].Addr = addrs[i]
+		saddrs[i] = snapshotAddr{addrs[i], true}
 	}
 
 	sort.Slice(saddrs, func(i, j int) bool {
 		return saddrs[i].Less(saddrs[j])
 	})
+
+	// Markup primary addresses
+	for beg := 0; beg < len(saddrs); {
+		end := beg + 1
+		for end < len(saddrs) &&
+			saddrs[beg].SameInterface(saddrs[end]) {
+			end++
+		}
+
+		// Now saddrs[beg:end] belongs to the same interface.
+		// Markup primary addresses within it.
+		for i := beg; i < end; i++ {
+			for j := beg; j < end; j++ {
+				if i != j {
+					if saddrs[i].Primary &&
+						saddrs[i].Narrower(saddrs[j]) {
+						saddrs[i].Primary = false
+					}
+				}
+			}
+		}
+
+		beg = end
+	}
 
 	return snapshot{saddrs}
 }
