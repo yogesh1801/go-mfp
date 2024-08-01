@@ -8,7 +8,10 @@
 
 package netstate
 
-import "net"
+import (
+	"fmt"
+	"net"
+)
 
 // NetIf represents a network interface.
 //
@@ -40,6 +43,12 @@ func (nif NetIf) Index() int {
 // Name returns interface name
 func (nif NetIf) Name() string {
 	return nif.name
+}
+
+// String returns string representation of the interface,
+// for debugging purposes.
+func (nif NetIf) String() string {
+	return fmt.Sprintf("%s(#%d)", nif.name, nif.index)
 }
 
 // Less reports whether nif sorts before nif2.
