@@ -68,8 +68,7 @@ type EventAddInterface struct {
 
 // String returns string representation of [EventAddInterface], for logging.
 func (e EventAddInterface) String() string {
-	return fmt.Sprintf("add-interface: %s(#%d)",
-		e.Interface.Name(), e.Interface.Index())
+	return fmt.Sprintf("add-interface: %s", e.Interface)
 }
 
 // event implements an [Event] interface
@@ -84,8 +83,7 @@ type EventDelInterface struct {
 
 // String returns string representation of [EventDelInterface], for logging.
 func (e EventDelInterface) String() string {
-	return fmt.Sprintf("del-interface: %s(#%d)",
-		e.Interface.Name(), e.Interface.Index())
+	return fmt.Sprintf("del-interface: %s", e.Interface)
 }
 
 // event implements an Event interface
@@ -100,9 +98,7 @@ type EventAddAddress struct {
 
 // String returns string representation of EventAddInterface, for logging.
 func (e EventAddAddress) String() string {
-	return fmt.Sprintf("add-address: %s%%%s(#%d)",
-		e.Addr.String(),
-		e.Addr.Interface().Name(), e.Addr.Interface().Index())
+	return fmt.Sprintf("add-address: %s%%%s", e.Addr, e.Addr.Interface())
 }
 
 // event implements an Event interface
@@ -117,9 +113,7 @@ type EventDelAddress struct {
 
 // String returns string representation of [EventDelAddress], for logging.
 func (e EventDelAddress) String() string {
-	return fmt.Sprintf("del-address: %s%%%s(#%d)",
-		e.Addr.String(),
-		e.Addr.Interface().Name(), e.Addr.Interface().Index())
+	return fmt.Sprintf("del-address: %s%%%s", e.Addr, e.Addr.Interface())
 }
 
 // event implements an Event interface
@@ -136,9 +130,7 @@ type EventAddPrimaryAddress struct {
 // String returns string representation of [EventAddPrimaryAddress],
 // for logging.
 func (e EventAddPrimaryAddress) String() string {
-	return fmt.Sprintf("add-primary: %s%%%s(#%d)",
-		e.Addr.String(),
-		e.Addr.Interface().Name(), e.Addr.Interface().Index())
+	return fmt.Sprintf("add-primary: %s%%%s", e.Addr, e.Addr.Interface())
 }
 
 // event implements an Event interface
@@ -155,9 +147,7 @@ type EventDelPrimaryAddress struct {
 // String returns string representation of [EventDelPrimaryAddress],
 // for logging.
 func (e EventDelPrimaryAddress) String() string {
-	return fmt.Sprintf("del-primary: %s%%%s(#%d)",
-		e.Addr.String(),
-		e.Addr.Interface().Name(), e.Addr.Interface().Index())
+	return fmt.Sprintf("del-primary: %s%%%s", e.Addr, e.Addr.Interface())
 }
 
 // event implements an Event interface
