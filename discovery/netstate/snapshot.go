@@ -31,6 +31,12 @@ func (saddr snapshotAddr) less(saddr2 snapshotAddr) bool {
 	return saddr.Addr.Less(saddr2.Addr)
 }
 
+// lessUnmasked compares addresses line snapshotAddr.less, but
+// difference in address masks is ignored.
+func (saddr snapshotAddr) lessUnmasked(saddr2 snapshotAddr) bool {
+	return saddr.Unmasked().Less(saddr2.Unmasked())
+}
+
 // narrower reports whether addr is narrower that addr2.
 func (saddr snapshotAddr) narrower(saddr2 snapshotAddr) bool {
 	return saddr.Addr.Narrower(saddr2.Addr)
@@ -192,9 +198,12 @@ func (snap snapshot) Sync(snap2 snapshot) (events []Event) {
 	// EventDelAddress event, and taking sequence from the "next"
 	// sequence generates EventAddAddress event
 	for len(prev) > 0 || len(next) > 0 {
+		nextDone := len(next) == 0
+		prevDone := len(prev) == 0
+		noneDone := !(nextDone || prevDone)
+
 		switch {
-		case len(next) == 0,
-			len(prev) > 0 && len(next) > 0 && prev[0].less(next[0]):
+		case nextDone, noneDone && prev[0].lessUnmasked(next[0]):
 
 			addr := prev[0]
 			prev = prev[1:]
@@ -216,8 +225,7 @@ func (snap snapshot) Sync(snap2 snapshot) (events []Event) {
 				events = append(events, EventDelInterface{nif})
 			}
 
-		case len(prev) == 0,
-			len(prev) > 0 && len(next) > 0 && next[0].less(prev[0]):
+		case prevDone, noneDone && next[0].lessUnmasked(prev[0]):
 
 			addr := next[0]
 			next = next[1:]
@@ -244,18 +252,32 @@ func (snap snapshot) Sync(snap2 snapshot) (events []Event) {
 			//   - Neither prev or next are empty.
 			//   - Neither prev[0].Less(next[0]) or visa versa
 			//
-			// It means, prev[0] and next[0] are equal.
+			// It means, prev[0] and next[0] are equal by their
+			// IP address.
 			//
-			// So just report change of Primary address
-			// state if it occurs.
+			// So here we just report possible changes in
+			// address mask or Primary address state.
 			aprev, anext := prev[0], next[0]
 			prev, next = prev[1:], next[1:]
 
-			switch {
-			case aprev.primary && !anext.primary:
+			if aprev == anext {
+				// The fast path: nothing changed
+				break
+			}
+
+			if aprev.primary {
 				events = append(events,
 					EventDelPrimaryAddress{aprev.Addr})
-			case !aprev.primary && anext.primary:
+			}
+
+			if aprev.Addr != anext.Addr {
+				events = append(events,
+					EventDelAddress{aprev.Addr})
+				events = append(events,
+					EventAddAddress{anext.Addr})
+			}
+
+			if anext.primary {
 				events = append(events,
 					EventAddPrimaryAddress{anext.Addr})
 			}

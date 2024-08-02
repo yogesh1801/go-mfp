@@ -36,6 +36,15 @@ import (
 //
 // When address is deleted, events will come in reverse order.
 //
+// If address changes its IP mask, a pair of EventDelAddress/EventAddAddress
+// events will be generated. EventDelAddress will be generated BEFORE the
+// corresponding EventAddAddress.
+//
+// If changed address was a primary address, the appropriate
+// EventDelPrimaryAddress will be generated before EventAddAddress,
+// and EventAddPrimaryAddress may be generated too, if result some
+// another address became primary.
+//
 // Please notice, that primary addresses will be reported twice,
 // using EventAddAddress/EventDelAddress events and using
 // EventAddPrimaryAddress/EventDelPrimaryAddress events.

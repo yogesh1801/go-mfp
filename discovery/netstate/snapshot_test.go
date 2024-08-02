@@ -11,6 +11,7 @@ package netstate
 import (
 	"fmt"
 	"slices"
+	"sort"
 	"testing"
 )
 
@@ -219,22 +220,70 @@ func TestSnapshotSync(t *testing.T) {
 
 	tests := []testData{
 		{
+			// Add some address
 			[]Addr{
 				testMakeAddr(lo, "127.0.0.1/24"),
 			},
 		},
 		{
+			// Add more address
 			[]Addr{
 				testMakeAddr(lo, "127.0.0.1/24"),
 				testMakeAddr(if1, "192.168.0.1/24"),
 			},
 		},
 		{
+			// And yet more address
+			[]Addr{
+				testMakeAddr(lo, "127.0.0.1/24"),
+				testMakeAddr(if1, "192.168.0.1/24"),
+				testMakeAddr(if1, "192.168.0.2/32"),
+				testMakeAddr(if1, "192.168.0.3/24"),
+			},
+		},
+		{
+			// Flip masks of 192.168.0.1 and 192.168.0.2
+			[]Addr{
+				testMakeAddr(lo, "127.0.0.1/24"),
+				testMakeAddr(if1, "192.168.0.1/32"),
+				testMakeAddr(if1, "192.168.0.2/24"),
+				testMakeAddr(if1, "192.168.0.3/24"),
+			},
+		},
+		{
+			// Flip back masks of 192.168.0.1 and 192.168.0.2
+			[]Addr{
+				testMakeAddr(lo, "127.0.0.1/24"),
+				testMakeAddr(if1, "192.168.0.1/24"),
+				testMakeAddr(if1, "192.168.0.2/32"),
+				testMakeAddr(if1, "192.168.0.3/24"),
+			},
+		},
+		{
+			// Remove some address
 			[]Addr{
 				testMakeAddr(lo, "127.0.0.1/24"),
 				testMakeAddr(if1, "192.168.0.1/24"),
 				testMakeAddr(if1, "192.168.0.2/32"),
 			},
+		},
+		{
+			// Duplicate of previous
+			[]Addr{
+				testMakeAddr(lo, "127.0.0.1/24"),
+				testMakeAddr(if1, "192.168.0.1/24"),
+				testMakeAddr(if1, "192.168.0.2/32"),
+			},
+		},
+		{
+			// Remove more addresses
+			[]Addr{
+				testMakeAddr(lo, "127.0.0.1/24"),
+			},
+		},
+		{
+			// And finally, remove all addresses
+			[]Addr{},
 		},
 	}
 
@@ -242,7 +291,13 @@ func TestSnapshotSync(t *testing.T) {
 	for i, test := range tests {
 		next := newSnapshotFromAddrs(test.addrs)
 		events := prev.Sync(next)
-		t.Logf("%d: events: %s", i, events)
+
+		dump := ""
+		for _, event := range events {
+			dump += "  " + event.String() + "\n"
+		}
+
+		t.Logf("%d: events:\n%s", i, dump)
 
 		snap, err := testVerifyEvents(prev, events)
 		if err != nil {
@@ -279,6 +334,11 @@ func testVerifyEvents(snap snapshot, events []Event) (snapshot, error) {
 		addrs[addr] = struct{}{}
 	}
 
+	addrsUnmasked := make(map[Addr]Addr)
+	for _, addr := range snap.Addrs() {
+		addrsUnmasked[addr.Unmasked()] = addr
+	}
+
 	primary := make(map[Addr]struct{})
 	for _, addr := range snap.PrimaryAddrs() {
 		primary[addr] = struct{}{}
@@ -300,8 +360,9 @@ func testVerifyEvents(snap snapshot, events []Event) (snapshot, error) {
 	}
 
 	for _, evnt := range events {
-		makeErr := func(msg string) (snapshot, error) {
-			return snapshot{}, fmt.Errorf("%s: %s", evnt, msg)
+		makeErr := func(msg string, args ...any) (snapshot, error) {
+			s := fmt.Sprintf(msg, args...)
+			return snapshot{}, fmt.Errorf("%s: %s", evnt, s)
 		}
 
 		switch evnt := evnt.(type) {
@@ -331,7 +392,13 @@ func testVerifyEvents(snap snapshot, events []Event) (snapshot, error) {
 				return makeErr("address already in set")
 			}
 
+			addr2, found := addrsUnmasked[addr.Unmasked()]
+			if found {
+				return makeErr("address clashes with %s", addr2)
+			}
+
 			addrs[addr] = struct{}{}
+			addrsUnmasked[addr.Unmasked()] = addr
 
 		case EventDelAddress:
 			addr := evnt.Addr
@@ -346,6 +413,7 @@ func testVerifyEvents(snap snapshot, events []Event) (snapshot, error) {
 			}
 
 			delete(addrs, addr)
+			delete(addrsUnmasked, addr.Unmasked())
 
 		case EventAddPrimaryAddress:
 			addr := evnt.Addr
@@ -385,11 +453,40 @@ func testVerifyEvents(snap snapshot, events []Event) (snapshot, error) {
 		}
 	}
 
-	// Return updated snapshot
+	// Make updated snapshot
 	addrslice := make([]Addr, 0, len(addrs))
 	for addr := range addrs {
 		addrslice = append(addrslice, addr)
 	}
 
-	return newSnapshotFromAddrs(addrslice), nil
+	snapUpdated := newSnapshotFromAddrs(addrslice)
+
+	// Check for orphaned interfaces
+	interfacesUpdated := make(map[NetIf]struct{})
+	for _, ifnet := range snapUpdated.Interfaces() {
+		interfacesUpdated[ifnet] = struct{}{}
+	}
+
+	for ifnet := range interfaces {
+		_, found := interfacesUpdated[ifnet]
+		orphaned := []NetIf{}
+		if !found {
+			orphaned = append(orphaned, ifnet)
+		}
+
+		if len(orphaned) > 0 {
+			// Sort interfaces to have reproducible
+			// result at each run of test
+			sort.Slice(orphaned, func(i, j int) bool {
+				return orphaned[i].Less(orphaned[j])
+			})
+
+			// Return an error
+			err := fmt.Errorf("orphaned interfaces: %s",
+				orphaned)
+			return snapshot{}, err
+		}
+	}
+
+	return snapUpdated, nil
 }
