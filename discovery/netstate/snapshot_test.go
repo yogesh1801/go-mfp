@@ -239,13 +239,22 @@ func TestSnapshotSync(t *testing.T) {
 	}
 
 	var prev snapshot
-	for _, test := range tests {
+	for i, test := range tests {
 		next := newSnapshotFromAddrs(test.addrs)
 		events := prev.Sync(next)
-		//t.Errorf("%s", events)
-		err := testVerifyEvents(prev, events)
+		t.Logf("%d: events: %s", i, events)
+
+		snap, err := testVerifyEvents(prev, events)
 		if err != nil {
-			t.Errorf("%s", err)
+			t.Errorf("%d: %s", i, err)
+			return
+		}
+
+		if !snap.Equal(next) {
+			t.Errorf("%d: updated snapshot doesn't match expected\n"+
+				"expected: %s\n"+
+				"present:  %s",
+				i, next.Addrs(), snap.Addrs())
 			return
 		}
 
@@ -253,8 +262,12 @@ func TestSnapshotSync(t *testing.T) {
 	}
 }
 
-// testVerifyEvents verifies "received" events against expected
-func testVerifyEvents(snap snapshot, events []Event) error {
+// testVerifyEvents verifies "received" events against expected.
+// Events are verified in the context of snapshot, that represents
+// a "current" network state.
+//
+// If there were no errors, it returns updated snapshot.
+func testVerifyEvents(snap snapshot, events []Event) (snapshot, error) {
 
 	interfaces := make(map[NetIf]struct{})
 	for _, ifnet := range snap.Interfaces() {
@@ -287,8 +300,8 @@ func testVerifyEvents(snap snapshot, events []Event) error {
 	}
 
 	for _, evnt := range events {
-		makeErr := func(msg string) error {
-			return fmt.Errorf("%s: %s", evnt, msg)
+		makeErr := func(msg string) (snapshot, error) {
+			return snapshot{}, fmt.Errorf("%s: %s", evnt, msg)
 		}
 
 		switch evnt := evnt.(type) {
@@ -372,5 +385,11 @@ func testVerifyEvents(snap snapshot, events []Event) error {
 		}
 	}
 
-	return nil
+	// Return updated snapshot
+	addrslice := make([]Addr, 0, len(addrs))
+	for addr := range addrs {
+		addrslice = append(addrslice, addr)
+	}
+
+	return newSnapshotFromAddrs(addrslice), nil
 }
