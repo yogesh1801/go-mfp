@@ -100,12 +100,12 @@ func (addr Addr) Less(addr2 Addr) bool {
 	}
 }
 
-// SingleIP returns the [Addr] with the same IP address but mask
+// Unmasked returns the [Addr] with the same IP address but mask
 // that corresponds to single IP:
 //
 //	127.0.0.1/24 -> 127.0.0.1/32
 //	"::1/24" -> ""::1/128"
-func (addr Addr) SingleIP() Addr {
+func (addr Addr) Unmasked() Addr {
 	ip := addr.Addr()
 	bits := ip.BitLen()
 	prefix := netip.PrefixFrom(ip, bits)
@@ -115,7 +115,7 @@ func (addr Addr) SingleIP() Addr {
 // Similar reports whether two addresses are the same, ignoring
 // difference in address mask
 func (addr Addr) Similar(addr2 Addr) bool {
-	return addr.SingleIP() == addr2.SingleIP()
+	return addr.Unmasked() == addr2.Unmasked()
 }
 
 // Overlaps reports whether two addresses overlap.
