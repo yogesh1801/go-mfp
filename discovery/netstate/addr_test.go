@@ -35,10 +35,12 @@ func TestAddr(t *testing.T) {
 			a2: testMakeAddr(if0, "192.168.0.1/24"),
 			checks: []testCheck{
 				{"equal", true},
+				{"similar", true},
 				{"sameinterface", true},
 				{"less", false},
 				{"overlaps", true},
 				{"narrower", false},
+				{"wider", false},
 			},
 		},
 
@@ -48,10 +50,42 @@ func TestAddr(t *testing.T) {
 			a2: testMakeAddr(if1, "192.168.0.1/24"),
 			checks: []testCheck{
 				{"equal", false},
+				{"similar", false},
 				{"sameinterface", false},
 				{"less", true},
 				{"overlaps", false},
 				{"narrower", false},
+				{"wider", false},
+			},
+		},
+
+		// Test: same addresses with different masks
+		{
+			a1: testMakeAddr(if0, "192.168.0.1/24"),
+			a2: testMakeAddr(if0, "192.168.0.1/32"),
+			checks: []testCheck{
+				{"equal", false},
+				{"similar", true},
+				{"sameinterface", true},
+				{"less", false},
+				{"overlaps", true},
+				{"narrower", false},
+				{"wider", true},
+			},
+		},
+
+		// Test: same addresses with different masks, reordered
+		{
+			a1: testMakeAddr(if0, "192.168.0.1/32"),
+			a2: testMakeAddr(if0, "192.168.0.1/24"),
+			checks: []testCheck{
+				{"equal", false},
+				{"similar", true},
+				{"sameinterface", true},
+				{"less", true},
+				{"overlaps", true},
+				{"narrower", true},
+				{"wider", false},
 			},
 		},
 
@@ -77,6 +111,7 @@ func TestAddr(t *testing.T) {
 			checks: []testCheck{
 				{"less", true},
 				{"narrower", true},
+				{"wider", false},
 				{"overlaps", true},
 			},
 		},
@@ -88,6 +123,7 @@ func TestAddr(t *testing.T) {
 			checks: []testCheck{
 				{"less", false},
 				{"narrower", false},
+				{"wider", true},
 				{"overlaps", true},
 			},
 		},
@@ -99,6 +135,7 @@ func TestAddr(t *testing.T) {
 			checks: []testCheck{
 				{"less", false},
 				{"narrower", false},
+				{"wider", false},
 				{"overlaps", false},
 				{"sameinterface", true},
 			},
@@ -111,6 +148,7 @@ func TestAddr(t *testing.T) {
 			checks: []testCheck{
 				{"less", true},
 				{"narrower", false},
+				{"wider", false},
 				{"overlaps", false},
 				{"sameinterface", true},
 			},
@@ -123,6 +161,7 @@ func TestAddr(t *testing.T) {
 			checks: []testCheck{
 				{"less", true},
 				{"narrower", false},
+				{"wider", false},
 				{"overlaps", false},
 				{"equal", false},
 			},
@@ -149,6 +188,8 @@ func TestAddr(t *testing.T) {
 			switch strings.ToLower(check.op) {
 			case "equal":
 				val = test.a1 == test.a2
+			case "similar":
+				val = test.a1.Similar(test.a2)
 			case "sameinterface":
 				val = test.a1.SameInterface(test.a2)
 			case "less":
@@ -157,6 +198,8 @@ func TestAddr(t *testing.T) {
 				val = test.a1.Overlaps(test.a2)
 			case "narrower":
 				val = test.a1.Narrower(test.a2)
+			case "wider":
+				val = test.a1.Wider(test.a2)
 			default:
 				panic(fmt.Errorf("invalid op %q", check.op))
 			}
