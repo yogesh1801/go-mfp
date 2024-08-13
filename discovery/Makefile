@@ -1,3 +1,3 @@
-SUBDIRS	= avahi dnssd netstate
+SUBDIRS	= dnssd netstate
 
 include ../Rules.mak
