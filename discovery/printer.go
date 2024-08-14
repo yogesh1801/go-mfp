@@ -18,7 +18,7 @@ package discovery
 type Printer struct {
 	// Printer description
 	AuthInfoRequired KwAuthInfo   // Required authentication type
-	MakeModer        string       // Printer make and model
+	MakeModel        string       // Printer make and model
 	AdminURL         string       // Printer configuration page
 	UUID             string       // Printer UUID ("urn:uuid:12345678-...")
 	Location         string       // E.g., "2nd Floor Computer Lab"
@@ -34,4 +34,7 @@ type Printer struct {
 	CanSort    bool     // Printer can sort output
 	CanStaple  bool     // Printer can staple output
 	PDL        []string // Supported MIME types
+
+	// Printer endpoints
+	Endpoints []string // Collection of URLs
 }
