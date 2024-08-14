@@ -16,7 +16,7 @@ const (
 	KwAuthInfoCertificate KwAuthInfo = "certificate" // TLS certificate
 	KwAuthInFonegotiate   KwAuthInfo = "negotiate"   // Kerberos, RFC4559
 	KwAuthInfoNone        KwAuthInfo = "none"        // No authentication
-	KwAuthInfoOAuth       KwAuthInfo = "oauth"       //  OAuth 2.0 RFC6749
+	KwAuthInfoOAuth       KwAuthInfo = "oauth"       // OAuth 2.0 RFC6749
 	KwAuthInfoPasswd      KwAuthInfo = "username,passwor"
 )
 
