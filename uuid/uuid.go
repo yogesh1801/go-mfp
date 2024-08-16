@@ -126,7 +126,7 @@ func RandomFrom(reader io.Reader) (UUID, error) {
 	}
 
 	uuid[6] = (uuid[6] & 0x0f) | 0x40 // Version 4 (VersionRandom)
-	uuid[8] = (uuid[8] & 0x3f) | 0x80 // Variant is VariantRFC4122
+	uuid[8] = (uuid[8] & 0x3f) | 0x80 // VariantRFC4122
 
 	return uuid, nil
 }
@@ -164,7 +164,7 @@ func MD5(space UUID, name string) UUID {
 	var uuid UUID
 	copy(uuid[:], sum[:])
 	uuid[6] = (uuid[6] & 0x0f) | 0x30 // Version 3 (VersionNameBasedMD5)
-	uuid[8] = (uuid[8] & 0x3f) | 0x80 // Variant is VariantRFC4122
+	uuid[8] = (uuid[8] & 0x3f) | 0x80 // VariantRFC4122
 
 	return uuid
 }
@@ -202,7 +202,7 @@ func SHA1(space UUID, name string) UUID {
 	var uuid UUID
 	copy(uuid[:], sum[:])
 	uuid[6] = (uuid[6] & 0x0f) | 0x50 // Version 5 (VersionNameBasedSHA1)
-	uuid[8] = (uuid[8] & 0x3f) | 0x80 // Variant is VariantRFC4122
+	uuid[8] = (uuid[8] & 0x3f) | 0x80 // VariantRFC4122
 
 	return uuid
 }
