@@ -18,6 +18,7 @@ import (
 // Predefined UUID values:
 var (
 	NilUUID = UUID{}
+	MaxUUID = Must(Parse("ffffffff-ffff-ffff-ffff-ffffffffffff"))
 )
 
 // UUID represents a parsed UUID. This type is comparable and can be

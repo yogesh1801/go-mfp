@@ -16,11 +16,13 @@ package discovery
 // [IPP.Everywhere]: https://ftp.pwg.org/pub/pwg/candidates/cs-ippeve11-20200515-5100.14.pdf
 // [Apple Bounjour Printing]: https://developer.apple.com/bonjour/printing-specification/bonjourprinting-1.2.1.pdf
 type Printer struct {
+	// Printer identity
+	ID DeviceID // Device identity
+
 	// Printer description
 	AuthInfoRequired KwAuthInfo   // Required authentication type
 	MakeModel        string       // Printer make and model
 	AdminURL         string       // Printer configuration page
-	UUID             string       // Printer UUID ("urn:uuid:12345678-...")
 	Location         string       // E.g., "2nd Floor Computer Lab"
 	TLSVersion       KwTLSVersion // Highest supported TLS version
 
