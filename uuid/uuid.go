@@ -9,6 +9,7 @@
 package uuid
 
 import (
+	"crypto/md5"
 	"crypto/rand"
 	"crypto/sha1"
 	"fmt"
@@ -130,6 +131,44 @@ func RandomFrom(reader io.Reader) (UUID, error) {
 	return uuid, nil
 }
 
+// MD5 generates a new Name-Based [UUID], using MD5 crypto hash
+// function.
+//
+// Name-Based UUIDs are, essentially, the crypto hash of supplied
+// parameters, encoded as UUID. Parameters are:
+//   - The namespace, supplied as UUID
+//   - Some "name"
+//
+// It has the following properties:
+//   - For the same combination of the space and name, it always
+//     yield the same output
+//   - If two different UUIDs are generated, using different names
+//     and/or namespaces, these two UUIDs will be different with
+//     very high probability.
+//
+// There is a number of well-known namespaces exists ([NameSpaceDNS] etc).
+//
+// See [RFC 4122, 4.3.] for details.
+//
+// [RFC 4122, 4.3.]: https://www.rfc-editor.org/rfc/rfc4122.html#section-4.3
+func MD5(space UUID, name string) UUID {
+	// Merge space and name
+	data := make([]byte, len(space)+len(name))
+	copy(data, space[:])
+	copy(data[len(space):], ([]byte)(name))
+
+	// Compute a sum
+	sum := md5.Sum(data)
+
+	// Make UUID
+	var uuid UUID
+	copy(uuid[:], sum[:])
+	uuid[6] = (uuid[6] & 0x0f) | 0x30 // Version 3 (VersionNameBasedMD5)
+	uuid[8] = (uuid[8] & 0x3f) | 0x80 // Variant is VariantRFC4122
+
+	return uuid
+}
+
 // SHA1 generates a new Name-Based [UUID], using SHA1 crypto hash
 // function.
 //
@@ -162,7 +201,7 @@ func SHA1(space UUID, name string) UUID {
 	// Make UUID
 	var uuid UUID
 	copy(uuid[:], sum[:])
-	uuid[6] = (uuid[6] & 0x0f) | 0x50 // Version 4 (VersionNameBasedSHA1)
+	uuid[6] = (uuid[6] & 0x0f) | 0x50 // Version 5 (VersionNameBasedSHA1)
 	uuid[8] = (uuid[8] & 0x3f) | 0x80 // Variant is VariantRFC4122
 
 	return uuid

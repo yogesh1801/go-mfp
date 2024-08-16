@@ -378,19 +378,29 @@ func TestNameBased(t *testing.T) {
 		space UUID   // The namespace
 		name  string // String to use to generate UUID from
 		uuid  UUID   // Expected output
+		gen   func(space UUID, name string) UUID
 	}
 
 	tests := []testData{
-		// Based on RFC9562, A.4
+		// RFC9562, A.4. Example of a UUIDv5 Value
+		{
+			space: NameSpaceDNS,
+			name:  "www.example.com",
+			uuid:  Must(Parse("5df418813aed351588a72f4a814cf09e")),
+			gen:   MD5,
+		},
+
+		// RFC9562, A.4. Example of a UUIDv5 Value
 		{
 			space: NameSpaceDNS,
 			name:  "www.example.com",
 			uuid:  Must(Parse("2ed6657de927568b95e12665a8aea6a2")),
+			gen:   SHA1,
 		},
 	}
 
 	for _, test := range tests {
-		uuid := SHA1(test.space, test.name)
+		uuid := test.gen(test.space, test.name)
 		if uuid != test.uuid {
 			t.Errorf("%s: output mismatch:\n"+
 				"expected: %s\n"+
