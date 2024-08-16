@@ -10,6 +10,7 @@ package uuid
 
 import (
 	"crypto/rand"
+	"crypto/sha1"
 	"fmt"
 	"io"
 	"strings"
@@ -19,6 +20,14 @@ import (
 var (
 	NilUUID = UUID{}
 	MaxUUID = Must(Parse("ffffffff-ffff-ffff-ffff-ffffffffffff"))
+)
+
+// Well-known namespaces:
+var (
+	NameSpaceDNS  = Must(Parse("6ba7b810-9dad-11d1-80b4-00c04fd430c8")) // [RFC9499]
+	NameSpaceURL  = Must(Parse("6ba7b811-9dad-11d1-80b4-00c04fd430c8")) // [RFC1738]
+	NameSpaceOID  = Must(Parse("6ba7b812-9dad-11d1-80b4-00c04fd430c8")) // [X660]
+	NameSpaceX500 = Must(Parse("6ba7b814-9dad-11d1-80b4-00c04fd430c8")) // [X500]
 )
 
 // UUID represents a parsed UUID. This type is comparable and can be
@@ -105,14 +114,6 @@ func Random() (UUID, error) {
 	return RandomFrom(rand.Reader)
 }
 
-// Must returns UUID if err is nil and panics otherwise.
-func Must(uuid UUID, err error) UUID {
-	if err != nil {
-		panic(err)
-	}
-	return uuid
-}
-
 // RandomFrom generates a random UUID.
 // It uses provided [io.Reader] as a source of entropy.
 func RandomFrom(reader io.Reader) (UUID, error) {
@@ -127,6 +128,52 @@ func RandomFrom(reader io.Reader) (UUID, error) {
 	uuid[8] = (uuid[8] & 0x3f) | 0x80 // Variant is VariantRFC4122
 
 	return uuid, nil
+}
+
+// SHA1 generates a new Name-Based [UUID], using SHA1 crypto hash
+// function.
+//
+// Name-Based UUIDs are, essentially, the crypto hash of supplied
+// parameters, encoded as UUID. Parameters are:
+//   - The namespace, supplied as UUID
+//   - Some "name"
+//
+// It has the following properties:
+//   - For the same combination of the space and name, it always
+//     yield the same output
+//   - If two different UUIDs are generated, using different names
+//     and/or namespaces, these two UUIDs will be different with
+//     very high probability.
+//
+// There is a number of well-known namespaces exists ([NameSpaceDNS] etc).
+//
+// See [RFC 4122, 4.3.] for details.
+//
+// [RFC 4122, 4.3.]: https://www.rfc-editor.org/rfc/rfc4122.html#section-4.3
+func SHA1(space UUID, name string) UUID {
+	// Merge space and name
+	data := make([]byte, len(space)+len(name))
+	copy(data, space[:])
+	copy(data[len(space):], ([]byte)(name))
+
+	// Compute a sum
+	sum := sha1.Sum(data)
+
+	// Make UUID
+	var uuid UUID
+	copy(uuid[:], sum[:])
+	uuid[6] = (uuid[6] & 0x0f) | 0x50 // Version 4 (VersionNameBasedSHA1)
+	uuid[8] = (uuid[8] & 0x3f) | 0x80 // Variant is VariantRFC4122
+
+	return uuid
+}
+
+// Must returns UUID if err is nil and panics otherwise.
+func Must(uuid UUID, err error) UUID {
+	if err != nil {
+		panic(err)
+	}
+	return uuid
 }
 
 // String returns the string form of UUID:

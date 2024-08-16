@@ -372,6 +372,34 @@ func TestVerVar(t *testing.T) {
 	}
 }
 
+// TestSHA1 tests Name-Based UUIDs generation
+func TestNameBased(t *testing.T) {
+	type testData struct {
+		space UUID   // The namespace
+		name  string // String to use to generate UUID from
+		uuid  UUID   // Expected output
+	}
+
+	tests := []testData{
+		// Based on RFC9562, A.4
+		{
+			space: NameSpaceDNS,
+			name:  "www.example.com",
+			uuid:  Must(Parse("2ed6657de927568b95e12665a8aea6a2")),
+		},
+	}
+
+	for _, test := range tests {
+		uuid := SHA1(test.space, test.name)
+		if uuid != test.uuid {
+			t.Errorf("%s: output mismatch:\n"+
+				"expected: %s\n"+
+				"present:  %s\n",
+				test.name, test.uuid, uuid)
+		}
+	}
+}
+
 // TestMust tests how Must panics in a case of error
 func TestMust(t *testing.T) {
 	defer func() {
