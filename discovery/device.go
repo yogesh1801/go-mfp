@@ -25,11 +25,12 @@ import "github.com/alexpevzner/mfp/uuid"
 //
 //	DeviceName - unique device name, in the DNS-SD sence.
 //	             E.g., "Kyocera ECOSYS M2040dn",
-//	HostName   - host name, in the DNS-SD sense. E.g., "KM7B6A91.local".
 //	UUID       - device UUID
 type DeviceID struct {
-	DeviceName string
-	HostName   string
-	UUID       uuid.UUID
-	Scope      SearchScope
+	DeviceName string           // Realm-unique device name
+	Realm      SearchRealm      // Search realm
+	IdIdx      int              // For multicast-based network discovery
+	Kind       SearchDeviceKind // Kind of device
+	UUID       uuid.UUID        // uuid.NilUUID if not available
+	Serial     string           // "" if not avaliable
 }
