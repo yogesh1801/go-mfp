@@ -29,7 +29,7 @@ import "github.com/alexpevzner/mfp/uuid"
 type DeviceID struct {
 	DeviceName string           // Realm-unique device name
 	Realm      SearchRealm      // Search realm
-	IdIdx      int              // For multicast-based network discovery
+	IfIdx      int              // For multicast-based network discovery
 	Kind       SearchDeviceKind // Kind of device
 	UUID       uuid.UUID        // uuid.NilUUID if not available
 	Serial     string           // "" if not avaliable

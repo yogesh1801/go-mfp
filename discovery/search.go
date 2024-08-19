@@ -8,7 +8,7 @@
 
 package discovery
 
-// SearchRealmID identifies a search realm (search domain).
+// SearchRealm identifies a search realm (search domain).
 type SearchRealm int
 
 // SearchRealm values:
@@ -22,6 +22,7 @@ const (
 // SearchDeviceKind identifies a kind of device
 type SearchDeviceKind int
 
+// SearchDeviceKind values:
 const (
 	SearchDeviceInvalid SearchDeviceKind = iota
 
