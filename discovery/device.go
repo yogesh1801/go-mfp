@@ -33,4 +33,5 @@ type DeviceID struct {
 	Kind       SearchDeviceKind // Kind of device
 	UUID       uuid.UUID        // uuid.NilUUID if not available
 	Serial     string           // "" if not avaliable
+	MakeModel  string           // Just for user information
 }
