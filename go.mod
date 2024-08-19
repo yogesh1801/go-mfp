@@ -9,6 +9,7 @@ require (
 )
 
 require (
+	github.com/alexpevzner/go-avahi v0.0.0-20240816230502-b4a7f03d246d // indirect
 	github.com/mattn/go-runewidth v0.0.3 // indirect
 	golang.org/x/sys v0.21.0 // indirect
 )

@@ -1,5 +1,7 @@
 github.com/OpenPrinting/goipp v1.1.1-0.20240622134450-b36209c9a439 h1:fNuZcRnl4Jxdt/6DYUBZxkrNLLBfHMt6R2BV1rdBHGU=
 github.com/OpenPrinting/goipp v1.1.1-0.20240622134450-b36209c9a439/go.mod h1:ot2iw+QF7fVLaX+55JUNlF5YSDNiXVo2LRAv21iGcQI=
+github.com/alexpevzner/go-avahi v0.0.0-20240816230502-b4a7f03d246d h1:zf3YHU3Z3dWy3uziEdlklo5aRBSgDxm96umvZS/66K0=
+github.com/alexpevzner/go-avahi v0.0.0-20240816230502-b4a7f03d246d/go.mod h1:qxO35yIgVTkoq8ym9Y1L7M18VNZj3JE2PTngohQv5H0=
 github.com/mattn/go-runewidth v0.0.3 h1:a+kO+98RDGEfo6asOGMmpodZq4FNtnGP54yps8BzLR4=
 github.com/mattn/go-runewidth v0.0.3/go.mod h1:LwmH8dsx7+W8Uxz3IHJYH5QSwggIsqBzpuz5H//U1FU=
 github.com/peterh/liner v1.2.2 h1:aJ4AOodmL+JxOZZEL2u9iJf8omNRpqHc/EbrK+3mAXw=
