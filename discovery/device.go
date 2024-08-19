@@ -27,11 +27,49 @@ import "github.com/alexpevzner/mfp/uuid"
 //	             E.g., "Kyocera ECOSYS M2040dn",
 //	UUID       - device UUID
 type DeviceID struct {
-	DeviceName string           // Realm-unique device name
-	Realm      SearchRealm      // Search realm
-	IfIdx      int              // For multicast-based network discovery
-	Kind       SearchDeviceKind // Kind of device
-	UUID       uuid.UUID        // uuid.NilUUID if not available
-	Serial     string           // "" if not avaliable
-	MakeModel  string           // Just for user information
+	DeviceName string      // Realm-unique device name
+	Realm      DeviceRealm // Search realm
+	IfIdx      int         // For multicast-based network discovery
+	Kind       DeviceKind  // Kind of device
+	UUID       uuid.UUID   // uuid.NilUUID if not available
+	Serial     string      // "" if not avaliable
+	MakeModel  string      // Just for user information
 }
+
+// DeviceRealm identifies a search realm (search domain) where
+// device is found.
+type DeviceRealm int
+
+// DeviceRealm values:
+const (
+	RealmInvalid DeviceRealm = iota
+
+	RealmDNSSD // DNS-SD search
+	RealmWSD   // Microsoft WS-Discovery
+	RealmSNMP  // SNMP search
+	RealmUSB   // USB
+)
+
+// SearchDeviceKind identifies a kind of device
+type DeviceKind int
+
+// SearchDeviceKind values:
+const (
+	KindInvalid DeviceKind = iota
+
+	// Printers
+	KindIPPPrinter       // IPP/IPPS printer
+	KindLPDPrinter       // LPD protocol printer
+	KindAppSocketPrinter // AppSocket (AKA JetDirect) Printer
+	KindWSDPrinter       // WSD printer
+	KindCUPSPrinter      // CUPS-shred printer
+	KindSMBPrinter       // SMB-shred printer
+	KindUSBPrinter       // USB printer
+	KindUnknownPrinter   // Unknown printer
+
+	// Scanners
+	KindIPPScanner     // IPP/IPPS scanner
+	KindESCLScanner    // ESCL scanner
+	KindWSDScanner     // WSD scanner
+	KindUnknownScanner // Unknown scanner
+)
