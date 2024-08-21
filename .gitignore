@@ -3,6 +3,7 @@ tags
 *.orig
 coverage.out
 
-cmd/mfp-cups/mfp-cups
 cmd/mfp/mfp
+cmd/mfp-cups/mfp-cups
+cmd/mfp-discover/mfp-discover
 cmd/mfp-shell/mfp-shell
