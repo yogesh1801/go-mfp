@@ -50,7 +50,7 @@ const (
 	RealmUSB   // USB
 )
 
-// SearchDeviceKind identifies a kind of device
+// DeviceKind identifies a kind of device.
 type DeviceKind int
 
 // SearchDeviceKind values:
