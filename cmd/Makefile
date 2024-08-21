@@ -1,5 +1,6 @@
 SUBDIRS = \
 	mfp \
+	mfp-discover \
 	mfp-cups \
 	mfp-shell
 

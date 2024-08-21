@@ -1,3 +1,3 @@
-SUBDIRS	= cmdcups
+SUBDIRS	= cmddiscover cmdcups
 
 include ../Rules.mak
