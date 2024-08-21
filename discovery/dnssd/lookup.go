@@ -24,6 +24,6 @@ const (
 )
 
 const (
-	// This is the default lookup domain for DNS-SD.
+	// LookupDomain is the default lookup domain for DNS-SD.
 	LookupDomain = "local"
 )
