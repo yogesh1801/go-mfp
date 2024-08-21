@@ -277,21 +277,15 @@ type avahiSvcInstanceKey struct {
 func (key avahiSvcInstanceKey) String() string {
 	nm := key.InstanceName + "." + key.SvcType + "." + key.Domain
 
-	var proto, ifnet string
-
-	if key.Proto == avahi.ProtocolIP4 {
-		proto = "ip4"
-	} else {
-		proto = "ip6"
-	}
+	var ifname string
 
 	if ifi, err := net.InterfaceByIndex(int(key.IfIdx)); err == nil {
-		ifnet = ifi.Name
+		ifname = ifi.Name
 	} else {
-		ifnet = fmt.Sprintf("%d", key.IfIdx)
+		ifname = fmt.Sprintf("%d", key.IfIdx)
 	}
 
-	return fmt.Sprintf("%q (%s,%s)", nm, proto, ifnet)
+	return fmt.Sprintf("%q (%s,%s)", nm, key.Proto, ifname)
 }
 
 // avahiSvcInstanceKeyFromBrowserEvent makes avahiSvcInstanceKey
