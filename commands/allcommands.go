@@ -22,8 +22,8 @@ var AllCommands = &argv.Command{
 		argv.HelpOption,
 	},
 	SubCommands: []argv.Command{
-		cmddiscover.Command,
 		cmdcups.Command,
+		cmddiscover.Command,
 		argv.HelpCommand,
 	},
 }
