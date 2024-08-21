@@ -16,16 +16,15 @@ import (
 // Standard loggers:
 var (
 	// DefaultLogger is the default logging destination.
-	DefaultLogger = NewLogger("", LevelAll, Console)
+	DefaultLogger = NewLogger(LevelAll, Console)
 
 	// DiscardLogger discards all logs written to.
-	DiscardLogger = NewLogger("", LevelNone, Discard)
+	DiscardLogger = NewLogger(LevelNone, Discard)
 )
 
 // Logger is the logging destination.
 // It can be connected to console, to the disk file etc...
 type Logger struct {
-	prefix  string       // Log prefix
 	out     []loggerDest // Attached destinations
 	outLock sync.Mutex   // Destinations modification lock
 }
@@ -37,13 +36,8 @@ type loggerDest struct {
 }
 
 // NewLogger returns a new logger, attached to the specified backend
-func NewLogger(prefix string, lvl Level, b Backend) *Logger {
-	if prefix != "" {
-		prefix = prefix + ": "
-	}
-
+func NewLogger(lvl Level, b Backend) *Logger {
 	return &Logger{
-		prefix: prefix,
 		out: []loggerDest{
 			{
 				level:   lvl,
@@ -79,40 +73,40 @@ func (lgr *Logger) Attach(lvl Level, b Backend) {
 // the concurrently running goroutines are never intermixed at
 // output. During log rotation, Records are not split between
 // different log files.
-func (lgr *Logger) Begin() *Record {
-	return &Record{parent: lgr}
+func (lgr *Logger) Begin(prefix string) *Record {
+	return &Record{parent: lgr, prefix: prefix}
 }
 
 // Trace writes a Trace-level message to the Logger.
-func (lgr *Logger) Trace(format string, v ...any) *Logger {
-	return lgr.Begin().Trace(format, v...).Commit()
+func (lgr *Logger) Trace(prefix, format string, v ...any) *Logger {
+	return lgr.Begin(prefix).Trace(format, v...).Commit()
 }
 
 // Debug writes a Debug-level message to the Logger.
-func (lgr *Logger) Debug(format string, v ...any) *Logger {
-	return lgr.Begin().Debug(format, v...).Commit()
+func (lgr *Logger) Debug(prefix, format string, v ...any) *Logger {
+	return lgr.Begin(prefix).Debug(format, v...).Commit()
 }
 
 // Info writes a Info-level message to the Logger.
-func (lgr *Logger) Info(format string, v ...any) *Logger {
-	return lgr.Begin().Info(format, v...).Commit()
+func (lgr *Logger) Info(prefix, format string, v ...any) *Logger {
+	return lgr.Begin(prefix).Info(format, v...).Commit()
 }
 
 // Warning writes a Warning-level message to the Logger.
-func (lgr *Logger) Warning(format string, v ...any) *Logger {
-	return lgr.Begin().Warning(format, v...).Commit()
+func (lgr *Logger) Warning(prefix, format string, v ...any) *Logger {
+	return lgr.Begin(prefix).Warning(format, v...).Commit()
 }
 
 // Error writes a Error-level message to the Logger.
-func (lgr *Logger) Error(format string, v ...any) *Logger {
-	return lgr.Begin().Error(format, v...).Commit()
+func (lgr *Logger) Error(prefix, format string, v ...any) *Logger {
+	return lgr.Begin(prefix).Error(format, v...).Commit()
 }
 
 // Fatal writes a Fatal-level message to the Logger.
 //
 // It calls os.Exit(1) and never returns.
-func (lgr *Logger) Fatal(format string, v ...any) {
-	lgr.Begin().Fatal(format, v...)
+func (lgr *Logger) Fatal(prefix, format string, v ...any) {
+	lgr.Begin(prefix).Fatal(format, v...)
 }
 
 // Object writes any object that implements [encoding.TextMarshaler]
@@ -121,17 +115,18 @@ func (lgr *Logger) Fatal(format string, v ...any) {
 // If [encoding.TextMarshaler.MarshalText] returns an error, it
 // will be written to log with the [Error] log level, regardless
 // of the level specified by the first parameter.
-func (lgr *Logger) Object(level Level, obj encoding.TextMarshaler) *Logger {
-	return lgr.Begin().Object(level, obj).Commit()
+func (lgr *Logger) Object(prefix string, level Level,
+	obj encoding.TextMarshaler) *Logger {
+	return lgr.Begin(prefix).Object(level, obj).Commit()
 }
 
 // send writes some lines to the Logger.
-func (lgr *Logger) send(levels []Level, lines [][]byte) *Logger {
+func (lgr *Logger) send(prefix string, levels []Level, lines [][]byte) *Logger {
 	// Prepend prefix
-	if lgr.prefix != "" {
+	if prefix != "" {
 		prefixed := make([][]byte, len(lines))
 		for i := range lines {
-			prefixed[i] = []byte(lgr.prefix + string(lines[i]))
+			prefixed[i] = []byte(prefix + ": " + string(lines[i]))
 		}
 		lines = prefixed
 	}

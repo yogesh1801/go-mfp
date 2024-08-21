@@ -19,7 +19,7 @@ import (
 // If Logger is not available, [DefaultLogger] will be used.
 // The [context.Context] parameter may be safely passed as nil.
 func Trace(ctx context.Context, format string, v ...any) {
-	CtxLogger(ctx).Trace(format, v...)
+	CtxLogger(ctx).Trace(CtxPrefix(ctx), format, v...)
 }
 
 // Debug writes a Debug-level message to the [Logger] associated
@@ -28,7 +28,7 @@ func Trace(ctx context.Context, format string, v ...any) {
 // If Logger is not available, [DefaultLogger] will be used.
 // The [context.Context] parameter may be safely passed as nil.
 func Debug(ctx context.Context, format string, v ...any) {
-	CtxLogger(ctx).Debug(format, v...)
+	CtxLogger(ctx).Debug(CtxPrefix(ctx), format, v...)
 }
 
 // Info writes a Info-level message to the [Logger] associated
@@ -37,7 +37,7 @@ func Debug(ctx context.Context, format string, v ...any) {
 // If Logger is not available, [DefaultLogger] will be used.
 // The [context.Context] parameter may be safely passed as nil.
 func Info(ctx context.Context, format string, v ...any) {
-	CtxLogger(ctx).Info(format, v...)
+	CtxLogger(ctx).Info(CtxPrefix(ctx), format, v...)
 }
 
 // Warning writes a Warning-level message to the [Logger] associated
@@ -46,7 +46,7 @@ func Info(ctx context.Context, format string, v ...any) {
 // If Logger is not available, [DefaultLogger] will be used.
 // The [context.Context] parameter may be safely passed as nil.
 func Warning(ctx context.Context, format string, v ...any) {
-	CtxLogger(ctx).Warning(format, v...)
+	CtxLogger(ctx).Warning(CtxPrefix(ctx), format, v...)
 }
 
 // Error writes a Error-level message to the [Logger] associated
@@ -55,7 +55,7 @@ func Warning(ctx context.Context, format string, v ...any) {
 // If Logger is not available, [DefaultLogger] will be used.
 // The [context.Context] parameter may be safely passed as nil.
 func Error(ctx context.Context, format string, v ...any) {
-	CtxLogger(ctx).Error(format, v...)
+	CtxLogger(ctx).Error(CtxPrefix(ctx), format, v...)
 }
 
 // Fatal writes a Fatal-level message to the [Logger] associated
@@ -66,7 +66,7 @@ func Error(ctx context.Context, format string, v ...any) {
 // If Logger is not available, [DefaultLogger] will be used.
 // The [context.Context] parameter may be safely passed as nil.
 func Fatal(ctx context.Context, format string, v ...any) {
-	CtxLogger(ctx).Fatal(format, v...)
+	CtxLogger(ctx).Fatal(CtxPrefix(ctx), format, v...)
 }
 
 // Object writes any object that implements [encoding.TextMarshaler]
@@ -80,6 +80,6 @@ func Fatal(ctx context.Context, format string, v ...any) {
 // of the level specified by the first parameter.
 func Object(ctx context.Context,
 	level Level, obj encoding.TextMarshaler) context.Context {
-	CtxLogger(ctx).Object(level, obj)
+	CtxLogger(ctx).Object(CtxPrefix(ctx), level, obj)
 	return ctx
 }

@@ -23,6 +23,7 @@ import (
 // between different files during log rotation.
 type Record struct {
 	parent *Logger    // Parent logger
+	prefix string     // Log prefix
 	lines  [][]byte   // Collected lines
 	levels []Level    // Corresponding levels
 	mutex  sync.Mutex // Access lock
@@ -30,7 +31,7 @@ type Record struct {
 
 // Commit writes Record to the parent [Logger].
 func (rec *Record) Commit() *Logger {
-	rec.parent.send(rec.levels, rec.lines)
+	rec.parent.send(rec.prefix, rec.levels, rec.lines)
 	return rec.parent
 }
 

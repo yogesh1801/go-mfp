@@ -36,7 +36,7 @@ func TestContext(t *testing.T) {
 
 	// Use CtxLogger() with Context that has invalid value associated
 	// with the valid key
-	ctx = context.WithValue(context.Background(), ContextKey, 5)
+	ctx = context.WithValue(context.Background(), contextKeyLogger, 5)
 	dest2 = CtxLogger(ctx)
 
 	if dest2 != DiscardLogger {

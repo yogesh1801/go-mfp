@@ -59,7 +59,7 @@ func cmdDiscoverHandler(ctx context.Context, inv *argv.Invocation) error {
 		level = log.LevelTrace
 	}
 
-	logger := log.NewLogger("", level, log.Console)
+	logger := log.NewLogger(level, log.Console)
 	ctx = log.NewContext(ctx, logger)
 
 	// Execute the command
