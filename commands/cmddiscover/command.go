@@ -12,6 +12,7 @@ import (
 	"context"
 
 	"github.com/alexpevzner/mfp/argv"
+	"github.com/alexpevzner/mfp/discovery/dnssd"
 	"github.com/alexpevzner/mfp/log"
 )
 
@@ -51,6 +52,8 @@ func cmdDiscoverHandler(ctx context.Context, inv *argv.Invocation) error {
 	_, dbg := inv.Get("-d")
 	_, vrb := inv.Get("-v")
 
+	dbg = true // FIXME
+
 	level := log.LevelInfo
 	if dbg {
 		level = log.LevelDebug
@@ -63,5 +66,19 @@ func cmdDiscoverHandler(ctx context.Context, inv *argv.Invocation) error {
 	ctx = log.NewContext(ctx, logger)
 
 	// Execute the command
+	backend, err := dnssd.NewBackend(ctx, "", 0)
+	if err != nil {
+		return err
+	}
+
+	for ctx.Err() == nil {
+		select {
+		case <-backend.Chan():
+		case <-ctx.Done():
+		}
+	}
+
+	backend.Close()
+
 	return nil
 }
