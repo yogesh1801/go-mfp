@@ -69,6 +69,7 @@ func (lgr *Logger) Attach(lvl Level, b Backend) {
 }
 
 // Begin initiates creation of a new multi-line log [Record].
+//
 // Records are always written atomically. Records written from
 // the concurrently running goroutines are never intermixed at
 // output. During log rotation, Records are not split between
