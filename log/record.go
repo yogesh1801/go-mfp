@@ -35,6 +35,11 @@ func (rec *Record) Commit() *Logger {
 	return rec.parent
 }
 
+// Rollback drops the Record.
+func (rec *Record) Rollback() *Logger {
+	return rec.parent
+}
+
 // Trace writes a Trace-level message to the Record.
 func (rec *Record) Trace(format string, v ...any) *Record {
 	return rec.format(LevelTrace, format, v...)
