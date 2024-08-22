@@ -69,6 +69,13 @@ func Fatal(ctx context.Context, format string, v ...any) {
 	CtxLogger(ctx).Fatal(CtxPrefix(ctx), format, v...)
 }
 
+// Begin initiates creation of a new multi-line log [Record].
+//
+// See [Logger.Begin] for details.
+func Begin(ctx context.Context) *Record {
+	return CtxLogger(ctx).Begin(CtxPrefix(ctx))
+}
+
 // Object writes any object that implements [encoding.TextMarshaler]
 // interface to the Logger associated with the Context.
 //
