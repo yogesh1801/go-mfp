@@ -283,7 +283,8 @@ func (back *backend) onRecordBrowserEvent(
 
 	switch evnt.Event {
 	case avahi.BrowserNew:
-		log.Debug(back.ctx, "txt-browse: found %s", evnt.Name)
+		log.Debug(back.ctx, "txt-browse: found %s",
+			avahi.DomainNormalize(evnt.Name))
 
 	case avahi.BrowserFailure:
 	}
@@ -392,7 +393,8 @@ type avahiSvcInstanceKey struct {
 // FQDN returns the full-qualified domain name for the
 // service instance.
 func (key avahiSvcInstanceKey) FQDN() string {
-	return key.InstanceName + "." + key.SvcType + "." + key.Domain
+	return avahi.DomainServiceNameJoin(key.InstanceName,
+		key.SvcType, key.Domain)
 }
 
 // String returns string representation of the avahiSvcInstanceKey,
