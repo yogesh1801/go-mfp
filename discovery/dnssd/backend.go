@@ -12,6 +12,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"net/netip"
 	"sync"
 	"time"
 
@@ -41,6 +42,7 @@ type backend struct {
 	cancel      context.CancelFunc
 	done        sync.WaitGroup
 	services    map[avahiServiceKey]*avahiService
+	hostnames   map[avahiHostnameKey]*avahiHostname
 }
 
 // NewBackend creates a new [discovery.Backend] for DNS-SD discovery.
@@ -264,12 +266,26 @@ func (back *backend) onServiceResolverEvent(
 		key := avahiServiceKeyFromResolverEvent(evnt)
 		title := fmt.Sprintf("svc-resolve: found %s", key)
 
+		service := back.getService(key)
+		if service == nil {
+			// It may be out of order avahi.ResolverFound
+			// event, received while service already removed,
+			// so just log and return.
+			log.Debug(back.ctx, "%s (unknown service)", title)
+			return nil
+		}
+
 		log.Begin(back.ctx).
 			Debug("%s:", title).
 			Debug("  host: %s", evnt.Hostname).
 			Debug("  port: %d", evnt.Port).
 			Debug("  addr: %s", evnt.Addr).
 			Commit()
+
+		// FIXME: handle situation when hostname not added,
+		// but changed
+		//service.hostname = evnt.Hostname
+		service.port = evnt.Port
 
 	case avahi.ResolverFailure:
 		key := avahiServiceKeyFromResolverEvent(evnt)
@@ -292,6 +308,11 @@ func (back *backend) onTxtBrowserEvent(evnt *avahi.RecordBrowserEvent) error {
 		log.Debug(back.ctx, "%s", title)
 
 	case avahi.BrowserFailure:
+		key := avahiServiceKeyFromRecordBrowserEvent(evnt)
+		title := fmt.Sprintf("txt-browse: failed %s", key)
+
+		log.Error(back.ctx, "%s: %s", title, evnt.Err)
+		return evnt.Err
 	}
 
 	return nil
@@ -306,7 +327,12 @@ func (back *backend) onAddrBrowserEvent(
 
 // hasService reports if avahiService already exist for the key
 func (back *backend) hasService(key avahiServiceKey) bool {
-	return back.services[key] != nil
+	return back.getService(key) != nil
+}
+
+// getService returns existent avahiService
+func (back *backend) getService(key avahiServiceKey) *avahiService {
+	return back.services[key]
 }
 
 // addService creates a new avahiService and registers it
@@ -354,7 +380,7 @@ func (back *backend) addService(key avahiServiceKey) error {
 	log.Debug(back.ctx, "%s: OK", title)
 
 	// Create avahiService
-	instance := &avahiService{
+	service := &avahiService{
 		key:         key,
 		svcResolver: svcResolver,
 		txtBrowser:  txtBrowser,
@@ -363,17 +389,74 @@ func (back *backend) addService(key avahiServiceKey) error {
 	back.poller.AddServiceResolver(svcResolver)
 	back.poller.AddRecordBrowser(txtBrowser)
 
-	back.services[key] = instance
+	back.services[key] = service
 	return nil
 }
 
 // delService deletes a new avahiService for the key
 func (back *backend) delService(key avahiServiceKey) {
-	instance := back.services[key]
-	if instance != nil {
-		instance.svcResolver.Close()
-		instance.txtBrowser.Close()
+	service := back.services[key]
+	if service != nil {
+		service.svcResolver.Close()
+		service.txtBrowser.Close()
 		delete(back.services, key)
+
+		if service.hostname != nil {
+			delete(service.hostname.services, service)
+			if len(service.hostname.services) == 0 {
+				back.delHostname(service.hostname.key)
+			}
+		}
+	}
+}
+
+// addHostname adds a new avahiHostname for the key
+func (back *backend) addHostname(key avahiHostnameKey) error {
+	// Create address resolver
+	rtype := avahi.DNSTypeA
+	if key.Proto == avahi.ProtocolIP6 {
+		rtype = avahi.DNSTypeAAAA
+	}
+
+	addrBrowser, err := avahi.NewRecordBrowser(
+		back.clnt,
+		key.IfIdx,
+		key.Proto,
+		key.Hostname,
+		avahi.DNSClassIN,
+		rtype,
+		avahiLookupFlags[back.lookupFlags],
+	)
+
+	title := fmt.Sprintf("addr-browse: start %s", key)
+
+	if err != nil {
+		log.Error(back.ctx, "%s: %s", title, err)
+		return err
+	}
+
+	log.Debug(back.ctx, "%s: OK", title)
+
+	// Create avahiHostname
+	hostname := &avahiHostname{
+		key:         key,
+		addrBrowser: addrBrowser,
+		addrs:       make(map[netip.Addr]struct{}),
+		services:    make(map[*avahiService]struct{}),
+	}
+
+	back.poller.AddRecordBrowser(addrBrowser)
+	back.hostnames[key] = hostname
+
+	return nil
+}
+
+// delHostname deletes avahiHostname for the key
+func (back *backend) delHostname(key avahiHostnameKey) {
+	hostname := back.hostnames[key]
+	if hostname != nil {
+		hostname.addrBrowser.Close()
+		delete(back.hostnames, key)
 	}
 }
 
@@ -388,9 +471,11 @@ var avahiLookupFlags = [...]avahi.LookupFlags{
 // avahiService is the per-service-instance structure
 // that manages resources associated with the service
 type avahiService struct {
-	key         avahiServiceKey
-	svcResolver *avahi.ServiceResolver
-	txtBrowser  *avahi.RecordBrowser
+	key         avahiServiceKey        // Identity
+	svcResolver *avahi.ServiceResolver // Service resolver
+	txtBrowser  *avahi.RecordBrowser   // TXT record resolver
+	port        uint16                 // IP port
+	hostname    *avahiHostname         // Hostname resolver
 }
 
 // avahiServiceKey identifies a particular instance of
@@ -466,4 +551,35 @@ func avahiServiceKeyFromRecordBrowserEvent(
 		SvcType:      svctype,
 		Domain:       domain,
 	}
+}
+
+// avahiHostname is the per-hostname structure that manages
+// resources assoctated with the hostname
+type avahiHostname struct {
+	key         avahiHostnameKey           // Identity
+	addrBrowser *avahi.RecordBrowser       // A/AAAA record resolver
+	addrs       map[netip.Addr]struct{}    // Resolved addresses
+	services    map[*avahiService]struct{} // Dependent services
+}
+
+// avahiHostnameKey identifies a particular instance of
+// the avahiHostname
+type avahiHostnameKey struct {
+	IfIdx    avahi.IfIndex  // Network interface index
+	Proto    avahi.Protocol // Network protocol
+	Hostname string         // Hostname string (FQDN)
+}
+
+// String returns string representation of the avahiHostnameKey,
+// for debugging.
+func (key avahiHostnameKey) String() string {
+	var ifname string
+
+	if ifi, err := net.InterfaceByIndex(int(key.IfIdx)); err == nil {
+		ifname = ifi.Name
+	} else {
+		ifname = fmt.Sprintf("%d", key.IfIdx)
+	}
+
+	return fmt.Sprintf("%q (%s,%s)", key.Hostname, key.Proto, ifname)
 }
