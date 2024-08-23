@@ -32,15 +32,15 @@ const (
 
 // backend is the [discovery.Backend] for DNS-SD discovery
 type backend struct {
-	ctx          context.Context
-	clnt         *avahi.Client
-	poller       *avahi.Poller
-	chn          chan any
-	lookupFlags  LookupFlags
-	domain       string
-	cancel       context.CancelFunc
-	done         sync.WaitGroup
-	svcInstances map[avahiSvcInstanceKey]*avahiSvcInstance
+	ctx         context.Context
+	clnt        *avahi.Client
+	poller      *avahi.Poller
+	chn         chan any
+	lookupFlags LookupFlags
+	domain      string
+	cancel      context.CancelFunc
+	done        sync.WaitGroup
+	services    map[avahiServiceKey]*avahiService
 }
 
 // NewBackend creates a new [discovery.Backend] for DNS-SD discovery.
@@ -83,7 +83,7 @@ func NewBackend(ctx context.Context,
 
 // makeMaps makes back.resolvers etc maps
 func (back *backend) makeMaps() {
-	back.svcInstances = make(map[avahiSvcInstanceKey]*avahiSvcInstance)
+	back.services = make(map[avahiServiceKey]*avahiService)
 }
 
 // makeMaps purges back.resolvers etc maps
@@ -131,7 +131,12 @@ func (back *backend) proc() {
 				err = back.onServiceResolverEvent(evnt)
 
 			case *avahi.RecordBrowserEvent:
-				err = back.onRecordBrowserEvent(evnt)
+				switch evnt.RType {
+				case avahi.DNSTypeTXT:
+					err = back.onTxtBrowserEvent(evnt)
+				case avahi.DNSTypeA, avahi.DNSTypeAAAA:
+					err = back.onAddrBrowserEvent(evnt)
+				}
 			}
 		}
 
@@ -221,27 +226,27 @@ func (back *backend) onServiceBrowserEvent(
 
 	switch evnt.Event {
 	case avahi.BrowserNew:
-		key := avahiSvcInstanceKeyFromBrowserEvent(evnt)
+		key := avahiServiceKeyFromServiceBrowserEvent(evnt)
 		title := fmt.Sprintf("svc-browse: found %s", key)
 
-		if !back.hasSvcInstance(key) {
+		if !back.hasService(key) {
 			log.Debug(back.ctx, "%s", title)
 		} else {
 			log.Debug(back.ctx, "%s (duplicate)", title)
 			return nil
 		}
 
-		return back.addSvcInstance(key)
+		return back.addService(key)
 
 	case avahi.BrowserRemove:
-		key := avahiSvcInstanceKeyFromBrowserEvent(evnt)
+		key := avahiServiceKeyFromServiceBrowserEvent(evnt)
 		title := fmt.Sprintf("svc-browse: removed %s", key)
 
 		log.Debug(back.ctx, "%s", title)
-		back.delSvcInstance(key)
+		back.delService(key)
 
 	case avahi.BrowserFailure:
-		key := avahiSvcInstanceKeyFromBrowserEvent(evnt)
+		key := avahiServiceKeyFromServiceBrowserEvent(evnt)
 		title := fmt.Sprintf("svc-browse: failed  %s", key)
 
 		log.Error(back.ctx, "%s: %s", title, evnt.Err)
@@ -256,7 +261,7 @@ func (back *backend) onServiceResolverEvent(
 	evnt *avahi.ServiceResolverEvent) error {
 	switch evnt.Event {
 	case avahi.ResolverFound:
-		key := avahiSvcInstanceKeyFromResolverEvent(evnt)
+		key := avahiServiceKeyFromResolverEvent(evnt)
 		title := fmt.Sprintf("svc-resolve: found %s", key)
 
 		log.Begin(back.ctx).
@@ -267,7 +272,7 @@ func (back *backend) onServiceResolverEvent(
 			Commit()
 
 	case avahi.ResolverFailure:
-		key := avahiSvcInstanceKeyFromResolverEvent(evnt)
+		key := avahiServiceKeyFromResolverEvent(evnt)
 		title := fmt.Sprintf("svc-resolve: failed  %s", key)
 
 		log.Error(back.ctx, "%s: %s", title, evnt.Err)
@@ -277,14 +282,14 @@ func (back *backend) onServiceResolverEvent(
 	return nil
 }
 
-// onRecordBrowserEvent handles avahi.RecordBrowserEvent
-func (back *backend) onRecordBrowserEvent(
-	evnt *avahi.RecordBrowserEvent) error {
-
+// onTxtBrowserEvent handles avahi.RecordBrowserEvent
+// for per-service TXT record browser
+func (back *backend) onTxtBrowserEvent(evnt *avahi.RecordBrowserEvent) error {
 	switch evnt.Event {
 	case avahi.BrowserNew:
-		log.Debug(back.ctx, "txt-browse: found %s",
-			avahi.DomainNormalize(evnt.Name))
+		key := avahiServiceKeyFromRecordBrowserEvent(evnt)
+		title := fmt.Sprintf("txt-browse: found %s", key)
+		log.Debug(back.ctx, "%s", title)
 
 	case avahi.BrowserFailure:
 	}
@@ -292,14 +297,21 @@ func (back *backend) onRecordBrowserEvent(
 	return nil
 }
 
-// hasSvcInstance reports if avahiSvcInstance already exist for the key
-func (back *backend) hasSvcInstance(key avahiSvcInstanceKey) bool {
-	return back.svcInstances[key] != nil
+// onAddrBrowserEvent handles avahi.RecordBrowserEvent
+// for per-hostname A and AAAA record browsers
+func (back *backend) onAddrBrowserEvent(
+	evnt *avahi.RecordBrowserEvent) error {
+	return nil
 }
 
-// addSvcInstance creates a new avahiSvcInstance and registers it
-// in the back.poller and back.svcInstances.
-func (back *backend) addSvcInstance(key avahiSvcInstanceKey) error {
+// hasService reports if avahiService already exist for the key
+func (back *backend) hasService(key avahiServiceKey) bool {
+	return back.services[key] != nil
+}
+
+// addService creates a new avahiService and registers it
+// in the back.poller and back.services.
+func (back *backend) addService(key avahiServiceKey) error {
 	// Create service resolver
 	svcResolver, err := avahi.NewServiceResolver(
 		back.clnt,
@@ -341,8 +353,9 @@ func (back *backend) addSvcInstance(key avahiSvcInstanceKey) error {
 
 	log.Debug(back.ctx, "%s: OK", title)
 
-	// Create avahiSvcInstance
-	instance := &avahiSvcInstance{
+	// Create avahiService
+	instance := &avahiService{
+		key:         key,
 		svcResolver: svcResolver,
 		txtBrowser:  txtBrowser,
 	}
@@ -350,17 +363,17 @@ func (back *backend) addSvcInstance(key avahiSvcInstanceKey) error {
 	back.poller.AddServiceResolver(svcResolver)
 	back.poller.AddRecordBrowser(txtBrowser)
 
-	back.svcInstances[key] = instance
+	back.services[key] = instance
 	return nil
 }
 
-// delSvcInstance deletes a new avahiSvcInstance for the key
-func (back *backend) delSvcInstance(key avahiSvcInstanceKey) {
-	instance := back.svcInstances[key]
+// delService deletes a new avahiService for the key
+func (back *backend) delService(key avahiServiceKey) {
+	instance := back.services[key]
 	if instance != nil {
 		instance.svcResolver.Close()
 		instance.txtBrowser.Close()
-		delete(back.svcInstances, key)
+		delete(back.services, key)
 	}
 }
 
@@ -372,17 +385,17 @@ var avahiLookupFlags = [...]avahi.LookupFlags{
 	LookupBoths:     avahi.LookupUseMulticast,
 }
 
-// avahiSvcInstance is the per-service-instance structure
+// avahiService is the per-service-instance structure
 // that manages resources associated with the service
-type avahiSvcInstance struct {
-	SvcType     string // Service type
+type avahiService struct {
+	key         avahiServiceKey
 	svcResolver *avahi.ServiceResolver
 	txtBrowser  *avahi.RecordBrowser
 }
 
-// avahiSvcInstanceKey identifies a particular instance of
+// avahiServiceKey identifies a particular instance of
 // service of the particular type.
-type avahiSvcInstanceKey struct {
+type avahiServiceKey struct {
 	IfIdx        avahi.IfIndex  // Network interface index
 	Proto        avahi.Protocol // Network protocol
 	InstanceName string         // Service instance name
@@ -392,14 +405,14 @@ type avahiSvcInstanceKey struct {
 
 // FQDN returns the full-qualified domain name for the
 // service instance.
-func (key avahiSvcInstanceKey) FQDN() string {
+func (key avahiServiceKey) FQDN() string {
 	return avahi.DomainServiceNameJoin(key.InstanceName,
 		key.SvcType, key.Domain)
 }
 
-// String returns string representation of the avahiSvcInstanceKey,
+// String returns string representation of the avahiServiceKey,
 // for debugging.
-func (key avahiSvcInstanceKey) String() string {
+func (key avahiServiceKey) String() string {
 	var ifname string
 
 	if ifi, err := net.InterfaceByIndex(int(key.IfIdx)); err == nil {
@@ -411,12 +424,12 @@ func (key avahiSvcInstanceKey) String() string {
 	return fmt.Sprintf("%q (%s,%s)", key.FQDN(), key.Proto, ifname)
 }
 
-// avahiSvcInstanceKeyFromBrowserEvent makes avahiSvcInstanceKey
+// avahiServiceKeyFromServiceBrowserEvent makes avahiServiceKey
 // from the avahi.ServiceBrowserEvent.
-func avahiSvcInstanceKeyFromBrowserEvent(
-	evnt *avahi.ServiceBrowserEvent) avahiSvcInstanceKey {
+func avahiServiceKeyFromServiceBrowserEvent(
+	evnt *avahi.ServiceBrowserEvent) avahiServiceKey {
 
-	return avahiSvcInstanceKey{
+	return avahiServiceKey{
 		IfIdx:        evnt.IfIdx,
 		Proto:        evnt.Proto,
 		InstanceName: evnt.InstanceName,
@@ -425,16 +438,32 @@ func avahiSvcInstanceKeyFromBrowserEvent(
 	}
 }
 
-// avahiSvcInstanceKeyFromResolverEvent makes avahiSvcInstanceKey
+// avahiServiceKeyFromResolverEvent makes avahiServiceKey
 // from the avahi.ServiceResolverEvent.
-func avahiSvcInstanceKeyFromResolverEvent(
-	evnt *avahi.ServiceResolverEvent) avahiSvcInstanceKey {
+func avahiServiceKeyFromResolverEvent(
+	evnt *avahi.ServiceResolverEvent) avahiServiceKey {
 
-	return avahiSvcInstanceKey{
+	return avahiServiceKey{
 		IfIdx:        evnt.IfIdx,
 		Proto:        evnt.Proto,
 		InstanceName: evnt.InstanceName,
 		SvcType:      evnt.SvcType,
 		Domain:       evnt.Domain,
+	}
+}
+
+// avahiServiceKeyFromRecordBrowserEvent makes avahiServiceKey
+// from the avahi.RecordBrowserEvent
+func avahiServiceKeyFromRecordBrowserEvent(
+	evnt *avahi.RecordBrowserEvent) avahiServiceKey {
+
+	instance, svctype, domain := avahi.DomainServiceNameSplit(evnt.Name)
+
+	return avahiServiceKey{
+		IfIdx:        evnt.IfIdx,
+		Proto:        evnt.Proto,
+		InstanceName: instance,
+		SvcType:      svctype,
+		Domain:       domain,
 	}
 }
