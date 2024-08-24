@@ -672,7 +672,7 @@ func avahiServiceKeyFromRecordBrowserEvent(
 }
 
 // avahiHostname is the per-hostname structure that manages
-// resources assoctated with the hostname
+// resources associated with the hostname
 type avahiHostname struct {
 	key         avahiHostnameKey           // Identity
 	addrBrowser *avahi.RecordBrowser       // A/AAAA record resolver
