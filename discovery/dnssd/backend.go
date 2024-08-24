@@ -13,7 +13,6 @@ import (
 	"fmt"
 	"net/netip"
 	"sync"
-	"time"
 
 	"github.com/alexpevzner/go-avahi"
 	"github.com/alexpevzner/mfp/discovery"
@@ -22,16 +21,11 @@ import (
 
 // backend is the [discovery.Backend] for DNS-SD discovery
 type backend struct {
-	ctx         context.Context
-	clnt        *avahi.Client
-	poller      *avahi.Poller
-	chn         chan any
-	lookupFlags LookupFlags
-	domain      string
-	cancel      context.CancelFunc
-	done        sync.WaitGroup
-	services    map[avahiServiceKey]*avahiService
-	hostnames   map[avahiHostnameKey]*avahiHostname
+	ctx    context.Context
+	clnt   *avahiClient
+	chn    chan any
+	cancel context.CancelFunc
+	done   sync.WaitGroup
 }
 
 // NewBackend creates a new [discovery.Backend] for DNS-SD discovery.
@@ -42,7 +36,7 @@ func NewBackend(ctx context.Context,
 	ctx = log.WithPrefix(ctx, "dnssd")
 
 	// Create Avahi client.
-	clnt, err := avahi.NewClient(avahi.ClientLoopbackWorkarounds)
+	clnt, err := newAvahiClient(domain, flags)
 	if err != nil {
 		log.Error(ctx, "%s", err)
 		return nil, err
@@ -52,16 +46,11 @@ func NewBackend(ctx context.Context,
 	ctx, cancel := context.WithCancel(ctx)
 
 	back := &backend{
-		ctx:         ctx,
-		clnt:        clnt,
-		poller:      avahi.NewPoller(),
-		chn:         make(chan any),
-		lookupFlags: flags & LookupBoths,
-		domain:      domain,
-		cancel:      cancel,
+		ctx:    ctx,
+		clnt:   clnt,
+		chn:    make(chan any),
+		cancel: cancel,
 	}
-
-	back.makeMaps()
 
 	// Start event loop goroutine
 	back.done.Add(1)
@@ -70,23 +59,6 @@ func NewBackend(ctx context.Context,
 	log.Debug(ctx, "backend started")
 
 	return back, nil
-}
-
-// makeMaps makes back.resolvers etc maps
-func (back *backend) makeMaps() {
-	back.services = make(map[avahiServiceKey]*avahiService)
-	back.hostnames = make(map[avahiHostnameKey]*avahiHostname)
-}
-
-// makeMaps purges back.resolvers etc maps
-func (back *backend) purgeMaps() {
-	for _, service := range back.services {
-		back.delService(service)
-	}
-
-	if len(back.hostnames) != 0 {
-		panic("internal error")
-	}
 }
 
 // Chan returns an event channel.
@@ -100,7 +72,6 @@ func (back *backend) Close() {
 	back.done.Wait()
 
 	close(back.chn)
-	back.purgeMaps()
 	back.clnt.Close()
 }
 
@@ -108,14 +79,15 @@ func (back *backend) Close() {
 func (back *backend) proc() {
 	defer back.done.Done()
 
-	for {
+	var err error
+	for err == nil {
 		// Start service browsers.
-		err := back.startServiceBrowsers()
+		err = back.startServiceBrowsers()
 
-		// Handle events
+		// Handle events until an error
 		for err == nil {
 			var evnt any
-			evnt, err = back.poller.Poll(back.ctx)
+			evnt, err = back.clnt.poll(back.ctx)
 
 			switch evnt := evnt.(type) {
 			case *avahi.ClientEvent:
@@ -137,45 +109,9 @@ func (back *backend) proc() {
 			}
 		}
 
-		// Try to restart Avahi Client until success or
-		// back.ctx expiration.
-		for err != nil {
-			err = back.ctx.Err()
-			if err != nil {
-				return
-			}
-
-			err = back.clientRestart()
-		}
+		// Attempt error recovery.
+		err = back.clnt.Restart(back.ctx)
 	}
-}
-
-// clientRestart pauses for avahiClientRestartInterval and then
-// restarts the Avahi client.
-func (back *backend) clientRestart() error {
-	// It effectively closes all Browsers and Resolvers
-	back.clnt.Close()
-	back.purgeMaps()
-
-	// Pause for avahiClientRestartInterval.
-	// Return immediately, if back.ctx has expired.
-	timer := time.NewTimer(avahiClientRestartInterval)
-	defer timer.Stop()
-
-	select {
-	case <-back.ctx.Done():
-		return back.ctx.Err()
-	case <-timer.C:
-	}
-
-	// Try to restart the Client
-	clnt, err := avahi.NewClient(avahi.ClientLoopbackWorkarounds)
-	if err != nil {
-		return err
-	}
-
-	back.clnt = clnt
-	return nil
 }
 
 // startServiceBrowsers starts service browsers for all service
@@ -184,14 +120,7 @@ func (back *backend) clientRestart() error {
 // The newly created browsers are added to the back.poller
 func (back *backend) startServiceBrowsers() error {
 	for _, svctype := range svcTypes {
-		browser, err := avahi.NewServiceBrowser(
-			back.clnt,
-			avahi.IfIndexUnspec,
-			avahi.ProtocolUnspec,
-			svctype,
-			back.domain,
-			avahiLookupFlags(back.lookupFlags),
-		)
+		_, err := back.clnt.NewServiceBrowser(svctype)
 
 		title := fmt.Sprintf("svc-browse: start %q", svctype)
 
@@ -201,7 +130,6 @@ func (back *backend) startServiceBrowsers() error {
 		}
 
 		log.Debug(back.ctx, "%s: OK", title)
-		back.poller.AddServiceBrowser(browser)
 	}
 
 	return nil
@@ -226,7 +154,7 @@ func (back *backend) onServiceBrowserEvent(
 		key := avahiServiceKeyFromServiceBrowserEvent(evnt)
 		title := fmt.Sprintf("svc-browse: found %s", key)
 
-		if !back.hasService(key) {
+		if !back.clnt.HasService(key) {
 			log.Debug(back.ctx, "%s", title)
 		} else {
 			log.Debug(back.ctx, "%s (duplicate)", title)
@@ -239,10 +167,10 @@ func (back *backend) onServiceBrowserEvent(
 		key := avahiServiceKeyFromServiceBrowserEvent(evnt)
 		title := fmt.Sprintf("svc-browse: removed %s", key)
 
-		service := back.getService(key)
+		service := back.clnt.GetService(key)
 		if service != nil {
 			log.Debug(back.ctx, "%s", title)
-			back.delService(service)
+			service.Delete()
 		} else {
 			log.Debug(back.ctx, "%s (not found)", title)
 		}
@@ -266,7 +194,7 @@ func (back *backend) onServiceResolverEvent(
 		key := avahiServiceKeyFromResolverEvent(evnt)
 		title := fmt.Sprintf("svc-resolve: found %s", key)
 
-		service := back.getService(key)
+		service := back.clnt.GetService(key)
 		if service == nil {
 			// It may be out of order avahi.ResolverFound
 			// event, received while service already removed,
@@ -282,7 +210,7 @@ func (back *backend) onServiceResolverEvent(
 			Commit()
 
 		service.port = evnt.Port
-		back.addServiceHostname(service, evnt.Hostname)
+		back.setServiceHostname(service, evnt.Hostname)
 
 	case avahi.ResolverFailure:
 		key := avahiServiceKeyFromResolverEvent(evnt)
@@ -332,7 +260,7 @@ func (back *backend) onAddrBrowserEvent(
 		}
 
 		// Find hostname resolver
-		hostname := back.getHostname(key)
+		hostname := back.clnt.GetHostname(key)
 		if hostname == nil {
 			log.Debug(back.ctx, "%s: unknown hostname", title)
 			return nil
@@ -352,7 +280,7 @@ func (back *backend) onAddrBrowserEvent(
 		}
 
 		// Add or delete the address
-		hasAddr := hostname.hasAddr(addr)
+		hasAddr := hostname.HasAddr(addr)
 		switch {
 		case evnt.Event == avahi.BrowserNew && hasAddr:
 			log.Debug(back.ctx, "%s: %s (duplicate)", title, addr)
@@ -363,9 +291,9 @@ func (back *backend) onAddrBrowserEvent(
 			return nil
 
 		case evnt.Event == avahi.BrowserNew:
-			hostname.addAddr(addr)
+			hostname.AddAddr(addr)
 		case evnt.Event == avahi.BrowserRemove:
-			hostname.delAddr(addr)
+			hostname.DelAddr(addr)
 		}
 
 		log.Debug(back.ctx, "%s: %s", title, addr)
@@ -380,33 +308,11 @@ func (back *backend) onAddrBrowserEvent(
 	return nil
 }
 
-// hasService reports if avahiService already exist for the key
-func (back *backend) hasService(key avahiServiceKey) bool {
-	return back.getService(key) != nil
-}
-
-// getService returns existent avahiService
-func (back *backend) getService(key avahiServiceKey) *avahiService {
-	return back.services[key]
-}
-
 // addService creates a new avahiService and registers it
 // in the back.poller and back.services.
 func (back *backend) addService(key avahiServiceKey) error {
 	// Create service resolver
-	flags := avahiLookupFlags(back.lookupFlags)
-	flags |= avahi.LookupNoAddress | avahi.LookupNoTXT
-
-	svcResolver, err := avahi.NewServiceResolver(
-		back.clnt,
-		key.IfIdx,
-		key.Proto,
-		key.InstanceName,
-		key.SvcType,
-		key.Domain,
-		avahi.ProtocolUnspec,
-		flags,
-	)
+	svcResolver, err := back.clnt.NewServiceResolver(key)
 
 	title := fmt.Sprintf("svc-resolve: start %s", key)
 
@@ -418,123 +324,27 @@ func (back *backend) addService(key avahiServiceKey) error {
 	log.Debug(back.ctx, "%s: OK", title)
 
 	// Create TXT record browser
-	txtBrowser, err := avahi.NewRecordBrowser(
-		back.clnt,
-		key.IfIdx,
-		key.Proto,
-		key.FQDN(),
-		avahi.DNSClassIN,
-		avahi.DNSTypeTXT,
-		avahiLookupFlags(back.lookupFlags),
-	)
+	txtBrowser, err := back.clnt.NewTxtBrowser(key)
 
 	title = fmt.Sprintf("txt-browse: start %s", key)
 
 	if err != nil {
 		log.Error(back.ctx, "%s: %s", title, err)
+		svcResolver.Close()
 		return err
 	}
 
 	log.Debug(back.ctx, "%s: OK", title)
 
-	// Create avahiService
-	service := &avahiService{
-		key:         key,
-		svcResolver: svcResolver,
-		txtBrowser:  txtBrowser,
-	}
-
-	back.poller.AddServiceResolver(svcResolver)
-	back.poller.AddRecordBrowser(txtBrowser)
-
-	back.services[key] = service
+	// Add the service
+	back.clnt.AddService(key, svcResolver, txtBrowser)
 	return nil
-}
-
-// delService deletes the avahiService
-func (back *backend) delService(service *avahiService) {
-	log.Debug(back.ctx, "svc-resolve: stop %s", service.key)
-	service.svcResolver.Close()
-
-	log.Debug(back.ctx, "txt-browse: stop %s", service.key)
-	service.txtBrowser.Close()
-
-	delete(back.services, service.key)
-	back.delServiceHostname(service)
-}
-
-// addServiceHostname creates an associon between avahiService
-// and avahiHostname.
-//
-// If avahiHostname doesn't yet exist, it will be created on demand.
-//
-// If old association already exist, it will be removed.
-func (back *backend) addServiceHostname(service *avahiService,
-	name string) error {
-
-	// Do nothing if service already has a hostname and
-	// name was not changed.
-	if service.hostname != nil && service.hostname.key.Hostname == name {
-		return nil
-	}
-
-	// Prepare avahiHostnameKey
-	key := avahiHostnameKey{
-		IfIdx:    service.key.IfIdx,
-		Proto:    service.key.Proto,
-		Hostname: name,
-	}
-
-	// Find or create avahiHostname
-	hostname := back.hostnames[key]
-	if hostname == nil {
-		var err error
-		hostname, err = back.addHostname(key)
-		if err != nil {
-			return err
-		}
-	}
-
-	service.hostname = hostname
-	hostname.services[service] = struct{}{}
-
-	return nil
-}
-
-// delServiceHostname removes association between avahiService
-// and avahiHostname (if this association exists).
-func (back *backend) delServiceHostname(service *avahiService) {
-	hostname := service.hostname
-	if hostname != nil {
-		delete(hostname.services, service)
-		if len(hostname.services) == 0 {
-			back.delHostname(hostname)
-		}
-	}
-}
-
-// getHostname returns existent avahiHostname
-func (back *backend) getHostname(key avahiHostnameKey) *avahiHostname {
-	return back.hostnames[key]
 }
 
 // addHostname adds a new avahiHostname for the key
 func (back *backend) addHostname(key avahiHostnameKey) (*avahiHostname, error) {
-	// Create address resolver
-	rtype := avahi.DNSTypeA
-	if key.Proto == avahi.ProtocolIP6 {
-		rtype = avahi.DNSTypeAAAA
-	}
-
-	addrBrowser, err := avahi.NewRecordBrowser(
-		back.clnt,
-		key.IfIdx,
-		key.Proto,
-		key.Hostname,
-		avahi.DNSClassIN,
-		rtype,
-		avahiLookupFlags(back.lookupFlags),
-	)
+	// Create A/AAAA record browser
+	addrBrowser, err := back.clnt.NewAddrBrowser(key)
 
 	title := fmt.Sprintf("addr-browse: start %s", key)
 
@@ -545,24 +355,38 @@ func (back *backend) addHostname(key avahiHostnameKey) (*avahiHostname, error) {
 
 	log.Debug(back.ctx, "%s: OK", title)
 
-	// Create avahiHostname
-	hostname := &avahiHostname{
-		key:         key,
-		addrBrowser: addrBrowser,
-		addrs:       make(map[netip.Addr]struct{}),
-		services:    make(map[*avahiService]struct{}),
-	}
-
-	back.poller.AddRecordBrowser(addrBrowser)
-	back.hostnames[key] = hostname
-
-	return hostname, nil
+	// Add avahiHostname
+	return back.clnt.AddHostname(key, addrBrowser), nil
 }
 
-// delHostname deletes avahiHostname for the key
-func (back *backend) delHostname(hostname *avahiHostname) {
-	log.Debug(back.ctx, "addr-browse: stop %s", hostname.key)
-	hostname.addrBrowser.Close()
+// setServiceHostname sets or updates the service's hostname.
+//
+// On success, it initiates hostname resolving, if it is not
+// active yet.
+func (back *backend) setServiceHostname(service *avahiService,
+	name string) error {
 
-	delete(back.hostnames, hostname.key)
+	// Do nothing if service already has a hostname and
+	// name was not changed.
+	if service.hostname != nil && service.hostname.key.Hostname == name {
+		return nil
+	}
+
+	// Prepare avahiHostnameKey
+	key := service.key.HostnameKey(name)
+
+	// Find or create avahiHostname
+	hostname := back.clnt.GetHostname(key)
+	if hostname == nil {
+		var err error
+		hostname, err = back.addHostname(key)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Associate hostname with the service
+	service.SetHostname(hostname)
+
+	return nil
 }
