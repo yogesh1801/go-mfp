@@ -20,7 +20,7 @@ import (
 // Parameters:
 const (
 	// Avahi client may fail to start if avahi-daemon is not
-	// running for for the similar reasons.
+	// running or for for the similar reasons.
 	//
 	// If failed, Avahi client will automatically restart
 	// with the following interval between attempts.
