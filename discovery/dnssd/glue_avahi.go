@@ -27,19 +27,6 @@ const (
 	avahiClientRestartInterval = 1 * time.Second
 )
 
-// avahiLookupFlagsTable contains mapping of LookupFlags to avahi.LookupFlags
-var avahiLookupFlagsTable = [...]avahi.LookupFlags{
-	0:               avahi.LookupUseMulticast,
-	LookupClassical: avahi.LookupUseWideArea,
-	LookupMulticast: avahi.LookupUseMulticast,
-	LookupBoths:     avahi.LookupUseMulticast,
-}
-
-// avahiLookupFlags maps LookupFlags to avahi.LookupFlags
-func avahiLookupFlags(flags LookupFlags) avahi.LookupFlags {
-	return avahiLookupFlagsTable[flags&LookupBoths]
-}
-
 // avahiService is the per-service-instance structure
 // that manages resources associated with the service
 type avahiService struct {
@@ -182,4 +169,17 @@ func avahiHostnameKeyFromRecordBrowserEvent(
 		Proto:    evnt.Proto,
 		Hostname: evnt.Name,
 	}
+}
+
+// avahiLookupFlagsTable contains mapping of LookupFlags to avahi.LookupFlags
+var avahiLookupFlagsTable = [...]avahi.LookupFlags{
+	0:               avahi.LookupUseMulticast,
+	LookupClassical: avahi.LookupUseWideArea,
+	LookupMulticast: avahi.LookupUseMulticast,
+	LookupBoths:     avahi.LookupUseMulticast,
+}
+
+// avahiLookupFlags maps LookupFlags to avahi.LookupFlags
+func avahiLookupFlags(flags LookupFlags) avahi.LookupFlags {
+	return avahiLookupFlagsTable[flags&LookupBoths]
 }
