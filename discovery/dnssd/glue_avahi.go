@@ -90,7 +90,8 @@ func (clnt *avahiClient) Restart(ctx context.Context) error {
 		}
 
 		// Try to restart the Client
-		avahiClnt, err := avahi.NewClient(avahi.ClientLoopbackWorkarounds)
+		flags := avahi.ClientLoopbackWorkarounds
+		avahiClnt, err := avahi.NewClient(flags)
 		if err == nil {
 			clnt.avahiClnt = avahiClnt
 			return err
