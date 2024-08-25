@@ -8,11 +8,15 @@
 
 package discovery
 
-// ScannerInfo represents the discoverable information about the printer.
-type ScannerInfo struct {
-	// Scanner identity
-	ID DeviceID // Device identity
+// ScanUnit represents a scan unit
+type ScanUnit struct {
+	ID        UnitID            // Unit identity
+	Params    ScannerParameters // Scanner parameters
+	Endpoints []string          // URLs of printer endpoints
+}
 
+// ScannerParameters represents the discoverable information about the printer.
+type ScannerParameters struct {
 	// Scanner description
 	AdminURL string // Scanner configuration page
 	IconURL  string // Icon URL ("" if not available)

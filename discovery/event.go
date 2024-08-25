@@ -8,36 +8,38 @@
 
 package discovery
 
-// EventAddPrinter generated when new printer is discovered.
-type EventAddPrinter struct {
-	Printer PrinterInfo
+// EventAddPrintUnit generated when new printer is discovered.
+type EventAddPrintUnit struct {
+	ID      UnitID            // Unit identity
+	Printer PrinterParameters // Unit parameters
 }
 
-// EventDelPrinter generated when printer is not longer available.
-type EventDelPrinter struct {
-	ID DeviceID
+// EventDelPrintUnit generated when printer is not longer available.
+type EventDelPrintUnit struct {
+	ID UnitID // Unit identity
 }
 
-// EventAddScanner generated when new scanner is discovered.
-type EventAddScanner struct {
-	Scanner ScannerInfo
+// EventAddScanUnit generated when new scanner is discovered.
+type EventAddScanUnit struct {
+	ID      UnitID            // Unit identity
+	Scanner ScannerParameters // Unit parameters
 }
 
-// EventDelScanner generated when scanner is not longer available.
-type EventDelScanner struct {
-	ID DeviceID
+// EventDelScanUnit generated when scanner is not longer available.
+type EventDelScanUnit struct {
+	ID UnitID // Unit identity
 }
 
-// EventAddEndpoint is generated, when new printer's or scanner's
-// endpoint is descovered.
-type EventAddEndpoint struct {
-	ID       DeviceID
-	Endpoint string // In URI syntax
+// EventAddEndpoints is generated, when one or more new printer's
+// or scanner's endpoints are discovered.
+type EventAddEndpoints struct {
+	ID       UnitID   // Unit identity
+	Endpoint []string // URLs of added endpoints
 }
 
-// EventDelEndpoint is generated, when printer's or scanner's
-// endpoint is not longer available.
+// EventDelEndpoint is generated, when one ore more printer's or scanner's
+// endpoints are not longer available.
 type EventDelEndpoint struct {
-	ID       DeviceID
-	Endpoint string // In URI syntax
+	ID       UnitID   // Unit identity
+	Endpoint []string // URLs of removed endpoints
 }

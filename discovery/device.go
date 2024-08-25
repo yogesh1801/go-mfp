@@ -10,7 +10,29 @@ package discovery
 
 import "github.com/alexpevzner/mfp/uuid"
 
-// DeviceID contains combination of parameters that identifies a device.
+// Device consist of the multiple functional units. There are
+// two types of units:
+//   - [PrintUnit]
+//   - [ScanUnit]
+//
+// Each unit has its unique [UnitID], the combination of parameters,
+// that uniquely identifies the unit.
+//
+// If, due to the peculiarities of the search protocol, the same device
+// can appear as several different ones, this is at the search [Backend]
+// discretion, either to merge these multiple instances by itself or to
+// leave this work up to the discovery system.
+//
+// If Backend decides to merge by itself, the resulting unit should appear
+// as a single unit with merged endpoints. Otherwise, each appearance should
+// appear as distinct unit (units with distinct UnitID), and discovery
+// subsystem will merge them, if UnitUDs is "similar enough".
+type Device struct {
+	PrintUnits []PrintUnit
+	ScanUnits  []ScanUnit
+}
+
+// UnitID contains combination of parameters that identifies a device.
 //
 // Please note, depending on a discovery protocol being used, not
 // all the fields of the following structure will have any sense.
@@ -31,23 +53,23 @@ import "github.com/alexpevzner/mfp/uuid"
 //	Kind       - specifies device kind (e.g., "IPP printer")
 //	Serial     - device serial number, if appropriate (i.e., for USB)
 //	MakeModel  - device make and model (e.g., "HP DeskJet 2540")
-type DeviceID struct {
+type UnitID struct {
 	DeviceName string      // Realm-unique device name
 	UUID       uuid.UUID   // uuid.NilUUID if not available
-	Realm      DeviceRealm // Search realm
+	Realm      SearchRealm // Search realm
 	SubRealm   string      // Backend-specific subrealm
-	Kind       DeviceKind  // Kind of device
+	Kind       UnitKind    // Kind of the unit
 	Serial     string      // "" if not avaliable
 	MakeModel  string      // Just for user information
 }
 
-// DeviceRealm identifies a search realm (search domain) where
+// SearchRealm identifies a search realm (search domain) where
 // device is found.
-type DeviceRealm int
+type SearchRealm int
 
-// DeviceRealm values:
+// SearchRealm values:
 const (
-	RealmInvalid DeviceRealm = iota
+	RealmInvalid SearchRealm = iota
 
 	RealmDNSSD // DNS-SD search
 	RealmWSD   // Microsoft WS-Discovery
@@ -55,12 +77,12 @@ const (
 	RealmUSB   // USB
 )
 
-// DeviceKind identifies a kind of device.
-type DeviceKind int
+// UnitKind identifies a kind of device.
+type UnitKind int
 
-// SearchDeviceKind values:
+// UnitKind values:
 const (
-	KindInvalid DeviceKind = iota
+	KindInvalid UnitKind = iota
 
 	// Printers
 	KindIPPPrinter       // IPP/IPPS printer
