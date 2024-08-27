@@ -86,7 +86,7 @@ const (
 
 	// Printers
 	KindIPPPrinter       // IPP/IPPS printer
-	KindLPDPrinter       // LPD protocol printer
+	KindLPRPrinter       // LPR protocol printer
 	KindAppSocketPrinter // AppSocket (AKA JetDirect) Printer
 	KindWSDPrinter       // WSD printer
 	KindCUPSPrinter      // CUPS-shred printer
