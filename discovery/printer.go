@@ -24,19 +24,26 @@ type PrintUnit struct {
 // [Apple Bounjour Printing]: https://developer.apple.com/bonjour/printing-specification/bonjourprinting-1.2.1.pdf
 type PrinterParameters struct {
 	// Printer description
-	AuthInfoRequired KwAuthInfo   // Required authentication type
-	AdminURL         string       // Printer configuration page
-	Location         string       // E.g., "2nd Floor Computer Lab"
-	TLSVersion       KwTLSVersion // Highest supported TLS version
+	Auth     AuthMode  // Required authentication type
+	AdminURL string    // Printer configuration page
+	Location string    // E.g., "2nd Floor Computer Lab"
+	Paper    PaperSize // Max paper size
+	Media    MediaKind // Kind of output media
 
 	// Printer capabilities
-	CanBind    bool     // Printer can bind output
-	CanCollate bool     // Printer can collate copies
-	CanColor   bool     // Printer can print in color
-	CanCopies  bool     // Printer can make copies in hardware
-	CanDuplex  bool     // Printer supports duplex printing
-	CanPunch   bool     // Printer can punch output
-	CanSort    bool     // Printer can sort output
-	CanStaple  bool     // Printer can staple output
-	PDL        []string // Supported MIME types
+	Bind    bool // Printer can bind output
+	Collate bool // Printer can collate copies
+	Color   bool // Printer can print in color
+	Copies  bool // Printer can make copies in hardware
+	Duplex  bool // Printer supports duplex printing
+	Punch   bool // Printer can punch output
+	Sort    bool // Printer can sort output
+	Staple  bool // Printer can staple output
+	TLS     bool // TLS is supported
+
+	// Operational parameters
+	PPD      string   // PPD file name, if any
+	PDL      []string // Supported MIME types
+	Queue    string   // Queue name
+	Priority int      // Queue priority, 0(highest)...99(lowest)
 }
