@@ -53,7 +53,7 @@ func newAvahiClient(domain string, flags LookupFlags) (
 	}
 
 	// Create avahiClient structure
-	client := &avahiClient{
+	clnt := &avahiClient{
 		avahiClnt:   avahiClnt,
 		poller:      avahi.NewPoller(),
 		services:    make(map[avahiServiceKey]*avahiService),
@@ -62,7 +62,9 @@ func newAvahiClient(domain string, flags LookupFlags) (
 		domain:      domain,
 	}
 
-	return client, nil
+	clnt.poller.AddClient(avahiClnt)
+
+	return clnt, nil
 }
 
 // close closes the client and releases all resources it holds,
@@ -94,6 +96,7 @@ func (clnt *avahiClient) Restart(ctx context.Context) error {
 		avahiClnt, err := avahi.NewClient(flags)
 		if err == nil {
 			clnt.avahiClnt = avahiClnt
+			clnt.poller.AddClient(avahiClnt)
 			return err
 		}
 	}
