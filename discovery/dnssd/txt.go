@@ -19,14 +19,18 @@ import (
 	"github.com/alexpevzner/mfp/uuid"
 )
 
+// txtPrinter represents a decoded TXT record for printer
+type txtPrinter struct {
+	uuid      uuid.UUID                    // Device UUID
+	makeModel string                       // Device Make and Model
+	params    *discovery.PrinterParameters // Printer parameters
+}
+
 // txtDecodePrinterParameters decodes PrinterParameters out of
 // the TXT record
-func txtDecodePrinterParameters(txt []string) (discovery.UnitID,
-	discovery.PrinterParameters, error) {
-
-	id := discovery.UnitID{}
-	params := discovery.PrinterParameters{
-		Priority: 50,
+func txtDecodePrinterParameters(txt []string) (txtPrinter, error) {
+	p := txtPrinter{
+		params: &discovery.PrinterParameters{},
 	}
 
 	found := map[string]struct{}{}
@@ -55,59 +59,59 @@ func txtDecodePrinterParameters(txt []string) (discovery.UnitID,
 		var err error
 		switch txToLower(key) {
 		case "adminurl":
-			params.AdminURL = value
+			p.params.AdminURL = value
 		case "air":
-			params.Auth, err = txtAuth(value)
+			p.params.Auth, err = txtAuth(value)
 		case "bind":
-			params.Bind, err = txtBool(value)
+			p.params.Bind, err = txtBool(value)
 		case "color":
-			params.Color, err = txtBool(value)
+			p.params.Color, err = txtBool(value)
 		case "copies":
-			params.Copies, err = txtBool(value)
+			p.params.Copies, err = txtBool(value)
 		case "duplex":
-			params.Duplex, err = txtBool(value)
+			p.params.Duplex, err = txtBool(value)
 		case "fax":
 		case "kind":
-			params.Media, err = txtMediaKind(value)
+			p.params.Media, err = txtMediaKind(value)
 		case "note":
-			params.Location = value
+			p.params.Location = value
 		case "papermax":
-			params.Paper, err = txtPaperMax(value)
+			p.params.Paper, err = txtPaperMax(value)
 		case "pdl":
-			params.PDL, err = txtKeywords(value)
+			p.params.PDL, err = txtKeywords(value)
 		case "priority":
-			params.Priority, err = strconv.Atoi(value)
+			p.params.Priority, err = strconv.Atoi(value)
 			if err != nil {
 				break
 			}
-			if params.Priority < 0 || params.Priority >= 100 {
+			if p.params.Priority < 0 || p.params.Priority >= 100 {
 				err = errors.New("out of range (0...99)")
 			}
 		case "product":
-			params.PPD, err = txtPPD(value)
+			p.params.PPD, err = txtPPD(value)
 		case "punch":
 			// Punch can take values "0", "1", "2", "3",
 			// "4" and "U", according to the number of holes
 			// the puncher can make. "0" means "no punching"
 			if value != "0" && txToLower(value) != "u" {
-				params.Punch = true
+				p.params.Punch = true
 			}
 		case "rp":
-			params.Queue = value
+			p.params.Queue = value
 		case "sort":
-			params.Sort, err = txtBool(value)
+			p.params.Sort, err = txtBool(value)
 		case "staple":
-			params.Staple, err = txtBool(value)
+			p.params.Staple, err = txtBool(value)
 		case "txtvers":
 			if value != "1" {
 				err = fmt.Errorf("unknown version %q", value)
 			}
 		case "ty":
-			id.MakeModel = value
+			p.makeModel = value
 		case "usb_mdl":
 		case "usb_mfg":
 		case "uuid":
-			id.UUID, err = uuid.Parse(value)
+			p.uuid, err = uuid.Parse(value)
 
 		// These parameters are ignored so far, but it may change
 		// in the future.
@@ -122,8 +126,7 @@ func txtDecodePrinterParameters(txt []string) (discovery.UnitID,
 
 		if err != nil {
 			err = fmt.Errorf("%s: %w", key, err)
-			return discovery.UnitID{},
-				discovery.PrinterParameters{}, err
+			return txtPrinter{}, err
 		}
 	}
 
@@ -136,10 +139,10 @@ func txtDecodePrinterParameters(txt []string) (discovery.UnitID,
 		sort.Strings(keys)
 
 		err := fmt.Errorf("missed: %s", strings.Join(keys, ","))
-		return discovery.UnitID{}, discovery.PrinterParameters{}, err
+		return txtPrinter{}, err
 	}
 
-	return id, params, nil
+	return p, nil
 }
 
 // txtAuth decodes an authentication mode
