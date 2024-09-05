@@ -39,7 +39,6 @@ type PrinterParameters struct {
 	Punch   bool // Printer can punch output
 	Sort    bool // Printer can sort output
 	Staple  bool // Printer can staple output
-	TLS     bool // TLS is supported
 
 	// Operational parameters
 	PPD      string   // PPD file name, if any
