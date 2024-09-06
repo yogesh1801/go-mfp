@@ -19,7 +19,7 @@ type Backend interface {
 	//   [*EventDelScanner]
 	//   [*EventAddEndpoint]
 	//   [*EventDelEndpoint]
-	Chan() <-chan any
+	Chan() <-chan Event
 
 	// Close closes the backend and releases resources it holds.
 	// It also closes backent's event channel, effectively unblocking

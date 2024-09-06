@@ -23,7 +23,7 @@ import (
 type backend struct {
 	ctx    context.Context
 	clnt   *avahiClient
-	chn    chan any
+	chn    chan discovery.Event
 	cancel context.CancelFunc
 	done   sync.WaitGroup
 }
@@ -48,7 +48,7 @@ func NewBackend(ctx context.Context,
 	back := &backend{
 		ctx:    ctx,
 		clnt:   clnt,
-		chn:    make(chan any),
+		chn:    make(chan discovery.Event),
 		cancel: cancel,
 	}
 
@@ -62,7 +62,7 @@ func NewBackend(ctx context.Context,
 }
 
 // Chan returns an event channel.
-func (back *backend) Chan() <-chan any {
+func (back *backend) Chan() <-chan discovery.Event {
 	return back.chn
 }
 
