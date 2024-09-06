@@ -8,12 +8,14 @@
 
 package dnssd
 
+import "github.com/alexpevzner/mfp/discovery"
+
 // Service type names
 const (
 	svcTypeAppSocket = "_pdl-datastream._tcp" // AppSocket AKA JetDirect
 	svcTypeIPP       = "_ipp._tcp"            // IPP over
 	svcTypeIPPS      = "_ipps._tcp"           // IPP over HTTPS
-	svcTypeLPD       = "_printer._tcp"        // LPD printer
+	svcTypeLPR       = "_printer._tcp"        // LPR printer
 	svcTypeESCL      = "_uscan._tcp"          // eSCL scan
 	svcTypeESCLS     = "_uscans._tcp"         // eSCL scan over HTTPS
 )
@@ -23,7 +25,40 @@ var svcTypes = []string{
 	svcTypeAppSocket,
 	svcTypeIPP,
 	svcTypeIPPS,
-	svcTypeLPD,
+	svcTypeLPR,
 	svcTypeESCL,
 	svcTypeESCLS,
+}
+
+// svcTypeToKind returns discovery.UnitKind for the service type
+func svcTypeToKind(svcType string) discovery.UnitKind {
+	return svcTypeToKindMap[svcType]
+}
+
+// svcTypeIsSecure reports if service type uses encrypted connection
+func svcTypeIsSecure(svcType string) bool {
+	switch svcType {
+	case svcTypeIPPS, svcTypeESCLS:
+		return true
+	}
+	return false
+}
+
+// svcTypeIsScan reports if service type is the scan service
+func svcTypeIsScan(svcType string) bool {
+	switch svcType {
+	case svcTypeESCL, svcTypeESCLS:
+		return true
+	}
+	return false
+}
+
+// svcTypeToKindMap maps svcType to discovery.UnitKind
+var svcTypeToKindMap = map[string]discovery.UnitKind{
+	svcTypeAppSocket: discovery.KindAppSocketPrinter,
+	svcTypeIPP:       discovery.KindIPPPrinter,
+	svcTypeIPPS:      discovery.KindIPPPrinter,
+	svcTypeLPR:       discovery.KindLPRPrinter,
+	svcTypeESCL:      discovery.KindESCLScanner,
+	svcTypeESCLS:     discovery.KindESCLScanner,
 }
