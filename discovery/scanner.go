@@ -18,9 +18,10 @@ type ScanUnit struct {
 // ScannerParameters represents the discoverable information about the printer.
 type ScannerParameters struct {
 	// Scanner description
-	AdminURL string // Scanner configuration page
-	IconURL  string // Icon URL ("" if not available)
-	Location string // E.g., "2nd Floor Computer Lab"
+	MakeModel string // Device make and model
+	AdminURL  string // Scanner configuration page
+	IconURL   string // Icon URL ("" if not available)
+	Location  string // E.g., "2nd Floor Computer Lab"
 
 	// Scanner capabilities
 	Duplex  bool        // Duplex mode supported

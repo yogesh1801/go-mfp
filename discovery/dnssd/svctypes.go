@@ -44,8 +44,13 @@ func svcTypeIsSecure(svcType string) bool {
 	return false
 }
 
-// svcTypeIsScan reports if service type is the scan service
-func svcTypeIsScan(svcType string) bool {
+// svcTypeIsPrinter reports if service type is the printer service
+func svcTypeIsPrinter(svcType string) bool {
+	return !svcTypeIsScanner(svcType)
+}
+
+// svcTypeIsScanner reports if service type is the scanner service
+func svcTypeIsScanner(svcType string) bool {
 	switch svcType {
 	case svcTypeESCL, svcTypeESCLS:
 		return true

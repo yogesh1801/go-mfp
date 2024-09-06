@@ -24,11 +24,12 @@ type PrintUnit struct {
 // [Apple Bounjour Printing]: https://developer.apple.com/bonjour/printing-specification/bonjourprinting-1.2.1.pdf
 type PrinterParameters struct {
 	// Printer description
-	Auth     AuthMode  // Required authentication type
-	AdminURL string    // Printer configuration page
-	Location string    // E.g., "2nd Floor Computer Lab"
-	Paper    PaperSize // Max paper size
-	Media    MediaKind // Kind of output media
+	MakeModel string    // Device make and model
+	Auth      AuthMode  // Required authentication type
+	AdminURL  string    // Printer configuration page
+	Location  string    // E.g., "2nd Floor Computer Lab"
+	Paper     PaperSize // Max paper size
+	Media     MediaKind // Kind of output media
 
 	// Printer capabilities
 	Bind    bool // Printer can bind output

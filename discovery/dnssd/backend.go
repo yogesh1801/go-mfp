@@ -23,6 +23,7 @@ import (
 type backend struct {
 	ctx    context.Context
 	clnt   *avahiClient
+	untab  *unitTable
 	chn    chan discovery.Event
 	cancel context.CancelFunc
 	done   sync.WaitGroup
@@ -48,6 +49,7 @@ func NewBackend(ctx context.Context,
 	back := &backend{
 		ctx:    ctx,
 		clnt:   clnt,
+		untab:  newUnitTable(),
 		chn:    make(chan discovery.Event),
 		cancel: cancel,
 	}
@@ -236,6 +238,50 @@ func (back *backend) onTxtBrowserEvent(evnt *avahi.RecordBrowserEvent) error {
 		title := fmt.Sprintf("txt-browse: found %s", key)
 		log.Debug(back.ctx, "%s", title)
 
+		service := back.clnt.GetService(key)
+		if service == nil {
+			log.Debug(back.ctx, "%s: service not found", title)
+			return nil
+		}
+
+		svcInstance := key.InstanceName
+		txt := avahi.DNSDecodeTXT(evnt.RData)
+		port := service.port
+
+		if key.IsPrinter() {
+			txtPrinter, err := decodeTxtPrinter(svcInstance, txt)
+			if err != nil {
+				log.Debug(back.ctx, "%s: %s", title, err)
+				return nil // Don't propagate the error
+			}
+
+			id := key.PrinterUnitID(txtPrinter)
+
+			un := back.untab.Get(id)
+			if un == nil {
+				un = newPrinterUnit(id, txtPrinter, port)
+				back.untab.Put(un)
+			} else {
+				un.setTxtPrinter(txtPrinter)
+			}
+		} else {
+			txtScanner, err := decodeTxtScanner(svcInstance, txt)
+			if err != nil {
+				log.Debug(back.ctx, "%s: %s", title, err)
+				return nil // Don't propagate the error
+			}
+
+			id := key.ScannerUnitID(txtScanner)
+
+			un := back.untab.Get(id)
+			if un == nil {
+				un = newScannerUnit(id, txtScanner, port)
+				back.untab.Put(un)
+			} else {
+				un.setTxtScanner(txtScanner)
+			}
+		}
+
 	case avahi.BrowserFailure:
 		key := avahiServiceKeyFromRecordBrowserEvent(evnt)
 		title := fmt.Sprintf("txt-browse: failed %s", key)
@@ -313,7 +359,7 @@ func (back *backend) onAddrBrowserEvent(
 }
 
 // addService creates a new avahiService and registers it
-// in the back.poller and back.services.
+// in the back.clnt
 func (back *backend) addService(key avahiServiceKey) error {
 	// Create service resolver
 	svcResolver, err := back.clnt.NewServiceResolver(key)

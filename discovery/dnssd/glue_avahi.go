@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/alexpevzner/go-avahi"
+	"github.com/alexpevzner/mfp/discovery"
 )
 
 // Parameters:
@@ -348,6 +349,40 @@ func (key avahiServiceKey) HostnameKey(name string) avahiHostnameKey {
 		Proto:    key.Proto,
 		Hostname: name,
 	}
+}
+
+// PrinterUnitID makes discovery.UnitID for printer
+func (key avahiServiceKey) PrinterUnitID(txt txtPrinter) discovery.UnitID {
+	subrealm := fmt.Sprintf("%d-%s", key.IfIdx, key.Proto)
+	if key.SvcType == svcTypeLPR {
+		subrealm += "-" + txt.params.Queue
+	}
+
+	return discovery.UnitID{
+		DeviceName: key.InstanceName,
+		UUID:       txt.uuid,
+		Realm:      discovery.RealmDNSSD,
+		SubRealm:   subrealm,
+		Kind:       svcTypeToKind(key.SvcType),
+	}
+}
+
+// ScannerUnitID makes discovery.UnitID for scanner
+func (key avahiServiceKey) ScannerUnitID(txt txtScanner) discovery.UnitID {
+	subrealm := fmt.Sprintf("%d-%s", key.IfIdx, key.Proto)
+
+	return discovery.UnitID{
+		DeviceName: key.InstanceName,
+		UUID:       txt.uuid,
+		Realm:      discovery.RealmDNSSD,
+		SubRealm:   subrealm,
+		Kind:       svcTypeToKind(key.SvcType),
+	}
+}
+
+// IsPrinter reports if service type is printer
+func (key avahiServiceKey) IsPrinter() bool {
+	return svcTypeIsPrinter(key.SvcType)
 }
 
 // avahiServiceKeyFromServiceBrowserEvent makes avahiServiceKey

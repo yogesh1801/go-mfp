@@ -60,7 +60,6 @@ type UnitID struct {
 	SubRealm   string      // Backend-specific subrealm
 	Kind       UnitKind    // Kind of the unit
 	Serial     string      // "" if not avaliable
-	MakeModel  string      // Just for user information
 }
 
 // SearchRealm identifies a search realm (search domain) where
