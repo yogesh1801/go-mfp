@@ -13,6 +13,7 @@ type InputSource int
 
 // InputSource bits:
 const (
-	InputPlaten InputSource = 1 << iota // Platen source
-	InputADF                            // Automatic Document Feeder
+	InputOther  = 1 << iota // Other input
+	InputPlaten             // Platen source
+	InputADF                // Automatic Document Feeder
 )

@@ -11,7 +11,6 @@ package dnssd
 import (
 	"errors"
 	"fmt"
-	"sort"
 	"strconv"
 	"strings"
 
@@ -26,18 +25,29 @@ type txtPrinter struct {
 	params    *discovery.PrinterParameters // Printer parameters
 }
 
-// txtDecodePrinterParameters decodes PrinterParameters out of
-// the TXT record
-func txtDecodePrinterParameters(txt []string) (txtPrinter, error) {
+// txtScanner represents a decoded TXT record for scanner
+type txtScanner struct {
+	uuid      uuid.UUID                    // Device UUID
+	makeModel string                       // Device Make and Model
+	uriPath   string                       // Path part of URI
+	params    *discovery.ScannerParameters // Printer parameters
+}
+
+// txtPrinter decodes record for printer
+func decodeTxtPrinter(svcInstance string, txt []string) (txtPrinter, error) {
 	p := txtPrinter{
-		params: &discovery.PrinterParameters{},
+		// The default UUID, in a very unlikely case UUID is missed
+		// in the TXT record
+		uuid: uuid.MD5(uuid.NilUUID, svcInstance),
+
+		// Default parameters
+		params: &discovery.PrinterParameters{
+			// 50 is the reasonable default
+			Priority: 50,
+		},
 	}
 
 	found := map[string]struct{}{}
-	missed := map[string]struct{}{
-		"txtvers": struct{}{},
-		"uuid":    struct{}{},
-	}
 
 	for _, t := range txt {
 		// Split record into key and value.
@@ -52,8 +62,6 @@ func txtDecodePrinterParameters(txt []string) (txtPrinter, error) {
 		if _, dup := found[key]; dup {
 			continue
 		}
-
-		delete(missed, key)
 
 		// Decode the value
 		var err error
@@ -124,25 +132,89 @@ func txtDecodePrinterParameters(txt []string) (txtPrinter, error) {
 		case "urf":
 		}
 
+		// Check for error
 		if err != nil {
 			err = fmt.Errorf("%s: %w", key, err)
 			return txtPrinter{}, err
 		}
 	}
 
-	// Check for missed required keys
-	if len(missed) != 0 {
-		keys := make([]string, 0, len(missed))
-		for key := range missed {
-			keys = append(keys, key)
-		}
-		sort.Strings(keys)
+	return p, nil
+}
 
-		err := fmt.Errorf("missed: %s", strings.Join(keys, ","))
-		return txtPrinter{}, err
+// txtPrinter decodes record for printer
+func decodeTxtScanner(svcInstance string, txt []string) (txtScanner, error) {
+	s := txtScanner{
+		// The default UUID, in a very unlikely case UUID is missed
+		// in the TXT record
+		uuid: uuid.MD5(uuid.NilUUID, svcInstance),
+
+		// The default path to the eSCL endpoint
+		uriPath: "eSCL",
+
+		// Default parameters
+		params: &discovery.ScannerParameters{},
 	}
 
-	return p, nil
+	found := map[string]struct{}{}
+
+	for _, t := range txt {
+		// Split record into key and value.
+		// Ignore keys without values -- CUPS does the same.
+		key, value, novalue := txtParse(t)
+
+		if novalue {
+			continue
+		}
+
+		// Update found/missed sets and check for duplicates
+		if _, dup := found[key]; dup {
+			continue
+		}
+
+		// Decode the value
+		var err error
+		switch txToLower(key) {
+		case "adminurl":
+			s.params.AdminURL = value
+		case "cs":
+			s.params.Colors, err = txtColors(value)
+		case "duplex":
+			s.params.Duplex, err = txtBool(value)
+		case "is":
+			s.params.Sources, err = txtSources(value)
+		case "note":
+			s.params.Location = value
+		case "pdl":
+			s.params.PDL, err = txtKeywords(value)
+		case "representation":
+			s.params.IconURL = value
+		case "rs":
+			// Strip leading and trailing '/'.
+			// sane-airscan does the same.
+			rs := value
+			for strings.HasPrefix(rs, "/") {
+				rs = rs[1:]
+			}
+			for strings.HasSuffix(rs, "/") {
+				rs = rs[:len(rs)-1]
+			}
+
+			s.uriPath = value
+		case "ty":
+			s.makeModel = value
+		case "uuid":
+			s.uuid, err = uuid.Parse(value)
+		}
+
+		// Check for error
+		if err != nil {
+			err = fmt.Errorf("%s: %w", key, err)
+			return txtScanner{}, err
+		}
+	}
+
+	return s, nil
 }
 
 // txtAuth decodes an authentication mode
@@ -166,6 +238,27 @@ func txtAuth(value string) (discovery.AuthMode, error) {
 // txtBool decodes a boolean value
 func txtBool(value string) (bool, error) {
 	return txToLower(value) == "t", nil
+}
+
+// txtColors decodes discovery.ColorMode bits
+func txtColors(value string) (discovery.ColorMode, error) {
+	keywords, _ := txtKeywords(value)
+
+	var colors discovery.ColorMode
+	for _, kw := range keywords {
+		switch txToLower(kw) {
+		case "color":
+			colors |= discovery.ColorRGB
+		case "grayscale":
+			colors |= discovery.ColorGrayscale
+		case "binary":
+			colors |= discovery.ColorBW
+		default:
+			colors |= discovery.ColorOther
+		}
+	}
+
+	return colors, nil
 }
 
 // txtKeywords decodes comma-separated list of keywords
@@ -242,6 +335,25 @@ func txtPPD(value string) (string, error) {
 	ppd, _ := strings.CutPrefix(value, "(")
 	ppd, _ = strings.CutSuffix(value, ")")
 	return ppd, nil
+}
+
+// txtSources decodes discovery.InputSource bits
+func txtSources(value string) (discovery.InputSource, error) {
+	keywords, _ := txtKeywords(value)
+
+	var sources discovery.InputSource
+	for _, kw := range keywords {
+		switch txToLower(kw) {
+		case "adf":
+			sources |= discovery.InputADF
+		case "platen":
+			sources |= discovery.InputPlaten
+		default:
+			sources |= discovery.InputOther
+		}
+	}
+
+	return sources, nil
 }
 
 // txtParse parses "key=value" string into key and value parts.

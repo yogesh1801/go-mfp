@@ -13,7 +13,8 @@ type ColorMode int
 
 // ColorMode bits:
 const (
-	ColorGrayscale ColorMode = 1 << iota // Gray scale print and scan
+	ColorOther     ColorMode = 1 << iota // Other color mode
+	ColorGrayscale                       // Gray scale print and scan
 	ColorRGB                             // RGB color
 	ColorBW                              // 1-bit monochrome
 )

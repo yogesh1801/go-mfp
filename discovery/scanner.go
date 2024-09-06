@@ -23,8 +23,8 @@ type ScannerParameters struct {
 	Location string // E.g., "2nd Floor Computer Lab"
 
 	// Scanner capabilities
-	Duplex bool        // Duplex mode supported
-	Source InputSource // Supported sources
-	Color  ColorMode   // Supported color modes
-	PDL    []string    // Supported MIME types
+	Duplex  bool        // Duplex mode supported
+	Sources InputSource // Supported sources
+	Colors  ColorMode   // Supported color modes
+	PDL     []string    // Supported MIME types
 }
