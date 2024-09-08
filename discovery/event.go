@@ -26,7 +26,7 @@ var (
 //
 // Note, if printer has multiple print queues, each queue must be
 // announced as a separate unit with the separate ID. Backend may use
-// UnitID.SubRealm to make IDs of these unit distinguishiable.
+// UnitID.SubRealm to make IDs of these unit distinguishable.
 type EventAddUnit struct {
 	ID UnitID // Unit identity
 }
