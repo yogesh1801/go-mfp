@@ -23,6 +23,10 @@ var (
 )
 
 // EventAddUnit generated when new print or scan unit is discovered.
+//
+// Note, if printer has multiple print queues, each queue must be
+// announced as a separate unit with the separate ID. Backend may use
+// UnitID.SubRealm to make IDs of these unit distinguishiable.
 type EventAddUnit struct {
 	ID UnitID // Unit identity
 }
@@ -44,21 +48,13 @@ func (evnt *EventDelUnit) GetID() UnitID {
 }
 
 // EventPrinterParameters generated when printer parameters
-// become available.
-//
-// Printer may have a multiple print queues with different parameters.
-// All these queues belong to the same Unit and share the same set of
-// endpoints.
-//
-// To distinguish between queues, the 'Queue' parameter is used. Backend
-// may leave this parameter empty, if device doesn't support multiple
-// queues.
+// become available or updated.
 //
 // Backend responsibilities:
-//   - Unit MUST exist
+//   - Unit MUST exist (i.e., previously announced with the
+//     EventAddUnit event and not revoked with the EventDelUnit event)
 type EventPrinterParameters struct {
 	ID      UnitID            // Unit identity
-	Queue   string            // The queue name (optional)
 	Printer PrinterParameters // Printer parameters
 }
 
@@ -67,8 +63,8 @@ func (evnt *EventPrinterParameters) GetID() UnitID {
 	return evnt.ID
 }
 
-// EventScannerParameters generated when printer parameters
-// become available.
+// EventScannerParameters generated when scanner parameters
+// become available or updated.
 //
 // Backend responsibilities:
 //   - Unit MUST exist
