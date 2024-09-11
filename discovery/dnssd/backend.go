@@ -12,6 +12,7 @@ import (
 	"context"
 	"fmt"
 	"net/netip"
+	"strconv"
 	"sync"
 
 	"github.com/alexpevzner/go-avahi"
@@ -244,12 +245,14 @@ func (back *backend) onTxtBrowserEvent(evnt *avahi.RecordBrowserEvent) error {
 			return nil
 		}
 
+		svcType := key.SvcType
 		svcInstance := key.InstanceName
 		txt := avahi.DNSDecodeTXT(evnt.RData)
 		port := service.port
 
 		if key.IsPrinter() {
-			txtPrinter, err := decodeTxtPrinter(svcInstance, txt)
+			txtPrinter, err := decodeTxtPrinter(svcType,
+				svcInstance, txt)
 			if err != nil {
 				log.Debug(back.ctx, "%s: %s", title, err)
 				return nil // Don't propagate the error
@@ -262,10 +265,11 @@ func (back *backend) onTxtBrowserEvent(evnt *avahi.RecordBrowserEvent) error {
 				un = newPrinterUnit(id, txtPrinter, port)
 				back.untab.Put(un)
 			} else {
-				un.setTxtPrinter(txtPrinter)
+				un.SetTxtPrinter(txtPrinter)
 			}
 		} else {
-			txtScanner, err := decodeTxtScanner(svcInstance, txt)
+			txtScanner, err := decodeTxtScanner(svcType,
+				svcInstance, txt)
 			if err != nil {
 				log.Debug(back.ctx, "%s: %s", title, err)
 				return nil // Don't propagate the error
@@ -278,7 +282,7 @@ func (back *backend) onTxtBrowserEvent(evnt *avahi.RecordBrowserEvent) error {
 				un = newScannerUnit(id, txtScanner, port)
 				back.untab.Put(un)
 			} else {
-				un.setTxtScanner(txtScanner)
+				un.SetTxtScanner(txtScanner)
 			}
 		}
 
@@ -321,7 +325,8 @@ func (back *backend) onAddrBrowserEvent(
 		if key.Proto == avahi.ProtocolIP4 {
 			addr = avahi.DNSDecodeA(evnt.RData)
 		} else {
-			addr = avahi.DNSDecodeAAAA(evnt.RData)
+			zone := strconv.Itoa(int(evnt.IfIdx))
+			addr = avahi.DNSDecodeAAAA(evnt.RData).WithZone(zone)
 		}
 
 		if addr == (netip.Addr{}) {

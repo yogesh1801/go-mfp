@@ -10,6 +10,8 @@ package dnssd
 
 import (
 	"net/netip"
+	"net/url"
+	"strconv"
 
 	"github.com/alexpevzner/mfp/discovery"
 )
@@ -17,21 +19,23 @@ import (
 // unit represents a discovered print or scan unit.
 // It accepts RR updates and generates events.
 type unit struct {
-	untab  *unitTable              // Back link to unitsTable
-	id     discovery.UnitID        // Unit ID
-	addrs  map[netip.Addr]struct{} // IP addresses
-	port   uint16                  // IP port
-	txtPrn txtPrinter              // Parsed TXT for print unit
-	txtScn txtScanner              // Parsed TXT for scan unit
+	untab   *unitTable              // Back link to unitsTable
+	id      discovery.UnitID        // Unit ID
+	svcType string                  // Service type
+	addrs   map[netip.Addr]struct{} // IP addresses
+	port    uint16                  // IP port
+	txtPrn  txtPrinter              // Parsed TXT for print unit
+	txtScn  txtScanner              // Parsed TXT for scan unit
 }
 
 // newPrinterUnit creates a new printer unit
 func newPrinterUnit(id discovery.UnitID, txt txtPrinter, port uint16) *unit {
 	un := &unit{
-		id:     id,
-		addrs:  make(map[netip.Addr]struct{}),
-		port:   port,
-		txtPrn: txt,
+		id:      id,
+		svcType: txt.svcType,
+		addrs:   make(map[netip.Addr]struct{}),
+		port:    port,
+		txtPrn:  txt,
 	}
 
 	return un
@@ -40,34 +44,141 @@ func newPrinterUnit(id discovery.UnitID, txt txtPrinter, port uint16) *unit {
 // newScannerUnit creates a new scanner unit
 func newScannerUnit(id discovery.UnitID, txt txtScanner, port uint16) *unit {
 	un := &unit{
-		id:     id,
-		addrs:  make(map[netip.Addr]struct{}),
-		port:   port,
-		txtScn: txt,
+		id:      id,
+		svcType: txt.svcType,
+		addrs:   make(map[netip.Addr]struct{}),
+		port:    port,
+		txtScn:  txt,
 	}
 
 	return un
 }
 
+// IsPrinter reports if unit is the print unit
+func (un *unit) IsPrinter() bool {
+	return un.txtPrn.params != nil
+}
+
 // setTxtPrinter changes TXT record for printer unit
-func (un *unit) setTxtPrinter(txt txtPrinter) {
+func (un *unit) SetTxtPrinter(txt txtPrinter) {
 	un.txtPrn = txt
 }
 
 // setTxtScanner changes TXT record for scanner unit
-func (un *unit) setTxtScanner(txt txtScanner) {
+func (un *unit) SetTxtScanner(txt txtScanner) {
 	un.txtScn = txt
 }
 
 // addAddr adds unit's IP address
-func (un *unit) addAddr(addr netip.Addr) {
+func (un *unit) AddAddr(addr netip.Addr) {
+	if _, found := un.addrs[addr]; !found {
+		un.addrs[addr] = struct{}{}
+		if un.port != 0 {
+			evnt := &discovery.EventAddEndpoints{
+				ID:        un.id,
+				Endpoints: []string{un.endpoint(addr)},
+			}
+			un.sendEvent(evnt)
+		}
+	}
 }
 
 // delAddr deletes unit's IP address
-func (un *unit) delAddr(addr netip.Addr) {
+func (un *unit) DelAddr(addr netip.Addr) {
+	if _, found := un.addrs[addr]; found {
+		un.addrs[addr] = struct{}{}
+		if un.port != 0 {
+			evnt := &discovery.EventDelEndpoints{
+				ID:        un.id,
+				Endpoints: []string{un.endpoint(addr)},
+			}
+			un.sendEvent(evnt)
+		}
+	}
 }
 
-// pushEvent pushes event into the event queue
-func (un *unit) pushEvent(e discovery.Event) {
+// endpoint creates an endpoint URL
+func (un *unit) endpoint(addr netip.Addr) string {
+	host := addr.WithZone("").String()
+	if addr.Is6() {
+		// We need to put address into square brackets and
+		// append zone for the link-local addresses
+		host = "[" + host
+		if zone := addr.Zone(); zone != "" {
+			// URL syntax requires zone delimiter, the percent
+			// character ('%'), to be escaped as "%25"
+			host += "%25" + zone
+		}
+		host += "]"
+	}
+
+	port := int(un.port)
+	var url url.URL
+
+	switch un.svcType {
+	case svcTypeAppSocket:
+		// socket://host[:port]
+		// default port: 9100
+		url.Scheme = "socket"
+		url.Host = host
+		if port != 9100 {
+			url.Host += ":" + strconv.Itoa(port)
+		}
+
+	case svcTypeIPP, svcTypeIPPS:
+		// ipp://host[:port]/queue or ipps://host[:port]/queue
+		// default port: 631
+		url.Scheme = "ipp"
+		if un.svcType == svcTypeIPPS {
+			url.Scheme = "ipps"
+		}
+
+		url.Host = host
+		if port != 631 {
+			url.Host += ":" + strconv.Itoa(port)
+		}
+
+		url.Path = un.txtPrn.params.Queue
+
+	case svcTypeLPR:
+		// lpd://host[:port]/queue
+		// default port: 515
+		url.Scheme = "lpd"
+		url.Host = host
+		if port != 515 {
+			url.Host += ":" + strconv.Itoa(port)
+		}
+		url.Path = un.txtPrn.params.Queue
+
+	case svcTypeESCL:
+		// http://host[:port]/path or https://host[:port]/path
+		// default port: 80
+		url.Host = host
+		if un.svcType == svcTypeESCL {
+			url.Scheme = "http"
+			if port != 80 {
+				url.Host += ":" + strconv.Itoa(port)
+			}
+		} else {
+			url.Scheme = "https"
+			if port != 443 {
+				url.Host += ":" + strconv.Itoa(port)
+			}
+		}
+		url.Path = un.txtScn.uriPath
+	}
+
+	println(url.String())
+	return url.String()
+}
+
+// SendInitEvents generates initial events. This function must be
+// called just after unit is created and added to the unitTable
+func (un *unit) SendInitEvents() {
+	un.sendEvent(&discovery.EventAddUnit{ID: un.id})
+}
+
+// sendEvent sends the event
+func (un *unit) sendEvent(e discovery.Event) {
 	un.untab.PushEvent(e)
 }

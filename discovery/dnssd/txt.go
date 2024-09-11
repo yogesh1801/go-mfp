@@ -20,23 +20,31 @@ import (
 
 // txtPrinter represents a decoded TXT record for printer
 type txtPrinter struct {
-	uuid   uuid.UUID                    // Device UUID
-	params *discovery.PrinterParameters // Printer parameters
+	uuid    uuid.UUID                    // Device UUID
+	svcType string                       // Service type
+	params  *discovery.PrinterParameters // Printer parameters
 }
 
 // txtScanner represents a decoded TXT record for scanner
 type txtScanner struct {
 	uuid    uuid.UUID                    // Device UUID
+	svcType string                       // Service type
 	uriPath string                       // Path part of URI
 	params  *discovery.ScannerParameters // Printer parameters
 }
 
 // txtPrinter decodes record for printer
-func decodeTxtPrinter(svcInstance string, txt []string) (txtPrinter, error) {
+func decodeTxtPrinter(svcType, svcInstance string,
+	txt []string) (txtPrinter, error) {
+
+	// Set defaults
 	p := txtPrinter{
 		// The default UUID, in a very unlikely case UUID is missed
 		// in the TXT record
 		uuid: uuid.MD5(uuid.NilUUID, svcInstance),
+
+		// Save service type
+		svcType: svcType,
 
 		// Default parameters
 		params: &discovery.PrinterParameters{
@@ -45,6 +53,15 @@ func decodeTxtPrinter(svcInstance string, txt []string) (txtPrinter, error) {
 		},
 	}
 
+	// Some defaults depend on service type
+	switch svcType {
+	case svcTypeIPP, svcTypeIPPS:
+		p.params.Queue = "ipp/print"
+	case svcTypeLPR:
+		p.params.Queue = "auto"
+	}
+
+	// Parse key by key
 	found := map[string]struct{}{}
 
 	for _, t := range txt {
@@ -141,11 +158,15 @@ func decodeTxtPrinter(svcInstance string, txt []string) (txtPrinter, error) {
 }
 
 // txtPrinter decodes record for printer
-func decodeTxtScanner(svcInstance string, txt []string) (txtScanner, error) {
+func decodeTxtScanner(svcType, svcInstance string,
+	txt []string) (txtScanner, error) {
 	s := txtScanner{
 		// The default UUID, in a very unlikely case UUID is missed
 		// in the TXT record
 		uuid: uuid.MD5(uuid.NilUUID, svcInstance),
+
+		// Save service type
+		svcType: svcType,
 
 		// The default path to the eSCL endpoint
 		uriPath: "eSCL",
