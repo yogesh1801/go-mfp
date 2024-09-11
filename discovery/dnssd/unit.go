@@ -19,13 +19,13 @@ import (
 // unit represents a discovered print or scan unit.
 // It accepts RR updates and generates events.
 type unit struct {
-	untab   *unitTable              // Back link to unitsTable
-	id      discovery.UnitID        // Unit ID
-	svcType string                  // Service type
-	addrs   map[netip.Addr]struct{} // IP addresses
-	port    uint16                  // IP port
-	txtPrn  txtPrinter              // Parsed TXT for print unit
-	txtScn  txtScanner              // Parsed TXT for scan unit
+	untab   *unitTable       // Back link to unitsTable
+	id      discovery.UnitID // Unit ID
+	svcType string           // Service type
+	addrs   set[netip.Addr]  // IP addresses of the unit
+	port    uint16           // IP port
+	txtPrn  txtPrinter       // Parsed TXT for print unit
+	txtScn  txtScanner       // Parsed TXT for scan unit
 }
 
 // newPrinterUnit creates a new printer unit
@@ -33,7 +33,7 @@ func newPrinterUnit(id discovery.UnitID, txt txtPrinter, port uint16) *unit {
 	un := &unit{
 		id:      id,
 		svcType: txt.svcType,
-		addrs:   make(map[netip.Addr]struct{}),
+		addrs:   newSet[netip.Addr](),
 		port:    port,
 		txtPrn:  txt,
 	}
@@ -46,7 +46,7 @@ func newScannerUnit(id discovery.UnitID, txt txtScanner, port uint16) *unit {
 	un := &unit{
 		id:      id,
 		svcType: txt.svcType,
-		addrs:   make(map[netip.Addr]struct{}),
+		addrs:   newSet[netip.Addr](),
 		port:    port,
 		txtScn:  txt,
 	}
@@ -71,8 +71,8 @@ func (un *unit) SetTxtScanner(txt txtScanner) {
 
 // addAddr adds unit's IP address
 func (un *unit) AddAddr(addr netip.Addr) {
-	if _, found := un.addrs[addr]; !found {
-		un.addrs[addr] = struct{}{}
+	if !un.addrs.Contains(addr) {
+		un.addrs.Add(addr)
 		if un.port != 0 {
 			evnt := &discovery.EventAddEndpoints{
 				ID:        un.id,
@@ -85,8 +85,8 @@ func (un *unit) AddAddr(addr netip.Addr) {
 
 // delAddr deletes unit's IP address
 func (un *unit) DelAddr(addr netip.Addr) {
-	if _, found := un.addrs[addr]; found {
-		un.addrs[addr] = struct{}{}
+	if un.addrs.Contains(addr) {
+		un.addrs.Del(addr)
 		if un.port != 0 {
 			evnt := &discovery.EventDelEndpoints{
 				ID:        un.id,

@@ -253,8 +253,8 @@ func (clnt *avahiClient) AddHostname(key avahiHostnameKey,
 		clnt:        clnt,
 		key:         key,
 		addrBrowser: addrBrowser,
-		addrs:       make(map[netip.Addr]struct{}),
-		services:    make(map[*avahiService]struct{}),
+		addrs:       newSet[netip.Addr](),
+		services:    newSet[*avahiService](),
 	}
 
 	clnt.hostnames[key] = hostname
@@ -299,15 +299,15 @@ func (service *avahiService) SetHostname(hostname *avahiHostname) {
 	}
 
 	if service.hostname != nil {
-		delete(service.hostname.services, service)
-		if len(service.hostname.services) == 0 {
+		hostname.services.Del(service)
+		if service.hostname.services.Empty() {
 			service.hostname.Delete()
 		}
 	}
 
 	service.hostname = hostname
 	if hostname != nil {
-		hostname.services[service] = struct{}{}
+		hostname.services.Add(service)
 	}
 }
 
@@ -432,11 +432,11 @@ func avahiServiceKeyFromRecordBrowserEvent(
 // avahiHostname is the per-hostname structure that manages
 // resources associated with the hostname
 type avahiHostname struct {
-	clnt        *avahiClient               // The owner
-	key         avahiHostnameKey           // Identity
-	addrBrowser *avahi.RecordBrowser       // A/AAAA record resolver
-	addrs       map[netip.Addr]struct{}    // Resolved addresses
-	services    map[*avahiService]struct{} // Dependent services
+	clnt        *avahiClient         // The owner
+	key         avahiHostnameKey     // Identity
+	addrBrowser *avahi.RecordBrowser // A/AAAA record resolver
+	addrs       set[netip.Addr]      // Resolved addresses
+	services    set[*avahiService]   // Dependent services
 }
 
 // Delete deletes the avahiHostname from avahiClient
@@ -446,20 +446,19 @@ func (hostname *avahiHostname) Delete() {
 	delete(clnt.hostnames, hostname.key)
 }
 
-// hasAddr reports if address already known
+// HasAddr reports if address already known
 func (hostname *avahiHostname) HasAddr(addr netip.Addr) bool {
-	_, found := hostname.addrs[addr]
-	return found
+	return hostname.addrs.Contains(addr)
 }
 
 // addAddr adds the address
 func (hostname *avahiHostname) AddAddr(addr netip.Addr) {
-	hostname.addrs[addr] = struct{}{}
+	hostname.addrs.Add(addr)
 }
 
 // delAddr deletes the address
 func (hostname *avahiHostname) DelAddr(addr netip.Addr) {
-	delete(hostname.addrs, addr)
+	hostname.addrs.Del(addr)
 }
 
 // avahiHostnameKey identifies a particular instance of
