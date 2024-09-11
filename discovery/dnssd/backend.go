@@ -25,6 +25,7 @@ type backend struct {
 	ctx    context.Context
 	clnt   *avahiClient
 	untab  *unitTable
+	queue  *eventqueue
 	chn    chan discovery.Event
 	cancel context.CancelFunc
 	done   sync.WaitGroup
@@ -51,6 +52,7 @@ func NewBackend(ctx context.Context,
 		ctx:    ctx,
 		clnt:   clnt,
 		untab:  newUnitTable(),
+		queue:  newEventqueue(),
 		chn:    make(chan discovery.Event),
 		cancel: cancel,
 	}
@@ -262,7 +264,8 @@ func (back *backend) onTxtBrowserEvent(evnt *avahi.RecordBrowserEvent) error {
 
 			un := back.untab.Get(id)
 			if un == nil {
-				un = newPrinterUnit(id, txtPrinter, port)
+				un = newPrinterUnit(back.queue,
+					id, txtPrinter, port)
 				back.untab.Put(un)
 			} else {
 				un.SetTxtPrinter(txtPrinter)
@@ -279,7 +282,8 @@ func (back *backend) onTxtBrowserEvent(evnt *avahi.RecordBrowserEvent) error {
 
 			un := back.untab.Get(id)
 			if un == nil {
-				un = newScannerUnit(id, txtScanner, port)
+				un = newScannerUnit(back.queue,
+					id, txtScanner, port)
 				back.untab.Put(un)
 			} else {
 				un.SetTxtScanner(txtScanner)

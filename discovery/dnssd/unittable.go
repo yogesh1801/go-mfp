@@ -30,12 +30,5 @@ func (untab *unitTable) Get(id discovery.UnitID) *unit {
 
 // Put inserts unit into the table
 func (untab *unitTable) Put(un *unit) {
-	un.untab = untab
 	untab.units[un.id] = un
-	un.SendInitEvents()
-}
-
-// PushEvent pushes event into the event queue
-func (untab *unitTable) PushEvent(e discovery.Event) {
-	untab.events = append(untab.events, e)
 }

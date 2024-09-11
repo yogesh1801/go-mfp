@@ -19,7 +19,7 @@ import (
 // unit represents a discovered print or scan unit.
 // It accepts RR updates and generates events.
 type unit struct {
-	untab   *unitTable       // Back link to unitsTable
+	queue   *eventqueue      // Event queue
 	id      discovery.UnitID // Unit ID
 	svcType string           // Service type
 	addrs   set[netip.Addr]  // IP addresses of the unit
@@ -29,8 +29,11 @@ type unit struct {
 }
 
 // newPrinterUnit creates a new printer unit
-func newPrinterUnit(id discovery.UnitID, txt txtPrinter, port uint16) *unit {
+func newPrinterUnit(queue *eventqueue,
+	id discovery.UnitID, txt txtPrinter, port uint16) *unit {
+
 	un := &unit{
+		queue:   queue,
 		id:      id,
 		svcType: txt.svcType,
 		addrs:   newSet[netip.Addr](),
@@ -38,18 +41,24 @@ func newPrinterUnit(id discovery.UnitID, txt txtPrinter, port uint16) *unit {
 		txtPrn:  txt,
 	}
 
+	un.queue.Push(&discovery.EventAddUnit{ID: un.id})
+
 	return un
 }
 
 // newScannerUnit creates a new scanner unit
-func newScannerUnit(id discovery.UnitID, txt txtScanner, port uint16) *unit {
+func newScannerUnit(queue *eventqueue,
+	id discovery.UnitID, txt txtScanner, port uint16) *unit {
 	un := &unit{
+		queue:   queue,
 		id:      id,
 		svcType: txt.svcType,
 		addrs:   newSet[netip.Addr](),
 		port:    port,
 		txtScn:  txt,
 	}
+
+	un.queue.Push(&discovery.EventAddUnit{ID: un.id})
 
 	return un
 }
@@ -78,7 +87,7 @@ func (un *unit) AddAddr(addr netip.Addr) {
 				ID:        un.id,
 				Endpoints: []string{un.endpoint(addr)},
 			}
-			un.sendEvent(evnt)
+			un.queue.Push(evnt)
 		}
 	}
 }
@@ -92,7 +101,7 @@ func (un *unit) DelAddr(addr netip.Addr) {
 				ID:        un.id,
 				Endpoints: []string{un.endpoint(addr)},
 			}
-			un.sendEvent(evnt)
+			un.queue.Push(evnt)
 		}
 	}
 }
@@ -170,15 +179,4 @@ func (un *unit) endpoint(addr netip.Addr) string {
 
 	println(url.String())
 	return url.String()
-}
-
-// SendInitEvents generates initial events. This function must be
-// called just after unit is created and added to the unitTable
-func (un *unit) SendInitEvents() {
-	un.sendEvent(&discovery.EventAddUnit{ID: un.id})
-}
-
-// sendEvent sends the event
-func (un *unit) sendEvent(e discovery.Event) {
-	un.untab.PushEvent(e)
 }
