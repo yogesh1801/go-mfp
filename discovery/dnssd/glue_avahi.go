@@ -299,7 +299,7 @@ func (service *avahiService) SetHostname(hostname *avahiHostname) {
 	}
 
 	if service.hostname != nil {
-		hostname.services.Del(service)
+		service.hostname.services.Del(service)
 		if service.hostname.services.Empty() {
 			service.hostname.Delete()
 		}
