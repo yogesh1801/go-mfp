@@ -229,6 +229,7 @@ func (clnt *avahiClient) AddService(key avahiServiceKey,
 		key:         key,
 		svcResolver: svcResolver,
 		txtBrowser:  txtBrowser,
+		units:       make(map[string]*unit),
 	}
 
 	clnt.services[key] = service
@@ -276,6 +277,7 @@ type avahiService struct {
 	txtBrowser  *avahi.RecordBrowser   // TXT record resolver
 	port        uint16                 // IP port
 	hostname    *avahiHostname         // Hostname resolver
+	units       map[string]*unit       // Discovered print/fax/scan units
 }
 
 // Delete deletes the service from avahiClient
@@ -308,6 +310,42 @@ func (service *avahiService) SetHostname(hostname *avahiHostname) {
 	service.hostname = hostname
 	if hostname != nil {
 		hostname.services.Add(service)
+	}
+}
+
+// AddUnit adds unit to the service
+func (service *avahiService) AddUnit(name string, un *unit) {
+	service.units[name] = un
+	if service.hostname != nil {
+		service.hostname.addrs.ForEach(func(addr netip.Addr) {
+			un.AddAddr(addr)
+		})
+	}
+}
+
+// DelUnit deletes unit from the service
+func (service *avahiService) DelUnit(name string) {
+	delete(service.units, name)
+}
+
+// GelUnit returns unit by the name (or nil if unit doesn't exist)
+func (service *avahiService) GetUnit(name string) *unit {
+	return service.units[name]
+}
+
+// addAddr called by avahiHostname.AddAddr to record newly
+// resolved address.
+func (service *avahiService) addAddr(addr netip.Addr) {
+	for _, un := range service.units {
+		un.AddAddr(addr)
+	}
+}
+
+// delAddr called by avahiHostname.DelAddr to record newly
+// resolved address.
+func (service *avahiService) delAddr(addr netip.Addr) {
+	for _, un := range service.units {
+		un.DelAddr(addr)
 	}
 }
 
@@ -453,12 +491,22 @@ func (hostname *avahiHostname) HasAddr(addr netip.Addr) bool {
 
 // addAddr adds the address
 func (hostname *avahiHostname) AddAddr(addr netip.Addr) {
-	hostname.addrs.Add(addr)
+	if !hostname.addrs.Contains(addr) {
+		hostname.addrs.Add(addr)
+		hostname.services.ForEach(func(service *avahiService) {
+			service.addAddr(addr)
+		})
+	}
 }
 
 // delAddr deletes the address
 func (hostname *avahiHostname) DelAddr(addr netip.Addr) {
-	hostname.addrs.Del(addr)
+	if hostname.addrs.Contains(addr) {
+		hostname.addrs.Del(addr)
+		hostname.services.ForEach(func(service *avahiService) {
+			service.delAddr(addr)
+		})
+	}
 }
 
 // avahiHostnameKey identifies a particular instance of

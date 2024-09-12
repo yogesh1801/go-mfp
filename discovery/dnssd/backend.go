@@ -24,7 +24,6 @@ import (
 type backend struct {
 	ctx    context.Context
 	clnt   *avahiClient
-	untab  *unitTable
 	queue  *discovery.Eventqueue
 	cancel context.CancelFunc
 	done   sync.WaitGroup
@@ -50,7 +49,6 @@ func NewBackend(ctx context.Context, queue *discovery.Eventqueue,
 	back := &backend{
 		ctx:    ctx,
 		clnt:   clnt,
-		untab:  newUnitTable(),
 		queue:  queue,
 		cancel: cancel,
 	}
@@ -180,8 +178,8 @@ func (back *backend) onServiceBrowserEvent(
 		key := avahiServiceKeyFromServiceBrowserEvent(evnt)
 		title := fmt.Sprintf("svc-browse: failed  %s", key)
 
-		log.Error(back.ctx, "%s: %s", title, evnt.Err)
-		return evnt.Err
+		log.Warning(back.ctx, "%s: %s", title, evnt.Err)
+		return nil
 	}
 
 	return nil
@@ -217,8 +215,10 @@ func (back *backend) onServiceResolverEvent(
 		key := avahiServiceKeyFromResolverEvent(evnt)
 		title := fmt.Sprintf("svc-resolve: failed  %s", key)
 
-		log.Error(back.ctx, "%s: %s", title, evnt.Err)
-		return evnt.Err
+		// Note, typically it's not fatal, just answer
+		// doesn't want to come in time.
+		log.Warning(back.ctx, "%s: %s", title, evnt.Err)
+		return nil
 	}
 
 	return nil
@@ -252,13 +252,13 @@ func (back *backend) onTxtBrowserEvent(evnt *avahi.RecordBrowserEvent) error {
 				return nil // Don't propagate the error
 			}
 
-			id := key.PrinterUnitID(txtPrinter)
-
-			un := back.untab.Get(id)
+			unName := txtPrinter.params.Queue
+			un := service.GetUnit(unName)
 			if un == nil {
+				id := key.PrinterUnitID(txtPrinter)
 				un = newPrinterUnit(back.queue,
 					id, txtPrinter, port)
-				back.untab.Put(un)
+				service.AddUnit(unName, un)
 			} else {
 				un.SetTxtPrinter(txtPrinter)
 			}
@@ -270,13 +270,13 @@ func (back *backend) onTxtBrowserEvent(evnt *avahi.RecordBrowserEvent) error {
 				return nil // Don't propagate the error
 			}
 
-			id := key.ScannerUnitID(txtScanner)
-
-			un := back.untab.Get(id)
+			unName := "scan"
+			un := service.GetUnit(unName)
 			if un == nil {
+				id := key.ScannerUnitID(txtScanner)
 				un = newScannerUnit(back.queue,
 					id, txtScanner, port)
-				back.untab.Put(un)
+				service.AddUnit(unName, un)
 			} else {
 				un.SetTxtScanner(txtScanner)
 			}
@@ -286,8 +286,8 @@ func (back *backend) onTxtBrowserEvent(evnt *avahi.RecordBrowserEvent) error {
 		key := avahiServiceKeyFromRecordBrowserEvent(evnt)
 		title := fmt.Sprintf("txt-browse: failed %s", key)
 
-		log.Error(back.ctx, "%s: %s", title, evnt.Err)
-		return evnt.Err
+		log.Warning(back.ctx, "%s: %s", title, evnt.Err)
+		return nil
 	}
 
 	return nil
@@ -352,8 +352,8 @@ func (back *backend) onAddrBrowserEvent(
 	case avahi.BrowserFailure:
 		title := fmt.Sprintf("addr-browse: failed %s", evnt.Name)
 
-		log.Error(back.ctx, "%s: %s", title, evnt.Err)
-		return evnt.Err
+		log.Warning(back.ctx, "%s: %s", title, evnt.Err)
+		return nil
 	}
 
 	return nil

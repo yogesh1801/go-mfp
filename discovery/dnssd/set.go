@@ -40,3 +40,10 @@ func (s set[T]) Add(member T) {
 func (s set[T]) Del(member T) {
 	delete(s.members, member)
 }
+
+// ForEach applies function to the each member of the set
+func (s set[T]) ForEach(f func(T)) {
+	for member := range s.members {
+		f(member)
+	}
+}

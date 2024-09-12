@@ -63,6 +63,11 @@ func newScannerUnit(queue *discovery.Eventqueue,
 	return un
 }
 
+// Delete deletes the unit
+func (un *unit) Delete() {
+	un.queue.Push(&discovery.EventDelUnit{ID: un.id})
+}
+
 // IsPrinter reports if unit is the print unit
 func (un *unit) IsPrinter() bool {
 	return un.txtPrn.params != nil
@@ -114,9 +119,7 @@ func (un *unit) endpoint(addr netip.Addr) string {
 		// append zone for the link-local addresses
 		host = "[" + host
 		if zone := addr.Zone(); zone != "" {
-			// URL syntax requires zone delimiter, the percent
-			// character ('%'), to be escaped as "%25"
-			host += "%25" + zone
+			host += "%" + zone
 		}
 		host += "]"
 	}
@@ -159,7 +162,7 @@ func (un *unit) endpoint(addr netip.Addr) string {
 		}
 		url.Path = un.txtPrn.params.Queue
 
-	case svcTypeESCL:
+	case svcTypeESCL, svcTypeESCLS:
 		// http://host[:port]/path or https://host[:port]/path
 		// default port: 80
 		url.Host = host
@@ -177,6 +180,6 @@ func (un *unit) endpoint(addr netip.Addr) string {
 		url.Path = un.txtScn.uriPath
 	}
 
-	println(url.String())
+	println("url:", url.String())
 	return url.String()
 }
