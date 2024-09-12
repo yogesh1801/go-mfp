@@ -284,6 +284,15 @@ type avahiService struct {
 func (service *avahiService) Delete() {
 	clnt := service.clnt
 	service.SetHostname(nil)
+
+	service.svcResolver.Close()
+	service.txtBrowser.Close()
+
+	for name, un := range service.units {
+		delete(service.units, name)
+		un.Delete()
+	}
+
 	delete(clnt.services, service.key)
 }
 
