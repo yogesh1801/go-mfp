@@ -19,17 +19,17 @@ import (
 // unit represents a discovered print or scan unit.
 // It accepts RR updates and generates events.
 type unit struct {
-	queue   *eventqueue      // Event queue
-	id      discovery.UnitID // Unit ID
-	svcType string           // Service type
-	addrs   set[netip.Addr]  // IP addresses of the unit
-	port    uint16           // IP port
-	txtPrn  txtPrinter       // Parsed TXT for print unit
-	txtScn  txtScanner       // Parsed TXT for scan unit
+	queue   *discovery.Eventqueue // Event queue
+	id      discovery.UnitID      // Unit ID
+	svcType string                // Service type
+	addrs   set[netip.Addr]       // IP addresses of the unit
+	port    uint16                // IP port
+	txtPrn  txtPrinter            // Parsed TXT for print unit
+	txtScn  txtScanner            // Parsed TXT for scan unit
 }
 
 // newPrinterUnit creates a new printer unit
-func newPrinterUnit(queue *eventqueue,
+func newPrinterUnit(queue *discovery.Eventqueue,
 	id discovery.UnitID, txt txtPrinter, port uint16) *unit {
 
 	un := &unit{
@@ -47,7 +47,7 @@ func newPrinterUnit(queue *eventqueue,
 }
 
 // newScannerUnit creates a new scanner unit
-func newScannerUnit(queue *eventqueue,
+func newScannerUnit(queue *discovery.Eventqueue,
 	id discovery.UnitID, txt txtScanner, port uint16) *unit {
 	un := &unit{
 		queue:   queue,

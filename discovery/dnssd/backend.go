@@ -25,14 +25,13 @@ type backend struct {
 	ctx    context.Context
 	clnt   *avahiClient
 	untab  *unitTable
-	queue  *eventqueue
-	chn    chan discovery.Event
+	queue  *discovery.Eventqueue
 	cancel context.CancelFunc
 	done   sync.WaitGroup
 }
 
 // NewBackend creates a new [discovery.Backend] for DNS-SD discovery.
-func NewBackend(ctx context.Context,
+func NewBackend(ctx context.Context, queue *discovery.Eventqueue,
 	domain string, flags LookupFlags) (discovery.Backend, error) {
 
 	// Set log prefix
@@ -52,8 +51,7 @@ func NewBackend(ctx context.Context,
 		ctx:    ctx,
 		clnt:   clnt,
 		untab:  newUnitTable(),
-		queue:  newEventqueue(),
-		chn:    make(chan discovery.Event),
+		queue:  queue,
 		cancel: cancel,
 	}
 
@@ -66,17 +64,11 @@ func NewBackend(ctx context.Context,
 	return back, nil
 }
 
-// Chan returns an event channel.
-func (back *backend) Chan() <-chan discovery.Event {
-	return back.chn
-}
-
 // Close closes the backend
 func (back *backend) Close() {
 	back.cancel()
 	back.done.Wait()
 
-	close(back.chn)
 	back.clnt.Close()
 }
 
