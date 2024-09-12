@@ -22,11 +22,11 @@ import (
 
 // backend is the [discovery.Backend] for DNS-SD discovery
 type backend struct {
-	ctx    context.Context
-	clnt   *avahiClient
-	queue  *discovery.Eventqueue
-	cancel context.CancelFunc
-	done   sync.WaitGroup
+	ctx    context.Context       // For logging and backend.Close
+	cancel context.CancelFunc    // Context's cancel function
+	clnt   *avahiClient          // Avahi connection
+	queue  *discovery.Eventqueue // Output queue
+	done   sync.WaitGroup        // For backend.Close synchronization
 }
 
 // NewBackend creates a new [discovery.Backend] for DNS-SD discovery.
@@ -48,9 +48,9 @@ func NewBackend(ctx context.Context, queue *discovery.Eventqueue,
 
 	back := &backend{
 		ctx:    ctx,
+		cancel: cancel,
 		clnt:   clnt,
 		queue:  queue,
-		cancel: cancel,
 	}
 
 	// Start event loop goroutine
