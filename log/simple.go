@@ -85,8 +85,8 @@ func Begin(ctx context.Context) *Record {
 // If [encoding.TextMarshaler.MarshalText] returns an error, it
 // will be written to log with the [Error] log level, regardless
 // of the level specified by the first parameter.
-func Object(ctx context.Context,
-	level Level, obj encoding.TextMarshaler) context.Context {
-	CtxLogger(ctx).Object(CtxPrefix(ctx), level, obj)
+func Object(ctx context.Context, level Level, indent int,
+	obj encoding.TextMarshaler) context.Context {
+	CtxLogger(ctx).Object(CtxPrefix(ctx), level, indent, obj)
 	return ctx
 }

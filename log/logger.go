@@ -116,9 +116,9 @@ func (lgr *Logger) Fatal(prefix, format string, v ...any) {
 // If [encoding.TextMarshaler.MarshalText] returns an error, it
 // will be written to log with the [Error] log level, regardless
 // of the level specified by the first parameter.
-func (lgr *Logger) Object(prefix string, level Level,
+func (lgr *Logger) Object(prefix string, level Level, indent int,
 	obj encoding.TextMarshaler) *Logger {
-	return lgr.Begin(prefix).Object(level, obj).Commit()
+	return lgr.Begin(prefix).Object(level, indent, obj).Commit()
 }
 
 // send writes some lines to the Logger.

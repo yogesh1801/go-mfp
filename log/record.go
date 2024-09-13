@@ -80,13 +80,15 @@ func (rec *Record) Fatal(format string, v ...any) {
 // If [encoding.TextMarshaler.MarshalText] returns an error, it
 // will be written to log with the [Error] log level, regardless
 // of the level specified by the first parameter.
-func (rec *Record) Object(level Level, obj encoding.TextMarshaler) *Record {
+func (rec *Record) Object(level Level, indent int,
+	obj encoding.TextMarshaler) *Record {
+
 	text, err := obj.MarshalText()
 	if err != nil {
 		return rec.Error("%s", err)
 	}
 
-	return rec.text(level, text)
+	return rec.text(level, indent, text)
 }
 
 // format writes a single formatted message to the Record
@@ -95,16 +97,27 @@ func (rec *Record) format(level Level, format string, v ...any) *Record {
 	defer bufFree(buf)
 
 	fmt.Fprintf(buf, format, v...)
-	return rec.text(level, slices.Clone(buf.Bytes()))
+	return rec.text(level, 0, slices.Clone(buf.Bytes()))
 }
 
 // text writes a text message to the Record
-func (rec *Record) text(level Level, text []byte) *Record {
+func (rec *Record) text(level Level, indent int, text []byte) *Record {
 	lines := bytes.Split(text, []byte("\n"))
 	levels := make([]Level, len(lines))
 
 	for i := range lines {
 		levels[i] = level
+	}
+
+	if indent > 0 {
+		buf := bufAlloc()
+		buf.Write(bytes.Repeat([]byte(" "), indent))
+
+		for i := range lines {
+			buf.Truncate(indent)
+			buf.Write(lines[i])
+			lines[i] = bytes.Clone(buf.Bytes())
+		}
 	}
 
 	rec.mutex.Lock()
