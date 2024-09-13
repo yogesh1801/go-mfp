@@ -42,6 +42,10 @@ func newPrinterUnit(queue *discovery.Eventqueue,
 	}
 
 	un.queue.Push(&discovery.EventAddUnit{ID: un.id})
+	un.queue.Push(&discovery.EventPrinterParameters{
+		ID:      un.id,
+		Printer: *txt.params,
+	})
 
 	return un
 }
@@ -59,6 +63,10 @@ func newScannerUnit(queue *discovery.Eventqueue,
 	}
 
 	un.queue.Push(&discovery.EventAddUnit{ID: un.id})
+	un.queue.Push(&discovery.EventScannerParameters{
+		ID:      un.id,
+		Scanner: *txt.params,
+	})
 
 	return un
 }
@@ -76,11 +84,19 @@ func (un *unit) IsPrinter() bool {
 // setTxtPrinter changes TXT record for printer unit
 func (un *unit) SetTxtPrinter(txt txtPrinter) {
 	un.txtPrn = txt
+	un.queue.Push(&discovery.EventPrinterParameters{
+		ID:      un.id,
+		Printer: *txt.params,
+	})
 }
 
 // setTxtScanner changes TXT record for scanner unit
 func (un *unit) SetTxtScanner(txt txtScanner) {
 	un.txtScn = txt
+	un.queue.Push(&discovery.EventScannerParameters{
+		ID:      un.id,
+		Scanner: *txt.params,
+	})
 }
 
 // addAddr adds unit's IP address
