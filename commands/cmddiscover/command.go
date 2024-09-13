@@ -67,10 +67,13 @@ func cmdDiscoverHandler(ctx context.Context, inv *argv.Invocation) error {
 	ctx = log.NewContext(ctx, logger)
 
 	// Execute the command
-	backend, err := dnssd.NewBackend(ctx, discovery.NewEventqueue(), "", 0)
+	clnt := discovery.NewClient(ctx)
+	backend, err := dnssd.NewBackend(ctx, "", 0)
 	if err != nil {
 		return err
 	}
+
+	clnt.AddBackend(backend)
 
 	for ctx.Err() == nil {
 		select {

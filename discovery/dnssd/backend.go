@@ -30,7 +30,7 @@ type backend struct {
 }
 
 // NewBackend creates a new [discovery.Backend] for DNS-SD discovery.
-func NewBackend(ctx context.Context, queue *discovery.Eventqueue,
+func NewBackend(ctx context.Context,
 	domain string, flags LookupFlags) (discovery.Backend, error) {
 
 	// Set log prefix
@@ -50,16 +50,24 @@ func NewBackend(ctx context.Context, queue *discovery.Eventqueue,
 		ctx:    ctx,
 		cancel: cancel,
 		clnt:   clnt,
-		queue:  queue,
 	}
 
-	// Start event loop goroutine
+	return back, nil
+}
+
+// Name returns backend name.
+func (back *backend) Name() string {
+	return "dnssd"
+}
+
+// Start starts Backend operations.
+func (back *backend) Start(queue *discovery.Eventqueue) {
+	back.queue = queue
+
 	back.done.Add(1)
 	go back.proc()
 
-	log.Debug(ctx, "backend started")
-
-	return back, nil
+	log.Debug(back.ctx, "backend started")
 }
 
 // Close closes the backend

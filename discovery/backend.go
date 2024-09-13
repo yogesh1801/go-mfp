@@ -9,10 +9,14 @@
 package discovery
 
 // Backend scans/monitors its search [Realm] and reports discovered
-// devices using channel of events.
+// devices by sending series of [Event] into the provided [Eventqueue].
 type Backend interface {
-	// Close closes the backend and releases resources it holds.
-	// It also closes backent's event channel, effectively unblocking
-	// pending readers.
+	// Name returns backend name.
+	Name() string
+
+	// Start starts Backend operations.
+	Start(*Eventqueue)
+
+	// Close closes the Backend and releases resources it holds.
 	Close()
 }

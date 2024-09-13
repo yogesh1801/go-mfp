@@ -10,6 +10,10 @@ package discovery
 
 // Event is the common interface for all events
 type Event interface {
+	// Name returns the Event name.
+	Name() string
+
+	// GetID returns UnitID this Event related to.
 	GetID() UnitID
 }
 
@@ -31,6 +35,11 @@ type EventAddUnit struct {
 	ID UnitID // Unit identity
 }
 
+// Name returns the Event name.
+func (*EventAddUnit) Name() string {
+	return "add-unit"
+}
+
 // GetID returns the UnitID this event related to.
 func (evnt *EventAddUnit) GetID() UnitID {
 	return evnt.ID
@@ -40,6 +49,11 @@ func (evnt *EventAddUnit) GetID() UnitID {
 // longer available.
 type EventDelUnit struct {
 	ID UnitID // Unit identity
+}
+
+// Name returns the Event name.
+func (*EventDelUnit) Name() string {
+	return "del-unit"
 }
 
 // GetID returns the UnitID this event related to.
@@ -58,6 +72,11 @@ type EventPrinterParameters struct {
 	Printer PrinterParameters // Printer parameters
 }
 
+// Name returns the Event name.
+func (*EventPrinterParameters) Name() string {
+	return "printer-parameters"
+}
+
 // GetID returns the UnitID this event related to.
 func (evnt *EventPrinterParameters) GetID() UnitID {
 	return evnt.ID
@@ -71,6 +90,11 @@ func (evnt *EventPrinterParameters) GetID() UnitID {
 type EventScannerParameters struct {
 	ID      UnitID            // Unit identity
 	Scanner ScannerParameters // Scanner parameters
+}
+
+// Name returns the Event name.
+func (*EventScannerParameters) Name() string {
+	return "scanner-parameters"
 }
 
 // GetID returns the UnitID this event related to.
@@ -89,6 +113,11 @@ type EventAddEndpoints struct {
 	Endpoints []string // URLs of added endpoints
 }
 
+// Name returns the Event name.
+func (*EventAddEndpoints) Name() string {
+	return "add-endpoints"
+}
+
 // GetID returns the UnitID this event related to.
 func (evnt *EventAddEndpoints) GetID() UnitID {
 	return evnt.ID
@@ -103,6 +132,11 @@ func (evnt *EventAddEndpoints) GetID() UnitID {
 type EventDelEndpoints struct {
 	ID        UnitID   // Unit identity
 	Endpoints []string // URLs of removed endpoints
+}
+
+// Name returns the Event name.
+func (*EventDelEndpoints) Name() string {
+	return "del-endpoints"
 }
 
 // GetID returns the UnitID this event related to.
