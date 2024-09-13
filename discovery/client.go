@@ -81,6 +81,7 @@ func (clnt *Client) proc() {
 			return
 		}
 
-		log.Debug(clnt.ctx, "%s", evnt.Name())
+		log.Debug(clnt.ctx, "%s:", evnt.Name())
+		log.Object(clnt.ctx, log.LevelDebug, 2, evnt.GetID())
 	}
 }

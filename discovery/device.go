@@ -8,7 +8,12 @@
 
 package discovery
 
-import "github.com/alexpevzner/mfp/uuid"
+import (
+	"fmt"
+	"strings"
+
+	"github.com/alexpevzner/mfp/uuid"
+)
 
 // Device consist of the multiple functional units. There are
 // two types of units:
@@ -62,6 +67,33 @@ type UnitID struct {
 	Serial     string      // "" if not avaliable
 }
 
+// MarshalText dumps [UnitID] as text, for [log.Object].
+// It implements [encoding.TextMarshaler] interface.
+func (id UnitID) MarshalText() ([]byte, error) {
+	lines := make([]string, 0, 6)
+
+	if id.DeviceName != "" {
+		lines = append(lines, fmt.Sprintf("Name:   %q", id.DeviceName))
+	}
+	if id.UUID != uuid.NilUUID {
+		lines = append(lines, fmt.Sprintf("UUID:   %s", id.UUID))
+	}
+
+	realm := id.Realm.String()
+	if id.SubRealm != "" {
+		realm += "-" + id.SubRealm
+	}
+	lines = append(lines, fmt.Sprintf("Realm:  %s", realm))
+
+	lines = append(lines, fmt.Sprintf("Kind:   %s", id.Kind))
+
+	if id.Serial != "" {
+		lines = append(lines, fmt.Sprintf("Serial: %s", id.Serial))
+	}
+
+	return []byte(strings.Join(lines, "\n")), nil
+}
+
 // SearchRealm identifies a search realm (search domain) where
 // device is found.
 type SearchRealm int
@@ -75,6 +107,20 @@ const (
 	RealmSNMP  // SNMP search
 	RealmUSB   // USB
 )
+
+// String returns SearchRealm name.
+func (realm SearchRealm) String() string {
+	return realmNames[realm]
+}
+
+// realmNames contains SearchRealm names
+var realmNames = map[SearchRealm]string{
+	RealmInvalid: "invalid",
+	RealmDNSSD:   "dnssd",
+	RealmWSD:     "wsd",
+	RealmSNMP:    "snmp",
+	RealmUSB:     "usb",
+}
 
 // UnitKind identifies a kind of device.
 type UnitKind int
@@ -99,3 +145,25 @@ const (
 	KindWSDScanner     // WSD scanner
 	KindUnknownScanner // Unknown scanner
 )
+
+// String returns UnitKind name.
+func (realm UnitKind) String() string {
+	return kindNames[realm]
+}
+
+// realmNames contains SearchRealm names
+var kindNames = map[UnitKind]string{
+	KindInvalid:          "invalid",
+	KindIPPPrinter:       "IPP printer",
+	KindLPRPrinter:       "LPR printer",
+	KindAppSocketPrinter: "AppSocket printer",
+	KindWSDPrinter:       "WSD printer",
+	KindCUPSPrinter:      "CUPS printer",
+	KindSMBPrinter:       "SMB printer",
+	KindUSBPrinter:       "USB printer",
+	KindUnknownPrinter:   "Unknown printer",
+	KindIPPScanner:       "IPP scanner",
+	KindESCLScanner:      "ESCL scanner",
+	KindWSDScanner:       "WSD scanner",
+	KindUnknownScanner:   "Unknown scanner",
+}
