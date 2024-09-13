@@ -29,7 +29,22 @@ func NewServer(template *http.Server) *Server {
 	}
 
 	srvr := &Server{
-		Server: *template,
+		Server: http.Server{
+			Addr:                         template.Addr,
+			Handler:                      template.Handler,
+			DisableGeneralOptionsHandler: template.DisableGeneralOptionsHandler,
+			TLSConfig:                    template.TLSConfig,
+			ReadTimeout:                  template.ReadTimeout,
+			ReadHeaderTimeout:            template.ReadHeaderTimeout,
+			WriteTimeout:                 template.WriteTimeout,
+			IdleTimeout:                  template.IdleTimeout,
+			MaxHeaderBytes:               template.MaxHeaderBytes,
+			TLSNextProto:                 template.TLSNextProto,
+			ConnState:                    template.ConnState,
+			ErrorLog:                     template.ErrorLog,
+			BaseContext:                  template.BaseContext,
+			ConnContext:                  template.ConnContext,
+		},
 	}
 
 	return srvr

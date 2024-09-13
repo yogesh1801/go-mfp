@@ -215,6 +215,8 @@ func testAutoTLSFrozenClient(t *testing.T, tr *Transport, l net.Listener) {
 	var done sync.WaitGroup
 
 	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	rq, err := NewRequest(ctx, "GET", u, nil)
 	if err != nil {
 		t.Errorf("GET %s: %s", u, err)
@@ -305,6 +307,8 @@ func testAutoTLSAbortingClient(t *testing.T, tr *Transport, l net.Listener) {
 	var done sync.WaitGroup
 
 	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	rq, err := NewRequest(ctx, "GET", u, nil)
 	if err != nil {
 		t.Errorf("GET %s: %s", u, err)
