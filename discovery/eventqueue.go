@@ -31,7 +31,8 @@ type Eventqueue struct {
 // NewEventqueue creates the new Eventqueue
 func NewEventqueue() *Eventqueue {
 	return &Eventqueue{
-		events: make([]Event, 0, 32),
+		events:    make([]Event, 0, 32),
+		readychan: make(chan struct{}),
 	}
 }
 
