@@ -15,7 +15,7 @@ const (
 	svcTypeAppSocket = "_pdl-datastream._tcp" // AppSocket AKA JetDirect
 	svcTypeIPP       = "_ipp._tcp"            // IPP over
 	svcTypeIPPS      = "_ipps._tcp"           // IPP over HTTPS
-	svcTypeLPR       = "_printer._tcp"        // LPR printer
+	svcTypeLPD       = "_printer._tcp"        // LPD printer
 	svcTypeESCL      = "_uscan._tcp"          // eSCL scan
 	svcTypeESCLS     = "_uscans._tcp"         // eSCL scan over HTTPS
 )
@@ -25,7 +25,7 @@ var svcTypes = []string{
 	svcTypeAppSocket,
 	svcTypeIPP,
 	svcTypeIPPS,
-	svcTypeLPR,
+	svcTypeLPD,
 	svcTypeESCL,
 	svcTypeESCLS,
 }
@@ -63,7 +63,7 @@ var svcTypeToKindMap = map[string]discovery.UnitKind{
 	svcTypeAppSocket: discovery.KindAppSocketPrinter,
 	svcTypeIPP:       discovery.KindIPPPrinter,
 	svcTypeIPPS:      discovery.KindIPPPrinter,
-	svcTypeLPR:       discovery.KindLPRPrinter,
+	svcTypeLPD:       discovery.KindLPDPrinter,
 	svcTypeESCL:      discovery.KindESCLScanner,
 	svcTypeESCLS:     discovery.KindESCLScanner,
 }

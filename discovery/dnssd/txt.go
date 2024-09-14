@@ -59,7 +59,7 @@ func decodeTxtPrinter(svcType, svcInstance string,
 	switch svcType {
 	case svcTypeIPP, svcTypeIPPS:
 		p.params.Queue = "ipp/print"
-	case svcTypeLPR:
+	case svcTypeLPD:
 		p.params.Queue = "auto"
 	}
 

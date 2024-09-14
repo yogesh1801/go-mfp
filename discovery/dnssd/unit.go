@@ -168,7 +168,7 @@ func (un *unit) endpoint(addr netip.Addr) string {
 
 		url.Path = un.txtPrn.params.Queue
 
-	case svcTypeLPR:
+	case svcTypeLPD:
 		// lpd://host[:port]/queue
 		// default port: 515
 		url.Scheme = "lpd"

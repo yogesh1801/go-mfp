@@ -89,7 +89,7 @@ const (
 
 	// Printers
 	KindIPPPrinter       // IPP/IPPS printer
-	KindLPRPrinter       // LPR protocol printer
+	KindLPDPrinter       // LPD protocol printer
 	KindAppSocketPrinter // AppSocket (AKA JetDirect) Printer
 	KindWSDPrinter       // WSD printer
 	KindCUPSPrinter      // CUPS-shred printer
@@ -113,7 +113,7 @@ func (realm UnitKind) String() string {
 var kindNames = map[UnitKind]string{
 	KindInvalid:          "invalid",
 	KindIPPPrinter:       "IPP printer",
-	KindLPRPrinter:       "LPR printer",
+	KindLPDPrinter:       "LPD printer",
 	KindAppSocketPrinter: "AppSocket printer",
 	KindWSDPrinter:       "WSD printer",
 	KindCUPSPrinter:      "CUPS printer",

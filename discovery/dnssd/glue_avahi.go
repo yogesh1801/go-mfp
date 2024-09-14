@@ -401,7 +401,7 @@ func (key avahiServiceKey) HostnameKey(name string) avahiHostnameKey {
 // PrinterUnitID makes discovery.UnitID for printer
 func (key avahiServiceKey) PrinterUnitID(txt txtPrinter) discovery.UnitID {
 	subrealm := fmt.Sprintf("%d-%s", key.IfIdx, key.Proto)
-	if key.SvcType == svcTypeLPR {
+	if key.SvcType == svcTypeLPD {
 		subrealm += "-" + txt.params.Queue
 	}
 
