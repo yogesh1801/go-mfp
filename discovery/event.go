@@ -22,8 +22,8 @@ var (
 	_ = Event(&EventDelUnit{})
 	_ = Event(&EventPrinterParameters{})
 	_ = Event(&EventScannerParameters{})
-	_ = Event(&EventAddEndpoints{})
-	_ = Event(&EventDelEndpoints{})
+	_ = Event(&EventAddEndpoint{})
+	_ = Event(&EventDelEndpoint{})
 )
 
 // EventAddUnit generated when new print or scan unit is discovered.
@@ -102,44 +102,43 @@ func (evnt *EventScannerParameters) GetID() UnitID {
 	return evnt.ID
 }
 
-// EventAddEndpoints is generated, when one or more new printer's
-// or scanner's endpoints are discovered.
+// EventAddEndpoint is generated to report each discovered endpoint.
 //
 // Backend responsibilities:
 //   - Unit MUST exist
 //   - The same endpoint MUST NOT be added multiple times.
-type EventAddEndpoints struct {
-	ID        UnitID   // Unit identity
-	Endpoints []string // URLs of added endpoints
+type EventAddEndpoint struct {
+	ID       UnitID // Unit identity
+	Endpoint string // URLs of added endpoints
 }
 
 // Name returns the Event name.
-func (*EventAddEndpoints) Name() string {
-	return "add-endpoints"
+func (*EventAddEndpoint) Name() string {
+	return "add-endpoint"
 }
 
 // GetID returns the UnitID this event related to.
-func (evnt *EventAddEndpoints) GetID() UnitID {
+func (evnt *EventAddEndpoint) GetID() UnitID {
 	return evnt.ID
 }
 
-// EventDelEndpoints is generated, when one ore more printer's or scanner's
-// endpoints are not longer available.
+// EventDelEndpoint is generated, when some of the previously reported
+// endpoints is not longer available.
 //
 // Backend responsibilities:
 //   - Unit MUST exist
 //   - The removed endpoints MUST exist.
-type EventDelEndpoints struct {
-	ID        UnitID   // Unit identity
-	Endpoints []string // URLs of removed endpoints
+type EventDelEndpoint struct {
+	ID       UnitID // Unit identity
+	Endpoint string // URLs of removed endpoints
 }
 
 // Name returns the Event name.
-func (*EventDelEndpoints) Name() string {
-	return "del-endpoints"
+func (*EventDelEndpoint) Name() string {
+	return "del-endpoint"
 }
 
 // GetID returns the UnitID this event related to.
-func (evnt *EventDelEndpoints) GetID() UnitID {
+func (evnt *EventDelEndpoint) GetID() UnitID {
 	return evnt.ID
 }

@@ -104,9 +104,9 @@ func (un *unit) AddAddr(addr netip.Addr) {
 	if !un.addrs.Contains(addr) {
 		un.addrs.Add(addr)
 		if un.port != 0 {
-			evnt := &discovery.EventAddEndpoints{
-				ID:        un.id,
-				Endpoints: []string{un.endpoint(addr)},
+			evnt := &discovery.EventAddEndpoint{
+				ID:       un.id,
+				Endpoint: un.endpoint(addr),
 			}
 			un.queue.Push(evnt)
 		}
@@ -118,9 +118,9 @@ func (un *unit) DelAddr(addr netip.Addr) {
 	if un.addrs.Contains(addr) {
 		un.addrs.Del(addr)
 		if un.port != 0 {
-			evnt := &discovery.EventDelEndpoints{
-				ID:        un.id,
-				Endpoints: []string{un.endpoint(addr)},
+			evnt := &discovery.EventDelEndpoint{
+				ID:       un.id,
+				Endpoint: un.endpoint(addr),
 			}
 			un.queue.Push(evnt)
 		}
