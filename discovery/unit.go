@@ -15,6 +15,14 @@ import (
 	"github.com/alexpevzner/mfp/uuid"
 )
 
+// PrintUnit represents a print unit
+type PrintUnit struct {
+	ID        UnitID            // Unit identity
+	Meta      Metadata          // Unit metadata
+	Params    PrinterParameters // Printer parameters
+	Endpoints []string          // URLs of printer endpoints
+}
+
 // UnitID contains combination of parameters that identifies a device.
 //
 // Please note, depending on a discovery protocol being used, not

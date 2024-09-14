@@ -22,6 +22,7 @@ import (
 type txtPrinter struct {
 	uuid    uuid.UUID                    // Device UUID
 	svcType string                       // Service type
+	meta    discovery.Metadata           // Unit metadata
 	params  *discovery.PrinterParameters // Printer parameters
 }
 
@@ -30,6 +31,7 @@ type txtScanner struct {
 	uuid    uuid.UUID                    // Device UUID
 	svcType string                       // Service type
 	uriPath string                       // Path part of URI
+	meta    discovery.Metadata           // Unit metadata
 	params  *discovery.ScannerParameters // Printer parameters
 }
 
@@ -130,9 +132,11 @@ func decodeTxtPrinter(svcType, svcInstance string,
 				err = fmt.Errorf("unknown version %q", value)
 			}
 		case "ty":
-			p.params.MakeModel = value
+			p.meta.MakeModel = value
 		case "usb_mdl":
+			p.meta.Model = value
 		case "usb_mfg":
+			p.meta.Manufacturer = value
 		case "uuid":
 			p.uuid, err = uuid.Parse(value)
 
@@ -221,7 +225,7 @@ func decodeTxtScanner(svcType, svcInstance string,
 
 			s.uriPath = value
 		case "ty":
-			s.params.MakeModel = value
+			s.meta.MakeModel = value
 		case "uuid":
 			s.uuid, err = uuid.Parse(value)
 		}

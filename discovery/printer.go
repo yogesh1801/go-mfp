@@ -8,13 +8,6 @@
 
 package discovery
 
-// PrintUnit represents a print unit
-type PrintUnit struct {
-	ID        UnitID            // Unit identity
-	Params    PrinterParameters // Printer parameters
-	Endpoints []string          // URLs of printer endpoints
-}
-
 // PrinterParameters represents the discoverable information about the printer.
 //
 // It is defined in the [IPP.Everywhere] and [Apple Bounjour Printing]
@@ -24,12 +17,11 @@ type PrintUnit struct {
 // [Apple Bounjour Printing]: https://developer.apple.com/bonjour/printing-specification/bonjourprinting-1.2.1.pdf
 type PrinterParameters struct {
 	// Printer description
-	MakeModel string    // Device make and model
-	Auth      AuthMode  // Required authentication type
-	AdminURL  string    // Printer configuration page
-	Location  string    // E.g., "2nd Floor Computer Lab"
-	Paper     PaperSize // Max paper size
-	Media     MediaKind // Kind of output media
+	Auth     AuthMode  // Required authentication type
+	AdminURL string    // Printer configuration page
+	Location string    // E.g., "2nd Floor Computer Lab"
+	Paper    PaperSize // Max paper size
+	Media    MediaKind // Kind of output media
 
 	// Printer capabilities
 	Bind    bool // Printer can bind output
