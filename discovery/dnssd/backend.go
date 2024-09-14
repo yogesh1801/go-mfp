@@ -260,13 +260,12 @@ func (back *backend) onTxtBrowserEvent(evnt *avahi.RecordBrowserEvent) error {
 				return nil // Don't propagate the error
 			}
 
-			unName := txtPrinter.params.Queue
-			un := service.GetUnit(unName)
+			id := key.PrinterUnitID(txtPrinter)
+			un := service.GetUnit(id.UnitName)
 			if un == nil {
-				id := key.PrinterUnitID(txtPrinter)
 				un = newPrinterUnit(back.queue,
 					id, txtPrinter, port)
-				service.AddUnit(unName, un)
+				service.AddUnit(id.UnitName, un)
 			} else {
 				un.SetTxtPrinter(txtPrinter)
 			}

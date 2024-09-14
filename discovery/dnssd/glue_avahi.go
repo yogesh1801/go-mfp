@@ -408,6 +408,7 @@ func (key avahiServiceKey) PrinterUnitID(txt txtPrinter) discovery.UnitID {
 	return discovery.UnitID{
 		DeviceName: key.InstanceName,
 		UUID:       txt.uuid,
+		UnitName:   txt.params.Queue,
 		Realm:      discovery.RealmDNSSD,
 		SubRealm:   subrealm,
 		Kind:       svcTypeToKind(key.SvcType),

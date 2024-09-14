@@ -34,19 +34,22 @@ type PrintUnit struct {
 //
 // The intended fields usage is the following:
 //
-//	DeviceName - unique device name, in the DNS-SD sence.
+//	DeviceName - realm-unique device name, in the DNS-SD sense.
 //	             E.g., "Kyocera ECOSYS M2040dn",
 //	UUID       - device UUID
+//	UnitName   - specifies a logical unit within a device (for example,
+//	             queue name for LPD printer which may have multiple
+//	             distinct queues). Optional
 //	Realm      - search realm. Different realms are treated as
 //	             independent namespaces.
 //	SubRealm   - allows backend to further divide its namespace
 //	             (for example, to split it between IP4/IP6)
 //	Kind       - specifies device kind (e.g., "IPP printer")
 //	Serial     - device serial number, if appropriate (i.e., for USB)
-//	MakeModel  - device make and model (e.g., "HP DeskJet 2540")
 type UnitID struct {
 	DeviceName string      // Realm-unique device name
 	UUID       uuid.UUID   // uuid.NilUUID if not available
+	UnitName   string      // Logical unit within a device
 	Realm      SearchRealm // Search realm
 	SubRealm   string      // Backend-specific subrealm
 	Kind       UnitKind    // Kind of the unit
@@ -59,22 +62,25 @@ func (id UnitID) MarshalText() ([]byte, error) {
 	lines := make([]string, 0, 6)
 
 	if id.DeviceName != "" {
-		lines = append(lines, fmt.Sprintf("Name:   %q", id.DeviceName))
+		lines = append(lines, fmt.Sprintf("Name:     %q", id.DeviceName))
 	}
 	if id.UUID != uuid.NilUUID {
-		lines = append(lines, fmt.Sprintf("UUID:   %s", id.UUID))
+		lines = append(lines, fmt.Sprintf("UUID:     %s", id.UUID))
+	}
+	if id.UnitName != "" {
+		lines = append(lines, fmt.Sprintf("UnitName: %q", id.UnitName))
 	}
 
 	realm := id.Realm.String()
 	if id.SubRealm != "" {
 		realm += "-" + id.SubRealm
 	}
-	lines = append(lines, fmt.Sprintf("Realm:  %s", realm))
+	lines = append(lines, fmt.Sprintf("Realm  :  %s", realm))
 
-	lines = append(lines, fmt.Sprintf("Kind:   %s", id.Kind))
+	lines = append(lines, fmt.Sprintf("Kind:     %s", id.Kind))
 
 	if id.Serial != "" {
-		lines = append(lines, fmt.Sprintf("Serial: %s", id.Serial))
+		lines = append(lines, fmt.Sprintf("Serial:   %s", id.Serial))
 	}
 
 	return []byte(strings.Join(lines, "\n")), nil
