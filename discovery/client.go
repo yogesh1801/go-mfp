@@ -27,6 +27,10 @@ type Client struct {
 }
 
 // NewClient creates a new discovery [Client].
+//
+// The provided [context.Context] is used for two purposes:
+//   - For logging
+//   - Client will terminate its operations, if context is canceled.
 func NewClient(ctx context.Context) *Client {
 	// Set log prefix
 	ctx = log.WithPrefix(ctx, "discovery")
@@ -69,6 +73,29 @@ func (clnt *Client) AddBackend(bk Backend) {
 	log.Debug(clnt.ctx, "%s: backend added", bk.Name())
 	clnt.backends[bk] = struct{}{}
 	bk.Start(clnt.queue)
+}
+
+// GetDevices returns a list of discovered devices.
+//
+// Depending on [Mode] parameter and present discovery state,
+// it may wait for some time or return immediately.
+//
+// If GetDevices decides to wait, expiration of either Context,
+// given to this function as argument, or Context, using as [NewClient]
+// argument during the Client creation will cause this function to
+// return immediately with the appropriate error. And this is the
+// only case when error is returned.
+func (clnt *Client) GetDevices(ctx context.Context, m Mode) ([]Device, error) {
+	return nil, nil
+}
+
+// Refresh causes [Client] to forcibly refresh its vision of
+// discovered devices.
+//
+// The Refresh call returns immediately, but the subsequent call
+// to the [Client.GetDevices] may wait until refresh completion,
+// depending on mode.
+func (clnt *Client) Refresh() {
 }
 
 // proc runs the discovery event loop on its separate goroutine.
