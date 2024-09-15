@@ -75,7 +75,7 @@ func (id UnitID) MarshalText() ([]byte, error) {
 	if id.SubRealm != "" {
 		realm += "-" + id.SubRealm
 	}
-	lines = append(lines, fmt.Sprintf("Realm  :  %s", realm))
+	lines = append(lines, fmt.Sprintf("Realm:    %s", realm))
 
 	lines = append(lines, fmt.Sprintf("Kind:     %s", id.Kind))
 
