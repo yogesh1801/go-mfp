@@ -47,14 +47,15 @@ type PrintUnit struct {
 //	Kind       - specifies device kind (e.g., "IPP printer")
 //	Serial     - device serial number, if appropriate (i.e., for USB)
 type UnitID struct {
-	DeviceName string       // Realm-unique device name
-	UUID       uuid.UUID    // uuid.NilUUID if not available
-	UnitName   string       // Logical unit within a device
-	Realm      SearchRealm  // Search realm
-	SubRealm   string       // Backend-specific subrealm
-	SvcType    ServiceType  // Service type
-	SvcProto   ServiceProto // Service protocol
-	Serial     string       // "" if not avaliable
+	DeviceName string        // Realm-unique device name
+	UUID       uuid.UUID     // uuid.NilUUID if not available
+	UnitName   string        // Logical unit within a device
+	Realm      SearchRealm   // Search realm
+	IfIdx      int           // Network interface index, if applicable
+	AF         AddressFamily // AddressFamily, if applicable
+	SvcType    ServiceType   // Service type
+	SvcProto   ServiceProto  // Service protocol
+	Serial     string        // "" if not avaliable
 }
 
 // MarshalText dumps [UnitID] as text, for [log.Object].
@@ -72,11 +73,15 @@ func (id UnitID) MarshalText() ([]byte, error) {
 		lines = append(lines, fmt.Sprintf("UnitName: %q", id.UnitName))
 	}
 
-	realm := id.Realm.String()
-	if id.SubRealm != "" {
-		realm += "-" + id.SubRealm
+	lines = append(lines, fmt.Sprintf("Realm:    %s", id.Realm))
+
+	if id.IfIdx != 0 {
+		lines = append(lines, fmt.Sprintf("IfIdx:    %d", id.IfIdx))
 	}
-	lines = append(lines, fmt.Sprintf("Realm:    %s", realm))
+
+	if id.AF != AddressFamilyNA {
+		lines = append(lines, fmt.Sprintf("AF:       %s", id.AF))
+	}
 
 	lines = append(lines, fmt.Sprintf("Service:  %s %s",
 		id.SvcProto, id.SvcType))

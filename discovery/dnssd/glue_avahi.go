@@ -400,9 +400,12 @@ func (key avahiServiceKey) HostnameKey(name string) avahiHostnameKey {
 
 // PrinterUnitID makes discovery.UnitID for printer
 func (key avahiServiceKey) PrinterUnitID(txt txtPrinter) discovery.UnitID {
-	subrealm := fmt.Sprintf("%d-%s", key.IfIdx, key.Proto)
-	if key.SvcType == svcTypeLPD {
-		subrealm += "-" + txt.params.Queue
+	af := discovery.AddressFamilyNA
+	switch key.Proto {
+	case avahi.ProtocolIP4:
+		af = discovery.AddressFamilyIP4
+	case avahi.ProtocolIP6:
+		af = discovery.AddressFamilyIP6
 	}
 
 	return discovery.UnitID{
@@ -410,7 +413,8 @@ func (key avahiServiceKey) PrinterUnitID(txt txtPrinter) discovery.UnitID {
 		UUID:       txt.uuid,
 		UnitName:   txt.params.Queue,
 		Realm:      discovery.RealmDNSSD,
-		SubRealm:   subrealm,
+		IfIdx:      int(key.IfIdx),
+		AF:         af,
 		SvcType:    discovery.ServicePrinter,
 		SvcProto:   svcTypeToDiscoveryServiceProto(key.SvcType),
 	}
@@ -418,13 +422,20 @@ func (key avahiServiceKey) PrinterUnitID(txt txtPrinter) discovery.UnitID {
 
 // ScannerUnitID makes discovery.UnitID for scanner
 func (key avahiServiceKey) ScannerUnitID(txt txtScanner) discovery.UnitID {
-	subrealm := fmt.Sprintf("%d-%s", key.IfIdx, key.Proto)
+	af := discovery.AddressFamilyNA
+	switch key.Proto {
+	case avahi.ProtocolIP4:
+		af = discovery.AddressFamilyIP4
+	case avahi.ProtocolIP6:
+		af = discovery.AddressFamilyIP6
+	}
 
 	return discovery.UnitID{
 		DeviceName: key.InstanceName,
 		UUID:       txt.uuid,
 		Realm:      discovery.RealmDNSSD,
-		SubRealm:   subrealm,
+		IfIdx:      int(key.IfIdx),
+		AF:         af,
 		SvcType:    discovery.ServiceScanner,
 		SvcProto:   svcTypeToDiscoveryServiceProto(key.SvcType),
 	}
