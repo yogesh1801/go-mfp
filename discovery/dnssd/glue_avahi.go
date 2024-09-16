@@ -411,7 +411,8 @@ func (key avahiServiceKey) PrinterUnitID(txt txtPrinter) discovery.UnitID {
 		UnitName:   txt.params.Queue,
 		Realm:      discovery.RealmDNSSD,
 		SubRealm:   subrealm,
-		Kind:       svcTypeToKind(key.SvcType),
+		SvcType:    discovery.ServicePrinter,
+		SvcProto:   svcTypeToDiscoveryServiceProto(key.SvcType),
 	}
 }
 
@@ -424,7 +425,8 @@ func (key avahiServiceKey) ScannerUnitID(txt txtScanner) discovery.UnitID {
 		UUID:       txt.uuid,
 		Realm:      discovery.RealmDNSSD,
 		SubRealm:   subrealm,
-		Kind:       svcTypeToKind(key.SvcType),
+		SvcType:    discovery.ServiceScanner,
+		SvcProto:   svcTypeToDiscoveryServiceProto(key.SvcType),
 	}
 }
 

@@ -30,18 +30,21 @@ var svcTypes = []string{
 	svcTypeESCLS,
 }
 
-// svcTypeToKind returns discovery.UnitKind for the service type
-func svcTypeToKind(svcType string) discovery.UnitKind {
-	return svcTypeToKindMap[svcType]
-}
-
-// svcTypeIsSecure reports if service type uses encrypted connection
-func svcTypeIsSecure(svcType string) bool {
+// svcTypeToProto returns discovery.ServiceProto for the
+// service type
+func svcTypeToDiscoveryServiceProto(svcType string) discovery.ServiceProto {
 	switch svcType {
-	case svcTypeIPPS, svcTypeESCLS:
-		return true
+	case svcTypeAppSocket:
+		return discovery.ServiceAppSocket
+	case svcTypeIPP, svcTypeIPPS:
+		return discovery.ServiceIPP
+	case svcTypeLPD:
+		return discovery.ServiceLPD
+	case svcTypeESCL, svcTypeESCLS:
+		return discovery.ServiceESCL
 	}
-	return false
+
+	panic("internal error")
 }
 
 // svcTypeIsPrinter reports if service type is the printer service
@@ -56,14 +59,4 @@ func svcTypeIsScanner(svcType string) bool {
 		return true
 	}
 	return false
-}
-
-// svcTypeToKindMap maps svcType to discovery.UnitKind
-var svcTypeToKindMap = map[string]discovery.UnitKind{
-	svcTypeAppSocket: discovery.KindAppSocketPrinter,
-	svcTypeIPP:       discovery.KindIPPPrinter,
-	svcTypeIPPS:      discovery.KindIPPPrinter,
-	svcTypeLPD:       discovery.KindLPDPrinter,
-	svcTypeESCL:      discovery.KindESCLScanner,
-	svcTypeESCLS:     discovery.KindESCLScanner,
 }

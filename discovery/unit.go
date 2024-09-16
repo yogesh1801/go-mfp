@@ -47,13 +47,14 @@ type PrintUnit struct {
 //	Kind       - specifies device kind (e.g., "IPP printer")
 //	Serial     - device serial number, if appropriate (i.e., for USB)
 type UnitID struct {
-	DeviceName string      // Realm-unique device name
-	UUID       uuid.UUID   // uuid.NilUUID if not available
-	UnitName   string      // Logical unit within a device
-	Realm      SearchRealm // Search realm
-	SubRealm   string      // Backend-specific subrealm
-	Kind       UnitKind    // Kind of the unit
-	Serial     string      // "" if not avaliable
+	DeviceName string       // Realm-unique device name
+	UUID       uuid.UUID    // uuid.NilUUID if not available
+	UnitName   string       // Logical unit within a device
+	Realm      SearchRealm  // Search realm
+	SubRealm   string       // Backend-specific subrealm
+	SvcType    ServiceType  // Service type
+	SvcProto   ServiceProto // Service protocol
+	Serial     string       // "" if not avaliable
 }
 
 // MarshalText dumps [UnitID] as text, for [log.Object].
@@ -77,57 +78,12 @@ func (id UnitID) MarshalText() ([]byte, error) {
 	}
 	lines = append(lines, fmt.Sprintf("Realm:    %s", realm))
 
-	lines = append(lines, fmt.Sprintf("Kind:     %s", id.Kind))
+	lines = append(lines, fmt.Sprintf("Service:  %s %s",
+		id.SvcProto, id.SvcType))
 
 	if id.Serial != "" {
 		lines = append(lines, fmt.Sprintf("Serial:   %s", id.Serial))
 	}
 
 	return []byte(strings.Join(lines, "\n")), nil
-}
-
-// UnitKind identifies a kind of device.
-type UnitKind int
-
-// UnitKind values:
-const (
-	KindInvalid UnitKind = iota
-
-	// Printers
-	KindIPPPrinter       // IPP/IPPS printer
-	KindLPDPrinter       // LPD protocol printer
-	KindAppSocketPrinter // AppSocket (AKA JetDirect) Printer
-	KindWSDPrinter       // WSD printer
-	KindCUPSPrinter      // CUPS-shred printer
-	KindSMBPrinter       // SMB-shred printer
-	KindUSBPrinter       // USB printer
-	KindUnknownPrinter   // Unknown printer
-
-	// Scanners
-	KindIPPScanner     // IPP/IPPS scanner
-	KindESCLScanner    // ESCL scanner
-	KindWSDScanner     // WSD scanner
-	KindUnknownScanner // Unknown scanner
-)
-
-// String returns UnitKind name.
-func (realm UnitKind) String() string {
-	return kindNames[realm]
-}
-
-// realmNames contains SearchRealm names
-var kindNames = map[UnitKind]string{
-	KindInvalid:          "invalid",
-	KindIPPPrinter:       "IPP printer",
-	KindLPDPrinter:       "LPD printer",
-	KindAppSocketPrinter: "AppSocket printer",
-	KindWSDPrinter:       "WSD printer",
-	KindCUPSPrinter:      "CUPS printer",
-	KindSMBPrinter:       "SMB printer",
-	KindUSBPrinter:       "USB printer",
-	KindUnknownPrinter:   "Unknown printer",
-	KindIPPScanner:       "IPP scanner",
-	KindESCLScanner:      "ESCL scanner",
-	KindWSDScanner:       "WSD scanner",
-	KindUnknownScanner:   "Unknown scanner",
 }
