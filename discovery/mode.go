@@ -25,6 +25,25 @@ const (
 	// data immediately.
 	ModeNormal = iota
 
+	// Due to the nature of most discovery protocols, when a new device
+	// joins the network, the information describing the device arrives
+	// in parts, and these parts do not necessarily arrive at the same
+	// time.
+	//
+	// For example, the IPv6 address of a device may be discovered
+	// significantly later than its IPv4 address.
+	//
+	// As a result, newly discovered (or changed) devices may remain in
+	// an "incomplete" state for some time.
+	//
+	// In the ModeNormal mode, the discovery system will not wait for
+	// these incomplete devices to stabilize and will simply return
+	// the previous stable state in the output. In the ModeWaitIncomplete
+	// mode, if incomplete devices exist in the cache, the discovery
+	// system will wait for a period, allowing them the opportunity
+	// to stabilize.
+	ModeWaitIncomplete
+
 	// ModeSnapshot returns content of discovery cache immediately
 	// and doesn't wait for cache warm-up.
 	ModeSnapshot
