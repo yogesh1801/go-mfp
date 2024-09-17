@@ -22,6 +22,7 @@ var (
 	_ = Event(&EventDelUnit{})
 	_ = Event(&EventPrinterParameters{})
 	_ = Event(&EventScannerParameters{})
+	_ = Event(&EventFaxoutParameters{})
 	_ = Event(&EventAddEndpoint{})
 	_ = Event(&EventDelEndpoint{})
 )
@@ -99,6 +100,26 @@ func (*EventScannerParameters) Name() string {
 
 // GetID returns the UnitID this event related to.
 func (evnt *EventScannerParameters) GetID() UnitID {
+	return evnt.ID
+}
+
+// EventFaxoutParameters generated when faxout parameters
+// become available or updated.
+//
+// Backend responsibilities:
+//   - Unit MUST exist
+type EventFaxoutParameters struct {
+	ID     UnitID            // Unit identity
+	Faxout PrinterParameters // Faxout parameters (the same as printer)
+}
+
+// Name returns the Event name.
+func (*EventFaxoutParameters) Name() string {
+	return "scanner-parameters"
+}
+
+// GetID returns the UnitID this event related to.
+func (evnt *EventFaxoutParameters) GetID() UnitID {
 	return evnt.ID
 }
 
