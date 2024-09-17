@@ -8,14 +8,6 @@
 
 package discovery
 
-// ScanUnit represents a scan unit
-type ScanUnit struct {
-	ID        UnitID            // Unit identity
-	Meta      Metadata          // Unit metadata
-	Params    ScannerParameters // Scanner parameters
-	Endpoints []string          // URLs of printer endpoints
-}
-
 // ScannerParameters represents the discoverable information about the printer.
 type ScannerParameters struct {
 	// Scanner description

@@ -15,8 +15,24 @@ import (
 	"github.com/alexpevzner/mfp/uuid"
 )
 
-// PrintUnit represents a print unit
+// PrintUnit represents a print unit.
 type PrintUnit struct {
+	ID        UnitID            // Unit identity
+	Meta      Metadata          // Unit metadata
+	Params    PrinterParameters // Printer parameters
+	Endpoints []string          // URLs of printer endpoints
+}
+
+// ScanUnit represents a scan unit.
+type ScanUnit struct {
+	ID        UnitID            // Unit identity
+	Meta      Metadata          // Unit metadata
+	Params    ScannerParameters // Scanner parameters
+	Endpoints []string          // URLs of printer endpoints
+}
+
+// FaxoutUnit represents a fax unit.
+type FaxoutUnit struct {
 	ID        UnitID            // Unit identity
 	Meta      Metadata          // Unit metadata
 	Params    PrinterParameters // Printer parameters

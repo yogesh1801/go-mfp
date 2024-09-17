@@ -16,6 +16,7 @@ package discovery
 // Each unit has its unique [UnitID], the combination of parameters,
 // that uniquely identifies the unit.
 type Device struct {
-	PrintUnits []PrintUnit
-	ScanUnits  []ScanUnit
+	PrintUnits  []PrintUnit
+	ScanUnits   []ScanUnit
+	FaxoutUnits []FaxoutUnit
 }
