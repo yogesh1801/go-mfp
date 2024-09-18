@@ -28,7 +28,7 @@ func (t ServiceType) String() string {
 	case ServiceScanner:
 		return "scanner"
 	case ServiceFaxout:
-		return "fax"
+		return "faxout"
 	}
 
 	return fmt.Sprintf("unknown (%d)", int(t))
