@@ -22,6 +22,7 @@ type Client struct {
 	cancel   context.CancelFunc
 	queue    *Eventqueue
 	backends map[Backend]struct{}
+	cache    *cache
 	lock     sync.Mutex
 	done     sync.WaitGroup
 }
@@ -43,6 +44,7 @@ func NewClient(ctx context.Context) *Client {
 		ctx:      ctx,
 		cancel:   cancel,
 		queue:    NewEventqueue(),
+		cache:    newCache(),
 		backends: make(map[Backend]struct{}),
 	}
 
@@ -102,13 +104,55 @@ func (clnt *Client) Refresh() {
 func (clnt *Client) proc() {
 	defer clnt.done.Done()
 
-	for {
-		evnt, err := clnt.queue.pull(clnt.ctx)
-		if err != nil {
-			return
-		}
-
-		log.Debug(clnt.ctx, "%s:", evnt.Name())
-		log.Object(clnt.ctx, log.LevelDebug, 2, evnt.GetID())
+	var err error
+	for err == nil {
+		err = clnt.nextEvent()
 	}
+}
+
+// nextEvent pulls and handles the next event
+func (clnt *Client) nextEvent() error {
+	evnt, err := clnt.queue.pull(clnt.ctx)
+	if err != nil {
+		return err
+	}
+
+	rec := log.Begin(clnt.ctx)
+	defer rec.Commit()
+
+	rec.Debug("%s:", evnt.Name())
+	rec.Object(log.LevelDebug, 2, evnt.GetID())
+
+	switch evnt := evnt.(type) {
+	case *EventAddUnit:
+		err = clnt.cache.AddUnit(evnt.ID)
+	case *EventDelUnit:
+		err = clnt.cache.DelUnit(evnt.ID)
+	case *EventMetadata:
+		rec.Debug("  MakeModel: %s", evnt.Meta.MakeModel)
+		err = clnt.cache.SetMetadata(evnt.ID, evnt.Meta)
+	case *EventPrinterParameters:
+		err = clnt.cache.SetPrinterParameters(evnt.ID,
+			evnt.Printer)
+	case *EventScannerParameters:
+		err = clnt.cache.SetScannerParameters(evnt.ID,
+			evnt.Scanner)
+	case *EventFaxoutParameters:
+		err = clnt.cache.SetFaxoutParameters(evnt.ID,
+			evnt.Faxout)
+	case *EventAddEndpoint:
+		rec.Debug("  Endpoint: %s", evnt.Endpoint)
+		err = clnt.cache.AddEndpoint(evnt.ID, evnt.Endpoint)
+	case *EventDelEndpoint:
+		rec.Debug("  Endpoint: %s", evnt.Endpoint)
+		err = clnt.cache.DelEndpoint(evnt.ID, evnt.Endpoint)
+	}
+
+	if err != nil {
+		// Log backend error and don't propagate it up the stack
+		rec.Error("%s", err)
+		err = nil
+	}
+
+	return err
 }
