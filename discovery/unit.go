@@ -74,6 +74,31 @@ type UnitID struct {
 	Serial     string        // "" if not avaliable
 }
 
+// SameDevice reports if two [UnitID]s belong to the same device.
+func (id UnitID) SameDevice(id2 UnitID) bool {
+	if id.UUID == id2.UUID {
+		return true
+	}
+
+	if id.DeviceName == id2.DeviceName && id.IfIdx == id2.IfIdx {
+		return true
+	}
+
+	return false
+}
+
+// SameService reports if two [UnitID]s belong to the same service of
+// the same device.
+func (id UnitID) SameService(id2 UnitID) bool {
+	return id.SvcType == id2.SvcType && id.SameDevice(id2)
+}
+
+// SameUnit reports if two [UnitID]s belong to the same unit of
+// the same device.
+func (id UnitID) SameUnit(id2 UnitID) bool {
+	return id.UnitName == id2.UnitName && id.SameService(id2)
+}
+
 // MarshalText dumps [UnitID] as text, for [log.Object].
 // It implements [encoding.TextMarshaler] interface.
 func (id UnitID) MarshalText() ([]byte, error) {
