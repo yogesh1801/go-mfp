@@ -52,6 +52,8 @@ func (p ServiceProto) String() string {
 	switch p {
 	case ServiceIPP:
 		return "IPP"
+	case ServiceESCL:
+		return "ESCL"
 	case ServiceLPD:
 		return "LPD"
 	case ServiceAppSocket:
