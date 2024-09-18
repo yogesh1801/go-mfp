@@ -42,6 +42,7 @@ func newPrinterUnit(queue *discovery.Eventqueue,
 	}
 
 	un.queue.Push(&discovery.EventAddUnit{ID: un.id})
+	un.queue.Push(&discovery.EventMetadata{ID: un.id, Meta: txt.meta})
 	un.queue.Push(&discovery.EventPrinterParameters{
 		ID:      un.id,
 		Printer: *txt.params,
@@ -63,6 +64,7 @@ func newScannerUnit(queue *discovery.Eventqueue,
 	}
 
 	un.queue.Push(&discovery.EventAddUnit{ID: un.id})
+	un.queue.Push(&discovery.EventMetadata{ID: un.id, Meta: txt.meta})
 	un.queue.Push(&discovery.EventScannerParameters{
 		ID:      un.id,
 		Scanner: *txt.params,
