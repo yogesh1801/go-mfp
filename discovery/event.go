@@ -20,6 +20,7 @@ type Event interface {
 var (
 	_ = Event(&EventAddUnit{})
 	_ = Event(&EventDelUnit{})
+	_ = Event(&EventMetadata{})
 	_ = Event(&EventPrinterParameters{})
 	_ = Event(&EventScannerParameters{})
 	_ = Event(&EventFaxoutParameters{})
@@ -62,8 +63,24 @@ func (evnt *EventDelUnit) GetID() UnitID {
 	return evnt.ID
 }
 
+// EventMetadata generated when unit metadate becomes available or updated.
+type EventMetadata struct {
+	ID   UnitID   // Unit identity
+	Meta Metadata // Unit metadata
+}
+
+// Name returns the Event name.
+func (*EventMetadata) Name() string {
+	return "metadata"
+}
+
+// GetID returns the UnitID this event related to.
+func (evnt *EventMetadata) GetID() UnitID {
+	return evnt.ID
+}
+
 // EventPrinterParameters generated when printer parameters
-// become available or updated.
+// becomes available or updated.
 //
 // Backend responsibilities:
 //   - Unit MUST exist (i.e., previously announced with the
