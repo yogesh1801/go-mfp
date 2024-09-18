@@ -165,7 +165,7 @@ func (c *cache) setParameters(id UnitID, svcMustBe ServiceType, p any) error {
 // the staging area is published.
 func (un *cacheUnit) stagingBegin() {
 	if !un.stagingCheck() {
-		un.stagingDoneAt = time.Now().Add(time.Second)
+		un.stagingDoneAt = time.Now().Add(StabilizationTime)
 	}
 }
 
