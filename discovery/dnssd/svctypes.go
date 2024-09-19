@@ -47,15 +47,6 @@ func svcTypeToDiscoveryServiceProto(svcType string) discovery.ServiceProto {
 	panic("internal error")
 }
 
-// svcTypeIsEncrypted reports if service type uses TLS encryption
-func svcTypeIsEncrypted(svcType string) bool {
-	switch svcType {
-	case svcTypeIPPS, svcTypeESCLS:
-		return true
-	}
-	return false
-}
-
 // svcTypeIsPrinter reports if service type is the printer service
 func svcTypeIsPrinter(svcType string) bool {
 	return !svcTypeIsScanner(svcType)

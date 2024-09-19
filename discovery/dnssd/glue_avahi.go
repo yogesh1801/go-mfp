@@ -405,15 +405,16 @@ func (key avahiServiceKey) commonUnitID() discovery.UnitID {
 
 	switch key.Proto {
 	case avahi.ProtocolIP4:
-		variant = "ip4-"
+		variant = "ip4"
 	case avahi.ProtocolIP6:
-		variant = "ip6-"
+		variant = "ip6"
 	}
 
-	if svcTypeIsEncrypted(key.SvcType) {
-		variant += "https"
-	} else {
-		variant += "http"
+	switch key.SvcType {
+	case svcTypeIPP, svcTypeESCL:
+		variant += "-http"
+	case svcTypeIPPS, svcTypeESCLS:
+		variant += "-https"
 	}
 
 	return discovery.UnitID{
