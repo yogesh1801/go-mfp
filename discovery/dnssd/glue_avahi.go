@@ -431,7 +431,7 @@ func (key avahiServiceKey) PrinterUnitID(txt txtPrinter) discovery.UnitID {
 	id := key.commonUnitID()
 
 	id.UUID = txt.uuid
-	id.UnitName = txt.params.Queue
+	id.Queue = txt.params.Queue
 	id.SvcType = discovery.ServicePrinter
 
 	return id

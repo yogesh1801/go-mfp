@@ -53,9 +53,8 @@ type FaxoutUnit struct {
 //	DeviceName - realm-unique device name, in the DNS-SD sense.
 //	             E.g., "Kyocera ECOSYS M2040dn",
 //	UUID       - device UUID
-//	UnitName   - specifies a logical unit within a device (for example,
-//	             queue name for LPD printer which may have multiple
-//	             distinct queues). Optional
+//	Queue      - Job queue name for units with logical sub-units,
+//	             like LPD server with multiple queues
 //	Realm      - search realm. Different realms are treated as
 //	             independent namespaces.
 //	Zone       - allows backend to further divide its namespace
@@ -69,7 +68,7 @@ type FaxoutUnit struct {
 type UnitID struct {
 	DeviceName string       // Realm-unique device name
 	UUID       uuid.UUID    // uuid.NilUUID if not available
-	UnitName   string       // Logical unit within a device
+	Queue      string       // Logical unit within a device
 	Realm      SearchRealm  // Search realm
 	Zone       string       // Namespace zone within the Realm
 	Variant    string       // Finding variant of the same unit
@@ -102,7 +101,7 @@ func (id UnitID) SameService(id2 UnitID) bool {
 // SameUnit reports if two [UnitID]s belong to the same unit of
 // the same device.
 func (id UnitID) SameUnit(id2 UnitID) bool {
-	return id.UnitName == id2.UnitName && id.SameService(id2)
+	return id.Queue == id2.Queue && id.SameService(id2)
 }
 
 // MarshalText dumps [UnitID] as text, for [log.Object].
@@ -116,8 +115,8 @@ func (id UnitID) MarshalText() ([]byte, error) {
 	if id.UUID != uuid.NilUUID {
 		lines = append(lines, fmt.Sprintf("UUID:     %s", id.UUID))
 	}
-	if id.UnitName != "" {
-		lines = append(lines, fmt.Sprintf("UnitName: %q", id.UnitName))
+	if id.Queue != "" {
+		lines = append(lines, fmt.Sprintf("Queue:    %q", id.Queue))
 	}
 
 	lines = append(lines, fmt.Sprintf("Realm:    %s", id.Realm))
