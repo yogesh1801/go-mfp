@@ -107,33 +107,41 @@ func (id UnitID) SameUnit(id2 UnitID) bool {
 // MarshalText dumps [UnitID] as text, for [log.Object].
 // It implements [encoding.TextMarshaler] interface.
 func (id UnitID) MarshalText() ([]byte, error) {
+	var line string
 	lines := make([]string, 0, 6)
 
 	if id.DeviceName != "" {
-		lines = append(lines, fmt.Sprintf("Name:     %q", id.DeviceName))
+		line = fmt.Sprintf("DeviceName: %q", id.DeviceName)
+		lines = append(lines, line)
 	}
 	if id.UUID != uuid.NilUUID {
-		lines = append(lines, fmt.Sprintf("UUID:     %s", id.UUID))
+		line = fmt.Sprintf("UUID:       %s", id.UUID)
+		lines = append(lines, line)
 	}
 	if id.Queue != "" {
-		lines = append(lines, fmt.Sprintf("Queue:    %q", id.Queue))
+		line = fmt.Sprintf("Queue:      %q", id.Queue)
+		lines = append(lines, line)
 	}
 
-	lines = append(lines, fmt.Sprintf("Realm:    %s", id.Realm))
+	line = fmt.Sprintf("Realm:      %s", id.Realm)
+	lines = append(lines, line)
 
 	if id.Zone != "" {
-		lines = append(lines, fmt.Sprintf("Zone:     %s", id.Zone))
+		line = fmt.Sprintf("Zone:       %s", id.Zone)
+		lines = append(lines, line)
 	}
 
 	if id.Variant != "" {
-		lines = append(lines, fmt.Sprintf("Variant:  %s", id.Variant))
+		line = fmt.Sprintf("Variant:    %s", id.Variant)
+		lines = append(lines, line)
 	}
 
-	lines = append(lines, fmt.Sprintf("Service:  %s %s",
-		id.SvcProto, id.SvcType))
+	line = fmt.Sprintf("Service:    %s %s", id.SvcProto, id.SvcType)
+	lines = append(lines, line)
 
 	if id.Serial != "" {
-		lines = append(lines, fmt.Sprintf("Serial:   %s", id.Serial))
+		line = fmt.Sprintf("Serial:     %s", id.Serial)
+		lines = append(lines, line)
 	}
 
 	return []byte(strings.Join(lines, "\n")), nil
