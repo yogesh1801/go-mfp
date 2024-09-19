@@ -16,18 +16,23 @@ import (
 
 // cache represents the discovery cache
 type cache struct {
-	ctime time.Time             // Cache creation time
-	units map[UnitID]*cacheUnit // Cached units
+	ctime   time.Time            // Cache creation time
+	entries map[UnitID]*cacheEnt // Cache entries
 }
 
 // cacheUnit is the cache entry for print/scan/faxout units.
 type cacheUnit struct {
-	id               UnitID    // Unit identity
-	meta             Metadata  // Unit metadata
-	params           any       // PrinterParameters or ScannerParameters
+	id        UnitID   // Unit identity
+	meta      Metadata // Unit metadata
+	params    any      // PrinterParameters or ScannerParameters
+	endpoints []string // Unit endpoints
+}
+
+// cacheEnt is the cache entry for print/scan/faxout units.
+type cacheEnt struct {
+	cacheUnit
 	hasMeta          bool      // Metadata is received
 	hasParams        bool      // Parameters are received
-	endpoints        []string  // Unit endpoints
 	stagingEndpoints []string  // Newly discovered endpoints, on quarantine
 	stagingDoneAt    time.Time // End of staging time
 }
@@ -35,41 +40,41 @@ type cacheUnit struct {
 // newCache creates the new discovery cache
 func newCache() *cache {
 	return &cache{
-		ctime: time.Now(),
-		units: make(map[UnitID]*cacheUnit),
+		ctime:   time.Now(),
+		entries: make(map[UnitID]*cacheEnt),
 	}
 }
 
 // AddUnit adds new unit. Called when EventAddUnit is received.
 func (c *cache) AddUnit(id UnitID) error {
-	if c.units[id] != nil {
+	if c.entries[id] != nil {
 		return errors.New("unit already added")
 	}
 
-	c.units[id] = &cacheUnit{id: id}
+	c.entries[id] = &cacheEnt{cacheUnit: cacheUnit{id: id}}
 	return nil
 }
 
 // DelUnit deletes the unit. Called when EventDelUnit is received.
 func (c *cache) DelUnit(id UnitID) error {
-	if c.units[id] == nil {
+	if c.entries[id] == nil {
 		return errors.New("unknown UnitID")
 	}
 
-	delete(c.units, id)
+	delete(c.entries, id)
 	return nil
 }
 
 // SetMetadata saves unit Metadata.
 // Called when EventMetadata is received
 func (c *cache) SetMetadata(id UnitID, meta Metadata) error {
-	un := c.units[id]
-	if un == nil {
+	ent := c.entries[id]
+	if ent == nil {
 		return errors.New("unknown UnitID")
 	}
 
-	un.meta = meta
-	un.hasMeta = true
+	ent.meta = meta
+	ent.hasMeta = true
 
 	return nil
 }
@@ -88,35 +93,35 @@ func (c *cache) SetScannerParameters(id UnitID, p ScannerParameters) error {
 
 // AddEndpoint adds unit endpoint.
 func (c *cache) AddEndpoint(id UnitID, endpoint string) error {
-	un := c.units[id]
-	if un == nil {
+	ent := c.entries[id]
+	if ent == nil {
 		return errors.New("unknown UnitID")
 	}
 
-	if endpointsContain(un.endpoints, endpoint) ||
-		endpointsContain(un.stagingEndpoints, endpoint) {
+	if endpointsContain(ent.endpoints, endpoint) ||
+		endpointsContain(ent.stagingEndpoints, endpoint) {
 		return errors.New("endpoint already added")
 	}
 
-	un.stagingBegin()
-	un.stagingEndpoints, _ = endpointsAdd(un.stagingEndpoints, endpoint)
+	ent.stagingBegin()
+	ent.stagingEndpoints, _ = endpointsAdd(ent.stagingEndpoints, endpoint)
 
 	return nil
 }
 
 // AddEndpoint deletes unit endpoint.
 func (c *cache) DelEndpoint(id UnitID, endpoint string) error {
-	un := c.units[id]
-	if un == nil {
+	ent := c.entries[id]
+	if ent == nil {
 		return errors.New("unknown UnitID")
 	}
 
 	switch {
-	case endpointsContain(un.endpoints, endpoint):
-		un.endpoints, _ = endpointsDel(un.endpoints, endpoint)
+	case endpointsContain(ent.endpoints, endpoint):
+		ent.endpoints, _ = endpointsDel(ent.endpoints, endpoint)
 
-	case endpointsContain(un.stagingEndpoints, endpoint):
-		un.stagingEndpoints, _ = endpointsDel(un.stagingEndpoints,
+	case endpointsContain(ent.stagingEndpoints, endpoint):
+		ent.stagingEndpoints, _ = endpointsDel(ent.stagingEndpoints,
 			endpoint)
 	default:
 		return errors.New("unknown endpoint")
@@ -135,18 +140,18 @@ func (c *cache) SetFaxoutParameters(id UnitID, p PrinterParameters) error {
 
 // setParameters saves unit parameters.
 func (c *cache) setParameters(id UnitID, svcMustBe ServiceType, p any) error {
-	un := c.units[id]
-	if un == nil {
+	ent := c.entries[id]
+	if ent == nil {
 		return errors.New("unknown UnitID")
 	}
 
-	if un.id.SvcType != svcMustBe {
+	if ent.id.SvcType != svcMustBe {
 		return fmt.Errorf("unit is %s, must be %s",
-			un.id.SvcType, svcMustBe)
+			ent.id.SvcType, svcMustBe)
 	}
 
-	un.params = p
-	un.hasParams = true
+	ent.params = p
+	ent.hasParams = true
 
 	return nil
 }
@@ -163,16 +168,16 @@ func (c *cache) setParameters(id UnitID, svcMustBe ServiceType, p any) error {
 // endpoints are added to the staging area, but already running timer is
 // not restarted. When the timer expires, all endpoints collected at
 // the staging area is published.
-func (un *cacheUnit) stagingBegin() {
-	if !un.stagingCheck() {
-		un.stagingDoneAt = time.Now().Add(StabilizationTime)
+func (ent *cacheEnt) stagingBegin() {
+	if !ent.stagingCheck() {
+		ent.stagingDoneAt = time.Now().Add(StabilizationTime)
 	}
 }
 
 // stagingEnd publishes all endpoints collected in the staging area.
-func (un *cacheUnit) stagingEnd() {
-	un.endpoints = endpointsMerge(un.endpoints, un.stagingEndpoints)
-	un.stagingEndpoints = un.stagingEndpoints[:]
+func (ent *cacheEnt) stagingEnd() {
+	ent.endpoints = endpointsMerge(ent.endpoints, ent.stagingEndpoints)
+	ent.stagingEndpoints = ent.stagingEndpoints[:]
 }
 
 // stagingCheck checks if staging interval is expired. If so,
@@ -180,12 +185,12 @@ func (un *cacheUnit) stagingEnd() {
 //
 // It returns 'true' if the previously started staging interval still
 // in progress.
-func (un *cacheUnit) stagingCheck() bool {
+func (ent *cacheEnt) stagingCheck() bool {
 	switch {
-	case len(un.stagingEndpoints) == 0:
+	case len(ent.stagingEndpoints) == 0:
 		return false
-	case un.stagingDoneAt.After(time.Now()):
-		un.stagingEnd()
+	case ent.stagingDoneAt.After(time.Now()):
+		ent.stagingEnd()
 		return false
 	}
 
