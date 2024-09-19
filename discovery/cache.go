@@ -15,8 +15,10 @@ import (
 )
 
 // cache represents the discovery cache
+//
+// Note, cache API is not reentrant and requires external locking.
 type cache struct {
-	ctime   time.Time            // Cache creation time
+	readyAt time.Time            // Time when cache is warmed up and ready
 	entries map[UnitID]*cacheEnt // Cache entries
 }
 
@@ -40,9 +42,46 @@ type cacheEnt struct {
 // newCache creates the new discovery cache
 func newCache() *cache {
 	return &cache{
-		ctime:   time.Now(),
+		readyAt: time.Now().Add(WarmUpTime),
 		entries: make(map[UnitID]*cacheEnt),
 	}
+}
+
+// ReadyAt returns time when cache is ready to be exported, according to
+// the cache state and export Mode
+func (c *cache) ReadyAt(m Mode) time.Time {
+	// Handle simple cases
+	switch m {
+	case ModeNormal:
+		return c.readyAt
+	case ModeSnapshot:
+		return time.Time{}
+	}
+
+	// for ModeWaitIncomplete we need to do some more work
+	ready := c.readyAt
+
+	for _, ent := range c.entries {
+		if ent.stagingCheck() {
+			ready = timeLatest(ready, ent.stagingDoneAt)
+		}
+	}
+
+	return ready
+}
+
+// Export exports the cached data. Depending of the Mode, it can wait for
+// some time until data becomes available.
+func (c *cache) Export() []cacheUnit {
+	units := make([]cacheUnit, 0, len(c.entries))
+
+	for _, ent := range c.entries {
+		if ent.ready() {
+			units = append(units, ent.cacheUnit)
+		}
+	}
+
+	return units
 }
 
 // AddUnit adds new unit. Called when EventAddUnit is received.
@@ -154,6 +193,15 @@ func (c *cache) setParameters(id UnitID, svcMustBe ServiceType, p any) error {
 	ent.hasParams = true
 
 	return nil
+}
+
+// ready checks if cache entry is ready to be exported.
+func (ent *cacheEnt) ready() bool {
+	if ent.hasMeta && ent.hasParams {
+		ent.stagingCheck() // Merge staged endpoints, if any
+		return len(ent.endpoints) > 0
+	}
+	return false
 }
 
 // stagingBegin starts staging interval for discovered endpoints.

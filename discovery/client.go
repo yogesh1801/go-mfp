@@ -117,6 +117,9 @@ func (clnt *Client) nextEvent() error {
 		return err
 	}
 
+	clnt.lock.Lock()
+	defer clnt.lock.Unlock()
+
 	rec := log.Begin(clnt.ctx)
 	defer rec.Commit()
 
