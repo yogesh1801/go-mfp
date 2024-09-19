@@ -360,19 +360,19 @@ func txtPPD(value string) (string, error) {
 	return ppd, nil
 }
 
-// txtSources decodes discovery.InputSource bits
-func txtSources(value string) (discovery.InputSource, error) {
+// txtSources decodes discovery.ScanSource bits
+func txtSources(value string) (discovery.ScanSource, error) {
 	keywords, _ := txtKeywords(value)
 
-	var sources discovery.InputSource
+	var sources discovery.ScanSource
 	for _, kw := range keywords {
 		switch txToLower(kw) {
 		case "adf":
-			sources |= discovery.InputADF
+			sources |= discovery.ScanADF
 		case "platen":
-			sources |= discovery.InputPlaten
+			sources |= discovery.ScanPlaten
 		default:
-			sources |= discovery.InputOther
+			sources |= discovery.ScanOther
 		}
 	}
 

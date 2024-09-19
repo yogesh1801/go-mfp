@@ -8,12 +8,12 @@
 
 package discovery
 
-// InputSource defines input sources, supported by scanner
-type InputSource int
+// ScanSource defines input sources, supported by scanner
+type ScanSource int
 
-// InputSource bits:
+// ScanSource bits:
 const (
-	InputOther  = 1 << iota // Other input
-	InputPlaten             // Platen source
-	InputADF                // Automatic Document Feeder
+	ScanOther  = 1 << iota // Other input
+	ScanPlaten             // Platen source
+	ScanADF                // Automatic Document Feeder
 )
