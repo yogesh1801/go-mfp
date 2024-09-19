@@ -198,6 +198,5 @@ func (un *unit) endpoint(addr netip.Addr) string {
 		url.Path = un.txtScn.uriPath
 	}
 
-	println("url:", url.String())
 	return url.String()
 }
