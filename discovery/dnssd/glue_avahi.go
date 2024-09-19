@@ -398,47 +398,52 @@ func (key avahiServiceKey) HostnameKey(name string) avahiHostnameKey {
 	}
 }
 
-// PrinterUnitID makes discovery.UnitID for printer
-func (key avahiServiceKey) PrinterUnitID(txt txtPrinter) discovery.UnitID {
-	af := discovery.AddressFamilyNA
+// commonUnitID fills parts of discovery.UnitID, common for
+// printers, scanners and faxout devices
+func (key avahiServiceKey) commonUnitID() discovery.UnitID {
+	var variant string
+
 	switch key.Proto {
 	case avahi.ProtocolIP4:
-		af = discovery.AddressFamilyIP4
+		variant = "ip4-"
 	case avahi.ProtocolIP6:
-		af = discovery.AddressFamilyIP6
+		variant = "ip6-"
+	}
+
+	if svcTypeIsEncrypted(key.SvcType) {
+		variant += "https"
+	} else {
+		variant += "http"
 	}
 
 	return discovery.UnitID{
 		DeviceName: key.InstanceName,
-		UUID:       txt.uuid,
-		UnitName:   txt.params.Queue,
 		Realm:      discovery.RealmDNSSD,
-		IfIdx:      int(key.IfIdx),
-		AF:         af,
-		SvcType:    discovery.ServicePrinter,
+		Zone:       fmt.Sprintf("%%%d", int(key.IfIdx)),
+		Variant:    variant,
 		SvcProto:   svcTypeToDiscoveryServiceProto(key.SvcType),
 	}
 }
 
+// PrinterUnitID makes discovery.UnitID for printer
+func (key avahiServiceKey) PrinterUnitID(txt txtPrinter) discovery.UnitID {
+	id := key.commonUnitID()
+
+	id.UUID = txt.uuid
+	id.UnitName = txt.params.Queue
+	id.SvcType = discovery.ServicePrinter
+
+	return id
+}
+
 // ScannerUnitID makes discovery.UnitID for scanner
 func (key avahiServiceKey) ScannerUnitID(txt txtScanner) discovery.UnitID {
-	af := discovery.AddressFamilyNA
-	switch key.Proto {
-	case avahi.ProtocolIP4:
-		af = discovery.AddressFamilyIP4
-	case avahi.ProtocolIP6:
-		af = discovery.AddressFamilyIP6
-	}
+	id := key.commonUnitID()
 
-	return discovery.UnitID{
-		DeviceName: key.InstanceName,
-		UUID:       txt.uuid,
-		Realm:      discovery.RealmDNSSD,
-		IfIdx:      int(key.IfIdx),
-		AF:         af,
-		SvcType:    discovery.ServiceScanner,
-		SvcProto:   svcTypeToDiscoveryServiceProto(key.SvcType),
-	}
+	id.UUID = txt.uuid
+	id.SvcType = discovery.ServiceScanner
+
+	return id
 }
 
 // IsPrinter reports if service type is printer

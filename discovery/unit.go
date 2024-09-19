@@ -58,20 +58,24 @@ type FaxoutUnit struct {
 //	             distinct queues). Optional
 //	Realm      - search realm. Different realms are treated as
 //	             independent namespaces.
-//	SubRealm   - allows backend to further divide its namespace
-//	             (for example, to split it between IP4/IP6)
-//	Kind       - specifies device kind (e.g., "IPP printer")
+//	Zone       - allows backend to further divide its namespace
+//	             (for example, to split it between network interfaces)
+//	Variant    - used to distinguish between logically equivalent
+//	             variants of discovered units, that backend sees as
+//	             independent instances (for example IP4/IP6, HTTP/HTTPS)
+//	SvcType    - service type, printer/scanner/faxout
+//	SvcProto   - service protocol, i.e., IPP, LPD, eSCL etc
 //	Serial     - device serial number, if appropriate (i.e., for USB)
 type UnitID struct {
-	DeviceName string        // Realm-unique device name
-	UUID       uuid.UUID     // uuid.NilUUID if not available
-	UnitName   string        // Logical unit within a device
-	Realm      SearchRealm   // Search realm
-	IfIdx      int           // Network interface index, if applicable
-	AF         AddressFamily // AddressFamily, if applicable
-	SvcType    ServiceType   // Service type
-	SvcProto   ServiceProto  // Service protocol
-	Serial     string        // "" if not avaliable
+	DeviceName string       // Realm-unique device name
+	UUID       uuid.UUID    // uuid.NilUUID if not available
+	UnitName   string       // Logical unit within a device
+	Realm      SearchRealm  // Search realm
+	Zone       string       // Namespace zone within the Realm
+	Variant    string       // Finding variant of the same unit
+	SvcType    ServiceType  // Service type
+	SvcProto   ServiceProto // Service protocol
+	Serial     string       // "" if not avaliable
 }
 
 // SameDevice reports if two [UnitID]s belong to the same device.
@@ -80,7 +84,9 @@ func (id UnitID) SameDevice(id2 UnitID) bool {
 		return true
 	}
 
-	if id.DeviceName == id2.DeviceName && id.IfIdx == id2.IfIdx {
+	if id.DeviceName == id2.DeviceName &&
+		id.Realm == id2.Realm &&
+		id.Zone == id2.Zone {
 		return true
 	}
 
@@ -116,12 +122,12 @@ func (id UnitID) MarshalText() ([]byte, error) {
 
 	lines = append(lines, fmt.Sprintf("Realm:    %s", id.Realm))
 
-	if id.IfIdx != 0 {
-		lines = append(lines, fmt.Sprintf("IfIdx:    %d", id.IfIdx))
+	if id.Zone != "" {
+		lines = append(lines, fmt.Sprintf("Zone:     %s", id.Zone))
 	}
 
-	if id.AF != AddressFamilyNA {
-		lines = append(lines, fmt.Sprintf("AF:       %s", id.AF))
+	if id.Variant != "" {
+		lines = append(lines, fmt.Sprintf("Variant:  %s", id.Variant))
 	}
 
 	lines = append(lines, fmt.Sprintf("Service:  %s %s",
