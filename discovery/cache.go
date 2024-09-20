@@ -78,7 +78,7 @@ func (c *cache) ReadyAt(m Mode) time.Time {
 }
 
 // Export exports the cached data.
-func (c *cache) Export(m Mode) []Device {
+func (c *cache) Export() []Device {
 	// If cached output available, just return it now
 	if devices := c.out.Cached(); devices != nil {
 		return devices
@@ -101,7 +101,7 @@ func (c *cache) Export(m Mode) []Device {
 }
 
 // Snapshot exports the cached data in the ModeSnapshot mode.
-func (c *cache) Snapshot(m Mode) []Device {
+func (c *cache) Snapshot() []Device {
 	units := make([]cacheUnit, 0, len(c.entries))
 	ttl := time.Now().Add(365 * 24 * time.Hour) // Far in a future
 
