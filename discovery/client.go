@@ -89,6 +89,10 @@ func (clnt *Client) AddBackend(bk Backend) {
 // return immediately with the appropriate error. And this is the
 // only case when error is returned.
 func (clnt *Client) GetDevices(ctx context.Context, m Mode) ([]Device, error) {
+	// Lock the client
+	clnt.lock.Lock()
+	defer clnt.lock.Unlock()
+
 	// If snapshot is requested, take it immediately
 	if m == ModeSnapshot {
 		return clnt.cache.Snapshot(), nil
@@ -104,6 +108,7 @@ func (clnt *Client) GetDevices(ctx context.Context, m Mode) ([]Device, error) {
 		timer := time.NewTimer(delay)
 		var err error
 
+		clnt.lock.Unlock()
 		select {
 		case <-ctx.Done():
 			err = ctx.Err()
@@ -111,6 +116,7 @@ func (clnt *Client) GetDevices(ctx context.Context, m Mode) ([]Device, error) {
 			err = clnt.ctx.Err()
 		case now = <-timer.C:
 		}
+		clnt.lock.Lock()
 
 		timer.Stop()
 		if err != nil {
