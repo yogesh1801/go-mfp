@@ -20,6 +20,7 @@ import (
 type cache struct {
 	readyAt time.Time            // Time when cache is warmed up and ready
 	entries map[UnitID]*cacheEnt // Cache entries
+	out     output               // Cached output
 }
 
 // cacheUnit is the cache entry for print/scan/faxout units.
@@ -36,7 +37,7 @@ type cacheEnt struct {
 	hasMeta          bool      // Metadata is received
 	hasParams        bool      // Parameters are received
 	stagingEndpoints []string  // Newly discovered endpoints, on quarantine
-	stagingDoneAt    time.Time // End of staging time
+	stagingDoneAt    time.Time // End of staging time. Zero if no staging.
 }
 
 // newCache creates the new discovery cache
@@ -58,11 +59,17 @@ func (c *cache) ReadyAt(m Mode) time.Time {
 		return time.Time{}
 	}
 
+	// If cache is ready, no need to wait
+	if c.out.Cached() != nil {
+		return time.Time{}
+	}
+
 	// for ModeWaitIncomplete we need to do some more work
 	ready := c.readyAt
 
 	for _, ent := range c.entries {
-		if ent.stagingCheck() {
+		ent.stagingCheck()
+		if ent.stagingInProgress() {
 			ready = timeLatest(ready, ent.stagingDoneAt)
 		}
 	}
@@ -70,18 +77,43 @@ func (c *cache) ReadyAt(m Mode) time.Time {
 	return ready
 }
 
-// Export exports the cached data. Depending of the Mode, it can wait for
-// some time until data becomes available.
-func (c *cache) Export() []cacheUnit {
+// Export exports the cached data.
+func (c *cache) Export(m Mode) []Device {
+	// If cached output available, just return it now
+	if devices := c.out.Cached(); devices != nil {
+		return devices
+	}
+
+	// Re-generate the output
 	units := make([]cacheUnit, 0, len(c.entries))
+	ttl := time.Now().Add(365 * 24 * time.Hour) // Far in a future
 
 	for _, ent := range c.entries {
 		if ent.ready() {
 			units = append(units, ent.cacheUnit)
+			if ent.stagingInProgress() {
+				ttl = timeEarliest(ttl, ent.stagingDoneAt)
+			}
 		}
 	}
 
-	return units
+	return c.out.Generate(ttl, units)
+}
+
+// Snapshot exports the cached data in the ModeSnapshot mode.
+func (c *cache) Snapshot(m Mode) []Device {
+	units := make([]cacheUnit, 0, len(c.entries))
+	ttl := time.Now().Add(365 * 24 * time.Hour) // Far in a future
+
+	for _, ent := range c.entries {
+		unit, ok := ent.snapshot()
+		if ok {
+			units = append(units, unit)
+		}
+	}
+
+	var out output
+	return out.Generate(ttl, units)
 }
 
 // AddUnit adds new unit. Called when EventAddUnit is received.
@@ -91,6 +123,8 @@ func (c *cache) AddUnit(id UnitID) error {
 	}
 
 	c.entries[id] = &cacheEnt{cacheUnit: cacheUnit{id: id}}
+	c.out.Invalidate()
+
 	return nil
 }
 
@@ -101,6 +135,8 @@ func (c *cache) DelUnit(id UnitID) error {
 	}
 
 	delete(c.entries, id)
+	c.out.Invalidate()
+
 	return nil
 }
 
@@ -115,6 +151,8 @@ func (c *cache) SetMetadata(id UnitID, meta Metadata) error {
 	ent.meta = meta
 	ent.hasMeta = true
 
+	c.out.Invalidate()
+
 	return nil
 }
 
@@ -128,45 +166,6 @@ func (c *cache) SetPrinterParameters(id UnitID, p PrinterParameters) error {
 // Called when EventScannerParameters is received
 func (c *cache) SetScannerParameters(id UnitID, p ScannerParameters) error {
 	return c.setParameters(id, ServiceScanner, p)
-}
-
-// AddEndpoint adds unit endpoint.
-func (c *cache) AddEndpoint(id UnitID, endpoint string) error {
-	ent := c.entries[id]
-	if ent == nil {
-		return errors.New("unknown UnitID")
-	}
-
-	if endpointsContain(ent.endpoints, endpoint) ||
-		endpointsContain(ent.stagingEndpoints, endpoint) {
-		return errors.New("endpoint already added")
-	}
-
-	ent.stagingBegin()
-	ent.stagingEndpoints, _ = endpointsAdd(ent.stagingEndpoints, endpoint)
-
-	return nil
-}
-
-// AddEndpoint deletes unit endpoint.
-func (c *cache) DelEndpoint(id UnitID, endpoint string) error {
-	ent := c.entries[id]
-	if ent == nil {
-		return errors.New("unknown UnitID")
-	}
-
-	switch {
-	case endpointsContain(ent.endpoints, endpoint):
-		ent.endpoints, _ = endpointsDel(ent.endpoints, endpoint)
-
-	case endpointsContain(ent.stagingEndpoints, endpoint):
-		ent.stagingEndpoints, _ = endpointsDel(ent.stagingEndpoints,
-			endpoint)
-	default:
-		return errors.New("unknown endpoint")
-	}
-
-	return nil
 }
 
 // SetFaxoutParameters saves faxout parameters.
@@ -192,6 +191,51 @@ func (c *cache) setParameters(id UnitID, svcMustBe ServiceType, p any) error {
 	ent.params = p
 	ent.hasParams = true
 
+	c.out.Invalidate()
+
+	return nil
+}
+
+// AddEndpoint adds unit endpoint.
+func (c *cache) AddEndpoint(id UnitID, endpoint string) error {
+	ent := c.entries[id]
+	if ent == nil {
+		return errors.New("unknown UnitID")
+	}
+
+	if endpointsContain(ent.endpoints, endpoint) ||
+		endpointsContain(ent.stagingEndpoints, endpoint) {
+		return errors.New("endpoint already added")
+	}
+
+	ent.stagingBegin()
+	ent.stagingEndpoints, _ = endpointsAdd(ent.stagingEndpoints, endpoint)
+
+	c.out.Invalidate()
+
+	return nil
+}
+
+// AddEndpoint deletes unit endpoint.
+func (c *cache) DelEndpoint(id UnitID, endpoint string) error {
+	ent := c.entries[id]
+	if ent == nil {
+		return errors.New("unknown UnitID")
+	}
+
+	switch {
+	case endpointsContain(ent.endpoints, endpoint):
+		ent.endpoints, _ = endpointsDel(ent.endpoints, endpoint)
+
+	case endpointsContain(ent.stagingEndpoints, endpoint):
+		ent.stagingEndpoints, _ = endpointsDel(ent.stagingEndpoints,
+			endpoint)
+	default:
+		return errors.New("unknown endpoint")
+	}
+
+	c.out.Invalidate()
+
 	return nil
 }
 
@@ -202,6 +246,20 @@ func (ent *cacheEnt) ready() bool {
 		return len(ent.endpoints) > 0
 	}
 	return false
+}
+
+// snapshot makes a snapshot from the cache entry.
+func (ent *cacheEnt) snapshot() (unit cacheUnit, ok bool) {
+	if ent.hasMeta && ent.hasParams {
+		unit = ent.cacheUnit
+		unit.endpoints = endpointsMerge(unit.endpoints,
+			ent.stagingEndpoints)
+		if len(unit.endpoints) > 0 {
+			return unit, true
+		}
+	}
+
+	return cacheUnit{}, false
 }
 
 // stagingBegin starts staging interval for discovered endpoints.
@@ -217,7 +275,7 @@ func (ent *cacheEnt) ready() bool {
 // not restarted. When the timer expires, all endpoints collected at
 // the staging area is published.
 func (ent *cacheEnt) stagingBegin() {
-	if !ent.stagingCheck() {
+	if !ent.stagingInProgress() {
 		ent.stagingDoneAt = time.Now().Add(StabilizationTime)
 	}
 }
@@ -226,6 +284,12 @@ func (ent *cacheEnt) stagingBegin() {
 func (ent *cacheEnt) stagingEnd() {
 	ent.endpoints = endpointsMerge(ent.endpoints, ent.stagingEndpoints)
 	ent.stagingEndpoints = ent.stagingEndpoints[:]
+	ent.stagingDoneAt = time.Time{}
+}
+
+// stagingInProgress tells if staging interval is in progress.
+func (ent *cacheEnt) stagingInProgress() bool {
+	return !ent.stagingDoneAt.IsZero()
 }
 
 // stagingCheck checks if staging interval is expired. If so,
@@ -233,14 +297,8 @@ func (ent *cacheEnt) stagingEnd() {
 //
 // It returns 'true' if the previously started staging interval still
 // in progress.
-func (ent *cacheEnt) stagingCheck() bool {
-	switch {
-	case len(ent.stagingEndpoints) == 0:
-		return false
-	case ent.stagingDoneAt.After(time.Now()):
+func (ent *cacheEnt) stagingCheck() {
+	if ent.stagingInProgress() && ent.stagingDoneAt.After(time.Now()) {
 		ent.stagingEnd()
-		return false
 	}
-
-	return true
 }
