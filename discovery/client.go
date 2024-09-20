@@ -12,6 +12,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/alexpevzner/mfp/log"
 )
@@ -88,7 +89,37 @@ func (clnt *Client) AddBackend(bk Backend) {
 // return immediately with the appropriate error. And this is the
 // only case when error is returned.
 func (clnt *Client) GetDevices(ctx context.Context, m Mode) ([]Device, error) {
-	return nil, nil
+	// If snapshot is requested, take it immediately
+	if m == ModeSnapshot {
+		return clnt.cache.Snapshot(), nil
+	}
+
+	// Wait until ready
+	ready := clnt.cache.ReadyAt(m)
+	now := time.Now()
+	for ready.After(now) {
+		// As OS sleep is imprecise, pause for a slightly more
+		// time to avoid spurious wakeups
+		delay := ready.Sub(now) + time.Millisecond
+		timer := time.NewTimer(delay)
+		var err error
+
+		select {
+		case <-ctx.Done():
+			err = ctx.Err()
+		case <-clnt.ctx.Done():
+			err = clnt.ctx.Err()
+		case now = <-timer.C:
+		}
+
+		timer.Stop()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// And now read the cache
+	return clnt.cache.Export(), nil
 }
 
 // Refresh causes [Client] to forcibly refresh its vision of
