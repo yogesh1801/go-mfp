@@ -39,6 +39,50 @@ type FaxoutUnit struct {
 	Endpoints []string          // URLs of printer endpoints
 }
 
+// unit is the internal representation of the PrintUnit, ScanUnit
+// or FaxoutUnit
+type unit struct {
+	id        UnitID   // Unit identity
+	meta      Metadata // Unit metadata
+	params    any      // PrinterParameters or ScannerParameters
+	endpoints []string // Unit endpoints
+}
+
+// Export exports unit ad PrintUnit, ScanUnit or FaxoutUnit
+func (un unit) Export() any {
+	switch params := un.params.(type) {
+	case PrinterParameters:
+		// PrinterParameters can be used either with PrintUnit
+		// or FaxoutUnit
+		switch un.id.SvcType {
+		case ServicePrinter:
+			return PrintUnit{
+				ID:        un.id,
+				Meta:      un.meta,
+				Params:    params,
+				Endpoints: un.endpoints,
+			}
+		case ServiceFaxout:
+			return FaxoutUnit{
+				ID:        un.id,
+				Meta:      un.meta,
+				Params:    params,
+				Endpoints: un.endpoints,
+			}
+		}
+
+	case ScannerParameters:
+		return ScanUnit{
+			ID:        un.id,
+			Meta:      un.meta,
+			Params:    params,
+			Endpoints: un.endpoints,
+		}
+	}
+
+	return nil
+}
+
 // UnitID contains combination of parameters that identifies a device.
 //
 // Please note, depending on a discovery protocol being used, not

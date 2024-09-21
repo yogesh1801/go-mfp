@@ -34,7 +34,7 @@ func (out *output) Invalidate() {
 
 // Generate generates the discovery output from the discovery
 // information, gathered in the cache.
-func (out *output) Generate(ttl time.Time, units []cacheUnit) []Device {
+func (out *output) Generate(ttl time.Time, units []unit) []Device {
 	// TODO
 	return nil
 }

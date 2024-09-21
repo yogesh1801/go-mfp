@@ -20,3 +20,27 @@ type Device struct {
 	ScanUnits   []ScanUnit
 	FaxoutUnits []FaxoutUnit
 }
+
+// device is the internal representation of the Device
+type device struct {
+	units []unit
+}
+
+// Export exports device as Device
+func (dev device) Export() Device {
+	out := Device{}
+
+	for _, un := range dev.units {
+		exp := un.Export()
+		switch exp := exp.(type) {
+		case PrintUnit:
+			out.PrintUnits = append(out.PrintUnits, exp)
+		case ScanUnit:
+			out.ScanUnits = append(out.ScanUnits, exp)
+		case FaxoutUnit:
+			out.FaxoutUnits = append(out.FaxoutUnits, exp)
+		}
+	}
+
+	return out
+}

@@ -23,17 +23,9 @@ type cache struct {
 	out     output               // Cached output
 }
 
-// cacheUnit is the cache entry for print/scan/faxout units.
-type cacheUnit struct {
-	id        UnitID   // Unit identity
-	meta      Metadata // Unit metadata
-	params    any      // PrinterParameters or ScannerParameters
-	endpoints []string // Unit endpoints
-}
-
 // cacheEnt is the cache entry for print/scan/faxout units.
 type cacheEnt struct {
-	cacheUnit
+	unit
 	hasMeta          bool      // Metadata is received
 	hasParams        bool      // Parameters are received
 	stagingEndpoints []string  // Newly discovered endpoints, on quarantine
@@ -85,12 +77,12 @@ func (c *cache) Export() []Device {
 	}
 
 	// Re-generate the output
-	units := make([]cacheUnit, 0, len(c.entries))
+	units := make([]unit, 0, len(c.entries))
 	ttl := time.Now().Add(365 * 24 * time.Hour) // Far in a future
 
 	for _, ent := range c.entries {
 		if ent.ready() {
-			units = append(units, ent.cacheUnit)
+			units = append(units, ent.unit)
 			if ent.stagingInProgress() {
 				ttl = timeEarliest(ttl, ent.stagingDoneAt)
 			}
@@ -102,7 +94,7 @@ func (c *cache) Export() []Device {
 
 // Snapshot exports the cached data in the ModeSnapshot mode.
 func (c *cache) Snapshot() []Device {
-	units := make([]cacheUnit, 0, len(c.entries))
+	units := make([]unit, 0, len(c.entries))
 	ttl := time.Now().Add(365 * 24 * time.Hour) // Far in a future
 
 	for _, ent := range c.entries {
@@ -122,7 +114,7 @@ func (c *cache) AddUnit(id UnitID) error {
 		return errors.New("unit already added")
 	}
 
-	c.entries[id] = &cacheEnt{cacheUnit: cacheUnit{id: id}}
+	c.entries[id] = &cacheEnt{unit: unit{id: id}}
 	c.out.Invalidate()
 
 	return nil
@@ -249,17 +241,17 @@ func (ent *cacheEnt) ready() bool {
 }
 
 // snapshot makes a snapshot from the cache entry.
-func (ent *cacheEnt) snapshot() (unit cacheUnit, ok bool) {
+func (ent *cacheEnt) snapshot() (un unit, ok bool) {
 	if ent.hasMeta && ent.hasParams {
-		unit = ent.cacheUnit
-		unit.endpoints = endpointsMerge(unit.endpoints,
+		un = ent.unit
+		un.endpoints = endpointsMerge(un.endpoints,
 			ent.stagingEndpoints)
-		if len(unit.endpoints) > 0 {
-			return unit, true
+		if len(un.endpoints) > 0 {
+			return un, true
 		}
 	}
 
-	return cacheUnit{}, false
+	return unit{}, false
 }
 
 // stagingBegin starts staging interval for discovered endpoints.
