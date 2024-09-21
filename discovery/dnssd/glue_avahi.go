@@ -11,7 +11,6 @@ package dnssd
 import (
 	"context"
 	"fmt"
-	"net"
 	"net/netip"
 	"time"
 
@@ -378,15 +377,7 @@ func (key avahiServiceKey) FQDN() string {
 // String returns string representation of the avahiServiceKey,
 // for debugging.
 func (key avahiServiceKey) String() string {
-	var ifname string
-
-	if ifi, err := net.InterfaceByIndex(int(key.IfIdx)); err == nil {
-		ifname = ifi.Name
-	} else {
-		ifname = fmt.Sprintf("%d", key.IfIdx)
-	}
-
-	return fmt.Sprintf("%q (%s,%s)", key.FQDN(), key.Proto, ifname)
+	return fmt.Sprintf("%q (%s%%%d)", key.FQDN(), key.Proto, key.IfIdx)
 }
 
 // HostnameKey makes avahiHostnameKey
@@ -549,15 +540,7 @@ type avahiHostnameKey struct {
 // String returns string representation of the avahiHostnameKey,
 // for debugging.
 func (key avahiHostnameKey) String() string {
-	var ifname string
-
-	if ifi, err := net.InterfaceByIndex(int(key.IfIdx)); err == nil {
-		ifname = ifi.Name
-	} else {
-		ifname = fmt.Sprintf("%d", key.IfIdx)
-	}
-
-	return fmt.Sprintf("%q (%s,%s)", key.Hostname, key.Proto, ifname)
+	return fmt.Sprintf("%q (%s%%%d)", key.Hostname, key.Proto, key.IfIdx)
 }
 
 // avahiHostnameKeyFromRecordBrowserEvent makes avahiHostnameKey
