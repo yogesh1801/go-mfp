@@ -36,6 +36,13 @@ func NewBackend(ctx context.Context,
 	// Set log prefix
 	ctx = log.WithPrefix(ctx, "dnssd")
 
+	// Initialize loopback index on demand
+	err := loopbackInit()
+	if err != nil {
+		log.Error(ctx, "%s", err)
+		return nil, err
+	}
+
 	// Create Avahi client.
 	clnt, err := newAvahiClient(domain, flags)
 	if err != nil {
@@ -216,7 +223,7 @@ func (back *backend) onServiceResolverEvent(
 			Debug("  port: %d", evnt.Port).
 			Commit()
 
-		service.port = evnt.Port
+		service.SetPort(evnt.Port)
 		back.setServiceHostname(service, evnt.Hostname)
 
 	case avahi.ResolverFailure:
@@ -250,7 +257,6 @@ func (back *backend) onTxtBrowserEvent(evnt *avahi.RecordBrowserEvent) error {
 		svcType := key.SvcType
 		svcInstance := key.InstanceName
 		txt := avahi.DNSDecodeTXT(evnt.RData)
-		port := service.port
 
 		if key.IsPrinter() {
 			txtPrinter, err := decodeTxtPrinter(svcType,
@@ -263,8 +269,7 @@ func (back *backend) onTxtBrowserEvent(evnt *avahi.RecordBrowserEvent) error {
 			id := key.PrinterUnitID(txtPrinter)
 			un := service.GetUnit(id.Queue)
 			if un == nil {
-				un = newPrinterUnit(back.queue,
-					id, txtPrinter, port)
+				un = newPrinterUnit(back.queue, id, txtPrinter)
 				service.AddUnit(id.Queue, un)
 			} else {
 				un.SetTxtPrinter(txtPrinter)
@@ -281,8 +286,7 @@ func (back *backend) onTxtBrowserEvent(evnt *avahi.RecordBrowserEvent) error {
 			un := service.GetUnit(unName)
 			if un == nil {
 				id := key.ScannerUnitID(txtScanner)
-				un = newScannerUnit(back.queue,
-					id, txtScanner, port)
+				un = newScannerUnit(back.queue, id, txtScanner)
 				service.AddUnit(unName, un)
 			} else {
 				un.SetTxtScanner(txtScanner)

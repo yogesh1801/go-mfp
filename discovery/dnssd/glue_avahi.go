@@ -12,6 +12,7 @@ import (
 	"context"
 	"fmt"
 	"net/netip"
+	"strconv"
 	"time"
 
 	"github.com/alexpevzner/go-avahi"
@@ -295,6 +296,18 @@ func (service *avahiService) Delete() {
 	delete(clnt.services, service.key)
 }
 
+// SetPort sets service port
+func (service *avahiService) SetPort(port uint16) {
+	if service.port == port {
+		return // Nothing changed
+	}
+
+	service.port = port
+	for _, un := range service.units {
+		un.SetPort(port)
+	}
+}
+
 // SetHostname creates an association between service and hostname.
 //
 // If the new hostname is nil, service becomes without hostname
@@ -324,6 +337,8 @@ func (service *avahiService) SetHostname(hostname *avahiHostname) {
 // AddUnit adds unit to the service
 func (service *avahiService) AddUnit(name string, un *unit) {
 	service.units[name] = un
+	un.SetPort(service.port)
+
 	if service.hostname != nil {
 		service.hostname.addrs.ForEach(func(addr netip.Addr) {
 			un.AddAddr(addr)
@@ -511,6 +526,26 @@ func (hostname *avahiHostname) HasAddr(addr netip.Addr) bool {
 
 // addAddr adds the address
 func (hostname *avahiHostname) AddAddr(addr netip.Addr) {
+	// Filter address according to the following rules
+	//   - if service belongs to the loopback interface, only loopback
+	//     addresses are allowed
+	//   - link-local addresses must belong to the same interface as
+	//     the service belongs
+	//   - all other cases are allowed
+	switch {
+	case addr.IsLoopback():
+		if hostname.key.IfIdx != loopback {
+			return
+		}
+
+	case addr.IsLinkLocalUnicast():
+		zone, _ := strconv.Atoi(addr.Zone())
+		if zone != int(hostname.key.IfIdx) {
+			return
+		}
+	}
+
+	// Add the address
 	if !hostname.addrs.Contains(addr) {
 		hostname.addrs.Add(addr)
 		hostname.services.ForEach(func(service *avahiService) {

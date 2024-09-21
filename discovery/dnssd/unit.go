@@ -30,14 +30,13 @@ type unit struct {
 
 // newPrinterUnit creates a new printer unit
 func newPrinterUnit(queue *discovery.Eventqueue,
-	id discovery.UnitID, txt txtPrinter, port uint16) *unit {
+	id discovery.UnitID, txt txtPrinter) *unit {
 
 	un := &unit{
 		queue:   queue,
 		id:      id,
 		svcType: txt.svcType,
 		addrs:   newSet[netip.Addr](),
-		port:    port,
 		txtPrn:  txt,
 	}
 
@@ -53,13 +52,12 @@ func newPrinterUnit(queue *discovery.Eventqueue,
 
 // newScannerUnit creates a new scanner unit
 func newScannerUnit(queue *discovery.Eventqueue,
-	id discovery.UnitID, txt txtScanner, port uint16) *unit {
+	id discovery.UnitID, txt txtScanner) *unit {
 	un := &unit{
 		queue:   queue,
 		id:      id,
 		svcType: txt.svcType,
 		addrs:   newSet[netip.Addr](),
-		port:    port,
 		txtScn:  txt,
 	}
 
@@ -99,6 +97,33 @@ func (un *unit) SetTxtScanner(txt txtScanner) {
 		ID:      un.id,
 		Scanner: *txt.params,
 	})
+}
+
+// addAddr sets unit's port
+func (un *unit) SetPort(port uint16) {
+	// Drop old endpoints
+	if un.port != 0 {
+		un.addrs.ForEach(func(addr netip.Addr) {
+			evnt := &discovery.EventDelEndpoint{
+				ID:       un.id,
+				Endpoint: un.endpoint(addr),
+			}
+			un.queue.Push(evnt)
+		})
+	}
+
+	un.port = port
+
+	// Restore endpoints after port change
+	if port != 0 {
+		un.addrs.ForEach(func(addr netip.Addr) {
+			evnt := &discovery.EventAddEndpoint{
+				ID:       un.id,
+				Endpoint: un.endpoint(addr),
+			}
+			un.queue.Push(evnt)
+		})
+	}
 }
 
 // addAddr adds unit's IP address
