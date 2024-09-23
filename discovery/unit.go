@@ -50,7 +50,7 @@ type unit struct {
 
 // Merge merges two units
 func (un *unit) Merge(un2 unit) {
-	un.endpoints = endpointsMerge(un.endpoints, un.endpoints)
+	un.endpoints = endpointsMerge(un.endpoints, un2.endpoints)
 }
 
 // Export exports unit ad PrintUnit, ScanUnit or FaxoutUnit
