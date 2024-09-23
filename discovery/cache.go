@@ -275,7 +275,7 @@ func (ent *cacheEnt) stagingBegin() {
 // stagingEnd publishes all endpoints collected in the staging area.
 func (ent *cacheEnt) stagingEnd() {
 	ent.endpoints = endpointsMerge(ent.endpoints, ent.stagingEndpoints)
-	ent.stagingEndpoints = ent.stagingEndpoints[:]
+	ent.stagingEndpoints = ent.stagingEndpoints[:0]
 	ent.stagingDoneAt = time.Time{}
 }
 
@@ -290,7 +290,7 @@ func (ent *cacheEnt) stagingInProgress() bool {
 // It returns 'true' if the previously started staging interval still
 // in progress.
 func (ent *cacheEnt) stagingCheck() {
-	if ent.stagingInProgress() && ent.stagingDoneAt.After(time.Now()) {
+	if ent.stagingInProgress() && !ent.stagingDoneAt.After(time.Now()) {
 		ent.stagingEnd()
 	}
 }
