@@ -10,7 +10,8 @@ package cmddiscover
 
 import (
 	"context"
-	"fmt"
+	"encoding/json"
+	"os"
 
 	"github.com/alexpevzner/mfp/argv"
 	"github.com/alexpevzner/mfp/discovery"
@@ -80,7 +81,9 @@ func cmdDiscoverHandler(ctx context.Context, inv *argv.Invocation) error {
 		return err
 	}
 
-	fmt.Printf(">> %#v\n", devices)
+	//fmt.Printf(">> %#v\n", devices)
+	out, _ := json.MarshalIndent(devices, "", " ")
+	os.Stdout.Write(out)
 
 	backend.Close()
 
