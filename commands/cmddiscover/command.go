@@ -10,6 +10,7 @@ package cmddiscover
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/alexpevzner/mfp/argv"
 	"github.com/alexpevzner/mfp/discovery"
@@ -74,12 +75,12 @@ func cmdDiscoverHandler(ctx context.Context, inv *argv.Invocation) error {
 	}
 
 	clnt.AddBackend(backend)
-
-	for ctx.Err() == nil {
-		select {
-		case <-ctx.Done():
-		}
+	devices, err := clnt.GetDevices(ctx, discovery.ModeNormal)
+	if err != nil {
+		return err
 	}
+
+	fmt.Printf(">> %#v\n", devices)
 
 	backend.Close()
 
