@@ -55,10 +55,10 @@ func (out *output) Generate(ttl time.Time, units []unit) []Device {
 	return outdevs
 }
 
-// genMergeUnitVariants merges distinct variants of the same unit
-// together.
+// genMergeUnitVariants merges together units with distinct UnitID.Variant,
+// but otherwise similar.
 //
-// We need it because if some variant (say, ip6) will dissapear
+// We need it because if some variant (say, ip6) will disappear
 // from the network, remaining variants still make the unit
 // visible.
 //
@@ -68,14 +68,42 @@ func (out *output) Generate(ttl time.Time, units []unit) []Device {
 func (out *output) genMergeUnitVariants(units []unit) []unit {
 	scratchpad := make(map[UnitID]unit)
 	for _, un := range units {
+		un.id.Variant = ""
 		key := un.id
-		key.Variant = ""
 
 		if prev, found := scratchpad[key]; found {
 			// Keep the first found unit; merge endpoints
-			prev.endpoints = endpointsMerge(prev.endpoints,
-				un.endpoints)
+			prev.Merge(un)
+			scratchpad[key] = prev
+		} else {
+			// Add new unit
+			scratchpad[key] = un
+		}
+	}
 
+	units = make([]unit, 0, len(scratchpad))
+	for _, un := range scratchpad {
+		units = append(units, un)
+	}
+
+	return units
+}
+
+// genMergeUnitSameFunction merges together units that differ
+// in UnitID.Zone, but otherwise similar.
+//
+// It may happen, for example, when units from different
+// network protocols appeared to belong to the same device.
+func (out *output) genMergeUnitCrossZones(units []unit) []unit {
+	scratchpad := make(map[UnitID]unit)
+
+	for _, un := range units {
+		un.id.Zone = ""
+		key := un.id
+
+		if prev, found := scratchpad[key]; found {
+			// Keep the first found unit; merge endpoints
+			prev.Merge(un)
 			scratchpad[key] = prev
 		} else {
 			// Add new unit
@@ -112,6 +140,12 @@ func (out *output) genMergeDevicesByNameUUID(units []unit) []device {
 	for _, devunits := range scratchpad {
 		dev := device{devunits}
 		devices = append(devices, dev)
+	}
+
+	// Post-process the devices
+	for i := range devices {
+		dev := &devices[i]
+		dev.units = out.genMergeUnitCrossZones(dev.units)
 	}
 
 	return devices

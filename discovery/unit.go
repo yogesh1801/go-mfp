@@ -48,6 +48,11 @@ type unit struct {
 	endpoints []string // Unit endpoints
 }
 
+// Merge merges two units
+func (un *unit) Merge(un2 unit) {
+	un.endpoints = endpointsMerge(un.endpoints, un.endpoints)
+}
+
 // Export exports unit ad PrintUnit, ScanUnit or FaxoutUnit
 func (un unit) Export() any {
 	switch params := un.params.(type) {
