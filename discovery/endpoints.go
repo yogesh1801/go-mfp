@@ -102,5 +102,8 @@ func endpointsMerge(endpoints1, endpoints2 []string) []string {
 		}
 	}
 
+	out = append(out, endpoints1...)
+	out = append(out, endpoints2...)
+
 	return out
 }
