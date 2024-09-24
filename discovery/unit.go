@@ -154,8 +154,8 @@ func (id UnitID) SameUnit(id2 UnitID) bool {
 }
 
 // MarshalText dumps [UnitID] as text, for [log.Object].
-// It implements [encoding.TextMarshaler] interface.
-func (id UnitID) MarshalText() ([]byte, error) {
+// It implements [log.Marshaler].
+func (id UnitID) MarshalLog() []byte {
 	var line string
 	lines := make([]string, 0, 6)
 
@@ -193,5 +193,5 @@ func (id UnitID) MarshalText() ([]byte, error) {
 		lines = append(lines, line)
 	}
 
-	return []byte(strings.Join(lines, "\n")), nil
+	return []byte(strings.Join(lines, "\n"))
 }

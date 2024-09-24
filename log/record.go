@@ -10,7 +10,6 @@ package log
 
 import (
 	"bytes"
-	"encoding"
 	"fmt"
 	"os"
 	"slices"
@@ -74,20 +73,10 @@ func (rec *Record) Fatal(format string, v ...any) {
 	os.Exit(1)
 }
 
-// Object writes any object that implements [encoding.TextMarshaler]
+// Object writes any object that implements [Marshaler]
 // interface to the Record.
-//
-// If [encoding.TextMarshaler.MarshalText] returns an error, it
-// will be written to log with the [Error] log level, regardless
-// of the level specified by the first parameter.
-func (rec *Record) Object(level Level, indent int,
-	obj encoding.TextMarshaler) *Record {
-
-	text, err := obj.MarshalText()
-	if err != nil {
-		return rec.Error("%s", err)
-	}
-
+func (rec *Record) Object(level Level, indent int, obj Marshaler) *Record {
+	text := obj.MarshalLog()
 	return rec.text(level, indent, text)
 }
 

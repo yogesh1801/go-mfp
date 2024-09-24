@@ -10,7 +10,6 @@ package log
 
 import (
 	"context"
-	"encoding"
 )
 
 // Trace writes a Trace-level message to the [Logger] associated
@@ -76,17 +75,13 @@ func Begin(ctx context.Context) *Record {
 	return CtxLogger(ctx).Begin(CtxPrefix(ctx))
 }
 
-// Object writes any object that implements [encoding.TextMarshaler]
+// Object writes any object that implements [Marshaler]
 // interface to the Logger associated with the Context.
 //
 // If Logger is not available, [DefaultLogger] will be used.
 // The [context.Context] parameter may be safely passed as nil.
-//
-// If [encoding.TextMarshaler.MarshalText] returns an error, it
-// will be written to log with the [Error] log level, regardless
-// of the level specified by the first parameter.
 func Object(ctx context.Context, level Level, indent int,
-	obj encoding.TextMarshaler) context.Context {
+	obj Marshaler) context.Context {
 	CtxLogger(ctx).Object(CtxPrefix(ctx), level, indent, obj)
 	return ctx
 }

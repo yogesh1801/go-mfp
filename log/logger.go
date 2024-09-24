@@ -9,7 +9,6 @@
 package log
 
 import (
-	"encoding"
 	"sync"
 )
 
@@ -110,14 +109,9 @@ func (lgr *Logger) Fatal(prefix, format string, v ...any) {
 	lgr.Begin(prefix).Fatal(format, v...)
 }
 
-// Object writes any object that implements [encoding.TextMarshaler]
+// Object writes any object that implements [Marshaler]
 // interface to the Logger.
-//
-// If [encoding.TextMarshaler.MarshalText] returns an error, it
-// will be written to log with the [Error] log level, regardless
-// of the level specified by the first parameter.
-func (lgr *Logger) Object(prefix string, level Level, indent int,
-	obj encoding.TextMarshaler) *Logger {
+func (lgr *Logger) Object(prefix string, level Level, indent int, obj Marshaler) *Logger {
 	return lgr.Begin(prefix).Object(level, indent, obj).Commit()
 }
 
