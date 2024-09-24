@@ -156,6 +156,12 @@ func TestFormat(t *testing.T) {
 			format: "Microsoft",
 			out:    "{c69fe12a-1491-46c3-9083-48035aa4d749}",
 		},
+
+		{
+			uuid:   Must(Parse("c69fe12a149146c3908348035aa4d749")),
+			format: "narshaltext",
+			out:    "c69fe12a-1491-46c3-9083-48035aa4d749",
+		},
 	}
 
 	for _, test := range tests {
@@ -167,6 +173,9 @@ func TestFormat(t *testing.T) {
 			out = test.uuid.URN()
 		case "microsoft":
 			out = test.uuid.Microsoft()
+		case "narshaltext":
+			text, _ := test.uuid.MarshalText()
+			out = string(text)
 		default:
 			panic(fmt.Sprintf(
 				"unhandled formatter %q", test.format))
