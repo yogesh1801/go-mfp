@@ -243,6 +243,11 @@ func (uuid UUID) URN() string {
 	return "urn:uuid:" + uuid.String()
 }
 
+// MarshalText implements [encoding.TextMarshaler] interface for UUID.
+func (uuid UUID) MarshalText() ([]byte, error) {
+	return []byte(uuid.String()), nil
+}
+
 // Microsoft returns the Microsoft style form of UUID:
 //
 //	{xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}
