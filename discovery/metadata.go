@@ -17,7 +17,7 @@ package discovery
 // [Backend] MUST either provide Manufacturer and Model or MakeModel
 // and MAY provide all of these parameters.
 type Metadata struct {
+	MakeModel    string // Manufacturer + Model
 	Manufacturer string // I.e., "Hewlett Packard" or "Canon"
 	Model        string // Model name
-	MakeModel    string // Manufacturer + Model
 }
