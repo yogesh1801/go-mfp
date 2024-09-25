@@ -6,7 +6,7 @@
 //
 // The "get-printers" command.
 
-package cmdcups
+package cups
 
 import (
 	"context"
@@ -17,34 +17,38 @@ import (
 )
 
 // cmdGetPrinters defines the "get-printers" sub-command.
-var cmdGetDevices = argv.Command{
-	Name:    "get-devices",
-	Help:    "Search for available devices",
-	Handler: cmdGetDevicesHandler,
+var cmdGetPrinters = argv.Command{
+	Name:    "get-printers",
+	Help:    "Get information on configured printers",
+	Handler: cmdGetPrintersHandler,
 	Options: []argv.Option{
-		optSchemesExclude,
-		optSchemesInclude,
+		optAttrs,
+		optID,
 		optLimit,
-		optTimeout,
+		optLocation,
+		optUser,
 		argv.HelpOption,
 	},
 }
 
 // cmdGetPrintersHandler is the "get-printers" command handler
-func cmdGetDevicesHandler(ctx context.Context, inv *argv.Invocation) error {
+func cmdGetPrintersHandler(ctx context.Context, inv *argv.Invocation) error {
 	// Prepare arguments
 	dest := optCUPSURL(inv)
 
-	sel := &cups.GetDevicesSelection{
-		Limit:          optLimitGet(inv),
-		Timeout:        optTimeoutGet(inv),
-		ExcludeSchemes: optSchemesExcludeGet(inv),
-		IncludeSchemes: optSchemesIncludeGet(inv),
+	sel := &cups.GetPrintersSelection{
+		PrinterID:       optIDGet(inv),
+		Limit:           optLimitGet(inv),
+		PrinterLocation: optLocationGet(inv),
+		User:            optUserGet(inv),
 	}
+
+	attrList := optAttrsGet(inv)
+	attrList = append(attrList, prnAttrsRequested...)
 
 	// Perform the query
 	clnt := cups.NewClient(dest, nil)
-	devices, err := clnt.CUPSGetDevices(ctx, sel, []string{"all"})
+	printers, err := clnt.CUPSGetPrinters(ctx, sel, attrList)
 	if err != nil {
 		return err
 	}
@@ -53,9 +57,9 @@ func cmdGetDevicesHandler(ctx context.Context, inv *argv.Invocation) error {
 	pager := env.NewPager()
 
 	pager.Printf("CUPS: %s", dest)
-	for _, dev := range devices {
+	for _, prn := range printers {
 		pager.Printf("")
-		devAttrsFormat(pager, dev)
+		prnAttrsFormat(pager, prn)
 	}
 
 	return pager.Display()

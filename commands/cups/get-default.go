@@ -6,7 +6,7 @@
 //
 // The "get-default" command.
 
-package cmdcups
+package cups
 
 import (
 	"context"

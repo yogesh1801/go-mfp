@@ -6,7 +6,7 @@
 //
 // Command description.
 
-package cmddiscover
+package discover
 
 import (
 	"context"

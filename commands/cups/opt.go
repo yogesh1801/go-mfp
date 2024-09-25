@@ -6,7 +6,7 @@
 //
 // Common options
 
-package cmdcups
+package cups
 
 import (
 	"math"

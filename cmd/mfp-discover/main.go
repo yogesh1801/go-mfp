@@ -8,9 +8,9 @@
 
 package main
 
-import "github.com/alexpevzner/mfp/commands/cmddiscover"
+import "github.com/alexpevzner/mfp/commands/discover"
 
 // main function for the mfp-discover command
 func main() {
-	cmddiscover.Command.Main(nil)
+	discover.Command.Main(nil)
 }

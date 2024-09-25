@@ -6,7 +6,7 @@
 //
 // Command description.
 
-package cmdcups
+package cups
 
 import (
 	"context"

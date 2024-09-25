@@ -10,8 +10,8 @@ package commands
 
 import (
 	"github.com/alexpevzner/mfp/argv"
-	"github.com/alexpevzner/mfp/commands/cmdcups"
-	"github.com/alexpevzner/mfp/commands/cmddiscover"
+	cmdcups "github.com/alexpevzner/mfp/commands/cups"
+	cmddiscover "github.com/alexpevzner/mfp/commands/discover"
 )
 
 // AllCommands is the argv.Command, that includes all other commands

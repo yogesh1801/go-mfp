@@ -6,7 +6,7 @@
 //
 // Printer information pretty-printer
 
-package cmdcups
+package cups
 
 import (
 	"fmt"
