@@ -6,12 +6,12 @@
 //
 // AllCommands super-command.
 
-package commands
+package cmd
 
 import (
 	"github.com/alexpevzner/mfp/argv"
-	"github.com/alexpevzner/mfp/commands/cups"
-	"github.com/alexpevzner/mfp/commands/discover"
+	"github.com/alexpevzner/mfp/cmd/mfp-cups/cups"
+	"github.com/alexpevzner/mfp/cmd/mfp-discover/discover"
 )
 
 // AllCommands is the argv.Command, that includes all other commands

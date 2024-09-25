@@ -8,7 +8,7 @@
 
 package main
 
-import "github.com/alexpevzner/mfp/commands/discover"
+import "github.com/alexpevzner/mfp/cmd/mfp-discover/discover"
 
 // main function for the mfp-discover command
 func main() {

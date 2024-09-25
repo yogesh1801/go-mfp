@@ -16,7 +16,7 @@ import (
 	"strings"
 
 	"github.com/alexpevzner/mfp/argv"
-	"github.com/alexpevzner/mfp/commands"
+	"github.com/alexpevzner/mfp/cmd"
 	"github.com/alexpevzner/mfp/env"
 	"github.com/peterh/liner"
 )
@@ -83,7 +83,7 @@ func completer(line string) (out []string) {
 	}
 
 	line = line[:len(line)-strip]
-	compl := commands.AllCommands.Complete(args)
+	compl := cmd.AllCommands.Complete(args)
 
 	for _, c := range compl {
 		s := line + c.String
@@ -113,7 +113,7 @@ func exec(line string) (savehistory bool, err error) {
 	}
 
 	// Execute the command
-	err = commands.AllCommands.Run(context.TODO(), argv)
+	err = cmd.AllCommands.Run(context.TODO(), argv)
 
 	return true, err
 }
