@@ -10,8 +10,8 @@ package commands
 
 import (
 	"github.com/alexpevzner/mfp/argv"
-	cmdcups "github.com/alexpevzner/mfp/commands/cups"
-	cmddiscover "github.com/alexpevzner/mfp/commands/discover"
+	"github.com/alexpevzner/mfp/commands/cups"
+	"github.com/alexpevzner/mfp/commands/discover"
 )
 
 // AllCommands is the argv.Command, that includes all other commands
@@ -22,8 +22,8 @@ var AllCommands = &argv.Command{
 		argv.HelpOption,
 	},
 	SubCommands: []argv.Command{
-		cmdcups.Command,
-		cmddiscover.Command,
+		cups.Command,
+		discover.Command,
 		argv.HelpCommand,
 	},
 }
