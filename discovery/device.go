@@ -16,9 +16,10 @@ package discovery
 // Each unit has its unique [UnitID], the combination of parameters,
 // that uniquely identifies the unit.
 type Device struct {
-	PrintUnits  []PrintUnit
-	ScanUnits   []ScanUnit
-	FaxoutUnits []FaxoutUnit
+	MakeModel   string       // Device make and model
+	PrintUnits  []PrintUnit  // Print units
+	ScanUnits   []ScanUnit   // Scan units
+	FaxoutUnits []FaxoutUnit // Faxout units
 }
 
 // device is the internal representation of the Device
@@ -30,7 +31,27 @@ type device struct {
 func (dev device) Export() Device {
 	out := Device{}
 
+	makeModelFrom := RealmInvalid
+
 	for _, un := range dev.units {
+		// Save device MakeModel
+		setMakeModel := false
+
+		switch un.id.Realm {
+		case RealmUSB:
+			setMakeModel = true
+		case RealmDNSSD:
+			setMakeModel = makeModelFrom != RealmUSB
+		default:
+			setMakeModel = out.MakeModel == ""
+		}
+
+		if setMakeModel {
+			out.MakeModel = un.meta.MakeModel
+			makeModelFrom = un.id.Realm
+		}
+
+		// Save unit
 		exp := un.Export()
 		switch exp := exp.(type) {
 		case PrintUnit:
