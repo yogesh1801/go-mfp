@@ -153,7 +153,7 @@ func (id UnitID) SameUnit(id2 UnitID) bool {
 	return id.Queue == id2.Queue && id.SameService(id2)
 }
 
-// MarshalText dumps [UnitID] as text, for [log.Object].
+// MarshalLog dumps [UnitID] as text, for [log.Object].
 // It implements [log.Marshaler].
 func (id UnitID) MarshalLog() []byte {
 	var line string
