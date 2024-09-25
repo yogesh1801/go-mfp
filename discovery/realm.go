@@ -18,7 +18,6 @@ const (
 
 	RealmDNSSD // DNS-SD search
 	RealmWSD   // Microsoft WS-Discovery
-	RealmSNMP  // SNMP search
 	RealmUSB   // USB
 )
 
@@ -32,6 +31,5 @@ var realmNames = map[SearchRealm]string{
 	RealmInvalid: "invalid",
 	RealmDNSSD:   "dnssd",
 	RealmWSD:     "wsd",
-	RealmSNMP:    "snmp",
 	RealmUSB:     "usb",
 }
