@@ -34,8 +34,8 @@ type PrinterParameters struct {
 	Staple  bool // Printer can staple output
 
 	// Operational parameters
-	PPD      string   // PPD file name, if any
-	PDL      []string // Supported MIME types
-	Queue    string   // Queue name
-	Priority int      // Queue priority, 0(highest)...99(lowest)
+	PSProduct string   // PS Product name (helps PPD location)
+	PDL       []string // Supported MIME types
+	Queue     string   // Queue name
+	Priority  int      // Queue priority, 0(highest)...99(lowest)
 }

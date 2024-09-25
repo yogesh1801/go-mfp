@@ -113,7 +113,7 @@ func decodeTxtPrinter(svcType, svcInstance string,
 				err = errors.New("out of range (0...99)")
 			}
 		case "product":
-			p.params.PPD, err = txtPPD(value)
+			p.params.PSProduct = value
 		case "punch":
 			// Punch can take values "0", "1", "2", "3",
 			// "4" and "U", according to the number of holes
@@ -351,13 +351,6 @@ func txtPaperMax(value string) (discovery.PaperSize, error) {
 	}
 
 	return discovery.PaperUnknown, nil
-}
-
-// txtPPD decodes a PPD file name
-func txtPPD(value string) (string, error) {
-	ppd, _ := strings.CutPrefix(value, "(")
-	ppd, _ = strings.CutSuffix(value, ")")
-	return ppd, nil
 }
 
 // txtSources decodes discovery.ScanSource bits
