@@ -6,7 +6,7 @@
 //
 // Common paths
 
-package commands
+package env
 
 import (
 	"os/user"

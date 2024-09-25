@@ -17,6 +17,7 @@ import (
 
 	"github.com/alexpevzner/mfp/argv"
 	"github.com/alexpevzner/mfp/commands"
+	"github.com/alexpevzner/mfp/env"
 	"github.com/peterh/liner"
 )
 
@@ -33,7 +34,7 @@ func main() {
 	editline.SetCompleter(completer)
 
 	// Setup history
-	historyPath := commands.PathUserConfDir("mfp")
+	historyPath := env.PathUserConfDir("mfp")
 	os.MkdirAll(historyPath, 0755)
 
 	historyPath = filepath.Join(historyPath, "mfp-shell.history")
