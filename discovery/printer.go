@@ -8,6 +8,8 @@
 
 package discovery
 
+import "strings"
+
 // PrinterParameters represents the discoverable information about the printer.
 //
 // It is defined in the [IPP.Everywhere] and [Apple Bounjour Printing]
@@ -48,4 +50,37 @@ func (p *PrinterParameters) fixup() {
 	if p.Media == 0 {
 		p.Media = MediaOther
 	}
+}
+
+// Flags formats printer flags (Bind, Color, Collate etc) into a
+// single string ("bind,color,collate,...").
+func (p PrinterParameters) Flags() string {
+	s := []string{}
+
+	if p.Bind {
+		s = append(s, "bind")
+	}
+	if p.Collate {
+		s = append(s, "collate")
+	}
+	if p.Color {
+		s = append(s, "color")
+	}
+	if p.Copies {
+		s = append(s, "copies")
+	}
+	if p.Duplex {
+		s = append(s, "duplex")
+	}
+	if p.Punch {
+		s = append(s, "punch")
+	}
+	if p.Sort {
+		s = append(s, "sort")
+	}
+	if p.Staple {
+		s = append(s, "staple")
+	}
+
+	return strings.Join(s, ",")
 }
