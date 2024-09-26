@@ -10,6 +10,7 @@ package discovery
 
 import (
 	"fmt"
+	"net/netip"
 	"strings"
 
 	"github.com/alexpevzner/mfp/uuid"
@@ -42,15 +43,17 @@ type FaxoutUnit struct {
 // unit is the internal representation of the PrintUnit, ScanUnit
 // or FaxoutUnit
 type unit struct {
-	id        UnitID   // Unit identity
-	meta      Metadata // Unit metadata
-	params    any      // PrinterParameters or ScannerParameters
-	endpoints []string // Unit endpoints
+	id        UnitID       // Unit identity
+	meta      Metadata     // Unit metadata
+	params    any          // PrinterParameters or ScannerParameters
+	endpoints []string     // Unit endpoints
+	addrs     []netip.Addr // Addresses that unit use
 }
 
 // Merge merges two units
 func (un *unit) Merge(un2 unit) {
 	un.endpoints = endpointsMerge(un.endpoints, un2.endpoints)
+	un.addrs = addrsMerge(un.addrs, un2.addrs)
 }
 
 // Export exports unit ad PrintUnit, ScanUnit or FaxoutUnit

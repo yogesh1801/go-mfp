@@ -10,8 +10,59 @@ package discovery
 
 import (
 	"net/netip"
+	"net/url"
 	"sort"
+	"strings"
 )
+
+// addrsFromEndpoints extracts addresses from endpoints
+func addrsFromEndpoints(endpoints []string) (addrs []netip.Addr) {
+	for _, endpoint := range endpoints {
+		u, err := url.Parse(endpoint)
+		if err != nil {
+			continue
+		}
+
+		switch u.Scheme {
+		case "ipp", "ipps", "lpd", "socket", "http", "https":
+		// Only these schemes use IP addresses
+		default:
+			continue
+		}
+
+		// Extract host, drop port
+		host := u.Host
+
+		colonAt := strings.LastIndex(host, ":")
+		bracketAt := strings.LastIndex(host, "]")
+		if colonAt >= 0 && colonAt > bracketAt {
+			host = host[:colonAt]
+		}
+
+		// Drop square brackets around IP6 address
+		if strings.HasPrefix(host, "[") &&
+			strings.HasSuffix(host, "]") {
+			host = host[1 : len(host)-1]
+		}
+
+		addr, err := netip.ParseAddr(host)
+		if err != nil {
+			continue
+		}
+
+		addr = addr.Unmap() // Just in case
+
+		// Save the address
+		addrs = append(addrs, addr)
+	}
+
+	// Sort extracted addresses
+	sort.Slice(addrs, func(i, j int) bool {
+		return addrs[i].Less(addrs[j])
+	})
+
+	return
+}
 
 // addrsContain reports if collection of addresses contains
 // the specified address.

@@ -37,6 +37,9 @@ func (out *output) Invalidate() {
 // Generate generates the discovery output from the discovery
 // information, gathered in the cache.
 func (out *output) Generate(ttl time.Time, units []unit) []Device {
+	// Extract IP addresses
+	out.genExtractIPAddresses(units)
+
 	// Merge variants
 	units = out.genMergeUnitVariants(units)
 
@@ -53,6 +56,15 @@ func (out *output) Generate(ttl time.Time, units []unit) []Device {
 	out.ttl = ttl
 
 	return outdevs
+}
+
+// genExtractIPAddresses extracts IP addresses from endpoints.
+// It modifies slice of units in place.
+func (out *output) genExtractIPAddresses(units []unit) {
+	for i := range units {
+		un := &units[i]
+		un.addrs = addrsFromEndpoints(un.endpoints)
+	}
 }
 
 // genMergeUnitVariants merges together units with distinct UnitID.Variant,
