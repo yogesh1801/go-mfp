@@ -150,7 +150,11 @@ func (out *output) genMergeDevicesByNameUUID(units []unit) []device {
 	// Build slice of devices
 	devices := make([]device, 0, len(scratchpad))
 	for _, devunits := range scratchpad {
-		dev := device{devunits}
+		dev := device{units: devunits}
+		for _, un := range devunits {
+			dev.addrs = addrsMerge(dev.addrs, un.addrs)
+		}
+
 		devices = append(devices, dev)
 	}
 

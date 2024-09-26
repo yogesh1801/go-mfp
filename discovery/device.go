@@ -8,6 +8,8 @@
 
 package discovery
 
+import "net/netip"
+
 // Device consist of the multiple functional units. There are
 // two types of units:
 //   - [PrintUnit]
@@ -17,6 +19,7 @@ package discovery
 // that uniquely identifies the unit.
 type Device struct {
 	MakeModel   string       // Device make and model
+	Addrs       []netip.Addr // Device's IP addresses
 	PrintUnits  []PrintUnit  // Print units
 	ScanUnits   []ScanUnit   // Scan units
 	FaxoutUnits []FaxoutUnit // Faxout units
@@ -24,12 +27,13 @@ type Device struct {
 
 // device is the internal representation of the Device
 type device struct {
-	units []unit
+	units []unit       // Device's units
+	addrs []netip.Addr // Device's IP addresses
 }
 
 // Export exports device as Device
 func (dev device) Export() Device {
-	out := Device{}
+	out := Device{Addrs: dev.addrs}
 
 	makeModelFrom := RealmInvalid
 
