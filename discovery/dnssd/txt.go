@@ -248,9 +248,9 @@ func txtAuth(value string) (discovery.AuthMode, error) {
 	case "certificate":
 		return discovery.AuthCertificate, nil
 	case "negotiate":
-		return discovery.AuthNegotiate, nil
+		return discovery.AuthKerberos, nil
 	case "oauth":
-		return discovery.AuthOAuth, nil
+		return discovery.AuthOAuth2, nil
 	case "username,passwor":
 		return discovery.AuthPasswd, nil
 	}

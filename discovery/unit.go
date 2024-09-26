@@ -118,15 +118,15 @@ func (un unit) Export() any {
 //	SvcProto   - service protocol, i.e., IPP, LPD, eSCL etc
 //	Serial     - device serial number, if appropriate (i.e., for USB)
 type UnitID struct {
-	DeviceName string       // Realm-unique device name
-	UUID       uuid.UUID    // uuid.NilUUID if not available
-	Queue      string       // Logical unit within a device
-	Realm      SearchRealm  // Search realm
-	Zone       string       // Namespace zone within the Realm
-	Variant    string       // Finding variant of the same unit
-	SvcType    ServiceType  // Service type
-	SvcProto   ServiceProto // Service protocol
-	Serial     string       // "" if not avaliable
+	DNSSDName string       // DNS-SD name, "" if not available
+	UUID      uuid.UUID    // uuid.NilUUID if not available
+	Queue     string       // Logical unit within a device
+	Realm     SearchRealm  // Search realm
+	Zone      string       // Namespace zone within the Realm
+	Variant   string       // Finding variant of the same unit
+	SvcType   ServiceType  // Service type
+	SvcProto  ServiceProto // Service protocol
+	Serial    string       // "" if not avaliable
 }
 
 // SameDevice reports if two [UnitID]s belong to the same device.
@@ -135,7 +135,7 @@ func (id UnitID) SameDevice(id2 UnitID) bool {
 		return true
 	}
 
-	if id.DeviceName == id2.DeviceName &&
+	if id.DNSSDName == id2.DNSSDName &&
 		id.Realm == id2.Realm &&
 		id.Zone == id2.Zone {
 		return true
@@ -162,37 +162,37 @@ func (id UnitID) MarshalLog() []byte {
 	var line string
 	lines := make([]string, 0, 6)
 
-	if id.DeviceName != "" {
-		line = fmt.Sprintf("DeviceName: %q", id.DeviceName)
+	if id.DNSSDName != "" {
+		line = fmt.Sprintf("DNSSDName: %q", id.DNSSDName)
 		lines = append(lines, line)
 	}
 	if id.UUID != uuid.NilUUID {
-		line = fmt.Sprintf("UUID:       %s", id.UUID)
+		line = fmt.Sprintf("UUID:      %s", id.UUID)
 		lines = append(lines, line)
 	}
 	if id.Queue != "" {
-		line = fmt.Sprintf("Queue:      %q", id.Queue)
+		line = fmt.Sprintf("Queue:     %q", id.Queue)
 		lines = append(lines, line)
 	}
 
-	line = fmt.Sprintf("Realm:      %s", id.Realm)
+	line = fmt.Sprintf("Realm:     %s", id.Realm)
 	lines = append(lines, line)
 
 	if id.Zone != "" {
-		line = fmt.Sprintf("Zone:       %s", id.Zone)
+		line = fmt.Sprintf("Zone:      %s", id.Zone)
 		lines = append(lines, line)
 	}
 
 	if id.Variant != "" {
-		line = fmt.Sprintf("Variant:    %s", id.Variant)
+		line = fmt.Sprintf("Variant:   %s", id.Variant)
 		lines = append(lines, line)
 	}
 
-	line = fmt.Sprintf("Service:    %s %s", id.SvcProto, id.SvcType)
+	line = fmt.Sprintf("Service:   %s %s", id.SvcProto, id.SvcType)
 	lines = append(lines, line)
 
 	if id.Serial != "" {
-		line = fmt.Sprintf("Serial:     %s", id.Serial)
+		line = fmt.Sprintf("Serial:    %s", id.Serial)
 		lines = append(lines, line)
 	}
 

@@ -20,3 +20,21 @@ const (
 	PaperA2                       // A2 (ISO-C)
 	PaperA2Plus                   // Large that A2
 )
+
+// String converts PaperSize to string.
+func (pps PaperSize) String() string {
+	switch pps {
+	case PaperA4Minus:
+		return "<legal-A4"
+	case PaperA4:
+		return "legal-A4"
+	case PaperA3:
+		return "tabloid-A3"
+	case PaperA2:
+		return "isoC-A2"
+	case PaperA2Plus:
+		return ">isoC-A2"
+	}
+
+	return "unknown"
+}

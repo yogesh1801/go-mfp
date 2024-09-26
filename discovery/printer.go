@@ -39,3 +39,13 @@ type PrinterParameters struct {
 	Queue     string   // Queue name
 	Priority  int      // Queue priority, 0(highest)...99(lowest)
 }
+
+// fixup fixes PrinterParameters, received from backend
+func (p *PrinterParameters) fixup() {
+	if p.Auth == 0 {
+		p.Auth = AuthNone
+	}
+	if p.Media == 0 {
+		p.Media = MediaOther
+	}
+}

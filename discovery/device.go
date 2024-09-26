@@ -18,8 +18,12 @@ import "net/netip"
 // Each unit has its unique [UnitID], the combination of parameters,
 // that uniquely identifies the unit.
 type Device struct {
-	MakeModel   string       // Device make and model
-	Addrs       []netip.Addr // Device's IP addresses
+	// Device metadata
+	MakeModel string       // Device make and model
+	DNSSDName string       // DNS-SD name, "" if none
+	Addrs     []netip.Addr // Device's IP addresses
+
+	// Device units
 	PrintUnits  []PrintUnit  // Print units
 	ScanUnits   []ScanUnit   // Scan units
 	FaxoutUnits []FaxoutUnit // Faxout units
@@ -53,6 +57,11 @@ func (dev device) Export() Device {
 		if setMakeModel {
 			out.MakeModel = un.meta.MakeModel
 			makeModelFrom = un.id.Realm
+		}
+
+		// Save DNSSDName
+		if out.DNSSDName == "" && un.id.DNSSDName != "" {
+			out.DNSSDName = un.id.DNSSDName
 		}
 
 		// Save unit

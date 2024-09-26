@@ -138,9 +138,9 @@ func (out *output) genMergeDevicesByNameUUID(units []unit) []device {
 	scratchpad := make(map[UnitID][]unit)
 	for _, un := range units {
 		key := UnitID{
-			DeviceName: un.id.DeviceName,
-			UUID:       un.id.UUID,
-			Realm:      un.id.Realm,
+			DNSSDName: un.id.DNSSDName,
+			UUID:      un.id.UUID,
+			Realm:     un.id.Realm,
 		}
 		scratchpad[key] = append(scratchpad[key], un)
 	}

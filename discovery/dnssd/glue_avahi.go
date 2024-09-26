@@ -424,11 +424,11 @@ func (key avahiServiceKey) commonUnitID() discovery.UnitID {
 	}
 
 	return discovery.UnitID{
-		DeviceName: key.InstanceName,
-		Realm:      discovery.RealmDNSSD,
-		Zone:       fmt.Sprintf("%%%d", int(key.IfIdx)),
-		Variant:    variant,
-		SvcProto:   svcTypeToDiscoveryServiceProto(key.SvcType),
+		DNSSDName: key.InstanceName,
+		Realm:     discovery.RealmDNSSD,
+		Zone:      fmt.Sprintf("%%%d", int(key.IfIdx)),
+		Variant:   variant,
+		SvcProto:  svcTypeToDiscoveryServiceProto(key.SvcType),
 	}
 }
 

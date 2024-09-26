@@ -151,6 +151,7 @@ func (c *cache) SetMetadata(id UnitID, meta Metadata) error {
 // SetPrinterParameters saves printer parameters.
 // Called when EventPrinterParameters is received
 func (c *cache) SetPrinterParameters(id UnitID, p PrinterParameters) error {
+	p.fixup()
 	return c.setParameters(id, ServicePrinter, p)
 }
 
@@ -165,6 +166,7 @@ func (c *cache) SetScannerParameters(id UnitID, p ScannerParameters) error {
 //
 // Note, Faxout parameters are represented by the PrinterParameters type.
 func (c *cache) SetFaxoutParameters(id UnitID, p PrinterParameters) error {
+	p.fixup()
 	return c.setParameters(id, ServiceFaxout, p)
 }
 

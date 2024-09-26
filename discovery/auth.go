@@ -8,6 +8,8 @@
 
 package discovery
 
+import "strings"
+
 // AuthMode defines the type of authentication information, required
 // by printer or scanner
 type AuthMode int
@@ -16,8 +18,34 @@ type AuthMode int
 const (
 	AuthNone        AuthMode = 1 << iota // No authentication
 	AuthCertificate                      // TLS certificate
-	AuthNegotiate                        // Kerberos (RFC4559)
-	AuthOAuth                            // OAuth 2.0 (RFC6749)
+	AuthKerberos                         // Kerberos (RFC4559)
+	AuthOAuth2                           // OAuth 2.0 (RFC6749)
 	AuthPasswd                           // User name+password
 	AuthOther                            // Other (unknown) mode
 )
+
+// String formats AuthMode as string, for printing and logging
+func (auth AuthMode) String() string {
+	s := []string{}
+
+	if auth&AuthNone != 0 {
+		s = append(s, "none")
+	}
+	if auth&AuthCertificate != 0 {
+		s = append(s, "certificate")
+	}
+	if auth&AuthKerberos != 0 {
+		s = append(s, "Kerberos")
+	}
+	if auth&AuthOAuth2 != 0 {
+		s = append(s, "OAuth2")
+	}
+	if auth&AuthPasswd != 0 {
+		s = append(s, "login+password")
+	}
+	if auth&AuthOther != 0 {
+		s = append(s, "other")
+	}
+
+	return strings.Join(s, ",")
+}
