@@ -109,14 +109,7 @@ func cmdDiscoverHandler(ctx context.Context, inv *argv.Invocation) error {
 				pager.Printf("    Paper Size: %s", p.Paper)
 				pager.Printf("    Media Type: %s", p.Media)
 
-				pager.Printf("    Bind:       %v", p.Bind)
-				pager.Printf("    Collate:    %v", p.Collate)
-				pager.Printf("    Color:      %v", p.Color)
-				pager.Printf("    Copies:     %v", p.Copies)
-				pager.Printf("    Duplex:     %v", p.Duplex)
-				pager.Printf("    Punch:      %v", p.Punch)
-				pager.Printf("    Sort:       %v", p.Sort)
-				pager.Printf("    Staple:     %v", p.Staple)
+				pager.Printf("    Flags:      %s", p.Flags())
 
 				pager.Printf("    PSProduct:  %q", p.PSProduct)
 				pager.Printf("    PDL:        %s",
