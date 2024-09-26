@@ -10,12 +10,12 @@ package discover
 
 import (
 	"context"
-	"encoding/json"
-	"os"
+	"strings"
 
 	"github.com/alexpevzner/mfp/argv"
 	"github.com/alexpevzner/mfp/discovery"
 	"github.com/alexpevzner/mfp/discovery/dnssd"
+	"github.com/alexpevzner/mfp/env"
 	"github.com/alexpevzner/mfp/log"
 )
 
@@ -68,7 +68,7 @@ func cmdDiscoverHandler(ctx context.Context, inv *argv.Invocation) error {
 	logger := log.NewLogger(level, log.Console)
 	ctx = log.NewContext(ctx, logger)
 
-	// Execute the command
+	// Perform device discovery
 	clnt := discovery.NewClient(ctx)
 	backend, err := dnssd.NewBackend(ctx, "", 0)
 	if err != nil {
@@ -81,9 +81,50 @@ func cmdDiscoverHandler(ctx context.Context, inv *argv.Invocation) error {
 		return err
 	}
 
-	//fmt.Printf(">> %#v\n", devices)
-	out, _ := json.MarshalIndent(devices, "", " ")
-	os.Stdout.Write(out)
+	// Format output
+	pager := env.NewPager()
+	defer pager.Display()
+
+	for _, dev := range devices {
+		pager.Printf("Device: %q", dev.MakeModel)
+
+		pager.Printf("  DNS-SD name:  %q", dev.DNSSDName)
+
+		s := []string{}
+		for _, addr := range dev.Addrs {
+			s = append(s, addr.String())
+		}
+		pager.Printf("  IP addresses: %s", strings.Join(s, ", "))
+
+		if len(dev.PrintUnits) != 0 {
+			pager.Printf("  Print units:")
+			for _, un := range dev.PrintUnits {
+				p := un.Params
+
+				pager.Printf("    Type:       %s printer",
+					un.ID.SvcProto)
+				pager.Printf("    Auth:       %s", p.Auth)
+				pager.Printf("    Admin URL:  %q", p.AdminURL)
+				pager.Printf("    Location:   %q", p.Location)
+				pager.Printf("    Paper Size: %s", p.Paper)
+				pager.Printf("    Media Type: %s", p.Media)
+
+				pager.Printf("    Bind:       %v", p.Bind)
+				pager.Printf("    Collate:    %v", p.Collate)
+				pager.Printf("    Color:      %v", p.Color)
+				pager.Printf("    Copies:     %v", p.Copies)
+				pager.Printf("    Duplex:     %v", p.Duplex)
+				pager.Printf("    Punch:      %v", p.Punch)
+				pager.Printf("    Sort:       %v", p.Sort)
+				pager.Printf("    Staple:     %v", p.Staple)
+
+				pager.Printf("    PSProduct:  %q", p.PSProduct)
+				pager.Printf("    PDL:        %s",
+					strings.Join(p.PDL, ","))
+				pager.Printf("    Priority:   %d", p.Priority)
+			}
+		}
+	}
 
 	backend.Close()
 
