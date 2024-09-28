@@ -89,6 +89,7 @@ func cmdDiscoverHandler(ctx context.Context, inv *argv.Invocation) error {
 		pager.Printf("Device: %q", dev.MakeModel)
 
 		pager.Printf("  DNS-SD name:  %q", dev.DNSSDName)
+		pager.Printf("  DNS-SD UUID:  %q", dev.DNSSDUUID)
 
 		s := []string{}
 		for _, addr := range dev.Addrs {

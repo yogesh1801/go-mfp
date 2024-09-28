@@ -8,7 +8,11 @@
 
 package discovery
 
-import "net/netip"
+import (
+	"net/netip"
+
+	"github.com/alexpevzner/mfp/uuid"
+)
 
 // Device consist of the multiple functional units. There are
 // two types of units:
@@ -21,6 +25,7 @@ type Device struct {
 	// Device metadata
 	MakeModel string       // Device make and model
 	DNSSDName string       // DNS-SD name, "" if none
+	DNSSDUUID uuid.UUID    // DNS-SD UUID, uuid.NilUUID if not available
 	Addrs     []netip.Addr // Device's IP addresses
 
 	// Device units
@@ -59,9 +64,10 @@ func (dev device) Export() Device {
 			makeModelFrom = un.id.Realm
 		}
 
-		// Save DNSSDName
+		// Save DNSSDName and DNSSDUUID
 		if out.DNSSDName == "" && un.id.DNSSDName != "" {
 			out.DNSSDName = un.id.DNSSDName
+			out.DNSSDUUID = un.id.UUID
 		}
 
 		// Save unit
