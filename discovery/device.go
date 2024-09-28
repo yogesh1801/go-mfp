@@ -15,9 +15,13 @@ import (
 )
 
 // Device consist of the multiple functional units. There are
-// two types of units:
-//   - [PrintUnit]
-//   - [ScanUnit]
+// three types of units:
+//   - [PrintUnit], for printing
+//   - [ScanUnit], for scanning
+//   - [FaxoutUnit], for sending faxes.
+//
+// Multiple units of each type may exist, and depending on the device,
+// they may have different parameters.
 //
 // Each unit has its unique [UnitID], the combination of parameters,
 // that uniquely identifies the unit.
