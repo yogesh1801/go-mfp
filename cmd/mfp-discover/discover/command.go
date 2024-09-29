@@ -108,7 +108,7 @@ func cmdDiscoverHandler(ctx context.Context, inv *argv.Invocation) error {
 				p := un.Params
 
 				pager.Printf("    Type:       %s printer",
-					un.ID.SvcProto)
+					un.Proto)
 				pager.Printf("    Auth:       %s", p.Auth)
 				pager.Printf("    Admin URL:  %q", p.AdminURL)
 				pager.Printf("    Location:   %q", p.Location)

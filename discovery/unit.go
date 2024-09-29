@@ -18,24 +18,21 @@ import (
 
 // PrintUnit represents a print unit.
 type PrintUnit struct {
-	ID        UnitID            // Unit identity
-	Meta      Metadata          // Unit metadata
+	Proto     ServiceProto      // Printing protocol
 	Params    PrinterParameters // Printer parameters
 	Endpoints []string          // URLs of printer endpoints
 }
 
 // ScanUnit represents a scan unit.
 type ScanUnit struct {
-	ID        UnitID            // Unit identity
-	Meta      Metadata          // Unit metadata
+	Proto     ServiceProto      // Scanning protocol
 	Params    ScannerParameters // Scanner parameters
 	Endpoints []string          // URLs of printer endpoints
 }
 
 // FaxoutUnit represents a fax unit.
 type FaxoutUnit struct {
-	ID        UnitID            // Unit identity
-	Meta      Metadata          // Unit metadata
+	Proto     ServiceProto      // Faxing protocol
 	Params    PrinterParameters // Printer parameters
 	Endpoints []string          // URLs of printer endpoints
 }
@@ -65,15 +62,13 @@ func (un unit) Export() any {
 		switch un.id.SvcType {
 		case ServicePrinter:
 			return PrintUnit{
-				ID:        un.id,
-				Meta:      un.meta,
+				Proto:     un.id.SvcProto,
 				Params:    params,
 				Endpoints: un.endpoints,
 			}
 		case ServiceFaxout:
 			return FaxoutUnit{
-				ID:        un.id,
-				Meta:      un.meta,
+				Proto:     un.id.SvcProto,
 				Params:    params,
 				Endpoints: un.endpoints,
 			}
@@ -81,8 +76,7 @@ func (un unit) Export() any {
 
 	case ScannerParameters:
 		return ScanUnit{
-			ID:        un.id,
-			Meta:      un.meta,
+			Proto:     un.id.SvcProto,
 			Params:    params,
 			Endpoints: un.endpoints,
 		}
