@@ -169,8 +169,9 @@ func (clnt *Client) nextEvent() error {
 	case *EventDelUnit:
 		err = clnt.cache.DelUnit(evnt.ID)
 	case *EventMetadata:
-		rec.Debug("  MakeModel: %s", evnt.Meta.MakeModel)
-		err = clnt.cache.SetMetadata(evnt.ID, evnt.Meta)
+		rec.Debug("  MakeModel: %s", evnt.MakeModel)
+		err = clnt.cache.SetMetadata(evnt.ID,
+			evnt.MakeModel, evnt.USBManufacturer, evnt.USBModel)
 	case *EventPrinterParameters:
 		err = clnt.cache.SetPrinterParameters(evnt.ID,
 			evnt.Printer)

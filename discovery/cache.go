@@ -134,13 +134,16 @@ func (c *cache) DelUnit(id UnitID) error {
 
 // SetMetadata saves unit Metadata.
 // Called when EventMetadata is received
-func (c *cache) SetMetadata(id UnitID, meta Metadata) error {
+func (c *cache) SetMetadata(id UnitID, makeModel, usbMfg, usbMdl string) error {
 	ent := c.entries[id]
 	if ent == nil {
 		return errors.New("unknown UnitID")
 	}
 
-	ent.meta = meta
+	ent.MakeModel = makeModel
+	ent.USBManufacturer = usbMfg
+	ent.USBModel = usbMdl
+
 	ent.hasMeta = true
 
 	c.out.Invalidate()

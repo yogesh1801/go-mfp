@@ -65,8 +65,10 @@ func (evnt *EventDelUnit) GetID() UnitID {
 
 // EventMetadata generated when unit metadate becomes available or updated.
 type EventMetadata struct {
-	ID   UnitID   // Unit identity
-	Meta Metadata // Unit metadata
+	ID              UnitID // Unit identity
+	MakeModel       string // Manufacturer + Model
+	USBManufacturer string // I.e., "Hewlett Packard" or "Canon"
+	USBModel        string // Model name
 }
 
 // Name returns the Event name.

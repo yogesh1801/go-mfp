@@ -161,16 +161,16 @@ func (dev device) Export() Device {
 	)
 
 	for _, un := range dnssdUnits {
-		if un.meta.MakeModel != "" {
-			out.MakeModel = un.meta.MakeModel
+		if un.MakeModel != "" {
+			out.MakeModel = un.MakeModel
 			break
 		}
 	}
 
-	for _, un := range dnssdUnits {
-		if un.meta.Manufacturer != "" && un.meta.Model != "" {
-			out.USBManufacturer = un.meta.Manufacturer
-			out.USBModel = un.meta.Model
+	for _, un := range allUnits {
+		if un.USBManufacturer != "" && un.USBModel != "" {
+			out.USBManufacturer = un.USBManufacturer
+			out.USBModel = un.USBModel
 			break
 		}
 	}

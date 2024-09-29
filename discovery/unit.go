@@ -40,11 +40,13 @@ type FaxoutUnit struct {
 // unit is the internal representation of the PrintUnit, ScanUnit
 // or FaxoutUnit
 type unit struct {
-	id        UnitID       // Unit identity
-	meta      Metadata     // Unit metadata
-	params    any          // PrinterParameters or ScannerParameters
-	endpoints []string     // Unit endpoints
-	addrs     []netip.Addr // Addresses that unit use
+	id              UnitID       // Unit identity
+	MakeModel       string       // Manufacturer + Model
+	USBManufacturer string       // I.e., "Hewlett Packard" or "Canon"
+	USBModel        string       // Model name
+	params          any          // PrinterParameters or ScannerParameters
+	endpoints       []string     // Unit endpoints
+	addrs           []netip.Addr // Addresses that unit use
 }
 
 // Merge merges two units
