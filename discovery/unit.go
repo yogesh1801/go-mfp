@@ -40,47 +40,47 @@ type FaxoutUnit struct {
 // unit is the internal representation of the PrintUnit, ScanUnit
 // or FaxoutUnit
 type unit struct {
-	id              UnitID       // Unit identity
+	ID              UnitID       // Unit identity
 	MakeModel       string       // Manufacturer + Model
 	USBManufacturer string       // I.e., "Hewlett Packard" or "Canon"
 	USBModel        string       // Model name
-	params          any          // PrinterParameters or ScannerParameters
-	endpoints       []string     // Unit endpoints
-	addrs           []netip.Addr // Addresses that unit use
+	Params          any          // PrinterParameters or ScannerParameters
+	Endpoints       []string     // Unit endpoints
+	Addrs           []netip.Addr // Addresses that unit use
 }
 
 // Merge merges two units
 func (un *unit) Merge(un2 unit) {
-	un.endpoints = endpointsMerge(un.endpoints, un2.endpoints)
-	un.addrs = addrsMerge(un.addrs, un2.addrs)
+	un.Endpoints = endpointsMerge(un.Endpoints, un2.Endpoints)
+	un.Addrs = addrsMerge(un.Addrs, un2.Addrs)
 }
 
 // Export exports unit ad PrintUnit, ScanUnit or FaxoutUnit
 func (un unit) Export() any {
-	switch params := un.params.(type) {
+	switch params := un.Params.(type) {
 	case PrinterParameters:
 		// PrinterParameters can be used either with PrintUnit
 		// or FaxoutUnit
-		switch un.id.SvcType {
+		switch un.ID.SvcType {
 		case ServicePrinter:
 			return PrintUnit{
-				Proto:     un.id.SvcProto,
+				Proto:     un.ID.SvcProto,
 				Params:    params,
-				Endpoints: un.endpoints,
+				Endpoints: un.Endpoints,
 			}
 		case ServiceFaxout:
 			return FaxoutUnit{
-				Proto:     un.id.SvcProto,
+				Proto:     un.ID.SvcProto,
 				Params:    params,
-				Endpoints: un.endpoints,
+				Endpoints: un.Endpoints,
 			}
 		}
 
 	case ScannerParameters:
 		return ScanUnit{
-			Proto:     un.id.SvcProto,
+			Proto:     un.ID.SvcProto,
 			Params:    params,
-			Endpoints: un.endpoints,
+			Endpoints: un.Endpoints,
 		}
 	}
 

@@ -63,7 +63,7 @@ func (out *output) Generate(ttl time.Time, units []unit) []Device {
 func (out *output) genExtractIPAddresses(units []unit) {
 	for i := range units {
 		un := &units[i]
-		un.addrs = addrsFromEndpoints(un.endpoints)
+		un.Addrs = addrsFromEndpoints(un.Endpoints)
 	}
 }
 
@@ -80,8 +80,8 @@ func (out *output) genExtractIPAddresses(units []unit) {
 func (out *output) genMergeUnitVariants(units []unit) []unit {
 	scratchpad := make(map[UnitID]unit)
 	for _, un := range units {
-		un.id.Variant = ""
-		key := un.id
+		un.ID.Variant = ""
+		key := un.ID
 
 		if prev, found := scratchpad[key]; found {
 			// Keep the first found unit; merge endpoints
@@ -110,8 +110,8 @@ func (out *output) genMergeUnitCrossZones(units []unit) []unit {
 	scratchpad := make(map[UnitID]unit)
 
 	for _, un := range units {
-		un.id.Zone = ""
-		key := un.id
+		un.ID.Zone = ""
+		key := un.ID
 
 		if prev, found := scratchpad[key]; found {
 			// Keep the first found unit; merge endpoints
@@ -138,9 +138,9 @@ func (out *output) genMergeDevicesByNameUUID(units []unit) []device {
 	scratchpad := make(map[UnitID][]unit)
 	for _, un := range units {
 		key := UnitID{
-			DNSSDName: un.id.DNSSDName,
-			UUID:      un.id.UUID,
-			Realm:     un.id.Realm,
+			DNSSDName: un.ID.DNSSDName,
+			UUID:      un.ID.UUID,
+			Realm:     un.ID.Realm,
 		}
 		scratchpad[key] = append(scratchpad[key], un)
 	}
@@ -152,7 +152,7 @@ func (out *output) genMergeDevicesByNameUUID(units []unit) []device {
 	for _, devunits := range scratchpad {
 		dev := device{units: devunits}
 		for _, un := range devunits {
-			dev.addrs = addrsMerge(dev.addrs, un.addrs)
+			dev.addrs = addrsMerge(dev.addrs, un.Addrs)
 		}
 
 		devices = append(devices, dev)

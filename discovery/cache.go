@@ -114,7 +114,7 @@ func (c *cache) AddUnit(id UnitID) error {
 		return errors.New("unit already added")
 	}
 
-	c.entries[id] = &cacheEnt{unit: unit{id: id}}
+	c.entries[id] = &cacheEnt{unit: unit{ID: id}}
 	c.out.Invalidate()
 
 	return nil
@@ -180,12 +180,12 @@ func (c *cache) setParameters(id UnitID, svcMustBe ServiceType, p any) error {
 		return errors.New("unknown UnitID")
 	}
 
-	if ent.id.SvcType != svcMustBe {
+	if ent.ID.SvcType != svcMustBe {
 		return fmt.Errorf("unit is %s, must be %s",
-			ent.id.SvcType, svcMustBe)
+			ent.ID.SvcType, svcMustBe)
 	}
 
-	ent.params = p
+	ent.Params = p
 	ent.hasParams = true
 
 	c.out.Invalidate()
@@ -200,7 +200,7 @@ func (c *cache) AddEndpoint(id UnitID, endpoint string) error {
 		return errors.New("unknown UnitID")
 	}
 
-	if endpointsContain(ent.endpoints, endpoint) ||
+	if endpointsContain(ent.Endpoints, endpoint) ||
 		endpointsContain(ent.stagingEndpoints, endpoint) {
 		return errors.New("endpoint already added")
 	}
@@ -221,8 +221,8 @@ func (c *cache) DelEndpoint(id UnitID, endpoint string) error {
 	}
 
 	switch {
-	case endpointsContain(ent.endpoints, endpoint):
-		ent.endpoints, _ = endpointsDel(ent.endpoints, endpoint)
+	case endpointsContain(ent.Endpoints, endpoint):
+		ent.Endpoints, _ = endpointsDel(ent.Endpoints, endpoint)
 
 	case endpointsContain(ent.stagingEndpoints, endpoint):
 		ent.stagingEndpoints, _ = endpointsDel(ent.stagingEndpoints,
@@ -240,7 +240,7 @@ func (c *cache) DelEndpoint(id UnitID, endpoint string) error {
 func (ent *cacheEnt) ready() bool {
 	if ent.hasMeta && ent.hasParams {
 		ent.stagingCheck() // Merge staged endpoints, if any
-		return len(ent.endpoints) > 0
+		return len(ent.Endpoints) > 0
 	}
 	return false
 }
@@ -249,9 +249,9 @@ func (ent *cacheEnt) ready() bool {
 func (ent *cacheEnt) snapshot() (un unit, ok bool) {
 	if ent.hasMeta && ent.hasParams {
 		un = ent.unit
-		un.endpoints = endpointsMerge(un.endpoints,
+		un.Endpoints = endpointsMerge(un.Endpoints,
 			ent.stagingEndpoints)
-		if len(un.endpoints) > 0 {
+		if len(un.Endpoints) > 0 {
 			return un, true
 		}
 	}
@@ -279,7 +279,7 @@ func (ent *cacheEnt) stagingBegin() {
 
 // stagingEnd publishes all endpoints collected in the staging area.
 func (ent *cacheEnt) stagingEnd() {
-	ent.endpoints = endpointsMerge(ent.endpoints, ent.stagingEndpoints)
+	ent.Endpoints = endpointsMerge(ent.Endpoints, ent.stagingEndpoints)
 	ent.stagingEndpoints = ent.stagingEndpoints[:0]
 	ent.stagingDoneAt = time.Time{}
 }

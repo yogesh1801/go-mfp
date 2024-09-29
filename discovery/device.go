@@ -76,9 +76,9 @@ func (dev device) Export() Device {
 
 	for i := range dev.units {
 		un := &dev.units[i]
-		switch un.id.SvcType {
+		switch un.ID.SvcType {
 		case ServicePrinter:
-			switch un.id.SvcProto {
+			switch un.ID.SvcProto {
 			case ServiceIPP:
 				ippPrinters = append(ippPrinters, un)
 			case ServiceLPD:
@@ -90,7 +90,7 @@ func (dev device) Export() Device {
 			}
 
 		case ServiceScanner:
-			switch un.id.SvcProto {
+			switch un.ID.SvcProto {
 			case ServiceIPP:
 				ippScanners = append(ippScanners, un)
 			case ServiceESCL:
@@ -100,7 +100,7 @@ func (dev device) Export() Device {
 			}
 
 		case ServiceFaxout:
-			switch un.id.SvcProto {
+			switch un.ID.SvcProto {
 			case ServiceIPP:
 				ippFaxes = append(ippFaxes, un)
 			}
@@ -176,16 +176,16 @@ func (dev device) Export() Device {
 	}
 
 	for _, un := range dnssdUnits {
-		if un.id.DNSSDName != "" && un.id.UUID != uuid.NilUUID {
-			out.DNSSDName = un.id.DNSSDName
-			out.DNSSDUUID = un.id.UUID
+		if un.ID.DNSSDName != "" && un.ID.UUID != uuid.NilUUID {
+			out.DNSSDName = un.ID.DNSSDName
+			out.DNSSDUUID = un.ID.UUID
 			break
 		}
 	}
 
 	for _, un := range allUnits {
-		if un.id.USBSerial != "" {
-			out.USBSerial = un.id.USBSerial
+		if un.ID.USBSerial != "" {
+			out.USBSerial = un.ID.USBSerial
 		}
 	}
 
