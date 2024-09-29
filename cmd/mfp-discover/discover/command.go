@@ -86,10 +86,14 @@ func cmdDiscoverHandler(ctx context.Context, inv *argv.Invocation) error {
 	defer pager.Display()
 
 	for _, dev := range devices {
-		pager.Printf("Device: %q", dev.MakeModel)
+		pager.Printf("================================")
 
+		pager.Printf("  MakeModel:    %q", dev.MakeModel)
 		pager.Printf("  DNS-SD name:  %q", dev.DNSSDName)
 		pager.Printf("  DNS-SD UUID:  %q", dev.DNSSDUUID)
+		pager.Printf("  Manufacturer: %q", dev.USBManufacturer)
+		pager.Printf("  Model:        %q", dev.USBModel)
+		pager.Printf("  USB serial:   %q", dev.USBSerial)
 
 		s := []string{}
 		for _, addr := range dev.Addrs {
@@ -98,6 +102,7 @@ func cmdDiscoverHandler(ctx context.Context, inv *argv.Invocation) error {
 		pager.Printf("  IP addresses: %s", strings.Join(s, ", "))
 
 		if len(dev.PrintUnits) != 0 {
+			pager.Printf("")
 			pager.Printf("  Print units:")
 			for _, un := range dev.PrintUnits {
 				p := un.Params
@@ -116,6 +121,7 @@ func cmdDiscoverHandler(ctx context.Context, inv *argv.Invocation) error {
 				pager.Printf("    PDL:        %s",
 					strings.Join(p.PDL, ","))
 				pager.Printf("    Priority:   %d", p.Priority)
+				pager.Printf("")
 			}
 		}
 	}
