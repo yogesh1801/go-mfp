@@ -8,6 +8,8 @@
 
 package discovery
 
+import "strings"
+
 // ScanSource defines input sources, supported by scanner
 type ScanSource int
 
@@ -17,3 +19,20 @@ const (
 	ScanPlaten             // Platen source
 	ScanADF                // Automatic Document Feeder
 )
+
+// String formats ScanSource as string, for printing and logging
+func (ss ScanSource) String() string {
+	s := []string{}
+
+	if ss&ScanOther != 0 {
+		s = append(s, "other")
+	}
+	if ss&ScanPlaten != 0 {
+		s = append(s, "platen")
+	}
+	if ss&ScanADF != 0 {
+		s = append(s, "ADF")
+	}
+
+	return strings.Join(s, ",")
+}
