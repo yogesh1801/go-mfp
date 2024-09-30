@@ -32,15 +32,14 @@ type Device struct {
 	DNSSDName string    // DNS-SD name, "" if none
 	DNSSDUUID uuid.UUID // DNS-SD UUID, uuid.NilUUID if n/a
 
-	// USBManufacturer and USBModel may be available for DNS-DS
-	// devices too, as 'usb_MFG' and 'usb_MDL' TXT records. Apple use
-	// these parameters for PDL file selection as a fallback, if
-	// 'product' is not available in the TXT.
+	// PPDManufacturer and PPDModel are matched against Manufacturer
+	// and Model parameters in the PPD file when searching for the
+	// appropriate driver for the legacy printer.
 	//
 	// Please notice, it is not necessary true that MakeModel
-	// is the concatenation of these two strings.
-	USBManufacturer string // Manufacturer name
-	USBModel        string // Model name
+	// is the exact concatenation of these two strings.
+	PPDManufacturer string // Manufacturer name
+	PPDModel        string // Model name
 
 	// USBSerial may be available for the ipp-usb devices too.
 	USBSerial string // USB serial number, "" if n/a
@@ -168,9 +167,9 @@ func (dev device) Export() Device {
 	}
 
 	for _, un := range allUnits {
-		if un.USBManufacturer != "" && un.USBModel != "" {
-			out.USBManufacturer = un.USBManufacturer
-			out.USBModel = un.USBModel
+		if un.PPDManufacturer != "" && un.PPDModel != "" {
+			out.PPDManufacturer = un.PPDManufacturer
+			out.PPDModel = un.PPDModel
 			break
 		}
 	}

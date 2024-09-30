@@ -42,8 +42,8 @@ type FaxoutUnit struct {
 type unit struct {
 	ID              UnitID       // Unit identity
 	MakeModel       string       // Manufacturer + Model
-	USBManufacturer string       // I.e., "Hewlett Packard" or "Canon"
-	USBModel        string       // Model name
+	PPDManufacturer string       // I.e., "Hewlett Packard" or "Canon"
+	PPDModel        string       // Model name
 	Params          any          // PrinterParameters or ScannerParameters
 	Endpoints       []string     // Unit endpoints
 	Addrs           []netip.Addr // Addresses that unit use

@@ -88,12 +88,12 @@ func cmdDiscoverHandler(ctx context.Context, inv *argv.Invocation) error {
 	for _, dev := range devices {
 		pager.Printf("================================")
 
-		pager.Printf("  MakeModel:    %q", dev.MakeModel)
-		pager.Printf("  DNS-SD name:  %q", dev.DNSSDName)
-		pager.Printf("  DNS-SD UUID:  %q", dev.DNSSDUUID)
-		pager.Printf("  Manufacturer: %q", dev.USBManufacturer)
-		pager.Printf("  Model:        %q", dev.USBModel)
-		pager.Printf("  USB serial:   %q", dev.USBSerial)
+		pager.Printf("  MakeModel:        %q", dev.MakeModel)
+		pager.Printf("  DNS-SD name:      %q", dev.DNSSDName)
+		pager.Printf("  DNS-SD UUID:      %q", dev.DNSSDUUID)
+		pager.Printf("  PPD Manufacturer: %q", dev.PPDManufacturer)
+		pager.Printf("  PPD Model:        %q", dev.PPDModel)
+		pager.Printf("  USB serial:       %q", dev.USBSerial)
 
 		s := []string{}
 		for _, addr := range dev.Addrs {

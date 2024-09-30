@@ -44,8 +44,8 @@ func newPrinterUnit(queue *discovery.Eventqueue,
 	un.queue.Push(&discovery.EventMetadata{
 		ID:              un.id,
 		MakeModel:       txt.makeModel,
-		USBManufacturer: txt.usbMFG,
-		USBModel:        txt.usbMDL,
+		PPDManufacturer: txt.usbMFG,
+		PPDModel:        txt.usbMDL,
 	})
 	un.queue.Push(&discovery.EventPrinterParameters{
 		ID:      un.id,

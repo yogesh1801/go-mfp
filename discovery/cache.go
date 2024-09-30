@@ -141,8 +141,8 @@ func (c *cache) SetMetadata(id UnitID, makeModel, usbMfg, usbMdl string) error {
 	}
 
 	ent.MakeModel = makeModel
-	ent.USBManufacturer = usbMfg
-	ent.USBModel = usbMdl
+	ent.PPDManufacturer = usbMfg
+	ent.PPDModel = usbMdl
 
 	ent.hasMeta = true
 

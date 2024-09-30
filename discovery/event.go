@@ -67,8 +67,8 @@ func (evnt *EventDelUnit) GetID() UnitID {
 type EventMetadata struct {
 	ID              UnitID // Unit identity
 	MakeModel       string // Manufacturer + Model
-	USBManufacturer string // I.e., "Hewlett Packard" or "Canon"
-	USBModel        string // Model name
+	PPDManufacturer string // I.e., "Hewlett Packard" or "Canon"
+	PPDModel        string // Model name
 }
 
 // Name returns the Event name.
