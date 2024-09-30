@@ -105,11 +105,15 @@ func cmdDiscoverHandler(ctx context.Context, inv *argv.Invocation) error {
 			s = append(s, addr.String())
 		}
 		pager.Printf("  IP addresses: %s", strings.Join(s, ", "))
+		pager.Printf("")
 
 		if len(dev.PrintUnits) != 0 {
-			pager.Printf("")
 			pager.Printf("  Print units:")
-			for _, un := range dev.PrintUnits {
+			for i, un := range dev.PrintUnits {
+				if i != 0 {
+					pager.Printf("")
+				}
+
 				p := un.Params
 
 				pager.Printf("    Type:       %s printer",
@@ -124,8 +128,52 @@ func cmdDiscoverHandler(ctx context.Context, inv *argv.Invocation) error {
 				pager.Printf("    PDL:        %s",
 					strings.Join(p.PDL, ","))
 				pager.Printf("    Priority:   %d", p.Priority)
-				pager.Printf("")
 			}
+			pager.Printf("")
+		}
+
+		if len(dev.ScanUnits) != 0 {
+			pager.Printf("  Scan units:")
+			for i, un := range dev.ScanUnits {
+				if i != 0 {
+					pager.Printf("")
+				}
+
+				p := un.Params
+				pager.Printf("    Type:       %s scanner",
+					un.Proto)
+				pager.Printf("    Duplex:     %v", p.Duplex)
+				pager.Printf("    Sources:    %s", p.Sources)
+				pager.Printf("    ColorModes: %s", p.Colors)
+				pager.Printf("    PDL:        %s",
+					strings.Join(p.PDL, ","))
+			}
+			pager.Printf("")
+		}
+
+		if len(dev.FaxoutUnits) != 0 {
+			pager.Printf("  Faxout units:")
+			for i, un := range dev.FaxoutUnits {
+				if i != 0 {
+					pager.Printf("")
+				}
+
+				p := un.Params
+
+				pager.Printf("    Type:       %s fax",
+					un.Proto)
+				pager.Printf("    Auth:       %s", p.Auth)
+				pager.Printf("    Paper Size: %s", p.Paper)
+				pager.Printf("    Media Type: %s", p.Media)
+
+				pager.Printf("    Flags:      %s", p.Flags())
+
+				pager.Printf("    PSProduct:  %q", p.PSProduct)
+				pager.Printf("    PDL:        %s",
+					strings.Join(p.PDL, ","))
+				pager.Printf("    Priority:   %d", p.Priority)
+			}
+			pager.Printf("")
 		}
 	}
 
