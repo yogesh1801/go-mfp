@@ -28,9 +28,12 @@ import (
 // that uniquely identifies the unit.
 type Device struct {
 	// Device metadata
-	MakeModel string    // Device make and model
-	DNSSDName string    // DNS-SD name, "" if none
-	DNSSDUUID uuid.UUID // DNS-SD UUID, uuid.NilUUID if n/a
+	MakeModel     string    // Device make and model
+	DNSSDName     string    // DNS-SD name, "" if none
+	DNSSDUUID     uuid.UUID // DNS-SD UUID, uuid.NilUUID if n/a
+	PrintAdminURL string    // Admin URL for printer
+	ScanAdminURL  string    // Admin URL for scanner
+	IconURL       string    // Device icon URL
 
 	// PPDManufacturer and PPDModel are matched against Manufacturer
 	// and Model parameters in the PPD file when searching for the
