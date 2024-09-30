@@ -23,6 +23,9 @@ type txtPrinter struct {
 	uuid      uuid.UUID                    // Device UUID
 	svcType   string                       // Service type
 	makeModel string                       // Manufacturer + Model
+	location  string                       // E.g., "2nd Floor Computer Lab"
+	adminURL  string                       // Device administration URL
+	iconURL   string                       // Device icon URL
 	usbMFG    string                       // I.e., "Hewlett Packard"
 	usbMDL    string                       // Model name
 	params    *discovery.PrinterParameters // Printer parameters
@@ -34,6 +37,9 @@ type txtScanner struct {
 	svcType   string                       // Service type
 	uriPath   string                       // Path part of URI
 	makeModel string                       // Manufacturer + Model
+	location  string                       // E.g., "2nd Floor Computer Lab"
+	adminURL  string                       // Device administration URL
+	iconURL   string                       // Device icon URL
 	params    *discovery.ScannerParameters // Printer parameters
 }
 
@@ -86,7 +92,7 @@ func decodeTxtPrinter(svcType, svcInstance string,
 		var err error
 		switch txToLower(key) {
 		case "adminurl":
-			p.params.AdminURL = value
+			p.adminURL = value
 		case "air":
 			p.params.Auth, err = txtAuth(value)
 		case "bind":
@@ -101,7 +107,7 @@ func decodeTxtPrinter(svcType, svcInstance string,
 		case "kind":
 			p.params.Media, err = txtMediaKind(value)
 		case "note":
-			p.params.Location = value
+			p.location = value
 		case "papermax":
 			p.params.Paper, err = txtPaperMax(value)
 		case "pdl":
@@ -201,7 +207,7 @@ func decodeTxtScanner(svcType, svcInstance string,
 		var err error
 		switch txToLower(key) {
 		case "adminurl":
-			s.params.AdminURL = value
+			s.adminURL = value
 		case "cs":
 			s.params.Colors, err = txtColors(value)
 		case "duplex":
@@ -209,11 +215,11 @@ func decodeTxtScanner(svcType, svcInstance string,
 		case "is":
 			s.params.Sources, err = txtSources(value)
 		case "note":
-			s.params.Location = value
+			s.location = value
 		case "pdl":
 			s.params.PDL, err = txtKeywords(value)
 		case "representation":
-			s.params.IconURL = value
+			s.iconURL = value
 		case "rs":
 			// Strip leading and trailing '/'.
 			// sane-airscan does the same.

@@ -165,28 +165,21 @@ func (clnt *Client) nextEvent() error {
 
 	switch evnt := evnt.(type) {
 	case *EventAddUnit:
-		err = clnt.cache.AddUnit(evnt.ID)
+		err = clnt.cache.AddUnit(evnt)
 	case *EventDelUnit:
-		err = clnt.cache.DelUnit(evnt.ID)
-	case *EventMetadata:
-		rec.Debug("  MakeModel: %s", evnt.MakeModel)
-		err = clnt.cache.SetMetadata(evnt.ID,
-			evnt.MakeModel, evnt.PPDManufacturer, evnt.PPDModel)
+		err = clnt.cache.DelUnit(evnt)
 	case *EventPrinterParameters:
-		err = clnt.cache.SetPrinterParameters(evnt.ID,
-			evnt.Printer)
+		err = clnt.cache.SetPrinterParameters(evnt)
 	case *EventScannerParameters:
-		err = clnt.cache.SetScannerParameters(evnt.ID,
-			evnt.Scanner)
+		err = clnt.cache.SetScannerParameters(evnt)
 	case *EventFaxoutParameters:
-		err = clnt.cache.SetFaxoutParameters(evnt.ID,
-			evnt.Faxout)
+		err = clnt.cache.SetFaxoutParameters(evnt)
 	case *EventAddEndpoint:
 		rec.Debug("  Endpoint:  %s", evnt.Endpoint)
-		err = clnt.cache.AddEndpoint(evnt.ID, evnt.Endpoint)
+		err = clnt.cache.AddEndpoint(evnt)
 	case *EventDelEndpoint:
 		rec.Debug("  Endpoint:  %s", evnt.Endpoint)
-		err = clnt.cache.DelEndpoint(evnt.ID, evnt.Endpoint)
+		err = clnt.cache.DelEndpoint(evnt)
 	}
 
 	if err != nil {

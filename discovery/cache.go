@@ -26,7 +26,6 @@ type cache struct {
 // cacheEnt is the cache entry for print/scan/faxout units.
 type cacheEnt struct {
 	unit
-	hasMeta          bool      // Metadata is received
 	hasParams        bool      // Parameters are received
 	stagingEndpoints []string  // Newly discovered endpoints, on quarantine
 	stagingDoneAt    time.Time // End of staging time. Zero if no staging.
@@ -109,43 +108,24 @@ func (c *cache) Snapshot() []Device {
 }
 
 // AddUnit adds new unit. Called when EventAddUnit is received.
-func (c *cache) AddUnit(id UnitID) error {
-	if c.entries[id] != nil {
+func (c *cache) AddUnit(evnt *EventAddUnit) error {
+	if c.entries[evnt.ID] != nil {
 		return errors.New("unit already added")
 	}
 
-	c.entries[id] = &cacheEnt{unit: unit{ID: id}}
+	c.entries[evnt.ID] = &cacheEnt{unit: unit{ID: evnt.ID}}
 	c.out.Invalidate()
 
 	return nil
 }
 
 // DelUnit deletes the unit. Called when EventDelUnit is received.
-func (c *cache) DelUnit(id UnitID) error {
-	if c.entries[id] == nil {
+func (c *cache) DelUnit(evnt *EventDelUnit) error {
+	if c.entries[evnt.ID] == nil {
 		return errors.New("unknown UnitID")
 	}
 
-	delete(c.entries, id)
-	c.out.Invalidate()
-
-	return nil
-}
-
-// SetMetadata saves unit Metadata.
-// Called when EventMetadata is received
-func (c *cache) SetMetadata(id UnitID, makeModel, usbMfg, usbMdl string) error {
-	ent := c.entries[id]
-	if ent == nil {
-		return errors.New("unknown UnitID")
-	}
-
-	ent.MakeModel = makeModel
-	ent.PPDManufacturer = usbMfg
-	ent.PPDModel = usbMdl
-
-	ent.hasMeta = true
-
+	delete(c.entries, evnt.ID)
 	c.out.Invalidate()
 
 	return nil
@@ -153,53 +133,107 @@ func (c *cache) SetMetadata(id UnitID, makeModel, usbMfg, usbMdl string) error {
 
 // SetPrinterParameters saves printer parameters.
 // Called when EventPrinterParameters is received
-func (c *cache) SetPrinterParameters(id UnitID, p PrinterParameters) error {
-	p.fixup()
-	return c.setParameters(id, ServicePrinter, p)
+func (c *cache) SetPrinterParameters(evnt *EventPrinterParameters) error {
+	ent, err := c.setParametersBegin(evnt.ID, ServicePrinter)
+	if err != nil {
+		return err
+	}
+
+	params := evnt.Printer
+	params.fixup()
+
+	ent.MakeModel = evnt.MakeModel
+	ent.Location = evnt.Location
+	ent.AdminURL = evnt.AdminURL
+	ent.IconURL = evnt.IconURL
+	ent.PPDManufacturer = evnt.PPDManufacturer
+	ent.PPDModel = evnt.PPDModel
+	ent.Params = params
+
+	c.setParametersCommit(ent)
+
+	return nil
 }
 
 // SetScannerParameters saves scanner parameters.
 // Called when EventScannerParameters is received
-func (c *cache) SetScannerParameters(id UnitID, p ScannerParameters) error {
-	return c.setParameters(id, ServiceScanner, p)
+func (c *cache) SetScannerParameters(evnt *EventScannerParameters) error {
+	ent, err := c.setParametersBegin(evnt.ID, ServiceScanner)
+	if err != nil {
+		return err
+	}
+
+	params := evnt.Scanner
+
+	ent.MakeModel = evnt.MakeModel
+	ent.Location = evnt.Location
+	ent.AdminURL = evnt.AdminURL
+	ent.IconURL = evnt.IconURL
+	ent.Params = params
+
+	c.setParametersCommit(ent)
+
+	return nil
 }
 
 // SetFaxoutParameters saves faxout parameters.
 // Called when EventFaxoutParameters is received.
 //
 // Note, Faxout parameters are represented by the PrinterParameters type.
-func (c *cache) SetFaxoutParameters(id UnitID, p PrinterParameters) error {
-	p.fixup()
-	return c.setParameters(id, ServiceFaxout, p)
-}
-
-// setParameters saves unit parameters.
-func (c *cache) setParameters(id UnitID, svcMustBe ServiceType, p any) error {
-	ent := c.entries[id]
-	if ent == nil {
-		return errors.New("unknown UnitID")
+func (c *cache) SetFaxoutParameters(evnt *EventFaxoutParameters) error {
+	ent, err := c.setParametersBegin(evnt.ID, ServiceFaxout)
+	if err != nil {
+		return err
 	}
 
-	if ent.ID.SvcType != svcMustBe {
-		return fmt.Errorf("unit is %s, must be %s",
-			ent.ID.SvcType, svcMustBe)
-	}
+	params := evnt.Faxout
+	params.fixup()
 
-	ent.Params = p
-	ent.hasParams = true
+	ent.MakeModel = evnt.MakeModel
+	ent.Location = evnt.Location
+	ent.AdminURL = evnt.AdminURL
+	ent.IconURL = evnt.IconURL
+	ent.PPDManufacturer = evnt.PPDManufacturer
+	ent.PPDModel = evnt.PPDModel
+	ent.Params = params
 
-	c.out.Invalidate()
+	c.setParametersCommit(ent)
 
 	return nil
 }
 
-// AddEndpoint adds unit endpoint.
-func (c *cache) AddEndpoint(id UnitID, endpoint string) error {
+// setParametersBegin begins operation of setting unit parameters.
+// It returns cache entry to be modified or an error.
+func (c *cache) setParametersBegin(id UnitID,
+	svcMustBe ServiceType) (*cacheEnt, error) {
+
 	ent := c.entries[id]
+	if ent == nil {
+		return nil, errors.New("unknown UnitID")
+	}
+
+	if ent.ID.SvcType != svcMustBe {
+		return nil, fmt.Errorf("unit is %s, must be %s",
+			ent.ID.SvcType, svcMustBe)
+	}
+
+	return ent, nil
+}
+
+// setParametersCommit finishes operation of setting unit parameters
+func (c *cache) setParametersCommit(ent *cacheEnt) {
+	ent.hasParams = true
+	c.out.Invalidate()
+}
+
+// AddEndpoint adds unit endpoint.
+func (c *cache) AddEndpoint(evnt *EventAddEndpoint) error {
+	ent := c.entries[evnt.ID]
 	if ent == nil {
 		return errors.New("unknown UnitID")
 	}
 
+	endpoint := evnt.Endpoint
 	if endpointsContain(ent.Endpoints, endpoint) ||
 		endpointsContain(ent.stagingEndpoints, endpoint) {
 		return errors.New("endpoint already added")
@@ -214,11 +248,13 @@ func (c *cache) AddEndpoint(id UnitID, endpoint string) error {
 }
 
 // AddEndpoint deletes unit endpoint.
-func (c *cache) DelEndpoint(id UnitID, endpoint string) error {
-	ent := c.entries[id]
+func (c *cache) DelEndpoint(evnt *EventDelEndpoint) error {
+	ent := c.entries[evnt.ID]
 	if ent == nil {
 		return errors.New("unknown UnitID")
 	}
+
+	endpoint := evnt.Endpoint
 
 	switch {
 	case endpointsContain(ent.Endpoints, endpoint):
@@ -238,7 +274,7 @@ func (c *cache) DelEndpoint(id UnitID, endpoint string) error {
 
 // ready checks if cache entry is ready to be exported.
 func (ent *cacheEnt) ready() bool {
-	if ent.hasMeta && ent.hasParams {
+	if ent.hasParams {
 		ent.stagingCheck() // Merge staged endpoints, if any
 		return len(ent.Endpoints) > 0
 	}
@@ -247,7 +283,7 @@ func (ent *cacheEnt) ready() bool {
 
 // snapshot makes a snapshot from the cache entry.
 func (ent *cacheEnt) snapshot() (un unit, ok bool) {
-	if ent.hasMeta && ent.hasParams {
+	if ent.hasParams {
 		un = ent.unit
 		un.Endpoints = endpointsMerge(un.Endpoints,
 			ent.stagingEndpoints)

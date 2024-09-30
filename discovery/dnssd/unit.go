@@ -41,15 +41,15 @@ func newPrinterUnit(queue *discovery.Eventqueue,
 	}
 
 	un.queue.Push(&discovery.EventAddUnit{ID: un.id})
-	un.queue.Push(&discovery.EventMetadata{
+	un.queue.Push(&discovery.EventPrinterParameters{
 		ID:              un.id,
 		MakeModel:       txt.makeModel,
+		Location:        txt.location,
+		AdminURL:        txt.adminURL,
+		IconURL:         txt.iconURL,
 		PPDManufacturer: txt.usbMFG,
 		PPDModel:        txt.usbMDL,
-	})
-	un.queue.Push(&discovery.EventPrinterParameters{
-		ID:      un.id,
-		Printer: *txt.params,
+		Printer:         *txt.params,
 	})
 
 	return un
@@ -67,13 +67,13 @@ func newScannerUnit(queue *discovery.Eventqueue,
 	}
 
 	un.queue.Push(&discovery.EventAddUnit{ID: un.id})
-	un.queue.Push(&discovery.EventMetadata{
+	un.queue.Push(&discovery.EventScannerParameters{
 		ID:        un.id,
 		MakeModel: txt.makeModel,
-	})
-	un.queue.Push(&discovery.EventScannerParameters{
-		ID:      un.id,
-		Scanner: *txt.params,
+		Location:  txt.location,
+		AdminURL:  txt.adminURL,
+		IconURL:   txt.iconURL,
+		Scanner:   *txt.params,
 	})
 
 	return un

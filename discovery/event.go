@@ -20,7 +20,6 @@ type Event interface {
 var (
 	_ = Event(&EventAddUnit{})
 	_ = Event(&EventDelUnit{})
-	_ = Event(&EventMetadata{})
 	_ = Event(&EventPrinterParameters{})
 	_ = Event(&EventScannerParameters{})
 	_ = Event(&EventFaxoutParameters{})
@@ -63,24 +62,6 @@ func (evnt *EventDelUnit) GetID() UnitID {
 	return evnt.ID
 }
 
-// EventMetadata generated when unit metadate becomes available or updated.
-type EventMetadata struct {
-	ID              UnitID // Unit identity
-	MakeModel       string // Manufacturer + Model
-	PPDManufacturer string // I.e., "Hewlett Packard" or "Canon"
-	PPDModel        string // Model name
-}
-
-// Name returns the Event name.
-func (*EventMetadata) Name() string {
-	return "metadata"
-}
-
-// GetID returns the UnitID this event related to.
-func (evnt *EventMetadata) GetID() UnitID {
-	return evnt.ID
-}
-
 // EventPrinterParameters generated when printer parameters
 // becomes available or updated.
 //
@@ -88,8 +69,14 @@ func (evnt *EventMetadata) GetID() UnitID {
 //   - Unit MUST exist (i.e., previously announced with the
 //     EventAddUnit event and not revoked with the EventDelUnit event)
 type EventPrinterParameters struct {
-	ID      UnitID            // Unit identity
-	Printer PrinterParameters // Printer parameters
+	ID              UnitID            // Unit identity
+	MakeModel       string            // Manufacturer + Model
+	Location        string            // E.g., E.g., "2nd Floor Lab"
+	AdminURL        string            // Device administration URL
+	IconURL         string            // Device icon URL
+	PPDManufacturer string            // I.e., "Hewlett Packard" or "Canon"
+	PPDModel        string            // Model name
+	Printer         PrinterParameters // Printer parameters
 }
 
 // Name returns the Event name.
@@ -108,8 +95,12 @@ func (evnt *EventPrinterParameters) GetID() UnitID {
 // Backend responsibilities:
 //   - Unit MUST exist
 type EventScannerParameters struct {
-	ID      UnitID            // Unit identity
-	Scanner ScannerParameters // Scanner parameters
+	ID        UnitID            // Unit identity
+	MakeModel string            // Manufacturer + Model
+	Location  string            // E.g., E.g., "2nd Floor Lab"
+	AdminURL  string            // Device administration URL
+	IconURL   string            // Device icon URL
+	Scanner   ScannerParameters // Scanner parameters
 }
 
 // Name returns the Event name.
@@ -128,8 +119,14 @@ func (evnt *EventScannerParameters) GetID() UnitID {
 // Backend responsibilities:
 //   - Unit MUST exist
 type EventFaxoutParameters struct {
-	ID     UnitID            // Unit identity
-	Faxout PrinterParameters // Faxout parameters (the same as printer)
+	ID              UnitID            // Unit identity
+	MakeModel       string            // Manufacturer + Model
+	Location        string            // E.g., E.g., "2nd Floor Lab"
+	AdminURL        string            // Device administration URL
+	IconURL         string            // Device icon URL
+	PPDManufacturer string            // I.e., "Hewlett Packard" or "Canon"
+	PPDModel        string            // Model name
+	Faxout          PrinterParameters // Faxout parameters (the same as printer)
 }
 
 // Name returns the Event name.

@@ -42,6 +42,9 @@ type FaxoutUnit struct {
 type unit struct {
 	ID              UnitID       // Unit identity
 	MakeModel       string       // Manufacturer + Model
+	Location        string       // E.g., "2nd Floor Computer Lab"
+	AdminURL        string       // Device administration URL
+	IconURL         string       // Device icon URL
 	PPDManufacturer string       // I.e., "Hewlett Packard" or "Canon"
 	PPDModel        string       // Model name
 	Params          any          // PrinterParameters or ScannerParameters

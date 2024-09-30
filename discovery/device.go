@@ -28,12 +28,14 @@ import (
 // that uniquely identifies the unit.
 type Device struct {
 	// Device metadata
-	MakeModel     string    // Device make and model
-	DNSSDName     string    // DNS-SD name, "" if none
-	DNSSDUUID     uuid.UUID // DNS-SD UUID, uuid.NilUUID if n/a
-	PrintAdminURL string    // Admin URL for printer
-	ScanAdminURL  string    // Admin URL for scanner
-	IconURL       string    // Device icon URL
+	MakeModel      string    // Device make and model
+	Location       string    // E.g., "2nd Floor Computer Lab"
+	DNSSDName      string    // DNS-SD name, "" if none
+	DNSSDUUID      uuid.UUID // DNS-SD UUID, uuid.NilUUID if n/a
+	PrintAdminURL  string    // Admin URL for printer
+	ScanAdminURL   string    // Admin URL for scanner
+	FaxoutAdminURL string    // Admin URL for faxout
+	IconURL        string    // Device icon URL
 
 	// PPDManufacturer and PPDModel are matched against Manufacturer
 	// and Model parameters in the PPD file when searching for the
@@ -181,6 +183,37 @@ func (dev device) Export() Device {
 		if un.ID.DNSSDName != "" && un.ID.UUID != uuid.NilUUID {
 			out.DNSSDName = un.ID.DNSSDName
 			out.DNSSDUUID = un.ID.UUID
+			break
+		}
+	}
+
+	for _, un := range dnssdUnits {
+		switch un.ID.SvcType {
+		case ServicePrinter:
+			if out.PrintAdminURL == "" {
+				out.PrintAdminURL = un.AdminURL
+			}
+		case ServiceScanner:
+			if out.ScanAdminURL == "" {
+				out.ScanAdminURL = un.AdminURL
+			}
+		case ServiceFaxout:
+			if out.FaxoutAdminURL == "" {
+				out.FaxoutAdminURL = un.AdminURL
+			}
+		}
+	}
+
+	for _, un := range slices.Concat(printUnits, scanUnits, faxoutUnits) {
+		if out.Location == "" && un.Location != "" {
+			out.Location = un.Location
+		}
+
+		if out.IconURL == "" && un.IconURL != "" {
+			out.IconURL = un.IconURL
+		}
+
+		if out.Location != "" && out.IconURL != "" {
 			break
 		}
 	}

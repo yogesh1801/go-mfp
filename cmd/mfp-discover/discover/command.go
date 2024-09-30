@@ -89,8 +89,13 @@ func cmdDiscoverHandler(ctx context.Context, inv *argv.Invocation) error {
 		pager.Printf("================================")
 
 		pager.Printf("  MakeModel:        %q", dev.MakeModel)
+		pager.Printf("  Location:         %q", dev.Location)
 		pager.Printf("  DNS-SD name:      %q", dev.DNSSDName)
 		pager.Printf("  DNS-SD UUID:      %q", dev.DNSSDUUID)
+		pager.Printf("  Print Admin URL:  %s", dev.PrintAdminURL)
+		pager.Printf("  Scan Admin URL:   %s", dev.ScanAdminURL)
+		pager.Printf("  Faxout Admin URL: %s", dev.FaxoutAdminURL)
+		pager.Printf("  Icon URL:         %s", dev.IconURL)
 		pager.Printf("  PPD Manufacturer: %q", dev.PPDManufacturer)
 		pager.Printf("  PPD Model:        %q", dev.PPDModel)
 		pager.Printf("  USB serial:       %q", dev.USBSerial)
@@ -110,8 +115,6 @@ func cmdDiscoverHandler(ctx context.Context, inv *argv.Invocation) error {
 				pager.Printf("    Type:       %s printer",
 					un.Proto)
 				pager.Printf("    Auth:       %s", p.Auth)
-				pager.Printf("    Admin URL:  %q", p.AdminURL)
-				pager.Printf("    Location:   %q", p.Location)
 				pager.Printf("    Paper Size: %s", p.Paper)
 				pager.Printf("    Media Type: %s", p.Media)
 
