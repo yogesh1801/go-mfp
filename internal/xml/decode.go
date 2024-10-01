@@ -14,15 +14,6 @@ import (
 	"io"
 )
 
-// Element represents a single decoded XML Element
-type Element struct {
-	Name     string     // Name of this element
-	Text     string     // Element body
-	Path     string     // Full path to the Element within XML document
-	Parent   *Element   // Parent element, nil for root
-	Children []*Element // All children
-}
-
 // Decode parses XML document, and represents it as a linear
 // sequence of XML elements
 //
