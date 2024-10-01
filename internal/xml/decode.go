@@ -16,8 +16,9 @@ import (
 
 // Element represents a single decoded XML Element
 type Element struct {
-	Path     string     // Full path to the Element within XML document
+	Name     string     // Name of this element
 	Text     string     // Element body
+	Path     string     // Full path to the Element within XML document
 	Parent   *Element   // Parent element, nil for root
 	Children []*Element // All children
 }
@@ -25,8 +26,8 @@ type Element struct {
 // Decode parses XML document, and represents it as a linear
 // sequence of XML elements
 //
-// Each element has a Path, which is a full path to the element,
-// starting from root, Text, which is XML element body, stripped
+// Each element has a Name, Path, which is a full path to the element,
+// starting from root and Text, which is XML element body, stripped
 // from leading and trailing space, and Children, which includes
 // its direct children, children of children and so on.
 //
@@ -58,23 +59,28 @@ func Decode(ns map[string]string, in io.Reader) ([]*Element, error) {
 
 		switch t := token.(type) {
 		case xml.StartElement:
-			var prefix string
+			// Decode name and path.
+			// Namespace translation is handled here.
+			var name string
 			if t.Name.Space != "" {
 				var ok bool
-				prefix, ok = ns[t.Name.Space]
+				name, ok = ns[t.Name.Space]
 				if !ok {
-					prefix = "-"
+					name = "-"
 				}
 			}
 
-			path.WriteByte('/')
-			path.WriteString(prefix)
-			if prefix != "" {
-				path.WriteByte(':')
+			if name != "" {
+				name += ":"
 			}
-			path.WriteString(t.Name.Local)
+			name += t.Name.Local
 
+			path.WriteByte('/')
+			path.WriteString(name)
+
+			// Create an element
 			elem = &Element{
+				Name:   name,
 				Path:   path.String(),
 				Parent: elem,
 			}

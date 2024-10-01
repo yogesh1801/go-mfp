@@ -39,31 +39,31 @@ func TestDecode(t *testing.T) {
 		``
 
 	expect := `` +
-		`/env: ""` + "\n" +
-		`  /env/a:elem-a: "body a"` + "\n" +
-		`  /env/b:elem-b: "body b"` + "\n" +
-		`    /env/b:elem-b/b:nested-1: "nested body 1"` + "\n" +
-		`    /env/b:elem-b/b:nested-2: "nested body 2"` + "\n" +
-		`      /env/b:elem-b/b:nested-2/b:nested-2-1: "nested body 2-1"` + "\n" +
-		`    /env/b:elem-b/b:nested-2/b:nested-2-1: "nested body 2-1"` + "\n" +
-		`  /env/b:elem-b/b:nested-1: "nested body 1"` + "\n" +
-		`  /env/b:elem-b/b:nested-2: "nested body 2"` + "\n" +
-		`    /env/b:elem-b/b:nested-2/b:nested-2-1: "nested body 2-1"` + "\n" +
-		`  /env/b:elem-b/b:nested-2/b:nested-2-1: "nested body 2-1"` + "\n" +
-		`  /env/c:elem-c: "body c"` + "\n" +
-		`  /env/-:elem-d: "body d"` + "\n" +
-		`/env/a:elem-a: "body a"` + "\n" +
-		`/env/b:elem-b: "body b"` + "\n" +
-		`  /env/b:elem-b/b:nested-1: "nested body 1"` + "\n" +
-		`  /env/b:elem-b/b:nested-2: "nested body 2"` + "\n" +
-		`    /env/b:elem-b/b:nested-2/b:nested-2-1: "nested body 2-1"` + "\n" +
-		`  /env/b:elem-b/b:nested-2/b:nested-2-1: "nested body 2-1"` + "\n" +
-		`/env/b:elem-b/b:nested-1: "nested body 1"` + "\n" +
-		`/env/b:elem-b/b:nested-2: "nested body 2"` + "\n" +
-		`  /env/b:elem-b/b:nested-2/b:nested-2-1: "nested body 2-1"` + "\n" +
-		`/env/b:elem-b/b:nested-2/b:nested-2-1: "nested body 2-1"` + "\n" +
-		`/env/c:elem-c: "body c"` + "\n" +
-		`/env/-:elem-d: "body d"` + "\n" +
+		`/env: env ""` + "\n" +
+		`  /env/a:elem-a: a:elem-a "body a"` + "\n" +
+		`  /env/b:elem-b: b:elem-b "body b"` + "\n" +
+		`    /env/b:elem-b/b:nested-1: b:nested-1 "nested body 1"` + "\n" +
+		`    /env/b:elem-b/b:nested-2: b:nested-2 "nested body 2"` + "\n" +
+		`      /env/b:elem-b/b:nested-2/b:nested-2-1: b:nested-2-1 "nested body 2-1"` + "\n" +
+		`    /env/b:elem-b/b:nested-2/b:nested-2-1: b:nested-2-1 "nested body 2-1"` + "\n" +
+		`  /env/b:elem-b/b:nested-1: b:nested-1 "nested body 1"` + "\n" +
+		`  /env/b:elem-b/b:nested-2: b:nested-2 "nested body 2"` + "\n" +
+		`    /env/b:elem-b/b:nested-2/b:nested-2-1: b:nested-2-1 "nested body 2-1"` + "\n" +
+		`  /env/b:elem-b/b:nested-2/b:nested-2-1: b:nested-2-1 "nested body 2-1"` + "\n" +
+		`  /env/c:elem-c: c:elem-c "body c"` + "\n" +
+		`  /env/-:elem-d: -:elem-d "body d"` + "\n" +
+		`/env/a:elem-a: a:elem-a "body a"` + "\n" +
+		`/env/b:elem-b: b:elem-b "body b"` + "\n" +
+		`  /env/b:elem-b/b:nested-1: b:nested-1 "nested body 1"` + "\n" +
+		`  /env/b:elem-b/b:nested-2: b:nested-2 "nested body 2"` + "\n" +
+		`    /env/b:elem-b/b:nested-2/b:nested-2-1: b:nested-2-1 "nested body 2-1"` + "\n" +
+		`  /env/b:elem-b/b:nested-2/b:nested-2-1: b:nested-2-1 "nested body 2-1"` + "\n" +
+		`/env/b:elem-b/b:nested-1: b:nested-1 "nested body 1"` + "\n" +
+		`/env/b:elem-b/b:nested-2: b:nested-2 "nested body 2"` + "\n" +
+		`  /env/b:elem-b/b:nested-2/b:nested-2-1: b:nested-2-1 "nested body 2-1"` + "\n" +
+		`/env/b:elem-b/b:nested-2/b:nested-2-1: b:nested-2-1 "nested body 2-1"` + "\n" +
+		`/env/c:elem-c: c:elem-c "body c"` + "\n" +
+		`/env/-:elem-d: -:elem-d "body d"` + "\n" +
 		``
 
 	out, err := Decode(ns, bytes.NewReader([]byte(in)))
@@ -79,12 +79,14 @@ func TestDecode(t *testing.T) {
 		t.Errorf("decode mismatch\nexpected: %s:\npresent: %s",
 			expect, buf.String())
 	}
+
 }
 
 // dump dumps decoded elements into io.Writer
 func dump(elements []*Element, out io.Writer, indent string) {
 	for _, elm := range elements {
-		fmt.Fprintf(out, "%s%s: %q\n", indent, elm.Path, elm.Text)
+		fmt.Fprintf(out, "%s%s: %s %q\n", indent,
+			elm.Path, elm.Name, elm.Text)
 		dump(elm.Children, out, indent+"  ")
 	}
 }
