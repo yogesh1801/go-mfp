@@ -74,7 +74,7 @@ func (i *Iter) Next() bool {
 
 			i.stack = append(i.stack,
 				iterStackLevel{
-					cur.Children, i.pathname.Len() + 1,
+					cur.Children, i.pathname.Len(),
 				})
 
 			cur = cur.Children[0]
@@ -90,6 +90,7 @@ func (i *Iter) Next() bool {
 			cur = tail[0]
 
 			i.pathname.Truncate(top.pathlen)
+			i.pathname.WriteByte('/')
 			i.pathname.WriteString(cur.Name)
 			return true
 
