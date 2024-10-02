@@ -67,9 +67,8 @@ func TestIterate(t *testing.T) {
 	present := []string{}
 
 	iter := root.Iterate()
-	for !iter.Done() {
+	for iter.Next() {
 		present = append(present, iter.Path())
-		iter.Next()
 	}
 
 	if !reflect.DeepEqual(expected, present) {

@@ -45,15 +45,27 @@ type iterStackLevel struct {
 	pathlen  int
 }
 
-// Iterate begins iteration of the XML Element tree, returning
-// the iterator that points to the root.
+// Iterate begins iteration of the XML Element tree.
+//
+// The newly created iterator points to the dummy pseudo-element.
+// After Iter.Next is called for the very first time, the current
+// node becomes root.
+//
+// So the valid usage pattern is following
+//
+//	iter := root.Iterate()
+//	for iter.Next() {
+//	  // Do something
+//	}
 func (root *Element) Iterate() *Iter {
-	i := &Iter{
-		stack: []iterStackLevel{{[]*Element{root}, 1}},
+	elements := []*Element{
+		&Element{},
+		root,
 	}
 
-	i.pathname.WriteByte('/')
-	i.pathname.WriteString(root.Name)
+	i := &Iter{
+		stack: []iterStackLevel{{elements, 0}},
+	}
 
 	return i
 }
