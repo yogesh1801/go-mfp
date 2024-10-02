@@ -9,8 +9,6 @@
 package xml
 
 import (
-	"fmt"
-	"os"
 	"testing"
 )
 
@@ -29,11 +27,11 @@ func TestEncoder(t *testing.T) {
 				Text: "element 1",
 				Children: []*Element{
 					{
-						Name: "ns.el-1-1",
+						Name: "ns:el-1-1",
 						Text: "element 1-1",
 					},
 					{
-						Name: "ns.el-1-2",
+						Name: "ns:el-1-2",
 						Text: "element 1-2",
 					},
 				},
@@ -43,11 +41,11 @@ func TestEncoder(t *testing.T) {
 				Text: "element 2",
 				Children: []*Element{
 					{
-						Name: "ns.el-2-1",
+						Name: "ns:el-2-1",
 						Text: "element 2-1",
 					},
 					{
-						Name: "ns.el-2-2",
+						Name: "ns:el-2-2",
 						Text: "element 2-2",
 					},
 				},
@@ -55,15 +53,28 @@ func TestEncoder(t *testing.T) {
 		},
 	}
 
-	err := root.EncodeIndent(os.Stdout, " ")
-	if err != nil {
-		panic(err)
+	compact := `<?xml version="1.0"?><a3 a1="attr 1" a2="attr 2" a3="attr 3"><ns:el-1>element 1<ns:el-1-1>element 1-1</ns:el-1-1><ns:el-1-2>element 1-2</ns:el-1-2></ns:el-1><ns:el-2>element 2<ns:el-2-1>element 2-1</ns:el-2-1><ns:el-2-2>element 2-2</ns:el-2-2></ns:el-2></a3>`
+	indent :=
+		`<?xml version="1.0"?>
+<a3 a1="attr 1" a2="attr 2" a3="attr 3">
+  <ns:el-1>element 1
+    <ns:el-1-1>element 1-1</ns:el-1-1>
+    <ns:el-1-2>element 1-2</ns:el-1-2>
+  </ns:el-1>
+  <ns:el-2>element 2
+    <ns:el-2-1>element 2-1</ns:el-2-1>
+    <ns:el-2-2>element 2-2</ns:el-2-2>
+  </ns:el-2>
+</a3>
+`
+
+	out := root.EncodeString()
+	if out != compact {
+		t.Errorf("EncodeString failed")
 	}
 
-	iter := root.Iterate()
-	for !iter.Done() {
-		cur := iter.Elem()
-		fmt.Printf("%s: %s\n", iter.Path(), cur.Text)
-		iter.Next()
+	out = root.EncodeIndentString("  ")
+	if out != indent {
+		t.Errorf("EncodeString failed")
 	}
 }
