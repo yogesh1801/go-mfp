@@ -15,19 +15,17 @@ import (
 )
 
 // Encode writes XML into [io.Writer] in the compact form.
-func Encode(w io.Writer, elements []*Element) error {
-	return encode(w, elements, true, "")
+func (root *Element) Encode(w io.Writer) error {
+	return root.encode(w, true, "")
 }
 
 // EncodeIndent writes XML into [io.Writer] in the indented form.
-func EncodeIndent(w io.Writer, elements []*Element, indent string) error {
-	return encode(w, elements, false, indent)
+func (root *Element) EncodeIndent(w io.Writer, indent string) error {
+	return root.encode(w, false, indent)
 }
 
 // encode is the internal function that implements XML encoder.
-func encode(w io.Writer, elements []*Element,
-	compact bool, indent string) error {
-
+func (root *Element) encode(w io.Writer, compact bool, indent string) error {
 	// Create xml.Encoder
 	encoder := xml.NewEncoder(w)
 	if !compact {
@@ -38,14 +36,14 @@ func encode(w io.Writer, elements []*Element,
 	tok := xml.ProcInst{Target: "xml", Inst: []byte(`version="1.0"`)}
 	encoder.EncodeToken(tok)
 
-	// Write NL after version, if pretty-printing.
-	// We have to do it manually with Go stdlib
+	// Write NL after version if pretty-printing.
+	// We have to do it manually with Go stdlib.
 	if !compact {
 		encoder.EncodeToken(xml.CharData("\n"))
 	}
 
 	// Recursively encode all elements
-	encodeRecursive(encoder, elements)
+	root.encodeRecursive(encoder)
 
 	// Write NL after XML body
 	if !compact {
@@ -56,49 +54,51 @@ func encode(w io.Writer, elements []*Element,
 	return encoder.Flush()
 }
 
-// encodeRecursive recursively encodes XMS elements
-func encodeRecursive(encoder *xml.Encoder, elements []*Element) error {
-	for _, elm := range elements {
-		var tok xml.Token
-		var err error
+// encodeRecursive recursively encodes XMS element and its children.
+func (root *Element) encodeRecursive(encoder *xml.Encoder) error {
+	var tok xml.Token
+	var err error
 
-		name := xml.Name{Space: "", Local: elm.Name}
-		attrs := []xml.Attr{}
+	// Write xml.StartElement
+	name := xml.Name{Space: "", Local: root.Name}
+	attrs := []xml.Attr{}
 
-		for _, attr := range elm.Attrs {
-			name = xml.Name{Space: "", Local: attr.Name}
-			attrs = append(attrs,
-				xml.Attr{Name: name, Value: attr.Value})
-		}
+	for _, attr := range root.Attrs {
+		name = xml.Name{Space: "", Local: attr.Name}
+		attrs = append(attrs,
+			xml.Attr{Name: name, Value: attr.Value})
+	}
 
-		tok = xml.StartElement{Name: name, Attr: attrs}
+	tok = xml.StartElement{Name: name, Attr: attrs}
 
+	err = encoder.EncodeToken(tok)
+	if err != nil {
+		return err
+	}
+
+	// Write body
+	text := strings.TrimSpace(root.Text)
+	if text != "" {
+		tok = xml.CharData(text)
 		err = encoder.EncodeToken(tok)
 		if err != nil {
 			return err
 		}
+	}
 
-		text := strings.TrimSpace(elm.Text)
-		if text != "" {
-			tok = xml.CharData(text)
-			err = encoder.EncodeToken(tok)
-			if err != nil {
-				return err
-			}
-		}
-
-		if len(elm.Children) != 0 {
-			err = encodeRecursive(encoder, elm.Children)
-			if err != nil {
-				return err
-			}
-		}
-
-		tok = xml.EndElement{Name: name}
-		err = encoder.EncodeToken(tok)
+	// Write children
+	for _, elm := range root.Children {
+		err = elm.encodeRecursive(encoder)
 		if err != nil {
 			return err
 		}
+	}
+
+	// Write xml.EndElement
+	tok = xml.EndElement{Name: name}
+	err = encoder.EncodeToken(tok)
+	if err != nil {
+		return err
 	}
 
 	return nil

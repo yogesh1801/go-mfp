@@ -15,24 +15,22 @@ import (
 
 // TestEncoder tests XML encoder
 func TestEncoder(t *testing.T) {
-	elements := []*Element{
-		{
-			Name: "env",
-			Children: []*Element{
-				{
-					Name: "ns:el-1",
-					Text: "element 1",
-					Attrs: []Attr{
-						{"a1", "attr 1"},
-						{"a2", "attr 2"},
-						{"a3", "attr 3"},
-					},
+	root := Element{
+		Name: "env",
+		Children: []*Element{
+			{
+				Name: "ns:el-1",
+				Text: "element 1",
+				Attrs: []Attr{
+					{"a1", "attr 1"},
+					{"a2", "attr 2"},
+					{"a3", "attr 3"},
 				},
 			},
 		},
 	}
 
-	err := EncodeIndent(os.Stdout, elements, " ")
+	err := root.EncodeIndent(os.Stdout, " ")
 	if err != nil {
 		panic(err)
 	}
