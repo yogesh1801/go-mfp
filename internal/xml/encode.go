@@ -9,6 +9,7 @@
 package xml
 
 import (
+	"bytes"
 	"encoding/xml"
 	"io"
 	"strings"
@@ -19,9 +20,25 @@ func (root *Element) Encode(w io.Writer) error {
 	return root.encode(w, true, "")
 }
 
+// EncodeString writes XML into [io.Writer] in the compact form and
+// returns string.
+func (root *Element) EncodeString() string {
+	buf := &bytes.Buffer{}
+	root.Encode(buf)
+	return buf.String()
+}
+
 // EncodeIndent writes XML into [io.Writer] in the indented form.
 func (root *Element) EncodeIndent(w io.Writer, indent string) error {
 	return root.encode(w, false, indent)
+}
+
+// EncodeIndentString writes XML into [io.Writer] in the indented form
+// and returns string.
+func (root *Element) EncodeIndentString(indent string) string {
+	buf := &bytes.Buffer{}
+	root.EncodeIndent(buf, indent)
+	return buf.String()
 }
 
 // encode is the internal function that implements XML encoder.
