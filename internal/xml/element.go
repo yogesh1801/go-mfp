@@ -12,7 +12,14 @@ package xml
 type Element struct {
 	Name     string     // Name of this element
 	Text     string     // Element body
-	Path     string     // Full path to the Element within XML document
-	Parent   *Element   // Parent element, nil for root
+	Attrs    []Attr     // Element attributes
 	Children []*Element // All children
+	Parent   *Element   // Parent element, nil for root
+	Path     string     // Full path to the Element within XML document
+}
+
+// Attr represents an XML element attribute
+type Attr struct {
+	Name  string // Attribute name
+	Value string // Attribute value
 }

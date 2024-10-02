@@ -22,6 +22,11 @@ func TestEncoder(t *testing.T) {
 				{
 					Name: "ns:el-1",
 					Text: "element 1",
+					Attrs: []Attr{
+						{"a1", "attr 1"},
+						{"a2", "attr 2"},
+						{"a3", "attr 3"},
+					},
 				},
 			},
 		},

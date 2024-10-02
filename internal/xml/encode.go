@@ -63,8 +63,16 @@ func encodeRecursive(encoder *xml.Encoder, elements []*Element) error {
 		var err error
 
 		name := xml.Name{Space: "", Local: elm.Name}
+		attrs := []xml.Attr{}
 
-		tok = xml.StartElement{Name: name}
+		for _, attr := range elm.Attrs {
+			name = xml.Name{Space: "", Local: attr.Name}
+			attrs = append(attrs,
+				xml.Attr{Name: name, Value: attr.Value})
+		}
+
+		tok = xml.StartElement{Name: name, Attr: attrs}
+
 		err = encoder.EncodeToken(tok)
 		if err != nil {
 			return err
