@@ -17,10 +17,10 @@ import (
 
 // TestDecode tests Decode function
 func TestDecode(t *testing.T) {
-	ns := map[string]string{
-		`http://example.com/a`: `a`,
-		`http://example.com/b`: `b`,
-		`http://example.com/c`: `c`,
+	ns := Namespace{
+		{`http://example.com/a`, `a`},
+		{`http://example.com/b`, `b`},
+		{`http://example.com/c`, `c`},
 	}
 
 	in := `` +

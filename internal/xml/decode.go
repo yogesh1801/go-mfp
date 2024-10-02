@@ -33,7 +33,7 @@ import (
 // Full namespace URL used as map index, and value that corresponds
 // to the index replaced with map value. If URL is not found in the
 // map, prefix replaced with "-" string
-func Decode(ns map[string]string, in io.Reader) ([]*Element, error) {
+func Decode(ns Namespace, in io.Reader) ([]*Element, error) {
 	var elements []*Element
 	var elem *Element
 	var path bytes.Buffer
@@ -55,7 +55,7 @@ func Decode(ns map[string]string, in io.Reader) ([]*Element, error) {
 			var name string
 			if t.Name.Space != "" {
 				var ok bool
-				name, ok = ns[t.Name.Space]
+				name, ok = ns.ByURL(t.Name.Space)
 				if !ok {
 					name = "-"
 				}
