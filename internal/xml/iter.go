@@ -32,15 +32,24 @@ import "bytes"
 //   - Child 2.1
 //   - Child 2.2
 type Iter struct {
-	stack    [][]*Element
+	stack    []iterStackLevel
 	pathname bytes.Buffer
+}
+
+func (i *Iter) stackTop() *iterStackLevel {
+	return &i.stack[len(i.stack)-1]
+}
+
+type iterStackLevel struct {
+	elements []*Element
+	pathlen  int
 }
 
 // Iterate begins iteration of the XML Element tree, returning
 // the iterator that points to the root.
 func (root *Element) Iterate() *Iter {
 	i := &Iter{
-		stack: [][]*Element{{root}},
+		stack: []iterStackLevel{{[]*Element{root}, 1}},
 	}
 
 	i.pathname.WriteByte('/')
@@ -53,15 +62,21 @@ func (root *Element) Iterate() *Iter {
 // It returns false at the end.
 func (i *Iter) Next() bool {
 	for len(i.stack) > 0 {
-		elements := i.stack[len(i.stack)-1]
-		cur := elements[0]
-		tail := elements[1:]
+		level := i.stack[len(i.stack)-1]
+		cur := level.elements[0]
+		tail := level.elements[1:]
 
 		switch {
 		case len(cur.Children) > 0:
 			// Enter into the current element
-			i.stack[len(i.stack)-1] = tail
-			i.stack = append(i.stack, cur.Children)
+			top := i.stackTop()
+			top.elements = tail
+
+			i.stack = append(i.stack,
+				iterStackLevel{
+					cur.Children, i.pathname.Len() + 1,
+				})
+
 			cur = cur.Children[0]
 			i.pathname.WriteByte('/')
 			i.pathname.WriteString(cur.Name)
@@ -69,17 +84,26 @@ func (i *Iter) Next() bool {
 
 		case len(tail) > 0:
 			// Switch to the next element
-			i.stack[len(i.stack)-1] = tail
-			i.pathname.Truncate(i.pathname.Len() - len(cur.Name))
+			top := i.stackTop()
+			top.elements = tail
+
 			cur = tail[0]
+
+			i.pathname.Truncate(top.pathlen)
 			i.pathname.WriteString(cur.Name)
 			return true
 
 		default:
 			// Move up the stack
-			i.stack = i.stack[:len(i.stack)-1]
-			for len(i.stack) > 0 && len(i.stack[0]) == 0 {
-				i.stack = i.stack[:len(i.stack)-1]
+			depth := len(i.stack) - 1
+			for depth > 0 && len(i.stack[depth-1].elements) == 0 {
+				depth--
+			}
+			i.stack = i.stack[:depth]
+			if len(i.stack) > 0 {
+				i.pathname.Truncate(i.stack[depth-1].pathlen)
+			} else {
+				i.pathname.Truncate(1)
 			}
 		}
 	}
@@ -95,7 +119,7 @@ func (i *Iter) Done() bool {
 // Elem returns the current element.
 func (i *Iter) Elem() *Element {
 	if !i.Done() {
-		return i.stack[len(i.stack)-1][0]
+		return i.stack[len(i.stack)-1].elements[0]
 	}
 	return nil
 }
