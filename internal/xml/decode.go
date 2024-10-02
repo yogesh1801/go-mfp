@@ -9,9 +9,9 @@
 package xml
 
 import (
-	"bytes"
 	"encoding/xml"
 	"io"
+	"strings"
 )
 
 // Decode parses XML document, and represents it as a linear
@@ -33,19 +33,15 @@ import (
 // Full namespace URL used as map index, and value that corresponds
 // to the index replaced with map value. If URL is not found in the
 // map, prefix replaced with "-" string
-func Decode(ns Namespace, in io.Reader) ([]*Element, error) {
-	var elements []*Element
+func Decode(ns Namespace, in io.Reader) (*Element, error) {
 	var elem *Element
-	var path bytes.Buffer
-
+	stack := []*Element{}
 	decoder := xml.NewDecoder(in)
+
 	for {
 		token, err := decoder.Token()
 		if err != nil {
-			if err != io.EOF {
-				return nil, err
-			}
-			break
+			return nil, err
 		}
 
 		switch t := token.(type) {
@@ -66,35 +62,30 @@ func Decode(ns Namespace, in io.Reader) ([]*Element, error) {
 			}
 			name += t.Name.Local
 
-			path.WriteByte('/')
-			path.WriteString(name)
-
 			// Create an element
-			elem = &Element{
-				Name:   name,
-				Path:   path.String(),
-				Parent: elem,
+			if elem != nil {
+				stack = append(stack, elem)
 			}
-			elements = append(elements, elem)
 
-			for p := elem.Parent; p != nil; p = p.Parent {
-				p.Children = append(p.Children, elem)
+			elem = &Element{Name: name}
+
+			if len(stack) != 0 {
+				parent := stack[len(stack)-1]
+				parent.Children = append(parent.Children, elem)
 			}
 
 		case xml.EndElement:
-			elem = elem.Parent
-			if elem != nil {
-				path.Truncate(len(elem.Path))
-			} else {
-				path.Truncate(0)
+			elem.Text = strings.TrimSpace(elem.Text)
+
+			if len(stack) == 0 {
+				return elem, nil
 			}
+
+			elem = stack[len(stack)-1]
+			stack = stack[:len(stack)-1]
 
 		case xml.CharData:
-			if elem != nil {
-				elem.Text = string(bytes.TrimSpace(t))
-			}
+			elem.Text += string(t)
 		}
 	}
-
-	return elements, nil
 }
