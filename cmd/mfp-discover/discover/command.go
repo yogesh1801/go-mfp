@@ -15,6 +15,7 @@ import (
 	"github.com/alexpevzner/mfp/argv"
 	"github.com/alexpevzner/mfp/discovery"
 	"github.com/alexpevzner/mfp/discovery/dnssd"
+	"github.com/alexpevzner/mfp/discovery/wsdd"
 	"github.com/alexpevzner/mfp/env"
 	"github.com/alexpevzner/mfp/log"
 )
@@ -68,14 +69,26 @@ func cmdDiscoverHandler(ctx context.Context, inv *argv.Invocation) error {
 	logger := log.NewLogger(level, log.Console)
 	ctx = log.NewContext(ctx, logger)
 
-	// Perform device discovery
+	// Prepare discovery.Client
 	clnt := discovery.NewClient(ctx)
+
 	backend, err := dnssd.NewBackend(ctx, "", 0)
 	if err != nil {
 		return err
 	}
 
+	defer backend.Close()
 	clnt.AddBackend(backend)
+
+	backend, err = wsdd.NewBackend(ctx)
+	if err != nil {
+		return err
+	}
+
+	defer backend.Close()
+	clnt.AddBackend(backend)
+
+	// Perform device discovery
 	devices, err := clnt.GetDevices(ctx, discovery.ModeNormal)
 	if err != nil {
 		return err
@@ -176,8 +189,6 @@ func cmdDiscoverHandler(ctx context.Context, inv *argv.Invocation) error {
 			pager.Printf("")
 		}
 	}
-
-	backend.Close()
 
 	return nil
 }
