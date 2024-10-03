@@ -6,43 +6,43 @@
 //
 // Generic sets
 
-package dnssd
+package generic
 
 // addrset manages set of addresses
-type set[T comparable] struct {
+type Set[T comparable] struct {
 	members map[T]struct{} // Members of the set
 }
 
 // newAddrset creates a new addrset
-func newSet[T comparable]() set[T] {
-	return set[T]{
+func NewSet[T comparable]() Set[T] {
+	return Set[T]{
 		members: make(map[T]struct{}),
 	}
 }
 
 // Empty reports if set is empty
-func (s set[T]) Empty() bool {
+func (s Set[T]) Empty() bool {
 	return len(s.members) == 0
 }
 
 // Contains reports if member already in the set
-func (s set[T]) Contains(member T) bool {
+func (s Set[T]) Contains(member T) bool {
 	_, found := s.members[member]
 	return found
 }
 
 // Add adds member to the set
-func (s set[T]) Add(member T) {
+func (s Set[T]) Add(member T) {
 	s.members[member] = struct{}{}
 }
 
 // Del deletes member from the set
-func (s set[T]) Del(member T) {
+func (s Set[T]) Del(member T) {
 	delete(s.members, member)
 }
 
 // ForEach applies function to the each member of the set
-func (s set[T]) ForEach(f func(T)) {
+func (s Set[T]) ForEach(f func(T)) {
 	for member := range s.members {
 		f(member)
 	}

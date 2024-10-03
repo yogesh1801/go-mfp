@@ -17,6 +17,7 @@ import (
 
 	"github.com/alexpevzner/go-avahi"
 	"github.com/alexpevzner/mfp/discovery"
+	"github.com/alexpevzner/mfp/internal/generic"
 )
 
 // Parameters:
@@ -254,8 +255,8 @@ func (clnt *avahiClient) AddHostname(key avahiHostnameKey,
 		clnt:        clnt,
 		key:         key,
 		addrBrowser: addrBrowser,
-		addrs:       newSet[netip.Addr](),
-		services:    newSet[*avahiService](),
+		addrs:       generic.NewSet[netip.Addr](),
+		services:    generic.NewSet[*avahiService](),
 	}
 
 	clnt.hostnames[key] = hostname
@@ -505,11 +506,11 @@ func avahiServiceKeyFromRecordBrowserEvent(
 // avahiHostname is the per-hostname structure that manages
 // resources associated with the hostname
 type avahiHostname struct {
-	clnt        *avahiClient         // The owner
-	key         avahiHostnameKey     // Identity
-	addrBrowser *avahi.RecordBrowser // A/AAAA record resolver
-	addrs       set[netip.Addr]      // Resolved addresses
-	services    set[*avahiService]   // Dependent services
+	clnt        *avahiClient               // The owner
+	key         avahiHostnameKey           // Identity
+	addrBrowser *avahi.RecordBrowser       // A/AAAA record resolver
+	addrs       generic.Set[netip.Addr]    // Resolved addresses
+	services    generic.Set[*avahiService] // Dependent services
 }
 
 // Delete deletes the avahiHostname from avahiClient

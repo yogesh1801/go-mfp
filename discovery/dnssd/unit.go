@@ -14,18 +14,19 @@ import (
 	"strconv"
 
 	"github.com/alexpevzner/mfp/discovery"
+	"github.com/alexpevzner/mfp/internal/generic"
 )
 
 // unit represents a discovered print or scan unit.
 // It accepts RR updates and generates events.
 type unit struct {
-	queue   *discovery.Eventqueue // Event queue
-	id      discovery.UnitID      // Unit ID
-	svcType string                // Service type
-	addrs   set[netip.Addr]       // IP addresses of the unit
-	port    uint16                // IP port
-	txtPrn  txtPrinter            // Parsed TXT for print unit
-	txtScn  txtScanner            // Parsed TXT for scan unit
+	queue   *discovery.Eventqueue   // Event queue
+	id      discovery.UnitID        // Unit ID
+	svcType string                  // Service type
+	addrs   generic.Set[netip.Addr] // IP addresses of the unit
+	port    uint16                  // IP port
+	txtPrn  txtPrinter              // Parsed TXT for print unit
+	txtScn  txtScanner              // Parsed TXT for scan unit
 }
 
 // newPrinterUnit creates a new printer unit
@@ -36,7 +37,7 @@ func newPrinterUnit(queue *discovery.Eventqueue,
 		queue:   queue,
 		id:      id,
 		svcType: txt.svcType,
-		addrs:   newSet[netip.Addr](),
+		addrs:   generic.NewSet[netip.Addr](),
 		txtPrn:  txt,
 	}
 
@@ -62,7 +63,7 @@ func newScannerUnit(queue *discovery.Eventqueue,
 		queue:   queue,
 		id:      id,
 		svcType: txt.svcType,
-		addrs:   newSet[netip.Addr](),
+		addrs:   generic.NewSet[netip.Addr](),
 		txtScn:  txt,
 	}
 
