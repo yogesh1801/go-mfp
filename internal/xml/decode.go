@@ -66,6 +66,34 @@ func Decode(ns Namespace, in io.Reader) (Element, error) {
 			stack = append(stack, elem)
 			elem = Element{Name: name}
 
+			// Decode attributes
+			for _, attr := range t.Attr {
+				if attr.Name.Space == "xmlns" {
+					// Skip xmlns attributes, they
+					// are for XML namespace management.
+					// On encoding we are insert them
+					// automatically, so they are
+					// removed on decoding, for symmetry.
+					continue
+				}
+
+				if attr.Name.Space != "" {
+					var ok bool
+					name, ok = ns.ByURL(attr.Name.Space)
+					if !ok {
+						name = "-"
+					}
+				}
+
+				if name != "" {
+					name += ":"
+				}
+				name += attr.Name.Local
+
+				elem.Attrs = append(elem.Attrs,
+					Attr{name, attr.Value})
+			}
+
 		case xml.EndElement:
 			elem.Text = strings.TrimSpace(elem.Text)
 

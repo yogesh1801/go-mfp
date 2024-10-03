@@ -25,7 +25,7 @@ func TestDecode(t *testing.T) {
 	in := `` +
 		`<?xml version="1.0" ?>` +
 		`<env xmlns:ns-a="http://example.com/a" xmlns:ns-b="http://example.com/b" xmlns:ns-c="http://example.com/c">` +
-		`  <ns-a:elem-a>body a</ns-a:elem-a>` +
+		`  <ns-a:elem-a ns-a:attr="value">body a</ns-a:elem-a>` +
 		`  <ns-b:elem-b>body b` +
 		`    <ns-b:nested-1>nested body 1</ns-b:nested-1>` +
 		`    <ns-b:nested-2>nested body 2` +
@@ -48,6 +48,9 @@ func TestDecode(t *testing.T) {
 			{
 				Name: "a:elem-a",
 				Text: "body a",
+				Attrs: []Attr{
+					{Name: "a:attr", Value: "value"},
+				},
 			},
 			{
 				Name: "b:elem-b",
