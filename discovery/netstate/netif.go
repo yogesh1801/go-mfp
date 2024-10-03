@@ -48,7 +48,7 @@ func (nif NetIf) Name() string {
 // String returns string representation of the interface,
 // for debugging purposes.
 func (nif NetIf) String() string {
-	return fmt.Sprintf("%s(#%d)", nif.name, nif.index)
+	return fmt.Sprintf("%d(%s)", nif.index, nif.name)
 }
 
 // Less reports whether nif sorts before nif2.
