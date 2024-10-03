@@ -40,6 +40,8 @@ func newMonitor() monitor {
 	mon := &monitorLinux{
 		waitchan: make(chan struct{}),
 	}
+
+	mon.update()
 	go mon.poll()
 
 	return mon
