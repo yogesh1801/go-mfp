@@ -1,3 +1,3 @@
-SUBDIRS	= xml
+SUBDIRS	= generic xml
 
 include ../Rules.mak
