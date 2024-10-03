@@ -87,8 +87,8 @@ func TestDecode(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(out, expect) {
-		fmtexp := expect.EncodeIndentString("  ")
-		fmtout := out.EncodeIndentString("  ")
+		fmtexp := expect.EncodeIndentString(nil, "  ")
+		fmtout := out.EncodeIndentString(nil, "  ")
 		t.Errorf("expected:\n%s\npresent:\n%s\n",
 			fmtexp, fmtout)
 	}

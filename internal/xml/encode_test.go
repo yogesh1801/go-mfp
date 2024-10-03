@@ -14,6 +14,13 @@ import (
 
 // TestEncoder tests XML encoder
 func TestEncoder(t *testing.T) {
+	ns := Namespace{
+		{"http://example.com/ns", "ns"},
+		{"https://example.com/ns", "ns"},
+		{"http://example.com/ns1", "ns1"},
+		{"http://example.com/ns2", "ns2"},
+	}
+
 	root := Element{
 		Name: "env",
 		Attrs: []Attr{
@@ -53,10 +60,10 @@ func TestEncoder(t *testing.T) {
 		},
 	}
 
-	compact := `<?xml version="1.0"?><a3 a1="attr 1" a2="attr 2" a3="attr 3"><ns:el-1>element 1<ns:el-1-1>element 1-1</ns:el-1-1><ns:el-1-2>element 1-2</ns:el-1-2></ns:el-1><ns:el-2>element 2<ns:el-2-1>element 2-1</ns:el-2-1><ns:el-2-2>element 2-2</ns:el-2-2></ns:el-2></a3>`
+	compact := `<?xml version="1.0"?><a3 xmlns:ns="http://example.com/ns" a1="attr 1" a2="attr 2" a3="attr 3"><ns:el-1>element 1<ns:el-1-1>element 1-1</ns:el-1-1><ns:el-1-2>element 1-2</ns:el-1-2></ns:el-1><ns:el-2>element 2<ns:el-2-1>element 2-1</ns:el-2-1><ns:el-2-2>element 2-2</ns:el-2-2></ns:el-2></a3>`
 	indent :=
 		`<?xml version="1.0"?>
-<a3 a1="attr 1" a2="attr 2" a3="attr 3">
+<a3 xmlns:ns="http://example.com/ns" a1="attr 1" a2="attr 2" a3="attr 3">
   <ns:el-1>element 1
     <ns:el-1-1>element 1-1</ns:el-1-1>
     <ns:el-1-2>element 1-2</ns:el-1-2>
@@ -68,13 +75,13 @@ func TestEncoder(t *testing.T) {
 </a3>
 `
 
-	out := root.EncodeString()
+	out := root.EncodeString(ns)
 	if out != compact {
 		t.Errorf("EncodeString failed")
 	}
 
-	out = root.EncodeIndentString("  ")
+	out = root.EncodeIndentString(ns, "  ")
 	if out != indent {
-		t.Errorf("EncodeString failed")
+		t.Errorf("EncodeIndentString failed")
 	}
 }

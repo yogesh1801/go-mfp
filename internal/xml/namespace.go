@@ -8,6 +8,8 @@
 
 package xml
 
+import "strings"
+
 // Namespace maps XML namespace URLs to short prefixes.
 //
 // Namespace initialization may look as follows:
@@ -36,6 +38,12 @@ type Namespace []struct {
 	Prefix string // Namespace prefix
 }
 
+// Append appends item to the Namespace
+func (ns *Namespace) Append(url string, prefix string) {
+	item := struct{ URL, Prefix string }{url, prefix}
+	*ns = append(*ns, item)
+}
+
 // ByURL searches Namespace by URL.
 //
 // It returns (Prefix, true) if requested element was found,
@@ -45,6 +53,33 @@ func (ns Namespace) ByURL(u string) (string, bool) {
 		if u == ent.URL {
 			return ent.Prefix, true
 		}
+	}
+
+	return "", false
+}
+
+// ByPrefix searches Namespace by name prefix.
+//
+// It returns (URK, true) if requested element was found,
+// or ("", false) otherwise.
+func (ns Namespace) ByPrefix(p string) (string, bool) {
+	for _, ent := range ns {
+		if p == ent.Prefix {
+			return ent.URL, true
+		}
+	}
+
+	return "", false
+}
+
+// nsPrefix returns namespace prefix for the name
+//
+// The second returned value will be false, if name doesn't contain
+// a namespace prefix.
+func nsPrefix(name string) (string, bool) {
+	i := strings.IndexByte(name, ':')
+	if i >= 0 {
+		return name[:i], true
 	}
 
 	return "", false
