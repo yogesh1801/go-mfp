@@ -95,7 +95,7 @@ func (root *Element) encodeRecursive(encoder *xml.Encoder) error {
 	attrs := []xml.Attr{}
 
 	for _, attr := range root.Attrs {
-		name = xml.Name{Space: "", Local: attr.Name}
+		name := xml.Name{Space: "", Local: attr.Name}
 		attrs = append(attrs,
 			xml.Attr{Name: name, Value: attr.Value})
 	}
