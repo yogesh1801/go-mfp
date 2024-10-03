@@ -21,11 +21,11 @@ func TestEncoder(t *testing.T) {
 			{"a2", "attr 2"},
 			{"a3", "attr 3"},
 		},
-		Children: []*Element{
+		Children: []Element{
 			{
 				Name: "ns:el-1",
 				Text: "element 1",
-				Children: []*Element{
+				Children: []Element{
 					{
 						Name: "ns:el-1-1",
 						Text: "element 1-1",
@@ -39,7 +39,7 @@ func TestEncoder(t *testing.T) {
 			{
 				Name: "ns:el-2",
 				Text: "element 2",
-				Children: []*Element{
+				Children: []Element{
 					{
 						Name: "ns:el-2-1",
 						Text: "element 2-1",

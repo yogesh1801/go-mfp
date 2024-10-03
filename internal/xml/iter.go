@@ -41,7 +41,7 @@ func (i *Iter) stackTop() *iterStackLevel {
 }
 
 type iterStackLevel struct {
-	elements []*Element
+	elements []Element
 	pathlen  int
 }
 
@@ -57,9 +57,12 @@ type iterStackLevel struct {
 //	for iter.Next() {
 //	  // Do something
 //	}
-func (root *Element) Iterate() *Iter {
-	elements := []*Element{
-		&Element{},
+//
+// Important note: the structure of the XML tree MUST NOT be
+// modified during iterations. Otherwise, behavior is undefined.
+func (root Element) Iterate() *Iter {
+	elements := []Element{
+		Element{},
 		root,
 	}
 
@@ -132,7 +135,7 @@ func (i *Iter) Done() bool {
 // Elem returns the current element.
 func (i *Iter) Elem() *Element {
 	if !i.Done() {
-		return i.stack[len(i.stack)-1].elements[0]
+		return &i.stack[len(i.stack)-1].elements[0]
 	}
 	return nil
 }

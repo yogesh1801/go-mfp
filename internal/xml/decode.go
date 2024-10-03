@@ -33,15 +33,15 @@ import (
 // Full namespace URL used as map index, and value that corresponds
 // to the index replaced with map value. If URL is not found in the
 // map, prefix replaced with "-" string
-func Decode(ns Namespace, in io.Reader) (*Element, error) {
-	var elem *Element
-	stack := []*Element{}
+func Decode(ns Namespace, in io.Reader) (Element, error) {
+	var elem Element
+	stack := []Element{}
 	decoder := xml.NewDecoder(in)
 
 	for {
 		token, err := decoder.Token()
 		if err != nil {
-			return nil, err
+			return Element{}, err
 		}
 
 		switch t := token.(type) {
@@ -63,26 +63,21 @@ func Decode(ns Namespace, in io.Reader) (*Element, error) {
 			name += t.Name.Local
 
 			// Create an element
-			if elem != nil {
-				stack = append(stack, elem)
-			}
-
-			elem = &Element{Name: name}
-
-			if len(stack) != 0 {
-				parent := stack[len(stack)-1]
-				parent.Children = append(parent.Children, elem)
-			}
+			stack = append(stack, elem)
+			elem = Element{Name: name}
 
 		case xml.EndElement:
 			elem.Text = strings.TrimSpace(elem.Text)
 
-			if len(stack) == 0 {
+			if len(stack) == 1 {
 				return elem, nil
 			}
 
-			elem = stack[len(stack)-1]
+			parent := stack[len(stack)-1]
 			stack = stack[:len(stack)-1]
+
+			parent.Children = append(parent.Children, elem)
+			elem = parent
 
 		case xml.CharData:
 			elem.Text += string(t)

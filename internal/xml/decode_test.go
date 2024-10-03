@@ -37,14 +37,14 @@ func TestDecode(t *testing.T) {
 		`</env>` +
 		``
 
-	expect := &Element{
+	expect := Element{
 		Name: "env",
 		//Attrs: []Attr{
 		//	{Name: "xmlns:ns-a", Value: "http://example.com/a"},
 		//	{Name: "xmlns:ns-b", Value: "http://example.com/b"},
 		//	{Name: "xmlns:ns-c", Value: "http://example.com/c"},
 		//},
-		Children: []*Element{
+		Children: []Element{
 			{
 				Name: "a:elem-a",
 				Text: "body a",
@@ -52,7 +52,7 @@ func TestDecode(t *testing.T) {
 			{
 				Name: "b:elem-b",
 				Text: "body b",
-				Children: []*Element{
+				Children: []Element{
 					{
 						Name: "b:nested-1",
 						Text: "nested body 1",
@@ -60,7 +60,7 @@ func TestDecode(t *testing.T) {
 					{
 						Name: "b:nested-2",
 						Text: "nested body 2",
-						Children: []*Element{
+						Children: []Element{
 							{
 								Name: "b:nested-2-1",
 								Text: "nested body 2-1",

@@ -10,10 +10,10 @@ package xml
 
 // Element represents a single decoded XML Element
 type Element struct {
-	Name     string     // Name of this element (ns:name)
-	Text     string     // Element body
-	Attrs    []Attr     // Element attributes
-	Children []*Element // All children
+	Name     string    // Name of this element (ns:name)
+	Text     string    // Element body
+	Attrs    []Attr    // Element attributes
+	Children []Element // All children
 }
 
 // Attr represents an XML element attribute
