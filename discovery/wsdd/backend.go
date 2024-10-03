@@ -10,15 +10,20 @@ package wsdd
 
 import (
 	"context"
+	"sync"
 
 	"github.com/alexpevzner/mfp/discovery"
+	"github.com/alexpevzner/mfp/discovery/netstate"
 	"github.com/alexpevzner/mfp/log"
 )
 
 // backend is the [discovery.Backend] for WSD device discovery.
 type backend struct {
-	ctx    context.Context    // For logging and backend.Close
-	cancel context.CancelFunc // Context's cancel function
+	ctx    context.Context       // For logging and backend.Close
+	cancel context.CancelFunc    // Context's cancel function
+	queue  *discovery.Eventqueue // Event queue
+	netmon *netstate.Notifier    // Network state monitor
+	done   sync.WaitGroup        // For backend.Close synchronization
 }
 
 // NewBackend creates a new [discovery.Backend] for WSD device discovery.
@@ -33,6 +38,7 @@ func NewBackend(ctx context.Context) (discovery.Backend, error) {
 	back := &backend{
 		ctx:    ctx,
 		cancel: cancel,
+		netmon: netstate.NewNotifier(),
 	}
 	return back, nil
 }
@@ -44,8 +50,31 @@ func (back *backend) Name() string {
 
 // Start starts Backend operations.
 func (back *backend) Start(queue *discovery.Eventqueue) {
+	back.queue = queue
+
+	back.done.Add(1)
+	go back.netmonproc()
+
+	log.Debug(back.ctx, "backend started")
 }
 
 // Close closes the backend
 func (back *backend) Close() {
+	back.cancel()
+	back.done.Wait()
+}
+
+// netmonproc processes netstate.Notifier events.
+// It runs on its own goroutine.
+func (back *backend) netmonproc() {
+	defer back.done.Done()
+
+	for {
+		evnt, err := back.netmon.Get(back.ctx)
+		if err != nil {
+			return
+		}
+
+		log.Debug(back.ctx, "%s", evnt)
+	}
 }
