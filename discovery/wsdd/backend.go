@@ -23,6 +23,8 @@ type backend struct {
 	cancel context.CancelFunc    // Context's cancel function
 	queue  *discovery.Eventqueue // Event queue
 	netmon *netstate.Notifier    // Network state monitor
+	mconn4 *mconn                // IP4 multicasts reception connection
+	mconn6 *mconn                // IP6 multicasts reception connection
 	done   sync.WaitGroup        // For backend.Close synchronization
 }
 
@@ -30,6 +32,18 @@ type backend struct {
 func NewBackend(ctx context.Context) (discovery.Backend, error) {
 	// Set log prefix
 	ctx = log.WithPrefix(ctx, "wsdd")
+
+	// Create multicast sockets
+	mconn4, err := newMconn(wsddMulticastIP4)
+	if err != nil {
+		return nil, err
+	}
+
+	mconn6, err := newMconn(wsddMulticastIP6)
+	if err != nil {
+		mconn4.Close()
+		return nil, err
+	}
 
 	// Create cancelable context
 	ctx, cancel := context.WithCancel(ctx)
@@ -39,6 +53,8 @@ func NewBackend(ctx context.Context) (discovery.Backend, error) {
 		ctx:    ctx,
 		cancel: cancel,
 		netmon: netstate.NewNotifier(),
+		mconn4: mconn4,
+		mconn6: mconn6,
 	}
 	return back, nil
 }
