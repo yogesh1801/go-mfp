@@ -115,6 +115,8 @@ func (mc *mconn) RecvFrom(b []byte) (n int, from netip.AddrPort,
 		return
 	}
 
+	from = netip.AddrPortFrom(from.Addr().Unmap(), from.Port())
+
 	msgs, err := syscall.ParseSocketControlMessage(oob[:ooblen])
 	if err != nil {
 		return
