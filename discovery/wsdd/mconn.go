@@ -53,7 +53,7 @@ func newMconn(group netip.AddrPort) (*mconn, error) {
 		return nil, err
 	}
 
-	// Fill and return mconn structure
+	// Fill the mconn structure
 	mc := &mconn{
 		UDPConn: conn,
 		group:   group.Addr(),
@@ -62,11 +62,21 @@ func newMconn(group netip.AddrPort) (*mconn, error) {
 	return mc, nil
 }
 
+// Is4 reports if connection uses IPv4 address family
+func (mc *mconn) Is4() bool {
+	return mc.group.Is4()
+}
+
+// Is6 reports if connection uses IPv6 address family
+func (mc *mconn) Is6() bool {
+	return mc.group.Is6()
+}
+
 // Join joins the multicast group, specified during mcast
 // creation, on a network interface, specified by the local
 // parameter.
 func (mc *mconn) Join(local netstate.Addr) error {
-	if mc.group.Is6() {
+	if mc.Is6() {
 		return mc.joinIP6(local)
 	}
 	return mc.joinIP4(local)
@@ -76,7 +86,7 @@ func (mc *mconn) Join(local netstate.Addr) error {
 // creation, on a network interface, specified by the local
 // parameter.
 func (mc *mconn) Leave(local netstate.Addr) error {
-	if mc.group.Is6() {
+	if mc.Is6() {
 		return mc.leaveIP6(local)
 	}
 	return mc.leaveIP4(local)
@@ -99,7 +109,7 @@ func (mc *mconn) RecvFrom(b []byte) (n int, from netip.AddrPort, err error) {
 
 // joinIP4 is the mcast.Join for IP4 connections
 func (mc *mconn) joinIP4(local netstate.Addr) error {
-	if !mc.group.Is4() {
+	if !mc.Is4() {
 		err := fmt.Errorf("Can't join IP4 group on IP6 connection")
 		return err
 	}
@@ -120,7 +130,7 @@ func (mc *mconn) joinIP4(local netstate.Addr) error {
 
 // joinIP6 is the mcast.Join for IP6 connections
 func (mc *mconn) joinIP6(local netstate.Addr) error {
-	if !mc.group.Is6() {
+	if !mc.Is6() {
 		err := fmt.Errorf("Can't join IP4 group on IP6 connection")
 		return err
 	}
@@ -140,7 +150,7 @@ func (mc *mconn) joinIP6(local netstate.Addr) error {
 
 // leaveIP4 is the mcast.Leave for IP4 connections
 func (mc *mconn) leaveIP4(local netstate.Addr) error {
-	if !mc.group.Is4() {
+	if !mc.Is4() {
 		err := fmt.Errorf("Can't leave IP4 group on IP6 connection")
 		return err
 	}
@@ -161,7 +171,7 @@ func (mc *mconn) leaveIP4(local netstate.Addr) error {
 
 // leaveIP6 is the mcast.Leave for IP6 connections
 func (mc *mconn) leaveIP6(local netstate.Addr) error {
-	if !mc.group.Is6() {
+	if !mc.Is6() {
 		err := fmt.Errorf("Can't leave IP4 group on IP6 connection")
 		return err
 	}
