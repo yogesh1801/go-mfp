@@ -100,18 +100,15 @@ func (mc *mconn) Leave(local netstate.Addr) error {
 }
 
 // RecvFrom receives a packet from the UDP connection
-func (mc *mconn) RecvFrom(b []byte) (n int, from netip.AddrPort, cmsg cmsg,
-	err error) {
+func (mc *mconn) RecvFrom(b []byte) (n int, from netip.AddrPort,
+	cmsg cmsg, err error) {
 
 	var oob [8192]byte
 
-	n, ooblen, _, addr, err := mc.UDPConn.ReadMsgUDP(b, oob[:])
+	n, ooblen, _, from, err := mc.UDPConn.ReadMsgUDPAddrPort(b, oob[:])
 	if err != nil {
 		return
 	}
-
-	ip, _ := netip.AddrFromSlice([]byte(addr.IP))
-	from = netip.AddrPortFrom(ip.Unmap(), uint16(addr.Port))
 
 	err = cmsg.Parse(oob[:ooblen])
 
