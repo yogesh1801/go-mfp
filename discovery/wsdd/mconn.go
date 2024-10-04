@@ -59,6 +59,13 @@ func newMconn(group netip.AddrPort) (*mconn, error) {
 		group:   group.Addr(),
 	}
 
+	// Do system-specific setup
+	err = mc.sysSetSockOpt()
+	if err != nil {
+		mc.Close()
+		return nil, err
+	}
+
 	return mc, nil
 }
 
@@ -93,8 +100,12 @@ func (mc *mconn) Leave(local netstate.Addr) error {
 }
 
 // RecvFrom receives a packet from the UDP connection
-func (mc *mconn) RecvFrom(b []byte) (n int, from netip.AddrPort, err error) {
-	n, addr, err := mc.UDPConn.ReadFromUDP(b)
+func (mc *mconn) RecvFrom(b []byte) (n int, from netip.AddrPort, cmsg cmsg,
+	err error) {
+
+	var oob [8192]byte
+
+	n, ooblen, _, addr, err := mc.UDPConn.ReadMsgUDP(b, oob[:])
 	if err != nil {
 		return
 	}
@@ -102,7 +113,7 @@ func (mc *mconn) RecvFrom(b []byte) (n int, from netip.AddrPort, err error) {
 	ip, _ := netip.AddrFromSlice([]byte(addr.IP))
 	from = netip.AddrPortFrom(ip.Unmap(), uint16(addr.Port))
 
-	// FIXME: IPv6 zone
+	err = cmsg.Parse(oob[:ooblen])
 
 	return
 }
