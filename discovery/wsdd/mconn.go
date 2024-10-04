@@ -60,9 +60,11 @@ func newMconn(group netip.AddrPort) (*mconn, error) {
 	}
 
 	// Do system-specific setup
-	err = mc.control(func(fd int) error {
-		return cmsgSetSockOpt(fd, mc.Is4())
-	})
+	if mc.Is4() {
+		err = mc.control(cmsgSetSockOptIP4)
+	} else {
+		err = mc.control(cmsgSetSockOptIP6)
+	}
 
 	if err != nil {
 		mc.Close()
@@ -113,7 +115,16 @@ func (mc *mconn) RecvFrom(b []byte) (n int, from netip.AddrPort,
 		return
 	}
 
-	cmsg, err = cmsgParse(oob[:ooblen])
+	msgs, err := syscall.ParseSocketControlMessage(oob[:ooblen])
+	if err != nil {
+		return
+	}
+
+	if mc.Is4() {
+		cmsg = cmsgParseIP4(msgs)
+	} else {
+		cmsg = cmsgParseIP6(msgs)
+	}
 
 	return
 }
