@@ -82,6 +82,21 @@ func (mc *mconn) Leave(local netstate.Addr) error {
 	return mc.leaveIP4(local)
 }
 
+// RecvFrom receives a packet from the UDP connection
+func (mc *mconn) RecvFrom(b []byte) (n int, from netip.AddrPort, err error) {
+	n, addr, err := mc.UDPConn.ReadFromUDP(b)
+	if err != nil {
+		return
+	}
+
+	ip, _ := netip.AddrFromSlice([]byte(addr.IP))
+	from = netip.AddrPortFrom(ip.Unmap(), uint16(addr.Port))
+
+	// FIXME: IPv6 zone
+
+	return
+}
+
 // joinIP4 is the mcast.Join for IP4 connections
 func (mc *mconn) joinIP4(local netstate.Addr) error {
 	if !mc.group.Is4() {
