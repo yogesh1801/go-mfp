@@ -8,11 +8,8 @@
 
 package wsdd
 
-import "net/netip"
-
 // cmsg represents a parsed socket control message, as returned
 // by RecvFrom by the UDP socket.
 type cmsg struct {
-	Dst     netip.Addr // Message destination address
-	IfIndex int        // Network interface index
+	IfIndex int // Network interface index
 }

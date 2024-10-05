@@ -9,7 +9,6 @@
 package wsdd
 
 import (
-	"net/netip"
 	"syscall"
 	"unsafe"
 )
@@ -50,7 +49,6 @@ func cmsgParseIP4(msgs []syscall.SocketControlMessage) cmsg {
 			copy(p, msg.Data)
 
 			cm := cmsg{
-				Dst:     netip.AddrFrom4(pktinfo.Addr),
 				IfIndex: int(pktinfo.Ifindex),
 			}
 
@@ -79,7 +77,6 @@ func cmsgParseIP6(msgs []syscall.SocketControlMessage) cmsg {
 			copy(p, msg.Data)
 
 			cm := cmsg{
-				Dst:     netip.AddrFrom16(pktinfo.Addr),
 				IfIndex: int(pktinfo.Ifindex),
 			}
 
