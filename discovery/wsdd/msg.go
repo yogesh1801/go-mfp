@@ -9,6 +9,7 @@
 package wsdd
 
 import (
+	"errors"
 	"strconv"
 	"strings"
 
@@ -72,9 +73,64 @@ func (m msg) ToXML() xml.Element {
 	return elm
 }
 
+// FromXML decodes message from the XML tree
+func (m *msg) FromXML(root xml.Element) error {
+	const (
+		rootName = msgNsSOAP + ":" + "Envelope"
+		hdrName  = msgNsSOAP + ":" + "Header"
+		bodyName = msgNsSOAP + ":" + "Body"
+	)
+
+	// Check root element
+	if root.Name != rootName {
+		return errors.New("missd " + rootName)
+	}
+
+	// Look for Header and Body elements
+	var hdr, body *xml.Element
+	for i := range root.Children {
+		chld := &root.Children[i]
+		switch {
+		case chld.Name == hdrName && hdr == nil:
+			hdr = chld
+		case chld.Name == bodyName && body == nil:
+			body = chld
+		}
+	}
+
+	switch {
+	case hdr == nil:
+		return errors.New("missd " + hdrName)
+
+	case body == nil:
+		return errors.New("missd " + bodyName)
+	}
+
+	// Decode message header
+	err := m.Hdr.FromXML(*hdr)
+	if err != nil {
+		return err
+	}
+
+	// Allocate message body
+	switch m.Hdr.Action {
+	case actHello:
+		m.Body = &msgHello{}
+	case actBye:
+		m.Body = &msgBye{}
+	default:
+		return errors.New("unhanded action " + m.Hdr.Action.String())
+	}
+
+	// Decode message body
+	err = m.Body.FromXML(*body)
+	return err
+}
+
 // msgBody represents a message body.
 type msgBody interface {
 	ToXML() xml.Element
+	FromXML(root xml.Element) error
 }
 
 // msgHdr represents a common WSDD message header.
@@ -121,6 +177,11 @@ func (hdr msgHdr) ToXML() xml.Element {
 	return elm
 }
 
+// FromXML decodes message header from the XML tree
+func (m *msgHdr) FromXML(root xml.Element) error {
+	return errors.New("not implemented")
+}
+
 // msgAppSequence provides a mechanism that allows a receiver
 // to order messages that may have been received out of order.
 //
@@ -157,6 +218,11 @@ func (seq msgAppSequence) ToXML() xml.Element {
 	}
 
 	return elm
+}
+
+// FromXML decodes AppSequence from the XML tree
+func (seq *msgAppSequence) FromXML(root xml.Element) error {
+	return errors.New("not implemented")
 }
 
 // msgHello represents body of the protocol Hello message.
@@ -211,6 +277,11 @@ func (m msgHello) ToXML() xml.Element {
 	return elm
 }
 
+// FromXML decodes message body from the XML tree
+func (m *msgHello) FromXML(root xml.Element) error {
+	return errors.New("not implemented")
+}
+
 // msgBye represents a protocol Bye message.
 // Each device must multicast this message before it enters the network.
 type msgBye struct {
@@ -236,4 +307,9 @@ func (m msgBye) ToXML() xml.Element {
 	}
 
 	return elm
+}
+
+// FromXML decodes message body from the XML tree
+func (m msgBye) FromXML(root xml.Element) error {
+	return errors.New("not implemented")
 }

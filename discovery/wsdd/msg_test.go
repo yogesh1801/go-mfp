@@ -20,7 +20,7 @@ func TestMsg(t *testing.T) {
 		To:        msgToDiscovery,
 	}
 
-	hello := msgHello{
+	hello := &msgHello{
 		Address: "uuid:4509a320-00a0-008f-00b6-002507510eca",
 		Types: []string{
 			"scan:ScannerServiceType",
