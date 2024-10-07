@@ -140,7 +140,7 @@ func (ns Namespace) ByURL(u string) (string, bool) {
 	return "", false
 }
 
-// IndexByPrefix searches Namespace by namespace URL.
+// IndexByURL searches Namespace by namespace URL.
 //
 // It returns index of the found element or -1, if there is
 // no match.
