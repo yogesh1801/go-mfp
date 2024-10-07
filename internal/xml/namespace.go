@@ -148,7 +148,7 @@ func (ns Namespace) ByURL(u string) (string, bool) {
 // See also: [Namespace.ByURL]
 func (ns Namespace) IndexByURL(u string) int {
 	for i, ent := range ns {
-		if u == ent.URL {
+		if nsEqualURLs(u, ent.URL) {
 			return i
 		}
 	}
@@ -195,4 +195,24 @@ func nsPrefix(name string) (string, bool) {
 	}
 
 	return "", false
+}
+
+// nsEqualURLs reports if two namespace URLs are equal.
+// It ignores the difference between http: and https: schemes.
+func nsEqualURLs(u1, u2 string) bool {
+	// Equal strings are equal URLs
+	if u1 == u2 {
+		return true
+	}
+
+	// Canonicalize schemes: replace "https:" with "http"
+	if strings.HasPrefix(u1, "https:") {
+		u1 = "http" + u1[5:]
+	}
+
+	if strings.HasPrefix(u2, "https:") {
+		u2 = "http" + u2[5:]
+	}
+
+	return u1 == u2
 }
