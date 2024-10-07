@@ -40,27 +40,18 @@ const (
 var msgNsMap = xml.Namespace{
 	// SOAP 1.1
 	{Prefix: msgNsSOAP, URL: "http://schemas.xmlsoap.org/soap/envelope"},
-	{Prefix: msgNsSOAP, URL: "https://schemas.xmlsoap.org/soap/envelope"},
 
 	// SOAP 1.2
 	{Prefix: msgNsSOAP, URL: "http://www.w3.org/2003/05/soap-envelope"},
-	{Prefix: msgNsSOAP, URL: "https://www.w3.org/2003/05/soap-envelope"},
 
 	// WSD prefixes
 	{Prefix: msgNsAddressing, URL: "http://schemas.xmlsoap.org/ws/2004/08/addressing"},
-	{Prefix: msgNsAddressing, URL: "https://schemas.xmlsoap.org/ws/2004/08/addressing"},
 	{Prefix: msgNsDiscovery, URL: "http://schemas.xmlsoap.org/ws/2005/04/discovery"},
-	{Prefix: msgNsDiscovery, URL: "https://schemas.xmlsoap.org/ws/2005/04/discovery"},
 	{Prefix: msgNsDevprof, URL: "http://schemas.xmlsoap.org/ws/2006/02/devprof"},
-	{Prefix: msgNsDevprof, URL: "https://schemas.xmlsoap.org/ws/2006/02/devprof"},
 	{Prefix: msgNsMex, URL: "http://schemas.xmlsoap.org/ws/2004/09/mex"},
-	{Prefix: msgNsMex, URL: "https://schemas.xmlsoap.org/ws/2004/09/mex"},
 	{Prefix: msgNsPNPX, URL: "http://schemas.microsoft.com/windows/pnpx/2005/10"},
-	{Prefix: msgNsPNPX, URL: "https://schemas.microsoft.com/windows/pnpx/2005/10"},
 	{Prefix: msgNsScan, URL: "http://schemas.microsoft.com/windows/2006/08/wdp/scan"},
-	{Prefix: msgNsScan, URL: "https://schemas.microsoft.com/windows/2006/08/wdp/scan"},
 	{Prefix: msgNsPrint, URL: "http://schemas.microsoft.com/windows/2006/08/wdp/print"},
-	{Prefix: msgNsPrint, URL: "https://schemas.microsoft.com/windows/2006/08/wdp/print"},
 }
 
 // msg represents a WSDD protocol message.
