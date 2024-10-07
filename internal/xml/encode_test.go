@@ -15,10 +15,10 @@ import (
 // TestEncoder tests XML encoder
 func TestEncoder(t *testing.T) {
 	ns := Namespace{
-		{"http://example.com/ns", "ns"},
-		{"https://example.com/ns", "ns"},
-		{"http://example.com/ns1", "ns1"},
-		{"http://example.com/ns2", "ns2"},
+		{URL: "http://example.com/ns", Prefix: "ns"},
+		{URL: "https://example.com/ns", Prefix: "ns"},
+		{URL: "http://example.com/ns1", Prefix: "ns1"},
+		{URL: "http://example.com/ns2", Prefix: "ns2"},
 	}
 
 	root := Element{
@@ -77,7 +77,10 @@ func TestEncoder(t *testing.T) {
 
 	out := root.EncodeString(ns)
 	if out != compact {
-		t.Errorf("EncodeString failed")
+		t.Errorf("EncodeString:\n"+
+			"expected:\n%s\n"+
+			"present:\n%s\n",
+			compact, out)
 	}
 
 	out = root.EncodeIndentString(ns, "  ")

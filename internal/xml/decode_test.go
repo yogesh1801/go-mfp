@@ -17,9 +17,9 @@ import (
 // TestDecode tests Decode function
 func TestDecode(t *testing.T) {
 	ns := Namespace{
-		{`http://example.com/a`, `a`},
-		{`http://example.com/b`, `b`},
-		{`http://example.com/c`, `c`},
+		{URL: `http://example.com/a`, Prefix: `a`},
+		{URL: `http://example.com/b`, Prefix: `b`},
+		{URL: `http://example.com/c`, Prefix: `c`},
 	}
 
 	in := `` +

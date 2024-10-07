@@ -8,7 +8,10 @@
 
 package xml
 
-import "strings"
+import (
+	"slices"
+	"strings"
+)
 
 // Namespace maps XML namespace URLs to short prefixes.
 //
@@ -36,26 +39,121 @@ import "strings"
 type Namespace []struct {
 	URL    string // Namespace URL
 	Prefix string // Namespace prefix
+	Used   bool   // Flag for [Namespace.MarkUsed] and friends
+}
+
+// Clone creates a copy of [Namespace].
+func (ns Namespace) Clone() Namespace {
+	return slices.Clone(ns)
+}
+
+// MarkUsed marks Namespace entries that actually used by
+// the XML tree by setting [Namespace.Used] flag.
+func (ns Namespace) MarkUsed(root Element) {
+	// Extract all prefixes without duplicates
+	prefixes := make(map[string]struct{})
+
+	iter := root.Iterate()
+	for iter.Next() {
+		elem := iter.Elem()
+
+		prefix, ok := nsPrefix(elem.Name)
+		if ok {
+			prefixes[prefix] = struct{}{}
+		}
+
+		for _, attr := range elem.Attrs {
+			prefix, ok = nsPrefix(attr.Name)
+			if ok {
+				prefixes[prefix] = struct{}{}
+			}
+		}
+	}
+
+	// Mark all used prefixes
+	for i := range ns {
+		ent := &ns[i]
+		if _, found := prefixes[ent.Prefix]; found {
+			ent.Used = true
+
+			// Namespace may contain multiple entries
+			// with the same Prefix. Mark only first
+			// of them; others are only for decoding.
+			delete(prefixes, ent.Prefix)
+		}
+	}
+}
+
+// MarkUsedName accepts XML element name (prefix:name) and
+// marks Namespace entry that this prefix refers to with
+// the [Namespace.Used] flag.
+func (ns Namespace) MarkUsedName(name string) {
+	prefix, ok := nsPrefix(name)
+	if ok {
+		for i := range ns {
+			ent := &ns[i]
+			if ent.Prefix == prefix {
+				ent.Used = true
+				return
+			}
+		}
+	}
+}
+
+// ExportUsed exports marked as used subset of the Namespace
+// as a sequence of xmlns attributes.
+func (ns Namespace) ExportUsed() []Attr {
+	attrs := make([]Attr, 0, len(ns))
+
+	for _, ent := range ns {
+		if ent.Used {
+			attrs = append(attrs, Attr{
+				Name:  "xmlns:" + ent.Prefix,
+				Value: ent.URL,
+			})
+		}
+	}
+
+	return attrs
 }
 
 // Append appends item to the Namespace
 func (ns *Namespace) Append(url string, prefix string) {
-	item := struct{ URL, Prefix string }{url, prefix}
+	item := struct {
+		URL, Prefix string
+		Used        bool
+	}{url, prefix, false}
 	*ns = append(*ns, item)
 }
 
-// ByURL searches Namespace by URL.
+// ByURL searches Namespace by namespace URL.
 //
 // It returns (Prefix, true) if requested element was found,
 // or ("", false) otherwise.
+//
+// See also [Namespace.IndexByURL]
 func (ns Namespace) ByURL(u string) (string, bool) {
-	for _, ent := range ns {
-		if u == ent.URL {
-			return ent.Prefix, true
-		}
+	if i := ns.IndexByURL(u); i >= 0 {
+		return ns[i].Prefix, true
 	}
 
 	return "", false
+}
+
+// IndexByPrefix searches Namespace by namespace URL.
+//
+// It returns index of the found element or -1, if there is
+// no match.
+//
+// See also: [Namespace.ByURL]
+func (ns Namespace) IndexByURL(u string) int {
+	for i, ent := range ns {
+		if u == ent.URL {
+			return i
+		}
+	}
+
+	return -1
 }
 
 // ByPrefix searches Namespace by name prefix.
@@ -63,13 +161,27 @@ func (ns Namespace) ByURL(u string) (string, bool) {
 // It returns (URK, true) if requested element was found,
 // or ("", false) otherwise.
 func (ns Namespace) ByPrefix(p string) (string, bool) {
-	for _, ent := range ns {
-		if p == ent.Prefix {
-			return ent.URL, true
-		}
+	if i := ns.IndexByPrefix(p); i >= 0 {
+		return ns[i].URL, true
 	}
 
 	return "", false
+}
+
+// IndexByPrefix searches Namespace by name prefix.
+//
+// It returns index of the found element or -1, if there is
+// no match.
+//
+// See also: [Namespace.ByPrefix]
+func (ns Namespace) IndexByPrefix(p string) int {
+	for i, ent := range ns {
+		if p == ent.Prefix {
+			return i
+		}
+	}
+
+	return -1
 }
 
 // nsPrefix returns namespace prefix for the name

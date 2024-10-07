@@ -16,12 +16,18 @@ import (
 )
 
 // Encode writes XML into [io.Writer] in the compact form.
+//
+// xmlns attributes automatically created for all Namespace
+// entries, marked with [Namespace.Used] flag or actually
+// referred by the XML tree.
 func (root Element) Encode(w io.Writer, ns Namespace) error {
 	return root.encode(w, ns, true, "")
 }
 
 // EncodeString writes XML into [io.Writer] in the compact form and
 // returns string.
+//
+// See [Element.Encode] for details.
 func (root Element) EncodeString(ns Namespace) string {
 	buf := &bytes.Buffer{}
 	root.Encode(buf, ns)
@@ -29,6 +35,8 @@ func (root Element) EncodeString(ns Namespace) string {
 }
 
 // EncodeIndent writes XML into [io.Writer] in the indented form.
+//
+// See [Element.Encode] for details.
 func (root Element) EncodeIndent(w io.Writer, ns Namespace,
 	indent string) error {
 	return root.encode(w, ns, false, indent)
@@ -36,6 +44,8 @@ func (root Element) EncodeIndent(w io.Writer, ns Namespace,
 
 // EncodeIndentString writes XML into [io.Writer] in the indented form
 // and returns string.
+//
+// See [Element.Encode] for details.
 func (root Element) EncodeIndentString(ns Namespace, indent string) string {
 	buf := &bytes.Buffer{}
 	root.EncodeIndent(buf, ns, indent)
@@ -53,13 +63,9 @@ func (root Element) encode(w io.Writer, ns Namespace,
 	}
 
 	// Extract actually used subset of namespace
-	nsused := root.namespaceUsed(ns)
-	nsattrs := make([]Attr, len(nsused))
-
-	for i := range nsused {
-		nsattrs[i].Name = "xmlns:" + nsused[i].Prefix
-		nsattrs[i].Value = nsused[i].URL
-	}
+	ns = ns.Clone()
+	ns.MarkUsed(root)
+	nsattrs := ns.ExportUsed()
 
 	root.Attrs = append(nsattrs, root.Attrs...)
 
@@ -133,41 +139,4 @@ func (root *Element) encodeRecursive(encoder *xml.Encoder) error {
 	}
 
 	return nil
-}
-
-// namespaceUsed returns actually used subset of Namespace
-func (root *Element) namespaceUsed(ns Namespace) Namespace {
-	out := make(Namespace, 0, len(ns))
-	inuse := make(map[string]struct{})
-
-	iter := root.Iterate()
-	for iter.Next() {
-		elem := iter.Elem()
-
-		prefix, ok := nsPrefix(elem.Name)
-		if ok {
-			if _, found := inuse[prefix]; !found {
-				url, ok := ns.ByPrefix(prefix)
-				if ok {
-					out.Append(url, prefix)
-				}
-				inuse[prefix] = struct{}{}
-			}
-		}
-
-		for _, attr := range elem.Attrs {
-			prefix, ok = nsPrefix(attr.Name)
-			if ok {
-				if _, found := inuse[prefix]; !found {
-					url, ok := ns.ByPrefix(prefix)
-					if ok {
-						out.Append(url, prefix)
-					}
-					inuse[prefix] = struct{}{}
-				}
-			}
-		}
-	}
-
-	return out
 }
