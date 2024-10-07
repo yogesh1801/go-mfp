@@ -32,6 +32,8 @@ const (
 	msgNsDevprof    = "devprof"
 	msgNsMex        = "mex"
 	msgNsPNPX       = "pnpx"
+	msgNsScan       = "scan"
+	msgNsPrint      = "print"
 )
 
 // msgNsMap maps namespace prefixes to URL
@@ -55,6 +57,10 @@ var msgNsMap = xml.Namespace{
 	{Prefix: msgNsMex, URL: "https://schemas.xmlsoap.org/ws/2004/09/mex"},
 	{Prefix: msgNsPNPX, URL: "http://schemas.microsoft.com/windows/pnpx/2005/10"},
 	{Prefix: msgNsPNPX, URL: "https://schemas.microsoft.com/windows/pnpx/2005/10"},
+	{Prefix: msgNsScan, URL: "http://schemas.microsoft.com/windows/2006/08/wdp/scan"},
+	{Prefix: msgNsScan, URL: "https://schemas.microsoft.com/windows/2006/08/wdp/scan"},
+	{Prefix: msgNsPrint, URL: "http://schemas.microsoft.com/windows/2006/08/wdp/print"},
+	{Prefix: msgNsPrint, URL: "https://schemas.microsoft.com/windows/2006/08/wdp/print"},
 }
 
 // msg represents a WSDD protocol message.
