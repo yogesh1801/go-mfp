@@ -48,3 +48,72 @@ func (root Element) Expand(mapping func(string) string) Element {
 
 	return root
 }
+
+// ChildByName searches child element by name.
+//
+// It returns (child, true) if element was found or (Element{}, false) if not.
+func (root Element) ChildByName(name string) (Element, bool) {
+	for _, elm := range root.Children {
+		if elm.Name == name {
+			return elm, true
+		}
+	}
+
+	return Element{}, false
+}
+
+// ChildrenMap returns root's children, indexed by name.
+//
+// If there are multiple children with the same name,
+// only the first is returned.
+func (root Element) ChildrenMap() map[string]Element {
+	children := make(map[string]Element)
+
+	for _, elm := range root.Children {
+		if _, found := children[elm.Name]; !found {
+			children[elm.Name] = elm
+		}
+	}
+
+	return children
+}
+
+// Lookup searches for children elements, multiple elements a time.
+//
+//	Use pattern:
+//
+//	  element1 = Lookup(Name: "Element1"}
+//	  element2 = Lookup(Name: "Element2"}
+//	  element3 = Lookup(Name: "Element3"}
+//
+//	  root.Lookup(&element1,&element2,&element3)
+//	  if element1.Found{
+//	      . . .
+//	  }
+//	  if element2.Found{
+//	      . . .
+//	  }
+//	  if element2.Found{
+//	      . . .
+//	  }
+//
+// If root contains multiple children with the same name, the
+// first child always returned.
+func (root Element) Lookup(lookups ...*Lookup) {
+	// If we have a small amount of Lookup/Children combination,
+	// just go straightforward, it will take less resources, that
+	// doing via maps of children
+	if len(lookups)*len(root.Children) <= 16 {
+		for _, l := range lookups {
+			l.Elem, l.Found = root.ChildByName(l.Name)
+		}
+
+		return
+	}
+
+	// Otherwise, obtain map of children and then fill the answer.
+	children := root.ChildrenMap()
+	for _, l := range lookups {
+		l.Elem, l.Found = children[l.Name]
+	}
+}
