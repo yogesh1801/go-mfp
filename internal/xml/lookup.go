@@ -15,7 +15,8 @@ package xml
 //
 // See also: [Element.Lookup]
 type Lookup struct {
-	Name  string  // Requested element name
-	Elem  Element // Returned element data
-	Found bool    // Becomes true, if element was found
+	Name     string  // Requested element name
+	Required bool    // This is required element
+	Elem     Element // Returned element data
+	Found    bool    // Becomes true, if element was found
 }

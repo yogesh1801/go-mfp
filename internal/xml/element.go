@@ -99,21 +99,34 @@ func (root Element) ChildrenMap() map[string]Element {
 //
 // If root contains multiple children with the same name, the
 // first child always returned.
-func (root Element) Lookup(lookups ...*Lookup) {
-	// If we have a small amount of Lookup/Children combination,
-	// just go straightforward, it will take less resources, that
-	// doing via maps of children
+//
+// It returns the first not found Lookup element with the
+// [Lookup.Required] flag set, or nil of all required elements
+// are found.
+//
+// Note, if there are missed required elements, it is not
+// guaranteed that all lookup requests will be processed.
+func (root Element) Lookup(lookups ...*Lookup) *Lookup {
 	if len(lookups)*len(root.Children) <= 16 {
+		// If we have a small amount of Lookup/Children combination,
+		// just go straightforward, it will be less expensive, that
+		// doing via maps of children
 		for _, l := range lookups {
 			l.Elem, l.Found = root.ChildByName(l.Name)
+			if !l.Found && l.Required {
+				return l
+			}
 		}
-
-		return
+	} else {
+		// Otherwise, obtain map of children and then fill the answer.
+		children := root.ChildrenMap()
+		for _, l := range lookups {
+			l.Elem, l.Found = children[l.Name]
+			if !l.Found && l.Required {
+				return l
+			}
+		}
 	}
 
-	// Otherwise, obtain map of children and then fill the answer.
-	children := root.ChildrenMap()
-	for _, l := range lookups {
-		l.Elem, l.Found = children[l.Name]
-	}
+	return nil
 }
