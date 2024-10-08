@@ -49,6 +49,35 @@ func (root Element) Expand(mapping func(string) string) Element {
 	return root
 }
 
+// AttrByName searches element attributes by name.
+//
+// It returns (attr, true) if element was found or (Attr{}, false) if not.
+func (root Element) AttrByName(name string) (Attr, bool) {
+	for _, attr := range root.Attrs {
+		if attr.Name == name {
+			return attr, true
+		}
+	}
+
+	return Attr{}, false
+}
+
+// AttrsMap returns map of the Element's attributes, indexed by name.
+//
+// If there are multiple attributes with the same name,
+// only the first is returned.
+func (root Element) AttrsMap() map[string]Attr {
+	attrs := make(map[string]Attr)
+
+	for _, attr := range root.Attrs {
+		if _, found := attrs[attr.Name]; !found {
+			attrs[attr.Name] = attr
+		}
+	}
+
+	return attrs
+}
+
 // ChildByName searches child element by name.
 //
 // It returns (child, true) if element was found or (Element{}, false) if not.
@@ -62,7 +91,7 @@ func (root Element) ChildByName(name string) (Element, bool) {
 	return Element{}, false
 }
 
-// ChildrenMap returns root's children, indexed by name.
+// ChildrenMap returns map of the Element's children, indexed by name.
 //
 // If there are multiple children with the same name,
 // only the first is returned.
@@ -122,6 +151,33 @@ func (root Element) Lookup(lookups ...*Lookup) *Lookup {
 		children := root.ChildrenMap()
 		for _, l := range lookups {
 			l.Elem, l.Found = children[l.Name]
+			if !l.Found && l.Required {
+				return l
+			}
+		}
+	}
+
+	return nil
+}
+
+// LookupAttrs is like [Element.Lookup], but for attributes, not for
+// children elements.
+func (root Element) LookupAttrs(lookups ...*LookupAttr) *LookupAttr {
+	if len(lookups)*len(root.Attrs) <= 16 {
+		// If we have a small amount of Lookup/Attrs combination,
+		// just go straightforward, it will be less expensive, that
+		// doing via maps of attributes
+		for _, l := range lookups {
+			l.Attr, l.Found = root.AttrByName(l.Name)
+			if !l.Found && l.Required {
+				return l
+			}
+		}
+	} else {
+		// Otherwise, obtain map of attributes and then fill the answer.
+		attrs := root.AttrsMap()
+		for _, l := range lookups {
+			l.Attr, l.Found = attrs[l.Name]
 			if !l.Found && l.Required {
 				return l
 			}

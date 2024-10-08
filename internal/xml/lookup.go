@@ -20,3 +20,11 @@ type Lookup struct {
 	Elem     Element // Returned element data
 	Found    bool    // Becomes true, if element was found
 }
+
+// LookupAttr is like [Lookup], but for attributes, not for children.
+type LookupAttr struct {
+	Name     string // Requested element name
+	Required bool   // This is required element
+	Attr     Attr   // Returned element data
+	Found    bool   // Becomes true, if element was found
+}
