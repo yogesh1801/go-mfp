@@ -171,7 +171,7 @@ func (hdr msgHdr) ToXML() xml.Element {
 }
 
 // FromXML decodes message header from the XML tree
-func (m *msgHdr) FromXML(root xml.Element) error {
+func (hdr *msgHdr) FromXML(root xml.Element) error {
 	Action := xml.Lookup{Name: msgNsAddressing + ":Action", Required: true}
 	MessageID := xml.Lookup{Name: msgNsAddressing + ":MessageID", Required: true}
 	To := xml.Lookup{Name: msgNsAddressing + ":To", Required: true}
