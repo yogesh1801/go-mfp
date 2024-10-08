@@ -10,6 +10,7 @@ package wsdd
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -86,7 +87,7 @@ func (m *msg) FromXML(root xml.Element) error {
 
 	// Check root element
 	if root.Name != rootName {
-		return errors.New("missd " + rootName)
+		return fmt.Errorf("%s: missed", rootName)
 	}
 
 	// Look for Header and Body elements
@@ -95,7 +96,7 @@ func (m *msg) FromXML(root xml.Element) error {
 
 	missed := root.Lookup(&hdr, &body)
 	if missed != nil {
-		return errors.New("missed " + missed.Name)
+		return fmt.Errorf("%s: missed", missed.Name)
 	}
 
 	// Decode message header
@@ -111,7 +112,7 @@ func (m *msg) FromXML(root xml.Element) error {
 	case actBye:
 		m.Body = &msgBye{}
 	default:
-		return errors.New("unhanded action " + m.Hdr.Action.String())
+		return fmt.Errorf("%s: unhanded action ", m.Hdr.Action)
 	}
 
 	// Decode message body
@@ -171,6 +172,17 @@ func (hdr msgHdr) ToXML() xml.Element {
 
 // FromXML decodes message header from the XML tree
 func (m *msgHdr) FromXML(root xml.Element) error {
+	Action := xml.Lookup{Name: msgNsAddressing + ":Action", Required: true}
+	MessageID := xml.Lookup{Name: msgNsAddressing + ":MessageID", Required: true}
+	To := xml.Lookup{Name: msgNsAddressing + ":To", Required: true}
+	RelatesTo := xml.Lookup{Name: msgNsAddressing + ":RelatesTo"}
+	AppSequence := xml.Lookup{Name: msgNsAddressing + ":AppSequence", Required: true}
+
+	missed := root.Lookup(&Action, &MessageID, &To, &RelatesTo, &AppSequence)
+	if missed != nil {
+		return fmt.Errorf("%s: missed", missed.Name)
+	}
+
 	return errors.New("not implemented")
 }
 
@@ -214,6 +226,21 @@ func (seq msgAppSequence) ToXML() xml.Element {
 
 // FromXML decodes AppSequence from the XML tree
 func (seq *msgAppSequence) FromXML(root xml.Element) error {
+	InstanceID := xml.LookupAttr{
+		Name: msgNsAddressing + ":InstanceID", Required: true,
+	}
+	MessageNumber := xml.LookupAttr{
+		Name: msgNsAddressing + ":MessageNumber", Required: true,
+	}
+	SequenceID := xml.LookupAttr{
+		Name: msgNsAddressing + ":SequenceID",
+	}
+
+	missed := root.LookupAttrs(&InstanceID, &MessageNumber, &SequenceID)
+	if missed != nil {
+		return fmt.Errorf("%s: missed", missed.Name)
+	}
+
 	return errors.New("not implemented")
 }
 
