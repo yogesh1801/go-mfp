@@ -63,8 +63,14 @@ type msg struct {
 // ToXML generates XML tree for the message
 func (m msg) ToXML() xml.Element {
 	elm := xml.Element{
-		Name:     msgNsSOAP + ":" + "Envelope",
-		Children: []xml.Element{m.Hdr.ToXML(), m.Body.ToXML()},
+		Name: msgNsSOAP + ":" + "Envelope",
+		Children: []xml.Element{
+			m.Hdr.ToXML(),
+			xml.Element{
+				Name:     msgNsSOAP + ":" + "Body",
+				Children: []xml.Element{m.Body.ToXML()},
+			},
+		},
 	}
 
 	return elm
@@ -234,7 +240,7 @@ type msgHello struct {
 // ToXML generates XML tree for the message body
 func (m msgHello) ToXML() xml.Element {
 	elm := xml.Element{
-		Name: msgNsSOAP + ":" + "Body",
+		Name: msgNsSOAP + ":" + "Hello",
 		Children: []xml.Element{
 			{
 				Name: msgNsAddressing + ":" + "EndpointReference",
@@ -288,7 +294,7 @@ type msgBye struct {
 // ToXML generates XML tree for the message body
 func (m msgBye) ToXML() xml.Element {
 	elm := xml.Element{
-		Name: msgNsSOAP + ":" + "Body",
+		Name: msgNsSOAP + ":" + "Bye",
 		Children: []xml.Element{
 			{
 				Name: msgNsAddressing + ":" + "EndpointReference",
