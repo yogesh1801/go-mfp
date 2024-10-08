@@ -9,6 +9,7 @@
 package wsdd
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/alexpevzner/mfp/internal/xml"
@@ -32,7 +33,22 @@ func (xe xmlErr) Unwrap() error {
 
 // xmlErrWrap "wraps" the error in the context of the xml.Element
 func xmlErrWrap(elem xml.Element, err error) error {
-	path := []string{elem.Name}
+	return xmlErrWrapName(elem.Name, err)
+}
+
+// xmlErrWrap "wraps" the error in the context of the xml.Attr
+func xmlErrWrapAttr(attr xml.Attr, err error) error {
+	return xmlErrWrapName(attr.Name, err)
+}
+
+// xmlErrWrap "wraps" the error in the context of the xml.Element
+// or xml.Attr with the specified name
+func xmlErrWrapName(name string, err error) error {
+	if err == nil {
+		return nil
+	}
+
+	path := []string{name}
 
 	if xe, ok := err.(xmlErr); ok {
 		path = append(path, xe.path...)
@@ -40,4 +56,9 @@ func xmlErrWrap(elem xml.Element, err error) error {
 	}
 
 	return xmlErr{path: path, err: err}
+}
+
+// xmlErrNew is equal to xmlErrWrap(elem,errors.New(text))
+func xmlErrNew(elem xml.Element, text string) error {
+	return xmlErrWrap(elem, errors.New(text))
 }

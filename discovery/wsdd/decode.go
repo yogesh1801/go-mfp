@@ -11,6 +11,7 @@ package wsdd
 import (
 	"errors"
 	"fmt"
+	"strconv"
 
 	"github.com/alexpevzner/mfp/internal/xml"
 )
@@ -22,6 +23,8 @@ func decodeMsg(root xml.Element) (m msg, err error) {
 		hdrName  = msgNsSOAP + ":" + "Header"
 		bodyName = msgNsSOAP + ":" + "Body"
 	)
+
+	defer func() { err = xmlErrWrap(root, err) }()
 
 	// Check root element
 	if root.Name != rootName {
@@ -42,7 +45,6 @@ func decodeMsg(root xml.Element) (m msg, err error) {
 	// Decode message header
 	m.Hdr, err = decodeHdr(hdr.Elem)
 	if err != nil {
-		err = xmlErrWrap(hdr.Elem, err)
 		return
 	}
 
@@ -54,11 +56,6 @@ func decodeMsg(root xml.Element) (m msg, err error) {
 		m.Body, err = decodeBye(body.Elem)
 	default:
 		err = fmt.Errorf("%s: unhanded action ", m.Hdr.Action)
-		return
-	}
-
-	if err != nil {
-		err = xmlErrWrap(body.Elem, err)
 	}
 
 	return
@@ -66,6 +63,9 @@ func decodeMsg(root xml.Element) (m msg, err error) {
 
 // decodeHdr decodes message header (msgHdr) from the XML tree
 func decodeHdr(root xml.Element) (hdr msgHdr, err error) {
+	defer func() { err = xmlErrWrap(root, err) }()
+
+	// Lookup header elements
 	Action := xml.Lookup{Name: msgNsAddressing + ":Action", Required: true}
 	MessageID := xml.Lookup{Name: msgNsAddressing + ":MessageID", Required: true}
 	To := xml.Lookup{Name: msgNsAddressing + ":To", Required: true}
@@ -78,24 +78,83 @@ func decodeHdr(root xml.Element) (hdr msgHdr, err error) {
 		return
 	}
 
+	// Decode header elements
+	hdr.Action, err = decodeAction(Action.Elem)
+	if err == nil {
+		hdr.MessageID, err = decodeAnyURI(MessageID.Elem)
+	}
+	if err == nil {
+		hdr.To, err = decodeAnyURI(To.Elem)
+	}
+	if err == nil && RelatesTo.Found {
+		hdr.To, err = decodeAnyURI(RelatesTo.Elem)
+	}
+	if err == nil {
+		hdr.AppSequence, err = decodeAppSequence(AppSequence.Elem)
+	}
+
 	err = errors.New("not implemented")
 	return
 }
 
 // decodeHello decodes msgHello from the XML tree
 func decodeHello(root xml.Element) (hello msgHello, err error) {
+	defer func() { err = xmlErrWrap(root, err) }()
 	err = errors.New("not implemented")
 	return
 }
 
 // decodeBye decodes msgBye from the XML tree
 func decodeBye(root xml.Element) (bye msgBye, err error) {
+	defer func() { err = xmlErrWrap(root, err) }()
 	err = errors.New("not implemented")
+	return
+}
+
+// decodeAction decodes action, from the XML tree
+func decodeAction(root xml.Element) (v action, err error) {
+	act := actDecode(root.Text)
+	if act != actUnknown {
+		return act, nil
+	}
+
+	return actUnknown, xmlErrNew(root, "unknown action")
+}
+
+// decodeAnyURI decodes anyURI from the XML tree
+func decodeAnyURI(root xml.Element) (v anyURI, err error) {
+	if root.Text != "" {
+		return anyURI(root.Text), nil
+	}
+	return "", xmlErrNew(root, "invalid URi")
+}
+
+// decodeAnyURIAttr decodes anyURI from the XML attribute
+func decodeAnyURIAttr(attr xml.Attr) (v anyURI, err error) {
+	if attr.Value != "" {
+		return anyURI(attr.Value), nil
+	}
+	return "", xmlErrWrapAttr(attr, errors.New("invalid URi"))
+}
+
+// decodeUint64 decodes uint64 from the XML tree
+func decodeUint64(root xml.Element) (v uint64, err error) {
+	v, err = strconv.ParseUint(root.Text, 10, 64)
+	err = xmlErrWrap(root, err)
+	return
+}
+
+// decodeUint64 decodes uint64 from the XML attribute
+func decodeUint64Attr(attr xml.Attr) (v uint64, err error) {
+	v, err = strconv.ParseUint(attr.Value, 10, 64)
+	err = xmlErrWrapAttr(attr, err)
 	return
 }
 
 // decodeAppSequence decodes AppSequence from the XML tree
 func decodeAppSequence(root xml.Element) (seq msgAppSequence, err error) {
+	defer func() { err = xmlErrWrap(root, err) }()
+
 	InstanceID := xml.LookupAttr{
 		Name: msgNsAddressing + ":InstanceID", Required: true,
 	}
@@ -112,6 +171,14 @@ func decodeAppSequence(root xml.Element) (seq msgAppSequence, err error) {
 		return
 	}
 
-	err = errors.New("not implemented")
+	seq.InstanceID, err = decodeUint64Attr(InstanceID.Attr)
+	if err == nil {
+		seq.MessageNumber, err = decodeUint64Attr(MessageNumber.Attr)
+	}
+
+	if err == nil && SequenceID.Found {
+		seq.SequenceID, err = decodeAnyURIAttr(SequenceID.Attr)
+	}
+
 	return
 }
