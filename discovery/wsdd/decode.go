@@ -42,6 +42,7 @@ func decodeMsg(root xml.Element) (m msg, err error) {
 	// Decode message header
 	m.Hdr, err = decodeHdr(hdr.Elem)
 	if err != nil {
+		err = xmlErrWrap(hdr.Elem, err)
 		return
 	}
 
@@ -53,6 +54,11 @@ func decodeMsg(root xml.Element) (m msg, err error) {
 		m.Body, err = decodeBye(body.Elem)
 	default:
 		err = fmt.Errorf("%s: unhanded action ", m.Hdr.Action)
+		return
+	}
+
+	if err != nil {
+		err = xmlErrWrap(body.Elem, err)
 	}
 
 	return
