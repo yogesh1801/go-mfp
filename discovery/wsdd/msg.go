@@ -90,27 +90,16 @@ func (m *msg) FromXML(root xml.Element) error {
 	}
 
 	// Look for Header and Body elements
-	var hdr, body *xml.Element
-	for i := range root.Children {
-		chld := &root.Children[i]
-		switch {
-		case chld.Name == hdrName && hdr == nil:
-			hdr = chld
-		case chld.Name == bodyName && body == nil:
-			body = chld
-		}
-	}
+	hdr := xml.Lookup{Name: hdrName, Required: true}
+	body := xml.Lookup{Name: bodyName, Required: true}
 
-	switch {
-	case hdr == nil:
-		return errors.New("missd " + hdrName)
-
-	case body == nil:
-		return errors.New("missd " + bodyName)
+	missed := root.Lookup(&hdr, &body)
+	if missed != nil {
+		return errors.New("missed " + missed.Name)
 	}
 
 	// Decode message header
-	err := m.Hdr.FromXML(*hdr)
+	err := m.Hdr.FromXML(hdr.Elem)
 	if err != nil {
 		return err
 	}
@@ -126,7 +115,7 @@ func (m *msg) FromXML(root xml.Element) error {
 	}
 
 	// Decode message body
-	err = m.Body.FromXML(*body)
+	err = m.Body.FromXML(body.Elem)
 	return err
 }
 
