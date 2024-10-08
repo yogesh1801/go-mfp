@@ -9,8 +9,6 @@
 package wsdd
 
 import (
-	"errors"
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -77,49 +75,6 @@ func (m msg) ToXML() xml.Element {
 	return elm
 }
 
-// msgDecode decodes message from the XML tree
-func msgDecode(root xml.Element) (m msg, err error) {
-	const (
-		rootName = msgNsSOAP + ":" + "Envelope"
-		hdrName  = msgNsSOAP + ":" + "Header"
-		bodyName = msgNsSOAP + ":" + "Body"
-	)
-
-	// Check root element
-	if root.Name != rootName {
-		err = fmt.Errorf("%s: missed", rootName)
-		return
-	}
-
-	// Look for Header and Body elements
-	hdr := xml.Lookup{Name: hdrName, Required: true}
-	body := xml.Lookup{Name: bodyName, Required: true}
-
-	missed := root.Lookup(&hdr, &body)
-	if missed != nil {
-		err = fmt.Errorf("%s: missed", missed.Name)
-		return
-	}
-
-	// Decode message header
-	m.Hdr, err = msgHdrDecode(hdr.Elem)
-	if err != nil {
-		return
-	}
-
-	// Decode message body
-	switch m.Hdr.Action {
-	case actHello:
-		m.Body, err = msgHelloDecode(body.Elem)
-	case actBye:
-		m.Body, err = msgByeDecode(body.Elem)
-	default:
-		err = fmt.Errorf("%s: unhanded action ", m.Hdr.Action)
-	}
-
-	return
-}
-
 // msgBody represents a message body.
 type msgBody interface {
 	ToXML() xml.Element
@@ -169,24 +124,6 @@ func (hdr msgHdr) ToXML() xml.Element {
 	return elm
 }
 
-// msgHdrDecode decodes message header from the XML tree
-func msgHdrDecode(root xml.Element) (hdr msgHdr, err error) {
-	Action := xml.Lookup{Name: msgNsAddressing + ":Action", Required: true}
-	MessageID := xml.Lookup{Name: msgNsAddressing + ":MessageID", Required: true}
-	To := xml.Lookup{Name: msgNsAddressing + ":To", Required: true}
-	RelatesTo := xml.Lookup{Name: msgNsAddressing + ":RelatesTo"}
-	AppSequence := xml.Lookup{Name: msgNsAddressing + ":AppSequence", Required: true}
-
-	missed := root.Lookup(&Action, &MessageID, &To, &RelatesTo, &AppSequence)
-	if missed != nil {
-		err = fmt.Errorf("%s: missed", missed.Name)
-		return
-	}
-
-	err = errors.New("not implemented")
-	return
-}
-
 // msgAppSequence provides a mechanism that allows a receiver
 // to order messages that may have been received out of order.
 //
@@ -223,28 +160,6 @@ func (seq msgAppSequence) ToXML() xml.Element {
 	}
 
 	return elm
-}
-
-// msgAppSequenceDecode decodes AppSequence from the XML tree
-func msgAppSequenceDecode(root xml.Element) (seq msgAppSequence, err error) {
-	InstanceID := xml.LookupAttr{
-		Name: msgNsAddressing + ":InstanceID", Required: true,
-	}
-	MessageNumber := xml.LookupAttr{
-		Name: msgNsAddressing + ":MessageNumber", Required: true,
-	}
-	SequenceID := xml.LookupAttr{
-		Name: msgNsAddressing + ":SequenceID",
-	}
-
-	missed := root.LookupAttrs(&InstanceID, &MessageNumber, &SequenceID)
-	if missed != nil {
-		err = fmt.Errorf("%s: missed", missed.Name)
-		return
-	}
-
-	err = errors.New("not implemented")
-	return
 }
 
 // msgHello represents body of the protocol Hello message.
@@ -299,12 +214,6 @@ func (hello msgHello) ToXML() xml.Element {
 	return elm
 }
 
-// msgHelloDecode decodes msgHello from the XML tree
-func msgHelloDecode(root xml.Element) (hello msgHello, err error) {
-	err = errors.New("not implemented")
-	return
-}
-
 // msgBye represents a protocol Bye message.
 // Each device must multicast this message before it enters the network.
 type msgBye struct {
@@ -330,10 +239,4 @@ func (bye msgBye) ToXML() xml.Element {
 	}
 
 	return elm
-}
-
-// msgByeDecode decodes msgBye from the XML tree
-func msgByeDecode(root xml.Element) (bye msgBye, err error) {
-	err = errors.New("not implemented")
-	return
 }
