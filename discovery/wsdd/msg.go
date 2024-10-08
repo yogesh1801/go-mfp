@@ -77,8 +77,8 @@ func (m msg) ToXML() xml.Element {
 	return elm
 }
 
-// FromXML decodes message from the XML tree
-func (m *msg) FromXML(root xml.Element) error {
+// msgDecode decodes message from the XML tree
+func msgDecode(root xml.Element) (m msg, err error) {
 	const (
 		rootName = msgNsSOAP + ":" + "Envelope"
 		hdrName  = msgNsSOAP + ":" + "Header"
@@ -87,7 +87,8 @@ func (m *msg) FromXML(root xml.Element) error {
 
 	// Check root element
 	if root.Name != rootName {
-		return fmt.Errorf("%s: missed", rootName)
+		err = fmt.Errorf("%s: missed", rootName)
+		return
 	}
 
 	// Look for Header and Body elements
@@ -96,34 +97,32 @@ func (m *msg) FromXML(root xml.Element) error {
 
 	missed := root.Lookup(&hdr, &body)
 	if missed != nil {
-		return fmt.Errorf("%s: missed", missed.Name)
+		err = fmt.Errorf("%s: missed", missed.Name)
+		return
 	}
 
 	// Decode message header
-	err := m.Hdr.FromXML(hdr.Elem)
+	m.Hdr, err = msgHdrDecode(hdr.Elem)
 	if err != nil {
-		return err
-	}
-
-	// Allocate message body
-	switch m.Hdr.Action {
-	case actHello:
-		m.Body = &msgHello{}
-	case actBye:
-		m.Body = &msgBye{}
-	default:
-		return fmt.Errorf("%s: unhanded action ", m.Hdr.Action)
+		return
 	}
 
 	// Decode message body
-	err = m.Body.FromXML(body.Elem)
-	return err
+	switch m.Hdr.Action {
+	case actHello:
+		m.Body, err = msgHelloDecode(body.Elem)
+	case actBye:
+		m.Body, err = msgByeDecode(body.Elem)
+	default:
+		err = fmt.Errorf("%s: unhanded action ", m.Hdr.Action)
+	}
+
+	return
 }
 
 // msgBody represents a message body.
 type msgBody interface {
 	ToXML() xml.Element
-	FromXML(root xml.Element) error
 }
 
 // msgHdr represents a common WSDD message header.
@@ -170,8 +169,8 @@ func (hdr msgHdr) ToXML() xml.Element {
 	return elm
 }
 
-// FromXML decodes message header from the XML tree
-func (hdr *msgHdr) FromXML(root xml.Element) error {
+// msgHdrDecode decodes message header from the XML tree
+func msgHdrDecode(root xml.Element) (hdr msgHdr, err error) {
 	Action := xml.Lookup{Name: msgNsAddressing + ":Action", Required: true}
 	MessageID := xml.Lookup{Name: msgNsAddressing + ":MessageID", Required: true}
 	To := xml.Lookup{Name: msgNsAddressing + ":To", Required: true}
@@ -180,10 +179,12 @@ func (hdr *msgHdr) FromXML(root xml.Element) error {
 
 	missed := root.Lookup(&Action, &MessageID, &To, &RelatesTo, &AppSequence)
 	if missed != nil {
-		return fmt.Errorf("%s: missed", missed.Name)
+		err = fmt.Errorf("%s: missed", missed.Name)
+		return
 	}
 
-	return errors.New("not implemented")
+	err = errors.New("not implemented")
+	return
 }
 
 // msgAppSequence provides a mechanism that allows a receiver
@@ -224,8 +225,8 @@ func (seq msgAppSequence) ToXML() xml.Element {
 	return elm
 }
 
-// FromXML decodes AppSequence from the XML tree
-func (seq *msgAppSequence) FromXML(root xml.Element) error {
+// msgAppSequenceDecode decodes AppSequence from the XML tree
+func msgAppSequenceDecode(root xml.Element) (seq msgAppSequence, err error) {
 	InstanceID := xml.LookupAttr{
 		Name: msgNsAddressing + ":InstanceID", Required: true,
 	}
@@ -238,10 +239,12 @@ func (seq *msgAppSequence) FromXML(root xml.Element) error {
 
 	missed := root.LookupAttrs(&InstanceID, &MessageNumber, &SequenceID)
 	if missed != nil {
-		return fmt.Errorf("%s: missed", missed.Name)
+		err = fmt.Errorf("%s: missed", missed.Name)
+		return
 	}
 
-	return errors.New("not implemented")
+	err = errors.New("not implemented")
+	return
 }
 
 // msgHello represents body of the protocol Hello message.
@@ -254,7 +257,7 @@ type msgHello struct {
 }
 
 // ToXML generates XML tree for the message body
-func (m msgHello) ToXML() xml.Element {
+func (hello msgHello) ToXML() xml.Element {
 	elm := xml.Element{
 		Name: msgNsSOAP + ":" + "Hello",
 		Children: []xml.Element{
@@ -264,30 +267,30 @@ func (m msgHello) ToXML() xml.Element {
 					{
 						Name: msgNsAddressing + ":" +
 							"Address",
-						Text: string(m.Address),
+						Text: string(hello.Address),
 					},
 				},
 			},
 			{
 				Name: msgNsDiscovery + ":" + "MetadataVersion",
-				Text: strconv.FormatUint(m.MetadataVersion, 10),
+				Text: strconv.FormatUint(hello.MetadataVersion, 10),
 			},
 		},
 	}
 
-	if len(m.Types) != 0 {
+	if len(hello.Types) != 0 {
 		chld := xml.Element{
 			Name: msgNsDiscovery + ":" + "Types",
-			Text: strings.Join(m.Types, " "),
+			Text: strings.Join(hello.Types, " "),
 		}
 
 		elm.Children = append(elm.Children, chld)
 	}
 
-	if len(m.XAddrs) != 0 {
+	if len(hello.XAddrs) != 0 {
 		chld := xml.Element{
 			Name: msgNsDiscovery + ":" + "XAddrs",
-			Text: strings.Join(m.XAddrs, " "),
+			Text: strings.Join(hello.XAddrs, " "),
 		}
 
 		elm.Children = append(elm.Children, chld)
@@ -296,9 +299,10 @@ func (m msgHello) ToXML() xml.Element {
 	return elm
 }
 
-// FromXML decodes message body from the XML tree
-func (m *msgHello) FromXML(root xml.Element) error {
-	return errors.New("not implemented")
+// msgHelloDecode decodes msgHello from the XML tree
+func msgHelloDecode(root xml.Element) (hello msgHello, err error) {
+	err = errors.New("not implemented")
+	return
 }
 
 // msgBye represents a protocol Bye message.
@@ -308,7 +312,7 @@ type msgBye struct {
 }
 
 // ToXML generates XML tree for the message body
-func (m msgBye) ToXML() xml.Element {
+func (bye msgBye) ToXML() xml.Element {
 	elm := xml.Element{
 		Name: msgNsSOAP + ":" + "Bye",
 		Children: []xml.Element{
@@ -318,7 +322,7 @@ func (m msgBye) ToXML() xml.Element {
 					{
 						Name: msgNsAddressing + ":" +
 							"Address",
-						Text: string(m.Address),
+						Text: string(bye.Address),
 					},
 				},
 			},
@@ -328,7 +332,8 @@ func (m msgBye) ToXML() xml.Element {
 	return elm
 }
 
-// FromXML decodes message body from the XML tree
-func (m msgBye) FromXML(root xml.Element) error {
-	return errors.New("not implemented")
+// msgByeDecode decodes msgBye from the XML tree
+func msgByeDecode(root xml.Element) (bye msgBye, err error) {
+	err = errors.New("not implemented")
+	return
 }
