@@ -1,12 +1,12 @@
 // MFP - Miulti-Function Printers and scanners toolkit
-// WSD device discovery
+// WSD core protocol
 //
 // Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
 // See LICENSE for license terms and conditions
 //
-// WSDD message samples, for testing
+// WSD message samples, for testing
 
-package wsdd
+package wsd
 
 // Message samples, from the Microsoft "Web Services on Devices"
 // specification.
