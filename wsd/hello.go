@@ -21,7 +21,7 @@ import (
 type Hello struct {
 	EndpointReference EndpointReference // Stable identifier of the device
 	Types             []string          // Service types
-	XAddrs            []string          // Transport addresses (URLs)
+	XAddrs            XAddrs            // Transport addresses (URLs)
 	MetadataVersion   uint64            // Incremented when metadata changes
 }
 
@@ -56,12 +56,7 @@ func (hello Hello) ToXML() xmldoc.Element {
 	}
 
 	if len(hello.XAddrs) != 0 {
-		chld := xmldoc.Element{
-			Name: NsDiscovery + ":" + "XAddrs",
-			Text: strings.Join(hello.XAddrs, " "),
-		}
-
-		elm.Children = append(elm.Children, chld)
+		elm.Children = append(elm.Children, hello.XAddrs.ToXML())
 	}
 
 	return elm
