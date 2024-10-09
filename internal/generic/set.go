@@ -8,12 +8,12 @@
 
 package generic
 
-// addrset manages set of addresses
+// Set is the generic set of any comparable objects.
 type Set[T comparable] struct {
 	members map[T]struct{} // Members of the set
 }
 
-// newAddrset creates a new addrset
+// NewSet creates a new Set
 func NewSet[T comparable]() Set[T] {
 	return Set[T]{
 		members: make(map[T]struct{}),
