@@ -62,3 +62,9 @@ func xmlErrWrapName(name string, err error) error {
 func xmlErrNew(elem xmldoc.Element, text string) error {
 	return xmlErrWrap(elem, errors.New(text))
 }
+
+// xmlErrMissed creates an error that happens when some
+// required child element is missed
+func xmlErrMissed(name string) error {
+	return xmlErrWrapName(name, errors.New("missed"))
+}
