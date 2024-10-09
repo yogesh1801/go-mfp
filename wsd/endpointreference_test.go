@@ -91,14 +91,14 @@ func TestEndpointReferenceErrors(t *testing.T) {
 					},
 				},
 			},
-			estr: "a:EndpointReference/a:Address: invalid URI",
+			estr: "/a:EndpointReference/a:Address: invalid URI",
 		},
 
 		{
 			xml: xmldoc.Element{
 				Name: NsAddressing + ":EndpointReference",
 			},
-			estr: "a:EndpointReference/a:Address: missed",
+			estr: "/a:EndpointReference/a:Address: missed",
 		},
 	}
 

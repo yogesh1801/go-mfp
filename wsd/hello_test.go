@@ -192,7 +192,7 @@ func TestHelloDecodeErrors(t *testing.T) {
 				},
 			},
 
-			estr: "d:Hello/d:MetadataVersion: missed",
+			estr: "/d:Hello/d:MetadataVersion: missed",
 		},
 
 		{
@@ -206,7 +206,7 @@ func TestHelloDecodeErrors(t *testing.T) {
 				},
 			},
 
-			estr: "d:Hello/a:EndpointReference: missed",
+			estr: "/d:Hello/a:EndpointReference: missed",
 		},
 
 		{
@@ -223,7 +223,7 @@ func TestHelloDecodeErrors(t *testing.T) {
 				},
 			},
 
-			estr: "d:Hello/a:EndpointReference/a:Address: missed",
+			estr: "/d:Hello/a:EndpointReference/a:Address: missed",
 		},
 	}
 

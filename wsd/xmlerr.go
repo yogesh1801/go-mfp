@@ -23,7 +23,7 @@ type xmlErr struct {
 
 // Error returns error string.
 func (xe xmlErr) Error() string {
-	return strings.Join(xe.path, "/") + ": " + xe.err.Error()
+	return "/" + strings.Join(xe.path, "/") + ": " + xe.err.Error()
 }
 
 // Unwrap "unwraps" the error

@@ -179,7 +179,7 @@ func TestHeaderErrors(t *testing.T) {
 					},
 				},
 			},
-			estr: "s:Header/a:MessageID: missed",
+			estr: "/s:Header/a:MessageID: missed",
 		},
 
 		{
@@ -203,7 +203,7 @@ func TestHeaderErrors(t *testing.T) {
 					},
 				},
 			},
-			estr: "s:Header/d:AppSequence/d:AppSequence/InstanceId: missed attribyte",
+			estr: "/s:Header/d:AppSequence/d:AppSequence/InstanceId: missed attribyte",
 		},
 	}
 
