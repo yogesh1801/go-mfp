@@ -146,3 +146,98 @@ func TestHello(t *testing.T) {
 		}
 	}
 }
+
+// TestHelloDecodeErrors additionally tests Hello decode errors
+func TestHelloDecodeErrors(t *testing.T) {
+	type testData struct {
+		xml  xmldoc.Element
+		estr string
+	}
+
+	tests := []testData{
+		{
+			xml: xmldoc.Element{
+				Name: NsDiscovery + ":Hello",
+				Children: []xmldoc.Element{
+					{
+						Name: NsAddressing + ":EndpointReference",
+						Children: []xmldoc.Element{
+							{
+								Name: NsAddressing + ":Address",
+								Text: "urn:uuid:1fccdddc-380e-41df-8d38-b5df20bc47ef",
+							},
+						},
+					},
+					{
+						Name: NsDiscovery + ":MetadataVersion",
+						Text: "1",
+					},
+				},
+			},
+		},
+
+		{
+			xml: xmldoc.Element{
+				Name: NsDiscovery + ":Hello",
+				Children: []xmldoc.Element{
+					{
+						Name: NsAddressing + ":EndpointReference",
+						Children: []xmldoc.Element{
+							{
+								Name: NsAddressing + ":Address",
+								Text: "urn:uuid:1fccdddc-380e-41df-8d38-b5df20bc47ef",
+							},
+						},
+					},
+				},
+			},
+
+			estr: "d:Hello/d:MetadataVersion: missed",
+		},
+
+		{
+			xml: xmldoc.Element{
+				Name: NsDiscovery + ":Hello",
+				Children: []xmldoc.Element{
+					{
+						Name: NsDiscovery + ":MetadataVersion",
+						Text: "1",
+					},
+				},
+			},
+
+			estr: "d:Hello/a:EndpointReference: missed",
+		},
+
+		{
+			xml: xmldoc.Element{
+				Name: NsDiscovery + ":Hello",
+				Children: []xmldoc.Element{
+					{
+						Name: NsAddressing + ":EndpointReference",
+					},
+					{
+						Name: NsDiscovery + ":MetadataVersion",
+						Text: "1",
+					},
+				},
+			},
+
+			estr: "d:Hello/a:EndpointReference/a:Address: missed",
+		},
+	}
+
+	for _, test := range tests {
+		_, err := DecodeHello(test.xml)
+		estr := ""
+		if err != nil {
+			estr = err.Error()
+		}
+
+		if estr != test.estr {
+			t.Errorf("%s\nexpected: %q\npresent:  %q",
+				test.xml.EncodeString(NsMap),
+				test.estr, estr)
+		}
+	}
+}
