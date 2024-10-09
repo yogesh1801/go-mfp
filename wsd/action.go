@@ -19,7 +19,7 @@ type Action int
 
 // Message actions:
 const (
-	ActUnknown = iota // Other (unknown) action
+	ActUnknown Action = iota // Other (unknown) action
 	ActHello
 	ActBye
 	ActProbe
