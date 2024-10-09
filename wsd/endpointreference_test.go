@@ -40,7 +40,7 @@ func TestEndpointReference(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		xml := test.ref.ToXML()
+		xml := test.ref.ToXML(NsAddressing + ":EndpointReference")
 		if !reflect.DeepEqual(xml, test.xml) {
 			t.Errorf("ToXML:\nexpected: %s\npresent: %s\n",
 				test.xml.EncodeString(NsMap),

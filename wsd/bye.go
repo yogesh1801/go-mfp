@@ -32,7 +32,8 @@ func (bye Bye) ToXML() xmldoc.Element {
 	elm := xmldoc.Element{
 		Name: NsSOAP + ":" + "Bye",
 		Children: []xmldoc.Element{
-			bye.EndpointReference.ToXML(),
+			bye.EndpointReference.ToXML(
+				NsAddressing + ":EndpointReference"),
 		},
 	}
 

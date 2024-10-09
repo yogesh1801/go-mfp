@@ -27,6 +27,12 @@ type AppSequence struct {
 	Skip          bool   // Skip when sending
 }
 
+// AppSequenceMissed represents a missed AppSequence.
+//
+// It is skipped on encoding and returned on decoding, when optional
+// AppSequence is skipped on input.
+var AppSequenceMissed = AppSequence{Skip: true}
+
 // DecodeAppSequence decodes AppSequence from the XML tree
 func DecodeAppSequence(root xmldoc.Element) (seq AppSequence, err error) {
 	defer func() { err = xmlErrWrap(root, err) }()

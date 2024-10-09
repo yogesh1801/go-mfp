@@ -37,7 +37,8 @@ func (hello Hello) ToXML() xmldoc.Element {
 	elm := xmldoc.Element{
 		Name: NsSOAP + ":" + "Hello",
 		Children: []xmldoc.Element{
-			hello.EndpointReference.ToXML(),
+			hello.EndpointReference.ToXML(
+				NsAddressing + ":EndpointReference"),
 			{
 				Name: NsDiscovery + ":" + "MetadataVersion",
 				Text: strconv.FormatUint(hello.MetadataVersion, 10),

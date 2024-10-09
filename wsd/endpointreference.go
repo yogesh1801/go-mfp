@@ -36,9 +36,9 @@ func DecodeEndpointReference(root xmldoc.Element) (
 }
 
 // ToXML generates XML tree for the EndpointReference
-func (ref EndpointReference) ToXML() xmldoc.Element {
+func (ref EndpointReference) ToXML(name string) xmldoc.Element {
 	elm := xmldoc.Element{
-		Name: NsAddressing + ":EndpointReference",
+		Name: name,
 		Children: []xmldoc.Element{
 			{
 				Name: NsAddressing + ":Address",

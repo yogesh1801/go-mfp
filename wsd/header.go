@@ -9,35 +9,35 @@
 package wsd
 
 import (
-	"errors"
-	"fmt"
-
 	"github.com/alexpevzner/mfp/xmldoc"
 )
 
 // Header represents a common WSD message header.
 type Header struct {
-	Action      Action      // Message action
-	MessageID   AnyURI      // Required: message identifier
-	To          AnyURI      // Required: message destination
-	RelatesTo   AnyURI      // Reply-To or similar
-	AppSequence AppSequence // Message sequence (recv only)
+	Action      Action            // Required: Message action
+	MessageID   AnyURI            // Required: message identifier
+	To          AnyURI            // Required: message destination
+	ReplyTo     EndpointReference // Optional: address to reply to
+	RelatesTo   AnyURI            // Optional: ID of related message
+	AppSequence AppSequence       // Optional: Message sequence
 }
 
-// DecodeHdr decodes message header [Header] from the XML tree
-func DecodeHdr(root xmldoc.Element) (hdr Header, err error) {
+// DecodeHeader decodes message header [Header] from the XML tree
+func DecodeHeader(root xmldoc.Element) (hdr Header, err error) {
 	defer func() { err = xmlErrWrap(root, err) }()
 
 	// Lookup header elements
 	Action := xmldoc.Lookup{Name: NsAddressing + ":Action", Required: true}
 	MessageID := xmldoc.Lookup{Name: NsAddressing + ":MessageID", Required: true}
 	To := xmldoc.Lookup{Name: NsAddressing + ":To", Required: true}
+	ReplyTo := xmldoc.Lookup{Name: NsAddressing + ":ReplyTo"}
 	RelatesTo := xmldoc.Lookup{Name: NsAddressing + ":RelatesTo"}
-	AppSequence := xmldoc.Lookup{Name: NsAddressing + ":AppSequence", Required: true}
+	AppSequence := xmldoc.Lookup{Name: NsDiscovery + ":AppSequence"}
 
-	missed := root.Lookup(&Action, &MessageID, &To, &RelatesTo, &AppSequence)
+	missed := root.Lookup(&Action, &MessageID, &To, &ReplyTo,
+		&RelatesTo, &AppSequence)
 	if missed != nil {
-		err = fmt.Errorf("%s: missed", missed.Name)
+		err = xmlErrMissed(missed.Name)
 		return
 	}
 
@@ -49,14 +49,18 @@ func DecodeHdr(root xmldoc.Element) (hdr Header, err error) {
 	if err == nil {
 		hdr.To, err = DecodeAnyURI(To.Elem)
 	}
-	if err == nil && RelatesTo.Found {
-		hdr.To, err = DecodeAnyURI(RelatesTo.Elem)
+	if err == nil && ReplyTo.Found {
+		hdr.ReplyTo, err = DecodeEndpointReference(ReplyTo.Elem)
 	}
-	if err == nil {
+	if err == nil && RelatesTo.Found {
+		hdr.RelatesTo, err = DecodeAnyURI(RelatesTo.Elem)
+	}
+
+	hdr.AppSequence = AppSequenceMissed
+	if err == nil && AppSequence.Found {
 		hdr.AppSequence, err = DecodeAppSequence(AppSequence.Elem)
 	}
 
-	err = errors.New("not implemented")
 	return
 }
 
@@ -78,6 +82,11 @@ func (hdr Header) ToXML() xmldoc.Element {
 				Text: string(hdr.To),
 			},
 		},
+	}
+
+	if hdr.ReplyTo.Address != "" {
+		elm.Children = append(elm.Children,
+			hdr.ReplyTo.ToXML(NsAddressing+":ReplyTo"))
 	}
 
 	if hdr.RelatesTo != "" {

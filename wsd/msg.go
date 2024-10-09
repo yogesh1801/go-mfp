@@ -47,7 +47,7 @@ func DecodeMsg(root xmldoc.Element) (m Msg, err error) {
 	}
 
 	// Decode message header
-	m.Header, err = DecodeHdr(hdr.Elem)
+	m.Header, err = DecodeHeader(hdr.Elem)
 	if err != nil {
 		return
 	}
