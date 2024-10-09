@@ -9,6 +9,7 @@ SUBDIRS	= \
 	testutils \
 	transport \
 	uuid \
+	wsd \
 	xmldoc
 
 include Rules.mak
