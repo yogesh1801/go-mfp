@@ -16,8 +16,8 @@ import (
 
 // Msg represents a WSD protocol message.
 type Msg struct {
-	Hdr  Hdr  // Message header
-	Body Body // Message body
+	Header Header // Message header
+	Body   Body   // Message body
 }
 
 // DecodeMsg decodes [msg] from the XML tree
@@ -47,19 +47,19 @@ func DecodeMsg(root xmldoc.Element) (m Msg, err error) {
 	}
 
 	// Decode message header
-	m.Hdr, err = DecodeHdr(hdr.Elem)
+	m.Header, err = DecodeHdr(hdr.Elem)
 	if err != nil {
 		return
 	}
 
 	// Decode message body
-	switch m.Hdr.Action {
+	switch m.Header.Action {
 	case ActHello:
 		m.Body, err = DecodeHello(body.Elem)
 	case ActBye:
 		m.Body, err = DecodeBye(body.Elem)
 	default:
-		err = fmt.Errorf("%s: unhanded action ", m.Hdr.Action)
+		err = fmt.Errorf("%s: unhanded action ", m.Header.Action)
 	}
 
 	return
@@ -70,7 +70,7 @@ func (m Msg) ToXML() xmldoc.Element {
 	elm := xmldoc.Element{
 		Name: NsSOAP + ":" + "Envelope",
 		Children: []xmldoc.Element{
-			m.Hdr.ToXML(),
+			m.Header.ToXML(),
 			xmldoc.Element{
 				Name:     NsSOAP + ":" + "Body",
 				Children: []xmldoc.Element{m.Body.ToXML()},

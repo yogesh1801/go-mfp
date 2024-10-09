@@ -15,8 +15,8 @@ import (
 	"github.com/alexpevzner/mfp/xmldoc"
 )
 
-// Hdr represents a common WSD message header.
-type Hdr struct {
+// Header represents a common WSD message header.
+type Header struct {
 	Action      Action      // Message action
 	MessageID   AnyURI      // Required: message identifier
 	To          AnyURI      // Required: message destination
@@ -24,8 +24,8 @@ type Hdr struct {
 	AppSequence AppSequence // Message sequence (recv only)
 }
 
-// DecodeHdr decodes message header [Hdr] from the XML tree
-func DecodeHdr(root xmldoc.Element) (hdr Hdr, err error) {
+// DecodeHdr decodes message header [Header] from the XML tree
+func DecodeHdr(root xmldoc.Element) (hdr Header, err error) {
 	defer func() { err = xmlErrWrap(root, err) }()
 
 	// Lookup header elements
@@ -61,7 +61,7 @@ func DecodeHdr(root xmldoc.Element) (hdr Hdr, err error) {
 }
 
 // ToXML generates XML tree for the message header
-func (hdr Hdr) ToXML() xmldoc.Element {
+func (hdr Header) ToXML() xmldoc.Element {
 	elm := xmldoc.Element{
 		Name: NsSOAP + ":" + "Header",
 		Children: []xmldoc.Element{
