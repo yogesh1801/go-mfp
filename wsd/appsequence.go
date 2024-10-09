@@ -4,12 +4,12 @@
 // Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
 // See LICENSE for license terms and conditions
 //
-// Package documentation
+// AppSequence
 
 package wsd
 
 import (
-	"fmt"
+	"errors"
 	"strconv"
 
 	"github.com/alexpevzner/mfp/xmldoc"
@@ -31,19 +31,14 @@ type AppSequence struct {
 func DecodeAppSequence(root xmldoc.Element) (seq AppSequence, err error) {
 	defer func() { err = xmlErrWrap(root, err) }()
 
-	InstanceID := xmldoc.LookupAttr{
-		Name: NsAddressing + ":InstanceID", Required: true,
-	}
-	MessageNumber := xmldoc.LookupAttr{
-		Name: NsAddressing + ":MessageNumber", Required: true,
-	}
-	SequenceID := xmldoc.LookupAttr{
-		Name: NsAddressing + ":SequenceID",
-	}
+	InstanceID := xmldoc.LookupAttr{Name: "InstanceId", Required: true}
+	MessageNumber := xmldoc.LookupAttr{Name: "MessageNumber", Required: true}
+	SequenceID := xmldoc.LookupAttr{Name: "SequenceId"}
 
 	missed := root.LookupAttrs(&InstanceID, &MessageNumber, &SequenceID)
 	if missed != nil {
-		err = fmt.Errorf("%s: missed", missed.Name)
+		err = xmlErrWrapName(missed.Name, errors.New("missed attribyte"))
+		err = xmlErrWrap(root, err)
 		return
 	}
 
@@ -77,7 +72,7 @@ func (seq AppSequence) ToXML() xmldoc.Element {
 
 	if seq.SequenceID != "" {
 		elm.Attrs = append(elm.Attrs, xmldoc.Attr{
-			Name:  "SequenceID",
+			Name:  "SequenceId",
 			Value: string(seq.SequenceID),
 		})
 	}
