@@ -10,6 +10,7 @@ package wsd
 
 import (
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/alexpevzner/mfp/xmldoc"
@@ -18,8 +19,9 @@ import (
 // TestXHello tests Hello encoding and decoding
 func TestHello(t *testing.T) {
 	type testData struct {
-		hello Hello
-		xml   xmldoc.Element
+		hello  Hello
+		xml    xmldoc.Element
+		nsused string
 	}
 
 	tests := []testData{
@@ -99,6 +101,8 @@ func TestHello(t *testing.T) {
 					},
 				},
 			},
+
+			nsused: "devprof,scan,print",
 		},
 	}
 
@@ -122,6 +126,24 @@ func TestHello(t *testing.T) {
 				test.hello, hello)
 		}
 
+		ns := NsMap.Clone()
+		hello.MarkUsedNamespace(ns)
+
+		nsused := []string{}
+		for _, n := range ns {
+			if n.Used {
+				nsused = append(nsused, n.Prefix)
+			}
+		}
+
+		nsusedPresent := strings.Join(nsused, ",")
+
+		if test.nsused != nsusedPresent {
+			t.Errorf("Hello.MarkUsedNamespace:\n"+
+				"expected: %s\n"+
+				"present:  %s\n",
+				test.nsused, nsusedPresent)
+		}
 	}
 }
 
