@@ -38,7 +38,7 @@ func xmlErrWrap(elem xmldoc.Element, err error) error {
 
 // xmlErrWrap "wraps" the error in the context of the xmldoc.Attr
 func xmlErrWrapAttr(attr xmldoc.Attr, err error) error {
-	return xmlErrWrapName(attr.Name, err)
+	return xmlErrWrapName("@"+attr.Name, err)
 }
 
 // xmlErrWrap "wraps" the error in the context of the xmldoc.Element

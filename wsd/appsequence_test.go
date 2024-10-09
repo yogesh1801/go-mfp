@@ -126,7 +126,7 @@ func TestAppSequenceDecodeErrors(t *testing.T) {
 					},
 				},
 			},
-			estr: "/d:AppSequence/d:AppSequence/MessageNumber: missed attribyte",
+			estr: "/d:AppSequence/d:AppSequence/@MessageNumber: missed attribyte",
 		},
 
 		{
@@ -139,7 +139,7 @@ func TestAppSequenceDecodeErrors(t *testing.T) {
 					},
 				},
 			},
-			estr: "/d:AppSequence/d:AppSequence/InstanceId: missed attribyte",
+			estr: "/d:AppSequence/d:AppSequence/@InstanceId: missed attribyte",
 		},
 	}
 

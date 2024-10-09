@@ -43,8 +43,8 @@ func DecodeAppSequence(root xmldoc.Element) (seq AppSequence, err error) {
 
 	missed := root.LookupAttrs(&InstanceID, &MessageNumber, &SequenceID)
 	if missed != nil {
-		err = xmlErrWrapName(missed.Name, errors.New("missed attribyte"))
-		err = xmlErrWrap(root, err)
+		err = errors.New("missed attribyte")
+		err = xmlErrWrap(root, xmlErrWrapName("@"+missed.Name, err))
 		return
 	}
 
