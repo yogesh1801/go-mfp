@@ -19,10 +19,10 @@ import (
 // Hello represents body of the protocol Hello message.
 // Each device must multicast this message when it enters the network.
 type Hello struct {
-	Address         AnyURI   // Stable identifier of the device
-	Types           []string // Service types
-	XAddrs          []string // Transport addresses (URLs)
-	MetadataVersion uint64   // Incremented when metadata changes on device
+	EndpointReference EndpointReference // Stable identifier of the device
+	Types             []string          // Service types
+	XAddrs            []string          // Transport addresses (URLs)
+	MetadataVersion   uint64            // Incremented when metadata changes
 }
 
 // DecodeHello decodes [Hello] from the XML tree
@@ -37,16 +37,7 @@ func (hello Hello) ToXML() xmldoc.Element {
 	elm := xmldoc.Element{
 		Name: NsSOAP + ":" + "Hello",
 		Children: []xmldoc.Element{
-			{
-				Name: NsAddressing + ":" + "EndpointReference",
-				Children: []xmldoc.Element{
-					{
-						Name: NsAddressing + ":" +
-							"Address",
-						Text: string(hello.Address),
-					},
-				},
-			},
+			hello.EndpointReference.ToXML(),
 			{
 				Name: NsDiscovery + ":" + "MetadataVersion",
 				Text: strconv.FormatUint(hello.MetadataVersion, 10),

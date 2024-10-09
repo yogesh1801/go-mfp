@@ -17,7 +17,7 @@ import (
 // Bye represents a protocol Bye message.
 // Each device must multicast this message before it enters the network.
 type Bye struct {
-	Address AnyURI // Stable identifier of the device
+	EndpointReference EndpointReference // Stable identifier of the device
 }
 
 // DecodeBye decodes [Bye from the XML tree
@@ -32,16 +32,7 @@ func (bye Bye) ToXML() xmldoc.Element {
 	elm := xmldoc.Element{
 		Name: NsSOAP + ":" + "Bye",
 		Children: []xmldoc.Element{
-			{
-				Name: NsAddressing + ":" + "EndpointReference",
-				Children: []xmldoc.Element{
-					{
-						Name: NsAddressing + ":" +
-							"Address",
-						Text: string(bye.Address),
-					},
-				},
-			},
+			bye.EndpointReference.ToXML(),
 		},
 	}
 
