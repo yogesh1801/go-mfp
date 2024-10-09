@@ -60,6 +60,7 @@ func DecodeMsg(root xmldoc.Element) (m Msg, err error) {
 		m.Body, err = DecodeBye(body.Elem)
 	default:
 		err = fmt.Errorf("%s: unhanded action ", m.Header.Action)
+		return
 	}
 
 	return
@@ -81,7 +82,17 @@ func (m Msg) ToXML() xmldoc.Element {
 	return elm
 }
 
+// MarkUsedNamespace marks [xmldoc.Namespace] entries used by
+// data elements within the message body, if any.
+//
+// This function should not care about Namespace entries, used
+// by XML tags: they are handled automatically.
+func (m Msg) MarkUsedNamespace(ns xmldoc.Namespace) {
+	m.Body.MarkUsedNamespace(ns)
+}
+
 // Body represents a message body.
 type Body interface {
 	ToXML() xmldoc.Element
+	MarkUsedNamespace(xmldoc.Namespace)
 }

@@ -9,7 +9,6 @@
 package wsd
 
 import (
-	"errors"
 	"strconv"
 	"strings"
 
@@ -28,14 +27,48 @@ type Hello struct {
 // DecodeHello decodes [Hello] from the XML tree
 func DecodeHello(root xmldoc.Element) (hello Hello, err error) {
 	defer func() { err = xmlErrWrap(root, err) }()
-	err = errors.New("not implemented")
+
+	// Lookup message elements
+	EndpointReference := xmldoc.Lookup{
+		Name: NsAddressing + ":EndpointReference", Required: true}
+	Types := xmldoc.Lookup{
+		Name: NsDiscovery + ":" + "Types"}
+	XAddrs := xmldoc.Lookup{
+		Name: NsDiscovery + ":" + "XAddrs"}
+	MetadataVersion := xmldoc.Lookup{
+		Name: NsDiscovery + ":" + "MetadataVersion", Required: true}
+
+	missed := root.Lookup(&EndpointReference, &Types,
+		&XAddrs, &MetadataVersion)
+
+	if missed != nil {
+		err = xmlErrMissed(missed.Name)
+		return
+	}
+
+	// Decode elements
+	hello.EndpointReference, err = DecodeEndpointReference(
+		EndpointReference.Elem)
+
+	if err == nil && Types.Found {
+		hello.Types = strings.Fields(Types.Elem.Text)
+	}
+
+	if err == nil && XAddrs.Found {
+		hello.XAddrs, err = DecodeXAddrs(XAddrs.Elem)
+	}
+
+	if err == nil {
+		hello.MetadataVersion, err = decodeUint64(MetadataVersion.Elem)
+	}
+
 	return
 }
 
 // ToXML generates XML tree for the message body
 func (hello Hello) ToXML() xmldoc.Element {
 	elm := xmldoc.Element{
-		Name: NsSOAP + ":" + "Hello",
+		Name: NsDiscovery + ":" + "Hello",
 		Children: []xmldoc.Element{
 			hello.EndpointReference.ToXML(
 				NsAddressing + ":EndpointReference"),
@@ -60,4 +93,15 @@ func (hello Hello) ToXML() xmldoc.Element {
 	}
 
 	return elm
+}
+
+// MarkUsedNamespace marks [xmldoc.Namespace] entries used by
+// data elements within the message body, if any.
+//
+// This function should not care about Namespace entries, used
+// by XML tags: they are handled automatically.
+func (hello Hello) MarkUsedNamespace(ns xmldoc.Namespace) {
+	for _, name := range hello.Types {
+		ns.MarkUsedName(name)
+	}
 }

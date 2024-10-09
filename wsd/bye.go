@@ -39,3 +39,11 @@ func (bye Bye) ToXML() xmldoc.Element {
 
 	return elm
 }
+
+// MarkUsedNamespace marks [xmldoc.Namespace] entries used by
+// data elements within the message body, if any.
+//
+// This function should not care about Namespace entries, used
+// by XML tags: they are handled automatically.
+func (bye Bye) MarkUsedNamespace(ns xmldoc.Namespace) {
+}
