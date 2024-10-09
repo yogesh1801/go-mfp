@@ -12,7 +12,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/alexpevzner/mfp/internal/xml"
+	"github.com/alexpevzner/mfp/xmldoc"
 )
 
 // xmlErr represents error, related to the XML processing
@@ -31,18 +31,18 @@ func (xe xmlErr) Unwrap() error {
 	return xe.err
 }
 
-// xmlErrWrap "wraps" the error in the context of the xml.Element
-func xmlErrWrap(elem xml.Element, err error) error {
+// xmlErrWrap "wraps" the error in the context of the xmldoc.Element
+func xmlErrWrap(elem xmldoc.Element, err error) error {
 	return xmlErrWrapName(elem.Name, err)
 }
 
-// xmlErrWrap "wraps" the error in the context of the xml.Attr
-func xmlErrWrapAttr(attr xml.Attr, err error) error {
+// xmlErrWrap "wraps" the error in the context of the xmldoc.Attr
+func xmlErrWrapAttr(attr xmldoc.Attr, err error) error {
 	return xmlErrWrapName(attr.Name, err)
 }
 
-// xmlErrWrap "wraps" the error in the context of the xml.Element
-// or xml.Attr with the specified name
+// xmlErrWrap "wraps" the error in the context of the xmldoc.Element
+// or xmldoc.Attr with the specified name
 func xmlErrWrapName(name string, err error) error {
 	if err == nil {
 		return nil
@@ -59,6 +59,6 @@ func xmlErrWrapName(name string, err error) error {
 }
 
 // xmlErrNew is equal to xmlErrWrap(elem,errors.New(text))
-func xmlErrNew(elem xml.Element, text string) error {
+func xmlErrNew(elem xmldoc.Element, text string) error {
 	return xmlErrWrap(elem, errors.New(text))
 }

@@ -6,7 +6,7 @@
 //
 // Package documentation
 
-package xml
+package xmldoc
 
 import (
 	"bytes"

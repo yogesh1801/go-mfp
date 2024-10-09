@@ -6,7 +6,7 @@
 //
 // XML namespace
 
-package xml
+package xmldoc
 
 import (
 	"slices"

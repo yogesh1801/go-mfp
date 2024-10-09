@@ -13,11 +13,11 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/alexpevzner/mfp/internal/xml"
+	"github.com/alexpevzner/mfp/xmldoc"
 )
 
 // decodeMsg decodes message (msg) from the XML tree
-func decodeMsg(root xml.Element) (m msg, err error) {
+func decodeMsg(root xmldoc.Element) (m msg, err error) {
 	const (
 		rootName = msgNsSOAP + ":" + "Envelope"
 		hdrName  = msgNsSOAP + ":" + "Header"
@@ -33,8 +33,8 @@ func decodeMsg(root xml.Element) (m msg, err error) {
 	}
 
 	// Look for Header and Body elements
-	hdr := xml.Lookup{Name: hdrName, Required: true}
-	body := xml.Lookup{Name: bodyName, Required: true}
+	hdr := xmldoc.Lookup{Name: hdrName, Required: true}
+	body := xmldoc.Lookup{Name: bodyName, Required: true}
 
 	missed := root.Lookup(&hdr, &body)
 	if missed != nil {
@@ -62,15 +62,15 @@ func decodeMsg(root xml.Element) (m msg, err error) {
 }
 
 // decodeHdr decodes message header (msgHdr) from the XML tree
-func decodeHdr(root xml.Element) (hdr msgHdr, err error) {
+func decodeHdr(root xmldoc.Element) (hdr msgHdr, err error) {
 	defer func() { err = xmlErrWrap(root, err) }()
 
 	// Lookup header elements
-	Action := xml.Lookup{Name: msgNsAddressing + ":Action", Required: true}
-	MessageID := xml.Lookup{Name: msgNsAddressing + ":MessageID", Required: true}
-	To := xml.Lookup{Name: msgNsAddressing + ":To", Required: true}
-	RelatesTo := xml.Lookup{Name: msgNsAddressing + ":RelatesTo"}
-	AppSequence := xml.Lookup{Name: msgNsAddressing + ":AppSequence", Required: true}
+	Action := xmldoc.Lookup{Name: msgNsAddressing + ":Action", Required: true}
+	MessageID := xmldoc.Lookup{Name: msgNsAddressing + ":MessageID", Required: true}
+	To := xmldoc.Lookup{Name: msgNsAddressing + ":To", Required: true}
+	RelatesTo := xmldoc.Lookup{Name: msgNsAddressing + ":RelatesTo"}
+	AppSequence := xmldoc.Lookup{Name: msgNsAddressing + ":AppSequence", Required: true}
 
 	missed := root.Lookup(&Action, &MessageID, &To, &RelatesTo, &AppSequence)
 	if missed != nil {
@@ -98,21 +98,21 @@ func decodeHdr(root xml.Element) (hdr msgHdr, err error) {
 }
 
 // decodeHello decodes msgHello from the XML tree
-func decodeHello(root xml.Element) (hello msgHello, err error) {
+func decodeHello(root xmldoc.Element) (hello msgHello, err error) {
 	defer func() { err = xmlErrWrap(root, err) }()
 	err = errors.New("not implemented")
 	return
 }
 
 // decodeBye decodes msgBye from the XML tree
-func decodeBye(root xml.Element) (bye msgBye, err error) {
+func decodeBye(root xmldoc.Element) (bye msgBye, err error) {
 	defer func() { err = xmlErrWrap(root, err) }()
 	err = errors.New("not implemented")
 	return
 }
 
 // decodeAction decodes action, from the XML tree
-func decodeAction(root xml.Element) (v action, err error) {
+func decodeAction(root xmldoc.Element) (v action, err error) {
 	act := actDecode(root.Text)
 	if act != actUnknown {
 		return act, nil
@@ -122,7 +122,7 @@ func decodeAction(root xml.Element) (v action, err error) {
 }
 
 // decodeAnyURI decodes anyURI from the XML tree
-func decodeAnyURI(root xml.Element) (v anyURI, err error) {
+func decodeAnyURI(root xmldoc.Element) (v anyURI, err error) {
 	if root.Text != "" {
 		return anyURI(root.Text), nil
 	}
@@ -130,7 +130,7 @@ func decodeAnyURI(root xml.Element) (v anyURI, err error) {
 }
 
 // decodeAnyURIAttr decodes anyURI from the XML attribute
-func decodeAnyURIAttr(attr xml.Attr) (v anyURI, err error) {
+func decodeAnyURIAttr(attr xmldoc.Attr) (v anyURI, err error) {
 	if attr.Value != "" {
 		return anyURI(attr.Value), nil
 	}
@@ -138,30 +138,30 @@ func decodeAnyURIAttr(attr xml.Attr) (v anyURI, err error) {
 }
 
 // decodeUint64 decodes uint64 from the XML tree
-func decodeUint64(root xml.Element) (v uint64, err error) {
+func decodeUint64(root xmldoc.Element) (v uint64, err error) {
 	v, err = strconv.ParseUint(root.Text, 10, 64)
 	err = xmlErrWrap(root, err)
 	return
 }
 
 // decodeUint64 decodes uint64 from the XML attribute
-func decodeUint64Attr(attr xml.Attr) (v uint64, err error) {
+func decodeUint64Attr(attr xmldoc.Attr) (v uint64, err error) {
 	v, err = strconv.ParseUint(attr.Value, 10, 64)
 	err = xmlErrWrapAttr(attr, err)
 	return
 }
 
 // decodeAppSequence decodes AppSequence from the XML tree
-func decodeAppSequence(root xml.Element) (seq msgAppSequence, err error) {
+func decodeAppSequence(root xmldoc.Element) (seq msgAppSequence, err error) {
 	defer func() { err = xmlErrWrap(root, err) }()
 
-	InstanceID := xml.LookupAttr{
+	InstanceID := xmldoc.LookupAttr{
 		Name: msgNsAddressing + ":InstanceID", Required: true,
 	}
-	MessageNumber := xml.LookupAttr{
+	MessageNumber := xmldoc.LookupAttr{
 		Name: msgNsAddressing + ":MessageNumber", Required: true,
 	}
-	SequenceID := xml.LookupAttr{
+	SequenceID := xmldoc.LookupAttr{
 		Name: msgNsAddressing + ":SequenceID",
 	}
 

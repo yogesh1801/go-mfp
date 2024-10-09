@@ -6,7 +6,7 @@
 //
 // XML iterator
 
-package xml
+package xmldoc
 
 import "bytes"
 

@@ -6,7 +6,7 @@
 //
 // XML elements lookup
 
-package xml
+package xmldoc
 
 // Lookup contains element name for lookup by name and
 // received lookup result.

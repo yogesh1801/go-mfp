@@ -6,7 +6,7 @@
 //
 // XML element
 
-package xml
+package xmldoc
 
 import (
 	"os"

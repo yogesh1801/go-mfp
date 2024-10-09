@@ -12,7 +12,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/alexpevzner/mfp/internal/xml"
+	"github.com/alexpevzner/mfp/xmldoc"
 )
 
 // Well-known destinations
@@ -36,7 +36,7 @@ const (
 )
 
 // msgNsMap maps namespace prefixes to URL
-var msgNsMap = xml.Namespace{
+var msgNsMap = xmldoc.Namespace{
 	// SOAP 1.1
 	{Prefix: msgNsSOAP, URL: "http://schemas.xmlsoap.org/soap/envelope"},
 
@@ -60,14 +60,14 @@ type msg struct {
 }
 
 // ToXML generates XML tree for the message
-func (m msg) ToXML() xml.Element {
-	elm := xml.Element{
+func (m msg) ToXML() xmldoc.Element {
+	elm := xmldoc.Element{
 		Name: msgNsSOAP + ":" + "Envelope",
-		Children: []xml.Element{
+		Children: []xmldoc.Element{
 			m.Hdr.ToXML(),
-			xml.Element{
+			xmldoc.Element{
 				Name:     msgNsSOAP + ":" + "Body",
-				Children: []xml.Element{m.Body.ToXML()},
+				Children: []xmldoc.Element{m.Body.ToXML()},
 			},
 		},
 	}
@@ -77,7 +77,7 @@ func (m msg) ToXML() xml.Element {
 
 // msgBody represents a message body.
 type msgBody interface {
-	ToXML() xml.Element
+	ToXML() xmldoc.Element
 }
 
 // msgHdr represents a common WSDD message header.
@@ -90,10 +90,10 @@ type msgHdr struct {
 }
 
 // ToXML generates XML tree for the message header
-func (hdr msgHdr) ToXML() xml.Element {
-	elm := xml.Element{
+func (hdr msgHdr) ToXML() xmldoc.Element {
+	elm := xmldoc.Element{
 		Name: msgNsSOAP + ":" + "Header",
-		Children: []xml.Element{
+		Children: []xmldoc.Element{
 			{
 				Name: msgNsAddressing + ":" + "Action",
 				Text: hdr.Action.Encode(),
@@ -111,7 +111,7 @@ func (hdr msgHdr) ToXML() xml.Element {
 
 	if hdr.RelatesTo != "" {
 		elm.Children = append(elm.Children,
-			xml.Element{
+			xmldoc.Element{
 				Name: msgNsAddressing + ":" + "RelatesTo",
 				Text: string(hdr.RelatesTo),
 			})
@@ -137,10 +137,10 @@ type msgAppSequence struct {
 }
 
 // ToXML generates XML tree for the AppSequence
-func (seq msgAppSequence) ToXML() xml.Element {
-	elm := xml.Element{
+func (seq msgAppSequence) ToXML() xmldoc.Element {
+	elm := xmldoc.Element{
 		Name: msgNsDiscovery + ":" + "AppSequence",
-		Attrs: []xml.Attr{
+		Attrs: []xmldoc.Attr{
 			{
 				Name:  "InstanceId",
 				Value: strconv.FormatUint(seq.InstanceID, 10),
@@ -153,7 +153,7 @@ func (seq msgAppSequence) ToXML() xml.Element {
 	}
 
 	if seq.SequenceID != "" {
-		elm.Attrs = append(elm.Attrs, xml.Attr{
+		elm.Attrs = append(elm.Attrs, xmldoc.Attr{
 			Name:  "SequenceID",
 			Value: string(seq.SequenceID),
 		})
@@ -172,13 +172,13 @@ type msgHello struct {
 }
 
 // ToXML generates XML tree for the message body
-func (hello msgHello) ToXML() xml.Element {
-	elm := xml.Element{
+func (hello msgHello) ToXML() xmldoc.Element {
+	elm := xmldoc.Element{
 		Name: msgNsSOAP + ":" + "Hello",
-		Children: []xml.Element{
+		Children: []xmldoc.Element{
 			{
 				Name: msgNsAddressing + ":" + "EndpointReference",
-				Children: []xml.Element{
+				Children: []xmldoc.Element{
 					{
 						Name: msgNsAddressing + ":" +
 							"Address",
@@ -194,7 +194,7 @@ func (hello msgHello) ToXML() xml.Element {
 	}
 
 	if len(hello.Types) != 0 {
-		chld := xml.Element{
+		chld := xmldoc.Element{
 			Name: msgNsDiscovery + ":" + "Types",
 			Text: strings.Join(hello.Types, " "),
 		}
@@ -203,7 +203,7 @@ func (hello msgHello) ToXML() xml.Element {
 	}
 
 	if len(hello.XAddrs) != 0 {
-		chld := xml.Element{
+		chld := xmldoc.Element{
 			Name: msgNsDiscovery + ":" + "XAddrs",
 			Text: strings.Join(hello.XAddrs, " "),
 		}
@@ -221,13 +221,13 @@ type msgBye struct {
 }
 
 // ToXML generates XML tree for the message body
-func (bye msgBye) ToXML() xml.Element {
-	elm := xml.Element{
+func (bye msgBye) ToXML() xmldoc.Element {
+	elm := xmldoc.Element{
 		Name: msgNsSOAP + ":" + "Bye",
-		Children: []xml.Element{
+		Children: []xmldoc.Element{
 			{
 				Name: msgNsAddressing + ":" + "EndpointReference",
-				Children: []xml.Element{
+				Children: []xmldoc.Element{
 					{
 						Name: msgNsAddressing + ":" +
 							"Address",

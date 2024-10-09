@@ -6,7 +6,7 @@
 //
 // XML decoder
 
-package xml
+package xmldoc
 
 import (
 	"encoding/xml"

@@ -1,7 +1,7 @@
 # XML mini library
 
 ```
-import "github.com/alexpevzner/mfp/internal/xml"
+import "github.com/alexpevzner/mfp//xmldoc"
 ```
 
 This package provides mini library for convenient decoding

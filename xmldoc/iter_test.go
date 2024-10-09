@@ -6,7 +6,7 @@
 //
 // XML iterator test
 
-package xml
+package xmldoc
 
 import (
 	"reflect"

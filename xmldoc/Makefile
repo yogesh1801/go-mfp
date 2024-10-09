@@ -1,3 +1,1 @@
-SUBDIRS	= generic
-
 include ../Rules.mak

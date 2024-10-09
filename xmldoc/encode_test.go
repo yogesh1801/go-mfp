@@ -6,7 +6,7 @@
 //
 // XML encoder test
 
-package xml
+package xmldoc
 
 import (
 	"testing"

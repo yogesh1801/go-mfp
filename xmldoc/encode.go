@@ -6,7 +6,7 @@
 //
 // XML encoder
 
-package xml
+package xmldoc
 
 import (
 	"bytes"
