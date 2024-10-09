@@ -53,3 +53,55 @@ func TestXAddrs(t *testing.T) {
 		}
 	}
 }
+
+// TestXAddrsDecode additionally tests corner cases of
+// the XAddrs decoding
+func TestXAddrsDecode(t *testing.T) {
+	type testData struct {
+		xml    xmldoc.Element
+		xaddrs XAddrs
+	}
+
+	tests := []testData{
+		{
+			xml: xmldoc.Element{
+				Name: NsDiscovery + ":XAddrs",
+				Text: "http://127.0.0.1/ " +
+					"invalud-url " +
+					"http://[::1]/",
+			},
+
+			xaddrs: XAddrs{
+				"http://127.0.0.1/",
+				"http://[::1]/",
+			},
+		},
+
+		{
+			xml: xmldoc.Element{
+				Name: NsDiscovery + ":XAddrs",
+				Text: "http://127.0.0.1/ " +
+					"ftp://localhost/ " +
+					"http://[::1]/",
+			},
+
+			xaddrs: XAddrs{
+				"http://127.0.0.1/",
+				"http://[::1]/",
+			},
+		},
+	}
+
+	for _, test := range tests {
+		xaddrs, err := DecodeXAddrs(test.xml)
+		if err != nil {
+			t.Errorf("%s", err)
+			continue
+		}
+
+		if !reflect.DeepEqual(xaddrs, test.xaddrs) {
+			t.Errorf("expected: %s\npresent:  %s\n",
+				test.xaddrs, xaddrs)
+		}
+	}
+}
