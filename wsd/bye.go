@@ -18,7 +18,7 @@ type Bye struct {
 	EndpointReference EndpointReference // Stable identifier of the device
 }
 
-// DecodeBye decodes [Bye from the XML tree
+// DecodeBye decodes [Bye] from the XML tree
 func DecodeBye(root xmldoc.Element) (bye Bye, err error) {
 	defer func() { err = xmlErrWrap(root, err) }()
 
