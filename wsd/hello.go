@@ -16,7 +16,7 @@ import (
 // Each device must multicast this message when it enters the network.
 type Hello struct {
 	EndpointReference EndpointReference // Stable identifier of the device
-	Types             []string          // Service types
+	Types             Types             // Device types
 	XAddrs            XAddrs            // Transport addresses (URLs)
 	MetadataVersion   uint64            // Incremented when metadata changes
 }

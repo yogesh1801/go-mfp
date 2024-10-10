@@ -10,7 +10,6 @@ package wsd
 
 import (
 	"strconv"
-	"strings"
 
 	"github.com/alexpevzner/mfp/xmldoc"
 )
@@ -19,7 +18,7 @@ import (
 // [ProbeMatches] and [ResolveMatches] message.
 type announce struct {
 	EndpointReference EndpointReference // Stable identifier of the device
-	Types             []string          // Service types
+	Types             Types             // Device types
 	XAddrs            XAddrs            // Transport addresses (URLs)
 	MetadataVersion   uint64            // Incremented when metadata changes
 }
@@ -51,7 +50,7 @@ func decodeAnnounce(root xmldoc.Element) (ann announce, err error) {
 		EndpointReference.Elem)
 
 	if err == nil && Types.Found {
-		ann.Types = strings.Fields(Types.Elem.Text)
+		ann.Types, err = DecodeTypes(Types.Elem)
 	}
 
 	if err == nil && XAddrs.Found {
@@ -79,13 +78,8 @@ func (ann announce) ToXML(name string) xmldoc.Element {
 		},
 	}
 
-	if len(ann.Types) != 0 {
-		chld := xmldoc.Element{
-			Name: NsDiscovery + ":" + "Types",
-			Text: strings.Join(ann.Types, " "),
-		}
-
-		elm.Children = append(elm.Children, chld)
+	if ann.Types != 0 {
+		elm.Children = append(elm.Children, ann.Types.ToXML())
 	}
 
 	if len(ann.XAddrs) != 0 {
@@ -101,7 +95,5 @@ func (ann announce) ToXML(name string) xmldoc.Element {
 // This function should not care about Namespace entries, used
 // by XML tags: they are handled automatically.
 func (ann announce) MarkUsedNamespace(ns xmldoc.Namespace) {
-	for _, name := range ann.Types {
-		ns.MarkUsedName(name)
-	}
+	ann.Types.MarkUsedNamespace(ns)
 }

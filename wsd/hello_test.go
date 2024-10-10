@@ -58,11 +58,7 @@ func TestHello(t *testing.T) {
 				EndpointReference: EndpointReference{
 					Address: "urn:uuid:1fccdddc-380e-41df-8d38-b5df20bc47ef",
 				},
-				Types: []string{
-					"devprof:Device",
-					"scan:ScanDeviceType",
-					"print:PrintDeviceType",
-				},
+				Types: TypeDevice | TypePrinter | TypeScanner,
 				XAddrs: XAddrs{
 					"http://127.0.0.1/",
 					"https://[::1]/",
@@ -90,8 +86,8 @@ func TestHello(t *testing.T) {
 						Name: NsDiscovery + ":Types",
 						Text: "" +
 							"devprof:Device " +
-							"scan:ScanDeviceType " +
-							"print:PrintDeviceType",
+							"print:PrintDeviceType " +
+							"scan:ScanDeviceType",
 					},
 					{
 						Name: NsDiscovery + ":XAddrs",
