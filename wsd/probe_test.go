@@ -10,6 +10,7 @@ package wsd
 
 import (
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/alexpevzner/mfp/xmldoc"
@@ -18,8 +19,9 @@ import (
 // TestProbe tests Probe encoding and decoding
 func TestProbe(t *testing.T) {
 	type testData struct {
-		probe Probe
-		xml   xmldoc.Element
+		probe  Probe
+		xml    xmldoc.Element
+		nsused string
 	}
 
 	tests := []testData{
@@ -37,6 +39,8 @@ func TestProbe(t *testing.T) {
 					},
 				},
 			},
+
+			nsused: "devprof",
 		},
 	}
 
@@ -58,6 +62,25 @@ func TestProbe(t *testing.T) {
 			t.Errorf("DecodeProbe:\n"+
 				"expected: %#v\npresent:  %#v\n",
 				test.probe, probe)
+		}
+
+		ns := NsMap.Clone()
+		probe.MarkUsedNamespace(ns)
+
+		nsused := []string{}
+		for _, n := range ns {
+			if n.Used {
+				nsused = append(nsused, n.Prefix)
+			}
+		}
+
+		nsusedPresent := strings.Join(nsused, ",")
+
+		if test.nsused != nsusedPresent {
+			t.Errorf("announce.MarkUsedNamespace:\n"+
+				"expected: %s\n"+
+				"present:  %s\n",
+				test.nsused, nsusedPresent)
 		}
 	}
 }

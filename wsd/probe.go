@@ -57,5 +57,5 @@ func (probe Probe) ToXML() xmldoc.Element {
 // This function should not care about Namespace entries, used
 // by XML tags: they are handled automatically.
 func (probe Probe) MarkUsedNamespace(ns xmldoc.Namespace) {
-	// Nothing to mark for Probe
+	probe.Types.MarkUsedNamespace(ns)
 }
