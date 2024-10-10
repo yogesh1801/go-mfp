@@ -13,7 +13,11 @@ import (
 )
 
 // Probe represents a protocol Probe message.
-// Each device must multicast this message before it enters the network.
+//
+// This message usually sent as UDP multicast to the
+// 239.255.255.250:3702 or [ff02::c]:3702 in order to solicit
+// devices, that match the [Probe.Types] to respond with the
+// [ProbeMatches] message.
 type Probe struct {
 	Types Types // Device types sender searched for
 }
