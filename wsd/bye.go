@@ -9,8 +9,6 @@
 package wsd
 
 import (
-	"errors"
-
 	"github.com/alexpevzner/mfp/xmldoc"
 )
 
@@ -23,14 +21,29 @@ type Bye struct {
 // DecodeBye decodes [Bye from the XML tree
 func DecodeBye(root xmldoc.Element) (bye Bye, err error) {
 	defer func() { err = xmlErrWrap(root, err) }()
-	err = errors.New("not implemented")
+
+	// Lookup message elements
+	EndpointReference := xmldoc.Lookup{
+		Name: NsAddressing + ":EndpointReference", Required: true}
+
+	missed := root.Lookup(&EndpointReference)
+
+	if missed != nil {
+		err = xmlErrMissed(missed.Name)
+		return
+	}
+
+	// Decode elements
+	bye.EndpointReference, err = DecodeEndpointReference(
+		EndpointReference.Elem)
+
 	return
 }
 
 // ToXML generates XML tree for the message body
 func (bye Bye) ToXML() xmldoc.Element {
 	elm := xmldoc.Element{
-		Name: NsSOAP + ":" + "Bye",
+		Name: NsDiscovery + ":" + "Bye",
 		Children: []xmldoc.Element{
 			bye.EndpointReference.ToXML(
 				NsAddressing + ":EndpointReference"),
@@ -46,4 +59,5 @@ func (bye Bye) ToXML() xmldoc.Element {
 // This function should not care about Namespace entries, used
 // by XML tags: they are handled automatically.
 func (bye Bye) MarkUsedNamespace(ns xmldoc.Namespace) {
+	// Nothing to mark for Bye
 }
