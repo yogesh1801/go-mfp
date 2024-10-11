@@ -29,12 +29,21 @@ func DecodeTypes(root xmldoc.Element) (types Types, err error) {
 	names := strings.Fields(root.Text)
 
 	for _, n := range names {
+		// Note, type names looks as follows: namespace:name
+		// (for example, devprof:Device). However, this is very
+		// hard to bring here information from the original
+		// XMP about namespace prefixes assignments. So as a
+		// workaround, we just ignore prefixes here.
+		if i := strings.IndexByte(n, ':'); i >= 0 {
+			n = n[i+1:]
+		}
+
 		switch n {
-		case "devprof:Device":
+		case "Device":
 			types |= TypeDevice
-		case "print:PrintDeviceType":
+		case "PrintDeviceType":
 			types |= TypePrinter
-		case "scan:ScanDeviceType":
+		case "ScanDeviceType":
 			types |= TypeScanner
 		}
 	}
