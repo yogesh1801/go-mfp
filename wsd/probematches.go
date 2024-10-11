@@ -59,7 +59,7 @@ func (pm ProbeMatches) ToXML() xmldoc.Element {
 	}
 
 	for _, match := range pm.ProbeMatch {
-		chld := announce(match).ToXML(NsDiscovery + ":ProbeMatch")
+		chld := announce(match).ToXML("ProbeMatch")
 		elm.Children = append(elm.Children, chld)
 	}
 
