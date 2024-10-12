@@ -84,19 +84,22 @@ func (types Types) ToXML() xmldoc.Element {
 // MarkUsedNamespace marks [xmldoc.Namespace] entries used by
 // data elements within the message body, if any.
 func (types Types) MarkUsedNamespace(ns xmldoc.Namespace) {
-	for i := range ns {
-		ent := &ns[i]
-		var used bool
-
-		switch ent.Prefix {
-		case "devprof":
-			used = types&TypeDevice != 0
-		case "print":
-			used = types&TypePrinter != 0
-		case "scan":
-			used = types&TypeScanner != 0
-		}
-
-		ent.Used = ent.Used || used
+	// Note, xmldoc.Namespace may have multiple entries with the
+	// same prefix and different URLs. Only the first one should
+	// be used for output, while others allow to handle different
+	// namespace URLs as equal on input (for example, SOUP 1.1 and
+	// 1.2 use different URLs).
+	//
+	// So it is better to leave Namespace.MarkUsedPrefix to handle
+	// all these nuances rather that to duplicate its work, trading
+	// simplicity for efficiency.
+	if types&TypeDevice != 0 {
+		ns.MarkUsedPrefix("devprof")
+	}
+	if types&TypePrinter != 0 {
+		ns.MarkUsedPrefix("print")
+	}
+	if types&TypeScanner != 0 {
+		ns.MarkUsedPrefix("scan")
 	}
 }
