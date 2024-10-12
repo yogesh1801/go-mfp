@@ -84,19 +84,25 @@ func (ns Namespace) MarkUsed(root Element) {
 	}
 }
 
+// MarkUsedPrefix marks Namespace entry with the specified
+// prefix with the [Namespace.Used] flag.
+func (ns Namespace) MarkUsedPrefix(prefix string) {
+	for i := range ns {
+		ent := &ns[i]
+		if ent.Prefix == prefix {
+			ent.Used = true
+			return
+		}
+	}
+}
+
 // MarkUsedName accepts XML element name (prefix:name) and
 // marks Namespace entry that this prefix refers to with
 // the [Namespace.Used] flag.
 func (ns Namespace) MarkUsedName(name string) {
 	prefix, ok := nsPrefix(name)
 	if ok {
-		for i := range ns {
-			ent := &ns[i]
-			if ent.Prefix == prefix {
-				ent.Used = true
-				return
-			}
-		}
+		ns.MarkUsedPrefix(prefix)
 	}
 }
 
