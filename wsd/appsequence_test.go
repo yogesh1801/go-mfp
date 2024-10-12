@@ -18,13 +18,13 @@ import (
 // TestAppSequence tests AppSequence
 func TestAppSequence(t *testing.T) {
 	type testData struct {
-		seq AppSequence
+		seq *AppSequence
 		xml xmldoc.Element
 	}
 
 	tests := []testData{
 		{
-			seq: AppSequence{
+			seq: &AppSequence{
 				InstanceID:    123456789,
 				MessageNumber: 123,
 			},
@@ -44,7 +44,7 @@ func TestAppSequence(t *testing.T) {
 		},
 
 		{
-			seq: AppSequence{
+			seq: &AppSequence{
 				InstanceID:    987654321,
 				MessageNumber: 321,
 				SequenceID:    "urn:uuid:2a443ed7-5ee5-498d-a302-73ff91ea9ea0",

@@ -19,7 +19,7 @@ type Header struct {
 	To          AnyURI            // Required: message destination
 	ReplyTo     EndpointReference // Optional: address to reply to
 	RelatesTo   AnyURI            // Optional: ID of related message
-	AppSequence AppSequence       // Optional: Message sequence
+	AppSequence *AppSequence      // Optional: Message sequence
 }
 
 // DecodeHeader decodes message header [Header] from the XML tree
@@ -56,7 +56,6 @@ func DecodeHeader(root xmldoc.Element) (hdr Header, err error) {
 		hdr.RelatesTo, err = DecodeAnyURI(RelatesTo.Elem)
 	}
 
-	hdr.AppSequence = AppSequenceMissed
 	if err == nil && AppSequence.Found {
 		hdr.AppSequence, err = DecodeAppSequence(AppSequence.Elem)
 	}
@@ -97,7 +96,7 @@ func (hdr Header) ToXML() xmldoc.Element {
 			})
 	}
 
-	if !hdr.AppSequence.Skip {
+	if hdr.AppSequence != nil {
 		elm.Children = append(elm.Children, hdr.AppSequence.ToXML())
 	}
 

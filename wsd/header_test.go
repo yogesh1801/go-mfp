@@ -25,10 +25,9 @@ func TestHeader(t *testing.T) {
 	tests := []testData{
 		{
 			hdr: Header{
-				Action:      ActHello,
-				MessageID:   "urn:uuid:1cf1d308-cb65-494c-9d60-2232c57462e1",
-				To:          "urn:uuid:b8310cdf-157f-4e5b-a042-4588f7149ec0",
-				AppSequence: AppSequenceMissed,
+				Action:    ActHello,
+				MessageID: "urn:uuid:1cf1d308-cb65-494c-9d60-2232c57462e1",
+				To:        "urn:uuid:b8310cdf-157f-4e5b-a042-4588f7149ec0",
 			},
 			xml: xmldoc.Element{
 				Name: NsSOAP + ":Header",
@@ -58,7 +57,7 @@ func TestHeader(t *testing.T) {
 					Address: "urn:uuid:02b3be49-ccd5-4074-93ac-313c05050a1f",
 				},
 				RelatesTo: "urn:uuid:9a6942f8-f5dd-47fc-a4c4-9af559a2bc1a",
-				AppSequence: AppSequence{
+				AppSequence: &AppSequence{
 					InstanceID:    123456789,
 					MessageNumber: 12345,
 					SequenceID:    "urn:uuid:b8f0cf58-d83d-4d78-944f-de3e648aaaf0",
