@@ -24,10 +24,17 @@ type AppSequence struct {
 	InstanceID    uint64 // MUST increment on each reboot
 	MessageNumber uint64 // MUST increment on each message
 	SequenceID    AnyURI // Optional: sequence within instance
+	Skip          bool   // Skip when sending
 }
 
+// AppSequenceMissed represents a missed AppSequence.
+//
+// It is skipped on encoding and returned on decoding, when optional
+// AppSequence is skipped on input.
+var AppSequenceMissed = AppSequence{Skip: true}
+
 // DecodeAppSequence decodes AppSequence from the XML tree
-func DecodeAppSequence(root xmldoc.Element) (seq *AppSequence, err error) {
+func DecodeAppSequence(root xmldoc.Element) (seq AppSequence, err error) {
 	defer func() { err = xmlErrWrap(root, err) }()
 
 	InstanceID := xmldoc.LookupAttr{Name: "InstanceId", Required: true}
@@ -41,8 +48,6 @@ func DecodeAppSequence(root xmldoc.Element) (seq *AppSequence, err error) {
 		return
 	}
 
-	seq = &AppSequence{}
-
 	seq.InstanceID, err = decodeUint64Attr(InstanceID.Attr)
 	if err == nil {
 		seq.MessageNumber, err = decodeUint64Attr(MessageNumber.Attr)
@@ -50,10 +55,6 @@ func DecodeAppSequence(root xmldoc.Element) (seq *AppSequence, err error) {
 
 	if err == nil && SequenceID.Found {
 		seq.SequenceID, err = DecodeAnyURIAttr(SequenceID.Attr)
-	}
-
-	if err != nil {
-		seq = nil
 	}
 
 	return

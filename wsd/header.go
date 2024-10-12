@@ -26,6 +26,8 @@ type Header struct {
 func DecodeHeader(root xmldoc.Element) (hdr Header, err error) {
 	defer func() { err = xmlErrWrap(root, err) }()
 
+	var seq AppSequence
+
 	// Lookup header elements
 	Action := xmldoc.Lookup{Name: NsAddressing + ":Action", Required: true}
 	MessageID := xmldoc.Lookup{Name: NsAddressing + ":MessageID", Required: true}
@@ -57,7 +59,10 @@ func DecodeHeader(root xmldoc.Element) (hdr Header, err error) {
 	}
 
 	if err == nil && AppSequence.Found {
-		hdr.AppSequence, err = DecodeAppSequence(AppSequence.Elem)
+		seq, err = DecodeAppSequence(AppSequence.Elem)
+		if err == nil {
+			hdr.AppSequence = &seq
+		}
 	}
 
 	return
