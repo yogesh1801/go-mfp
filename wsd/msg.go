@@ -68,13 +68,18 @@ func DecodeMsg(root xmldoc.Element) (m Msg, err error) {
 
 // ToXML generates XML tree for the message
 func (m Msg) ToXML() xmldoc.Element {
+	var body []xmldoc.Element
+	if bodydata := m.Body.ToXML(); !bodydata.IsZero() {
+		body = []xmldoc.Element{bodydata}
+	}
+
 	elm := xmldoc.Element{
 		Name: NsSOAP + ":" + "Envelope",
 		Children: []xmldoc.Element{
 			m.Header.ToXML(),
 			xmldoc.Element{
 				Name:     NsSOAP + ":" + "Body",
-				Children: []xmldoc.Element{m.Body.ToXML()},
+				Children: body,
 			},
 		},
 	}
