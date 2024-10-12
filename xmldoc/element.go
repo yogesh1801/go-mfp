@@ -27,6 +27,12 @@ type Attr struct {
 	Value string // Attribute value
 }
 
+// IsZero reports if Element equal to zero element
+func (root Element) IsZero() bool {
+	return root.Name == "" && root.Text == "" &&
+		root.Attrs == nil && root.Children == nil
+}
+
 // Expand replaces ${var} or $var in the XML [Element.Text] and
 // [Attr.Value] of the entire XML tree based on the mapping
 // function and returns rewritten XML tree.
