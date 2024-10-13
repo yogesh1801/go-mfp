@@ -33,24 +33,14 @@ func TestAnnounce(t *testing.T) {
 				MetadataVersion: 1,
 			},
 
-			xml: xmldoc.Element{
-				Name: NsDiscovery + ":Test",
-				Children: []xmldoc.Element{
-					{
-						Name: NsAddressing + ":EndpointReference",
-						Children: []xmldoc.Element{
-							{
-								Name: NsAddressing + ":Address",
-								Text: "urn:uuid:1fccdddc-380e-41df-8d38-b5df20bc47ef",
-							},
-						},
-					},
-					{
-						Name: NsDiscovery + ":MetadataVersion",
-						Text: "1",
-					},
-				},
-			},
+			xml: xmldoc.WithChildren(NsDiscovery+":Test",
+				xmldoc.WithChildren(NsAddressing+":EndpointReference",
+					xmldoc.WithText(NsAddressing+":Address",
+						"urn:uuid:1fccdddc-380e-41df-8d38-b5df20bc47ef",
+					),
+				),
+				xmldoc.WithText(NsDiscovery+":MetadataVersion", "1"),
+			),
 		},
 
 		{
@@ -66,37 +56,21 @@ func TestAnnounce(t *testing.T) {
 				MetadataVersion: 1,
 			},
 
-			xml: xmldoc.Element{
-				Name: NsDiscovery + ":Test",
-				Children: []xmldoc.Element{
-					{
-						Name: NsAddressing + ":EndpointReference",
-						Children: []xmldoc.Element{
-							{
-								Name: NsAddressing + ":Address",
-								Text: "urn:uuid:1fccdddc-380e-41df-8d38-b5df20bc47ef",
-							},
-						},
-					},
-					{
-						Name: NsDiscovery + ":MetadataVersion",
-						Text: "1",
-					},
-					{
-						Name: NsDiscovery + ":Types",
-						Text: "" +
-							"devprof:Device " +
-							"print:PrintDeviceType " +
-							"scan:ScanDeviceType",
-					},
-					{
-						Name: NsDiscovery + ":XAddrs",
-						Text: "" +
-							"http://127.0.0.1/ " +
-							"https://[::1]/",
-					},
-				},
-			},
+			xml: xmldoc.WithChildren(NsDiscovery+":Test",
+				xmldoc.WithChildren(NsAddressing+":EndpointReference",
+					xmldoc.WithText(
+						NsAddressing+":Address",
+						"urn:uuid:1fccdddc-380e-41df-8d38-b5df20bc47ef",
+					),
+				),
+				xmldoc.WithText(NsDiscovery+":MetadataVersion", "1"),
+				xmldoc.WithText(NsDiscovery+":Types",
+					"devprof:Device print:PrintDeviceType scan:ScanDeviceType",
+				),
+				xmldoc.WithText(NsDiscovery+":XAddrs",
+					"http://127.0.0.1/ https://[::1]/",
+				),
+			),
 
 			nsused: "devprof,scan,print",
 		},
@@ -152,72 +126,41 @@ func TestAnnounceDecodeErrors(t *testing.T) {
 
 	tests := []testData{
 		{
-			xml: xmldoc.Element{
-				Name: NsDiscovery + ":Test",
-				Children: []xmldoc.Element{
-					{
-						Name: NsAddressing + ":EndpointReference",
-						Children: []xmldoc.Element{
-							{
-								Name: NsAddressing + ":Address",
-								Text: "urn:uuid:1fccdddc-380e-41df-8d38-b5df20bc47ef",
-							},
-						},
-					},
-					{
-						Name: NsDiscovery + ":MetadataVersion",
-						Text: "1",
-					},
-				},
-			},
+			xml: xmldoc.WithChildren(NsDiscovery+":Test",
+				xmldoc.WithChildren(NsAddressing+":EndpointReference",
+					xmldoc.WithText(NsAddressing+":Address",
+						"urn:uuid:1fccdddc-380e-41df-8d38-b5df20bc47ef",
+					),
+				),
+				xmldoc.WithText(NsDiscovery+":MetadataVersion", "1"),
+			),
 		},
 
 		{
-			xml: xmldoc.Element{
-				Name: NsDiscovery + ":Test",
-				Children: []xmldoc.Element{
-					{
-						Name: NsAddressing + ":EndpointReference",
-						Children: []xmldoc.Element{
-							{
-								Name: NsAddressing + ":Address",
-								Text: "urn:uuid:1fccdddc-380e-41df-8d38-b5df20bc47ef",
-							},
-						},
-					},
-				},
-			},
+			xml: xmldoc.WithChildren(NsDiscovery+":Test",
+				xmldoc.WithChildren(NsAddressing+":EndpointReference",
+					xmldoc.WithText(NsAddressing+":Address",
+						"urn:uuid:1fccdddc-380e-41df-8d38-b5df20bc47ef",
+					),
+				),
+			),
 
 			estr: "/d:Test/d:MetadataVersion: missed",
 		},
 
 		{
-			xml: xmldoc.Element{
-				Name: NsDiscovery + ":Test",
-				Children: []xmldoc.Element{
-					{
-						Name: NsDiscovery + ":MetadataVersion",
-						Text: "1",
-					},
-				},
-			},
+			xml: xmldoc.WithChildren(NsDiscovery+":Test",
+				xmldoc.WithText(NsDiscovery+":MetadataVersion", "1"),
+			),
 
 			estr: "/d:Test/a:EndpointReference: missed",
 		},
 
 		{
-			xml: xmldoc.Element{
-				Name: NsDiscovery + ":Test",
-				Children: []xmldoc.Element{
-					{
-						Name: NsAddressing + ":EndpointReference",
-					},
-					{
-						Name: NsDiscovery + ":MetadataVersion",
-						Text: "1",
-					},
-				},
-			},
+			xml: xmldoc.WithChildren(NsDiscovery+":Test",
+				xmldoc.WithChildren(NsAddressing+":EndpointReference"),
+				xmldoc.WithText(NsDiscovery+":MetadataVersion", "1"),
+			),
 
 			estr: "/d:Test/a:EndpointReference/a:Address: missed",
 		},
