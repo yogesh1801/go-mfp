@@ -28,19 +28,10 @@ func TestAppSequence(t *testing.T) {
 				InstanceID:    123456789,
 				MessageNumber: 123,
 			},
-			xml: xmldoc.Element{
-				Name: NsDiscovery + ":" + "AppSequence",
-				Attrs: []xmldoc.Attr{
-					{
-						Name:  "InstanceId",
-						Value: "123456789",
-					},
-					{
-						Name:  "MessageNumber",
-						Value: "123",
-					},
-				},
-			},
+			xml: xmldoc.WithAttrs(NsDiscovery+":"+"AppSequence",
+				xmldoc.Attr{Name: "InstanceId", Value: "123456789"},
+				xmldoc.Attr{Name: "MessageNumber", Value: "123"},
+			),
 		},
 
 		{
@@ -49,23 +40,14 @@ func TestAppSequence(t *testing.T) {
 				MessageNumber: 321,
 				SequenceID:    "urn:uuid:2a443ed7-5ee5-498d-a302-73ff91ea9ea0",
 			},
-			xml: xmldoc.Element{
-				Name: NsDiscovery + ":" + "AppSequence",
-				Attrs: []xmldoc.Attr{
-					{
-						Name:  "InstanceId",
-						Value: "987654321",
-					},
-					{
-						Name:  "MessageNumber",
-						Value: "321",
-					},
-					{
-						Name:  "SequenceId",
-						Value: "urn:uuid:2a443ed7-5ee5-498d-a302-73ff91ea9ea0",
-					},
+			xml: xmldoc.WithAttrs(NsDiscovery+":"+"AppSequence",
+				xmldoc.Attr{Name: "InstanceId", Value: "987654321"},
+				xmldoc.Attr{Name: "MessageNumber", Value: "321"},
+				xmldoc.Attr{
+					Name:  "SequenceId",
+					Value: "urn:uuid:2a443ed7-5ee5-498d-a302-73ff91ea9ea0",
 				},
-			},
+			),
 		},
 	}
 
@@ -100,45 +82,24 @@ func TestAppSequenceDecodeErrors(t *testing.T) {
 
 	tests := []testData{
 		{
-			xml: xmldoc.Element{
-				Name: NsDiscovery + ":" + "AppSequence",
-				Attrs: []xmldoc.Attr{
-					{
-						Name:  "InstanceId",
-						Value: "123456789",
-					},
-					{
-						Name:  "MessageNumber",
-						Value: "123",
-					},
-				},
-			},
+			xml: xmldoc.WithAttrs(NsDiscovery+":"+"AppSequence",
+				xmldoc.Attr{Name: "InstanceId", Value: "123456789"},
+				xmldoc.Attr{Name: "MessageNumber", Value: "123"},
+			),
 			estr: "",
 		},
 
 		{
-			xml: xmldoc.Element{
-				Name: NsDiscovery + ":" + "AppSequence",
-				Attrs: []xmldoc.Attr{
-					{
-						Name:  "InstanceId",
-						Value: "123456789",
-					},
-				},
-			},
+			xml: xmldoc.WithAttrs(NsDiscovery+":"+"AppSequence",
+				xmldoc.Attr{Name: "InstanceId", Value: "123456789"},
+			),
 			estr: "/d:AppSequence/d:AppSequence/@MessageNumber: missed attribyte",
 		},
 
 		{
-			xml: xmldoc.Element{
-				Name: NsDiscovery + ":" + "AppSequence",
-				Attrs: []xmldoc.Attr{
-					{
-						Name:  "MessageNumber",
-						Value: "123",
-					},
-				},
-			},
+			xml: xmldoc.WithAttrs(NsDiscovery+":"+"AppSequence",
+				xmldoc.Attr{Name: "MessageNumber", Value: "123"},
+			),
 			estr: "/d:AppSequence/d:AppSequence/@InstanceId: missed attribyte",
 		},
 	}
