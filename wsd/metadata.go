@@ -191,12 +191,12 @@ func (rel Relationship) ToXML() xmldoc.Element {
 
 	if rel.Host != nil {
 		root.Children = append(root.Children,
-			rel.Host.ToXML(NsDevprof+"Host"))
+			rel.Host.ToXML(NsDevprof+":Host"))
 	}
 
 	for _, hosted := range rel.Hosted {
 		root.Children = append(root.Children,
-			hosted.ToXML(NsDevprof+"Hosted"))
+			hosted.ToXML(NsDevprof+":Hosted"))
 	}
 
 	return root
@@ -210,7 +210,7 @@ func (svcmeta ServiceMetadata) ToXML(name string) xmldoc.Element {
 
 	for _, ep := range svcmeta.EndpointReference {
 		elm.Children = append(elm.Children,
-			ep.ToXML("EndpointReference"))
+			ep.ToXML(NsAddressing+":EndpointReference"))
 	}
 
 	elm.Children = append(elm.Children, svcmeta.Types.ToXML())
