@@ -29,23 +29,15 @@ func TestHeader(t *testing.T) {
 				MessageID: "urn:uuid:1cf1d308-cb65-494c-9d60-2232c57462e1",
 				To:        "urn:uuid:b8310cdf-157f-4e5b-a042-4588f7149ec0",
 			},
-			xml: xmldoc.Element{
-				Name: NsSOAP + ":Header",
-				Children: []xmldoc.Element{
-					{
-						Name: NsAddressing + ":Action",
-						Text: ActHello.Encode(),
-					},
-					{
-						Name: NsAddressing + ":MessageID",
-						Text: "urn:uuid:1cf1d308-cb65-494c-9d60-2232c57462e1",
-					},
-					{
-						Name: NsAddressing + ":To",
-						Text: "urn:uuid:b8310cdf-157f-4e5b-a042-4588f7149ec0",
-					},
-				},
-			},
+			xml: xmldoc.WithChildren(NsSOAP+":Header",
+				xmldoc.WithText(NsAddressing+":Action", ActHello.Encode()),
+				xmldoc.WithText(NsAddressing+":MessageID",
+					"urn:uuid:1cf1d308-cb65-494c-9d60-2232c57462e1",
+				),
+				xmldoc.WithText(NsAddressing+":To",
+					"urn:uuid:b8310cdf-157f-4e5b-a042-4588f7149ec0",
+				),
+			),
 		},
 
 		{
@@ -63,53 +55,31 @@ func TestHeader(t *testing.T) {
 					SequenceID:    "urn:uuid:b8f0cf58-d83d-4d78-944f-de3e648aaaf0",
 				},
 			},
-			xml: xmldoc.Element{
-				Name: NsSOAP + ":Header",
-				Children: []xmldoc.Element{
-					{
-						Name: NsAddressing + ":Action",
-						Text: ActHello.Encode(),
+			xml: xmldoc.WithChildren(NsSOAP+":Header",
+				xmldoc.WithText(NsAddressing+":Action", ActHello.Encode()),
+				xmldoc.WithText(NsAddressing+":MessageID",
+					"urn:uuid:1cf1d308-cb65-494c-9d60-2232c57462e1",
+				),
+				xmldoc.WithText(NsAddressing+":To",
+					"urn:uuid:b8310cdf-157f-4e5b-a042-4588f7149ec0",
+				),
+				xmldoc.WithChildren(NsAddressing+":ReplyTo",
+					xmldoc.WithText(NsAddressing+":Address",
+						"urn:uuid:02b3be49-ccd5-4074-93ac-313c05050a1f",
+					),
+				),
+				xmldoc.WithText(NsAddressing+":RelatesTo",
+					"urn:uuid:9a6942f8-f5dd-47fc-a4c4-9af559a2bc1a",
+				),
+				xmldoc.WithAttrs(NsDiscovery+":AppSequence",
+					xmldoc.Attr{Name: "InstanceId", Value: "123456789"},
+					xmldoc.Attr{Name: "MessageNumber", Value: "12345"},
+					xmldoc.Attr{
+						Name:  "SequenceId",
+						Value: "urn:uuid:b8f0cf58-d83d-4d78-944f-de3e648aaaf0",
 					},
-					{
-						Name: NsAddressing + ":MessageID",
-						Text: "urn:uuid:1cf1d308-cb65-494c-9d60-2232c57462e1",
-					},
-					{
-						Name: NsAddressing + ":To",
-						Text: "urn:uuid:b8310cdf-157f-4e5b-a042-4588f7149ec0",
-					},
-					{
-						Name: NsAddressing + ":ReplyTo",
-						Children: []xmldoc.Element{
-							{
-								Name: NsAddressing + ":Address",
-								Text: "urn:uuid:02b3be49-ccd5-4074-93ac-313c05050a1f",
-							},
-						},
-					},
-					{
-						Name: NsAddressing + ":RelatesTo",
-						Text: "urn:uuid:9a6942f8-f5dd-47fc-a4c4-9af559a2bc1a",
-					},
-					{
-						Name: NsDiscovery + ":AppSequence",
-						Attrs: []xmldoc.Attr{
-							{
-								Name:  "InstanceId",
-								Value: "123456789",
-							},
-							{
-								Name:  "MessageNumber",
-								Value: "12345",
-							},
-							{
-								Name:  "SequenceId",
-								Value: "urn:uuid:b8f0cf58-d83d-4d78-944f-de3e648aaaf0",
-							},
-						},
-					},
-				},
-			},
+				),
+			),
 		},
 	}
 
@@ -144,64 +114,39 @@ func TestHeaderErrors(t *testing.T) {
 
 	tests := []testData{
 		{
-			xml: xmldoc.Element{
-				Name: NsSOAP + ":Header",
-				Children: []xmldoc.Element{
-					{
-						Name: NsAddressing + ":Action",
-						Text: ActHello.Encode(),
-					},
-					{
-						Name: NsAddressing + ":MessageID",
-						Text: "urn:uuid:1cf1d308-cb65-494c-9d60-2232c57462e1",
-					},
-					{
-						Name: NsAddressing + ":To",
-						Text: "urn:uuid:b8310cdf-157f-4e5b-a042-4588f7149ec0",
-					},
-				},
-			},
+			xml: xmldoc.WithChildren(NsSOAP+":Header",
+				xmldoc.WithText(NsAddressing+":Action", ActHello.Encode()),
+				xmldoc.WithText(NsAddressing+":MessageID",
+					"urn:uuid:1cf1d308-cb65-494c-9d60-2232c57462e1",
+				),
+				xmldoc.WithText(NsAddressing+":To",
+					"urn:uuid:b8310cdf-157f-4e5b-a042-4588f7149ec0",
+				),
+			),
 			estr: "",
 		},
 
 		{
-			xml: xmldoc.Element{
-				Name: NsSOAP + ":Header",
-				Children: []xmldoc.Element{
-					{
-						Name: NsAddressing + ":Action",
-						Text: ActHello.Encode(),
-					},
-					{
-						Name: NsAddressing + ":To",
-						Text: "urn:uuid:b8310cdf-157f-4e5b-a042-4588f7149ec0",
-					},
-				},
-			},
+			xml: xmldoc.WithChildren(NsSOAP+":Header",
+				xmldoc.WithText(NsAddressing+":Action", ActHello.Encode()),
+				xmldoc.WithText(NsAddressing+":To",
+					"urn:uuid:b8310cdf-157f-4e5b-a042-4588f7149ec0",
+				),
+			),
 			estr: "/s:Header/a:MessageID: missed",
 		},
 
 		{
-			xml: xmldoc.Element{
-				Name: NsSOAP + ":Header",
-				Children: []xmldoc.Element{
-					{
-						Name: NsAddressing + ":Action",
-						Text: ActHello.Encode(),
-					},
-					{
-						Name: NsAddressing + ":MessageID",
-						Text: "urn:uuid:1cf1d308-cb65-494c-9d60-2232c57462e1",
-					},
-					{
-						Name: NsAddressing + ":To",
-						Text: "urn:uuid:b8310cdf-157f-4e5b-a042-4588f7149ec0",
-					},
-					{
-						Name: NsDiscovery + ":AppSequence",
-					},
-				},
-			},
+			xml: xmldoc.WithChildren(NsSOAP+":Header",
+				xmldoc.WithText(NsAddressing+":Action", ActHello.Encode()),
+				xmldoc.WithText(NsAddressing+":MessageID",
+					"urn:uuid:1cf1d308-cb65-494c-9d60-2232c57462e1",
+				),
+				xmldoc.WithText(NsAddressing+":To",
+					"urn:uuid:b8310cdf-157f-4e5b-a042-4588f7149ec0",
+				),
+				xmldoc.WithChildren(NsDiscovery+":AppSequence"),
+			),
 			estr: "/s:Header/d:AppSequence/d:AppSequence/@InstanceId: missed attribyte",
 		},
 	}
