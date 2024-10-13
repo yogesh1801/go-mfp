@@ -30,20 +30,13 @@ func TestBye(t *testing.T) {
 				},
 			},
 
-			xml: xmldoc.Element{
-				Name: NsDiscovery + ":Bye",
-				Children: []xmldoc.Element{
-					{
-						Name: NsAddressing + ":EndpointReference",
-						Children: []xmldoc.Element{
-							{
-								Name: NsAddressing + ":Address",
-								Text: "urn:uuid:1fccdddc-380e-41df-8d38-b5df20bc47ef",
-							},
-						},
-					},
-				},
-			},
+			xml: xmldoc.WithChildren(NsDiscovery+":Bye",
+				xmldoc.WithChildren(NsAddressing+":EndpointReference",
+					xmldoc.WithText(NsAddressing+":Address",
+						"urn:uuid:1fccdddc-380e-41df-8d38-b5df20bc47ef",
+					),
+				),
+			),
 		},
 	}
 
@@ -78,26 +71,17 @@ func TestByeDecodeErrors(t *testing.T) {
 
 	tests := []testData{
 		{
-			xml: xmldoc.Element{
-				Name: NsDiscovery + ":Bye",
-				Children: []xmldoc.Element{
-					{
-						Name: NsAddressing + ":EndpointReference",
-						Children: []xmldoc.Element{
-							{
-								Name: NsAddressing + ":Address",
-								Text: "urn:uuid:1fccdddc-380e-41df-8d38-b5df20bc47ef",
-							},
-						},
-					},
-				},
-			},
+			xml: xmldoc.WithChildren(NsDiscovery+":Bye",
+				xmldoc.WithChildren(NsAddressing+":EndpointReference",
+					xmldoc.WithText(NsAddressing+":Address",
+						"urn:uuid:1fccdddc-380e-41df-8d38-b5df20bc47ef",
+					),
+				),
+			),
 		},
 
 		{
-			xml: xmldoc.Element{
-				Name: NsDiscovery + ":Bye",
-			},
+			xml: xmldoc.WithChildren(NsDiscovery + ":Bye"),
 
 			estr: "/d:Bye/a:EndpointReference: missed",
 		},
