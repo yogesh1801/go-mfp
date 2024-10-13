@@ -67,11 +67,11 @@ type ServiceMetadata struct {
 }
 
 // ToXML generates XML tree for Metadata.
-func (md Metadata) ToXML() xmldoc.Element {
+func (meta Metadata) ToXML() xmldoc.Element {
 	// Generate sections
-	thisDevice := md.ThisDevice.ToXML()
-	thisModel := md.ThisModel.ToXML()
-	relationship := md.Relationship.ToXML()
+	thisDevice := meta.ThisDevice.ToXML()
+	thisModel := meta.ThisModel.ToXML()
+	relationship := meta.Relationship.ToXML()
 
 	// Build metadata
 	metadata := xmldoc.Element{
@@ -84,6 +84,53 @@ func (md Metadata) ToXML() xmldoc.Element {
 	}
 
 	return metadata
+}
+
+// DecodeThisDeviceMetadata decodes ThisDeviceMetadata from the
+// XML tree.
+func DecodeThisDeviceMetadata(root xmldoc.Element) (
+	thisdev ThisDeviceMetadata, err error) {
+
+	defer func() { err = xmlErrWrap(root, err) }()
+
+	// Find MetadataSection element
+	data, ok := root.ChildByName(NsMex + ":MetadataSection")
+	if !ok {
+		err = xmlErrMissed(NsDevprof + ":MetadataSection")
+		return
+	}
+
+	defer func() { err = xmlErrWrap(data, err) }()
+
+	// Decode FriendlyName
+	for _, chld := range data.Children {
+		if chld.Name == NsDevprof+":FriendlyName" {
+			ls := decodeLocalizedString(chld)
+			thisdev.FriendlyName = append(thisdev.FriendlyName, ls)
+		}
+	}
+
+	if len(thisdev.FriendlyName) == 0 {
+		err = xmlErrMissed(NsDevprof + ":FriendlyName")
+		return
+	}
+
+	// Decode other elements
+	firmwareVersion := xmldoc.Lookup{Name: NsDevprof + ":FirmwareVersion",
+		Required: true}
+	serialNumber := xmldoc.Lookup{Name: NsDevprof + ":SerialNumber",
+		Required: true}
+
+	missed := data.Lookup(&firmwareVersion, &serialNumber)
+	if missed != nil {
+		err = xmlErrMissed(missed.Name)
+		return
+	}
+
+	thisdev.FirmwareVersion = firmwareVersion.Elem.Text
+	thisdev.SerialNumber = serialNumber.Elem.Text
+
+	return
 }
 
 // ToXML generates XML tree for ThisDeviceMetadata
@@ -119,6 +166,75 @@ func (thisdev ThisDeviceMetadata) ToXML() xmldoc.Element {
 	}
 
 	return thisDevice
+}
+
+// DecodeThisModelMetadata decodes ThisModelMetadata from the XML tree.
+func DecodeThisModelMetadata(root xmldoc.Element) (
+	thismdl ThisModelMetadata, err error) {
+
+	defer func() { err = xmlErrWrap(root, err) }()
+
+	// Find MetadataSection element
+	data, ok := root.ChildByName(NsMex + ":MetadataSection")
+	if !ok {
+		err = xmlErrMissed(NsDevprof + ":MetadataSection")
+		return
+	}
+
+	defer func() { err = xmlErrWrap(data, err) }()
+
+	// Decode repeated elements, i.e. Manufacturer and ModelName
+	for _, chld := range data.Children {
+		switch chld.Name {
+		case NsDevprof + ":Manufacturer":
+			ls := decodeLocalizedString(chld)
+			thismdl.Manufacturer = append(thismdl.Manufacturer, ls)
+		case NsDevprof + ":ModelName":
+			ls := decodeLocalizedString(chld)
+			thismdl.ModelName = append(thismdl.ModelName, ls)
+		}
+	}
+
+	if len(thismdl.Manufacturer) == 0 {
+		err = xmlErrMissed(NsDevprof + ":Manufacturer")
+		return
+	}
+
+	if len(thismdl.ModelName) == 0 {
+		err = xmlErrMissed(NsDevprof + ":ModelName")
+		return
+	}
+
+	// Decode other elements
+	manufacturerURL := xmldoc.Lookup{Name: NsDevprof + ":ManufacturerUrl"}
+	modelNumber := xmldoc.Lookup{Name: NsDevprof + ":ModelNumber",
+		Required: true}
+	modelURL := xmldoc.Lookup{Name: NsDevprof + ":ModelUrl"}
+	presentationURL := xmldoc.Lookup{Name: NsDevprof + ":PresentationUrl"}
+
+	missed := data.Lookup(&manufacturerURL, &modelNumber,
+		&modelURL, &presentationURL)
+
+	if missed != nil {
+		err = xmlErrMissed(missed.Name)
+		return
+	}
+
+	if manufacturerURL.Found {
+		thismdl.ManufacturerURL = manufacturerURL.Elem.Text
+	}
+
+	thismdl.ModelNumber = modelNumber.Elem.Text
+
+	if modelURL.Found {
+		thismdl.ModelURL = modelURL.Elem.Text
+	}
+
+	if presentationURL.Found {
+		thismdl.PresentationURL = presentationURL.Elem.Text
+	}
+
+	return
 }
 
 // ToXML generates XML tree for ThisModelMetadata
@@ -179,6 +295,45 @@ func (thismdl ThisModelMetadata) ToXML() xmldoc.Element {
 	return thisModel
 }
 
+// DecodeRelationship decodes Relationship from the XML tree
+func DecodeRelationship(root xmldoc.Element) (rel Relationship, err error) {
+	defer func() { err = xmlErrWrap(root, err) }()
+
+	// Find MetadataSection element
+	data, ok := root.ChildByName(NsMex + ":MetadataSection")
+	if !ok {
+		err = xmlErrMissed(NsDevprof + ":MetadataSection")
+		return
+	}
+
+	defer func() { err = xmlErrWrap(data, err) }()
+
+	// Decode Host/Hosted
+	for _, chld := range data.Children {
+		switch chld.Name {
+		case NsDevprof + ":Host":
+			if rel.Host == nil {
+				var host ServiceMetadata
+				host, err = DecodeServiceMetadata(chld)
+				if err != nil {
+					return
+				}
+				rel.Host = &host
+			}
+
+		case NsDevprof + ":Hosted":
+			var hosted ServiceMetadata
+			hosted, err = DecodeServiceMetadata(chld)
+			if err != nil {
+				return
+			}
+			rel.Hosted = append(rel.Hosted, hosted)
+		}
+	}
+
+	return
+}
+
 // ToXML generates XML tree for Relationship
 func (rel Relationship) ToXML() xmldoc.Element {
 	root := xmldoc.Element{
@@ -200,6 +355,46 @@ func (rel Relationship) ToXML() xmldoc.Element {
 	}
 
 	return root
+}
+
+// DecodeServiceMetadata decodes ServiceMetadata from the XML tree.
+func DecodeServiceMetadata(root xmldoc.Element) (
+	svcmeta ServiceMetadata, err error) {
+
+	defer func() { err = xmlErrWrap(root, err) }()
+
+	// Decode EndpointReference
+	for _, chld := range root.Children {
+		if chld.Name == NsAddressing+":EndpointReference" {
+			var ep EndpointReference
+			ep, err = DecodeEndpointReference(chld)
+			if err != nil {
+				return
+			}
+
+			svcmeta.EndpointReference = append(
+				svcmeta.EndpointReference, ep)
+		}
+	}
+
+	// Decode other elements
+	types := xmldoc.Lookup{Name: NsDiscovery + ":" + "Types"}
+	serviceID := xmldoc.Lookup{Name: NsDevprof + ":ServiceId"}
+
+	root.Lookup(&types, &serviceID)
+
+	if types.Found {
+		svcmeta.Types, err = DecodeTypes(types.Elem)
+		if err != nil {
+			return
+		}
+	}
+
+	if serviceID.Found {
+		svcmeta.ServiceID = AnyURI(types.Elem.Text)
+	}
+
+	return
 }
 
 // ToXML generates XML tree for the ServiceMetadata
