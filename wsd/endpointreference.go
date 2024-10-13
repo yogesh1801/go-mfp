@@ -23,14 +23,14 @@ func DecodeEndpointReference(root xmldoc.Element) (
 
 	defer func() { err = xmlErrWrap(root, err) }()
 
-	Address := xmldoc.Lookup{Name: NsAddressing + ":Address", Required: true}
-	missed := root.Lookup(&Address)
+	address := xmldoc.Lookup{Name: NsAddressing + ":Address", Required: true}
+	missed := root.Lookup(&address)
 	if missed != nil {
 		err = xmlErrMissed(missed.Name)
 		return
 	}
 
-	ref.Address, err = DecodeAnyURI(Address.Elem)
+	ref.Address, err = DecodeAnyURI(address.Elem)
 
 	return
 }

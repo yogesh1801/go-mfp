@@ -23,10 +23,10 @@ func DecodeBye(root xmldoc.Element) (bye Bye, err error) {
 	defer func() { err = xmlErrWrap(root, err) }()
 
 	// Lookup message elements
-	EndpointReference := xmldoc.Lookup{
+	endpointReference := xmldoc.Lookup{
 		Name: NsAddressing + ":EndpointReference", Required: true}
 
-	missed := root.Lookup(&EndpointReference)
+	missed := root.Lookup(&endpointReference)
 
 	if missed != nil {
 		err = xmlErrMissed(missed.Name)
@@ -35,7 +35,7 @@ func DecodeBye(root xmldoc.Element) (bye Bye, err error) {
 
 	// Decode elements
 	bye.EndpointReference, err = DecodeEndpointReference(
-		EndpointReference.Elem)
+		endpointReference.Elem)
 
 	return
 }

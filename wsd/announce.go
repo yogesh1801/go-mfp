@@ -28,17 +28,17 @@ func decodeAnnounce(root xmldoc.Element) (ann announce, err error) {
 	defer func() { err = xmlErrWrap(root, err) }()
 
 	// Lookup message elements
-	EndpointReference := xmldoc.Lookup{
+	endpointReference := xmldoc.Lookup{
 		Name: NsAddressing + ":EndpointReference", Required: true}
-	Types := xmldoc.Lookup{
+	types := xmldoc.Lookup{
 		Name: NsDiscovery + ":" + "Types"}
-	XAddrs := xmldoc.Lookup{
+	xaddrs := xmldoc.Lookup{
 		Name: NsDiscovery + ":" + "XAddrs"}
-	MetadataVersion := xmldoc.Lookup{
+	metadataVersion := xmldoc.Lookup{
 		Name: NsDiscovery + ":" + "MetadataVersion", Required: true}
 
-	missed := root.Lookup(&EndpointReference, &Types,
-		&XAddrs, &MetadataVersion)
+	missed := root.Lookup(&endpointReference, &types,
+		&xaddrs, &metadataVersion)
 
 	if missed != nil {
 		err = xmlErrMissed(missed.Name)
@@ -47,18 +47,18 @@ func decodeAnnounce(root xmldoc.Element) (ann announce, err error) {
 
 	// Decode elements
 	ann.EndpointReference, err = DecodeEndpointReference(
-		EndpointReference.Elem)
+		endpointReference.Elem)
 
-	if err == nil && Types.Found {
-		ann.Types, err = DecodeTypes(Types.Elem)
+	if err == nil && types.Found {
+		ann.Types, err = DecodeTypes(types.Elem)
 	}
 
-	if err == nil && XAddrs.Found {
-		ann.XAddrs, err = DecodeXAddrs(XAddrs.Elem)
+	if err == nil && xaddrs.Found {
+		ann.XAddrs, err = DecodeXAddrs(xaddrs.Elem)
 	}
 
 	if err == nil {
-		ann.MetadataVersion, err = decodeUint64(MetadataVersion.Elem)
+		ann.MetadataVersion, err = decodeUint64(metadataVersion.Elem)
 	}
 
 	return

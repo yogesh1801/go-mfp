@@ -37,24 +37,24 @@ var AppSequenceMissed = AppSequence{Skip: true}
 func DecodeAppSequence(root xmldoc.Element) (seq AppSequence, err error) {
 	defer func() { err = xmlErrWrap(root, err) }()
 
-	InstanceID := xmldoc.LookupAttr{Name: "InstanceId", Required: true}
-	MessageNumber := xmldoc.LookupAttr{Name: "MessageNumber", Required: true}
-	SequenceID := xmldoc.LookupAttr{Name: "SequenceId"}
+	instanceID := xmldoc.LookupAttr{Name: "InstanceId", Required: true}
+	messageNumber := xmldoc.LookupAttr{Name: "MessageNumber", Required: true}
+	sequenceID := xmldoc.LookupAttr{Name: "SequenceId"}
 
-	missed := root.LookupAttrs(&InstanceID, &MessageNumber, &SequenceID)
+	missed := root.LookupAttrs(&instanceID, &messageNumber, &sequenceID)
 	if missed != nil {
 		err = errors.New("missed attribyte")
 		err = xmlErrWrap(root, xmlErrWrapName("@"+missed.Name, err))
 		return
 	}
 
-	seq.InstanceID, err = decodeUint64Attr(InstanceID.Attr)
+	seq.InstanceID, err = decodeUint64Attr(instanceID.Attr)
 	if err == nil {
-		seq.MessageNumber, err = decodeUint64Attr(MessageNumber.Attr)
+		seq.MessageNumber, err = decodeUint64Attr(messageNumber.Attr)
 	}
 
-	if err == nil && SequenceID.Found {
-		seq.SequenceID, err = DecodeAnyURIAttr(SequenceID.Attr)
+	if err == nil && sequenceID.Found {
+		seq.SequenceID, err = DecodeAnyURIAttr(sequenceID.Attr)
 	}
 
 	return

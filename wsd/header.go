@@ -26,40 +26,39 @@ type Header struct {
 func DecodeHeader(root xmldoc.Element) (hdr Header, err error) {
 	defer func() { err = xmlErrWrap(root, err) }()
 
-	var seq AppSequence
-
 	// Lookup header elements
-	Action := xmldoc.Lookup{Name: NsAddressing + ":Action", Required: true}
-	MessageID := xmldoc.Lookup{Name: NsAddressing + ":MessageID", Required: true}
-	To := xmldoc.Lookup{Name: NsAddressing + ":To", Required: true}
-	ReplyTo := xmldoc.Lookup{Name: NsAddressing + ":ReplyTo"}
-	RelatesTo := xmldoc.Lookup{Name: NsAddressing + ":RelatesTo"}
-	AppSequence := xmldoc.Lookup{Name: NsDiscovery + ":AppSequence"}
+	action := xmldoc.Lookup{Name: NsAddressing + ":Action", Required: true}
+	messageID := xmldoc.Lookup{Name: NsAddressing + ":MessageID", Required: true}
+	to := xmldoc.Lookup{Name: NsAddressing + ":To", Required: true}
+	replyTo := xmldoc.Lookup{Name: NsAddressing + ":ReplyTo"}
+	relatesTo := xmldoc.Lookup{Name: NsAddressing + ":RelatesTo"}
+	appSequence := xmldoc.Lookup{Name: NsDiscovery + ":AppSequence"}
 
-	missed := root.Lookup(&Action, &MessageID, &To, &ReplyTo,
-		&RelatesTo, &AppSequence)
+	missed := root.Lookup(&action, &messageID, &to, &replyTo,
+		&relatesTo, &appSequence)
 	if missed != nil {
 		err = xmlErrMissed(missed.Name)
 		return
 	}
 
 	// Decode header elements
-	hdr.Action, err = DecodeAction(Action.Elem)
+	hdr.Action, err = DecodeAction(action.Elem)
 	if err == nil {
-		hdr.MessageID, err = DecodeAnyURI(MessageID.Elem)
+		hdr.MessageID, err = DecodeAnyURI(messageID.Elem)
 	}
 	if err == nil {
-		hdr.To, err = DecodeAnyURI(To.Elem)
+		hdr.To, err = DecodeAnyURI(to.Elem)
 	}
-	if err == nil && ReplyTo.Found {
-		hdr.ReplyTo, err = DecodeEndpointReference(ReplyTo.Elem)
+	if err == nil && replyTo.Found {
+		hdr.ReplyTo, err = DecodeEndpointReference(replyTo.Elem)
 	}
-	if err == nil && RelatesTo.Found {
-		hdr.RelatesTo, err = DecodeAnyURI(RelatesTo.Elem)
+	if err == nil && relatesTo.Found {
+		hdr.RelatesTo, err = DecodeAnyURI(relatesTo.Elem)
 	}
 
-	if err == nil && AppSequence.Found {
-		seq, err = DecodeAppSequence(AppSequence.Elem)
+	if err == nil && appSequence.Found {
+		var seq AppSequence
+		seq, err = DecodeAppSequence(appSequence.Elem)
 		if err == nil {
 			hdr.AppSequence = &seq
 		}

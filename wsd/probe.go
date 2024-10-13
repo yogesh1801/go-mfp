@@ -27,16 +27,16 @@ func DecodeProbe(root xmldoc.Element) (probe Probe, err error) {
 	defer func() { err = xmlErrWrap(root, err) }()
 
 	// Lookup message elements
-	Types := xmldoc.Lookup{Name: NsDiscovery + ":Types", Required: true}
+	types := xmldoc.Lookup{Name: NsDiscovery + ":Types", Required: true}
 
-	missed := root.Lookup(&Types)
+	missed := root.Lookup(&types)
 	if missed != nil {
 		err = xmlErrMissed(missed.Name)
 		return
 	}
 
 	// Decode elements
-	probe.Types, err = DecodeTypes(Types.Elem)
+	probe.Types, err = DecodeTypes(types.Elem)
 
 	return
 }
