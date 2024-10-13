@@ -59,7 +59,7 @@ func (rm ResolveMatches) ToXML() xmldoc.Element {
 	}
 
 	for _, match := range rm.ResolveMatch {
-		chld := announce(match).ToXML("ResolveMatch")
+		chld := announce(match).ToXML(NsDiscovery + ":ResolveMatch")
 		elm.Children = append(elm.Children, chld)
 	}
 

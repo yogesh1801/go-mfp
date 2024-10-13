@@ -33,7 +33,7 @@ func DecodeHello(root xmldoc.Element) (hello Hello, err error) {
 
 // ToXML generates XML tree for the message body
 func (hello Hello) ToXML() xmldoc.Element {
-	return announce(hello).ToXML("Hello")
+	return announce(hello).ToXML(NsDiscovery + ":Hello")
 }
 
 // MarkUsedNamespace marks [xmldoc.Namespace] entries used by

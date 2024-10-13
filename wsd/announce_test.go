@@ -103,7 +103,7 @@ func TestAnnounce(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		xml := test.ann.ToXML("Test")
+		xml := test.ann.ToXML(NsDiscovery + ":Test")
 		if !reflect.DeepEqual(xml, test.xml) {
 			t.Errorf("ToXML:\nexpected: %s\npresent:  %s\n",
 				test.xml.EncodeString(NsMap),

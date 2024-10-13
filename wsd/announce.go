@@ -67,7 +67,7 @@ func decodeAnnounce(root xmldoc.Element) (ann announce, err error) {
 // ToXML generates XML tree for the message body
 func (ann announce) ToXML(name string) xmldoc.Element {
 	elm := xmldoc.Element{
-		Name: NsDiscovery + ":" + name,
+		Name: name,
 		Children: []xmldoc.Element{
 			ann.EndpointReference.ToXML(
 				NsAddressing + ":EndpointReference"),
