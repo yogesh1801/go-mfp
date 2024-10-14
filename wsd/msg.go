@@ -21,8 +21,17 @@ type Msg struct {
 	Body   Body   // Message body
 }
 
-// DecodeMsg decodes [msg] from the XML tree
-func DecodeMsg(root xmldoc.Element) (m Msg, err error) {
+// DecodeMsg decodes [msg] from the wire representation
+func DecodeMsg(data []byte) (m Msg, err error) {
+	root, err := xmldoc.Decode(NsMap, bytes.NewReader(data))
+	if err == nil {
+		m, err = msgFromXML(root)
+	}
+	return
+}
+
+// msgFromXML decodes [msg] from the XML tree
+func msgFromXML(root xmldoc.Element) (m Msg, err error) {
 	const (
 		rootName = NsSOAP + ":" + "Envelope"
 		hdrName  = NsSOAP + ":" + "Header"
