@@ -9,6 +9,7 @@
 package wsd
 
 import (
+	"bytes"
 	"fmt"
 
 	"github.com/alexpevzner/mfp/xmldoc"
@@ -76,6 +77,18 @@ func DecodeMsg(root xmldoc.Element) (m Msg, err error) {
 	}
 
 	return
+}
+
+// Encode encodes [Msg] into its wire representation.
+func (m Msg) Encode() []byte {
+	buf := bytes.Buffer{}
+	m.ToXML().Encode(&buf, NsMap)
+	return buf.Bytes()
+}
+
+// Format formats [Msg] for logging/
+func (m Msg) Format() string {
+	return m.ToXML().EncodeIndentString(NsMap, "  ")
 }
 
 // ToXML generates XML tree for the message
