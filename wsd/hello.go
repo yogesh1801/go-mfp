@@ -36,6 +36,12 @@ func (Hello) Action() Action {
 	return ActHello
 }
 
+// FillRequestHeader fills required [Header] fields for [Hello]
+// request message.
+func (Hello) FillRequestHeader(hdr *Header) {
+	hdr.To = ToDiscovery
+}
+
 // ToXML generates XML tree for the message body
 func (hello Hello) ToXML() xmldoc.Element {
 	return announce(hello).ToXML(NsDiscovery + ":Hello")
