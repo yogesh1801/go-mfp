@@ -47,6 +47,11 @@ func DecodeResolve(root xmldoc.Element) (resolve Resolve, err error) {
 	return
 }
 
+// Action returns [Action] to be used with the [Resolve] message
+func (Resolve) Action() Action {
+	return ActResolve
+}
+
 // ToXML generates XML tree for the message body
 func (resolve Resolve) ToXML() xmldoc.Element {
 	elm := xmldoc.Element{

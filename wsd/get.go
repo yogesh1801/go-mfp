@@ -21,6 +21,11 @@ import (
 type Get struct {
 }
 
+// Action returns [Action] to be used with the [Get] message
+func (Get) Action() Action {
+	return ActGet
+}
+
 // DecodeGet decodes [Get] from the XML tree
 func DecodeGet(root xmldoc.Element) (get Get, err error) {
 	// Nothing to do

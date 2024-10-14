@@ -52,6 +52,11 @@ func DecodeProbeMatches(root xmldoc.Element) (pm ProbeMatches, err error) {
 	return
 }
 
+// Action returns [Action] to be used with the [ProbeMatches] message
+func (ProbeMatches) Action() Action {
+	return ActProbeMatches
+}
+
 // ToXML generates XML tree for the message body
 func (pm ProbeMatches) ToXML() xmldoc.Element {
 	elm := xmldoc.Element{

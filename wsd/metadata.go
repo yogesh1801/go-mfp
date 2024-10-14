@@ -121,6 +121,12 @@ func DecodeMetadata(root xmldoc.Element) (meta Metadata, err error) {
 	return
 }
 
+// Action returns [Action] to be used with the [Metadata] (GetResponse)
+// message.
+func (Metadata) Action() Action {
+	return ActGetResponse
+}
+
 // ToXML generates XML tree for Metadata.
 func (meta Metadata) ToXML() xmldoc.Element {
 	// Generate sections
@@ -139,6 +145,25 @@ func (meta Metadata) ToXML() xmldoc.Element {
 	}
 
 	return metadata
+}
+
+// MarkUsedNamespace marks [xmldoc.Namespace] entries used by
+// data elements within the message body, if any.
+//
+// This function should not care about Namespace entries, used
+// by XML tags: they are handled automatically.
+func (meta Metadata) MarkUsedNamespace(ns xmldoc.Namespace) {
+	var types Types
+
+	if meta.Relationship.Host != nil {
+		types |= meta.Relationship.Host.Types
+	}
+
+	for _, hosted := range meta.Relationship.Hosted {
+		types |= hosted.Types
+	}
+
+	types.MarkUsedNamespace(ns)
 }
 
 // DecodeThisDeviceMetadata decodes ThisDeviceMetadata from the

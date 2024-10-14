@@ -40,6 +40,11 @@ func DecodeBye(root xmldoc.Element) (bye Bye, err error) {
 	return
 }
 
+// Action returns [Action] to be used with the [Bye] message
+func (Bye) Action() Action {
+	return ActBye
+}
+
 // ToXML generates XML tree for the message body
 func (bye Bye) ToXML() xmldoc.Element {
 	elm := xmldoc.Element{

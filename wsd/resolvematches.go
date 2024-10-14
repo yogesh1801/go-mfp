@@ -52,6 +52,11 @@ func DecodeResolveMatches(root xmldoc.Element) (rm ResolveMatches, err error) {
 	return
 }
 
+// Action returns [Action] to be used with the [ResolveMatches] message
+func (ResolveMatches) Action() Action {
+	return ActResolveMatches
+}
+
 // ToXML generates XML tree for the message body
 func (rm ResolveMatches) ToXML() xmldoc.Element {
 	elm := xmldoc.Element{

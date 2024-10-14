@@ -31,6 +31,11 @@ func DecodeHello(root xmldoc.Element) (hello Hello, err error) {
 	return
 }
 
+// Action returns [Action] to be used with the [Hello] message
+func (Hello) Action() Action {
+	return ActHello
+}
+
 // ToXML generates XML tree for the message body
 func (hello Hello) ToXML() xmldoc.Element {
 	return announce(hello).ToXML(NsDiscovery + ":Hello")

@@ -95,9 +95,3 @@ func (m Msg) ToXML() xmldoc.Element {
 func (m Msg) MarkUsedNamespace(ns xmldoc.Namespace) {
 	m.Body.MarkUsedNamespace(ns)
 }
-
-// Body represents a message body.
-type Body interface {
-	ToXML() xmldoc.Element
-	MarkUsedNamespace(xmldoc.Namespace)
-}
