@@ -16,8 +16,8 @@ import (
 
 // LocalizedString represents a string with language
 type LocalizedString struct {
-	Lang   string // ISO language code
 	String string // String body
+	Lang   string // ISO language code
 }
 
 // decodeLocalizedString decodes LocalizedString from the XML
