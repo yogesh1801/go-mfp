@@ -20,7 +20,7 @@ import (
 const (
 	ThisDeviceDialect   = "http://schemas.xmlsoap.org/ws/2006/02/devprof/ThisDevice"
 	ThisModelDialect    = "http://schemas.xmlsoap.org/ws/2006/02/devprof/ThisModel"
-	RelationshipDialect = "http://schemas.xmlsoap.org/ws/2006/02/devprof/host"
+	RelationshipDialect = "http://schemas.xmlsoap.org/ws/2006/02/devprof/Relationship"
 )
 
 // Relationship types for the needs of Metadata exchange, implemented here.
@@ -401,7 +401,7 @@ func DecodeRelationship(root xmldoc.Element) (rel Relationship, err error) {
 
 // ToXML generates XML tree for Relationship
 func (rel Relationship) ToXML() xmldoc.Element {
-	root := xmldoc.Element{
+	data := xmldoc.Element{
 		Name: NsDevprof + ":Relationship",
 		Attrs: []xmldoc.Attr{{
 			Name:  "Type",
@@ -410,16 +410,25 @@ func (rel Relationship) ToXML() xmldoc.Element {
 	}
 
 	if rel.Host != nil {
-		root.Children = append(root.Children,
+		data.Children = append(data.Children,
 			rel.Host.ToXML(NsDevprof+":Host"))
 	}
 
 	for _, hosted := range rel.Hosted {
-		root.Children = append(root.Children,
+		data.Children = append(data.Children,
 			hosted.ToXML(NsDevprof+":Hosted"))
 	}
 
-	return root
+	relationship := xmldoc.Element{
+		Name: NsMex + ":MetadataSection",
+		Attrs: []xmldoc.Attr{{
+			Name:  "Dialect",
+			Value: RelationshipDialect,
+		}},
+		Children: []xmldoc.Element{data},
+	}
+
+	return relationship
 }
 
 // DecodeServiceMetadata decodes ServiceMetadata from the XML tree.
@@ -456,7 +465,7 @@ func DecodeServiceMetadata(root xmldoc.Element) (
 	}
 
 	if serviceID.Found {
-		svcmeta.ServiceID = AnyURI(types.Elem.Text)
+		svcmeta.ServiceID = AnyURI(serviceID.Elem.Text)
 	}
 
 	return
