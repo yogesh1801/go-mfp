@@ -102,6 +102,14 @@ func TestAppSequenceDecodeErrors(t *testing.T) {
 			),
 			estr: "/d:AppSequence/d:AppSequence/@InstanceId: missed attribyte",
 		},
+
+		{
+			xml: xmldoc.WithAttrs(NsDiscovery+":"+"AppSequence",
+				xmldoc.Attr{Name: "InstanceId", Value: "ABC"},
+				xmldoc.Attr{Name: "MessageNumber", Value: "123"},
+			),
+			estr: `/d:AppSequence/@InstanceId: invalid uint: "ABC"`,
+		},
 	}
 
 	for _, test := range tests {
@@ -112,7 +120,7 @@ func TestAppSequenceDecodeErrors(t *testing.T) {
 		}
 
 		if estr != test.estr {
-			t.Errorf("%s\nexpected: %q\npresent:  %q",
+			t.Errorf("%s\nexpected: %s\npresent:  %s",
 				test.xml.EncodeString(NsMap),
 				test.estr, estr)
 		}

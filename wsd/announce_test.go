@@ -164,6 +164,19 @@ func TestAnnounceDecodeErrors(t *testing.T) {
 
 			estr: "/d:Test/a:EndpointReference/a:Address: missed",
 		},
+
+		{
+			xml: xmldoc.WithChildren(NsDiscovery+":Test",
+				xmldoc.WithChildren(NsAddressing+":EndpointReference",
+					xmldoc.WithText(NsAddressing+":Address",
+						"urn:uuid:1fccdddc-380e-41df-8d38-b5df20bc47ef",
+					),
+				),
+				xmldoc.WithText(NsDiscovery+":MetadataVersion", ""),
+			),
+
+			estr: `/d:Test/d:MetadataVersion: invalid uint: ""`,
+		},
 	}
 
 	for _, test := range tests {
@@ -174,7 +187,7 @@ func TestAnnounceDecodeErrors(t *testing.T) {
 		}
 
 		if estr != test.estr {
-			t.Errorf("%s\nexpected: %q\npresent:  %q",
+			t.Errorf("%s\nexpected: %s\npresent:  %s",
 				test.xml.EncodeString(NsMap),
 				test.estr, estr)
 		}
