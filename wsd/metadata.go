@@ -420,7 +420,9 @@ func (svcmeta ServiceMetadata) ToXML(name string) xmldoc.Element {
 			ep.ToXML(NsAddressing+":EndpointReference"))
 	}
 
-	elm.Children = append(elm.Children, svcmeta.Types.ToXML())
+	if svcmeta.Types != 0 {
+		elm.Children = append(elm.Children, svcmeta.Types.ToXML())
+	}
 
 	if svcmeta.ServiceID != "" {
 		elm.Children = append(elm.Children,
