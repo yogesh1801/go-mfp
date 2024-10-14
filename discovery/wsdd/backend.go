@@ -16,6 +16,7 @@ import (
 	"github.com/alexpevzner/mfp/discovery"
 	"github.com/alexpevzner/mfp/discovery/netstate"
 	"github.com/alexpevzner/mfp/log"
+	"github.com/alexpevzner/mfp/wsd"
 )
 
 // backend is the [discovery.Backend] for WSD device discovery.
@@ -123,5 +124,14 @@ func (back *backend) mconnProc(mc *mconn) {
 
 		log.Debug(back.ctx, "%d bytes received from %s%%%d",
 			n, from, cmsg.IfIndex)
+
+		data := buf[:n]
+		msg, err := wsd.DecodeMsg(data)
+		if err != nil {
+			log.Warning(back.ctx, "%s", err)
+			continue
+		}
+
+		log.Debug(back.ctx, "%s message received", msg.Header.Action)
 	}
 }
