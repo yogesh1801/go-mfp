@@ -54,6 +54,33 @@ func (act Action) String() string {
 	return "Unknown"
 }
 
+// bodyname returns name of the Body child element (namespace:name),
+// depending on the Action.
+//
+// If child is not expected, "" is returned.
+func (act Action) bodyname() string {
+	switch act {
+	case ActHello:
+		return NsDiscovery + ":Hello"
+	case ActBye:
+		return NsDiscovery + ":Bye"
+	case ActProbe:
+		return NsDiscovery + ":Probe"
+	case ActProbeMatches:
+		return NsDiscovery + ":ProbeMatches"
+	case ActResolve:
+		return NsDiscovery + ":Resolve"
+	case ActResolveMatches:
+		return NsDiscovery + ":ResolveMatches"
+	case ActGet:
+		return ""
+	case ActGetResponse:
+		return NsMex + ":Metadata"
+	}
+
+	return ""
+}
+
 // Encode represents action as a string for wire encoding.
 // For unknown action it returns "".
 func (act Action) Encode() string {

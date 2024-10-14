@@ -52,7 +52,7 @@ func msgFromXML(root xmldoc.Element) (m Msg, err error) {
 
 	missed := root.Lookup(&hdr, &body)
 	if missed != nil {
-		err = fmt.Errorf("%s: missed", missed.Name)
+		err = xmlErrMissed(missed.Name)
 		return
 	}
 
@@ -62,24 +62,37 @@ func msgFromXML(root xmldoc.Element) (m Msg, err error) {
 		return
 	}
 
+	// Fetch body Element
+	name := m.Header.Action.bodyname()
+	var elem xmldoc.Element
+
+	if name != "" {
+		var ok bool
+		elem, ok = body.Elem.ChildByName(name)
+		if !ok {
+			err = xmlErrWrap(body.Elem, xmlErrMissed(name))
+			return
+		}
+	}
+
 	// Decode message body
 	switch m.Header.Action {
 	case ActHello:
-		m.Body, err = DecodeHello(body.Elem)
+		m.Body, err = DecodeHello(elem)
 	case ActBye:
-		m.Body, err = DecodeBye(body.Elem)
+		m.Body, err = DecodeBye(elem)
 	case ActProbe:
-		m.Body, err = DecodeProbe(body.Elem)
+		m.Body, err = DecodeProbe(elem)
 	case ActProbeMatches:
-		m.Body, err = DecodeProbeMatches(body.Elem)
+		m.Body, err = DecodeProbeMatches(elem)
 	case ActResolve:
-		m.Body, err = DecodeResolve(body.Elem)
+		m.Body, err = DecodeResolve(elem)
 	case ActResolveMatches:
-		m.Body, err = DecodeResolveMatches(body.Elem)
+		m.Body, err = DecodeResolveMatches(elem)
 	case ActGet:
-		m.Body, err = DecodeGet(body.Elem)
+		m.Body, err = DecodeGet(elem)
 	case ActGetResponse:
-		m.Body, err = DecodeMetadata(body.Elem)
+		m.Body, err = DecodeMetadata(elem)
 	default:
 		err = fmt.Errorf("%s: unhanded action ", m.Header.Action)
 		return
