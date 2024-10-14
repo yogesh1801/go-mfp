@@ -9,6 +9,7 @@
 package wsd
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/alexpevzner/mfp/xmldoc"
@@ -17,13 +18,19 @@ import (
 // decodeUint64 decodes uint64 from the XML tree
 func decodeUint64(root xmldoc.Element) (v uint64, err error) {
 	v, err = strconv.ParseUint(root.Text, 10, 64)
-	err = xmlErrWrap(root, err)
+	if err != nil {
+		err = fmt.Errorf("invalid uint: %q", root.Text)
+		err = xmlErrWrap(root, err)
+	}
 	return
 }
 
 // decodeUint64 decodes uint64 from the XML attribute
 func decodeUint64Attr(attr xmldoc.Attr) (v uint64, err error) {
 	v, err = strconv.ParseUint(attr.Value, 10, 64)
-	err = xmlErrWrapAttr(attr, err)
+	if err != nil {
+		err = fmt.Errorf("invalid uint: %q", attr.Value)
+		err = xmlErrWrapAttr(attr, err)
+	}
 	return
 }
