@@ -58,6 +58,18 @@ func DecodeMsg(root xmldoc.Element) (m Msg, err error) {
 		m.Body, err = DecodeHello(body.Elem)
 	case ActBye:
 		m.Body, err = DecodeBye(body.Elem)
+	case ActProbe:
+		m.Body, err = DecodeProbe(body.Elem)
+	case ActProbeMatches:
+		m.Body, err = DecodeProbeMatches(body.Elem)
+	case ActResolve:
+		m.Body, err = DecodeResolve(body.Elem)
+	case ActResolveMatches:
+		m.Body, err = DecodeResolveMatches(body.Elem)
+	case ActGet:
+		m.Body, err = DecodeGet(body.Elem)
+	case ActGetResponse:
+		m.Body, err = DecodeMetadata(body.Elem)
 	default:
 		err = fmt.Errorf("%s: unhanded action ", m.Header.Action)
 		return
