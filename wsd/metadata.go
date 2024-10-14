@@ -68,6 +68,59 @@ type ServiceMetadata struct {
 	ServiceID         AnyURI              // Service identifier
 }
 
+// DecodeMetadata decodes Metadata from the XML tree.
+func DecodeMetadata(root xmldoc.Element) (meta Metadata, err error) {
+	defer func() { err = xmlErrWrap(root, err) }()
+
+	haveThisDevice := false
+	haveThisModel := false
+	haveRelationship := false
+
+	for _, chld := range root.Children {
+		if chld.Name != NsMex+":MetadataSection" {
+			continue
+		}
+
+		dialect, found := chld.AttrByName("Dialect")
+		if !found {
+			continue
+		}
+
+		switch dialect.Value {
+		case ThisDeviceDialect:
+			if haveThisDevice {
+				continue // Ignore duplicated entries
+			}
+
+			meta.ThisDevice, err = DecodeThisDeviceMetadata(chld)
+			haveThisDevice = true
+
+		case ThisModelDialect:
+			if haveThisModel {
+				continue // Ignore duplicated entries
+			}
+
+			meta.ThisModel, err = DecodeThisModelMetadata(chld)
+			haveThisModel = true
+
+		case RelationshipDialect:
+			if haveRelationship {
+				continue
+			}
+
+			meta.Relationship, err = DecodeRelationship(chld)
+			haveRelationship = true
+		}
+
+		if err != nil {
+			err = xmlErrWrap(chld, err)
+			return
+		}
+	}
+
+	return
+}
+
 // ToXML generates XML tree for Metadata.
 func (meta Metadata) ToXML() xmldoc.Element {
 	// Generate sections
@@ -95,10 +148,10 @@ func DecodeThisDeviceMetadata(root xmldoc.Element) (
 
 	defer func() { err = xmlErrWrap(root, err) }()
 
-	// Find MetadataSection element
-	data, ok := root.ChildByName(NsMex + ":MetadataSection")
+	// Find ThisDevice element
+	data, ok := root.ChildByName(NsDevprof + ":ThisDevice")
 	if !ok {
-		err = xmlErrMissed(NsDevprof + ":MetadataSection")
+		err = xmlErrMissed(NsDevprof + ":ThisDevice")
 		return
 	}
 
@@ -179,10 +232,10 @@ func DecodeThisModelMetadata(root xmldoc.Element) (
 
 	defer func() { err = xmlErrWrap(root, err) }()
 
-	// Find MetadataSection element
-	data, ok := root.ChildByName(NsMex + ":MetadataSection")
+	// Find ThisModel element
+	data, ok := root.ChildByName(NsDevprof + ":ThisModel")
 	if !ok {
-		err = xmlErrMissed(NsDevprof + ":MetadataSection")
+		err = xmlErrMissed(NsDevprof + ":ThisModel")
 		return
 	}
 
@@ -311,10 +364,10 @@ func (thismdl ThisModelMetadata) ToXML() xmldoc.Element {
 func DecodeRelationship(root xmldoc.Element) (rel Relationship, err error) {
 	defer func() { err = xmlErrWrap(root, err) }()
 
-	// Find MetadataSection element
-	data, ok := root.ChildByName(NsMex + ":MetadataSection")
+	// Find Relationship element
+	data, ok := root.ChildByName(NsDevprof + ":Relationship")
 	if !ok {
-		err = xmlErrMissed(NsDevprof + ":MetadataSection")
+		err = xmlErrMissed(NsDevprof + ":Relationship")
 		return
 	}
 
