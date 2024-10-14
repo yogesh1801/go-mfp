@@ -33,3 +33,11 @@ type Body interface {
 	// encoding of this body.
 	MarkUsedNamespace(xmldoc.Namespace)
 }
+
+// RequestBody is the [Body], suitable for using in request messages.
+type RequestBody interface {
+	Body
+
+	// FillRequestHeader fills request [Header] for this body.
+	FillRequestHeader(hdr *Header)
+}
