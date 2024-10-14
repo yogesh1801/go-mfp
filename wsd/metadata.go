@@ -11,7 +11,9 @@
 
 package wsd
 
-import "github.com/alexpevzner/mfp/xmldoc"
+import (
+	"github.com/alexpevzner/mfp/xmldoc"
+)
 
 // Dialect attribute values for ThisDevice, ThisModel and Relationship
 // sections.
@@ -106,7 +108,10 @@ func DecodeThisDeviceMetadata(root xmldoc.Element) (
 	for _, chld := range data.Children {
 		if chld.Name == NsDevprof+":FriendlyName" {
 			ls := decodeLocalizedString(chld)
-			thisdev.FriendlyName = append(thisdev.FriendlyName, ls)
+			if !thisdev.FriendlyName.Contains(ls) {
+				thisdev.FriendlyName =
+					append(thisdev.FriendlyName, ls)
+			}
 		}
 	}
 
@@ -187,11 +192,18 @@ func DecodeThisModelMetadata(root xmldoc.Element) (
 	for _, chld := range data.Children {
 		switch chld.Name {
 		case NsDevprof + ":Manufacturer":
-			ls := decodeLocalizedString(chld)
-			thismdl.Manufacturer = append(thismdl.Manufacturer, ls)
+			mfg := decodeLocalizedString(chld)
+			if !thismdl.Manufacturer.Contains(mfg) {
+				thismdl.Manufacturer = append(
+					thismdl.Manufacturer, mfg)
+			}
+
 		case NsDevprof + ":ModelName":
-			ls := decodeLocalizedString(chld)
-			thismdl.ModelName = append(thismdl.ModelName, ls)
+			mdl := decodeLocalizedString(chld)
+			if !thismdl.ModelName.Contains(mdl) {
+				thismdl.ModelName = append(
+					thismdl.ModelName, mdl)
+			}
 		}
 	}
 

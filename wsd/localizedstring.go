@@ -46,6 +46,18 @@ func (ls LocalizedString) IsZero() bool {
 // LocalizedStringList represents a list of localized strings
 type LocalizedStringList []LocalizedString
 
+// Contains contains reports if [LocalizedStringList] contains
+// the specified [LocalizedString].
+func (lsl LocalizedStringList) Contains(s LocalizedString) bool {
+	for _, ls := range lsl {
+		if s == ls {
+			return true
+		}
+	}
+
+	return false
+}
+
 // NeutralLang returns a neutral-language version of the localized
 // string.
 //
