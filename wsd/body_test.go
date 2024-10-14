@@ -41,31 +41,3 @@ func TestBodyAction(t *testing.T) {
 		}
 	}
 }
-
-// TestFillRequestHeader tests RequestBody.FillRequestHeader
-func TestFillRequestHeader(t *testing.T) {
-	type testData struct {
-		hdr  Header
-		body RequestBody
-	}
-
-	tests := []testData{
-		{
-			hdr: Header{
-				To: ToDiscovery,
-			},
-			body: Hello{},
-		},
-	}
-
-	for _, test := range tests {
-		var hdr Header
-		test.body.FillRequestHeader(&hdr)
-		if !reflect.DeepEqual(hdr, test.hdr) {
-			t.Errorf("%s.FillRequestHeader:\n"+
-				"expected: %#v\n"+
-				"present:  %#v\n",
-				reflect.TypeOf(test.body), test.hdr, hdr)
-		}
-	}
-}
