@@ -20,6 +20,13 @@ func NewSet[T comparable]() Set[T] {
 	}
 }
 
+// Clear purges the set
+func (s Set[T]) Clear() {
+	for member := range s.members {
+		delete(s.members, member)
+	}
+}
+
 // Empty reports if set is empty
 func (s Set[T]) Empty() bool {
 	return len(s.members) == 0
