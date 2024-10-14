@@ -14,20 +14,8 @@ import (
 	"strings"
 )
 
-// Decode parses XML document, and represents it as a linear
-// sequence of XML elements
-//
-// Each element has a Name, Path, which is a full path to the element,
-// starting from root and Text, which is XML element body, stripped
-// from leading and trailing space, and Children, which includes
-// its direct children, children of children and so on.
-//
-// Path uses '/' character as a path separator and starts with '/'
-//
-// Decoded elements are ordered according to their layout in the
-// input document (i.e., root, then first child of the root, then
-// its first child and so on), and [Element.Children] are ordered
-// the same way.
+// Decode parses XML document, and represents it as a tree of
+// [Element]s.
 //
 // Namespace prefixes are rewritten according to the 'ns' map.
 // Full namespace URL used as map index, and value that corresponds
