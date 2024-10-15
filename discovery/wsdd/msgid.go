@@ -38,17 +38,17 @@ const (
 // MessageID has a limited time to live. Expired IDs removed
 // from the table.
 type msgIDGen struct {
-	table     map[wsd.AnyURI]msgIDEnt
-	lock      sync.Mutex
-	closechan chan struct{}
-	done      sync.WaitGroup
+	table   map[wsd.AnyURI]msgIDEnt
+	lock    sync.Mutex
+	gctimer timer
+	done    sync.WaitGroup
 }
 
 // newMsgIDGen creates a new MessageID generator.
 func newMsgIDGen() *msgIDGen {
 	gen := &msgIDGen{
-		table:     make(map[wsd.AnyURI]msgIDEnt, msgIDTableCapacity),
-		closechan: make(chan struct{}),
+		table:   make(map[wsd.AnyURI]msgIDEnt, msgIDTableCapacity),
+		gctimer: newTimer(),
 	}
 
 	gen.done.Add(1)
@@ -59,7 +59,7 @@ func newMsgIDGen() *msgIDGen {
 
 // Close closes the MessageID generator.
 func (gen *msgIDGen) Close() {
-	close(gen.closechan)
+	gen.gctimer.Cancel()
 	gen.done.Wait()
 }
 
@@ -67,19 +67,8 @@ func (gen *msgIDGen) Close() {
 func (gen *msgIDGen) gc() {
 	defer gen.done.Done()
 
-	for {
-		// Wait for some time
-		t := time.NewTimer(msgIDGCPeriod)
-		select {
-		case <-t.C:
-		case <-gen.closechan:
-			t.Stop()
-			return
-		}
-
-		// Perform garbage collection
+	for gen.gctimer.Sleep(msgIDGCPeriod) {
 		now := time.Now()
-
 		gen.lock.Lock()
 		for urn, ent := range gen.table {
 			if ent.expired(now) {
