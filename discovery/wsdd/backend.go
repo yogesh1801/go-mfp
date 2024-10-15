@@ -24,6 +24,7 @@ type backend struct {
 	ctx     context.Context       // For logging and backend.Close
 	cancel  context.CancelFunc    // Context's cancel function
 	queue   *discovery.Eventqueue // Event queue
+	msgid   *msgIDGen             // MessageID generator
 	netmon  *netstate.Notifier    // Network state monitor
 	mconn4  *mconn                // IP4 multicasts reception connection
 	mconn6  *mconn                // IP6 multicasts reception connection
@@ -55,6 +56,7 @@ func NewBackend(ctx context.Context) (discovery.Backend, error) {
 	back := &backend{
 		ctx:    ctx,
 		cancel: cancel,
+		msgid:  newMsgIDGen(),
 		netmon: netstate.NewNotifier(),
 		mconn4: mconn4,
 		mconn6: mconn6,
@@ -82,11 +84,15 @@ func (back *backend) Start(queue *discovery.Eventqueue) {
 
 // Close closes the backend
 func (back *backend) Close() {
+	// Stop any activity
 	back.closing.Store(true)
 	back.cancel()
 	back.mconn4.Close()
 	back.mconn6.Close()
 	back.done.Wait()
+
+	// Close supporting infrastructure
+	back.msgid.Close()
 }
 
 // netmonproc processes netstate.Notifier events.
