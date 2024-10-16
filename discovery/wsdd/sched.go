@@ -84,9 +84,9 @@ type sched struct {
 type schedEvent int
 
 const (
-	schedNewMessage   schedEvent = iota + 1 // Generate new message
-	schedSend                               // Send current message
-	schedEnfOfResolve                       // Resolve max time reached
+	schedClosed     schedEvent = iota // Scheduler is closed
+	schedNewMessage                   // Generate new message
+	schedSend                         // Send current message
 )
 
 // newSched creates a new scheduler
@@ -113,9 +113,23 @@ func (s *sched) Close() {
 	s.done.Wait()
 }
 
+// Chan returns scheduler's event channel.
+//
+// Scheduler closes this channel when scheduler is closed.
+// Additionally, resolve-mode scheduler closes this channel,
+// when resolve timeout is reached.
+//
+// When scheduler channel is closed, any attempt to read from
+// it will return schedClosed, which is the zero value for the
+// schedEvent.
+func (s *sched) Chan() <-chan schedEvent {
+	return s.c
+}
+
 // proc runs on its own goroutine and generates events
 func (s *sched) proc() {
 	defer s.done.Done()
+	defer close(s.c)
 
 	start := time.Now()
 
@@ -147,7 +161,6 @@ func (s *sched) proc() {
 
 			// Check for resolve timeout.
 			if s.resolveTimedOut(start) {
-				s.c <- schedEnfOfResolve
 				return
 			}
 		}
