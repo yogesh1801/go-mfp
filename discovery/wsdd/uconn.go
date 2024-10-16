@@ -23,7 +23,7 @@ type uconn struct {
 	local        netstate.Addr // Local address
 }
 
-// newMconn creates a new unicast connection
+// newUconn creates a new unicast connection
 func newUconn(local netstate.Addr, port uint16) (*uconn, error) {
 	// Address must be unicast
 	if local.Addr().IsMulticast() {
