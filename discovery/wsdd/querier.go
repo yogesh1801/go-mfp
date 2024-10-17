@@ -11,7 +11,7 @@ package wsdd
 import (
 	"context"
 	"net/netip"
-	"sync/atomic"
+	"sync"
 
 	"github.com/alexpevzner/mfp/discovery/netstate"
 	"github.com/alexpevzner/mfp/log"
@@ -21,8 +21,19 @@ import (
 
 // querier is responsible for transmission of WSDD queries
 type querier struct {
-	ctx   context.Context                // Logging context
-	addrs map[netstate.Addr]*querierAddr // Per-local address contexts
+	ctx    context.Context                // Logging context
+	netmon *netstate.Notifier             // Network state monitor
+	mconn4 *mconn                         // For IP4 multicasts reception
+	mconn6 *mconn                         // For IP6 multicasts reception
+	addrs  map[netstate.Addr]*querierAddr // Per-local address contexts
+
+	// querier.procNetmon closing synchronization
+	ctxNetmon    context.Context    // Cancelable context for procNetmon
+	cancelNetmon context.CancelFunc // Its cancellation function
+	doneNetmon   sync.WaitGroup     // Wait for procNetmon termination
+
+	// querier.procMconn closing synchronization
+	doneMconn sync.WaitGroup // Wait for procMconn termination
 }
 
 // querierAddr is the per-local-address structure
@@ -33,19 +44,110 @@ type querierAddr struct {
 	probeSched *sched         // Probe scheduler
 	dest       netip.AddrPort // Destination address
 	conn       *uconn         // Connection for sending UDP multicasts
-	closing    atomic.Bool    // Close in progress
-	doneProber chan struct{}  // Closed when procProber is done
-	doneReader chan struct{}  // Closed when procReader is done
+	doneProber sync.WaitGroup // Wait for procProber termination
+	doneReader sync.WaitGroup // Wait for procReader termination
 }
 
 // newQuerier creates a new querier
-func newQuerier(ctx context.Context) *querier {
-	q := &querier{
-		ctx:   ctx,
-		addrs: make(map[netstate.Addr]*querierAddr),
+func newQuerier(ctx context.Context) (*querier, error) {
+	// Create multicast sockets
+	mconn4, err := newMconn(wsddMulticastIP4)
+	if err != nil {
+		return nil, err
 	}
 
-	return q
+	mconn6, err := newMconn(wsddMulticastIP6)
+	if err != nil {
+		mconn4.Close()
+		return nil, err
+	}
+
+	// Create querier structure
+	q := &querier{
+		ctx:    ctx,
+		netmon: netstate.NewNotifier(),
+		mconn4: mconn4,
+		mconn6: mconn6,
+		addrs:  make(map[netstate.Addr]*querierAddr),
+	}
+
+	return q, nil
+}
+
+func (q *querier) Start() {
+	// Start q.procNetmon
+	q.ctxNetmon, q.cancelNetmon = context.WithCancel(q.ctx)
+	q.doneNetmon.Add(1)
+	go q.procNetmon()
+
+	// Start q.procMconn, one per connection
+	q.doneMconn.Add(2)
+	go q.procMconn(q.mconn4)
+	go q.procMconn(q.mconn6)
+}
+
+// Close closes the querier
+func (q *querier) Close() {
+	// Stop procNetmon
+	q.cancelNetmon()
+	q.doneNetmon.Wait()
+
+	// Stop multicasts reception
+	q.mconn4.Close()
+	q.mconn6.Close()
+	q.doneMconn.Wait()
+
+	// Close all querierAddr-s
+	for addr, qa := range q.addrs {
+		qa.Close()
+		delete(q.addrs, addr)
+	}
+}
+
+// netmonproc processes netstate.Notifier events.
+// It runs on its own goroutine.
+func (q *querier) procNetmon() {
+	defer q.doneNetmon.Done()
+
+	for {
+		evnt, err := q.netmon.Get(q.ctx)
+		if err != nil {
+			return
+		}
+
+		log.Debug(q.ctx, "%s", evnt)
+	}
+}
+
+// procMconn receives UDP multicast messages from the multicast conection.
+func (q *querier) procMconn(mc *mconn) {
+	defer q.doneMconn.Done()
+
+	for {
+		var buf [65536]byte
+		n, from, cmsg, err := mc.RecvFrom(buf[:])
+
+		if mc.IsClosed() {
+			return
+		}
+
+		if err != nil {
+			log.Error(q.ctx, "UDP recv: %s", err)
+			return
+		}
+
+		log.Debug(q.ctx, "%d bytes received from %s%%%d",
+			n, from, cmsg.IfIndex)
+
+		data := buf[:n]
+		msg, err := wsd.DecodeMsg(data)
+		if err != nil {
+			log.Warning(q.ctx, "%s", err)
+			continue
+		}
+
+		log.Debug(q.ctx, "%s message received", msg.Header.Action)
+	}
 }
 
 // AddAddr adds local address
@@ -61,7 +163,6 @@ func (q *querier) newQuerierAddr(addr netstate.Addr) *querierAddr {
 	qa := &querierAddr{
 		parent:     q,
 		probeSched: newSched(false),
-		doneProber: make(chan struct{}),
 	}
 
 	if addr.Is4() {
@@ -70,6 +171,7 @@ func (q *querier) newQuerierAddr(addr netstate.Addr) *querierAddr {
 		qa.dest = wsddMulticastIP6
 	}
 
+	qa.doneProber.Add(1)
 	go qa.procProber()
 
 	return qa
@@ -77,24 +179,21 @@ func (q *querier) newQuerierAddr(addr netstate.Addr) *querierAddr {
 
 // Close closes querierAddr
 func (qa *querierAddr) Close() {
-	// Mark querierAddr as being closing
-	qa.closing.Store(true)
-
 	// Kill querierAddr.procProber
 	qa.probeSched.Close()
-	<-qa.doneProber
+	qa.doneProber.Wait()
 
 	// Kil qa.procReader, if it is started
 	if qa.conn != nil {
 		qa.conn.Close()
-		<-qa.doneReader
+		qa.doneReader.Wait()
 	}
 }
 
 // procProber creates UDP connection on demand and sends probes.
 // It runs on its own goroutine and paced by the sa.probeSched scheduler.
 func (qa *querierAddr) procProber() {
-	defer close(qa.doneProber)
+	defer qa.doneProber.Done()
 
 	for {
 		evnt := <-qa.probeSched.Chan()
@@ -107,7 +206,7 @@ func (qa *querierAddr) procProber() {
 			if qa.conn == nil {
 				qa.conn, _ = newUconn(qa.addr, 0)
 				if qa.conn != nil {
-					qa.doneReader = make(chan struct{})
+					qa.doneReader.Add(1)
 					go qa.procReader()
 				}
 			}
@@ -123,15 +222,15 @@ func (qa *querierAddr) procProber() {
 	}
 }
 
-// procReader runs on its own goroutine receives messages from the qa.conn.
+// procReader runs on its own goroutine and receives messages from the qa.conn.
 func (qa *querierAddr) procReader() {
-	defer close(qa.doneReader)
+	defer qa.doneReader.Done()
 
 	for {
 		var buf [65536]byte
 		n, from, err := qa.conn.RecvFrom(buf[:])
 
-		if qa.closing.Load() {
+		if qa.conn.IsClosed() {
 			return
 		}
 
