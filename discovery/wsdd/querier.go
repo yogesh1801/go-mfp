@@ -104,6 +104,28 @@ func (q *querier) Close() {
 	}
 }
 
+// input handles received UDP messages.
+func (q *querier) input(data []byte, from, to netip.AddrPort, ifidx int) {
+	log.Debug(q.ctx, "%d bytes received from %s%%%d",
+		len(data), from, ifidx)
+
+	msg, err := wsd.DecodeMsg(data)
+	if err != nil {
+		log.Warning(q.ctx, "%s", err)
+		return
+	}
+
+	log.Debug(q.ctx, "%s message received", msg.Header.Action)
+}
+
+// AddAddr adds local address
+func (q *querier) AddAddr(netstate.Addr) {
+}
+
+// DelAddr deletes local address
+func (q *querier) DelAddr(netstate.Addr) {
+}
+
 // netmonproc processes netstate.Notifier events.
 // It runs on its own goroutine.
 func (q *querier) procNetmon() {
@@ -133,29 +155,11 @@ func (q *querier) procMconn(mc *mconn) {
 
 		if err != nil {
 			log.Error(q.ctx, "UDP recv: %s", err)
-			return
-		}
-
-		log.Debug(q.ctx, "%d bytes received from %s%%%d",
-			n, from, cmsg.IfIndex)
-
-		data := buf[:n]
-		msg, err := wsd.DecodeMsg(data)
-		if err != nil {
-			log.Warning(q.ctx, "%s", err)
 			continue
 		}
 
-		log.Debug(q.ctx, "%s message received", msg.Header.Action)
+		q.input(buf[:n], from, mc.LocalAddrPort(), cmsg.IfIndex)
 	}
-}
-
-// AddAddr adds local address
-func (q *querier) AddAddr(netstate.Addr) {
-}
-
-// DelAddr deletes local address
-func (q *querier) DelAddr(netstate.Addr) {
 }
 
 // newQuerierAddr returns a new querierAddr
@@ -226,6 +230,9 @@ func (qa *querierAddr) procProber() {
 func (qa *querierAddr) procReader() {
 	defer qa.doneReader.Done()
 
+	ifidx := qa.addr.Interface().Index()
+	to := qa.conn.LocalAddrPort()
+
 	for {
 		var buf [65536]byte
 		n, from, err := qa.conn.RecvFrom(buf[:])
@@ -236,21 +243,10 @@ func (qa *querierAddr) procReader() {
 
 		if err != nil {
 			log.Error(qa.parent.ctx, "UDP recv: %s", err)
-			return
-		}
-
-		log.Debug(qa.parent.ctx, "%d bytes received from %s",
-			n, from)
-
-		data := buf[:n]
-		msg, err := wsd.DecodeMsg(data)
-		if err != nil {
-			log.Warning(qa.parent.ctx, "%s", err)
 			continue
 		}
 
-		log.Debug(qa.parent.ctx, "%s message received",
-			msg.Header.Action)
+		qa.parent.input(buf[:n], from, to, ifidx)
 	}
 }
 
