@@ -81,6 +81,12 @@ func (uc *uconn) Close() {
 	uc.UDPConn.Close()
 }
 
+// LocalAddrPort returns connection's local address and port
+func (uc *uconn) LocalAddrPort() netip.AddrPort {
+	addr := uc.UDPConn.LocalAddr().(*net.UDPAddr)
+	return addr.AddrPort()
+}
+
 // IsClosed reports if connection is closed
 func (uc *uconn) IsClosed() bool {
 	return uc.closed.Load()
