@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"net"
 	"net/netip"
+	"sync/atomic"
 	"syscall"
 
 	"github.com/alexpevzner/mfp/discovery/netstate"
@@ -21,7 +22,8 @@ import (
 // the UDP multicasts reception.
 type mconn struct {
 	*net.UDPConn
-	group netip.Addr
+	group  netip.Addr
+	closed atomic.Bool
 }
 
 // newMconn creates a new multicast connection
@@ -72,6 +74,17 @@ func newMconn(group netip.AddrPort) (*mconn, error) {
 	}
 
 	return mc, nil
+}
+
+// Close closes the connection
+func (mc *mconn) Close() {
+	mc.closed.Store(true)
+	mc.UDPConn.Close()
+}
+
+// IsClosed reports if connection is closed
+func (mc *mconn) IsClosed() bool {
+	return mc.closed.Load()
 }
 
 // Is4 reports if connection uses IPv4 address family

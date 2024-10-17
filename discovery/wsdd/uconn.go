@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"net"
 	"net/netip"
+	"sync/atomic"
 
 	"github.com/alexpevzner/mfp/discovery/netstate"
 )
@@ -21,6 +22,7 @@ import (
 type uconn struct {
 	*net.UDPConn               // Underlying connection
 	local        netstate.Addr // Local address
+	closed       atomic.Bool   // Connection is closed
 }
 
 // newUconn creates a new unicast connection
@@ -71,6 +73,17 @@ func newUconn(local netstate.Addr, port uint16) (*uconn, error) {
 	}
 
 	return uc, nil
+}
+
+// Close closes the connection
+func (uc *uconn) Close() {
+	uc.closed.Store(true)
+	uc.UDPConn.Close()
+}
+
+// IsClosed reports if connection is closed
+func (uc *uconn) IsClosed() bool {
+	return uc.closed.Load()
 }
 
 // Is4 reports if connection uses IPv4 address family
