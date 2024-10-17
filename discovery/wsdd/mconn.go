@@ -21,9 +21,9 @@ import (
 // mconn wraps net.UDPConn and prepares it to be used for
 // the UDP multicasts reception.
 type mconn struct {
-	*net.UDPConn
-	group  netip.Addr
-	closed atomic.Bool
+	*net.UDPConn                // Underlying UDP connection
+	group        netip.AddrPort // Multicast group
+	closed       atomic.Bool    // Connection is closed
 }
 
 // newMconn creates a new multicast connection
@@ -58,7 +58,7 @@ func newMconn(group netip.AddrPort) (*mconn, error) {
 	// Fill the mconn structure
 	mc := &mconn{
 		UDPConn: conn,
-		group:   group.Addr(),
+		group:   group,
 	}
 
 	// Do system-specific setup
@@ -82,6 +82,11 @@ func (mc *mconn) Close() {
 	mc.UDPConn.Close()
 }
 
+// LocalAddrPort returns connection's local address and port
+func (mc *mconn) LocalAddrPort() netip.AddrPort {
+	return mc.group
+}
+
 // IsClosed reports if connection is closed
 func (mc *mconn) IsClosed() bool {
 	return mc.closed.Load()
@@ -89,12 +94,12 @@ func (mc *mconn) IsClosed() bool {
 
 // Is4 reports if connection uses IPv4 address family
 func (mc *mconn) Is4() bool {
-	return mc.group.Is4()
+	return mc.group.Addr().Is4()
 }
 
 // Is6 reports if connection uses IPv6 address family
 func (mc *mconn) Is6() bool {
-	return mc.group.Is6()
+	return mc.group.Addr().Is6()
 }
 
 // Join joins the multicast group, specified during mcast
@@ -152,7 +157,7 @@ func (mc *mconn) joinIP4(local netstate.Addr) error {
 	}
 
 	mreq := syscall.IPMreqn{
-		Multiaddr: mc.group.As4(),
+		Multiaddr: mc.group.Addr().As4(),
 		Address:   local.Addr().As4(),
 		Ifindex:   int32(local.Interface().Index()),
 	}
@@ -173,7 +178,7 @@ func (mc *mconn) joinIP6(local netstate.Addr) error {
 	}
 
 	mreq := syscall.IPv6Mreq{
-		Multiaddr: mc.group.As16(),
+		Multiaddr: mc.group.Addr().As16(),
 		Interface: uint32(local.Interface().Index()),
 	}
 
@@ -193,7 +198,7 @@ func (mc *mconn) leaveIP4(local netstate.Addr) error {
 	}
 
 	mreq := syscall.IPMreqn{
-		Multiaddr: mc.group.As4(),
+		Multiaddr: mc.group.Addr().As4(),
 		Address:   local.Addr().As4(),
 		Ifindex:   int32(local.Interface().Index()),
 	}
@@ -214,7 +219,7 @@ func (mc *mconn) leaveIP6(local netstate.Addr) error {
 	}
 
 	mreq := syscall.IPv6Mreq{
-		Multiaddr: mc.group.As16(),
+		Multiaddr: mc.group.Addr().As16(),
 		Interface: uint32(local.Interface().Index()),
 	}
 
