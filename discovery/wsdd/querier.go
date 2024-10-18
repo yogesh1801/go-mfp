@@ -222,6 +222,8 @@ func (qa *querierLink) procProber() {
 		case schedSend:
 			if qa.conn != nil {
 				qa.conn.WriteToUDPAddrPort(qa.probeMsg, qa.dest)
+				log.Debug(qa.parent.ctx, "%s message sent",
+					wsd.ActProbe)
 			}
 		}
 	}
