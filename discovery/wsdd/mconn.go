@@ -50,7 +50,12 @@ func newMconn(group netip.AddrPort) (*mconn, error) {
 	//
 	// This socket can be joined multiple multicast
 	// groups and suitable for the multicast reception.
-	conn, err := net.ListenUDP("udp", addr)
+	network := "udp4"
+	if group.Addr().Is6() {
+		network = "udp6"
+	}
+
+	conn, err := net.ListenUDP(network, addr)
 	if err != nil {
 		return nil, err
 	}

@@ -49,7 +49,12 @@ func newUconn(local netstate.Addr, port uint16) (*uconn, error) {
 	//
 	// This socket can be joined multiple multicast
 	// groups and suitable for the multicast reception.
-	conn, err := net.ListenUDP("udp", addr)
+	network := "udp4"
+	if local.Addr().Is6() {
+		network = "udp6"
+	}
+
+	conn, err := net.ListenUDP(network, addr)
 	if err != nil {
 		return nil, err
 	}
