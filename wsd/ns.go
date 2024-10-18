@@ -24,11 +24,11 @@ const (
 
 // NsMap maps namespace prefixes to URL
 var NsMap = xmldoc.Namespace{
-	// SOAP 1.1
-	{Prefix: NsSOAP, URL: "http://schemas.xmlsoap.org/soap/envelope"},
-
 	// SOAP 1.2
 	{Prefix: NsSOAP, URL: "http://www.w3.org/2003/05/soap-envelope"},
+
+	// SOAP 1.1
+	{Prefix: NsSOAP, URL: "http://schemas.xmlsoap.org/soap/envelope"},
 
 	// WSD prefixes
 	{Prefix: NsAddressing, URL: "http://schemas.xmlsoap.org/ws/2004/08/addressing"},
