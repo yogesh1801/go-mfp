@@ -11,6 +11,7 @@ package wsd
 import (
 	"bytes"
 	"fmt"
+	"slices"
 
 	"github.com/alexpevzner/mfp/xmldoc"
 )
@@ -104,13 +105,17 @@ func msgFromXML(root xmldoc.Element) (m Msg, err error) {
 // Encode encodes [Msg] into its wire representation.
 func (m Msg) Encode() []byte {
 	buf := bytes.Buffer{}
-	m.ToXML().Encode(&buf, NsMap)
+	ns := slices.Clone(NsMap)
+	m.MarkUsedNamespace(ns)
+	m.ToXML().Encode(&buf, ns)
 	return buf.Bytes()
 }
 
 // Format formats [Msg] for logging/
 func (m Msg) Format() string {
-	return m.ToXML().EncodeIndentString(NsMap, "  ")
+	ns := slices.Clone(NsMap)
+	m.MarkUsedNamespace(ns)
+	return m.ToXML().EncodeIndentString(ns, "  ")
 }
 
 // ToXML generates XML tree for the message
