@@ -74,6 +74,7 @@ func newQuerier(ctx context.Context) (*querier, error) {
 	return q, nil
 }
 
+// Start starts querier operations.
 func (q *querier) Start() {
 	// Start q.procNetmon
 	q.ctxNetmon, q.cancelNetmon = context.WithCancel(q.ctx)
