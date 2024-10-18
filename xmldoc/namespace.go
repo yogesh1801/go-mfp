@@ -137,10 +137,17 @@ func (ns *Namespace) Append(url string, prefix string) {
 // It returns (Prefix, true) if requested element was found,
 // or ("", false) otherwise.
 //
+// It automatically handles the "http://www.w3.org/XML/1998/namespace"
+// as identifier of the "xml" namespace.
+//
 // See also [Namespace.IndexByURL]
 func (ns Namespace) ByURL(u string) (string, bool) {
 	if i := ns.IndexByURL(u); i >= 0 {
 		return ns[i].Prefix, true
+	}
+
+	if u == "http://www.w3.org/XML/1998/namespace" {
+		return "xml", true
 	}
 
 	return "", false
