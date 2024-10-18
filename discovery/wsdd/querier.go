@@ -132,7 +132,7 @@ func (q *querier) procNetmon() {
 	defer q.doneNetmon.Done()
 
 	for {
-		evnt, err := q.netmon.Get(q.ctx)
+		evnt, err := q.netmon.Get(q.ctxNetmon)
 		if err != nil {
 			return
 		}
