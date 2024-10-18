@@ -65,6 +65,7 @@ func Decode(ns Namespace, in io.Reader) (Element, error) {
 					continue
 				}
 
+				name = ""
 				if attr.Name.Space != "" {
 					var ok bool
 					name, ok = ns.ByURL(attr.Name.Space)
