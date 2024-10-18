@@ -25,7 +25,7 @@ type querier struct {
 	netmon *netstate.Notifier             // Network state monitor
 	mconn4 *mconn                         // For IP4 multicasts reception
 	mconn6 *mconn                         // For IP6 multicasts reception
-	addrs  map[netstate.Addr]*querierAddr // Per-local address contexts
+	addrs  map[netstate.Addr]*querierLink // Per-local address contexts
 
 	// querier.procNetmon closing synchronization
 	ctxNetmon    context.Context    // Cancelable context for procNetmon
@@ -36,8 +36,8 @@ type querier struct {
 	doneMconn sync.WaitGroup // Wait for procMconn termination
 }
 
-// querierAddr is the per-local-address structure
-type querierAddr struct {
+// querierLink is the per-local-address structure
+type querierLink struct {
 	parent     *querier       // Parent querier
 	addr       netstate.Addr  // Local address
 	probeMsg   []byte         // Probe message
@@ -68,7 +68,7 @@ func newQuerier(ctx context.Context) (*querier, error) {
 		netmon: netstate.NewNotifier(),
 		mconn4: mconn4,
 		mconn6: mconn6,
-		addrs:  make(map[netstate.Addr]*querierAddr),
+		addrs:  make(map[netstate.Addr]*querierLink),
 	}
 
 	return q, nil
@@ -98,7 +98,7 @@ func (q *querier) Close() {
 	q.mconn6.Close()
 	q.doneMconn.Wait()
 
-	// Close all querierAddr-s
+	// Close all querierLink-s
 	for addr, qa := range q.addrs {
 		qa.Close()
 		delete(q.addrs, addr)
@@ -163,9 +163,9 @@ func (q *querier) procMconn(mc *mconn) {
 	}
 }
 
-// newQuerierAddr returns a new querierAddr
-func (q *querier) newQuerierAddr(addr netstate.Addr) *querierAddr {
-	qa := &querierAddr{
+// newQuerierLink returns a new querierLink
+func (q *querier) newQuerierLink(addr netstate.Addr) *querierLink {
+	qa := &querierLink{
 		parent:     q,
 		probeSched: newSched(false),
 	}
@@ -182,9 +182,9 @@ func (q *querier) newQuerierAddr(addr netstate.Addr) *querierAddr {
 	return qa
 }
 
-// Close closes querierAddr
-func (qa *querierAddr) Close() {
-	// Kill querierAddr.procProber
+// Close closes querierLink
+func (qa *querierLink) Close() {
+	// Kill querierLink.procProber
 	qa.probeSched.Close()
 	qa.doneProber.Wait()
 
@@ -197,7 +197,7 @@ func (qa *querierAddr) Close() {
 
 // procProber creates UDP connection on demand and sends probes.
 // It runs on its own goroutine and paced by the sa.probeSched scheduler.
-func (qa *querierAddr) procProber() {
+func (qa *querierLink) procProber() {
 	defer qa.doneProber.Done()
 
 	for {
@@ -228,7 +228,7 @@ func (qa *querierAddr) procProber() {
 }
 
 // procReader runs on its own goroutine and receives messages from the qa.conn.
-func (qa *querierAddr) procReader() {
+func (qa *querierLink) procReader() {
 	defer qa.doneReader.Done()
 
 	ifidx := qa.addr.Interface().Index()
@@ -252,7 +252,7 @@ func (qa *querierAddr) procReader() {
 }
 
 // updateProbeMsg updates qa.probeMsg
-func (qa *querierAddr) updateProbeMsg() {
+func (qa *querierLink) updateProbeMsg() {
 	msgid := wsd.AnyURI(uuid.Must(uuid.Random()).URN())
 	msg := wsd.Msg{
 		Header: wsd.Header{
