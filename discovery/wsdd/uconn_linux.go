@@ -17,13 +17,13 @@ import (
 func (uc *uconn) sysSetSockOptIP4() error {
 	return uc.control(func(fd int) error {
 		// Bind socket to interface for outgoing multicasting
-		idx := uc.local.Interface().Index()
-		err := syscall.SetsockoptInt(fd, syscall.IPPROTO_IP,
-			syscall.IP_MULTICAST_IF, idx)
+		addr := uc.local.Addr().As4()
+		err := syscall.SetsockoptInet4Addr(fd, syscall.IPPROTO_IP,
+			syscall.IP_MULTICAST_IF, addr)
 		if err != nil {
 			err = fmt.Errorf(
-				"setsockopt(IP_MULTICAST_IF,%d):%w",
-				idx, err)
+				"setsockopt(IP_MULTICAST_IF,%s):%w",
+				uc.local.Addr(), err)
 			return err
 		}
 
