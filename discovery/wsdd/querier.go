@@ -21,11 +21,12 @@ import (
 
 // querier is responsible for transmission of WSDD queries
 type querier struct {
-	ctx    context.Context                // Logging context
-	netmon *netstate.Notifier             // Network state monitor
-	mconn4 *mconn                         // For IP4 multicasts reception
-	mconn6 *mconn                         // For IP6 multicasts reception
-	links  map[netstate.Addr]*querierLink // Per-local address contexts
+	ctx       context.Context             // Logging context
+	netmon    *netstate.Notifier          // Network state monitor
+	mconn4    *mconn                      // For IP4 multicasts reception
+	mconn6    *mconn                      // For IP6 multicasts reception
+	links     map[netip.Addr]*querierLink // Per-local address contexts
+	linksLock sync.Mutex                  // querier.links lock
 
 	// querier.procNetmon closing synchronization
 	ctxNetmon    context.Context    // Cancelable context for procNetmon
@@ -42,7 +43,7 @@ type querierLink struct {
 	addr       netstate.Addr  // Local address
 	probeMsg   []byte         // Probe message
 	probeSched *sched         // Probe scheduler
-	dest       netip.AddrPort // Destination address
+	dest       netip.AddrPort // Destination (multicast) address
 	conn       *uconn         // Connection for sending UDP multicasts
 	doneProber sync.WaitGroup // Wait for procProber termination
 	doneReader sync.WaitGroup // Wait for procReader termination
@@ -68,7 +69,7 @@ func newQuerier(ctx context.Context) (*querier, error) {
 		netmon: netstate.NewNotifier(),
 		mconn4: mconn4,
 		mconn6: mconn6,
-		links:  make(map[netstate.Addr]*querierLink),
+		links:  make(map[netip.Addr]*querierLink),
 	}
 
 	return q, nil
@@ -107,6 +108,12 @@ func (q *querier) Close() {
 
 // input handles received UDP messages.
 func (q *querier) input(data []byte, from, to netip.AddrPort, ifidx int) {
+	if q.hasLocalAddr(from.Addr()) {
+		//log.Debug(q.ctx, "skipped message from self (%s%%%d)",
+		//	from, ifidx)
+		return
+	}
+
 	log.Debug(q.ctx, "%d bytes received from %s%%%d",
 		len(data), from, ifidx)
 
@@ -120,11 +127,30 @@ func (q *querier) input(data []byte, from, to netip.AddrPort, ifidx int) {
 }
 
 // AddAddr adds local address
-func (q *querier) AddAddr(netstate.Addr) {
+func (q *querier) addLocalAddr(addr netstate.Addr) {
+	ql := q.newQuerierLink(addr)
+
+	q.linksLock.Lock()
+	q.links[addr.Addr()] = ql
+	q.linksLock.Unlock()
 }
 
 // DelAddr deletes local address
-func (q *querier) DelAddr(netstate.Addr) {
+func (q *querier) delLocalAddr(addr netstate.Addr) {
+	q.linksLock.Lock()
+	ql := q.links[addr.Addr()]
+	delete(q.links, addr.Addr())
+	q.linksLock.Unlock()
+
+	ql.Close()
+}
+
+// hasLocalAddr reports if address is known as local
+func (q *querier) hasLocalAddr(addr netip.Addr) bool {
+	q.linksLock.Lock()
+	_, found := q.links[addr]
+	q.linksLock.Unlock()
+	return found
 }
 
 // netmonproc processes netstate.Notifier events.
@@ -139,6 +165,13 @@ func (q *querier) procNetmon() {
 		}
 
 		log.Debug(q.ctx, "%s", evnt)
+
+		switch evnt := evnt.(type) {
+		case netstate.EventAddPrimaryAddress:
+			q.addLocalAddr(evnt.Addr)
+		case netstate.EventDelPrimaryAddress:
+			q.delLocalAddr(evnt.Addr)
+		}
 	}
 }
 
@@ -166,6 +199,7 @@ func (q *querier) procMconn(mc *mconn) {
 // newQuerierLink returns a new querierLink
 func (q *querier) newQuerierLink(addr netstate.Addr) *querierLink {
 	ql := &querierLink{
+		addr:       addr,
 		parent:     q,
 		probeSched: newSched(false),
 	}
@@ -209,7 +243,12 @@ func (ql *querierLink) procProber() {
 		case schedNewMessage:
 			// Open connection on demand
 			if ql.conn == nil {
-				ql.conn, _ = newUconn(ql.addr, 0)
+				var err error
+				ql.conn, err = newUconn(ql.addr, 0)
+				if err != nil {
+					log.Debug(ql.parent.ctx, "%s", err)
+				}
+
 				if ql.conn != nil {
 					ql.doneReader.Add(1)
 					go ql.procReader()
@@ -222,8 +261,10 @@ func (ql *querierLink) procProber() {
 		case schedSend:
 			if ql.conn != nil {
 				ql.conn.WriteToUDPAddrPort(ql.probeMsg, ql.dest)
-				log.Debug(ql.parent.ctx, "%s message sent",
-					wsd.ActProbe)
+				log.Debug(ql.parent.ctx,
+					"%s message sent to %s%%%d",
+					wsd.ActProbe, ql.dest,
+					ql.addr.Interface().Index())
 			}
 		}
 	}
