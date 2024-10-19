@@ -128,6 +128,13 @@ func (q *querier) input(data []byte, from, to netip.AddrPort, ifidx int) {
 
 // addLocalAddr adds local address
 func (q *querier) addLocalAddr(addr netstate.Addr) {
+	// Ignore non-multicast links
+	flags := addr.Interface().Flags()
+	if !flags.All(netstate.NetIfMulticast) {
+		return
+	}
+
+	// Add link
 	ql := q.newQuerierLink(addr)
 
 	q.linksLock.Lock()
@@ -137,6 +144,13 @@ func (q *querier) addLocalAddr(addr netstate.Addr) {
 
 // delLocalAddr deletes local address
 func (q *querier) delLocalAddr(addr netstate.Addr) {
+	// Ignore non-multicast links
+	flags := addr.Interface().Flags()
+	if !flags.All(netstate.NetIfMulticast) {
+		return
+	}
+
+	// Del link
 	q.linksLock.Lock()
 	ql := q.links[addr.Addr()]
 	delete(q.links, addr.Addr())
