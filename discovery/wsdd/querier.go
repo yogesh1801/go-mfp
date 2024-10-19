@@ -126,7 +126,7 @@ func (q *querier) input(data []byte, from, to netip.AddrPort, ifidx int) {
 	log.Debug(q.ctx, "%s message received", msg.Header.Action)
 }
 
-// AddAddr adds local address
+// addLocalAddr adds local address
 func (q *querier) addLocalAddr(addr netstate.Addr) {
 	ql := q.newQuerierLink(addr)
 
@@ -135,7 +135,7 @@ func (q *querier) addLocalAddr(addr netstate.Addr) {
 	q.linksLock.Unlock()
 }
 
-// DelAddr deletes local address
+// delLocalAddr deletes local address
 func (q *querier) delLocalAddr(addr netstate.Addr) {
 	q.linksLock.Lock()
 	ql := q.links[addr.Addr()]
