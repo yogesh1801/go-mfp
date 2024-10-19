@@ -14,6 +14,7 @@ import (
 	"sync"
 
 	"github.com/alexpevzner/mfp/discovery/netstate"
+	"github.com/alexpevzner/mfp/internal/generic"
 	"github.com/alexpevzner/mfp/log"
 	"github.com/alexpevzner/mfp/uuid"
 	"github.com/alexpevzner/mfp/wsd"
@@ -26,7 +27,9 @@ type querier struct {
 	mconn4    *mconn                      // For IP4 multicasts reception
 	mconn6    *mconn                      // For IP6 multicasts reception
 	links     map[netip.Addr]*querierLink // Per-local address contexts
+	ports     generic.Set[netip.AddrPort] // Local addr:ports
 	linksLock sync.Mutex                  // querier.links lock
+	portsLock sync.Mutex                  // querier.ports lock
 
 	// querier.procNetmon closing synchronization
 	ctxNetmon    context.Context    // Cancelable context for procNetmon
@@ -70,6 +73,7 @@ func newQuerier(ctx context.Context) (*querier, error) {
 		mconn4: mconn4,
 		mconn6: mconn6,
 		links:  make(map[netip.Addr]*querierLink),
+		ports:  generic.NewSet[netip.AddrPort](),
 	}
 
 	return q, nil
@@ -100,6 +104,7 @@ func (q *querier) Close() {
 	q.doneMconn.Wait()
 
 	// Close all querierLink-s
+	q.ports.Clear()
 	for addr, ql := range q.links {
 		ql.Close()
 		delete(q.links, addr)
@@ -108,7 +113,7 @@ func (q *querier) Close() {
 
 // input handles received UDP messages.
 func (q *querier) input(data []byte, from, to netip.AddrPort, ifidx int) {
-	if q.hasLocalAddr(from.Addr()) {
+	if q.hasLocalAddr(from) {
 		//log.Debug(q.ctx, "skipped message from self (%s%%%d)",
 		//	from, ifidx)
 		return
@@ -159,12 +164,25 @@ func (q *querier) delLocalAddr(addr netstate.Addr) {
 	ql.Close()
 }
 
-// hasLocalAddr reports if address is known as local
-func (q *querier) hasLocalAddr(addr netip.Addr) bool {
+// addLocalPort adds local addr:port into the set of local ports
+func (q *querier) addLocalPort(addr netip.AddrPort) {
+	q.portsLock.Lock()
+	q.ports.Add(addr)
+	q.portsLock.Unlock()
+}
+
+// delLocalPort deletes local addr:port from the set of local ports
+func (q *querier) delLocalPort(addr netip.AddrPort) {
+	q.portsLock.Lock()
+	q.ports.Del(addr)
+	q.portsLock.Unlock()
+}
+
+// hasLocalAddr reports if address is addr:port is known as local
+func (q *querier) hasLocalAddr(addr netip.AddrPort) bool {
 	q.linksLock.Lock()
-	_, found := q.links[addr]
-	q.linksLock.Unlock()
-	return found
+	defer q.linksLock.Unlock()
+	return q.ports.Contains(addr)
 }
 
 // netmonproc processes netstate.Notifier events.
@@ -238,6 +256,7 @@ func (ql *querierLink) Close() {
 
 	// Kil ql.procReader, if it is started
 	if ql.conn != nil {
+		ql.parent.delLocalPort(ql.conn.LocalAddrPort())
 		ql.conn.Close()
 		ql.doneReader.Wait()
 	}
@@ -264,6 +283,8 @@ func (ql *querierLink) procProber() {
 				}
 
 				if ql.conn != nil {
+					ql.parent.addLocalPort(
+						ql.conn.LocalAddrPort())
 					ql.doneReader.Add(1)
 					go ql.procReader()
 				}
