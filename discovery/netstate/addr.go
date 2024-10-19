@@ -11,6 +11,7 @@ package netstate
 import (
 	"net"
 	"net/netip"
+	"strconv"
 )
 
 // Addr represents a single IP address with mask, assigned to the network
@@ -50,6 +51,18 @@ func AddrFromIPNet(ipn net.IPNet, nif NetIf) Addr {
 	bits, _ := ipn.Mask.Size()
 	prefix := netip.PrefixFrom(ip, bits)
 	return Addr{prefix, nif}
+}
+
+// Addr returns IP address.
+//
+// If address is a link-local IPv6 address, it comes with the
+// appropriate zone.
+func (addr Addr) Addr() netip.Addr {
+	ip := addr.Prefix.Addr()
+	if ip.Is6() && ip.IsLinkLocalUnicast() {
+		ip = ip.WithZone(strconv.Itoa(int(addr.nif.index)))
+	}
+	return ip
 }
 
 // Interface returns the network interface that owns the address.
