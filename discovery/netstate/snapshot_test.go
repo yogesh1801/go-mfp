@@ -22,7 +22,7 @@ func TestSnapshotEqual(t *testing.T) {
 		eq                 bool   // Expected snapshot.equal answer
 	}
 
-	if0 := NetIf{0, "if0"}
+	if0 := NetIf{0, "if0", 0}
 
 	tests := []testData{
 		{
@@ -88,8 +88,8 @@ func TestSnapshotMake(t *testing.T) {
 		primary []Addr  // Expected primary addresses
 	}
 
-	if0 := NetIf{0, "if0"}
-	if1 := NetIf{1, "if1"}
+	if0 := NetIf{0, "if0", 0}
+	if1 := NetIf{1, "if1", 0}
 
 	tests := []testData{
 		// Empty set
@@ -215,8 +215,8 @@ func TestSnapshotSync(t *testing.T) {
 		addrs []Addr // Addresses at the next step
 	}
 
-	lo := NetIf{0, "lo"}
-	if1 := NetIf{1, "if1"}
+	lo := NetIf{0, "lo", 0}
+	if1 := NetIf{1, "if1", 0}
 
 	tests := []testData{
 		{

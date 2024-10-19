@@ -25,8 +25,8 @@ func TestAddr(t *testing.T) {
 		checks []testCheck // Operations to test
 	}
 
-	if0 := NetIf{0, "if0"}
-	if1 := NetIf{1, "if1"}
+	if0 := NetIf{0, "if0", NetIfBroadcast | NetIfMulticast}
+	if1 := NetIf{1, "if1", NetIfBroadcast | NetIfMulticast}
 
 	tests := []testData{
 		// Test: equal addresses on a same interface
@@ -171,7 +171,7 @@ func TestAddr(t *testing.T) {
 			// Interfaces with the same Index and different name
 			a1: testMakeAddr(if0, "127.0.0.1/24"),
 			a2: testMakeAddr(
-				MakeNetIf(if0.Index(), if1.Name()),
+				MakeNetIf(if0.Index(), if1.Name(), 0),
 				"127.0.0.1/24",
 			),
 			checks: []testCheck{

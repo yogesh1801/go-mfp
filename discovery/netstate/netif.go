@@ -11,6 +11,7 @@ package netstate
 import (
 	"fmt"
 	"net"
+	"strings"
 )
 
 // NetIf represents a network interface.
@@ -20,18 +21,68 @@ import (
 type NetIf struct {
 	index int
 	name  string
+	flags NetIfFlags
+}
+
+// NetIfFlags contains network interface flags
+type NetIfFlags int
+
+// NetIfFlags bits:
+const (
+	NetIfBroadcast NetIfFlags = 1 << iota
+	NetIfLoopback
+	NetIfMulticast
+)
+
+// All returns true if all flags, specified by mask, are set.
+func (flags NetIfFlags) All(mask NetIfFlags) bool {
+	return flags&mask == mask
+}
+
+// Any returns true if any of the flags, specified by mask, are set.
+func (flags NetIfFlags) Any(mask NetIfFlags) bool {
+	return flags&mask != 0
+}
+
+// String returns string representation of the NetIfFlags, for debugging.
+func (flags NetIfFlags) String() string {
+	s := make([]string, 0, 3)
+
+	if flags&NetIfBroadcast != 0 {
+		s = append(s, "broadcast")
+	}
+	if flags&NetIfLoopback != 0 {
+		s = append(s, "loopback")
+	}
+	if flags&NetIfMulticast != 0 {
+		s = append(s, "multicast")
+	}
+
+	return strings.Join(s, ",")
 }
 
 // MakeNetIf makes [NetIf] from index and name.
-func MakeNetIf(index int, name string) NetIf {
-	return NetIf{index, name}
+func MakeNetIf(index int, name string, flags NetIfFlags) NetIf {
+	return NetIf{index, name, flags}
 }
 
 // NetIfFromInterface makes [NetIf] from [net.Interface]
 func NetIfFromInterface(ifi net.Interface) NetIf {
+	var flags NetIfFlags
+	if ifi.Flags&net.FlagBroadcast != 0 {
+		flags |= NetIfBroadcast
+	}
+	if ifi.Flags&net.FlagLoopback != 0 {
+		flags |= NetIfLoopback
+	}
+	if ifi.Flags&net.FlagMulticast != 0 {
+		flags |= NetIfMulticast
+	}
+
 	return NetIf{
 		index: ifi.Index,
 		name:  ifi.Name,
+		flags: flags,
 	}
 }
 
@@ -45,10 +96,20 @@ func (nif NetIf) Name() string {
 	return nif.name
 }
 
+// Flags returns interface flags
+func (nif NetIf) Flags() NetIfFlags {
+	return nif.flags
+}
+
 // String returns string representation of the interface,
 // for debugging purposes.
 func (nif NetIf) String() string {
-	return fmt.Sprintf("%d(%s)", nif.index, nif.name)
+	nameFlags := nif.name
+	if nif.flags != 0 {
+		nameFlags += " " + nif.flags.String()
+	}
+
+	return fmt.Sprintf("%d(%s)", nif.index, nameFlags)
 }
 
 // Less reports whether nif sorts before nif2.
