@@ -270,7 +270,10 @@ func (clnt *avahiClient) GetHostname(key avahiHostnameKey) *avahiHostname {
 }
 
 // avahiService is the per-service-instance structure
-// that manages resources associated with the service
+//
+// It is created when new service instance is discovered and
+// manages resolving of resource records associated with the
+// service: service hostname, TXT record and IP addresses.
 type avahiService struct {
 	clnt        *avahiClient           // The owner
 	key         avahiServiceKey        // Identity
@@ -503,8 +506,11 @@ func avahiServiceKeyFromRecordBrowserEvent(
 	}
 }
 
-// avahiHostname is the per-hostname structure that manages
-// resources associated with the hostname
+// avahiHostname is the per-hostname structure.
+//
+// It is created on demand, when some of discovered service
+// instances contain reference to that hostname and manages
+// resolving of IP addresses, associated with that hostname.
 type avahiHostname struct {
 	clnt        *avahiClient               // The owner
 	key         avahiHostnameKey           // Identity
@@ -525,7 +531,7 @@ func (hostname *avahiHostname) HasAddr(addr netip.Addr) bool {
 	return hostname.addrs.Contains(addr)
 }
 
-// addAddr adds the address
+// addAddr adds the IP address, associated with the hostname.
 func (hostname *avahiHostname) AddAddr(addr netip.Addr) {
 	// Filter address according to the following rules
 	//   - if service belongs to the loopback interface, only loopback
@@ -555,7 +561,8 @@ func (hostname *avahiHostname) AddAddr(addr netip.Addr) {
 	}
 }
 
-// delAddr deletes the address
+// delAddr deletes the IP address, that previously was associated
+// with the hostname.
 func (hostname *avahiHostname) DelAddr(addr netip.Addr) {
 	if hostname.addrs.Contains(addr) {
 		hostname.addrs.Del(addr)
