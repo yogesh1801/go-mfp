@@ -353,7 +353,7 @@ func (back *backend) onAddrBrowserEvent(
 			return nil
 
 		case evnt.Event == avahi.BrowserNew:
-			hostname.AddAddr(addr)
+			hostname.AddAddr(addr, evnt.IfIdx)
 		case evnt.Event == avahi.BrowserRemove:
 			hostname.DelAddr(addr)
 		}

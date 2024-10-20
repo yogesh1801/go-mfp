@@ -12,7 +12,6 @@ import (
 	"context"
 	"fmt"
 	"net/netip"
-	"strconv"
 	"time"
 
 	"github.com/alexpevzner/go-avahi"
@@ -532,7 +531,7 @@ func (hostname *avahiHostname) HasAddr(addr netip.Addr) bool {
 }
 
 // addAddr adds the IP address, associated with the hostname.
-func (hostname *avahiHostname) AddAddr(addr netip.Addr) {
+func (hostname *avahiHostname) AddAddr(addr netip.Addr, ifidx avahi.IfIndex) {
 	// Filter address according to the following rules
 	//   - if service belongs to the loopback interface, only loopback
 	//     addresses are allowed
@@ -546,8 +545,10 @@ func (hostname *avahiHostname) AddAddr(addr netip.Addr) {
 		}
 
 	case addr.IsLinkLocalUnicast():
-		zone, _ := strconv.Atoi(addr.Zone())
-		if zone != int(hostname.key.IfIdx) {
+		// In case Avahi will return all A/AAAA records for the
+		// hostname, filter out link-local addresses that doesn't
+		// belong to the querying interface.
+		if ifidx != hostname.key.IfIdx {
 			return
 		}
 	}
