@@ -85,11 +85,12 @@ func cmdDiscoverHandler(ctx context.Context, inv *argv.Invocation) error {
 		return err
 	}
 
-	defer backend.Close()
 	clnt.AddBackend(backend)
 
 	// Perform device discovery
 	devices, err := clnt.GetDevices(ctx, discovery.ModeNormal)
+	backend.Close()
+
 	if err != nil {
 		return err
 	}
@@ -97,6 +98,10 @@ func cmdDiscoverHandler(ctx context.Context, inv *argv.Invocation) error {
 	// Format output
 	pager := env.NewPager()
 	defer pager.Display()
+
+	if len(devices) == 0 {
+		pager.Printf("No devices found.")
+	}
 
 	for _, dev := range devices {
 		pager.Printf("================================")
