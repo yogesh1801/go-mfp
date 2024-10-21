@@ -12,11 +12,11 @@ import (
 	"context"
 	"fmt"
 	"net/netip"
-	"strconv"
 	"sync"
 
 	"github.com/alexpevzner/go-avahi"
 	"github.com/alexpevzner/mfp/discovery"
+	"github.com/alexpevzner/mfp/internal/zone"
 	"github.com/alexpevzner/mfp/log"
 )
 
@@ -332,8 +332,8 @@ func (back *backend) onAddrBrowserEvent(
 		if key.Proto == avahi.ProtocolIP4 {
 			addr = avahi.DNSDecodeA(evnt.RData)
 		} else {
-			zone := strconv.Itoa(int(evnt.IfIdx))
-			addr = avahi.DNSDecodeAAAA(evnt.RData).WithZone(zone)
+			addr = avahi.DNSDecodeAAAA(evnt.RData)
+			addr = addr.WithZone(zone.Name(int(evnt.IfIdx)))
 		}
 
 		if addr == (netip.Addr{}) {

@@ -180,8 +180,8 @@ func (q *querier) delLocalPort(addr netip.AddrPort) {
 
 // hasLocalAddr reports if address is addr:port is known as local
 func (q *querier) hasLocalAddr(addr netip.AddrPort) bool {
-	q.linksLock.Lock()
-	defer q.linksLock.Unlock()
+	q.portsLock.Lock()
+	defer q.portsLock.Unlock()
 	return q.ports.Contains(addr)
 }
 
@@ -297,9 +297,9 @@ func (ql *querierLink) procProber() {
 			if ql.conn != nil {
 				ql.conn.WriteToUDPAddrPort(ql.probeMsg, ql.dest)
 				log.Debug(ql.parent.ctx,
-					"%s message sent to %s%%%d",
+					"%s message sent to %s%%%s",
 					wsd.ActProbe, ql.dest,
-					ql.addr.Interface().Index())
+					ql.addr.Interface().Name())
 			}
 		}
 	}

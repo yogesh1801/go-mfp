@@ -27,47 +27,47 @@ func TestEvent(t *testing.T) {
 	tests := []testData{
 		{
 			evnt: EventAddInterface{if0},
-			str:  `add-interface: 1(net1)`,
+			str:  `add-interface: net1()`,
 		},
 		{
 			evnt: EventDelInterface{if0},
-			str:  `del-interface: 1(net1)`,
+			str:  `del-interface: net1()`,
 		},
 
 		{
 			evnt: EventAddAddress{a4},
-			str:  `add-address: 127.0.0.1/24%1(net1)`,
+			str:  `add-address: 127.0.0.1/24%net1`,
 		},
 		{
 			evnt: EventAddAddress{a6},
-			str:  `add-address: ::1/24%1(net1)`,
+			str:  `add-address: ::1/24%net1`,
 		},
 
 		{
 			evnt: EventDelAddress{a4},
-			str:  `del-address: 127.0.0.1/24%1(net1)`,
+			str:  `del-address: 127.0.0.1/24%net1`,
 		},
 		{
 			evnt: EventDelAddress{a6},
-			str:  `del-address: ::1/24%1(net1)`,
+			str:  `del-address: ::1/24%net1`,
 		},
 
 		{
 			evnt: EventAddPrimaryAddress{a4},
-			str:  `add-primary: 127.0.0.1/24%1(net1)`,
+			str:  `add-primary: 127.0.0.1/24%net1`,
 		},
 		{
 			evnt: EventAddPrimaryAddress{a6},
-			str:  `add-primary: ::1/24%1(net1)`,
+			str:  `add-primary: ::1/24%net1`,
 		},
 
 		{
 			evnt: EventDelPrimaryAddress{a4},
-			str:  `del-primary: 127.0.0.1/24%1(net1)`,
+			str:  `del-primary: 127.0.0.1/24%net1`,
 		},
 		{
 			evnt: EventDelPrimaryAddress{a6},
-			str:  `del-primary: ::1/24%1(net1)`,
+			str:  `del-primary: ::1/24%net1`,
 		},
 
 		{

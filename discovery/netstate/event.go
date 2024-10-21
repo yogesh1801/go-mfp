@@ -107,7 +107,8 @@ type EventAddAddress struct {
 
 // String returns string representation of EventAddInterface, for logging.
 func (e EventAddAddress) String() string {
-	return fmt.Sprintf("add-address: %s%%%s", e.Addr, e.Addr.Interface())
+	return fmt.Sprintf("add-address: %s%%%s",
+		e.Addr, e.Addr.Interface().Name())
 }
 
 // event implements an Event interface
@@ -122,7 +123,8 @@ type EventDelAddress struct {
 
 // String returns string representation of [EventDelAddress], for logging.
 func (e EventDelAddress) String() string {
-	return fmt.Sprintf("del-address: %s%%%s", e.Addr, e.Addr.Interface())
+	return fmt.Sprintf("del-address: %s%%%s",
+		e.Addr, e.Addr.Interface().Name())
 }
 
 // event implements an Event interface
@@ -139,7 +141,8 @@ type EventAddPrimaryAddress struct {
 // String returns string representation of [EventAddPrimaryAddress],
 // for logging.
 func (e EventAddPrimaryAddress) String() string {
-	return fmt.Sprintf("add-primary: %s%%%s", e.Addr, e.Addr.Interface())
+	return fmt.Sprintf("add-primary: %s%%%s",
+		e.Addr, e.Addr.Interface().Name())
 }
 
 // event implements an Event interface
@@ -156,7 +159,8 @@ type EventDelPrimaryAddress struct {
 // String returns string representation of [EventDelPrimaryAddress],
 // for logging.
 func (e EventDelPrimaryAddress) String() string {
-	return fmt.Sprintf("del-primary: %s%%%s", e.Addr, e.Addr.Interface())
+	return fmt.Sprintf("del-primary: %s%%%s",
+		e.Addr, e.Addr.Interface().Name())
 }
 
 // event implements an Event interface

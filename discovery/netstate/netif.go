@@ -104,12 +104,7 @@ func (nif NetIf) Flags() NetIfFlags {
 // String returns string representation of the interface,
 // for debugging purposes.
 func (nif NetIf) String() string {
-	nameFlags := nif.name
-	if nif.flags != 0 {
-		nameFlags += " " + nif.flags.String()
-	}
-
-	return fmt.Sprintf("%d(%s)", nif.index, nameFlags)
+	return fmt.Sprintf("%s(%s)", nif.name, nif.flags.String())
 }
 
 // Less reports whether nif sorts before nif2.

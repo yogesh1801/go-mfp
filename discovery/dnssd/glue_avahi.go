@@ -17,6 +17,7 @@ import (
 	"github.com/alexpevzner/go-avahi"
 	"github.com/alexpevzner/mfp/discovery"
 	"github.com/alexpevzner/mfp/internal/generic"
+	"github.com/alexpevzner/mfp/internal/zone"
 )
 
 // Parameters:
@@ -429,7 +430,7 @@ func (key avahiServiceKey) commonUnitID() discovery.UnitID {
 	return discovery.UnitID{
 		DNSSDName: key.InstanceName,
 		Realm:     discovery.RealmDNSSD,
-		Zone:      fmt.Sprintf("%%%d", int(key.IfIdx)),
+		Zone:      zone.Name(int(key.IfIdx)),
 		Variant:   variant,
 		SvcProto:  svcTypeToDiscoveryServiceProto(key.SvcType),
 	}
