@@ -1,3 +1,3 @@
-SUBDIRS	= generic random
+SUBDIRS	= generic random zone
 
 include ../Rules.mak
