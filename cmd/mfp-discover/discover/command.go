@@ -146,6 +146,12 @@ func cmdDiscoverHandler(ctx context.Context, inv *argv.Invocation) error {
 				pager.Printf("    PDL:        %s",
 					strings.Join(p.PDL, ","))
 				pager.Printf("    Priority:   %d", p.Priority)
+
+				pager.Printf("    Endpoints:")
+				for _, ep := range un.Endpoints {
+					pager.Printf("      %s", ep)
+				}
+
 			}
 			pager.Printf("")
 		}
@@ -165,6 +171,11 @@ func cmdDiscoverHandler(ctx context.Context, inv *argv.Invocation) error {
 				pager.Printf("    ColorModes: %s", p.Colors)
 				pager.Printf("    PDL:        %s",
 					strings.Join(p.PDL, ","))
+
+				pager.Printf("    Endpoints:")
+				for _, ep := range un.Endpoints {
+					pager.Printf("      %s", ep)
+				}
 			}
 			pager.Printf("")
 		}
@@ -190,6 +201,11 @@ func cmdDiscoverHandler(ctx context.Context, inv *argv.Invocation) error {
 				pager.Printf("    PDL:        %s",
 					strings.Join(p.PDL, ","))
 				pager.Printf("    Priority:   %d", p.Priority)
+
+				pager.Printf("    Endpoints:")
+				for _, ep := range un.Endpoints {
+					pager.Printf("      %s", ep)
+				}
 			}
 			pager.Printf("")
 		}
