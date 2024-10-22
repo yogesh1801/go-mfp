@@ -30,11 +30,8 @@ type querier struct {
 	links     map[netip.Addr]*querierLink // Per-local address contexts
 	linksLock sync.Mutex                  // querier.links lock
 
-	// Table of local UDP ports. Used to filter off
-	// own UDP messages.
+	// Other tables
 	ports *ports // Set of Local ports
-
-	// Table of discovered hosts
 	hosts *hosts // Hosts table
 
 	// querier.procNetmon closing synchronization
