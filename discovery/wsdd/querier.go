@@ -14,7 +14,6 @@ import (
 	"sync"
 
 	"github.com/alexpevzner/mfp/discovery/netstate"
-	"github.com/alexpevzner/mfp/internal/generic"
 	"github.com/alexpevzner/mfp/log"
 	"github.com/alexpevzner/mfp/uuid"
 	"github.com/alexpevzner/mfp/wsd"
@@ -33,8 +32,7 @@ type querier struct {
 
 	// Table of local UDP ports. Used to filter off
 	// own UDP messages.
-	ports     generic.Set[netip.AddrPort] // Local addr:ports
-	portsLock sync.Mutex                  // querier.ports lock
+	ports *ports // Set of Local ports
 
 	// Table of discovered hosts
 	hosts *hosts // Hosts table
@@ -81,7 +79,7 @@ func newQuerier(ctx context.Context) (*querier, error) {
 		mconn4: mconn4,
 		mconn6: mconn6,
 		links:  make(map[netip.Addr]*querierLink),
-		ports:  generic.NewSet[netip.AddrPort](),
+		ports:  newPorts(),
 		hosts:  newHosts(),
 	}
 
@@ -125,7 +123,7 @@ func (q *querier) Close() {
 
 // input handles received UDP messages.
 func (q *querier) input(data []byte, from, to netip.AddrPort, ifidx int) {
-	if q.hasLocalAddr(from) {
+	if q.ports.Contains(from) {
 		//log.Debug(q.ctx, "skipped message from self (%s%%%d)",
 		//	from, ifidx)
 		return
@@ -174,27 +172,6 @@ func (q *querier) delLocalAddr(addr netstate.Addr) {
 	q.linksLock.Unlock()
 
 	ql.Close()
-}
-
-// addLocalPort adds local addr:port into the set of local ports
-func (q *querier) addLocalPort(addr netip.AddrPort) {
-	q.portsLock.Lock()
-	q.ports.Add(addr)
-	q.portsLock.Unlock()
-}
-
-// delLocalPort deletes local addr:port from the set of local ports
-func (q *querier) delLocalPort(addr netip.AddrPort) {
-	q.portsLock.Lock()
-	q.ports.Del(addr)
-	q.portsLock.Unlock()
-}
-
-// hasLocalAddr reports if address is addr:port is known as local
-func (q *querier) hasLocalAddr(addr netip.AddrPort) bool {
-	q.portsLock.Lock()
-	defer q.portsLock.Unlock()
-	return q.ports.Contains(addr)
 }
 
 // netmonproc processes netstate.Notifier events.
@@ -268,7 +245,7 @@ func (ql *querierLink) Close() {
 
 	// Kil ql.procReader, if it is started
 	if ql.conn != nil {
-		ql.parent.delLocalPort(ql.conn.LocalAddrPort())
+		ql.parent.ports.Del(ql.conn.LocalAddrPort())
 		ql.conn.Close()
 		ql.doneReader.Wait()
 	}
@@ -295,7 +272,7 @@ func (ql *querierLink) procProber() {
 				}
 
 				if ql.conn != nil {
-					ql.parent.addLocalPort(
+					ql.parent.ports.Add(
 						ql.conn.LocalAddrPort())
 					ql.doneReader.Add(1)
 					go ql.procReader()
