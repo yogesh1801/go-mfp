@@ -346,15 +346,15 @@ func txtMediaKind(value string) (discovery.MediaKind, error) {
 // txtPPD decodes the max paper size
 func txtPaperMax(value string) (discovery.PaperSize, error) {
 	switch txToLower(value) {
-	case "<legal-A4":
+	case "<legal-a4":
 		return discovery.PaperA4Minus, nil
-	case "legal-A4":
+	case "legal-a4":
 		return discovery.PaperA4, nil
-	case "tabloid-A3":
+	case "tabloid-a3":
 		return discovery.PaperA3, nil
-	case "isoC-A2":
+	case "isoC-a2":
 		return discovery.PaperA2, nil
-	case ">isoC-A2":
+	case ">isoC-a2":
 		return discovery.PaperA2Plus, nil
 	}
 
