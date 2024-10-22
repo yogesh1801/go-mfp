@@ -22,14 +22,22 @@ import (
 
 // querier is responsible for transmission of WSDD queries
 type querier struct {
-	ctx       context.Context             // Logging context
-	netmon    *netstate.Notifier          // Network state monitor
-	mconn4    *mconn                      // For IP4 multicasts reception
-	mconn6    *mconn                      // For IP6 multicasts reception
+	ctx    context.Context    // Logging context
+	netmon *netstate.Notifier // Network state monitor
+	mconn4 *mconn             // For IP4 multicasts reception
+	mconn6 *mconn             // For IP6 multicasts reception
+
+	// Table of links.
 	links     map[netip.Addr]*querierLink // Per-local address contexts
-	ports     generic.Set[netip.AddrPort] // Local addr:ports
 	linksLock sync.Mutex                  // querier.links lock
+
+	// Table of local UDP ports. Used to filter off
+	// own UDP messages.
+	ports     generic.Set[netip.AddrPort] // Local addr:ports
 	portsLock sync.Mutex                  // querier.ports lock
+
+	// Table of discovered hosts
+	hosts *hosts // Hosts table
 
 	// querier.procNetmon closing synchronization
 	ctxNetmon    context.Context    // Cancelable context for procNetmon
@@ -74,6 +82,7 @@ func newQuerier(ctx context.Context) (*querier, error) {
 		mconn6: mconn6,
 		links:  make(map[netip.Addr]*querierLink),
 		ports:  generic.NewSet[netip.AddrPort](),
+		hosts:  newHosts(),
 	}
 
 	return q, nil
@@ -109,6 +118,9 @@ func (q *querier) Close() {
 		ql.Close()
 		delete(q.links, addr)
 	}
+
+	// Close hosts
+	q.hosts.Close()
 }
 
 // input handles received UDP messages.
