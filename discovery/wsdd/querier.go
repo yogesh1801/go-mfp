@@ -97,6 +97,12 @@ func (q *querier) Close() {
 
 // Input handles received UDP messages.
 func (q *querier) Input(data []byte, from, to netip.AddrPort, ifidx int) {
+	// Silently drop looped packets
+	if q.links.IsLocalPort(from) {
+		return
+	}
+
+	// Decode the message
 	log.Debug(q.ctx, "%d bytes received from %s%%%d",
 		len(data), from, ifidx)
 
@@ -106,6 +112,7 @@ func (q *querier) Input(data []byte, from, to netip.AddrPort, ifidx int) {
 		return
 	}
 
+	// Dispatch the message
 	log.Debug(q.ctx, "%s message received", msg.Header.Action)
 	switch body := msg.Body.(type) {
 	case wsd.Hello:

@@ -84,6 +84,11 @@ func (lt *links) Del(addr netstate.Addr) {
 	l.Close()
 }
 
+// IsLocalPort reports if given port belongs to our local ports
+func (lt *links) IsLocalPort(addr netip.AddrPort) bool {
+	return lt.ports.Contains(addr)
+}
+
 // link is a per-local address link. It implements sending
 // of the UDP multicast packets from that address and reception
 // of responses.
@@ -195,11 +200,6 @@ func (l *link) procReader() {
 
 		if err != nil {
 			log.Error(l.parent.ctx, "UDP recv: %s", err)
-			continue
-		}
-
-		// Silently drop looped packets
-		if l.parent.ports.Contains(from) {
 			continue
 		}
 
