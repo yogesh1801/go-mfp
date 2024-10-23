@@ -56,9 +56,9 @@ func newQuerier(ctx context.Context) (*querier, error) {
 		netmon: netstate.NewNotifier(),
 		mconn4: mconn4,
 		mconn6: mconn6,
-		hosts:  newHosts(),
 	}
 
+	q.hosts = newHosts(ctx, q)
 	q.links = newLinks(ctx, q)
 
 	return q, nil
@@ -107,6 +107,16 @@ func (q *querier) Input(data []byte, from, to netip.AddrPort, ifidx int) {
 	}
 
 	log.Debug(q.ctx, "%s message received", msg.Header.Action)
+	switch body := msg.Body.(type) {
+	case wsd.Hello:
+		q.hosts.HandleHello(body)
+	case wsd.Bye:
+		q.hosts.HandleBye(body)
+	case wsd.ProbeMatches:
+		q.hosts.HandleProbeMatches(body)
+	case wsd.ResolveMatches:
+		q.hosts.HandleResolveMatches(body)
+	}
 }
 
 // netmonproc processes netstate.Notifier events.
