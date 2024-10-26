@@ -94,6 +94,9 @@ func (res *Resolver) LookupHost(ctx context.Context,
 		case <-tm.C:
 			doneIP4, doneIP6 = true, true
 
+		case <-res.avahiClnt.Chan():
+			// Just drain the channel
+
 		case evnt := <-avahiResolverIP4.Chan():
 			// Note, we ignore avahi.ResolverFailure event,
 			// because it may mean just that resolving didn't
