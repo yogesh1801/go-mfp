@@ -83,12 +83,22 @@ func urlWithZone(u *url.URL, zone string) *url.URL {
 	return u
 }
 
+// urlAddr extracts IP address out of literal URL.
+// If URL is not literal, it returns netip.Addr{}
+func urlAddr(u *url.URL) netip.Addr {
+	addr, err := netip.ParseAddr(u.Hostname())
+	if err != nil {
+		return netip.Addr{}
+	}
+	return addr
+}
+
 // urlZone extracts zone out of the IP6 literal URL.
 // If URL is not literal, or not IP6 link-local unicast,
 // the empty string is returned.
 func urlZone(u *url.URL) (zone string) {
-	addr, err := netip.ParseAddr(u.Hostname())
-	if err == nil && addr.Is6() && addr.IsLinkLocalUnicast() {
+	addr := urlAddr(u)
+	if addr.Is6() && addr.IsLinkLocalUnicast() {
 		zone = addr.Zone()
 	}
 	return
