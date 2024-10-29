@@ -19,14 +19,14 @@ import (
 // TestAnnounce tests announce encoding and decoding
 func TestAnnounce(t *testing.T) {
 	type testData struct {
-		ann    announce
+		ann    Announce
 		xml    xmldoc.Element
 		nsused string
 	}
 
 	tests := []testData{
 		{
-			ann: announce{
+			ann: Announce{
 				EndpointReference: EndpointReference{
 					Address: "urn:uuid:1fccdddc-380e-41df-8d38-b5df20bc47ef",
 				},
@@ -44,7 +44,7 @@ func TestAnnounce(t *testing.T) {
 		},
 
 		{
-			ann: announce{
+			ann: Announce{
 				EndpointReference: EndpointReference{
 					Address: "urn:uuid:1fccdddc-380e-41df-8d38-b5df20bc47ef",
 				},

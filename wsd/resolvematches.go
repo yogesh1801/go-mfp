@@ -39,7 +39,7 @@ func DecodeResolveMatches(root xmldoc.Element) (rm ResolveMatches, err error) {
 	const name = NsDiscovery + ":ResolveMatch"
 	for _, chld := range root.Children {
 		if chld.Name == name {
-			var ann announce
+			var ann Announce
 			ann, err = decodeAnnounce(chld)
 			if err != nil {
 				return
@@ -57,6 +57,21 @@ func (ResolveMatches) Action() Action {
 	return ActResolveMatches
 }
 
+// Announces returns payload of the ResolveMatches message as a slice
+// of the [Announce] structures.
+func (rm ResolveMatches) Announces() []Announce {
+	if rm.ResolveMatch == nil {
+		return nil
+	}
+
+	anns := make([]Announce, len(rm.ResolveMatch))
+	for i := range anns {
+		anns[i] = Announce(rm.ResolveMatch[i])
+	}
+
+	return anns
+}
+
 // ToXML generates XML tree for the message body
 func (rm ResolveMatches) ToXML() xmldoc.Element {
 	elm := xmldoc.Element{
@@ -64,7 +79,7 @@ func (rm ResolveMatches) ToXML() xmldoc.Element {
 	}
 
 	for _, match := range rm.ResolveMatch {
-		chld := announce(match).ToXML(NsDiscovery + ":ResolveMatch")
+		chld := Announce(match).ToXML(NsDiscovery + ":ResolveMatch")
 		elm.Children = append(elm.Children, chld)
 	}
 

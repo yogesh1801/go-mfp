@@ -36,9 +36,15 @@ func (Hello) Action() Action {
 	return ActHello
 }
 
+// Announces returns payload of the Hello message as a slice
+// of the [Announce] structures.
+func (hello Hello) Announces() []Announce {
+	return []Announce{Announce(hello)}
+}
+
 // ToXML generates XML tree for the message body
 func (hello Hello) ToXML() xmldoc.Element {
-	return announce(hello).ToXML(NsDiscovery + ":Hello")
+	return Announce(hello).ToXML(NsDiscovery + ":Hello")
 }
 
 // MarkUsedNamespace marks [xmldoc.Namespace] entries used by
@@ -47,5 +53,5 @@ func (hello Hello) ToXML() xmldoc.Element {
 // This function should not care about Namespace entries, used
 // by XML tags: they are handled automatically.
 func (hello Hello) MarkUsedNamespace(ns xmldoc.Namespace) {
-	announce(hello).MarkUsedNamespace(ns)
+	Announce(hello).MarkUsedNamespace(ns)
 }

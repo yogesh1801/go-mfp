@@ -14,9 +14,13 @@ import (
 	"github.com/alexpevzner/mfp/xmldoc"
 )
 
-// announce is the common data structure, used for the [Hello],
+// Announce is the common data structure, used for the [Hello],
 // [ProbeMatches] and [ResolveMatches] message.
-type announce struct {
+//
+// These messages have a common structure and very similar semantics,
+// so having common type for all of them is quite convenient, as allows
+// common processing.
+type Announce struct {
 	EndpointReference EndpointReference // Stable identifier of the device
 	Types             Types             // Device types
 	XAddrs            XAddrs            // Transport addresses (URLs)
@@ -24,7 +28,7 @@ type announce struct {
 }
 
 // decodeAnnounce decodes [announce] from the XML tree
-func decodeAnnounce(root xmldoc.Element) (ann announce, err error) {
+func decodeAnnounce(root xmldoc.Element) (ann Announce, err error) {
 	defer func() { err = xmlErrWrap(root, err) }()
 
 	// Lookup message elements
@@ -65,7 +69,7 @@ func decodeAnnounce(root xmldoc.Element) (ann announce, err error) {
 }
 
 // ToXML generates XML tree for the message body
-func (ann announce) ToXML(name string) xmldoc.Element {
+func (ann Announce) ToXML(name string) xmldoc.Element {
 	elm := xmldoc.Element{
 		Name: name,
 		Children: []xmldoc.Element{
@@ -94,6 +98,6 @@ func (ann announce) ToXML(name string) xmldoc.Element {
 //
 // This function should not care about Namespace entries, used
 // by XML tags: they are handled automatically.
-func (ann announce) MarkUsedNamespace(ns xmldoc.Namespace) {
+func (ann Announce) MarkUsedNamespace(ns xmldoc.Namespace) {
 	ann.Types.MarkUsedNamespace(ns)
 }

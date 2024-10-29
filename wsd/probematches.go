@@ -39,7 +39,7 @@ func DecodeProbeMatches(root xmldoc.Element) (pm ProbeMatches, err error) {
 	const name = NsDiscovery + ":ProbeMatch"
 	for _, chld := range root.Children {
 		if chld.Name == name {
-			var ann announce
+			var ann Announce
 			ann, err = decodeAnnounce(chld)
 			if err != nil {
 				return
@@ -57,6 +57,21 @@ func (ProbeMatches) Action() Action {
 	return ActProbeMatches
 }
 
+// Announces returns payload of the ProbeMatches message as a slice
+// of the [Announce] structures.
+func (pm ProbeMatches) Announces() []Announce {
+	if pm.ProbeMatch == nil {
+		return nil
+	}
+
+	anns := make([]Announce, len(pm.ProbeMatch))
+	for i := range anns {
+		anns[i] = Announce(pm.ProbeMatch[i])
+	}
+
+	return anns
+}
+
 // ToXML generates XML tree for the message body
 func (pm ProbeMatches) ToXML() xmldoc.Element {
 	elm := xmldoc.Element{
@@ -64,7 +79,7 @@ func (pm ProbeMatches) ToXML() xmldoc.Element {
 	}
 
 	for _, match := range pm.ProbeMatch {
-		chld := announce(match).ToXML(NsDiscovery + ":ProbeMatch")
+		chld := Announce(match).ToXML(NsDiscovery + ":ProbeMatch")
 		elm.Children = append(elm.Children, chld)
 	}
 
