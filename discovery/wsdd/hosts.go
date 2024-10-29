@@ -12,6 +12,7 @@ import (
 	"context"
 	"sync"
 
+	"github.com/alexpevzner/mfp/log"
 	"github.com/alexpevzner/mfp/wsd"
 )
 
@@ -106,7 +107,7 @@ func (ht *hosts) inputProc() {
 
 // handleProbeMatches handles received [wsd.Hello] message.
 func (ht *hosts) handleHello(body wsd.Hello) {
-	ht.handleAnnounce(body.EndpointReference.Address,
+	ht.handleAnnounce(wsd.ActHello, body.EndpointReference.Address,
 		body.Types, body.XAddrs, body.MetadataVersion)
 }
 
@@ -117,7 +118,8 @@ func (ht *hosts) handleBye(body wsd.Bye) {
 // handleProbeMatches handles received [wsd.ProbeMatches] message.
 func (ht *hosts) handleProbeMatches(body wsd.ProbeMatches) {
 	for _, match := range body.ProbeMatch {
-		ht.handleAnnounce(match.EndpointReference.Address,
+		ht.handleAnnounce(wsd.ActProbeMatches,
+			match.EndpointReference.Address,
 			match.Types, match.XAddrs, match.MetadataVersion)
 	}
 }
@@ -125,15 +127,23 @@ func (ht *hosts) handleProbeMatches(body wsd.ProbeMatches) {
 // handleResolveMatches handles received [wsd.ResolveMatches] message.
 func (ht *hosts) handleResolveMatches(body wsd.ResolveMatches) {
 	for _, match := range body.ResolveMatch {
-		ht.handleAnnounce(match.EndpointReference.Address,
+		ht.handleAnnounce(wsd.ActResolveMatches,
+			match.EndpointReference.Address,
 			match.Types, match.XAddrs, match.MetadataVersion)
 	}
 }
 
 // handleAnnounce is the common handler for WSD announce messages
 // (i.e., Hello, ProbeMatch and ResolveMatch).
-func (ht *hosts) handleAnnounce(addr wsd.AnyURI,
-	types wsd.Types, xaddrs wsd.XAddrs, ver uint64) {
+func (ht *hosts) handleAnnounce(action wsd.Action,
+	addr wsd.AnyURI, types wsd.Types, xaddrs wsd.XAddrs, ver uint64) {
+
+	l := log.Begin(ht.ctx)
+	l.Debug("%s: received XAddrs for type %s:", action, types)
+	for _, xaddr := range xaddrs {
+		l.Debug("  %s", xaddr)
+	}
+	l.Commit()
 }
 
 // getHost returns a host by addr. If host is not known yet,
