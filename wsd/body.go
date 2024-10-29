@@ -33,3 +33,15 @@ type Body interface {
 	// encoding of this body.
 	MarkUsedNamespace(xmldoc.Namespace)
 }
+
+// AnnouncesBody represents a message [Body] that contains device
+// announces.
+//
+// AnnouncesBody can be one of the following types:
+//   - [Hello]
+//   - [ProbeMatches]
+//   - [ResolveMatches]
+type AnnouncesBody interface {
+	Body
+	Announces() []Announce
+}
