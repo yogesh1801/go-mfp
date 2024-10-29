@@ -113,9 +113,12 @@ func (ht *hosts) handleAnnounces(body wsd.AnnouncesBody) {
 
 	l := log.Begin(ht.ctx)
 	for _, ann := range anns {
-		l.Debug("%s: received XAddrs for type %s:", action, ann.Types)
-		for _, xaddr := range ann.XAddrs {
-			l.Debug("  %s", xaddr)
+		l.Debug("%s: Types %s:", action, ann.Types)
+		if len(ann.XAddrs) != 0 {
+			l.Debug("Xaddrs:")
+			for _, xaddr := range ann.XAddrs {
+				l.Debug("  %s", xaddr)
+			}
 		}
 	}
 	l.Commit()
