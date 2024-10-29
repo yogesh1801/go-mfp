@@ -114,15 +114,11 @@ func (q *querier) Input(data []byte, from, to netip.AddrPort, ifidx int) {
 
 	// Dispatch the message
 	log.Debug(q.ctx, "%s message received", msg.Header.Action)
-	switch body := msg.Body.(type) {
-	case wsd.Hello:
-		q.hosts.HandleHello(body)
-	case wsd.Bye:
-		q.hosts.HandleBye(body)
-	case wsd.ProbeMatches:
-		q.hosts.HandleProbeMatches(body)
-	case wsd.ResolveMatches:
-		q.hosts.HandleResolveMatches(body)
+
+	switch msg.Header.Action {
+	case wsd.ActHello, wsd.ActBye, wsd.ActProbeMatches,
+		wsd.ActResolveMatches:
+		q.hosts.InputFromUDP(msg)
 	}
 }
 

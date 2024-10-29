@@ -34,19 +34,31 @@ import (
 //     service endpoints, suitable for printing or scanning,
 //     depending on a service type.
 type hosts struct {
-	ctx   context.Context      // Logging context
-	q     *querier             // Parent querier
-	table map[wsd.AnyURI]*host // Table of hosts
-	lock  sync.Mutex           // hosts.table lock
+	ctx        context.Context      // Cancelable context
+	cancel     context.CancelFunc   // Its cancel function
+	q          *querier             // Parent querier
+	table      map[wsd.AnyURI]*host // Table of hosts
+	lock       sync.Mutex           // hosts.table lock
+	inputQueue chan wsd.Msg         // Messages from UDP
+	done       sync.WaitGroup       // Wait for hosts.Close
 }
 
 // newHosts creates a new table of hosts
 func newHosts(ctx context.Context, q *querier) *hosts {
+	// Create cancelable context
+	ctx, cancel := context.WithCancel(ctx)
+
+	// Create hosts structure
 	ht := &hosts{
-		ctx:   ctx,
-		q:     q,
-		table: make(map[wsd.AnyURI]*host),
+		ctx:        ctx,
+		cancel:     cancel,
+		q:          q,
+		table:      make(map[wsd.AnyURI]*host),
+		inputQueue: make(chan wsd.Msg, wsddUDPInputQueueSize),
 	}
+
+	ht.done.Add(1)
+	go ht.inputProc()
 
 	return ht
 }
@@ -54,28 +66,64 @@ func newHosts(ctx context.Context, q *querier) *hosts {
 // Close closes the host table and cancels all ongoing discovery activity,
 // like fetching host's metadata
 func (ht *hosts) Close() {
+	ht.cancel()
+	ht.done.Wait()
 }
 
-// HandleProbeMatches handles received [wsd.Hello] message.
-func (ht *hosts) HandleHello(body wsd.Hello) {
+// InputFromUSB handles WSD message, received from UDP
+func (ht *hosts) InputFromUDP(msg wsd.Msg) {
+	select {
+	// We don't worry too much in a (very unlike) case of the
+	// queue overflow. Just drop the message. This is UDP,
+	// after all.
+	case ht.inputQueue <- msg:
+	default:
+	}
+}
+
+// inputProc runs on its own goroutine and handles all received
+// messages
+func (ht *hosts) inputProc() {
+	defer ht.done.Done()
+
+	for ht.ctx.Err() == nil {
+		select {
+		case <-ht.ctx.Done():
+		case msg := <-ht.inputQueue:
+			switch body := msg.Body.(type) {
+			case wsd.Hello:
+				ht.handleHello(body)
+			case wsd.Bye:
+				ht.handleBye(body)
+			case wsd.ProbeMatches:
+				ht.handleProbeMatches(body)
+			case wsd.ResolveMatches:
+				ht.handleResolveMatches(body)
+			}
+		}
+	}
+}
+
+// handleProbeMatches handles received [wsd.Hello] message.
+func (ht *hosts) handleHello(body wsd.Hello) {
 	ht.handleAnnounce(body.EndpointReference.Address,
 		body.Types, body.XAddrs, body.MetadataVersion)
 }
 
-// HandleBye handles received [wsd.Bye] message.
-func (ht *hosts) HandleBye(body wsd.Bye) {
+// handleBye handles received [wsd.Bye] message.
+func (ht *hosts) handleBye(body wsd.Bye) {
 }
 
-// HandleProbeMatches handles received [wsd.ProbeMatches] message.
-func (ht *hosts) HandleProbeMatches(body wsd.ProbeMatches) {
+// handleProbeMatches handles received [wsd.ProbeMatches] message.
+func (ht *hosts) handleProbeMatches(body wsd.ProbeMatches) {
 	for _, match := range body.ProbeMatch {
 		ht.handleAnnounce(match.EndpointReference.Address,
 			match.Types, match.XAddrs, match.MetadataVersion)
 	}
 }
 
-// HandleResolveMatches handles received [wsd.ResolveMatches] message.
-func (ht *hosts) HandleResolveMatches(body wsd.ResolveMatches) {
+// handleResolveMatches handles received [wsd.ResolveMatches] message.
+func (ht *hosts) handleResolveMatches(body wsd.ResolveMatches) {
 	for _, match := range body.ResolveMatch {
 		ht.handleAnnounce(match.EndpointReference.Address,
 			match.Types, match.XAddrs, match.MetadataVersion)
@@ -83,12 +131,13 @@ func (ht *hosts) HandleResolveMatches(body wsd.ResolveMatches) {
 }
 
 // handleAnnounce is the common handler for WSD announce messages
-// (i.e., Hello, ProbeMatch and ResolveMatch)
+// (i.e., Hello, ProbeMatch and ResolveMatch).
 func (ht *hosts) handleAnnounce(addr wsd.AnyURI,
 	types wsd.Types, xaddrs wsd.XAddrs, ver uint64) {
 }
 
-// getHost
+// getHost returns a host by addr. If host is not known yet,
+// it can be created on demand.
 func (ht *hosts) getHost(addr wsd.AnyURI, create bool) *host {
 	h := ht.table[addr]
 	if h == nil && create {
