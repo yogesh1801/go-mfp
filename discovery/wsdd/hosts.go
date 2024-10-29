@@ -92,56 +92,31 @@ func (ht *hosts) inputProc() {
 		case <-ht.ctx.Done():
 		case msg := <-ht.inputQueue:
 			switch body := msg.Body.(type) {
-			case wsd.Hello:
-				ht.handleHello(body)
+			case wsd.AnnouncesBody:
+				ht.handleAnnounces(body)
 			case wsd.Bye:
 				ht.handleBye(body)
-			case wsd.ProbeMatches:
-				ht.handleProbeMatches(body)
-			case wsd.ResolveMatches:
-				ht.handleResolveMatches(body)
 			}
 		}
 	}
-}
-
-// handleProbeMatches handles received [wsd.Hello] message.
-func (ht *hosts) handleHello(body wsd.Hello) {
-	ht.handleAnnounce(wsd.ActHello, body.EndpointReference.Address,
-		body.Types, body.XAddrs, body.MetadataVersion)
 }
 
 // handleBye handles received [wsd.Bye] message.
 func (ht *hosts) handleBye(body wsd.Bye) {
 }
 
-// handleProbeMatches handles received [wsd.ProbeMatches] message.
-func (ht *hosts) handleProbeMatches(body wsd.ProbeMatches) {
-	for _, match := range body.ProbeMatch {
-		ht.handleAnnounce(wsd.ActProbeMatches,
-			match.EndpointReference.Address,
-			match.Types, match.XAddrs, match.MetadataVersion)
-	}
-}
-
-// handleResolveMatches handles received [wsd.ResolveMatches] message.
-func (ht *hosts) handleResolveMatches(body wsd.ResolveMatches) {
-	for _, match := range body.ResolveMatch {
-		ht.handleAnnounce(wsd.ActResolveMatches,
-			match.EndpointReference.Address,
-			match.Types, match.XAddrs, match.MetadataVersion)
-	}
-}
-
 // handleAnnounce is the common handler for WSD announce messages
 // (i.e., Hello, ProbeMatch and ResolveMatch).
-func (ht *hosts) handleAnnounce(action wsd.Action,
-	addr wsd.AnyURI, types wsd.Types, xaddrs wsd.XAddrs, ver uint64) {
+func (ht *hosts) handleAnnounces(body wsd.AnnouncesBody) {
+	action := body.Action()
+	anns := body.Announces()
 
 	l := log.Begin(ht.ctx)
-	l.Debug("%s: received XAddrs for type %s:", action, types)
-	for _, xaddr := range xaddrs {
-		l.Debug("  %s", xaddr)
+	for _, ann := range anns {
+		l.Debug("%s: received XAddrs for type %s:", action, ann.Types)
+		for _, xaddr := range ann.XAddrs {
+			l.Debug("  %s", xaddr)
+		}
 	}
 	l.Commit()
 }
