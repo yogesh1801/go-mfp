@@ -13,6 +13,8 @@ import (
 	"net/netip"
 	"net/url"
 	"strings"
+
+	"github.com/alexpevzner/mfp/transport"
 )
 
 // urlParse parses and validates HTTP URL.
@@ -23,7 +25,7 @@ import (
 //  2. It must have http or https scheme
 //  3. It must have explicit hostname
 func urlParse(s string) *url.URL {
-	u, err := url.Parse(s)
+	u, err := transport.ParseURL(s)
 	if err != nil {
 		return nil
 	}

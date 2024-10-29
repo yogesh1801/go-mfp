@@ -129,21 +129,21 @@ func TestURLWithZone(t *testing.T) {
 
 	tests := []testData{
 		{"http://www.example.com", "eth0",
-			"http://www.example.com"},
+			"http://www.example.com/"},
 		{"http://127.0.0.1", "eth0",
-			"http://127.0.0.1"},
+			"http://127.0.0.1/"},
 		{"http://127.0.0.1:8080", "eth0",
-			"http://127.0.0.1:8080"},
+			"http://127.0.0.1:8080/"},
 		{"http://[::1]", "eth0",
-			"http://[::1]"},
+			"http://[::1]/"},
 		{"http://[::1]:8080", "eth0",
-			"http://[::1]:8080"},
+			"http://[::1]:8080/"},
 		{"http://[fe80::1cc0:3e8c:119f:c2e1%25ens18]", "eth0",
-			"http://[fe80::1cc0:3e8c:119f:c2e1%25eth0]"},
+			"http://[fe80::1cc0:3e8c:119f:c2e1%25eth0]/"},
 		{"http://[fe80::1cc0:3e8c:119f:c2e1%25ens18]:8080", "eth0",
-			"http://[fe80::1cc0:3e8c:119f:c2e1%25eth0]:8080"},
+			"http://[fe80::1cc0:3e8c:119f:c2e1%25eth0]:8080/"},
 		{"http://[fe80::1cc0:3e8c:119f:c2e1%25ens18]", "",
-			"http://[fe80::1cc0:3e8c:119f:c2e1]"},
+			"http://[fe80::1cc0:3e8c:119f:c2e1]/"},
 	}
 
 	for _, test := range tests {
