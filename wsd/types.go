@@ -52,7 +52,7 @@ func DecodeTypes(root xmldoc.Element) (types Types, err error) {
 }
 
 // String returns text representation for [Types].
-// The representation is compatible for XML.
+// It returns syntactically correct XML representation of the Types value.
 func (types Types) String() string {
 	names := make([]string, 0, 3)
 
