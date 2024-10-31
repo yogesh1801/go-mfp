@@ -56,3 +56,18 @@ func (ls *LockedSet[T]) Del(member T) {
 	ls.set.Del(member)
 	ls.lock.Unlock()
 }
+
+// TestAndAdd adds member to the set and returns true if it was actually added.
+func (ls *LockedSet[T]) TestAndAdd(member T) (added bool) {
+	ls.lock.Lock()
+	defer ls.lock.Unlock()
+	return ls.set.TestAndAdd(member)
+}
+
+// TestAndDel deletes member from the set and returns true if it was actually
+// deleted.
+func (ls *LockedSet[T]) TestAndDel(member T) (deleted bool) {
+	ls.lock.Lock()
+	defer ls.lock.Unlock()
+	return ls.set.TestAndDel(member)
+}

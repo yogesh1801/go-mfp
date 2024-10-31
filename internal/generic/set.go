@@ -48,6 +48,25 @@ func (s Set[T]) Del(member T) {
 	delete(s.members, member)
 }
 
+// TestAndAdd adds member to the set and returns true if it was actually added.
+func (s Set[T]) TestAndAdd(member T) (added bool) {
+	if !s.Contains(member) {
+		s.Add(member)
+		added = true
+	}
+	return
+}
+
+// TestAndDel deletes member from the set and returns true if it was actually
+// deleted.
+func (s Set[T]) TestAndDel(member T) (deleted bool) {
+	if s.Contains(member) {
+		s.Del(member)
+		deleted = true
+	}
+	return
+}
+
 // ForEach applies function to the each member of the set
 func (s Set[T]) ForEach(f func(T)) {
 	for member := range s.members {
