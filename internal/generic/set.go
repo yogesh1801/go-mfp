@@ -9,6 +9,9 @@
 package generic
 
 // Set is the generic set of any comparable objects.
+//
+// Set cannot be simultaneously accessed from multiple goroutines.
+// If you need goroutine safety, use [LockedSet].
 type Set[T comparable] struct {
 	members map[T]struct{} // Members of the set
 }
