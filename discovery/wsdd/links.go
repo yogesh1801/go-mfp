@@ -156,7 +156,7 @@ func (l *link) procProber() {
 				var err error
 				l.conn, err = newUconn(l.addr, 0)
 				if err != nil {
-					back.Debug("%s", err)
+					back.debug("%s", err)
 				}
 
 				if l.conn != nil {
@@ -173,7 +173,7 @@ func (l *link) procProber() {
 		case schedSend:
 			if l.conn != nil {
 				l.conn.WriteToUDPAddrPort(l.probeMsg, l.dest)
-				back.Debug("%s message sent to %s%%%s",
+				back.debug("%s message sent to %s%%%s",
 					wsd.ActProbe, l.dest,
 					l.addr.Interface().Name())
 			}
@@ -198,7 +198,7 @@ func (l *link) procReader() {
 		}
 
 		if err != nil {
-			l.parent.back.Error("UDP recv: %s", err)
+			l.parent.back.error("UDP recv: %s", err)
 			continue
 		}
 

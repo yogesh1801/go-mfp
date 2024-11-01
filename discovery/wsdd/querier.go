@@ -102,12 +102,12 @@ func (q *querier) Input(data []byte, from, to netip.AddrPort, ifidx int) {
 	}
 
 	// Decode the message
-	q.back.Debug("%d bytes received from %s%%%d",
+	q.back.debug("%d bytes received from %s%%%d",
 		len(data), from, ifidx)
 
 	msg, err := wsd.DecodeMsg(data)
 	if err != nil {
-		q.back.Warning("%s", err)
+		q.back.warning("%s", err)
 		return
 	}
 
@@ -117,7 +117,7 @@ func (q *querier) Input(data []byte, from, to netip.AddrPort, ifidx int) {
 	msg.IfIdx = ifidx
 
 	// Dispatch the message
-	q.back.Debug("%s message received", msg.Header.Action)
+	q.back.debug("%s message received", msg.Header.Action)
 
 	switch msg.Header.Action {
 	case wsd.ActHello, wsd.ActBye, wsd.ActProbeMatches,
@@ -137,7 +137,7 @@ func (q *querier) procNetmon() {
 			return
 		}
 
-		q.back.Debug("%s", evnt)
+		q.back.debug("%s", evnt)
 
 		switch evnt := evnt.(type) {
 		case netstate.EventAddPrimaryAddress:
@@ -161,7 +161,7 @@ func (q *querier) procMconn(mc *mconn) {
 		}
 
 		if err != nil {
-			q.back.Error("UDP recv: %s", err)
+			q.back.error("UDP recv: %s", err)
 			continue
 		}
 

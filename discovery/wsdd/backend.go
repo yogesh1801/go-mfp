@@ -61,16 +61,16 @@ func (back *backend) Close() {
 }
 
 // Debug writes a LevelDebug message on behalf of the backend.
-func (back *backend) Debug(format string, args ...any) {
+func (back *backend) debug(format string, args ...any) {
 	log.Debug(back.ctx, format, args...)
 }
 
 // Warning writes a LevelWarning message on behalf of the backend.
-func (back *backend) Warning(format string, args ...any) {
+func (back *backend) warning(format string, args ...any) {
 	log.Warning(back.ctx, format, args...)
 }
 
 // Error writes a LevelError message on behalf of the backend.
-func (back *backend) Error(format string, args ...any) {
+func (back *backend) error(format string, args ...any) {
 	log.Error(back.ctx, format, args...)
 }
