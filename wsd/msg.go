@@ -11,15 +11,22 @@ package wsd
 import (
 	"bytes"
 	"fmt"
+	"net/netip"
 	"slices"
 
 	"github.com/alexpevzner/mfp/xmldoc"
 )
 
 // Msg represents a WSD protocol message.
+//
+// Please notice, the wsd package doesn't use [Msg.From], [Msg.To]
+// and [Msg.IfIdx] by itself. These fields exist here barely for
+// convenience.
 type Msg struct {
-	Header Header // Message header
-	Body   Body   // Message body
+	From, To netip.AddrPort // From/To addresses
+	IfIdx    int            // Network interface index
+	Header   Header         // Message header
+	Body     Body           // Message body
 }
 
 // DecodeMsg decodes [msg] from the wire representation
