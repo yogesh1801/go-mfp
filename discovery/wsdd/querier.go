@@ -14,13 +14,12 @@ import (
 	"sync"
 
 	"github.com/alexpevzner/mfp/discovery/netstate"
-	"github.com/alexpevzner/mfp/log"
 	"github.com/alexpevzner/mfp/wsd"
 )
 
 // querier is responsible for transmission of WSDD queries
 type querier struct {
-	ctx    context.Context    // Logging context
+	back   *backend           // Parent backend
 	netmon *netstate.Notifier // Network state monitor
 	mconn4 *mconn             // For IP4 multicasts reception
 	mconn6 *mconn             // For IP6 multicasts reception
@@ -37,7 +36,7 @@ type querier struct {
 }
 
 // newQuerier creates a new querier
-func newQuerier(ctx context.Context) (*querier, error) {
+func newQuerier(back *backend) (*querier, error) {
 	// Create multicast sockets
 	mconn4, err := newMconn(wsddMulticastIP4)
 	if err != nil {
@@ -52,14 +51,14 @@ func newQuerier(ctx context.Context) (*querier, error) {
 
 	// Create querier structure
 	q := &querier{
-		ctx:    ctx,
+		back:   back,
 		netmon: netstate.NewNotifier(),
 		mconn4: mconn4,
 		mconn6: mconn6,
 	}
 
-	q.units = newUnits(ctx, q)
-	q.links = newLinks(ctx, q)
+	q.units = newUnits(q.back, q)
+	q.links = newLinks(q.back, q)
 
 	return q, nil
 }
@@ -67,7 +66,7 @@ func newQuerier(ctx context.Context) (*querier, error) {
 // Start starts querier operations.
 func (q *querier) Start() {
 	// Start q.procNetmon
-	q.ctxNetmon, q.cancelNetmon = context.WithCancel(q.ctx)
+	q.ctxNetmon, q.cancelNetmon = context.WithCancel(q.back.ctx)
 	q.doneNetmon.Add(1)
 	go q.procNetmon()
 
@@ -103,12 +102,12 @@ func (q *querier) Input(data []byte, from, to netip.AddrPort, ifidx int) {
 	}
 
 	// Decode the message
-	log.Debug(q.ctx, "%d bytes received from %s%%%d",
+	q.back.Debug("%d bytes received from %s%%%d",
 		len(data), from, ifidx)
 
 	msg, err := wsd.DecodeMsg(data)
 	if err != nil {
-		log.Warning(q.ctx, "%s", err)
+		q.back.Warning("%s", err)
 		return
 	}
 
@@ -118,7 +117,7 @@ func (q *querier) Input(data []byte, from, to netip.AddrPort, ifidx int) {
 	msg.IfIdx = ifidx
 
 	// Dispatch the message
-	log.Debug(q.ctx, "%s message received", msg.Header.Action)
+	q.back.Debug("%s message received", msg.Header.Action)
 
 	switch msg.Header.Action {
 	case wsd.ActHello, wsd.ActBye, wsd.ActProbeMatches,
@@ -138,7 +137,7 @@ func (q *querier) procNetmon() {
 			return
 		}
 
-		log.Debug(q.ctx, "%s", evnt)
+		q.back.Debug("%s", evnt)
 
 		switch evnt := evnt.(type) {
 		case netstate.EventAddPrimaryAddress:
@@ -162,7 +161,7 @@ func (q *querier) procMconn(mc *mconn) {
 		}
 
 		if err != nil {
-			log.Error(q.ctx, "UDP recv: %s", err)
+			q.back.Error("UDP recv: %s", err)
 			continue
 		}
 

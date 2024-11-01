@@ -27,17 +27,18 @@ func NewBackend(ctx context.Context) (discovery.Backend, error) {
 	// Set log prefix
 	ctx = log.WithPrefix(ctx, "wsdd")
 
+	// Create backend structure
+	back := &backend{
+		ctx: ctx,
+	}
+
 	// Create querier
-	querier, err := newQuerier(ctx)
+	var err error
+	back.querier, err = newQuerier(back)
 	if err != nil {
 		return nil, err
 	}
 
-	// Create backend structure
-	back := &backend{
-		ctx:     ctx,
-		querier: querier,
-	}
 	return back, nil
 }
 
@@ -57,4 +58,19 @@ func (back *backend) Start(queue *discovery.Eventqueue) {
 // Close closes the backend
 func (back *backend) Close() {
 	back.querier.Close()
+}
+
+// Debug writes a LevelDebug message on behalf of the backend.
+func (back *backend) Debug(format string, args ...any) {
+	log.Debug(back.ctx, format, args...)
+}
+
+// Warning writes a LevelWarning message on behalf of the backend.
+func (back *backend) Warning(format string, args ...any) {
+	log.Warning(back.ctx, format, args...)
+}
+
+// Error writes a LevelError message on behalf of the backend.
+func (back *backend) Error(format string, args ...any) {
+	log.Error(back.ctx, format, args...)
 }

@@ -40,6 +40,7 @@ import (
 // If the same device is visible over multiple network interfaces,
 // the discovery system when merge them together.
 type units struct {
+	back   *backend                   // Parent backend
 	ctx    context.Context            // Cancelable context
 	cancel context.CancelFunc         // Its cancel function
 	q      *querier                   // Parent querier
@@ -49,12 +50,13 @@ type units struct {
 }
 
 // newUnits creates a new table of units
-func newUnits(ctx context.Context, q *querier) *units {
+func newUnits(back *backend, q *querier) *units {
 	// Create cancelable context
-	ctx, cancel := context.WithCancel(ctx)
+	ctx, cancel := context.WithCancel(back.ctx)
 
 	// Create units structure
 	ut := &units{
+		back:   back,
 		ctx:    ctx,
 		cancel: cancel,
 		q:      q,

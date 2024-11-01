@@ -9,19 +9,17 @@
 package wsdd
 
 import (
-	"context"
 	"net/netip"
 	"sync"
 
 	"github.com/alexpevzner/mfp/discovery/netstate"
-	"github.com/alexpevzner/mfp/log"
 	"github.com/alexpevzner/mfp/uuid"
 	"github.com/alexpevzner/mfp/wsd"
 )
 
 // links contains a table of the per-local address links
 type links struct {
-	ctx   context.Context      // Logging context
+	back  *backend             // Parent backend
 	q     *querier             // Parent querier
 	table map[netip.Addr]*link // Per-local address links
 	lock  sync.Mutex           // links.table lock
@@ -29,9 +27,9 @@ type links struct {
 }
 
 // newLinks creates a new links table
-func newLinks(ctx context.Context, q *querier) *links {
+func newLinks(back *backend, q *querier) *links {
 	return &links{
-		ctx:   ctx,
+		back:  back,
 		q:     q,
 		table: make(map[netip.Addr]*link),
 		ports: newPorts(),
@@ -144,6 +142,8 @@ func (l *link) Close() {
 func (l *link) procProber() {
 	defer l.doneProber.Done()
 
+	back := l.parent.back
+
 	for {
 		evnt := <-l.probeSched.Chan()
 		switch evnt {
@@ -156,7 +156,7 @@ func (l *link) procProber() {
 				var err error
 				l.conn, err = newUconn(l.addr, 0)
 				if err != nil {
-					log.Debug(l.parent.ctx, "%s", err)
+					back.Debug("%s", err)
 				}
 
 				if l.conn != nil {
@@ -173,8 +173,7 @@ func (l *link) procProber() {
 		case schedSend:
 			if l.conn != nil {
 				l.conn.WriteToUDPAddrPort(l.probeMsg, l.dest)
-				log.Debug(l.parent.ctx,
-					"%s message sent to %s%%%s",
+				back.Debug("%s message sent to %s%%%s",
 					wsd.ActProbe, l.dest,
 					l.addr.Interface().Name())
 			}
@@ -199,7 +198,7 @@ func (l *link) procReader() {
 		}
 
 		if err != nil {
-			log.Error(l.parent.ctx, "UDP recv: %s", err)
+			l.parent.back.Error("UDP recv: %s", err)
 			continue
 		}
 
