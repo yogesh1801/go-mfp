@@ -112,6 +112,11 @@ func (q *querier) Input(data []byte, from, to netip.AddrPort, ifidx int) {
 		return
 	}
 
+	// Fill Msg.From, Msg.To and Msg.IfIdx
+	msg.From = from
+	msg.To = to
+	msg.IfIdx = ifidx
+
 	// Dispatch the message
 	log.Debug(q.ctx, "%s message received", msg.Header.Action)
 

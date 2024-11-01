@@ -13,7 +13,9 @@ import (
 	"net/url"
 	"sync"
 
+	"github.com/alexpevzner/mfp/discovery"
 	"github.com/alexpevzner/mfp/internal/generic"
+	"github.com/alexpevzner/mfp/internal/zone"
 	"github.com/alexpevzner/mfp/log"
 	"github.com/alexpevzner/mfp/wsd"
 )
@@ -37,13 +39,13 @@ import (
 //     service endpoints, suitable for printing or scanning,
 //     depending on a service type.
 type hosts struct {
-	ctx        context.Context      // Cancelable context
-	cancel     context.CancelFunc   // Its cancel function
-	q          *querier             // Parent querier
-	table      map[wsd.AnyURI]*host // Table of hosts
-	lock       sync.Mutex           // hosts.table lock
-	inputQueue chan wsd.Msg         // Messages from UDP
-	done       sync.WaitGroup       // Wait for hosts.Close
+	ctx        context.Context            // Cancelable context
+	cancel     context.CancelFunc         // Its cancel function
+	q          *querier                   // Parent querier
+	table      map[discovery.UnitID]*unit // Discovered units
+	lock       sync.Mutex                 // hosts.table lock
+	inputQueue chan wsd.Msg               // Messages from UDP
+	done       sync.WaitGroup             // Wait for hosts.Close
 }
 
 // newHosts creates a new table of hosts
@@ -56,7 +58,7 @@ func newHosts(ctx context.Context, q *querier) *hosts {
 		ctx:        ctx,
 		cancel:     cancel,
 		q:          q,
-		table:      make(map[wsd.AnyURI]*host),
+		table:      make(map[discovery.UnitID]*unit),
 		inputQueue: make(chan wsd.Msg, wsddUDPInputQueueSize),
 	}
 
@@ -93,23 +95,24 @@ func (ht *hosts) inputProc() {
 		select {
 		case <-ht.ctx.Done():
 		case msg := <-ht.inputQueue:
-			switch body := msg.Body.(type) {
+			switch msg.Body.(type) {
 			case wsd.AnnouncesBody:
-				ht.handleAnnounces(body)
+				ht.handleAnnounces(msg)
 			case wsd.Bye:
-				ht.handleBye(body)
+				ht.handleBye(msg)
 			}
 		}
 	}
 }
 
 // handleBye handles received [wsd.Bye] message.
-func (ht *hosts) handleBye(body wsd.Bye) {
+func (ht *hosts) handleBye(msg wsd.Msg) {
 }
 
 // handleAnnounce is the common handler for WSD announce messages
 // (i.e., Hello, ProbeMatch and ResolveMatch).
-func (ht *hosts) handleAnnounces(body wsd.AnnouncesBody) {
+func (ht *hosts) handleAnnounces(msg wsd.Msg) {
+	body := msg.Body.(wsd.AnnouncesBody)
 	action := body.Action()
 	anns := body.Announces()
 
@@ -123,6 +126,11 @@ func (ht *hosts) handleAnnounces(body wsd.AnnouncesBody) {
 		l.Debug("  Address         %s:", addr)
 		l.Debug("  Types           %s:", ann.Types)
 		l.Debug("  MetadataVersion %d:", ver)
+
+		printUnitID := ht.makeUnitID(msg.IfIdx,
+			discovery.ServicePrinter, addr)
+		scanUnitID := ht.makeUnitID(msg.IfIdx,
+			discovery.ServiceScanner, addr)
 
 		if len(ann.XAddrs) != 0 {
 			l.Debug("  Xaddrs:")
@@ -140,38 +148,58 @@ func (ht *hosts) handleAnnounces(body wsd.AnnouncesBody) {
 
 			// Dispatch XAddrs
 			if len(xaddrs) != 0 {
-				h := ht.getHost(addr, true)
-				h.handleXaddrs(xaddrs, ver)
+				if ann.Types&wsd.TypePrinter != 0 {
+					un := ht.getUnit(printUnitID, true)
+					un.handleXaddrs(xaddrs, ver)
+				}
+
+				if ann.Types&wsd.TypeScanner != 0 {
+					un := ht.getUnit(scanUnitID, true)
+					un.handleXaddrs(xaddrs, ver)
+				}
 			}
 		}
 	}
 	l.Commit()
 }
 
-// getHost returns a host by addr. If host is not known yet,
-// it can be created on demand.
-func (ht *hosts) getHost(addr wsd.AnyURI, create bool) *host {
-	h := ht.table[addr]
-	if h == nil && create {
-		h = newHost(addr)
+// makeUnitID creates a discovery.UnitID for the discovered
+// service
+func (ht *hosts) makeUnitID(ifidx int, svctype discovery.ServiceType,
+	addr wsd.AnyURI) discovery.UnitID {
+	return discovery.UnitID{
+		UUID:     addr.UUID(),
+		Realm:    discovery.RealmWSD,
+		Zone:     zone.Name(ifidx),
+		SvcType:  svctype,
+		SvcProto: discovery.ServiceWSD,
 	}
-	return h
 }
 
-// host represents a discovered host (a device). Each host may
-// be a home of oner or more hosted services.
-type host struct {
-	addr       wsd.AnyURI                 // Host "address" (stable ident)
+// getUnit returns an unit by id. If unit is not known yet,
+// it can be created on demand.
+func (ht *hosts) getUnit(id discovery.UnitID, create bool) *unit {
+	un := ht.table[id]
+	if un == nil && create {
+		un = newUnit(id)
+	}
+	return un
+}
+
+// host represents a discovered unit (a device)
+type unit struct {
+	id         discovery.UnitID           // Unit ID
 	xaddrsSeen *generic.LockedSet[string] // Known XAddrs
 }
 
-func newHost(addr wsd.AnyURI) *host {
-	return &host{
-		addr:       addr,
+// newUnut creates an unit structure
+func newUnit(id discovery.UnitID) *unit {
+	return &unit{
+		id:         id,
 		xaddrsSeen: generic.NewLockedSet[string](),
 	}
 }
 
 // handleXaddrs handles newly discovered XAddrs
-func (h *host) handleXaddrs(xaddrs []*url.URL, ver uint64) {
+func (un *unit) handleXaddrs(xaddrs []*url.URL, ver uint64) {
 }
