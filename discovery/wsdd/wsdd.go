@@ -19,8 +19,4 @@ var (
 
 	// WSDD IPv6 multicast group address
 	wsddMulticastIP6 = netip.MustParseAddrPort("[ff02::c]:3702")
-
-	// UDP input queue size, in messages. 256 looks enough,
-	// normally high traffic is not expected here.
-	wsddUDPInputQueueSize = 256
 )

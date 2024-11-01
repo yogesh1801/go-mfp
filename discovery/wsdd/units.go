@@ -40,13 +40,12 @@ import (
 // If the same device is visible over multiple network interfaces,
 // the discovery system when merge them together.
 type units struct {
-	ctx        context.Context            // Cancelable context
-	cancel     context.CancelFunc         // Its cancel function
-	q          *querier                   // Parent querier
-	table      map[discovery.UnitID]*unit // Discovered units
-	lock       sync.Mutex                 // units.table lock
-	inputQueue chan wsd.Msg               // Messages from UDP
-	done       sync.WaitGroup             // Wait for hosts.Close
+	ctx    context.Context            // Cancelable context
+	cancel context.CancelFunc         // Its cancel function
+	q      *querier                   // Parent querier
+	table  map[discovery.UnitID]*unit // Discovered units
+	lock   sync.Mutex                 // units.table lock
+	done   sync.WaitGroup             // Wait for hosts.Close
 }
 
 // newUnits creates a new table of units
@@ -56,15 +55,11 @@ func newUnits(ctx context.Context, q *querier) *units {
 
 	// Create units structure
 	ut := &units{
-		ctx:        ctx,
-		cancel:     cancel,
-		q:          q,
-		table:      make(map[discovery.UnitID]*unit),
-		inputQueue: make(chan wsd.Msg, wsddUDPInputQueueSize),
+		ctx:    ctx,
+		cancel: cancel,
+		q:      q,
+		table:  make(map[discovery.UnitID]*unit),
 	}
-
-	ut.done.Add(1)
-	go ut.inputProc()
 
 	return ut
 }
@@ -78,31 +73,14 @@ func (ut *units) Close() {
 
 // InputFromUSB handles WSD message, received from UDP
 func (ut *units) InputFromUDP(msg wsd.Msg) {
-	select {
-	// We don't worry too much in a (very unlike) case of the
-	// queue overflow. Just drop the message. This is UDP,
-	// after all.
-	case ut.inputQueue <- msg:
-	default:
-	}
-}
+	ut.lock.Lock()
+	defer ut.lock.Unlock()
 
-// inputProc runs on its own goroutine and handles all received
-// messages
-func (ut *units) inputProc() {
-	defer ut.done.Done()
-
-	for ut.ctx.Err() == nil {
-		select {
-		case <-ut.ctx.Done():
-		case msg := <-ut.inputQueue:
-			switch msg.Body.(type) {
-			case wsd.AnnouncesBody:
-				ut.handleAnnounces(msg)
-			case wsd.Bye:
-				ut.handleBye(msg)
-			}
-		}
+	switch msg.Body.(type) {
+	case wsd.AnnouncesBody:
+		ut.handleAnnounces(msg)
+	case wsd.Bye:
+		ut.handleBye(msg)
 	}
 }
 
@@ -118,15 +96,14 @@ func (ut *units) handleAnnounces(msg wsd.Msg) {
 	anns := body.Announces()
 
 	// Parse and dispatch XAddrs. Log the event.
-	l := log.Begin(ut.ctx)
 	for _, ann := range anns {
 		addr := ann.EndpointReference.Address
 		ver := ann.MetadataVersion
 
-		l.Debug("%s received:", action)
-		l.Debug("  Address         %s:", addr)
-		l.Debug("  Types           %s:", ann.Types)
-		l.Debug("  MetadataVersion %d:", ver)
+		log.Debug(ut.ctx, "%s received:", action)
+		log.Debug(ut.ctx, "  Address         %s:", addr)
+		log.Debug(ut.ctx, "  Types           %s:", ann.Types)
+		log.Debug(ut.ctx, "  MetadataVersion %d:", ver)
 
 		printUnitID := ut.makeUnitID(msg.IfIdx,
 			discovery.ServicePrinter, addr)
@@ -134,16 +111,16 @@ func (ut *units) handleAnnounces(msg wsd.Msg) {
 			discovery.ServiceScanner, addr)
 
 		if len(ann.XAddrs) != 0 {
-			l.Debug("  Xaddrs:")
+			log.Debug(ut.ctx, "  Xaddrs:")
 
 			// Parse and collect XAddrs
 			var xaddrs []*url.URL
 			for _, s := range ann.XAddrs {
 				if u := urlParse(s); u != nil {
-					l.Debug("    %s", s)
+					log.Debug(ut.ctx, "    %s", s)
 					xaddrs = append(xaddrs, u)
 				} else {
-					l.Warning("    %s (invalid)", s)
+					log.Warning(ut.ctx, "    %s (invalid)", s)
 				}
 			}
 
@@ -161,7 +138,6 @@ func (ut *units) handleAnnounces(msg wsd.Msg) {
 			}
 		}
 	}
-	l.Commit()
 }
 
 // makeUnitID creates a discovery.UnitID for the discovered
