@@ -25,7 +25,7 @@ type querier struct {
 	mconn4 *mconn             // For IP4 multicasts reception
 	mconn6 *mconn             // For IP6 multicasts reception
 	links  *links             // Per-local address links
-	hosts  *hosts             // Hosts table
+	units  *units             // Hosts table
 
 	// querier.procNetmon closing synchronization
 	ctxNetmon    context.Context    // Cancelable context for procNetmon
@@ -58,7 +58,7 @@ func newQuerier(ctx context.Context) (*querier, error) {
 		mconn6: mconn6,
 	}
 
-	q.hosts = newHosts(ctx, q)
+	q.units = newUnits(ctx, q)
 	q.links = newLinks(ctx, q)
 
 	return q, nil
@@ -92,7 +92,7 @@ func (q *querier) Close() {
 	q.links.Close()
 
 	// Close hosts
-	q.hosts.Close()
+	q.units.Close()
 }
 
 // Input handles received UDP messages.
@@ -123,7 +123,7 @@ func (q *querier) Input(data []byte, from, to netip.AddrPort, ifidx int) {
 	switch msg.Header.Action {
 	case wsd.ActHello, wsd.ActBye, wsd.ActProbeMatches,
 		wsd.ActResolveMatches:
-		q.hosts.InputFromUDP(msg)
+		q.units.InputFromUDP(msg)
 	}
 }
 

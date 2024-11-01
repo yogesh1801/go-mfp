@@ -4,7 +4,7 @@
 // Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
 // See LICENSE for license terms and conditions
 //
-// Table of discovered hosts
+// Table of discovered units
 
 package wsdd
 
@@ -20,15 +20,11 @@ import (
 	"github.com/alexpevzner/mfp/wsd"
 )
 
-// hosts contains a table of discovered hosts.
-//
-// Hosts, in the WSD terms, more or less corresponds to devices on
-// a network. Each device contains some "hosted" services (print
-// service, scan service etc).
+// units contains a table of discovered units.
 //
 // Please note, WSD uses 3-level addressing architecture:
 //  1. Each device has a stable device "address", persistent
-//     across reboots. Formally this is "anyURI", but usually,
+//     across reboots. Formally this is "xsd:anyURI", but usually,
 //     uri:uuid:...
 //  2. Each "hosted service" (i.e., printer, scanner, ...) has
 //     one or more "transport addresses" (HTTP URLs). The transport
@@ -38,23 +34,28 @@ import (
 //  3. Querying device metadata via XAddrs return one or more
 //     service endpoints, suitable for printing or scanning,
 //     depending on a service type.
-type hosts struct {
+//
+// Every unit represents a discovered unit (the "hosted service"
+// in the WSD terms), localized to the particular network interface.
+// If the same device is visible over multiple network interfaces,
+// the discovery system when merge them together.
+type units struct {
 	ctx        context.Context            // Cancelable context
 	cancel     context.CancelFunc         // Its cancel function
 	q          *querier                   // Parent querier
 	table      map[discovery.UnitID]*unit // Discovered units
-	lock       sync.Mutex                 // hosts.table lock
+	lock       sync.Mutex                 // units.table lock
 	inputQueue chan wsd.Msg               // Messages from UDP
 	done       sync.WaitGroup             // Wait for hosts.Close
 }
 
-// newHosts creates a new table of hosts
-func newHosts(ctx context.Context, q *querier) *hosts {
+// newUnits creates a new table of units
+func newUnits(ctx context.Context, q *querier) *units {
 	// Create cancelable context
 	ctx, cancel := context.WithCancel(ctx)
 
-	// Create hosts structure
-	ht := &hosts{
+	// Create units structure
+	ut := &units{
 		ctx:        ctx,
 		cancel:     cancel,
 		q:          q,
@@ -62,62 +63,62 @@ func newHosts(ctx context.Context, q *querier) *hosts {
 		inputQueue: make(chan wsd.Msg, wsddUDPInputQueueSize),
 	}
 
-	ht.done.Add(1)
-	go ht.inputProc()
+	ut.done.Add(1)
+	go ut.inputProc()
 
-	return ht
+	return ut
 }
 
-// Close closes the host table and cancels all ongoing discovery activity,
-// like fetching host's metadata
-func (ht *hosts) Close() {
-	ht.cancel()
-	ht.done.Wait()
+// Close closes the unit table and cancels all ongoing discovery activity,
+// like fetching unit's metadata
+func (ut *units) Close() {
+	ut.cancel()
+	ut.done.Wait()
 }
 
 // InputFromUSB handles WSD message, received from UDP
-func (ht *hosts) InputFromUDP(msg wsd.Msg) {
+func (ut *units) InputFromUDP(msg wsd.Msg) {
 	select {
 	// We don't worry too much in a (very unlike) case of the
 	// queue overflow. Just drop the message. This is UDP,
 	// after all.
-	case ht.inputQueue <- msg:
+	case ut.inputQueue <- msg:
 	default:
 	}
 }
 
 // inputProc runs on its own goroutine and handles all received
 // messages
-func (ht *hosts) inputProc() {
-	defer ht.done.Done()
+func (ut *units) inputProc() {
+	defer ut.done.Done()
 
-	for ht.ctx.Err() == nil {
+	for ut.ctx.Err() == nil {
 		select {
-		case <-ht.ctx.Done():
-		case msg := <-ht.inputQueue:
+		case <-ut.ctx.Done():
+		case msg := <-ut.inputQueue:
 			switch msg.Body.(type) {
 			case wsd.AnnouncesBody:
-				ht.handleAnnounces(msg)
+				ut.handleAnnounces(msg)
 			case wsd.Bye:
-				ht.handleBye(msg)
+				ut.handleBye(msg)
 			}
 		}
 	}
 }
 
 // handleBye handles received [wsd.Bye] message.
-func (ht *hosts) handleBye(msg wsd.Msg) {
+func (ut *units) handleBye(msg wsd.Msg) {
 }
 
 // handleAnnounce is the common handler for WSD announce messages
 // (i.e., Hello, ProbeMatch and ResolveMatch).
-func (ht *hosts) handleAnnounces(msg wsd.Msg) {
+func (ut *units) handleAnnounces(msg wsd.Msg) {
 	body := msg.Body.(wsd.AnnouncesBody)
 	action := body.Action()
 	anns := body.Announces()
 
 	// Parse and dispatch XAddrs. Log the event.
-	l := log.Begin(ht.ctx)
+	l := log.Begin(ut.ctx)
 	for _, ann := range anns {
 		addr := ann.EndpointReference.Address
 		ver := ann.MetadataVersion
@@ -127,9 +128,9 @@ func (ht *hosts) handleAnnounces(msg wsd.Msg) {
 		l.Debug("  Types           %s:", ann.Types)
 		l.Debug("  MetadataVersion %d:", ver)
 
-		printUnitID := ht.makeUnitID(msg.IfIdx,
+		printUnitID := ut.makeUnitID(msg.IfIdx,
 			discovery.ServicePrinter, addr)
-		scanUnitID := ht.makeUnitID(msg.IfIdx,
+		scanUnitID := ut.makeUnitID(msg.IfIdx,
 			discovery.ServiceScanner, addr)
 
 		if len(ann.XAddrs) != 0 {
@@ -149,12 +150,12 @@ func (ht *hosts) handleAnnounces(msg wsd.Msg) {
 			// Dispatch XAddrs
 			if len(xaddrs) != 0 {
 				if ann.Types&wsd.TypePrinter != 0 {
-					un := ht.getUnit(printUnitID, true)
+					un := ut.getUnit(printUnitID, true)
 					un.handleXaddrs(xaddrs, ver)
 				}
 
 				if ann.Types&wsd.TypeScanner != 0 {
-					un := ht.getUnit(scanUnitID, true)
+					un := ut.getUnit(scanUnitID, true)
 					un.handleXaddrs(xaddrs, ver)
 				}
 			}
@@ -165,7 +166,7 @@ func (ht *hosts) handleAnnounces(msg wsd.Msg) {
 
 // makeUnitID creates a discovery.UnitID for the discovered
 // service
-func (ht *hosts) makeUnitID(ifidx int, svctype discovery.ServiceType,
+func (ut *units) makeUnitID(ifidx int, svctype discovery.ServiceType,
 	addr wsd.AnyURI) discovery.UnitID {
 	return discovery.UnitID{
 		UUID:     addr.UUID(),
@@ -178,15 +179,15 @@ func (ht *hosts) makeUnitID(ifidx int, svctype discovery.ServiceType,
 
 // getUnit returns an unit by id. If unit is not known yet,
 // it can be created on demand.
-func (ht *hosts) getUnit(id discovery.UnitID, create bool) *unit {
-	un := ht.table[id]
+func (ut *units) getUnit(id discovery.UnitID, create bool) *unit {
+	un := ut.table[id]
 	if un == nil && create {
 		un = newUnit(id)
 	}
 	return un
 }
 
-// host represents a discovered unit (a device)
+// unit represents a discovered unit (a device)
 type unit struct {
 	id         discovery.UnitID           // Unit ID
 	xaddrsSeen *generic.LockedSet[string] // Known XAddrs
