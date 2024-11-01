@@ -11,6 +11,7 @@ package wsd
 import (
 	"errors"
 
+	"github.com/alexpevzner/mfp/uuid"
 	"github.com/alexpevzner/mfp/xmldoc"
 )
 
@@ -31,4 +32,20 @@ func DecodeAnyURIAttr(attr xmldoc.Attr) (v AnyURI, err error) {
 		return AnyURI(attr.Value), nil
 	}
 	return "", xmlErrWrapAttr(attr, errors.New("invalid URi"))
+}
+
+// UUID converts AnyURI into the [uuid.UUID].
+//
+// If AnyURI is the syntactically correct UUID (for example, in
+// the urn:uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx form), it is
+// parsed and returned.
+//
+// Otherwise, it returns uuid.SHA1(uuid.NameSpaceURL, string(s)).
+func (s AnyURI) UUID() uuid.UUID {
+	u, err := uuid.Parse(string(s))
+	if err == nil {
+		return u
+	}
+
+	return uuid.SHA1(uuid.NameSpaceURL, string(s))
 }
