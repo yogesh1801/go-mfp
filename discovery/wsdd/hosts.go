@@ -10,8 +10,10 @@ package wsdd
 
 import (
 	"context"
+	"net/url"
 	"sync"
 
+	"github.com/alexpevzner/mfp/internal/generic"
 	"github.com/alexpevzner/mfp/log"
 	"github.com/alexpevzner/mfp/wsd"
 )
@@ -111,13 +113,35 @@ func (ht *hosts) handleAnnounces(body wsd.AnnouncesBody) {
 	action := body.Action()
 	anns := body.Announces()
 
+	// Parse and dispatch XAddrs. Log the event.
 	l := log.Begin(ht.ctx)
 	for _, ann := range anns {
-		l.Debug("%s: Types %s:", action, ann.Types)
+		addr := ann.EndpointReference.Address
+		ver := ann.MetadataVersion
+
+		l.Debug("%s received:", action)
+		l.Debug("  Address         %s:", addr)
+		l.Debug("  Types           %s:", ann.Types)
+		l.Debug("  MetadataVersion %d:", ver)
+
 		if len(ann.XAddrs) != 0 {
-			l.Debug("Xaddrs:")
-			for _, xaddr := range ann.XAddrs {
-				l.Debug("  %s", xaddr)
+			l.Debug("  Xaddrs:")
+
+			// Parse and collect XAddrs
+			var xaddrs []*url.URL
+			for _, s := range ann.XAddrs {
+				if u := urlParse(s); u != nil {
+					l.Debug("    %s", s)
+					xaddrs = append(xaddrs, u)
+				} else {
+					l.Warning("    %s (invalid)", s)
+				}
+			}
+
+			// Dispatch XAddrs
+			if len(xaddrs) != 0 {
+				h := ht.getHost(addr, true)
+				h.handleXaddrs(xaddrs, ver)
 			}
 		}
 	}
@@ -129,7 +153,7 @@ func (ht *hosts) handleAnnounces(body wsd.AnnouncesBody) {
 func (ht *hosts) getHost(addr wsd.AnyURI, create bool) *host {
 	h := ht.table[addr]
 	if h == nil && create {
-		h = &host{Address: addr}
+		h = newHost(addr)
 	}
 	return h
 }
@@ -137,7 +161,17 @@ func (ht *hosts) getHost(addr wsd.AnyURI, create bool) *host {
 // host represents a discovered host (a device). Each host may
 // be a home of oner or more hosted services.
 type host struct {
-	Address     wsd.AnyURI // Host "address" (stable identifier)
-	XAddrsScan  []string   // Scanner transport addresses
-	XAddrsPrint []string   // Printer transport addresses
+	addr       wsd.AnyURI                 // Host "address" (stable ident)
+	xaddrsSeen *generic.LockedSet[string] // Known XAddrs
+}
+
+func newHost(addr wsd.AnyURI) *host {
+	return &host{
+		addr:       addr,
+		xaddrsSeen: generic.NewLockedSet[string](),
+	}
+}
+
+// handleXaddrs handles newly discovered XAddrs
+func (h *host) handleXaddrs(xaddrs []*url.URL, ver uint64) {
 }
