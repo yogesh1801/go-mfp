@@ -25,6 +25,7 @@ func TestURLParse(t *testing.T) {
 		{"example.com", false},
 		{"http:///example.com", false},
 		{"ftp://example.com", false},
+		{"ipp://example.com", false},
 		{"%%%", false},
 	}
 
@@ -122,9 +123,9 @@ func TestURLIsIP6(t *testing.T) {
 // TestURLWithZone tests urlWithZone function
 func TestURLWithZone(t *testing.T) {
 	type testData struct {
-		in   string // Input string
+		in   string // Input URL string
 		zone string // The zone
-		out  string // Output string
+		out  string // Expected output URL string
 	}
 
 	tests := []testData{
@@ -153,6 +154,42 @@ func TestURLWithZone(t *testing.T) {
 				"expected: %q\n"+
 				"present:  %q\n",
 				test.in, test.zone, test.out, out)
+		}
+	}
+}
+
+// TestURLWithHostname tests urlWithHostname function
+func TestURLWithHostname(t *testing.T) {
+	type testData struct {
+		in   string // Input URL string
+		host string // The hostname
+		out  string // Expected output URL string
+	}
+
+	tests := []testData{
+		{"http://www.example.com", "127.0.0.1",
+			"http://127.0.0.1/"},
+		{"http://www.example.com", "::1",
+			"http://[::1]/"},
+		{"http://www.example.com:8080", "127.0.0.1",
+			"http://127.0.0.1:8080/"},
+		{"http://www.example.com:8080", "::1",
+			"http://[::1]:8080/"},
+		{"http://www.example.com", "fe80::1cc0:3e8c:119f:c2e1%ens18",
+			"http://[fe80::1cc0:3e8c:119f:c2e1%25ens18]/"},
+		{"http://www.example.comi:8080", "fe80::1cc0:3e8c:119f:c2e1%ens18",
+			"http://[fe80::1cc0:3e8c:119f:c2e1%25ens18]:8080/"},
+		{"http://[fe80::1cc0:3e8c:119f:c2e1%25ens18]/", "127.0.0.1",
+			"http://127.0.0.1/"},
+	}
+
+	for _, test := range tests {
+		out := urlWithHostname(urlParse(test.in), test.host).String()
+		if out != test.out {
+			t.Errorf("%q with hostname %q:\n"+
+				"expected: %q\n"+
+				"present:  %q\n",
+				test.in, test.host, test.out, out)
 		}
 	}
 }

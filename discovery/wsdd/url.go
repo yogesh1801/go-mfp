@@ -85,6 +85,22 @@ func urlWithZone(u *url.URL, zone string) *url.URL {
 	return u
 }
 
+// urlWithHostname replaces URL's hostname. It returns the updated
+// shallow copy of the original URL.
+func urlWithHostname(u *url.URL, host string) *url.URL {
+	u = urlShallowCopy(u)
+
+	if port := u.Port(); port != "" {
+		host = net.JoinHostPort(host, port)
+	} else if strings.IndexByte(host, ':') >= 0 {
+		host = "[" + host + "]"
+	}
+
+	u.Host = host
+
+	return u
+}
+
 // urlAddr extracts IP address out of literal URL.
 // If URL is not literal, it returns netip.Addr{}
 func urlAddr(u *url.URL) netip.Addr {
