@@ -20,7 +20,7 @@ import (
 	"github.com/alexpevzner/mfp/wsd"
 )
 
-// units contains a table of discovered units.
+// units manages a table of discovered units.
 //
 // Please note, WSD uses 3-level addressing architecture:
 //  1. Each device has a stable device "address", persistent
@@ -43,14 +43,13 @@ type units struct {
 	back   *backend                   // Parent backend
 	ctx    context.Context            // Cancelable context
 	cancel context.CancelFunc         // Its cancel function
-	q      *querier                   // Parent querier
 	table  map[discovery.UnitID]*unit // Discovered units
 	lock   sync.Mutex                 // units.table lock
 	done   sync.WaitGroup             // Wait for hosts.Close
 }
 
 // newUnits creates a new table of units
-func newUnits(back *backend, q *querier) *units {
+func newUnits(back *backend) *units {
 	// Create cancelable context
 	ctx, cancel := context.WithCancel(back.ctx)
 
@@ -59,7 +58,6 @@ func newUnits(back *backend, q *querier) *units {
 		back:   back,
 		ctx:    ctx,
 		cancel: cancel,
-		q:      q,
 		table:  make(map[discovery.UnitID]*unit),
 	}
 

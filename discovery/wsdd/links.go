@@ -9,6 +9,7 @@
 package wsdd
 
 import (
+	"context"
 	"net/netip"
 	"sync"
 
@@ -17,40 +18,90 @@ import (
 	"github.com/alexpevzner/mfp/wsd"
 )
 
-// links contains a table of the per-local address links
+// links dynamically manages per-local-address UDP links.
 type links struct {
-	back  *backend             // Parent backend
-	q     *querier             // Parent querier
-	table map[netip.Addr]*link // Per-local address links
-	lock  sync.Mutex           // links.table lock
-	ports *ports               // Set of Local ports
+	back   *backend             // Parent backend
+	netmon *netstate.Notifier   // Network state monitor
+	mconn4 *mconn               // For IP4 multicasts reception
+	mconn6 *mconn               // For IP6 multicasts reception
+	table  map[netip.Addr]*link // Per-local address links
+	lock   sync.Mutex           // links.table lock
+	ports  *ports               // Set of Local ports
+
+	// querier.procNetmon closing synchronization
+	ctxNetmon    context.Context    // Cancelable context for procNetmon
+	cancelNetmon context.CancelFunc // Its cancellation function
+	doneNetmon   sync.WaitGroup     // Wait for procNetmon termination
+
+	// querier.procMconn closing synchronization
+	doneMconn sync.WaitGroup // Wait for procMconn termination
 }
 
-// newLinks creates a new links table
-func newLinks(back *backend, q *querier) *links {
-	return &links{
-		back:  back,
-		q:     q,
-		table: make(map[netip.Addr]*link),
-		ports: newPorts(),
+// newLinks creates a new links structure
+func newLinks(back *backend) (*links, error) {
+	// Create multicast sockets
+	mconn4, err := newMconn(wsddMulticastIP4)
+	if err != nil {
+		return nil, err
 	}
+
+	mconn6, err := newMconn(wsddMulticastIP6)
+	if err != nil {
+		mconn4.Close()
+		return nil, err
+	}
+
+	// Create links structure
+	lt := &links{
+		back:   back,
+		netmon: netstate.NewNotifier(),
+		mconn4: mconn4,
+		mconn6: mconn6,
+		table:  make(map[netip.Addr]*link),
+		ports:  newPorts(),
+	}
+
+	return lt, nil
+}
+
+// Start starts links operations.
+func (lt *links) Start() {
+	// Start links.procNetmon
+	lt.ctxNetmon, lt.cancelNetmon = context.WithCancel(lt.back.ctx)
+	lt.doneNetmon.Add(1)
+	go lt.procNetmon()
+
+	// Start links.procMconn, one per connection
+	lt.doneMconn.Add(2)
+	go lt.procMconn(lt.mconn4)
+	go lt.procMconn(lt.mconn6)
 }
 
 // Close closes links table and all links it owns.
 func (lt *links) Close() {
-	lt.ports.Clear()
+	// Stop procNetmon
+	lt.cancelNetmon()
+	lt.doneNetmon.Wait()
 
+	// Stop multicasts reception
+	lt.mconn4.Close()
+	lt.mconn6.Close()
+	lt.doneMconn.Wait()
+
+	// Close each individual link
 	lt.lock.Lock()
-	defer lt.lock.Unlock()
 
+	lt.ports.Clear()
 	for addr, l := range lt.table {
 		l.Close()
 		delete(lt.table, addr)
 	}
+
+	lt.lock.Unlock()
 }
 
-// Add adds a local address
-func (lt *links) Add(addr netstate.Addr) {
+// Add adds a local address and corresponding link
+func (lt *links) add(addr netstate.Addr) {
 	// Ignore non-multicast links
 	flags := addr.Interface().Flags()
 	if !flags.All(netstate.NetIfMulticast) {
@@ -66,7 +117,7 @@ func (lt *links) Add(addr netstate.Addr) {
 }
 
 // Del deletes local address
-func (lt *links) Del(addr netstate.Addr) {
+func (lt *links) del(addr netstate.Addr) {
 	// Ignore non-multicast links
 	flags := addr.Interface().Flags()
 	if !flags.All(netstate.NetIfMulticast) {
@@ -85,6 +136,49 @@ func (lt *links) Del(addr netstate.Addr) {
 // IsLocalPort reports if given port belongs to our local ports
 func (lt *links) IsLocalPort(addr netip.AddrPort) bool {
 	return lt.ports.Contains(addr)
+}
+
+// netmonproc processes netstate.Notifier events.
+// It runs on its own goroutine.
+func (lt *links) procNetmon() {
+	defer lt.doneNetmon.Done()
+
+	for {
+		evnt, err := lt.netmon.Get(lt.ctxNetmon)
+		if err != nil {
+			return
+		}
+
+		lt.back.debug("%s", evnt)
+
+		switch evnt := evnt.(type) {
+		case netstate.EventAddPrimaryAddress:
+			lt.add(evnt.Addr)
+		case netstate.EventDelPrimaryAddress:
+			lt.del(evnt.Addr)
+		}
+	}
+}
+
+// procMconn receives UDP multicast messages from the multicast conection.
+func (lt *links) procMconn(mc *mconn) {
+	defer lt.doneMconn.Done()
+
+	for {
+		var buf [65536]byte
+		n, from, cmsg, err := mc.RecvFrom(buf[:])
+
+		if mc.IsClosed() {
+			return
+		}
+
+		if err != nil {
+			lt.back.error("UDP recv: %s", err)
+			continue
+		}
+
+		lt.back.input(buf[:n], from, mc.LocalAddrPort(), cmsg.IfIndex)
+	}
 }
 
 // link is a per-local address link. It implements sending
@@ -187,6 +281,7 @@ func (l *link) procReader() {
 
 	ifidx := l.addr.Interface().Index()
 	to := l.conn.LocalAddrPort()
+	back := l.parent.back
 
 	for {
 		// Receive next packet
@@ -202,8 +297,8 @@ func (l *link) procReader() {
 			continue
 		}
 
-		// Pass it to the querier's Input routine
-		l.parent.q.Input(buf[:n], from, to, ifidx)
+		// Dispatch the packet
+		back.input(buf[:n], from, to, ifidx)
 	}
 }
 
