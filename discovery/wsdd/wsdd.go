@@ -10,6 +10,7 @@ package wsdd
 
 import (
 	"net/netip"
+	"time"
 )
 
 // WSDD protocol parameters:
@@ -19,4 +20,11 @@ var (
 
 	// WSDD IPv6 multicast group address
 	wsddMulticastIP6 = netip.MustParseAddrPort("[ff02::c]:3702")
+
+	// Timeout for the metadata Get request (performed via HTTP)
+	wsddMetadataGetTimeout = 5 * time.Second
+
+	// Response size limit for the metadata Get request (to mitigate
+	// possible DOS attack)
+	wsddMetadataGetMaxResponse = 64536
 )
