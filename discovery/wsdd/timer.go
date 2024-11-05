@@ -12,7 +12,7 @@ import "time"
 
 // timer is the cancellable timer. It can be used to pause program
 // execution for the specified time, with the ability to cancel the
-// pause and indication, if pause was expired or canceled.
+// pause and with the indication, if pause was expired or canceled.
 type timer struct {
 	c chan struct{}
 }
