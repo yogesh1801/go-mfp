@@ -14,19 +14,20 @@ import (
 	"sync"
 
 	"github.com/alexpevzner/mfp/discovery/netstate"
+	"github.com/alexpevzner/mfp/internal/generic"
 	"github.com/alexpevzner/mfp/uuid"
 	"github.com/alexpevzner/mfp/wsd"
 )
 
 // links dynamically manages per-local-address UDP links.
 type links struct {
-	back   *backend             // Parent backend
-	netmon *netstate.Notifier   // Network state monitor
-	mconn4 *mconn               // For IP4 multicasts reception
-	mconn6 *mconn               // For IP6 multicasts reception
-	table  map[netip.Addr]*link // Per-local address links
-	lock   sync.Mutex           // links.table lock
-	ports  *ports               // Set of Local ports
+	back   *backend                           // Parent backend
+	netmon *netstate.Notifier                 // Network state monitor
+	mconn4 *mconn                             // For recv of IP4 multicasts
+	mconn6 *mconn                             // For recv of IP6 multicasts
+	table  map[netip.Addr]*link               // Per-local address links
+	lock   sync.Mutex                         // links.table lock
+	ports  *generic.LockedSet[netip.AddrPort] // Set of Local ports
 
 	// querier.procNetmon closing synchronization
 	ctxNetmon    context.Context    // Cancelable context for procNetmon
@@ -58,7 +59,7 @@ func newLinks(back *backend) (*links, error) {
 		mconn4: mconn4,
 		mconn6: mconn6,
 		table:  make(map[netip.Addr]*link),
-		ports:  newPorts(),
+		ports:  generic.NewLockedSet[netip.AddrPort](),
 	}
 
 	return lt, nil
