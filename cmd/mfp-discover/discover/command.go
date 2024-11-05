@@ -103,6 +103,8 @@ func cmdDiscoverHandler(ctx context.Context, inv *argv.Invocation) error {
 		pager.Printf("No devices found.")
 	}
 
+	return nil
+
 	for _, dev := range devices {
 		pager.Printf("================================")
 
