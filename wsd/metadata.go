@@ -477,13 +477,13 @@ func DecodeServiceMetadata(root xmldoc.Element) (
 	}
 
 	// Decode other elements
-	types := xmldoc.Lookup{Name: NsDiscovery + ":" + "Types"}
+	types := xmldoc.Lookup{Name: NsDevprof + ":" + "Types"}
 	serviceID := xmldoc.Lookup{Name: NsDevprof + ":ServiceId"}
 
 	root.Lookup(&types, &serviceID)
 
 	if types.Found {
-		svcmeta.Types, err = DecodeTypes(types.Elem)
+		svcmeta.Types, err = DecodeMetadataTypes(types.Elem)
 		if err != nil {
 			return
 		}
@@ -508,7 +508,8 @@ func (svcmeta ServiceMetadata) ToXML(name string) xmldoc.Element {
 	}
 
 	if svcmeta.Types != 0 {
-		elm.Children = append(elm.Children, svcmeta.Types.ToXML())
+		elm.Children = append(elm.Children,
+			svcmeta.Types.MetadataToXML())
 	}
 
 	if svcmeta.ServiceID != "" {
