@@ -29,7 +29,7 @@ func DecodeHeader(root xmldoc.Element) (hdr Header, err error) {
 	// Lookup header elements
 	action := xmldoc.Lookup{Name: NsAddressing + ":Action", Required: true}
 	messageID := xmldoc.Lookup{Name: NsAddressing + ":MessageID", Required: true}
-	to := xmldoc.Lookup{Name: NsAddressing + ":To", Required: true}
+	to := xmldoc.Lookup{Name: NsAddressing + ":To"}
 	replyTo := xmldoc.Lookup{Name: NsAddressing + ":ReplyTo"}
 	relatesTo := xmldoc.Lookup{Name: NsAddressing + ":RelatesTo"}
 	appSequence := xmldoc.Lookup{Name: NsDiscovery + ":AppSequence"}
@@ -46,7 +46,7 @@ func DecodeHeader(root xmldoc.Element) (hdr Header, err error) {
 	if err == nil {
 		hdr.MessageID, err = DecodeAnyURI(messageID.Elem)
 	}
-	if err == nil {
+	if err == nil && to.Found {
 		hdr.To, err = DecodeAnyURI(to.Elem)
 	}
 	if err == nil && replyTo.Found {
@@ -80,11 +80,15 @@ func (hdr Header) ToXML() xmldoc.Element {
 				Name: NsAddressing + ":" + "MessageID",
 				Text: string(hdr.MessageID),
 			},
-			{
+		},
+	}
+
+	if hdr.To != "" {
+		elm.Children = append(elm.Children,
+			xmldoc.Element{
 				Name: NsAddressing + ":" + "To",
 				Text: string(hdr.To),
-			},
-		},
+			})
 	}
 
 	if hdr.ReplyTo.Address != "" {

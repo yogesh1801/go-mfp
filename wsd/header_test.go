@@ -44,6 +44,19 @@ func TestHeader(t *testing.T) {
 			hdr: Header{
 				Action:    ActHello,
 				MessageID: "urn:uuid:1cf1d308-cb65-494c-9d60-2232c57462e1",
+			},
+			xml: xmldoc.WithChildren(NsSOAP+":Header",
+				xmldoc.WithText(NsAddressing+":Action", ActHello.Encode()),
+				xmldoc.WithText(NsAddressing+":MessageID",
+					"urn:uuid:1cf1d308-cb65-494c-9d60-2232c57462e1",
+				),
+			),
+		},
+
+		{
+			hdr: Header{
+				Action:    ActHello,
+				MessageID: "urn:uuid:1cf1d308-cb65-494c-9d60-2232c57462e1",
 				To:        "urn:uuid:b8310cdf-157f-4e5b-a042-4588f7149ec0",
 				ReplyTo: EndpointReference{
 					Address: "urn:uuid:02b3be49-ccd5-4074-93ac-313c05050a1f",
