@@ -60,6 +60,8 @@ type Device struct {
 
 // device is the internal representation of the Device
 type device struct {
+	realm SearchRealm  // Device's Realm
+	uuid  uuid.UUID    // Device's UUID
 	units []unit       // Device's units
 	addrs []netip.Addr // Device's IP addresses
 }
@@ -72,6 +74,7 @@ func (dev device) Export() Device {
 	var ippPrinters []*unit
 	var lpdPrinters []*unit
 	var appsockPrinters []*unit
+	var wsdPrinters []*unit
 	var usbPrinters []*unit
 	var ippScanners []*unit
 	var esclSanners []*unit
@@ -89,6 +92,8 @@ func (dev device) Export() Device {
 				lpdPrinters = append(lpdPrinters, un)
 			case ServiceAppSocket:
 				appsockPrinters = append(appsockPrinters, un)
+			case ServiceWSD:
+				wsdPrinters = append(wsdPrinters, un)
 			case ServiceUSB:
 				usbPrinters = append(usbPrinters, un)
 			}
@@ -116,6 +121,7 @@ func (dev device) Export() Device {
 		ippPrinters,
 		lpdPrinters,
 		appsockPrinters,
+		wsdPrinters,
 		usbPrinters,
 	)
 
@@ -157,6 +163,7 @@ func (dev device) Export() Device {
 		ippPrinters,
 		lpdPrinters,
 		appsockPrinters,
+		wsdPrinters,
 		usbPrinters,
 		ippScanners,
 		esclSanners,
@@ -219,6 +226,14 @@ func (dev device) Export() Device {
 	}
 
 	for _, un := range allUnits {
+		if out.MakeModel == "" && un.MakeModel != "" {
+			out.MakeModel = un.MakeModel
+		}
+
+		if out.DNSSDUUID == uuid.NilUUID && un.ID.UUID != uuid.NilUUID {
+			out.DNSSDUUID = un.ID.UUID
+		}
+
 		if un.ID.USBSerial != "" {
 			out.USBSerial = un.ID.USBSerial
 		}
