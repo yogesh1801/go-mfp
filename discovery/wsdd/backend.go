@@ -23,6 +23,7 @@ type backend struct {
 	queue *discovery.Eventqueue // Event queue
 	links *links                // Per-local address links
 	units *units                // Discovered units
+	mex   *mexGetter            // Metadata getter
 }
 
 // NewBackend creates a new [discovery.Backend] for WSD device discovery.
@@ -42,8 +43,9 @@ func NewBackend(ctx context.Context) (discovery.Backend, error) {
 		return nil, err
 	}
 
-	// Create units
+	// Create units and MEX
 	back.units = newUnits(back)
+	back.mex = newMexGetter(back)
 
 	return back, nil
 }

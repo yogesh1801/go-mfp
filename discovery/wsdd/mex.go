@@ -11,6 +11,7 @@ package wsdd
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -19,30 +20,29 @@ import (
 	"time"
 
 	"github.com/alexpevzner/mfp/discovery/dnssd"
-	"github.com/alexpevzner/mfp/discovery/netstate"
+	"github.com/alexpevzner/mfp/log"
 	"github.com/alexpevzner/mfp/uuid"
 	"github.com/alexpevzner/mfp/wsd"
 )
 
+// mexData wraps wsd.Metadata and adds few additional fields
+type mexData struct {
+	wsd.Metadata          // The metadata itself
+	from         *url.URL // URL it comes from
+}
+
 // mexGetter retrieves WSD metadata by XAddr URL.
 type mexGetter struct {
-	back      *backend                    // Parent backend
-	ctx       context.Context             // Cancelable context
-	cancel    context.CancelFunc          // Its cancel function
-	http      http.Client                 // HTTP client
-	cache     map[mexCacheID]*mexCacheEnt // Cached metadata
-	lock      sync.Mutex                  // Access lock
-	closewait sync.WaitGroup              // for mexGetter.Close
+	back  *backend                    // Parent backend
+	http  http.Client                 // HTTP client
+	cache map[mexCacheID]*mexCacheEnt // Cached metadata
+	lock  sync.Mutex                  // Access lock
 }
 
 // newMexgetter creates a new mexGetter
-func newMexgetter(back *backend) *mexGetter {
-	ctx, cancel := context.WithCancel(back.ctx)
-
+func newMexGetter(back *backend) *mexGetter {
 	mg := &mexGetter{
-		back:   back,
-		ctx:    ctx,
-		cancel: cancel,
+		back: back,
 		http: http.Client{
 			Timeout: 5 * time.Second,
 		},
@@ -52,91 +52,124 @@ func newMexgetter(back *backend) *mexGetter {
 	return mg
 }
 
-// Close closes the mexGetter. It cancels all pending metadata
-// requests.
-func (mg *mexGetter) Close() {
-	mg.cancel()
-	mg.closewait.Wait()
-}
-
-// Get retrives the wsd.Metadata from the device.
+// Get retrives the mexData from the device.
 //
 // Parameters are:
-//   - from is the address of local interface where request is initiated
+//   - ifidx is the index of the local interface where request is initiated
 //   - target is the WSD target service address
 //   - ver is the MetadataVersion. It comes together with the
 //     XAddr URLs as a part of the wsd.Announce structure.
 //
 // The MetadataVersion affects metadata caching. The never metadata
 // overrides the cached version.
-func (mg *mexGetter) Get(from netstate.Addr, target wsd.AnyURI,
-	xaddr *url.URL, ver uint64) []wsd.Metadata {
+func (mg *mexGetter) Get(ctx context.Context,
+	ifidx int, target wsd.AnyURI,
+	xaddr *url.URL, ver uint64) []mexData {
 
-	// Obtain cache entry or create a new one
-	mg.lock.Lock()
+	// Create mexCacheID
+	id := mexCacheID{ifidx, target, xaddr.String()}
 
-	id := mexCacheID{from, target, xaddr.String()}
-	ent := mg.cache[id]
-
-	if ent == nil {
-		ent = mg.newEnt(id, xaddr, ver)
-		mg.closewait.Add(1)
-		go func() {
-			mg.fetch(from, target, ent)
-			mg.closewait.Done()
-		}()
+	literal := urlIsLiteral(xaddr)
+	if literal {
+		// Interface index doesn't affect processing of the
+		// literal URLs
+		id.ifidx = 0
 	}
 
-	mg.lock.Unlock()
+	// Obtain cache entry or create a new one
+	ent, justwait := mg.cacheLookup(id, ver)
 
-	// Wait until metadata fetching is done
-	ent.wait()
+	// Fetching already done?
+	if ent.isDone() {
+		return ent.metadata
+	}
+
+	// Just wait?
+	if justwait {
+		ent.wait()
+		return ent.metadata
+	}
+
+	// We were the first here with this XAddr, so it is our
+	// responsibility to fetch the metadata.
+	var xaddrs []*url.URL
+	if literal {
+		xaddrs = []*url.URL{xaddr}
+	} else {
+		xaddrs = mg.resolve(ctx, ifidx, xaddr)
+	}
+
+	var metadata []mexData
+	if len(xaddrs) > 0 {
+		metadata = mg.fetch(ctx, xaddrs, target)
+	}
+
+	// Update the cache entry
+	mg.cacheUpdate(id, ent, metadata)
 
 	// Return whatever we have
 	return ent.metadata
 }
 
-// newEnt creates a new cache entry.
-func (mg *mexGetter) newEnt(id mexCacheID, xaddr *url.URL,
-	ver uint64) *mexCacheEnt {
+// cacheLookup lookups the metadata cache.
+//
+// It returns new or existing cache entry and 'true' as a seconf
+// returned value, if existent cache entry was found for this if.
+func (mg *mexGetter) cacheLookup(id mexCacheID,
+	ver uint64) (*mexCacheEnt, bool) {
 
-	ent := &mexCacheEnt{
-		xaddr:    xaddr,
+	mg.lock.Lock()
+	defer mg.lock.Unlock()
+
+	ent := mg.cache[id]
+	if ent != nil {
+		return ent, true
+	}
+
+	ent = &mexCacheEnt{
 		ver:      ver,
 		waitchan: make(chan struct{}),
 	}
+	mg.cache[id] = ent
 
-	return ent
+	return ent, false
+}
+
+// cacheUpdate updates metadata cache entry.
+func (mg *mexGetter) cacheUpdate(id mexCacheID,
+	ent *mexCacheEnt, metadata []mexData) {
+
+	mg.lock.Lock()
+	defer mg.lock.Unlock()
+
+	if len(metadata) > 0 {
+		ent.metadata = metadata
+	} else {
+		delete(mg.cache, id)
+	}
+
+	ent.done()
 }
 
 // fetch fetches the metadata
-func (mg *mexGetter) fetch(from netstate.Addr, target wsd.AnyURI,
-	ent *mexCacheEnt) {
-
-	var xaddrs []*url.URL
-
-	// Resolve XAddr. It may return multiple literal URLs.
-	xaddrs, err := mg.resolve(from, ent.xaddr)
-	if err != nil {
-		ent.err = err
-		return
-	}
+func (mg *mexGetter) fetch(ctx context.Context,
+	xaddrs []*url.URL, target wsd.AnyURI) []mexData {
 
 	// Fetch metadata
 	var wait sync.WaitGroup
 	var lock sync.Mutex
-	var metadata []wsd.Metadata
+	var metadata []mexData
 
 	wait.Add(len(xaddrs))
 
 	for _, xaddr := range xaddrs {
 		go func(xaddr2 *url.URL) {
-			meta, err := mg.fetchHTTP(from, target, xaddr2)
-			lock.Lock()
-			if err != nil {
+			meta, err := mg.fetchHTTP(ctx, target, xaddr2)
+			if err == nil {
+				lock.Lock()
 				metadata = append(metadata, meta)
+				lock.Unlock()
 			}
-			lock.Unlock()
 
 			wait.Done()
 		}(xaddr)
@@ -144,13 +177,12 @@ func (mg *mexGetter) fetch(from netstate.Addr, target wsd.AnyURI,
 
 	wait.Wait()
 
-	// Update cache entry
-	ent.metadata = append(ent.metadata, metadata...)
+	return metadata
 }
 
 // fetchHTTP performs HTTP query for the WSD metadata
-func (mg *mexGetter) fetchHTTP(from netstate.Addr, target wsd.AnyURI,
-	xaddr *url.URL) (meta wsd.Metadata, err error) {
+func (mg *mexGetter) fetchHTTP(ctx context.Context,
+	target wsd.AnyURI, xaddr *url.URL) (meta mexData, err error) {
 
 	// Create a request
 	msgid := wsd.AnyURI(uuid.Must(uuid.Random()).URN())
@@ -172,11 +204,14 @@ func (mg *mexGetter) fetchHTTP(from netstate.Addr, target wsd.AnyURI,
 		Close:  true,
 	}
 
-	rq = rq.WithContext(mg.ctx)
+	rq = rq.WithContext(ctx)
 
 	// Perform HTTP query
+	mg.back.debug("POST %s", xaddr)
+
 	rsp, err := mg.http.Do(rq)
 	if err != nil {
+		mg.back.warning("POST %s: %s", xaddr, err)
 		return
 	}
 
@@ -184,90 +219,115 @@ func (mg *mexGetter) fetchHTTP(from netstate.Addr, target wsd.AnyURI,
 
 	if rsp.StatusCode/100 != 2 {
 		err = fmt.Errorf("Unexpected HTTP status: %s", rsp.Status)
+		mg.back.warning("POST %s: %s", xaddr, err)
 		return
 	}
 
-	// Decode response
+	// Fetch HTTP response body
 	data, err = io.ReadAll(io.LimitReader(rsp.Body,
 		int64(wsddMetadataGetMaxResponse+1)))
 
 	if err != nil {
+		mg.back.warning("POST %s: %s", xaddr, err)
 		return
 	}
 
 	if len(data) > wsddMetadataGetMaxResponse {
 		err = fmt.Errorf("HTTP response too large")
+		mg.back.warning("POST %s: %s", xaddr, err)
 		return
 	}
 
+	mg.back.debug("POST %s: %s", xaddr, rsp.Status)
+
+	// Decode response
 	msg, err = wsd.DecodeMsg(data)
 	if err != nil {
+		mg.back.warning("POST %s: %s", xaddr, err)
 		return
 	}
 
-	meta, ok := msg.Body.(wsd.Metadata)
+	metadata, ok := msg.Body.(wsd.Metadata)
 	if !ok {
 		err = fmt.Errorf("Unexpected WSD response: %s",
 			msg.Header.Action)
+
+		mg.back.warning("POST %s: %s", xaddr, err)
+		return
 	}
+
+	meta.Metadata = metadata
+	meta.from = xaddr
 
 	return
 }
 
 // resolve returns one or more literal URLs by replacing
 // hostname with the resolved IP addresses.
-func (mg *mexGetter) resolve(from netstate.Addr,
-	u *url.URL) ([]*url.URL, error) {
+func (mg *mexGetter) resolve(ctx context.Context,
+	ifidx int, u *url.URL) []*url.URL {
 
-	// Literal URL doesn't need to be resolved
-	if urlIsLiteral(u) {
-		return []*url.URL{u}, nil
-	}
+	hostname := u.Hostname()
 
 	// Create a resolver
 	res, err := dnssd.NewResolver()
 	if err != nil {
-		return nil, err
+		log.Warning(ctx, "resolve %q: %s", hostname, err)
+		return nil
 	}
 
 	defer res.Close()
 
 	// Resolve hostname
-	ifidx := from.Interface().Index()
-	addrs, err := res.LookupHost(mg.ctx, ifidx, u.Hostname())
+	addrs, err := res.LookupHost(ctx, ifidx, hostname)
 	if err != nil {
-		return nil, err
+		log.Warning(ctx, "resolve %q: %s", hostname, err)
+		return nil
+	}
+
+	if len(addrs) == 0 {
+		err = errors.New("no addresses")
+		log.Warning(ctx, "resolve %q: %s", hostname, err)
+		return nil
 	}
 
 	// Create literal URLs
-	var urls []*url.URL
-	for _, addr := range addrs {
-		urls = append(urls, urlWithHostname(u, addr.String()))
+	urls := make([]*url.URL, len(addrs))
+	for i, addr := range addrs {
+		urls[i] = urlWithHostname(u, addr.String())
 	}
 
-	return urls, nil
+	return urls
 }
 
 // mexCacheID is the MEX cache entry ID.
 type mexCacheID struct {
-	from   netstate.Addr // Local interface address
-	target wsd.AnyURI    // Target service WSD "address"
-	xaddr  string        // Requested URL string
+	ifidx  int        // Local interface address
+	target wsd.AnyURI // Target service WSD "address"
+	xaddr  string     // Requested URL string
 }
 
 // mexCacheEnt is the MEX cache entry.
 type mexCacheEnt struct {
-	xaddr    *url.URL       // Requested XAddr
-	ver      uint64         // Requested metadata version
-	metadata []wsd.Metadata // Cached metadata
-	err      error          // Metadata query error
-	waitchan chan struct{}  // Closed when fetch is complete
+	ver      uint64        // Requested metadata version
+	metadata []mexData     // Cached metadata
+	waitchan chan struct{} // Closed when fetch is complete
 }
 
 // done marks cache entry as done downloading and awakes all
 // goroutines blocked at mexCacheEnt.wait
 func (ent *mexCacheEnt) done() {
 	close(ent.waitchan)
+}
+
+// isDone reports if entry processing is done.
+func (ent *mexCacheEnt) isDone() bool {
+	select {
+	case <-ent.waitchan:
+		return true
+	default:
+		return false
+	}
 }
 
 // wait waits until metadata retrieval completion.
