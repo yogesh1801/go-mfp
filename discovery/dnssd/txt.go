@@ -96,13 +96,13 @@ func decodeTxtPrinter(svcType, svcInstance string,
 		case "air":
 			p.params.Auth, err = txtAuth(value)
 		case "bind":
-			p.params.Bind, err = txtBool(value)
+			p.params.Bind, err = txtOption(value)
 		case "color":
-			p.params.Color, err = txtBool(value)
+			p.params.Color, err = txtOption(value)
 		case "copies":
-			p.params.Copies, err = txtBool(value)
+			p.params.Copies, err = txtOption(value)
 		case "duplex":
-			p.params.Duplex, err = txtBool(value)
+			p.params.Duplex, err = txtOption(value)
 		case "fax":
 		case "kind":
 			p.params.Media, err = txtMediaKind(value)
@@ -127,14 +127,14 @@ func decodeTxtPrinter(svcType, svcInstance string,
 			// "4" and "U", according to the number of holes
 			// the puncher can make. "0" means "no punching"
 			if value != "0" && txToLower(value) != "u" {
-				p.params.Punch = true
+				p.params.Punch = discovery.OptTrue
 			}
 		case "rp":
 			p.params.Queue = value
 		case "sort":
-			p.params.Sort, err = txtBool(value)
+			p.params.Sort, err = txtOption(value)
 		case "staple":
-			p.params.Staple, err = txtBool(value)
+			p.params.Staple, err = txtOption(value)
 		case "txtvers":
 			if value != "1" {
 				err = fmt.Errorf("unknown version %q", value)
@@ -211,7 +211,7 @@ func decodeTxtScanner(svcType, svcInstance string,
 		case "cs":
 			s.params.Colors, err = txtColors(value)
 		case "duplex":
-			s.params.Duplex, err = txtBool(value)
+			s.params.Duplex, err = txtOption(value)
 		case "is":
 			s.params.Sources, err = txtSources(value)
 		case "note":
@@ -266,9 +266,15 @@ func txtAuth(value string) (discovery.AuthMode, error) {
 	return discovery.AuthOther, nil
 }
 
-// txtBool decodes a boolean value
-func txtBool(value string) (bool, error) {
-	return txToLower(value) == "t", nil
+// txtOption decodes an Option value value
+func txtOption(value string) (discovery.Option, error) {
+	switch txToLower(value) {
+	case "f":
+		return discovery.OptFalse, nil
+	case "t":
+		return discovery.OptTrue, nil
+	}
+	return discovery.OptUnknown, nil
 }
 
 // txtColors decodes discovery.ColorMode bits

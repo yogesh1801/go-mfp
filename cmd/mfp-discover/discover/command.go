@@ -137,8 +137,16 @@ func cmdDiscoverHandler(ctx context.Context, inv *argv.Invocation) error {
 				pager.Printf("    Type:       %s printer",
 					un.Proto)
 				pager.Printf("    Auth:       %s", p.Auth)
-				pager.Printf("    Paper Size: %s", p.Paper)
-				pager.Printf("    Media Type: %s", p.Media)
+
+				if p.Paper != discovery.PaperUnknown {
+					pager.Printf("    Paper Size: %s",
+						p.Paper)
+				}
+
+				if p.Media != 0 {
+					pager.Printf("    Media Type: %s",
+						p.Media)
+				}
 
 				pager.Printf("    Flags:      %s", p.Flags())
 
@@ -166,11 +174,22 @@ func cmdDiscoverHandler(ctx context.Context, inv *argv.Invocation) error {
 				p := un.Params
 				pager.Printf("    Type:       %s scanner",
 					un.Proto)
-				pager.Printf("    Duplex:     %v", p.Duplex)
-				pager.Printf("    Sources:    %s", p.Sources)
-				pager.Printf("    ColorModes: %s", p.Colors)
-				pager.Printf("    PDL:        %s",
-					strings.Join(p.PDL, ","))
+				if p.Duplex != discovery.OptUnknown {
+					pager.Printf("    Duplex:     %v",
+						p.Duplex == discovery.OptTrue)
+				}
+				if p.Sources != 0 {
+					pager.Printf("    Sources:    %s",
+						p.Sources)
+				}
+				if p.Colors != 0 {
+					pager.Printf("    ColorModes: %s",
+						p.Colors)
+				}
+				if len(p.PDL) != 0 {
+					pager.Printf("    PDL:        %s",
+						strings.Join(p.PDL, ","))
+				}
 
 				pager.Printf("    Endpoints:")
 				for _, ep := range un.Endpoints {

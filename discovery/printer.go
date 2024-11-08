@@ -24,14 +24,14 @@ type PrinterParameters struct {
 	Media MediaKind // Kind of output media
 
 	// Printer capabilities
-	Bind    bool // Printer can bind output
-	Collate bool // Printer can collate copies
-	Color   bool // Printer can print in color
-	Copies  bool // Printer can make copies in hardware
-	Duplex  bool // Printer supports duplex printing
-	Punch   bool // Printer can punch output
-	Sort    bool // Printer can sort output
-	Staple  bool // Printer can staple output
+	Bind    Option // Printer can bind output
+	Collate Option // Printer can collate copies
+	Color   Option // Printer can print in color
+	Copies  Option // Printer can make copies in hardware
+	Duplex  Option // Printer supports duplex printing
+	Punch   Option // Printer can punch output
+	Sort    Option // Printer can sort output
+	Staple  Option // Printer can staple output
 
 	// Operational parameters
 	PSProduct string   // PS Product name (helps PPD location)
@@ -55,28 +55,28 @@ func (p *PrinterParameters) fixup() {
 func (p PrinterParameters) Flags() string {
 	s := []string{}
 
-	if p.Bind {
+	if p.Bind == OptTrue {
 		s = append(s, "bind")
 	}
-	if p.Collate {
+	if p.Collate == OptTrue {
 		s = append(s, "collate")
 	}
-	if p.Color {
+	if p.Color == OptTrue {
 		s = append(s, "color")
 	}
-	if p.Copies {
+	if p.Copies == OptTrue {
 		s = append(s, "copies")
 	}
-	if p.Duplex {
+	if p.Duplex == OptTrue {
 		s = append(s, "duplex")
 	}
-	if p.Punch {
+	if p.Punch == OptTrue {
 		s = append(s, "punch")
 	}
-	if p.Sort {
+	if p.Sort == OptTrue {
 		s = append(s, "sort")
 	}
-	if p.Staple {
+	if p.Staple == OptTrue {
 		s = append(s, "staple")
 	}
 
