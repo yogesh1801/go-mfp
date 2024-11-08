@@ -24,6 +24,7 @@ type backend struct {
 	links *links                // Per-local address links
 	units *units                // Discovered units
 	mex   *mexGetter            // Metadata getter
+	res   *urlResolver          // URL resolver
 }
 
 // NewBackend creates a new [discovery.Backend] for WSD device discovery.
@@ -43,9 +44,10 @@ func NewBackend(ctx context.Context) (discovery.Backend, error) {
 		return nil, err
 	}
 
-	// Create units and MEX
+	// Create other stuff
 	back.units = newUnits(back)
 	back.mex = newMexGetter(back)
+	back.res = newURLResolver(back)
 
 	return back, nil
 }
@@ -67,6 +69,7 @@ func (back *backend) Start(queue *discovery.Eventqueue) {
 func (back *backend) Close() {
 	back.links.Close()
 	back.units.Close()
+	back.res.Close()
 }
 
 // input handles received UDP messages.

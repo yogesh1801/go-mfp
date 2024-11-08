@@ -11,7 +11,6 @@ package wsdd
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -19,8 +18,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/alexpevzner/mfp/discovery/dnssd"
-	"github.com/alexpevzner/mfp/log"
 	"github.com/alexpevzner/mfp/uuid"
 	"github.com/alexpevzner/mfp/wsd"
 )
@@ -96,7 +93,7 @@ func (mg *mexGetter) Get(ctx context.Context,
 	if literal {
 		xaddrs = []*url.URL{xaddr}
 	} else {
-		xaddrs = mg.resolve(ctx, ifidx, xaddr)
+		xaddrs = mg.back.res.Resolve(ctx, ifidx, xaddr)
 	}
 
 	var metadata []mexData
@@ -260,44 +257,6 @@ func (mg *mexGetter) fetchHTTP(ctx context.Context,
 	meta.from = xaddr
 
 	return
-}
-
-// resolve returns one or more literal URLs by replacing
-// hostname with the resolved IP addresses.
-func (mg *mexGetter) resolve(ctx context.Context,
-	ifidx int, u *url.URL) []*url.URL {
-
-	hostname := u.Hostname()
-
-	// Create a resolver
-	res, err := dnssd.NewResolver()
-	if err != nil {
-		log.Warning(ctx, "resolve %q: %s", hostname, err)
-		return nil
-	}
-
-	defer res.Close()
-
-	// Resolve hostname
-	addrs, err := res.LookupHost(ctx, ifidx, hostname)
-	if err != nil {
-		log.Warning(ctx, "resolve %q: %s", hostname, err)
-		return nil
-	}
-
-	if len(addrs) == 0 {
-		err = errors.New("no addresses")
-		log.Warning(ctx, "resolve %q: %s", hostname, err)
-		return nil
-	}
-
-	// Create literal URLs
-	urls := make([]*url.URL, len(addrs))
-	for i, addr := range addrs {
-		urls[i] = urlWithHostname(u, addr.String())
-	}
-
-	return urls
 }
 
 // mexCacheID is the MEX cache entry ID.
