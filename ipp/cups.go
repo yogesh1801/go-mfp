@@ -72,7 +72,7 @@ type (
 		ExcludeSchemes      []string `ipp:"?exclude-schemes,name"`
 		IncludeSchemes      []string `ipp:"?include-schemes,name"`
 		Limit               int      `ipp:"?limit"`
-		RequestedAttributes []string `ipp:"requested-attributes,keyword"`
+		RequestedAttributes []string `ipp:"?requested-attributes,keyword"`
 		Timeout             int      `ipp:"?timeout,1:MAX"`
 	}
 
