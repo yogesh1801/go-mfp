@@ -22,7 +22,7 @@ type DeviceAttributes struct {
 }
 
 // KnownAttrs returns information about all known IPP attributes
-// of the PrinterAttributes
-func (dev *DeviceAttributes) KnownAttrs() []AttrInfo {
-	return ippKnownAttrs(dev)
+// of the DeviceAttributes
+func (attrs *DeviceAttributes) KnownAttrs() []AttrInfo {
+	return ippKnownAttrs(attrs)
 }
