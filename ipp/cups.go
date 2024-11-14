@@ -71,7 +71,7 @@ type (
 		// Operational attributes
 		ExcludeSchemes      []string `ipp:"?exclude-schemes,name"`
 		IncludeSchemes      []string `ipp:"?include-schemes,name"`
-		Limit               int      `ipp:"?limit"`
+		Limit               int      `ipp:"?limit,1:MAX"`
 		RequestedAttributes []string `ipp:"?requested-attributes,keyword"`
 		Timeout             int      `ipp:"?timeout,1:MAX"`
 	}
@@ -83,6 +83,34 @@ type (
 
 		// Other attributes.
 		Printer []*DeviceAttributes
+	}
+
+	// CUPSGetPPDsRequest operation (0x400c) returns list of available PPDs
+	CUPSGetPPDsRequest struct {
+		ObjectRawAttrs
+		RequestHeader
+
+		// Operational attributes
+		ExcludeSchemes      []string   `ipp:"?exclude-schemes,name"`
+		IncludeSchemes      []string   `ipp:"?include-schemes,name"`
+		Limit               int        `ipp:"?limit,1:MAX"`
+		PpdMake             string     `ipp:"?ppd-make,text"`
+		PpdMakeAndModel     string     `ipp:"?ppd-make-and-model,text"`
+		ModelNumber         Maybe[int] `ipp:"?ppd-model-number"`
+		PpdNaturalLanguage  string     `ipp:"?ppd-natural-language,text"`
+		PpdProduct          string     `ipp:"?ppd-product,text"`
+		PpdPsversion        string     `ipp:"?ppd-psversion,text"`
+		PpdType             string     `ipp:"?ppd-type,keyword"`
+		RequestedAttributes []string   `ipp:"?requested-attributes,keyword"`
+	}
+
+	// CUPSGetPPDsResponse is the CUPS-Get-PPDs Response.
+	CUPSGetPPDsResponse struct {
+		ObjectRawAttrs
+		ResponseHeader
+
+		// Other attributes.
+		PPDs []*PpdAttributes
 	}
 )
 
@@ -114,7 +142,7 @@ func (rq *CUPSGetDefaultRequest) Encode() *goipp.Message {
 	return msg
 }
 
-// Decode decodes CUPSGetDefaultRequest from goipp.Groups.
+// Decode decodes CUPSGetDefaultRequest from goipp.Message.
 func (rq *CUPSGetDefaultRequest) Decode(msg *goipp.Message) error {
 	rq.Version = msg.Version
 	rq.RequestID = msg.RequestID
@@ -205,7 +233,7 @@ func (rq *CUPSGetPrintersRequest) Encode() *goipp.Message {
 	return msg
 }
 
-// Decode decodes CUPSGetPrintersRequest from goipp.Groups.
+// Decode decodes CUPSGetPrintersRequest from goipp.Message.
 func (rq *CUPSGetPrintersRequest) Decode(msg *goipp.Message) error {
 	rq.Version = msg.Version
 	rq.RequestID = msg.RequestID
@@ -300,7 +328,7 @@ func (rq *CUPSGetDevicesRequest) Encode() *goipp.Message {
 	return msg
 }
 
-// Decode decodes CUPSGetDevicesRequest from goipp.Groups.
+// Decode decodes CUPSGetDevicesRequest from goipp.Message.
 func (rq *CUPSGetDevicesRequest) Decode(msg *goipp.Message) error {
 	rq.Version = msg.Version
 	rq.RequestID = msg.RequestID
@@ -361,6 +389,101 @@ func (rsp *CUPSGetDevicesResponse) Decode(msg *goipp.Message) error {
 			}
 
 			rsp.Printer = append(rsp.Printer, dev)
+		}
+	}
+
+	return nil
+}
+
+// ----- CUPS-Get-PPDs methods -----
+
+// GetOp returns CUPSGetPPDsRequest IPP Operation code.
+func (rq *CUPSGetPPDsRequest) GetOp() goipp.Op {
+	return goipp.OpCupsGetPpds
+}
+
+// KnownAttrs returns information about all known IPP attributes
+// of the CUPSGetPPDsRequest
+func (rq *CUPSGetPPDsRequest) KnownAttrs() []AttrInfo {
+	return ippKnownAttrs(rq)
+}
+
+// Encode encodes CUPSGetPPDsRequest into the goipp.Message.
+func (rq *CUPSGetPPDsRequest) Encode() *goipp.Message {
+	groups := goipp.Groups{
+		{
+			Tag:   goipp.TagOperationGroup,
+			Attrs: ippEncodeAttrs(rq),
+		},
+	}
+
+	msg := goipp.NewMessageWithGroups(rq.Version, goipp.Code(rq.GetOp()),
+		rq.RequestID, groups)
+
+	return msg
+}
+
+// Decode decodes CUPSGetPPDsRequest from goipp.Message.
+func (rq *CUPSGetPPDsRequest) Decode(msg *goipp.Message) error {
+	rq.Version = msg.Version
+	rq.RequestID = msg.RequestID
+
+	err := ippDecodeAttrs(rq, msg.Operation)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// KnownAttrs returns information about all known IPP attributes
+// of the CUPSGetPPDsResponse.
+func (rsp *CUPSGetPPDsResponse) KnownAttrs() []AttrInfo {
+	return ippKnownAttrs(rsp)
+}
+
+// Encode encodes CUPSGetPPDsResponse into goipp.Message.
+func (rsp *CUPSGetPPDsResponse) Encode() *goipp.Message {
+	groups := goipp.Groups{
+		{
+			Tag:   goipp.TagOperationGroup,
+			Attrs: ippEncodeAttrs(rsp),
+		},
+	}
+
+	for _, ppd := range rsp.PPDs {
+		groups.Add(goipp.Group{
+			Tag:   goipp.TagPrinterGroup,
+			Attrs: ippEncodeAttrs(ppd),
+		})
+	}
+
+	msg := goipp.NewMessageWithGroups(rsp.Version, goipp.Code(rsp.Status),
+		rsp.RequestID, groups)
+
+	return msg
+}
+
+// Decode decodes CUPSGetPPDsResponse from goipp.Message.
+func (rsp *CUPSGetPPDsResponse) Decode(msg *goipp.Message) error {
+	rsp.Version = msg.Version
+	rsp.RequestID = msg.RequestID
+	rsp.Status = goipp.Status(msg.Code)
+
+	err := ippDecodeAttrs(rsp, msg.Operation)
+	if err != nil {
+		return err
+	}
+
+	for _, grp := range msg.Groups {
+		if grp.Tag == goipp.TagPrinterGroup && len(grp.Attrs) > 0 {
+			ppd := &PpdAttributes{}
+			err = ippDecodeAttrs(ppd, grp.Attrs)
+			if err != nil {
+				return err
+			}
+
+			rsp.PPDs = append(rsp.PPDs, ppd)
 		}
 	}
 
