@@ -263,7 +263,7 @@ func ippCodecGenerateInternal(t reflect.Type,
 		var maybe maybeCodecInterface
 
 		if reflect.PointerTo(fldType).Implements(maybeCodecType) {
-			// If type implements maybeCodecType, it is value
+			// If type implements maybeCodecInterface, it is value
 			// wrapped into Maybe[T].
 			//
 			// We need the underlying type to generate encode/decode steps,
