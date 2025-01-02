@@ -3,6 +3,7 @@ SUBDIRS	= \
 	cups \
 	discovery \
 	env \
+	escl \
 	internal \
 	ipp \
 	log \
