@@ -18,12 +18,12 @@ func TestIntentString(t *testing.T) {
 	}
 
 	tests := []testData{
-		{IntentDocument, "Document"},
-		{IntentTextAndGraphic, "TextAndGraphic"},
-		{IntentPhoto, "Photo"},
-		{IntentPreview, "Preview"},
-		{IntentObject, "Object"},
-		{IntentBusinessCard, "BusinessCard"},
+		{Document, "Document"},
+		{TextAndGraphic, "TextAndGraphic"},
+		{Photo, "Photo"},
+		{Preview, "Preview"},
+		{Object, "Object"},
+		{BusinessCard, "BusinessCard"},
 		{-1, "Unknown"},
 	}
 
@@ -44,13 +44,13 @@ func TestDecodeIntent(t *testing.T) {
 	}
 
 	tests := []testData{
-		{IntentDocument, "Document"},
-		{IntentTextAndGraphic, "TextAndGraphic"},
-		{IntentPhoto, "Photo"},
-		{IntentPreview, "Preview"},
-		{IntentObject, "Object"},
-		{IntentBusinessCard, "BusinessCard"},
-		{IntentUnknown, "XXX"},
+		{Document, "Document"},
+		{TextAndGraphic, "TextAndGraphic"},
+		{Photo, "Photo"},
+		{Preview, "Preview"},
+		{Object, "Object"},
+		{BusinessCard, "BusinessCard"},
+		{UnknownIntent, "XXX"},
 	}
 
 	for _, test := range tests {

@@ -14,29 +14,29 @@ type Intent int
 
 // Known intents
 const (
-	IntentUnknown        Intent = iota - 1 // Unknown intent
-	IntentDocument                         // Scanning optimized for text
-	IntentTextAndGraphic                   // Doc with text and graphics
-	IntentPhoto                            // Scanning optimized for photo
-	IntentPreview                          // Preview scanning
-	IntentObject                           // 3d object
-	IntentBusinessCard                     // Scanning of business card
+	UnknownIntent  Intent = iota - 1 //Unknown intent
+	Document                         // Scanning optimized for text
+	TextAndGraphic                   // Document with text and graphics
+	Photo                            // Scanning optimized for photo
+	Preview                          // Preview scanning
+	Object                           // 3d object
+	BusinessCard                     // Scanning optimized for business card
 )
 
 // String returns a string representation of the [Intent]
 func (intent Intent) String() string {
 	switch intent {
-	case IntentDocument:
+	case Document:
 		return "Document"
-	case IntentTextAndGraphic:
+	case TextAndGraphic:
 		return "TextAndGraphic"
-	case IntentPhoto:
+	case Photo:
 		return "Photo"
-	case IntentPreview:
+	case Preview:
 		return "Preview"
-	case IntentObject:
+	case Object:
 		return "Object"
-	case IntentBusinessCard:
+	case BusinessCard:
 		return "BusinessCard"
 	}
 
@@ -47,18 +47,18 @@ func (intent Intent) String() string {
 func DecodeIntent(s string) Intent {
 	switch s {
 	case "Document":
-		return IntentDocument
+		return Document
 	case "TextAndGraphic":
-		return IntentTextAndGraphic
+		return TextAndGraphic
 	case "Photo":
-		return IntentPhoto
+		return Photo
 	case "Preview":
-		return IntentPreview
+		return Preview
 	case "Object":
-		return IntentObject
+		return Object
 	case "BusinessCard":
-		return IntentBusinessCard
+		return BusinessCard
 	}
 
-	return IntentUnknown
+	return UnknownIntent
 }
