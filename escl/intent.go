@@ -14,7 +14,7 @@ type Intent int
 
 // Known intents
 const (
-	UnknownIntent  Intent = iota - 1 //Unknown intent
+	UnknownIntent  Intent = iota - 1 // Unknown intent
 	Document                         // Scanning optimized for text
 	TextAndGraphic                   // Document with text and graphics
 	Photo                            // Scanning optimized for photo
