@@ -196,7 +196,7 @@ func (atl *autoTLSListener) acceptWait() error {
 	return err
 }
 
-// detectTLS detects if connection is encrypted or plain and.
+// detectTLS detects if connection is encrypted or plain.
 //
 // Detection requires few bytes of data to be fetched from the
 // connection, and it may fail, so the function may return error.
