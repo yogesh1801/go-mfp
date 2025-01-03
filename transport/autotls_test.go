@@ -277,9 +277,9 @@ func testAutoTLSAbortingClient(t *testing.T, tr *Transport, l net.Listener) {
 	addr := l.Addr()
 	u := MustParseURL(fmt.Sprintf("http://%s/", addr))
 
-	// Create a client
-	clnt := NewClient(tr)
-	clnt.Timeout = 5 * time.Second
+	// Create a cancelable context
+	cancelable, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	// Hook Transport.DialContext
 	dial := tr.DialContext
@@ -287,18 +287,23 @@ func testAutoTLSAbortingClient(t *testing.T, tr *Transport, l net.Listener) {
 		network, addr string) (net.Conn, error) {
 
 		// Connect
-		conn, err := dial(ctx, network, addr)
+		conn, err := dial(cancelable, network, addr)
 		if err != nil {
-			return conn, err
+			return nil, err
 		}
 
 		// And now wait until Context is canceled, effectively
 		// preventing client from sending anything
-		<-ctx.Done()
+
+		<-cancelable.Done()
 		connAbort(conn)
 
 		return nil, errors.New("canceled")
 	}
+
+	// Create a client
+	clnt := NewClient(tr)
+	clnt.Timeout = 5 * time.Second
 
 	// Setup AutoTLS listener
 	atl, p, e := newAutoTLSListener(l)
@@ -306,10 +311,7 @@ func testAutoTLSAbortingClient(t *testing.T, tr *Transport, l net.Listener) {
 	// Initiate HTTP request
 	var done sync.WaitGroup
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	rq, err := NewRequest(ctx, "GET", u, nil)
+	rq, err := NewRequest(cancelable, "GET", u, nil)
 	if err != nil {
 		t.Errorf("GET %s: %s", u, err)
 		return
