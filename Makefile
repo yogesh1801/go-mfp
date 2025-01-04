@@ -7,6 +7,7 @@ SUBDIRS	= \
 	internal \
 	ipp \
 	log \
+	optional \
 	testutils \
 	transport \
 	uuid \
