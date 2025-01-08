@@ -1,7 +1,7 @@
-# XML mini library
+# Useful generics
 
 ```
-import "github.com/alexpevzner/mfp/internal/xml"
+import "github.com/alexpevzner/mfp/internal/generic"
 ```
 
 This package provides useful generic types and functions, such as
