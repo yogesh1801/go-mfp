@@ -14,13 +14,13 @@ type Intent int
 
 // Known intents
 const (
-	UnknownIntent  Intent = iota - 1 // Unknown intent
-	Document                         // Scanning optimized for text
-	TextAndGraphic                   // Document with text and graphics
-	Photo                            // Scanning optimized for photo
-	Preview                          // Preview scanning
-	Object                           // 3d object
-	BusinessCard                     // Scanning optimized for business card
+	UnknownIntent  Intent = iota // Unknown intent
+	Document                     // Scanning optimized for text
+	TextAndGraphic               // Document with text and graphics
+	Photo                        // Scanning optimized for photo
+	Preview                      // Preview scanning
+	Object                       // 3d object
+	BusinessCard                 // Scanning optimized for business card
 )
 
 // String returns a string representation of the [Intent]
