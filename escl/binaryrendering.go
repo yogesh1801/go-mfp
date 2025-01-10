@@ -14,9 +14,9 @@ type BinaryRendering int
 
 // BinaryRendering modes:
 const (
-	UnknownBinaryRendering BinaryRendering = iota - 1 // Unknown CCD
-	Halftone                                          // Simulate Halftone
-	Threshold                                         // Use Threshold
+	UnknownBinaryRendering BinaryRendering = iota // Unknown mode
+	Halftone                                      // Simulate Halftone
+	Threshold                                     // Use Threshold
 )
 
 // String returns a string representation of the [BinaryRendering]

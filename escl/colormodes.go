@@ -10,10 +10,16 @@ package escl
 
 import "github.com/alexpevzner/mfp/internal/generic"
 
-// ColorModes contains a set (bitmask) of [ColorMode]s.
-type ColorModes = generic.Bitset[ColorMode]
+// ColorModes contains a set of [ColorMode]s.
+type ColorModes struct {
+	generic.Bitset[ColorMode]           // Set of modes
+	Default                   ColorMode // Default color mode
+}
 
 // MakeColorModes makes [ColorModes] from the list of [ColorMode]s.
 func MakeColorModes(list ...ColorMode) ColorModes {
-	return generic.MakeBitset(list...)
+	return ColorModes{
+		generic.MakeBitset(list...),
+		UnknownColorMode,
+	}
 }

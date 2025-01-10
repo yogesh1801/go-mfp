@@ -10,11 +10,17 @@ package escl
 
 import "github.com/alexpevzner/mfp/internal/generic"
 
-// BinaryRenderings contains a set (bitmask) of [BinaryRendering]s.
-type BinaryRenderings = generic.Bitset[BinaryRendering]
+// BinaryRenderings contains a set of [BinaryRendering]s.
+type BinaryRenderings struct {
+	generic.Bitset[BinaryRendering]                 // Set of modes
+	Default                         BinaryRendering // Default mode
+}
 
 // MakeBinaryRenderings makes [BinaryRenderings] from the list of
 // [BinaryRendering]s.
 func MakeBinaryRenderings(list ...BinaryRendering) BinaryRenderings {
-	return generic.MakeBitset(list...)
+	return BinaryRenderings{
+		generic.MakeBitset(list...),
+		UnknownBinaryRendering,
+	}
 }

@@ -30,14 +30,17 @@ func TestBinaryRenderingsAddDel(t *testing.T) {
 	tests := []testData{
 		{
 			seq: nil,
-			res: 0,
+			res: BinaryRenderings{},
 		},
 
 		{
 			seq: []testOp{
 				{"add", Halftone},
 			},
-			res: 1 << Halftone,
+			res: BinaryRenderings{
+				1 << Halftone,
+				UnknownBinaryRendering,
+			},
 		},
 
 		{
@@ -45,7 +48,10 @@ func TestBinaryRenderingsAddDel(t *testing.T) {
 				{"add", Halftone},
 				{"add", Threshold},
 			},
-			res: 1<<Halftone | 1<<Threshold,
+			res: BinaryRenderings{
+				1<<Halftone | 1<<Threshold,
+				UnknownBinaryRendering,
+			},
 		},
 
 		{
@@ -54,7 +60,10 @@ func TestBinaryRenderingsAddDel(t *testing.T) {
 				{"add", Threshold},
 				{"del", Halftone},
 			},
-			res: 1 << Threshold,
+			res: BinaryRenderings{
+				1 << Threshold,
+				UnknownBinaryRendering,
+			},
 		},
 	}
 
@@ -92,12 +101,20 @@ func TestMakeBinaryRenderings(t *testing.T) {
 	}
 
 	tests := []testData{
-		{[]BinaryRendering{}, 0},
-		{[]BinaryRendering{Halftone},
-			1 << Halftone,
+		{[]BinaryRendering{}, BinaryRenderings{}},
+		{
+			[]BinaryRendering{Halftone},
+			BinaryRenderings{
+				1 << Halftone,
+				UnknownBinaryRendering,
+			},
 		},
-		{[]BinaryRendering{Halftone, Threshold},
-			1<<Halftone | 1<<Green | 1<<Threshold,
+		{
+			[]BinaryRendering{Halftone, Threshold},
+			BinaryRenderings{
+				1<<Halftone | 1<<Threshold,
+				UnknownBinaryRendering,
+			},
 		},
 	}
 
@@ -121,7 +138,7 @@ func TestBinaryRenderingsString(t *testing.T) {
 	}
 
 	tests := []testData{
-		{0, ""},
+		{BinaryRenderings{}, ""},
 		{MakeBinaryRenderings(Halftone), "Halftone"},
 		{MakeBinaryRenderings(Threshold), "Threshold"},
 		{MakeBinaryRenderings(Halftone, Threshold),

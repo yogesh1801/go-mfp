@@ -30,14 +30,17 @@ func TestCcdChannelsAddDel(t *testing.T) {
 	tests := []testData{
 		{
 			seq: nil,
-			res: 0,
+			res: CcdChannels{},
 		},
 
 		{
 			seq: []testOp{
 				{"add", Red},
 			},
-			res: 1 << Red,
+			res: CcdChannels{
+				1 << Red,
+				UnknownCcdChannel,
+			},
 		},
 
 		{
@@ -45,7 +48,10 @@ func TestCcdChannelsAddDel(t *testing.T) {
 				{"add", Red},
 				{"add", Blue},
 			},
-			res: 1<<Red | 1<<Blue,
+			res: CcdChannels{
+				1<<Red | 1<<Blue,
+				UnknownCcdChannel,
+			},
 		},
 
 		{
@@ -55,7 +61,10 @@ func TestCcdChannelsAddDel(t *testing.T) {
 				{"del", Red},
 				{"add", Green},
 			},
-			res: 1<<Blue | 1<<Green,
+			res: CcdChannels{
+				1<<Blue | 1<<Green,
+				UnknownCcdChannel,
+			},
 		},
 	}
 
@@ -93,12 +102,18 @@ func TestMakeCcdChannels(t *testing.T) {
 	}
 
 	tests := []testData{
-		{[]CcdChannel{}, 0},
+		{[]CcdChannel{}, CcdChannels{}},
 		{[]CcdChannel{Red},
-			1 << Red,
+			CcdChannels{
+				1 << Red,
+				UnknownCcdChannel,
+			},
 		},
 		{[]CcdChannel{Red, Green, Blue},
-			1<<Red | 1<<Green | 1<<Blue,
+			CcdChannels{
+				1<<Red | 1<<Green | 1<<Blue,
+				UnknownCcdChannel,
+			},
 		},
 	}
 
@@ -122,7 +137,7 @@ func TestCcdChannelsString(t *testing.T) {
 	}
 
 	tests := []testData{
-		{0, ""},
+		{CcdChannels{}, ""},
 		{MakeCcdChannels(Red), "Red"},
 		{MakeCcdChannels(Red, Blue),
 			"Red,Blue"},

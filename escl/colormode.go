@@ -14,12 +14,12 @@ type ColorMode int
 
 // Known color modes:
 const (
-	UnknownColorMode ColorMode = iota - 1 // Unknown color mode
-	BlackAndWhite1                        // 1-bit black and white
-	Grayscale8                            // 8-bit grayscale
-	Grayscale16                           // 16-bit grayscale
-	RGB24                                 // 8-bit per channel RGB
-	RGB48                                 // 16-bit per channel RGB
+	UnknownColorMode ColorMode = iota // Unknown color mode
+	BlackAndWhite1                    // 1-bit black and white
+	Grayscale8                        // 8-bit grayscale
+	Grayscale16                       // 16-bit grayscale
+	RGB24                             // 8-bit per channel RGB
+	RGB48                             // 16-bit per channel RGB
 )
 
 // String returns a string representation of the [ColorMode]

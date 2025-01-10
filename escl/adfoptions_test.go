@@ -30,14 +30,16 @@ func TestADFOptionsAddDel(t *testing.T) {
 	tests := []testData{
 		{
 			seq: nil,
-			res: 0,
+			res: ADFOptions{},
 		},
 
 		{
 			seq: []testOp{
 				{"add", DetectPaperLoaded},
 			},
-			res: 1 << DetectPaperLoaded,
+			res: ADFOptions{
+				1 << DetectPaperLoaded,
+			},
 		},
 
 		{
@@ -45,7 +47,9 @@ func TestADFOptionsAddDel(t *testing.T) {
 				{"add", DetectPaperLoaded},
 				{"add", Duplex},
 			},
-			res: 1<<DetectPaperLoaded | 1<<Duplex,
+			res: ADFOptions{
+				1<<DetectPaperLoaded | 1<<Duplex,
+			},
 		},
 
 		{
@@ -55,7 +59,9 @@ func TestADFOptionsAddDel(t *testing.T) {
 				{"del", DetectPaperLoaded},
 				{"add", SelectSinglePage},
 			},
-			res: 1<<Duplex | 1<<SelectSinglePage,
+			res: ADFOptions{
+				1<<Duplex | 1<<SelectSinglePage,
+			},
 		},
 	}
 
@@ -93,12 +99,18 @@ func TestMakeADFOptions(t *testing.T) {
 	}
 
 	tests := []testData{
-		{[]ADFOption{}, 0},
+		{[]ADFOption{}, ADFOptions{}},
 		{[]ADFOption{DetectPaperLoaded},
-			1 << DetectPaperLoaded,
+			ADFOptions{
+				1 << DetectPaperLoaded,
+			},
 		},
 		{[]ADFOption{DetectPaperLoaded, SelectSinglePage, Duplex},
-			1<<DetectPaperLoaded | 1<<SelectSinglePage | 1<<Duplex,
+			ADFOptions{
+				1<<DetectPaperLoaded |
+					1<<SelectSinglePage |
+					1<<Duplex,
+			},
 		},
 	}
 
@@ -122,7 +134,7 @@ func TestADFOptionsString(t *testing.T) {
 	}
 
 	tests := []testData{
-		{0, ""},
+		{ADFOptions{}, ""},
 		{MakeADFOptions(DetectPaperLoaded), "DetectPaperLoaded"},
 		{MakeADFOptions(DetectPaperLoaded, Duplex),
 			"DetectPaperLoaded,Duplex"},

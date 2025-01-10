@@ -10,10 +10,14 @@ package escl
 
 import "github.com/alexpevzner/mfp/internal/generic"
 
-// ADFOptions contains a set (bitmask) of [ADFOption]s.
-type ADFOptions = generic.Bitset[ADFOption]
+// ADFOptions contains a set of [ADFOption]s.
+type ADFOptions struct {
+	generic.Bitset[ADFOption]
+}
 
 // MakeADFOptions makes [ADFOptions] from the list of [ADFOption]s.
 func MakeADFOptions(list ...ADFOption) ADFOptions {
-	return generic.MakeBitset(list...)
+	return ADFOptions{
+		generic.MakeBitset(list...),
+	}
 }

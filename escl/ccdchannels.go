@@ -10,10 +10,16 @@ package escl
 
 import "github.com/alexpevzner/mfp/internal/generic"
 
-// CcdChannels contains a set (bitmask) of [CcdChannel]s.
-type CcdChannels = generic.Bitset[CcdChannel]
+// CcdChannels contains a set of [CcdChannel]s.
+type CcdChannels struct {
+	generic.Bitset[CcdChannel]            // Set of channels
+	Default                    CcdChannel // Default channel
+}
 
 // MakeCcdChannels makes [CcdChannels] from the list of [CcdChannel]s.
 func MakeCcdChannels(list ...CcdChannel) CcdChannels {
-	return generic.MakeBitset(list...)
+	return CcdChannels{
+		generic.MakeBitset(list...),
+		UnknownCcdChannel,
+	}
 }

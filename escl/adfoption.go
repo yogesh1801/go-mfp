@@ -13,10 +13,10 @@ type ADFOption int
 
 // Known color modes:
 const (
-	UnknownADFOption  ADFOption = iota - 1 // Unknown color mode
-	DetectPaperLoaded                      // Can detect if paper is loaded
-	SelectSinglePage                       // Can scan part of loaded pages
-	Duplex                                 // Duplex support
+	UnknownADFOption  ADFOption = iota // Unknown color mode
+	DetectPaperLoaded                  // Can detect if paper is loaded
+	SelectSinglePage                   // Can scan part of loaded pages
+	Duplex                             // Duplex support
 )
 
 // String returns a string representation of the [ADFOption]

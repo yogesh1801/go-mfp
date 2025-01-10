@@ -30,14 +30,14 @@ func TestColorModesAddDel(t *testing.T) {
 	tests := []testData{
 		{
 			seq: nil,
-			res: 0,
+			res: ColorModes{},
 		},
 
 		{
 			seq: []testOp{
 				{"add", BlackAndWhite1},
 			},
-			res: 1 << BlackAndWhite1,
+			res: ColorModes{1 << BlackAndWhite1, UnknownColorMode},
 		},
 
 		{
@@ -46,9 +46,12 @@ func TestColorModesAddDel(t *testing.T) {
 				{"add", Grayscale8},
 				{"add", Grayscale16},
 			},
-			res: 1<<BlackAndWhite1 |
-				1<<Grayscale8 |
-				1<<Grayscale16,
+			res: ColorModes{
+				1<<BlackAndWhite1 |
+					1<<Grayscale8 |
+					1<<Grayscale16,
+				UnknownColorMode,
+			},
 		},
 
 		{
@@ -59,9 +62,12 @@ func TestColorModesAddDel(t *testing.T) {
 				{"del", BlackAndWhite1},
 				{"add", RGB24},
 			},
-			res: 1<<Grayscale8 |
-				1<<Grayscale16 |
-				1<<RGB24,
+			res: ColorModes{
+				1<<Grayscale8 |
+					1<<Grayscale16 |
+					1<<RGB24,
+				UnknownColorMode,
+			},
 		},
 	}
 
@@ -99,12 +105,18 @@ func TestMakeColorModes(t *testing.T) {
 	}
 
 	tests := []testData{
-		{[]ColorMode{}, 0},
+		{[]ColorMode{}, ColorModes{}},
 		{[]ColorMode{BlackAndWhite1},
-			1 << BlackAndWhite1,
+			ColorModes{
+				1 << BlackAndWhite1,
+				UnknownColorMode,
+			},
 		},
 		{[]ColorMode{BlackAndWhite1, Grayscale8, RGB24},
-			1<<BlackAndWhite1 | 1<<Grayscale8 | 1<<RGB24,
+			ColorModes{
+				1<<BlackAndWhite1 | 1<<Grayscale8 | 1<<RGB24,
+				UnknownColorMode,
+			},
 		},
 	}
 
@@ -128,7 +140,7 @@ func TestColorModesString(t *testing.T) {
 	}
 
 	tests := []testData{
-		{0, ""},
+		{ColorModes{}, ""},
 		{MakeColorModes(BlackAndWhite1), "BlackAndWhite1"},
 		{MakeColorModes(BlackAndWhite1, RGB24),
 			"BlackAndWhite1,RGB24"},

@@ -14,13 +14,13 @@ type CcdChannel int
 
 // Known CCD Channels.
 const (
-	UnknownCcdChannel CcdChannel = iota - 1 // Unknown CCD
-	Red                                     // Use the RED DDC
-	Green                                   // Use the Green CCD
-	Blue                                    // Use the Blue CCD
-	NTSC                                    // NTSC-standard mix
-	GrayCcd                                 // Dedicated hardware Gray CCD
-	GrayCcdEmulated                         // Emulated Gray CCD (1/3 RGB)
+	UnknownCcdChannel CcdChannel = iota // Unknown CCD
+	Red                                 // Use the RED DDC
+	Green                               // Use the Green CCD
+	Blue                                // Use the Blue CCD
+	NTSC                                // NTSC-standard mix
+	GrayCcd                             // Dedicated hardware Gray CCD
+	GrayCcdEmulated                     // Emulated Gray CCD (1/3 RGB)
 )
 
 // String returns a string representation of the [CcdChannel]
