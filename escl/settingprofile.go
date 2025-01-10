@@ -16,4 +16,7 @@ type SettingProfile struct {
 	DocumentFormats      []string             // MIME types of supported formats
 	DocumentFormatsExt   []string             // eSCL 2.1+
 	SupportedResolutions SupportedResolutions // Supported resolutions
+	ColorSpaces          ColorSpaces          // Supported color spaces
+	CcdChannels          CcdChannels          // Supported CCD channels
+	BinaryRenderings     BinaryRenderings     // Supported bin renderings
 }
