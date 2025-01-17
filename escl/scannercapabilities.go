@@ -17,6 +17,7 @@ import (
 //
 // eSCL Technical Specification, 8.1.4.
 type ScannerCapabilities struct {
+	// General options
 	Version         Version                 // eSCL protocol version
 	MakeAndModel    optional.Val[string]    // Device make and model
 	SerialNumber    optional.Val[string]    // Device-unique serial number
@@ -25,7 +26,13 @@ type ScannerCapabilities struct {
 	AdminURI        optional.Val[string]    // Configuration mage URL
 	IconURI         optional.Val[string]    // Device icon URL
 	SettingProfiles []SettingProfile        // Common settings profs
-	Platen          optional.Val[Platen]    // Platen capabilities
-	Camera          optional.Val[Camera]    // Camera capabilities
-	ADF             optional.Val[ADF]       // ADF capabilities
+
+	// Inputs capabilities
+	Platen optional.Val[Platen] // Platen capabilities
+	Camera optional.Val[Camera] // Camera capabilities
+	ADF    optional.Val[ADF]    // ADF capabilities
+
+	// Automatic detection and removal of the blank pages
+	BlankPageDetection           optional.Val[bool] // Detection supported
+	BlankPageDetectionAndRemoval optional.Val[bool] // Auto-remove supported
 }
