@@ -17,11 +17,15 @@ import (
 //
 // eSCL Technical Specification, 8.1.4.
 type ScannerCapabilities struct {
-	Version      Version              // eSCL protocol version
-	MakeAndModel optional.Val[string] // Device make and model
-	SerialNumber optional.Val[string] // Device-unique serial number
-	Manufacturer optional.Val[string] // Device manufacturer
-	UUID         uuid.UUID            // Device UUID
-	AdminURI     optional.Val[string] // Configuration mage URL
-	IconURI      optional.Val[string] // Device icon URL
+	Version         Version                 // eSCL protocol version
+	MakeAndModel    optional.Val[string]    // Device make and model
+	SerialNumber    optional.Val[string]    // Device-unique serial number
+	Manufacturer    optional.Val[string]    // Device manufacturer
+	UUID            optional.Val[uuid.UUID] // Device UUID
+	AdminURI        optional.Val[string]    // Configuration mage URL
+	IconURI         optional.Val[string]    // Device icon URL
+	SettingProfiles []SettingProfile        // Common settings profs
+	Platen          optional.Val[Platen]    // Platen capabilities
+	Camera          optional.Val[Camera]    // Camera capabilities
+	ADF             optional.Val[ADF]       // ADF capabilities
 }
