@@ -25,6 +25,7 @@ type InputSourceCaps struct {
 	MaxYOffset            optional.Val[int] // Max YOffset
 	MaxOpticalXResolution optional.Val[int] // Max optical X resolution
 	MaxOpticalYResolution optional.Val[int] // Max optical Y resolution
+	MaxScanRegions        optional.Val[int] // Max number of scan regions
 	RiskyLeftMargins      optional.Val[int] // Risky left margins
 	RiskyRightMargins     optional.Val[int] // Risky right margins
 	RiskyTopMargins       optional.Val[int] // Risky top margins
