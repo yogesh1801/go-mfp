@@ -35,4 +35,5 @@ type InputSourceCaps struct {
 	SupportedIntents      Intents           // Supported intents
 	EdgeAutoDetection     SupportedEdges    // Supported edges detection
 	SettingProfiles       []SettingProfile  // Supported scan profiles
+	FeedDirections        FeedDirections    // Available feed directions
 }
