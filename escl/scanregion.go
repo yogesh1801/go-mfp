@@ -10,9 +10,10 @@ package escl
 
 // ScanRegion defines the desired scan region
 type ScanRegion struct {
-	XOffset int   // Horizontal offset, 0-based
-	YOffset int   // Vertical offset, 0-based
-	Width   int   // Region width
-	Height  int   // Region height
-	Units   Units // Always ThreeHundredthsOfInches
+	XOffset   int   // Horizontal offset, 0-based
+	YOffset   int   // Vertical offset, 0-based
+	Width     int   // Region width
+	Height    int   // Region height
+	Units     Units // Always ThreeHundredthsOfInches
+	MustHonor bool  // Must override edge detection
 }
