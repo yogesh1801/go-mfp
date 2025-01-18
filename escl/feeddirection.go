@@ -20,8 +20,8 @@ const (
 )
 
 // String returns a string representation of the [FeedDirection]
-func (ccd FeedDirection) String() string {
-	switch ccd {
+func (feed FeedDirection) String() string {
+	switch feed {
 	case LongEdgeFeed:
 		return "LongEdgeFeed"
 	case ShortEdgeFeed:
