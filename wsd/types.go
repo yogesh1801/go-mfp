@@ -51,7 +51,7 @@ func DecodeTypes(root xmldoc.Element) (types Types, err error) {
 	return
 }
 
-// DecodeTypes decodes [Types] from the XML tree.
+// DecodeMetadataTypes decodes [Types] from the XML tree.
 //
 // It works like [DecodeTypes] but for types encoded within [Metadata]
 // messages.
@@ -134,7 +134,10 @@ func (types Types) ToXML() xmldoc.Element {
 	return elm
 }
 
-// ToXML generates XML tree for the Types
+// MetadataToXML generates XML tree for the [Types].
+//
+// It is intended for encoding the [Metadata] messages, which use
+// slightly different encoding for the Types element.
 func (types Types) MetadataToXML() xmldoc.Element {
 	elm := xmldoc.Element{
 		Name: NsDevprof + ":Types",
