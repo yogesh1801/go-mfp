@@ -8,7 +8,12 @@
 
 package escl
 
-import "github.com/alexpevzner/mfp/optional"
+import (
+	"strconv"
+
+	"github.com/alexpevzner/mfp/optional"
+	"github.com/alexpevzner/mfp/xmldoc"
+)
 
 // Range commonly used to specify the range of some parameter, like
 // brightness, contrast etc.
@@ -17,4 +22,35 @@ type Range struct {
 	Max    int               // Maximal supported value
 	Normal int               // Normal value
 	Step   optional.Val[int] // Step between the subsequent values
+}
+
+// ToXML generates XML tree for the [Range].
+func (r Range) ToXML(name string) xmldoc.Element {
+	elm := xmldoc.Element{
+		Name: name,
+		Children: []xmldoc.Element{
+			{
+				Name: NsScan + ":" + "Min",
+				Text: strconv.FormatUint(uint64(r.Min), 10),
+			},
+			{
+				Name: NsScan + ":" + "Max",
+				Text: strconv.FormatUint(uint64(r.Max), 10),
+			},
+			{
+				Name: NsScan + ":" + "Normal",
+				Text: strconv.FormatUint(uint64(r.Normal), 10),
+			},
+		},
+	}
+
+	if r.Step != nil {
+		step := xmldoc.Element{
+			Name: NsScan + ":" + "Step",
+			Text: strconv.FormatUint(uint64(*r.Step), 10),
+		}
+		elm.Children = append(elm.Children, step)
+	}
+
+	return elm
 }
