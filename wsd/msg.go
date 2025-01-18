@@ -46,7 +46,7 @@ func msgFromXML(root xmldoc.Element) (m Msg, err error) {
 		bodyName = NsSOAP + ":" + "Body"
 	)
 
-	defer func() { err = xmlErrWrap(root, err) }()
+	defer func() { err = xmldoc.XMLErrWrap(root, err) }()
 
 	// Check root element
 	if root.Name != rootName {
@@ -60,7 +60,7 @@ func msgFromXML(root xmldoc.Element) (m Msg, err error) {
 
 	missed := root.Lookup(&hdr, &body)
 	if missed != nil {
-		err = xmlErrMissed(missed.Name)
+		err = xmldoc.XMLErrMissed(missed.Name)
 		return
 	}
 
@@ -78,7 +78,8 @@ func msgFromXML(root xmldoc.Element) (m Msg, err error) {
 		var ok bool
 		elem, ok = body.Elem.ChildByName(name)
 		if !ok {
-			err = xmlErrWrap(body.Elem, xmlErrMissed(name))
+			err = xmldoc.XMLErrMissed(name)
+			err = xmldoc.XMLErrWrap(body.Elem, err)
 			return
 		}
 	}

@@ -21,12 +21,12 @@ type EndpointReference struct {
 func DecodeEndpointReference(root xmldoc.Element) (
 	ref EndpointReference, err error) {
 
-	defer func() { err = xmlErrWrap(root, err) }()
+	defer func() { err = xmldoc.XMLErrWrap(root, err) }()
 
 	address := xmldoc.Lookup{Name: NsAddressing + ":Address", Required: true}
 	missed := root.Lookup(&address)
 	if missed != nil {
-		err = xmlErrMissed(missed.Name)
+		err = xmldoc.XMLErrMissed(missed.Name)
 		return
 	}
 

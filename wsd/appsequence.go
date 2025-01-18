@@ -35,7 +35,7 @@ var AppSequenceMissed = AppSequence{Skip: true}
 
 // DecodeAppSequence decodes AppSequence from the XML tree
 func DecodeAppSequence(root xmldoc.Element) (seq AppSequence, err error) {
-	defer func() { err = xmlErrWrap(root, err) }()
+	defer func() { err = xmldoc.XMLErrWrap(root, err) }()
 
 	instanceID := xmldoc.LookupAttr{Name: "InstanceId", Required: true}
 	messageNumber := xmldoc.LookupAttr{Name: "MessageNumber", Required: true}
@@ -44,7 +44,8 @@ func DecodeAppSequence(root xmldoc.Element) (seq AppSequence, err error) {
 	missed := root.LookupAttrs(&instanceID, &messageNumber, &sequenceID)
 	if missed != nil {
 		err = errors.New("missed attribyte")
-		err = xmlErrWrap(root, xmlErrWrapName("@"+missed.Name, err))
+		err = xmldoc.XMLErrWrapName("@"+missed.Name, err)
+		err = xmldoc.XMLErrWrap(root, err)
 		return
 	}
 

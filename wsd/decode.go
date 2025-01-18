@@ -20,7 +20,7 @@ func decodeUint64(root xmldoc.Element) (v uint64, err error) {
 	v, err = strconv.ParseUint(root.Text, 10, 64)
 	if err != nil {
 		err = fmt.Errorf("invalid uint: %q", root.Text)
-		err = xmlErrWrap(root, err)
+		err = xmldoc.XMLErrWrap(root, err)
 	}
 	return
 }
@@ -30,7 +30,7 @@ func decodeUint64Attr(attr xmldoc.Attr) (v uint64, err error) {
 	v, err = strconv.ParseUint(attr.Value, 10, 64)
 	if err != nil {
 		err = fmt.Errorf("invalid uint: %q", attr.Value)
-		err = xmlErrWrapAttr(attr, err)
+		err = xmldoc.XMLErrWrapAttr(attr, err)
 	}
 	return
 }

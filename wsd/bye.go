@@ -20,7 +20,7 @@ type Bye struct {
 
 // DecodeBye decodes [Bye] from the XML tree
 func DecodeBye(root xmldoc.Element) (bye Bye, err error) {
-	defer func() { err = xmlErrWrap(root, err) }()
+	defer func() { err = xmldoc.XMLErrWrap(root, err) }()
 
 	// Lookup message elements
 	endpointReference := xmldoc.Lookup{
@@ -29,7 +29,7 @@ func DecodeBye(root xmldoc.Element) (bye Bye, err error) {
 	missed := root.Lookup(&endpointReference)
 
 	if missed != nil {
-		err = xmlErrMissed(missed.Name)
+		err = xmldoc.XMLErrMissed(missed.Name)
 		return
 	}
 

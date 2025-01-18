@@ -34,7 +34,7 @@ type ResolveMatch struct {
 
 // DecodeResolveMatches decodes [ResolveMatches] from the XML tree
 func DecodeResolveMatches(root xmldoc.Element) (rm ResolveMatches, err error) {
-	defer func() { err = xmlErrWrap(root, err) }()
+	defer func() { err = xmldoc.XMLErrWrap(root, err) }()
 
 	const name = NsDiscovery + ":ResolveMatch"
 	for _, chld := range root.Children {

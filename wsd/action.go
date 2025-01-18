@@ -138,5 +138,5 @@ func DecodeAction(root xmldoc.Element) (v Action, err error) {
 		return act, nil
 	}
 
-	return ActUnknown, xmlErrNew(root, "unknown action")
+	return ActUnknown, xmldoc.XMLErrNew(root, "unknown action")
 }

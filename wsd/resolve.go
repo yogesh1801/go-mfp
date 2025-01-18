@@ -27,7 +27,7 @@ type Resolve struct {
 
 // DecodeResolve decodes [Resolve] from the XML tree
 func DecodeResolve(root xmldoc.Element) (resolve Resolve, err error) {
-	defer func() { err = xmlErrWrap(root, err) }()
+	defer func() { err = xmldoc.XMLErrWrap(root, err) }()
 
 	// Lookup message elements
 	endpointReference := xmldoc.Lookup{
@@ -36,7 +36,7 @@ func DecodeResolve(root xmldoc.Element) (resolve Resolve, err error) {
 	missed := root.Lookup(&endpointReference)
 
 	if missed != nil {
-		err = xmlErrMissed(missed.Name)
+		err = xmldoc.XMLErrMissed(missed.Name)
 		return
 	}
 

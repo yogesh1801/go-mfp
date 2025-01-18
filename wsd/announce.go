@@ -29,7 +29,7 @@ type Announce struct {
 
 // decodeAnnounce decodes [announce] from the XML tree
 func decodeAnnounce(root xmldoc.Element) (ann Announce, err error) {
-	defer func() { err = xmlErrWrap(root, err) }()
+	defer func() { err = xmldoc.XMLErrWrap(root, err) }()
 
 	// Lookup message elements
 	endpointReference := xmldoc.Lookup{
@@ -45,7 +45,7 @@ func decodeAnnounce(root xmldoc.Element) (ann Announce, err error) {
 		&xaddrs, &metadataVersion)
 
 	if missed != nil {
-		err = xmlErrMissed(missed.Name)
+		err = xmldoc.XMLErrMissed(missed.Name)
 		return
 	}
 

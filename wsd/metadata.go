@@ -70,7 +70,7 @@ type ServiceMetadata struct {
 
 // DecodeMetadata decodes Metadata from the XML tree.
 func DecodeMetadata(root xmldoc.Element) (meta Metadata, err error) {
-	defer func() { err = xmlErrWrap(root, err) }()
+	defer func() { err = xmldoc.XMLErrWrap(root, err) }()
 
 	haveThisDevice := false
 	haveThisModel := false
@@ -113,7 +113,7 @@ func DecodeMetadata(root xmldoc.Element) (meta Metadata, err error) {
 		}
 
 		if err != nil {
-			err = xmlErrWrap(chld, err)
+			err = xmldoc.XMLErrWrap(chld, err)
 			return
 		}
 	}
@@ -171,16 +171,16 @@ func (meta Metadata) MarkUsedNamespace(ns xmldoc.Namespace) {
 func DecodeThisDeviceMetadata(root xmldoc.Element) (
 	thisdev ThisDeviceMetadata, err error) {
 
-	defer func() { err = xmlErrWrap(root, err) }()
+	defer func() { err = xmldoc.XMLErrWrap(root, err) }()
 
 	// Find ThisDevice element
 	data, ok := root.ChildByName(NsDevprof + ":ThisDevice")
 	if !ok {
-		err = xmlErrMissed(NsDevprof + ":ThisDevice")
+		err = xmldoc.XMLErrMissed(NsDevprof + ":ThisDevice")
 		return
 	}
 
-	defer func() { err = xmlErrWrap(data, err) }()
+	defer func() { err = xmldoc.XMLErrWrap(data, err) }()
 
 	// Decode FriendlyName
 	for _, chld := range data.Children {
@@ -194,7 +194,7 @@ func DecodeThisDeviceMetadata(root xmldoc.Element) (
 	}
 
 	if len(thisdev.FriendlyName) == 0 {
-		err = xmlErrMissed(NsDevprof + ":FriendlyName")
+		err = xmldoc.XMLErrMissed(NsDevprof + ":FriendlyName")
 		return
 	}
 
@@ -206,7 +206,7 @@ func DecodeThisDeviceMetadata(root xmldoc.Element) (
 
 	missed := data.Lookup(&firmwareVersion, &serialNumber)
 	if missed != nil {
-		err = xmlErrMissed(missed.Name)
+		err = xmldoc.XMLErrMissed(missed.Name)
 		return
 	}
 
@@ -255,16 +255,16 @@ func (thisdev ThisDeviceMetadata) ToXML() xmldoc.Element {
 func DecodeThisModelMetadata(root xmldoc.Element) (
 	thismdl ThisModelMetadata, err error) {
 
-	defer func() { err = xmlErrWrap(root, err) }()
+	defer func() { err = xmldoc.XMLErrWrap(root, err) }()
 
 	// Find ThisModel element
 	data, ok := root.ChildByName(NsDevprof + ":ThisModel")
 	if !ok {
-		err = xmlErrMissed(NsDevprof + ":ThisModel")
+		err = xmldoc.XMLErrMissed(NsDevprof + ":ThisModel")
 		return
 	}
 
-	defer func() { err = xmlErrWrap(data, err) }()
+	defer func() { err = xmldoc.XMLErrWrap(data, err) }()
 
 	// Decode repeated elements, i.e. Manufacturer and ModelName
 	for _, chld := range data.Children {
@@ -286,12 +286,12 @@ func DecodeThisModelMetadata(root xmldoc.Element) (
 	}
 
 	if len(thismdl.Manufacturer) == 0 {
-		err = xmlErrMissed(NsDevprof + ":Manufacturer")
+		err = xmldoc.XMLErrMissed(NsDevprof + ":Manufacturer")
 		return
 	}
 
 	if len(thismdl.ModelName) == 0 {
-		err = xmlErrMissed(NsDevprof + ":ModelName")
+		err = xmldoc.XMLErrMissed(NsDevprof + ":ModelName")
 		return
 	}
 
@@ -306,7 +306,7 @@ func DecodeThisModelMetadata(root xmldoc.Element) (
 		&modelURL, &presentationURL)
 
 	if missed != nil {
-		err = xmlErrMissed(missed.Name)
+		err = xmldoc.XMLErrMissed(missed.Name)
 		return
 	}
 
@@ -387,16 +387,16 @@ func (thismdl ThisModelMetadata) ToXML() xmldoc.Element {
 
 // DecodeRelationship decodes Relationship from the XML tree
 func DecodeRelationship(root xmldoc.Element) (rel Relationship, err error) {
-	defer func() { err = xmlErrWrap(root, err) }()
+	defer func() { err = xmldoc.XMLErrWrap(root, err) }()
 
 	// Find Relationship element
 	data, ok := root.ChildByName(NsDevprof + ":Relationship")
 	if !ok {
-		err = xmlErrMissed(NsDevprof + ":Relationship")
+		err = xmldoc.XMLErrMissed(NsDevprof + ":Relationship")
 		return
 	}
 
-	defer func() { err = xmlErrWrap(data, err) }()
+	defer func() { err = xmldoc.XMLErrWrap(data, err) }()
 
 	// Decode Host/Hosted
 	for _, chld := range data.Children {
@@ -460,7 +460,7 @@ func (rel Relationship) ToXML() xmldoc.Element {
 func DecodeServiceMetadata(root xmldoc.Element) (
 	svcmeta ServiceMetadata, err error) {
 
-	defer func() { err = xmlErrWrap(root, err) }()
+	defer func() { err = xmldoc.XMLErrWrap(root, err) }()
 
 	// Decode EndpointReference
 	for _, chld := range root.Children {

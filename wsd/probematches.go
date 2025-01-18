@@ -34,7 +34,7 @@ type ProbeMatch struct {
 
 // DecodeProbeMatches decodes [ProbeMatches] from the XML tree
 func DecodeProbeMatches(root xmldoc.Element) (pm ProbeMatches, err error) {
-	defer func() { err = xmlErrWrap(root, err) }()
+	defer func() { err = xmldoc.XMLErrWrap(root, err) }()
 
 	const name = NsDiscovery + ":ProbeMatch"
 	for _, chld := range root.Children {

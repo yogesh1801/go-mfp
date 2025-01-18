@@ -23,7 +23,7 @@ func DecodeAnyURI(root xmldoc.Element) (v AnyURI, err error) {
 	if root.Text != "" {
 		return AnyURI(root.Text), nil
 	}
-	return "", xmlErrNew(root, "invalid URI")
+	return "", xmldoc.XMLErrNew(root, "invalid URI")
 }
 
 // DecodeAnyURIAttr decodes anyURI from the XML attribute
@@ -31,7 +31,7 @@ func DecodeAnyURIAttr(attr xmldoc.Attr) (v AnyURI, err error) {
 	if attr.Value != "" {
 		return AnyURI(attr.Value), nil
 	}
-	return "", xmlErrWrapAttr(attr, errors.New("invalid URi"))
+	return "", xmldoc.XMLErrWrapAttr(attr, errors.New("invalid URi"))
 }
 
 // UUID converts AnyURI into the [uuid.UUID].

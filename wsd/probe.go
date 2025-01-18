@@ -24,14 +24,14 @@ type Probe struct {
 
 // DecodeProbe decodes [Probe] from the XML tree
 func DecodeProbe(root xmldoc.Element) (probe Probe, err error) {
-	defer func() { err = xmlErrWrap(root, err) }()
+	defer func() { err = xmldoc.XMLErrWrap(root, err) }()
 
 	// Lookup message elements
 	types := xmldoc.Lookup{Name: NsDiscovery + ":Types", Required: true}
 
 	missed := root.Lookup(&types)
 	if missed != nil {
-		err = xmlErrMissed(missed.Name)
+		err = xmldoc.XMLErrMissed(missed.Name)
 		return
 	}
 

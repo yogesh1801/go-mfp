@@ -24,7 +24,7 @@ type Header struct {
 
 // DecodeHeader decodes message header [Header] from the XML tree
 func DecodeHeader(root xmldoc.Element) (hdr Header, err error) {
-	defer func() { err = xmlErrWrap(root, err) }()
+	defer func() { err = xmldoc.XMLErrWrap(root, err) }()
 
 	// Lookup header elements
 	action := xmldoc.Lookup{Name: NsAddressing + ":Action", Required: true}
@@ -37,7 +37,7 @@ func DecodeHeader(root xmldoc.Element) (hdr Header, err error) {
 	missed := root.Lookup(&action, &messageID, &to, &replyTo,
 		&relatesTo, &appSequence)
 	if missed != nil {
-		err = xmlErrMissed(missed.Name)
+		err = xmldoc.XMLErrMissed(missed.Name)
 		return
 	}
 
