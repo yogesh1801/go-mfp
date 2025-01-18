@@ -24,6 +24,42 @@ type Range struct {
 	Step   optional.Val[int] // Step between the subsequent values
 }
 
+// decodeRange decodes [Range] from the XML tree
+func decodeRange(root xmldoc.Element) (r Range, err error) {
+	defer func() { err = xmldoc.XMLErrWrap(root, err) }()
+
+	// Lookup message elements
+	min := xmldoc.Lookup{Name: NsScan + ":Min", Required: true}
+	max := xmldoc.Lookup{Name: NsScan + ":Max", Required: true}
+	normal := xmldoc.Lookup{Name: NsScan + ":Normal", Required: true}
+	step := xmldoc.Lookup{Name: NsScan + ":Step"}
+
+	missed := root.Lookup(&min, &max, &normal, &step)
+	if missed != nil {
+		err = xmldoc.XMLErrMissed(missed.Name)
+		return
+	}
+
+	// Decode elements
+	r.Min, err = decodeNonNegativeInt(min.Elem)
+	if err == nil {
+		r.Min, err = decodeNonNegativeInt(min.Elem)
+	}
+	if err == nil {
+		r.Max, err = decodeNonNegativeInt(max.Elem)
+	}
+	if err == nil {
+		r.Normal, err = decodeNonNegativeInt(normal.Elem)
+	}
+	if err == nil && step.Found {
+		var tmp int
+		tmp, err = decodeNonNegativeInt(step.Elem)
+		r.Step = optional.New(tmp)
+	}
+
+	return
+}
+
 // ToXML generates XML tree for the [Range].
 func (r Range) ToXML(name string) xmldoc.Element {
 	elm := xmldoc.Element{
