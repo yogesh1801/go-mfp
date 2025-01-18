@@ -32,6 +32,17 @@ type ScannerCapabilities struct {
 	Camera optional.Val[Camera] // Camera capabilities
 	ADF    optional.Val[ADF]    // ADF capabilities
 
+	// Image transform ranges
+	BrightnessSupport        optional.Val[Range] // Brightness
+	CompressionFactorSupport optional.Val[Range] // Lower num, better image
+	ContrastSupport          optional.Val[Range] // Contrast
+	GammaSupport             optional.Val[Range] // Gamma (y=x^(1/g)
+	Highlight                optional.Val[Range] // Image Highlight
+	NoiseRemoval             optional.Val[Range] // Noise removal level
+	Shadow                   optional.Val[Range] // The lower, the darger
+	Sharpen                  optional.Val[Range] // Image sharpen
+	Threshold                optional.Val[Range] // For BlackAndWhite1
+
 	// Automatic detection and removal of the blank pages
 	BlankPageDetection           optional.Val[bool] // Detection supported
 	BlankPageDetectionAndRemoval optional.Val[bool] // Auto-remove supported
