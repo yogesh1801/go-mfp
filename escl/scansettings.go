@@ -31,6 +31,7 @@ type ScanSettings struct {
 	CcdChannel        optional.Val[CcdChannel]      // Desired CCD channel
 	BinaryRendering   optional.Val[BinaryRendering] // For BlackAndWhite1
 	Duplex            optional.Val[bool]            // For ADF
+	FeedDirection     optional.Val[FeedDirection]   // Desired feed dir
 
 	// Image transform parameters
 	Brightness        optional.Val[int] // Brightness
