@@ -35,10 +35,5 @@ type DiscreteResolution struct {
 }
 
 // XYResolutionRange defines a range of horizontal or vertical resolutions,
-// supported by the scanner.
-type XYResolutionRange struct {
-	Min    int // Minimal supported resolution, DPI
-	Max    int // Maximal supported resolution, DPI
-	Normal int // Normal resolution, DPI
-	Step   int // Step between the subsequent resolutions, DPI
-}
+// supported by the scanner, in DPI.
+type XYResolutionRange = Range
