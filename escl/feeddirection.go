@@ -12,7 +12,7 @@ package escl
 // (affects the resulting image orientation).
 type FeedDirection int
 
-// Known CCD Channels.
+// Known feed directions.
 const (
 	UnknownFeedDirection FeedDirection = iota // Unknown CCD
 	LongEdgeFeed                              // Longest edge scanned first
