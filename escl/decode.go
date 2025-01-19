@@ -24,7 +24,8 @@ func decodeNonNegativeInt(root xmldoc.Element) (v int, err error) {
 	if err != nil || v > math.MaxInt32 {
 		err = fmt.Errorf("invalid int: %q", root.Text)
 		err = xmldoc.XMLErrWrap(root, err)
+		v64 = 0
 	}
 
-	return int(v64), nil
+	return int(v64), err
 }
