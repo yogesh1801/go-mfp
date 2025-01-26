@@ -28,7 +28,7 @@ type Range struct {
 func decodeRange(root xmldoc.Element) (r Range, err error) {
 	defer func() { err = xmldoc.XMLErrWrap(root, err) }()
 
-	// Lookup message elements
+	// Lookup relevant XML elements
 	min := xmldoc.Lookup{Name: NsScan + ":Min", Required: true}
 	max := xmldoc.Lookup{Name: NsScan + ":Max", Required: true}
 	normal := xmldoc.Lookup{Name: NsScan + ":Normal", Required: true}
