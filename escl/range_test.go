@@ -60,7 +60,7 @@ func TestRange(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		xml := test.rng.ToXML(NsScan + ":Range")
+		xml := test.rng.toXML(NsScan + ":Range")
 		if !reflect.DeepEqual(xml, test.xml) {
 			t.Errorf("ToXML:\nexpected: %s\npresent: %s\n",
 				test.xml.EncodeString(NsMap),

@@ -60,8 +60,8 @@ func decodeRange(root xmldoc.Element) (r Range, err error) {
 	return
 }
 
-// ToXML generates XML tree for the [Range].
-func (r Range) ToXML(name string) xmldoc.Element {
+// toXML generates XML tree for the [Range].
+func (r Range) toXML(name string) xmldoc.Element {
 	elm := xmldoc.Element{
 		Name: name,
 		Children: []xmldoc.Element{
