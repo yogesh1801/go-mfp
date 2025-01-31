@@ -40,7 +40,7 @@ func decodeColorMode(root xmldoc.Element) (cm ColorMode, err error) {
 		}
 	}
 
-	err = fmt.Errorf("invalid ColorMode: %s", root.Text)
+	err = fmt.Errorf("invalid ColorMode: %q", root.Text)
 	err = xmldoc.XMLErrWrap(root, err)
 
 	return
