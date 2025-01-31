@@ -8,6 +8,13 @@
 
 package escl
 
+import (
+	"fmt"
+	"strings"
+
+	"github.com/alexpevzner/mfp/xmldoc"
+)
+
 // ColorMode specifies combination of the color mode (color/grayscale/1-bit
 // black and white) with the bit depth.
 type ColorMode int
@@ -21,6 +28,31 @@ const (
 	RGB24                             // 8-bit per channel RGB
 	RGB48                             // 16-bit per channel RGB
 )
+
+// decodeColorMode decodes [ColorMode] from the XML tree.
+func decodeColorMode(root xmldoc.Element) (cm ColorMode, err error) {
+	const ns = NsScan + ":"
+
+	if strings.HasPrefix(root.Text, ns) {
+		cm = DecodeColorMode(root.Text[len(ns):])
+		if cm != UnknownColorMode {
+			return
+		}
+	}
+
+	err = fmt.Errorf("invalid ColorMode: %s", root.Text)
+	err = xmldoc.XMLErrWrap(root, err)
+
+	return
+}
+
+// toXML generates XML tree for the [ColorMode].
+func (cm ColorMode) toXML(name string) xmldoc.Element {
+	return xmldoc.Element{
+		Name: name,
+		Text: NsScan + ":" + cm.String(),
+	}
+}
 
 // String returns a string representation of the [ColorMode]
 func (cm ColorMode) String() string {
