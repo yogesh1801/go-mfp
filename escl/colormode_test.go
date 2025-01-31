@@ -10,52 +10,20 @@ package escl
 
 import "testing"
 
-// TestColorModeString tests ColorMode.String
-func TestColorModeString(t *testing.T) {
-	type testData struct {
-		cm ColorMode
-		s  string
-	}
-
-	tests := []testData{
+var testColorMode = testEnum[ColorMode]{
+	decodeStr: DecodeColorMode,
+	decodeXML: decodeColorMode,
+	ns:        NsScan,
+	dataset: []testEnumData[ColorMode]{
 		{BlackAndWhite1, "BlackAndWhite1"},
 		{Grayscale8, "Grayscale8"},
 		{Grayscale16, "Grayscale16"},
 		{RGB24, "RGB24"},
 		{RGB48, "RGB48"},
-		{-1, "Unknown"},
-	}
-
-	for _, test := range tests {
-		s := test.cm.String()
-		if s != test.s {
-			t.Errorf("%d: extected %q, present %q",
-				int(test.cm), test.s, s)
-		}
-	}
+	},
 }
 
-// TestDecodeColorMode tests DecodeColorMode
-func TestDecodeColorMode(t *testing.T) {
-	type testData struct {
-		cm ColorMode
-		s  string
-	}
-
-	tests := []testData{
-		{BlackAndWhite1, "BlackAndWhite1"},
-		{Grayscale8, "Grayscale8"},
-		{Grayscale16, "Grayscale16"},
-		{RGB24, "RGB24"},
-		{RGB48, "RGB48"},
-		{UnknownColorMode, "XXX"},
-	}
-
-	for _, test := range tests {
-		cm := DecodeColorMode(test.s)
-		if cm != test.cm {
-			t.Errorf("%q: extected %q, present %q",
-				test.s, test.cm, cm)
-		}
-	}
+// TestColorMode tests [ColorMode] common methods and functions.
+func TestColorMode(t *testing.T) {
+	testColorMode.run(t)
 }
