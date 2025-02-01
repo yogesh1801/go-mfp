@@ -9,9 +9,6 @@
 package escl
 
 import (
-	"fmt"
-	"strings"
-
 	"github.com/alexpevzner/mfp/xmldoc"
 )
 
@@ -31,19 +28,7 @@ const (
 
 // decodeColorMode decodes [ColorMode] from the XML tree.
 func decodeColorMode(root xmldoc.Element) (cm ColorMode, err error) {
-	const ns = NsScan + ":"
-
-	if strings.HasPrefix(root.Text, ns) {
-		cm = DecodeColorMode(root.Text[len(ns):])
-		if cm != UnknownColorMode {
-			return
-		}
-	}
-
-	err = fmt.Errorf("invalid ColorMode: %q", root.Text)
-	err = xmldoc.XMLErrWrap(root, err)
-
-	return
+	return decodeEnum(root, DecodeColorMode, NsScan)
 }
 
 // toXML generates XML tree for the [ColorMode].
