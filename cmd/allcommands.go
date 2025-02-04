@@ -12,6 +12,7 @@ import (
 	"github.com/alexpevzner/mfp/argv"
 	"github.com/alexpevzner/mfp/cmd/mfp-cups/cups"
 	"github.com/alexpevzner/mfp/cmd/mfp-discover/discover"
+	"github.com/alexpevzner/mfp/cmd/mfp-proxy/proxy"
 )
 
 // AllCommands is the argv.Command, that includes all other commands
@@ -23,6 +24,7 @@ var AllCommands = &argv.Command{
 	},
 	SubCommands: []argv.Command{
 		cups.Command,
+		proxy.Command,
 		discover.Command,
 		argv.HelpCommand,
 	},
