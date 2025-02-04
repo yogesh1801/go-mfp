@@ -10,14 +10,11 @@ package escl
 
 import "testing"
 
-// TestContentTypeString tests ContentType.String
-func TestContentTypeString(t *testing.T) {
-	type testData struct {
-		ct ContentType
-		s  string
-	}
-
-	tests := []testData{
+var testContentType = testEnum[ContentType]{
+	decodeStr: DecodeContentType,
+	decodeXML: decodeContentType,
+	ns:        NsScan,
+	dataset: []testEnumData[ContentType]{
 		{ContentTypePhoto, "Photo"},
 		{ContentTypeText, "Text"},
 		{ContentTypeTextAndPhoto, "TextAndPhoto"},
@@ -25,41 +22,10 @@ func TestContentTypeString(t *testing.T) {
 		{ContentTypeMagazine, "Magazine"},
 		{ContentTypeHalftone, "Halftone"},
 		{ContentTypeAuto, "Auto"},
-		{-1, "Unknown"},
-	}
-
-	for _, test := range tests {
-		s := test.ct.String()
-		if s != test.s {
-			t.Errorf("%d: extected %q, present %q",
-				int(test.ct), test.s, s)
-		}
-	}
+	},
 }
 
-// TestDecodeContentType tests DecodeContentType
-func TestDecodeContentType(t *testing.T) {
-	type testData struct {
-		ct ContentType
-		s  string
-	}
-
-	tests := []testData{
-		{ContentTypePhoto, "Photo"},
-		{ContentTypeText, "Text"},
-		{ContentTypeTextAndPhoto, "TextAndPhoto"},
-		{ContentTypeLineArt, "LineArt"},
-		{ContentTypeMagazine, "Magazine"},
-		{ContentTypeHalftone, "Halftone"},
-		{ContentTypeAuto, "Auto"},
-		{-1, "Unknown"},
-	}
-
-	for _, test := range tests {
-		ct := DecodeContentType(test.s)
-		if ct != test.ct {
-			t.Errorf("%q: extected %q, present %q",
-				test.s, test.ct, ct)
-		}
-	}
+// TestContentType tests [ContentType] common methods and functions.
+func TestContentType(t *testing.T) {
+	testContentType.run(t)
 }

@@ -8,6 +8,8 @@
 
 package escl
 
+import "github.com/alexpevzner/mfp/xmldoc"
+
 // ADFOption specifies options, supported by the Automatic Document Feeder.
 type ADFOption int
 
@@ -18,6 +20,19 @@ const (
 	SelectSinglePage                   // Can scan part of loaded pages
 	Duplex                             // Duplex support
 )
+
+// decodeADFOption decodes [ADFOption] from the XML tree.
+func decodeADFOption(root xmldoc.Element) (opt ADFOption, err error) {
+	return decodeEnum(root, DecodeADFOption, NsScan)
+}
+
+// toXML generates XML tree for the [ADFOption].
+func (opt ADFOption) toXML(name string) xmldoc.Element {
+	return xmldoc.Element{
+		Name: name,
+		Text: NsScan + ":" + opt.String(),
+	}
+}
 
 // String returns a string representation of the [ADFOption]
 func (opt ADFOption) String() string {

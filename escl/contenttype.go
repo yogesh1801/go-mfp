@@ -8,6 +8,8 @@
 
 package escl
 
+import "github.com/alexpevzner/mfp/xmldoc"
+
 // ContentType is similar to [Intent] but is limited to image processing.
 //
 // According to the eSCL protocol specification, it does not imply default
@@ -18,7 +20,7 @@ type ContentType int
 
 // Known intents
 const (
-	ContentTypeUnknown ContentType = iota - 1 // Unknown ContentType
+	ContentTypeUnknown ContentType = iota // Unknown ContentType
 	ContentTypePhoto
 	ContentTypeText
 	ContentTypeTextAndPhoto
@@ -27,6 +29,19 @@ const (
 	ContentTypeHalftone
 	ContentTypeAuto
 )
+
+// decodeContentType decodes [ContentType] from the XML tree.
+func decodeContentType(root xmldoc.Element) (ct ContentType, err error) {
+	return decodeEnum(root, DecodeContentType, NsScan)
+}
+
+// toXML generates XML tree for the [ContentType].
+func (ct ContentType) toXML(name string) xmldoc.Element {
+	return xmldoc.Element{
+		Name: name,
+		Text: NsScan + ":" + ct.String(),
+	}
+}
 
 // String returns a string representation of the [ContentType]
 func (ct ContentType) String() string {

@@ -8,6 +8,8 @@
 
 package escl
 
+import "github.com/alexpevzner/mfp/xmldoc"
+
 // BinaryRendering specifies how to render black and white images
 // in the BlackAndWhite1 mode.
 type BinaryRendering int
@@ -18,6 +20,19 @@ const (
 	Halftone                                      // Simulate Halftone
 	Threshold                                     // Use Threshold
 )
+
+// decodeBinaryRendering decodes [BinaryRendering] from the XML tree.
+func decodeBinaryRendering(root xmldoc.Element) (rnd BinaryRendering, err error) {
+	return decodeEnum(root, DecodeBinaryRendering, NsScan)
+}
+
+// toXML generates XML tree for the [BinaryRendering].
+func (rnd BinaryRendering) toXML(name string) xmldoc.Element {
+	return xmldoc.Element{
+		Name: name,
+		Text: NsScan + ":" + rnd.String(),
+	}
+}
 
 // String returns a string representation of the [BinaryRendering]
 func (rnd BinaryRendering) String() string {

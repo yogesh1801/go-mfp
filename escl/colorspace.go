@@ -8,6 +8,8 @@
 
 package escl
 
+import "github.com/alexpevzner/mfp/xmldoc"
+
 // ColorSpace defines the color space used for scanning.
 type ColorSpace int
 
@@ -16,6 +18,19 @@ const (
 	UnknownColorSpace ColorSpace = iota // Unknown color mode
 	SRGB                                // sRGG
 )
+
+// decodeColorSpace decodes [ColorSpace] from the XML tree.
+func decodeColorSpace(root xmldoc.Element) (sps ColorSpace, err error) {
+	return decodeEnum(root, DecodeColorSpace, NsScan)
+}
+
+// toXML generates XML tree for the [ColorSpace].
+func (sps ColorSpace) toXML(name string) xmldoc.Element {
+	return xmldoc.Element{
+		Name: name,
+		Text: NsScan + ":" + sps.String(),
+	}
+}
 
 // String returns a string representation of the [ColorSpace]
 func (sps ColorSpace) String() string {

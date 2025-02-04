@@ -10,54 +10,21 @@ package escl
 
 import "testing"
 
-// TestIntentString tests Intent.String
-func TestIntentString(t *testing.T) {
-	type testData struct {
-		intent Intent
-		s      string
-	}
-
-	tests := []testData{
+var testIntent = testEnum[Intent]{
+	decodeStr: DecodeIntent,
+	decodeXML: decodeIntent,
+	ns:        NsScan,
+	dataset: []testEnumData[Intent]{
 		{Document, "Document"},
 		{TextAndGraphic, "TextAndGraphic"},
 		{Photo, "Photo"},
 		{Preview, "Preview"},
 		{Object, "Object"},
 		{BusinessCard, "BusinessCard"},
-		{-1, "Unknown"},
-	}
-
-	for _, test := range tests {
-		s := test.intent.String()
-		if s != test.s {
-			t.Errorf("%d: extected %q, present %q",
-				int(test.intent), test.s, s)
-		}
-	}
+	},
 }
 
-// TestDecodeIntent tests DecodeIntent
-func TestDecodeIntent(t *testing.T) {
-	type testData struct {
-		intent Intent
-		s      string
-	}
-
-	tests := []testData{
-		{Document, "Document"},
-		{TextAndGraphic, "TextAndGraphic"},
-		{Photo, "Photo"},
-		{Preview, "Preview"},
-		{Object, "Object"},
-		{BusinessCard, "BusinessCard"},
-		{UnknownIntent, "XXX"},
-	}
-
-	for _, test := range tests {
-		intent := DecodeIntent(test.s)
-		if intent != test.intent {
-			t.Errorf("%q: extected %q, present %q",
-				test.s, test.intent, intent)
-		}
-	}
+// TestIntent tests [Intent] common methods and functions.
+func TestIntent(t *testing.T) {
+	testIntent.run(t)
 }

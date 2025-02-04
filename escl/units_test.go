@@ -10,44 +10,16 @@ package escl
 
 import "testing"
 
-// TestDecodeUnitsString tests Units.String
-func TestDecodeUnitsString(t *testing.T) {
-	type testData struct {
-		units Units
-		s     string
-	}
-
-	tests := []testData{
+var testUnits = testEnum[Units]{
+	decodeStr: DecodeUnits,
+	decodeXML: decodeUnits,
+	ns:        NsScan,
+	dataset: []testEnumData[Units]{
 		{ThreeHundredthsOfInches, "ThreeHundredthsOfInches"},
-		{-1, "Unknown"},
-	}
-
-	for _, test := range tests {
-		s := test.units.String()
-		if s != test.s {
-			t.Errorf("%d: extected %q, present %q",
-				int(test.units), test.s, s)
-		}
-	}
+	},
 }
 
-// TestDecodeUnits tests DecodeUnits
-func TestDecodeUnits(t *testing.T) {
-	type testData struct {
-		units Units
-		s     string
-	}
-
-	tests := []testData{
-		{ThreeHundredthsOfInches, "ThreeHundredthsOfInches"},
-		{UnknownUnits, "XXX"},
-	}
-
-	for _, test := range tests {
-		units := DecodeUnits(test.s)
-		if units != test.units {
-			t.Errorf("%q: extected %q, present %q",
-				test.s, test.units, units)
-		}
-	}
+// TestUnits tests [Units] common methods and functions.
+func TestUnits(t *testing.T) {
+	testUnits.run(t)
 }

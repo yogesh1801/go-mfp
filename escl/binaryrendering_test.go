@@ -10,46 +10,17 @@ package escl
 
 import "testing"
 
-// TestBinaryRenderingString tests BinaryRendering.String
-func TestBinaryRenderingString(t *testing.T) {
-	type testData struct {
-		rnd BinaryRendering
-		s   string
-	}
-
-	tests := []testData{
+var testBinaryRendering = testEnum[BinaryRendering]{
+	decodeStr: DecodeBinaryRendering,
+	decodeXML: decodeBinaryRendering,
+	ns:        NsScan,
+	dataset: []testEnumData[BinaryRendering]{
 		{Halftone, "Halftone"},
 		{Threshold, "Threshold"},
-		{-1, "Unknown"},
-	}
-
-	for _, test := range tests {
-		s := test.rnd.String()
-		if s != test.s {
-			t.Errorf("%d: extected %q, present %q",
-				int(test.rnd), test.s, s)
-		}
-	}
+	},
 }
 
-// TestDecodeBinaryRendering tests DecodeBinaryRendering
-func TestDecodeBinaryRendering(t *testing.T) {
-	type testData struct {
-		rnd BinaryRendering
-		s   string
-	}
-
-	tests := []testData{
-		{Halftone, "Halftone"},
-		{Threshold, "Threshold"},
-		{UnknownBinaryRendering, "XXX"},
-	}
-
-	for _, test := range tests {
-		rnd := DecodeBinaryRendering(test.s)
-		if rnd != test.rnd {
-			t.Errorf("%q: extected %q, present %q",
-				test.s, test.rnd, rnd)
-		}
-	}
+// TestBinaryRendering tests [BinaryRendering] common methods and functions.
+func TestBinaryRendering(t *testing.T) {
+	testBinaryRendering.run(t)
 }

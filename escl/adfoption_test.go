@@ -10,48 +10,18 @@ package escl
 
 import "testing"
 
-// TestADFOptionString tests ADFOption.String
-func TestADFOptionString(t *testing.T) {
-	type testData struct {
-		opt ADFOption
-		s   string
-	}
-
-	tests := []testData{
+var testADFOption = testEnum[ADFOption]{
+	decodeStr: DecodeADFOption,
+	decodeXML: decodeADFOption,
+	ns:        NsScan,
+	dataset: []testEnumData[ADFOption]{
 		{DetectPaperLoaded, "DetectPaperLoaded"},
 		{SelectSinglePage, "SelectSinglePage"},
 		{Duplex, "Duplex"},
-		{-1, "Unknown"},
-	}
-
-	for _, test := range tests {
-		s := test.opt.String()
-		if s != test.s {
-			t.Errorf("%d: extected %q, present %q",
-				int(test.opt), test.s, s)
-		}
-	}
+	},
 }
 
-// TestDecodeADFOption tests DecodeADFOption
-func TestDecodeADFOption(t *testing.T) {
-	type testData struct {
-		opt ADFOption
-		s   string
-	}
-
-	tests := []testData{
-		{DetectPaperLoaded, "DetectPaperLoaded"},
-		{SelectSinglePage, "SelectSinglePage"},
-		{Duplex, "Duplex"},
-		{UnknownADFOption, "XXX"},
-	}
-
-	for _, test := range tests {
-		opt := DecodeADFOption(test.s)
-		if opt != test.opt {
-			t.Errorf("%q: extected %q, present %q",
-				test.s, test.opt, opt)
-		}
-	}
+// TestADFOption tests [ADFOption] common methods and functions.
+func TestADFOption(t *testing.T) {
+	testADFOption.run(t)
 }

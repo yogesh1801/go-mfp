@@ -8,6 +8,8 @@
 
 package escl
 
+import "github.com/alexpevzner/mfp/xmldoc"
+
 // FeedDirection specifies the feed direction of the input media
 // (affects the resulting image orientation).
 type FeedDirection int
@@ -18,6 +20,19 @@ const (
 	LongEdgeFeed                              // Longest edge scanned first
 	ShortEdgeFeed                             // Shortest edge scanned 1st
 )
+
+// decodeFeedDirection decodes [FeedDirection] from the XML tree.
+func decodeFeedDirection(root xmldoc.Element) (feed FeedDirection, err error) {
+	return decodeEnum(root, DecodeFeedDirection, NsScan)
+}
+
+// toXML generates XML tree for the [FeedDirection].
+func (feed FeedDirection) toXML(name string) xmldoc.Element {
+	return xmldoc.Element{
+		Name: name,
+		Text: NsScan + ":" + feed.String(),
+	}
+}
 
 // String returns a string representation of the [FeedDirection]
 func (feed FeedDirection) String() string {

@@ -10,50 +10,19 @@ package escl
 
 import "testing"
 
-// TestSupportedEdgeString tests SupportedEdge.String
-func TestSupportedEdgeString(t *testing.T) {
-	type testData struct {
-		intent SupportedEdge
-		s      string
-	}
-
-	tests := []testData{
+var testSupportedEdge = testEnum[SupportedEdge]{
+	decodeStr: DecodeSupportedEdge,
+	decodeXML: decodeSupportedEdge,
+	ns:        NsScan,
+	dataset: []testEnumData[SupportedEdge]{
 		{TopEdge, "TopEdge"},
 		{LeftEdge, "LeftEdge"},
 		{BottomEdge, "BottomEdge"},
 		{RightEdge, "RightEdge"},
-		{-1, "Unknown"},
-	}
-
-	for _, test := range tests {
-		s := test.intent.String()
-		if s != test.s {
-			t.Errorf("%d: extected %q, present %q",
-				int(test.intent), test.s, s)
-		}
-	}
+	},
 }
 
-// TestDecodeSupportedEdge tests DecodeSupportedEdge
-func TestDecodeSupportedEdge(t *testing.T) {
-	type testData struct {
-		intent SupportedEdge
-		s      string
-	}
-
-	tests := []testData{
-		{TopEdge, "TopEdge"},
-		{LeftEdge, "LeftEdge"},
-		{BottomEdge, "BottomEdge"},
-		{RightEdge, "RightEdge"},
-		{UnknownSupportedEdge, "XXX"},
-	}
-
-	for _, test := range tests {
-		intent := DecodeSupportedEdge(test.s)
-		if intent != test.intent {
-			t.Errorf("%q: extected %q, present %q",
-				test.s, test.intent, intent)
-		}
-	}
+// TestSupportedEdge tests [SupportedEdge] common methods and functions.
+func TestSupportedEdge(t *testing.T) {
+	testSupportedEdge.run(t)
 }

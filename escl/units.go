@@ -8,6 +8,8 @@
 
 package escl
 
+import "github.com/alexpevzner/mfp/xmldoc"
+
 // Units specifies the feed direction of the input media
 // (affects the resulting image orientation).
 type Units int
@@ -19,6 +21,19 @@ const (
 	UnknownUnits            Units = iota // Unknown CCD
 	ThreeHundredthsOfInches              // 300 DPI
 )
+
+// decodeUnits decodes [Units] from the XML tree.
+func decodeUnits(root xmldoc.Element) (units Units, err error) {
+	return decodeEnum(root, DecodeUnits, NsScan)
+}
+
+// toXML generates XML tree for the [Units].
+func (units Units) toXML(name string) xmldoc.Element {
+	return xmldoc.Element{
+		Name: name,
+		Text: NsScan + ":" + units.String(),
+	}
+}
 
 // String returns a string representation of the [Units]
 func (units Units) String() string {

@@ -10,48 +10,18 @@ package escl
 
 import "testing"
 
-// TestInputSourceString tests InputSource.String
-func TestInputSourceString(t *testing.T) {
-	type testData struct {
-		input InputSource
-		s     string
-	}
-
-	tests := []testData{
+var testInputSource = testEnum[InputSource]{
+	decodeStr: DecodeInputSource,
+	decodeXML: decodeInputSource,
+	ns:        NsScan,
+	dataset: []testEnumData[InputSource]{
 		{InputPlaten, "Platen"},
 		{InputFeeder, "Feeder"},
 		{InputCamera, "Camera"},
-		{-1, "Unknown"},
-	}
-
-	for _, test := range tests {
-		s := test.input.String()
-		if s != test.s {
-			t.Errorf("%d: extected %q, present %q",
-				int(test.input), test.s, s)
-		}
-	}
+	},
 }
 
-// TestDecodeInputSource tests DecodeInputSource
-func TestDecodeInputSource(t *testing.T) {
-	type testData struct {
-		input InputSource
-		s     string
-	}
-
-	tests := []testData{
-		{InputPlaten, "Platen"},
-		{InputFeeder, "Feeder"},
-		{InputCamera, "Camera"},
-		{UnknownInputSource, "XXX"},
-	}
-
-	for _, test := range tests {
-		input := DecodeInputSource(test.s)
-		if input != test.input {
-			t.Errorf("%q: extected %q, present %q",
-				test.s, test.input, input)
-		}
-	}
+// TestInputSource tests [InputSource] common methods and functions.
+func TestInputSource(t *testing.T) {
+	testInputSource.run(t)
 }

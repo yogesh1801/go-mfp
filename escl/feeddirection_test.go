@@ -10,46 +10,17 @@ package escl
 
 import "testing"
 
-// TestDecodeFeedDirectionString tests FeedDirection.String
-func TestDecodeFeedDirectionString(t *testing.T) {
-	type testData struct {
-		feed FeedDirection
-		s    string
-	}
-
-	tests := []testData{
+var testFeedDirection = testEnum[FeedDirection]{
+	decodeStr: DecodeFeedDirection,
+	decodeXML: decodeFeedDirection,
+	ns:        NsScan,
+	dataset: []testEnumData[FeedDirection]{
 		{LongEdgeFeed, "LongEdgeFeed"},
 		{ShortEdgeFeed, "ShortEdgeFeed"},
-		{-1, "Unknown"},
-	}
-
-	for _, test := range tests {
-		s := test.feed.String()
-		if s != test.s {
-			t.Errorf("%d: extected %q, present %q",
-				int(test.feed), test.s, s)
-		}
-	}
+	},
 }
 
-// TestDecodeFeedDirection tests DecodeFeedDirection
-func TestDecodeFeedDirection(t *testing.T) {
-	type testData struct {
-		feed FeedDirection
-		s    string
-	}
-
-	tests := []testData{
-		{LongEdgeFeed, "LongEdgeFeed"},
-		{ShortEdgeFeed, "ShortEdgeFeed"},
-		{UnknownFeedDirection, "XXX"},
-	}
-
-	for _, test := range tests {
-		feed := DecodeFeedDirection(test.s)
-		if feed != test.feed {
-			t.Errorf("%q: extected %q, present %q",
-				test.s, test.feed, feed)
-		}
-	}
+// TestFeedDirection tests [FeedDirection] common methods and functions.
+func TestFeedDirection(t *testing.T) {
+	testFeedDirection.run(t)
 }

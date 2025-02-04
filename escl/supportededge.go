@@ -8,6 +8,8 @@
 
 package escl
 
+import "github.com/alexpevzner/mfp/xmldoc"
+
 // SupportedEdge represents an image edge, suitable for edge auto detection.
 type SupportedEdge int
 
@@ -19,6 +21,19 @@ const (
 	BottomEdge
 	RightEdge
 )
+
+// decodeSupportedEdge decodes [SupportedEdge] from the XML tree.
+func decodeSupportedEdge(root xmldoc.Element) (edge SupportedEdge, err error) {
+	return decodeEnum(root, DecodeSupportedEdge, NsScan)
+}
+
+// toXML generates XML tree for the [SupportedEdge].
+func (edge SupportedEdge) toXML(name string) xmldoc.Element {
+	return xmldoc.Element{
+		Name: name,
+		Text: NsScan + ":" + edge.String(),
+	}
+}
 
 // String returns a string representation of the [SupportedEdge]
 func (edge SupportedEdge) String() string {

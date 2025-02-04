@@ -10,44 +10,16 @@ package escl
 
 import "testing"
 
-// TestColorSpaceString tests ColorSpace.String
-func TestColorSpaceString(t *testing.T) {
-	type testData struct {
-		sps ColorSpace
-		s   string
-	}
-
-	tests := []testData{
+var testColorSpace = testEnum[ColorSpace]{
+	decodeStr: DecodeColorSpace,
+	decodeXML: decodeColorSpace,
+	ns:        NsScan,
+	dataset: []testEnumData[ColorSpace]{
 		{SRGB, "sRGB"},
-		{-1, "Unknown"},
-	}
-
-	for _, test := range tests {
-		s := test.sps.String()
-		if s != test.s {
-			t.Errorf("%d: extected %q, present %q",
-				int(test.sps), test.s, s)
-		}
-	}
+	},
 }
 
-// TestDecodeColorSpace tests DecodeColorSpace
-func TestDecodeColorSpace(t *testing.T) {
-	type testData struct {
-		sps ColorSpace
-		s   string
-	}
-
-	tests := []testData{
-		{SRGB, "sRGB"},
-		{UnknownColorSpace, "XXX"},
-	}
-
-	for _, test := range tests {
-		sps := DecodeColorSpace(test.s)
-		if sps != test.sps {
-			t.Errorf("%q: extected %q, present %q",
-				test.s, test.sps, sps)
-		}
-	}
+// TestColorSpace tests [ColorSpace] common methods and functions.
+func TestColorSpace(t *testing.T) {
+	testColorSpace.run(t)
 }

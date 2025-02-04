@@ -8,6 +8,8 @@
 
 package escl
 
+import "github.com/alexpevzner/mfp/xmldoc"
+
 // Intent represents a scan intent, which implies automatic
 // choosing of the appropriate scan parameters by the scanner.
 type Intent int
@@ -22,6 +24,19 @@ const (
 	Object                       // 3d object
 	BusinessCard                 // Scanning optimized for business card
 )
+
+// decodeIntent decodes [Intent] from the XML tree.
+func decodeIntent(root xmldoc.Element) (intent Intent, err error) {
+	return decodeEnum(root, DecodeIntent, NsScan)
+}
+
+// toXML generates XML tree for the [Intent].
+func (intent Intent) toXML(name string) xmldoc.Element {
+	return xmldoc.Element{
+		Name: name,
+		Text: NsScan + ":" + intent.String(),
+	}
+}
 
 // String returns a string representation of the [Intent]
 func (intent Intent) String() string {

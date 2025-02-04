@@ -8,6 +8,8 @@
 
 package escl
 
+import "github.com/alexpevzner/mfp/xmldoc"
+
 // CcdChannel specifies which CCD color channel to use for grayscale
 // and monochrome scannig.
 type CcdChannel int
@@ -22,6 +24,19 @@ const (
 	GrayCcd                             // Dedicated hardware Gray CCD
 	GrayCcdEmulated                     // Emulated Gray CCD (1/3 RGB)
 )
+
+// decodeCcdChannel decodes [CcdChannel] from the XML tree.
+func decodeCcdChannel(root xmldoc.Element) (ccd CcdChannel, err error) {
+	return decodeEnum(root, DecodeCcdChannel, NsScan)
+}
+
+// toXML generates XML tree for the [CcdChannel].
+func (ccd CcdChannel) toXML(name string) xmldoc.Element {
+	return xmldoc.Element{
+		Name: name,
+		Text: NsScan + ":" + ccd.String(),
+	}
+}
 
 // String returns a string representation of the [CcdChannel]
 func (ccd CcdChannel) String() string {

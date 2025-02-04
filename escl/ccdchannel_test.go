@@ -10,54 +10,21 @@ package escl
 
 import "testing"
 
-// TestCcdChannelString tests CcdChannel.String
-func TestCcdChannelString(t *testing.T) {
-	type testData struct {
-		ccd CcdChannel
-		s   string
-	}
-
-	tests := []testData{
+var testCcdChannel = testEnum[CcdChannel]{
+	decodeStr: DecodeCcdChannel,
+	decodeXML: decodeCcdChannel,
+	ns:        NsScan,
+	dataset: []testEnumData[CcdChannel]{
 		{Red, "Red"},
 		{Green, "Green"},
 		{Blue, "Blue"},
 		{NTSC, "NTSC"},
 		{GrayCcd, "GrayCcd"},
 		{GrayCcdEmulated, "GrayCcdEmulated"},
-		{-1, "Unknown"},
-	}
-
-	for _, test := range tests {
-		s := test.ccd.String()
-		if s != test.s {
-			t.Errorf("%d: extected %q, present %q",
-				int(test.ccd), test.s, s)
-		}
-	}
+	},
 }
 
-// TestDecodeCcdChannel tests DecodeCcdChannel
-func TestDecodeCcdChannel(t *testing.T) {
-	type testData struct {
-		ccd CcdChannel
-		s   string
-	}
-
-	tests := []testData{
-		{Red, "Red"},
-		{Green, "Green"},
-		{Blue, "Blue"},
-		{NTSC, "NTSC"},
-		{GrayCcd, "GrayCcd"},
-		{GrayCcdEmulated, "GrayCcdEmulated"},
-		{UnknownCcdChannel, "XXX"},
-	}
-
-	for _, test := range tests {
-		ccd := DecodeCcdChannel(test.s)
-		if ccd != test.ccd {
-			t.Errorf("%q: extected %q, present %q",
-				test.s, test.ccd, ccd)
-		}
-	}
+// TestCcdChannel tests [CcdChannel] common methods and functions.
+func TestCcdChannel(t *testing.T) {
+	testCcdChannel.run(t)
 }

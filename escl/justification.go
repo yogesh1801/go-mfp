@@ -8,6 +8,8 @@
 
 package escl
 
+import "github.com/alexpevzner/mfp/xmldoc"
+
 // Justification specifies how the ADF justify the document.
 type Justification int
 
@@ -20,6 +22,19 @@ const (
 	Bottom                                    // Bottom (vertical)
 	Center                                    // Center (both)
 )
+
+// decodeJustification decodes [Justification] from the XML tree.
+func decodeJustification(root xmldoc.Element) (jst Justification, err error) {
+	return decodeEnum(root, DecodeJustification, NsScan)
+}
+
+// toXML generates XML tree for the [Justification].
+func (jst Justification) toXML(name string) xmldoc.Element {
+	return xmldoc.Element{
+		Name: name,
+		Text: NsScan + ":" + jst.String(),
+	}
+}
 
 // String returns a string representation of the [Justification]
 func (jst Justification) String() string {
