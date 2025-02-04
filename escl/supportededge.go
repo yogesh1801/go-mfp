@@ -13,7 +13,7 @@ type SupportedEdge int
 
 // Supported edges:
 const (
-	UnknownSupportedEdge SupportedEdge = iota // Unknown intent
+	UnknownSupportedEdge SupportedEdge = iota // Unknown edge
 	TopEdge
 	LeftEdge
 	BottomEdge
@@ -21,8 +21,8 @@ const (
 )
 
 // String returns a string representation of the [SupportedEdge]
-func (intent SupportedEdge) String() string {
-	switch intent {
+func (edge SupportedEdge) String() string {
+	switch edge {
 	case TopEdge:
 		return "TopEdge"
 	case LeftEdge:
