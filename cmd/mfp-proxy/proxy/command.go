@@ -10,6 +10,7 @@ package proxy
 
 import (
 	"context"
+	"errors"
 
 	"github.com/alexpevzner/mfp/argv"
 	"github.com/alexpevzner/mfp/log"
@@ -61,6 +62,29 @@ func cmdProxyHandler(ctx context.Context, inv *argv.Invocation) error {
 
 	logger := log.NewLogger(level, log.Console)
 	ctx = log.NewContext(ctx, logger)
+
+	// Start proxies
+	var proxies []*proxy
+
+	for _, param := range inv.Values("--ipp") {
+		m, err := parseMapping("--ipp", param)
+		if err != nil {
+			// It MUST NOT happen, because parameters already
+			// validated at this point.
+			panic(err)
+		}
+
+		p, err := newProxy(ctx, m)
+		if err != nil {
+			log.Error(ctx, "%s: %s", param, err)
+			return errors.New("Initialization failure")
+		}
+
+		proxies = append(proxies, p)
+	}
+
+	<-ctx.Done()
+	log.Info(ctx, "Exiting...")
 
 	return nil
 }
