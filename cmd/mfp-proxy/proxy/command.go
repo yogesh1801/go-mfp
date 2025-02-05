@@ -25,7 +25,10 @@ var Command = argv.Command{
 			HelpArg: "local-port=target-url",
 			Help: "IPP proxy maps IPP rqquests " +
 				"from local-port to target-url",
-			Validate: func(s string) error { return nil },
+			Validate: func(s string) error {
+				_, err := parseMapping("--ipp", s)
+				return err
+			},
 		},
 		argv.Option{
 			Name:    "-d",
