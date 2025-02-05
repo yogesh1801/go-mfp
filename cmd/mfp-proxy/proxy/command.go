@@ -83,6 +83,10 @@ func cmdProxyHandler(ctx context.Context, inv *argv.Invocation) error {
 		proxies = append(proxies, p)
 	}
 
+	if len(proxies) == 0 {
+		return errors.New("no proxies configured")
+	}
+
 	// Wait for termination signal
 	<-ctx.Done()
 	log.Info(ctx, "Exiting...")
