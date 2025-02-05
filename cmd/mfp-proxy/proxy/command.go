@@ -83,8 +83,14 @@ func cmdProxyHandler(ctx context.Context, inv *argv.Invocation) error {
 		proxies = append(proxies, p)
 	}
 
+	// Wait for termination signal
 	<-ctx.Done()
 	log.Info(ctx, "Exiting...")
+
+	// Shutdown all proxies
+	for _, p := range proxies {
+		p.Shutdown()
+	}
 
 	return nil
 }

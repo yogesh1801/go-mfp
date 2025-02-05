@@ -20,6 +20,7 @@ import (
 // proxy implements an IPP/eSCL/WSD proxy
 type proxy struct {
 	ctx       context.Context // Logging/shutdown context
+	cancel    func()          // ctx cancel function
 	m         mapping         // Local/remote mapping
 	l         net.Listener    // TCP listener for incoming connections
 	srv       *http.Server    // HTTP server for incoming connections
@@ -28,7 +29,7 @@ type proxy struct {
 
 // newProxy creates a new proxy for the specified mapping.
 func newProxy(ctx context.Context, m mapping) (*proxy, error) {
-	log.Debug(ctx, "Starting proxy: %d->%s", m.localPort, m.targetURL)
+	log.Debug(ctx, "proxy started: %d->%s", m.localPort, m.targetURL)
 
 	// Create TCP listener
 	l, err := newListener(ctx, m.localPort)
@@ -36,11 +37,15 @@ func newProxy(ctx context.Context, m mapping) (*proxy, error) {
 		return nil, err
 	}
 
+	// Create cancelable context
+	ctx, cancel := context.WithCancel(ctx)
+
 	// Create proxy structure
 	p := &proxy{
-		ctx: ctx,
-		m:   m,
-		l:   l,
+		ctx:    ctx,
+		cancel: cancel,
+		m:      m,
+		l:      l,
 	}
 
 	// Create HTTP server
@@ -54,6 +59,21 @@ func newProxy(ctx context.Context, m mapping) (*proxy, error) {
 	return p, nil
 }
 
+// kill closes the proxy and terminates all active session when proxy.ctx
+// is canceled.
+func (p *proxy) kill() {
+	<-p.ctx.Done()
+
+	p.srv.Close()
+
+	p.closeWait.Done()
+}
+
 // Shutdown performs proxy shutdown.
 func (p *proxy) Shutdown() {
+	p.cancel()
+	p.closeWait.Wait()
+
+	log.Debug(p.ctx, "proxy finished: %d->%s",
+		p.m.localPort, p.m.targetURL)
 }
