@@ -19,7 +19,8 @@ import (
 
 // mapping defines the mapping between local port and destination URL
 type mapping struct {
-	proto     string   // Proxy protocol
+	param     string   // original parameter
+	proto     proto    // Proxy protocol
 	localPort int      // Local port
 	targetURL *url.URL // Destination URL
 }
@@ -28,7 +29,11 @@ type mapping struct {
 // string of the following form:
 //
 //	local-port=target-url
-func parseMapping(option, param string) (m mapping, err error) {
+func parseMapping(proto proto, param string) (m mapping, err error) {
+	// Save param and proto
+	m.param = param
+	m.proto = proto
+
 	// Split parameter into the local-port and target-url
 	var local, target string
 	if i := strings.IndexByte(param, '='); i >= 0 {
@@ -37,8 +42,7 @@ func parseMapping(option, param string) (m mapping, err error) {
 	}
 
 	if local == "" || target == "" {
-		err = fmt.Errorf("syntax must be \"%s local-port=target-url\"",
-			option)
+		err = fmt.Errorf("parameter must be \"local-port=target-url\"")
 		return
 	}
 
@@ -56,4 +60,15 @@ func parseMapping(option, param string) (m mapping, err error) {
 	}
 
 	return
+}
+
+// mustParseMapping parses mapping like parseMapping and panics
+// in a case of errors
+func mustParseMapping(proto proto, param string) mapping {
+	m, err := parseMapping(proto, param)
+	if err != nil {
+		err = fmt.Errorf("%s: %s", param, err)
+		panic(err)
+	}
+	return m
 }

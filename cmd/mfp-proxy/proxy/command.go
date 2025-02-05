@@ -22,12 +22,26 @@ var Command = argv.Command{
 	Help: "IPP/eSCL/WSD proxy",
 	Options: []argv.Option{
 		argv.Option{
-			Name:    "--ipp",
-			HelpArg: "local-port=target-url",
-			Help: "IPP proxy maps IPP rqquests " +
-				"from local-port to target-url",
+			Name: "--escl",
+			Help: "Add eSCL proxy (--escl local-port=target-url)",
 			Validate: func(s string) error {
-				_, err := parseMapping("--ipp", s)
+				_, err := parseMapping(protoESCL, s)
+				return err
+			},
+		},
+		argv.Option{
+			Name: "--ipp",
+			Help: "Add IPP proxy (--ipp local-port=target-url)",
+			Validate: func(s string) error {
+				_, err := parseMapping(protoIPP, s)
+				return err
+			},
+		},
+		argv.Option{
+			Name: "--wsd",
+			Help: "Add WSD proxy (--wsd local-port=target-url)",
+			Validate: func(s string) error {
+				_, err := parseMapping(protoWSD, s)
 				return err
 			},
 		},
@@ -64,19 +78,25 @@ func cmdProxyHandler(ctx context.Context, inv *argv.Invocation) error {
 	ctx = log.NewContext(ctx, logger)
 
 	// Start proxies
+	var mappings []mapping
 	var proxies []*proxy
 
-	for _, param := range inv.Values("--ipp") {
-		m, err := parseMapping("--ipp", param)
-		if err != nil {
-			// It MUST NOT happen, because parameters already
-			// validated at this point.
-			panic(err)
-		}
+	for _, param := range inv.Values("--escl") {
+		mappings = append(mappings, mustParseMapping(protoESCL, param))
+	}
 
+	for _, param := range inv.Values("--ipp") {
+		mappings = append(mappings, mustParseMapping(protoIPP, param))
+	}
+
+	for _, param := range inv.Values("--wsd") {
+		mappings = append(mappings, mustParseMapping(protoWSD, param))
+	}
+
+	for _, m := range mappings {
 		p, err := newProxy(ctx, m)
 		if err != nil {
-			log.Error(ctx, "%s: %s", param, err)
+			log.Error(ctx, "%s: %s", m.param, err)
 			return errors.New("Initialization failure")
 		}
 
