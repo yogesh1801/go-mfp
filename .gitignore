@@ -6,4 +6,5 @@ coverage.out
 cmd/mfp/mfp
 cmd/mfp-cups/mfp-cups
 cmd/mfp-discover/mfp-discover
+cmd/mfp-proxy/mfp-proxy
 cmd/mfp-shell/mfp-shell
