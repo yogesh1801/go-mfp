@@ -48,8 +48,13 @@ func newProxy(ctx context.Context, m mapping) (*proxy, error) {
 		l:      l,
 	}
 
+	// Ensure cancellation propagation
+	p.closeWait.Add(1)
+	go p.kill()
+
 	// Create HTTP server
 	p.srv = &http.Server{}
+
 	p.closeWait.Add(1)
 	go func() {
 		p.srv.Serve(l)
