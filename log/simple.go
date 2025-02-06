@@ -9,7 +9,10 @@
 package log
 
 import (
+	"bytes"
 	"context"
+	"fmt"
+	"runtime/debug"
 )
 
 // Trace writes a Trace-level message to the [Logger] associated
@@ -66,6 +69,15 @@ func Error(ctx context.Context, format string, v ...any) {
 // The [context.Context] parameter may be safely passed as nil.
 func Fatal(ctx context.Context, format string, v ...any) {
 	CtxLogger(ctx).Fatal(CtxPrefix(ctx), format, v...)
+}
+
+// Panic writes panic message to log, including the call stack,
+// and terminates the program
+func Panic(ctx context.Context, v any) {
+	var buf bytes.Buffer
+	fmt.Fprintf(&buf, "panic: %v\n", v)
+	buf.Write(debug.Stack())
+	Fatal(ctx, "%s", buf.String())
 }
 
 // Begin initiates creation of a new multi-line log [Record].
