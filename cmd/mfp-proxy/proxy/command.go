@@ -26,6 +26,9 @@ var Command = argv.Command{
 			Help: "Add eSCL proxy (--escl local-port=target-url)",
 			Validate: func(s string) error {
 				_, err := parseMapping(protoESCL, s)
+				if err == nil {
+					err = errors.New("not implemented")
+				}
 				return err
 			},
 		},
@@ -42,6 +45,9 @@ var Command = argv.Command{
 			Help: "Add WSD proxy (--wsd local-port=target-url)",
 			Validate: func(s string) error {
 				_, err := parseMapping(protoWSD, s)
+				if err == nil {
+					err = errors.New("not implemented")
+				}
 				return err
 			},
 		},
