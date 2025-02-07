@@ -264,6 +264,12 @@ func ValidateURL(in string) error {
 	return err
 }
 
+// URLClone makes a shallow copy of the input URL.
+func URLClone(u *url.URL) *url.URL {
+	u2 := *u
+	return &u2
+}
+
 // URLPort returns a port number for the URL.
 // If port is not set within the URL explicitly, the URL.Scheme
 // will be consulted.
