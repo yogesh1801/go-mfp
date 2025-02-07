@@ -23,7 +23,7 @@ type Server struct {
 //
 // The [http.Server] used only as configuration template. If it
 // is nil, the reasonable defaults will be used instead.
-func NewServer(template *http.Server) *Server {
+func NewServer(template *http.Server, handler http.Handler) *Server {
 	if template == nil {
 		template = &http.Server{}
 	}
@@ -31,7 +31,6 @@ func NewServer(template *http.Server) *Server {
 	srvr := &Server{
 		Server: http.Server{
 			Addr:                         template.Addr,
-			Handler:                      template.Handler,
 			DisableGeneralOptionsHandler: template.DisableGeneralOptionsHandler,
 			TLSConfig:                    template.TLSConfig,
 			ReadTimeout:                  template.ReadTimeout,
@@ -46,6 +45,8 @@ func NewServer(template *http.Server) *Server {
 			ConnContext:                  template.ConnContext,
 		},
 	}
+
+	srvr.Handler = handler
 
 	return srvr
 }
