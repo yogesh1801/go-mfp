@@ -26,12 +26,13 @@ import (
 
 // proxy implements an IPP/eSCL/WSD proxy
 type proxy struct {
-	ctx       context.Context // Logging/shutdown context
-	cancel    func()          // ctx cancel function
-	m         mapping         // Local/remote mapping
-	l         net.Listener    // TCP listener for incoming connections
-	srv       *http.Server    // HTTP server for incoming connections
-	closeWait sync.WaitGroup  // Wait for proxy.Close completion
+	ctx       context.Context   // Logging/shutdown context
+	cancel    func()            // ctx cancel function
+	m         mapping           // Local/remote mapping
+	l         net.Listener      // TCP listener for incoming connections
+	srv       *transport.Server // HTTP server for incoming connections
+	clnt      *transport.Client // HTTP client part of proxy
+	closeWait sync.WaitGroup    // Wait for proxy.Close completion
 }
 
 // newProxy creates a new proxy for the specified mapping.
@@ -53,16 +54,15 @@ func newProxy(ctx context.Context, m mapping) (*proxy, error) {
 		cancel: cancel,
 		m:      m,
 		l:      l,
+		clnt:   transport.NewClient(nil),
 	}
 
 	// Ensure cancellation propagation
 	p.closeWait.Add(1)
 	go p.kill()
 
-	// Create HTTP server
-	p.srv = &http.Server{
-		Handler: p,
-	}
+	// Start HTTP server
+	p.srv = transport.NewServer(nil, p)
 
 	p.closeWait.Add(1)
 	go func() {
@@ -132,12 +132,19 @@ func (p *proxy) outreq(in *http.Request, body io.ReadCloser) *http.Request {
 		Out: out,
 	}
 	prq.SetURL(p.m.targetURL)
+	out.Host = out.URL.Host
+
 	return out
 }
 
 // doIPP handles incoming IPP requests
 func (p *proxy) doIPP(w http.ResponseWriter, in *http.Request) {
 	ops := goipp.DecoderOptions{EnableWorkarounds: true}
+
+	// Dump input request
+	dump, _ := httputil.DumpRequest(in, false)
+	log.Debug(p.ctx, "IPP: request received:")
+	log.Debug(p.ctx, "%s", dump)
 
 	// Fetch IPP Request message
 	ibody := transport.NewPeeker(in.Body)
@@ -152,13 +159,39 @@ func (p *proxy) doIPP(w http.ResponseWriter, in *http.Request) {
 	msg.Print(&buf, true)
 	log.Debug(p.ctx, buf.String())
 
-	// Setup outgoing request
+	// Setup and execute outgoing request
 	ibody.Rewind()
 	out := p.outreq(in, ibody)
 	out.ContentLength = in.ContentLength
 
-	dump, _ := httputil.DumpRequestOut(out, false)
+	log.Debug(p.ctx, "IPP: forward request to: %s", out.URL)
+
+	rsp, err := p.clnt.Do(out)
+	if err != nil {
+		log.Debug(p.ctx, "IPP: %s", err)
+		p.httpReject(w, in, http.StatusBadGateway, err)
+		return
+	}
+
+	dump, _ = httputil.DumpResponse(rsp, false)
+	log.Debug(p.ctx, "IPP: response received:")
 	log.Debug(p.ctx, "%s", dump)
+
+	// Fetch IPP response message
+	obody := transport.NewPeeker(rsp.Body)
+	msg.Reset()
+	err = msg.DecodeEx(obody, ops)
+	if err != nil {
+		obody.Rewind()
+		data, _ := io.ReadAll(obody)
+		println(err.Error())
+		log.Debug(p.ctx, "%2.2x", data)
+		p.httpReject(w, in, 503, errors.New("oops"))
+		return
+	}
+
+	msg.Print(&buf, false)
+	log.Debug(p.ctx, buf.String())
 }
 
 // httpRemoveHopByHopHeaders removes HTTP hop-by-hop headers,
