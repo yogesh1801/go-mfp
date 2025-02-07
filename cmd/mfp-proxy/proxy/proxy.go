@@ -12,13 +12,16 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"io"
 	"net"
 	"net/http"
+	"net/http/httputil"
 	"strings"
 	"sync"
 
 	"github.com/OpenPrinting/goipp"
 	"github.com/alexpevzner/mfp/log"
+	"github.com/alexpevzner/mfp/transport"
 )
 
 // proxy implements an IPP/eSCL/WSD proxy
@@ -91,7 +94,7 @@ func (p *proxy) Shutdown() {
 
 // ServeHTTP handles incoming HTTP requests.
 // It implements [http.Handler] interface.
-func (p *proxy) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
+func (p *proxy) ServeHTTP(w http.ResponseWriter, in *http.Request) {
 	// Catch panics to log
 	defer func() {
 		v := recover()
@@ -101,36 +104,61 @@ func (p *proxy) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	}()
 
 	// Handle request
-	log.Debug(p.ctx, "%s %s", rq.Method, rq.URL)
+	log.Debug(p.ctx, "%s %s", in.Method, in.URL)
 
-	ct := strings.ToLower(rq.Header.Get("Content-Type"))
+	ct := strings.ToLower(in.Header.Get("Content-Type"))
 
 	switch {
-	case p.m.proto == protoIPP && rq.Method == "POST" &&
+	case p.m.proto == protoIPP && in.Method == "POST" &&
 		ct == "application/ipp":
-		p.doIPP(w, rq)
+		p.doIPP(w, in)
 
 	default:
-		p.httpReject(w, rq,
+		p.httpReject(w, in,
 			http.StatusBadRequest, errors.New("Bad Request"))
 	}
 }
 
+// outreq creates an outgoing HTTP request based on request
+// received by the server side of proxy.
+func (p *proxy) outreq(in *http.Request, body io.ReadCloser) *http.Request {
+	// Create request
+	out, _ := transport.NewRequest(p.ctx, in.Method, in.URL, body)
+	out.Header = in.Header.Clone()
+	p.httpRemoveHopByHopHeaders(out.Header)
+
+	// Adjust target URL
+	prq := httputil.ProxyRequest{
+		Out: out,
+	}
+	prq.SetURL(p.m.targetURL)
+	return out
+}
+
 // doIPP handles incoming IPP requests
-func (p *proxy) doIPP(w http.ResponseWriter, rq *http.Request) {
+func (p *proxy) doIPP(w http.ResponseWriter, in *http.Request) {
 	ops := goipp.DecoderOptions{EnableWorkarounds: true}
 
 	// Fetch IPP Request message
+	ibody := transport.NewPeeker(in.Body)
 	var msg goipp.Message
-	err := msg.DecodeEx(rq.Body, ops)
+	err := msg.DecodeEx(ibody, ops)
 	if err != nil {
-		p.httpReject(w, rq, 503, errors.New("oops"))
+		p.httpReject(w, in, 503, errors.New("oops"))
 		return
 	}
 
 	var buf bytes.Buffer
 	msg.Print(&buf, true)
 	log.Debug(p.ctx, buf.String())
+
+	// Setup outgoing request
+	ibody.Rewind()
+	out := p.outreq(in, ibody)
+	out.ContentLength = in.ContentLength
+
+	dump, _ := httputil.DumpRequestOut(out, false)
+	log.Debug(p.ctx, "%s", dump)
 }
 
 // httpRemoveHopByHopHeaders removes HTTP hop-by-hop headers,
@@ -162,7 +190,7 @@ func (p *proxy) httpRemoveHopByHopHeaders(hdr http.Header) {
 }
 
 // httpReject completes request with a error
-func (p *proxy) httpReject(w http.ResponseWriter, rq *http.Request,
+func (p *proxy) httpReject(w http.ResponseWriter, in *http.Request,
 	status int, err error) {
 
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
