@@ -13,6 +13,7 @@ import (
 	"net/netip"
 	"net/url"
 	"path"
+	"strconv"
 	"strings"
 )
 
@@ -261,4 +262,34 @@ func ValidateAddr(in string) error {
 func ValidateURL(in string) error {
 	_, err := ParseURL(in)
 	return err
+}
+
+// URLPort returns a port number for the URL.
+// If port is not set within the URL explicitly, the URL.Scheme
+// will be consulted.
+//
+// If port number cannot be obtained, -1 will be returned.
+func URLPort(u *url.URL) int {
+	s := u.Port()
+	if s != "" {
+		port, err := strconv.Atoi(s)
+		if err == nil && port >= 0 && port < 65536 {
+			return port
+		}
+
+		return -1
+	}
+
+	switch u.Scheme {
+	case "http":
+		return DefaultPortHTTP
+	case "https":
+		return DefaultPortHTTPS
+	case "ipp":
+		return DefaultPortIPP
+	case "ipps":
+		return DefaultPortIPPS
+	}
+
+	return -1
 }

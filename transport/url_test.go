@@ -314,3 +314,99 @@ func TestParseAddr(t *testing.T) {
 
 	}
 }
+
+// TestURLPort tests URLPort
+func TestURLPort(t *testing.T) {
+	type testData struct {
+		in   string
+		port int
+	}
+
+	tests := []testData{
+		// Port is not set in URL
+		{
+			in:   "http://127.0.0.1",
+			port: 80,
+		},
+		{
+			in:   "https://127.0.0.1",
+			port: 443,
+		},
+		{
+			in:   "ipp://127.0.0.1",
+			port: 631,
+		},
+		{
+			in:   "ipps://127.0.0.1",
+			port: 631,
+		},
+
+		// Port explicitly set to default
+		{
+			in:   "http://127.0.0.1:80",
+			port: 80,
+		},
+		{
+			in:   "https://127.0.0.1:443",
+			port: 443,
+		},
+		{
+			in:   "ipp://127.0.0.1:631",
+			port: 631,
+		},
+		{
+			in:   "ipps://127.0.0.1:631",
+			port: 631,
+		},
+
+		// Port explicitly set to non-default
+		{
+			in:   "http://127.0.0.1:1234",
+			port: 1234,
+		},
+		{
+			in:   "https://127.0.0.1:1234",
+			port: 1234,
+		},
+		{
+			in:   "ipp://127.0.0.1:1234",
+			port: 1234,
+		},
+		{
+			in:   "ipps://127.0.0.1:1234",
+			port: 1234,
+		},
+
+		// Invalid port
+		{
+			in:   "http://127.0.0.1:66666",
+			port: -1,
+		},
+		{
+			in:   "https://127.0.0.1:66666",
+			port: -1,
+		},
+		{
+			in:   "ipp://127.0.0.1:66666",
+			port: -1,
+		},
+		{
+			in:   "ipps://127.0.0.1:66666",
+			port: -1,
+		},
+
+		// URL with unix: schema
+		{
+			in:   "unix:/var/run/cups/cups.sock",
+			port: -1,
+		},
+	}
+
+	for _, test := range tests {
+		u := MustParseURL(test.in)
+		if port := URLPort(u); port != test.port {
+			t.Errorf("%s: URLPort expected: %d, present: %d",
+				test.in, test.port, port)
+		}
+	}
+}
