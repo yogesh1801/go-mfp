@@ -4,7 +4,7 @@
 // Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
 // See LICENSE for license terms and conditions
 //
-// Functions for IPP messages and attributes
+// goipp.Message translation for forwarding via proxy
 
 package proxy
 
