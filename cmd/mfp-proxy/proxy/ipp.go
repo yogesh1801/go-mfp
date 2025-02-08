@@ -15,11 +15,35 @@ import (
 	"github.com/alexpevzner/mfp/transport"
 )
 
-// ippMsgXlatURLs translates URLs in the IPP message attributes,
-// recursively scanning entire message.
+// msgXlat translates URLs embedded in the IPP message attributes
+// when message is being forwarded via proxy.
+type msgXlat struct {
+	urlxlat *transport.URLXlat // URL translator
+}
+
+// newMsgXlat creates a new msgXlat
+func newMsgXlat(urlxlat *transport.URLXlat) *msgXlat {
+	return &msgXlat{
+		urlxlat: urlxlat,
+	}
+}
+
+// Forward translates message in the forward (client->server)
+// direction.
+func (mx *msgXlat) Forward(msg *goipp.Message) *goipp.Message {
+	return mx.translateMsg(msg, mx.urlxlat.Forward)
+}
+
+// Forward translates message in the reverse (server->client)
+// direction.
+func (mx *msgXlat) Reverse(msg *goipp.Message) *goipp.Message {
+	return mx.translateMsg(msg, mx.urlxlat.Reverse)
+}
+
+// translateMsg performs the actual goipp.Message translation.
 //
 // Each found URL is translated using the provided `xlat` function.
-func ippMsgXlatURLs(msg *goipp.Message,
+func (mx *msgXlat) translateMsg(msg *goipp.Message,
 	xlat func(*url.URL) *url.URL) *goipp.Message {
 
 	// Obtain a deep copy of all message attributes, packed
@@ -30,7 +54,7 @@ func ippMsgXlatURLs(msg *goipp.Message,
 		group := &groups[i]
 		for j := range group.Attrs {
 			attr := &group.Attrs[j]
-			ippAttrXlatURLs(attr, xlat)
+			mx.translateAttr(attr, xlat)
 		}
 	}
 
@@ -41,31 +65,33 @@ func ippMsgXlatURLs(msg *goipp.Message,
 	return msg2
 }
 
-// ippValXlatURLs translates URLs in the goipp.Attribute, recursively
+// translateAttr translates URLs found in the goipp.Attribute, recursively
 // scanning nested collections.
 //
 // Each found URL is translated using the provided `xlat` function.
 //
 // Translation is performed "in place".
-func ippAttrXlatURLs(attr *goipp.Attribute, xlat func(*url.URL) *url.URL) {
+func (mx *msgXlat) translateAttr(attr *goipp.Attribute,
+	xlat func(*url.URL) *url.URL) {
+
 	for i := range attr.Values {
 		v := &attr.Values[i]
-		ippValXlatURLs(&v.V, v.T, xlat)
+		mx.translateVal(&v.V, v.T, xlat)
 	}
 }
 
-// ippValXlatURLs translates URLs in the goipp.Value, recursively
+// translateVal translates URLs in the goipp.Value, recursively
 // scanning nested collections.
 //
 // Each found URL is translated using the provided `xlat` function.
 //
 // Translation is performed "in place".
-func ippValXlatURLs(v *goipp.Value, t goipp.Tag, xlat func(*url.URL) *url.URL) {
+func (mx *msgXlat) translateVal(v *goipp.Value, t goipp.Tag, xlat func(*url.URL) *url.URL) {
 	switch v2 := (*v).(type) {
 	case goipp.Collection:
 		for i := range v2 {
 			attr := &v2[i]
-			ippAttrXlatURLs(attr, xlat)
+			mx.translateAttr(attr, xlat)
 		}
 
 	case goipp.String:
