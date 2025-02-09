@@ -12,6 +12,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"net"
 	"net/http"
@@ -137,9 +138,33 @@ func (p *proxy) outreq(in *http.Request, body io.ReadCloser) *http.Request {
 	return out
 }
 
+// msgxlat returns goipp.Message translator that rewrites message
+// attributes when message is being forwarded via proxy.
+//
+// Currently, only URLs embedded into the message are translated.
+func (p *proxy) msgxlat(in *http.Request) (*msgXlat, error) {
+	s := "http://" + in.Host
+	u, err := transport.ParseURL(s)
+	if err != nil {
+		err = fmt.Errorf("%q: can't parse local URL")
+		return nil, err
+	}
+
+	urlxlat := transport.NewURLXlat(u, p.m.targetURL)
+	msgxlat := newMsgXlat(urlxlat)
+
+	return msgxlat, nil
+}
+
 // doIPP handles incoming IPP requests
 func (p *proxy) doIPP(w http.ResponseWriter, in *http.Request) {
 	ops := goipp.DecoderOptions{EnableWorkarounds: true}
+
+	// Create goipp.Message translator
+	msgxlat, err := p.msgxlat(in)
+	if err != nil {
+		p.httpReject(w, in, 503, err)
+	}
 
 	// Dump input request
 	dump, _ := httputil.DumpRequest(in, false)
@@ -149,14 +174,20 @@ func (p *proxy) doIPP(w http.ResponseWriter, in *http.Request) {
 	// Fetch IPP Request message
 	ibody := transport.NewPeeker(in.Body)
 	var msg goipp.Message
-	err := msg.DecodeEx(ibody, ops)
+	err = msg.DecodeEx(ibody, ops)
 	if err != nil {
-		p.httpReject(w, in, 503, errors.New("oops"))
+		p.httpReject(w, in, 503, fmt.Errorf("IPP error: %w", err))
 		return
 	}
 
 	var buf bytes.Buffer
 	msg.Print(&buf, true)
+	log.Debug(p.ctx, buf.String())
+
+	msg2 := msgxlat.Forward(&msg)
+	buf.Reset()
+	msg2.Print(&buf, true)
+	log.Debug(p.ctx, "IPP: request translated:")
 	log.Debug(p.ctx, buf.String())
 
 	// Setup and execute outgoing request
@@ -191,6 +222,12 @@ func (p *proxy) doIPP(w http.ResponseWriter, in *http.Request) {
 	}
 
 	msg.Print(&buf, false)
+	log.Debug(p.ctx, buf.String())
+
+	msg2 = msgxlat.Reverse(&msg)
+	buf.Reset()
+	msg2.Print(&buf, true)
+	log.Debug(p.ctx, "IPP: response translated:")
 	log.Debug(p.ctx, buf.String())
 }
 
