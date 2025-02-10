@@ -8,7 +8,12 @@
 
 package proxy
 
-import "github.com/OpenPrinting/goipp"
+import (
+	"bytes"
+	"fmt"
+
+	"github.com/OpenPrinting/goipp"
+)
 
 // changeSetMessage represents set of changes, applied to
 // the [goipp.Message] during translation
@@ -27,4 +32,26 @@ type changeSetGroup struct {
 type changeSetValue struct {
 	Path     string      // Path to the value from the Message root
 	Old, New goipp.Value // Old and new values
+}
+
+// Empty reports if changeSetMessage is empty (contains no changes)
+func (chg changeSetMessage) Empty() bool {
+	return len(chg.Groups) == 0
+}
+
+// MarshalLog returns string representation of changeSetMessage for logging.
+// It implements [log.Marshaler] interface.
+func (chg changeSetMessage) MarshalLog() []byte {
+	var buf bytes.Buffer
+
+	for _, g := range chg.Groups {
+		fmt.Fprintf(&buf, "GROUP %s:\n", g.Tag)
+		for _, v := range g.Values {
+			fmt.Fprintf(&buf, "    ATTR %s:\n", v.Path)
+			fmt.Fprintf(&buf, "        Old: %s\n", v.Old)
+			fmt.Fprintf(&buf, "        New: %s\n", v.New)
+		}
+	}
+
+	return buf.Bytes()
 }

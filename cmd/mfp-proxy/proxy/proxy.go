@@ -212,17 +212,19 @@ func (p *proxy) doIPPreq(in *http.Request,
 		return nil, err
 	}
 
-	var buf bytes.Buffer
-	msg.Print(&buf, true)
-	log.Debug(p.ctx, buf.String())
-
 	// Translate IPP message
-	msg2, _ := msgxlat.Forward(&msg)
-	buf.Reset()
+	msg2, chg := msgxlat.Forward(&msg)
 
+	// Log the message
+	var buf bytes.Buffer
 	msg2.Print(&buf, true)
-	log.Debug(p.ctx, "IPP: request translated:")
+	log.Debug(p.ctx, "IPP: request message:")
 	log.Debug(p.ctx, buf.String())
+
+	if !chg.Empty() {
+		log.Debug(p.ctx, "IPP: translated attributes:")
+		log.Object(p.ctx, log.LevelDebug, 4, chg)
+	}
 
 	// Setup outgoing request
 	msg2bytes, _ := msg2.EncodeBytes()
@@ -252,16 +254,19 @@ func (p *proxy) doIPPrsp(rsp *http.Response, msgxlat *msgXlat) error {
 		return err
 	}
 
+	// Translate IPP response
+	msg2, chg := msgxlat.Reverse(&msg)
+
+	// Log the message
 	var buf bytes.Buffer
-	msg.Print(&buf, false)
+	msg2.Print(&buf, false)
+	log.Debug(p.ctx, "IPP: response message (translated):")
 	log.Debug(p.ctx, buf.String())
 
-	// Translate IPP response
-	msg2, _ := msgxlat.Reverse(&msg)
-	buf.Reset()
-	msg2.Print(&buf, true)
-	log.Debug(p.ctx, "IPP: response translated:")
-	log.Debug(p.ctx, buf.String())
+	if !chg.Empty() {
+		log.Debug(p.ctx, "IPP: translated attributes:")
+		log.Object(p.ctx, log.LevelDebug, 4, chg)
+	}
 
 	// Replace http.Response body
 	msg2bytes, _ := msg2.EncodeBytes()
