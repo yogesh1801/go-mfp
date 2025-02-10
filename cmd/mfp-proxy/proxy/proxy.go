@@ -146,7 +146,7 @@ func (p *proxy) msgxlat(in *http.Request) (*msgXlat, error) {
 	s := "http://" + in.Host
 	u, err := transport.ParseURL(s)
 	if err != nil {
-		err = fmt.Errorf("%q: can't parse local URL")
+		err = fmt.Errorf("%q: can't parse local URL", s)
 		return nil, err
 	}
 
@@ -184,7 +184,7 @@ func (p *proxy) doIPP(w http.ResponseWriter, in *http.Request) {
 	msg.Print(&buf, true)
 	log.Debug(p.ctx, buf.String())
 
-	msg2 := msgxlat.Forward(&msg)
+	msg2, _ := msgxlat.Forward(&msg)
 	buf.Reset()
 	msg2.Print(&buf, true)
 	log.Debug(p.ctx, "IPP: request translated:")
@@ -224,7 +224,7 @@ func (p *proxy) doIPP(w http.ResponseWriter, in *http.Request) {
 	msg.Print(&buf, false)
 	log.Debug(p.ctx, buf.String())
 
-	msg2 = msgxlat.Reverse(&msg)
+	msg2, _ = msgxlat.Reverse(&msg)
 	buf.Reset()
 	msg2.Print(&buf, true)
 	log.Debug(p.ctx, "IPP: response translated:")
