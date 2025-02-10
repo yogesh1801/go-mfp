@@ -150,7 +150,12 @@ func TestParseURL(t *testing.T) {
 
 		{
 			in:  "",
-			err: ErrURLSchemeMissed.Error(),
+			err: ErrURLInvalid.Error(),
+		},
+
+		{
+			in:  "http:/127.0.0.1/ipp/print",
+			err: ErrURLHostMissed.Error(),
 		},
 
 		{

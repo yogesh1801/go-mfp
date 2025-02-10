@@ -31,6 +31,7 @@ var (
 	ErrURLInvalid       = errors.New(`URL: syntax error`)
 	ErrURLSchemeMissed  = errors.New(`URL: missed scheme`)
 	ErrURLSchemeInvalid = errors.New(`URL: invalid scheme`)
+	ErrURLHostMissed    = errors.New(`URL: missed host`)
 	ErrURLUNIXHost      = errors.New(`URL: host must be "localhost" or empty`)
 )
 
@@ -176,6 +177,11 @@ func parseIPAddrPort(addr string) string {
 //
 // [RFC 8089]: https://www.rfc-editor.org/rfc/rfc8089.html
 func ParseURL(in string) (*url.URL, error) {
+	// Test some corner cases
+	if in == "" {
+		return nil, ErrURLInvalid
+	}
+
 	// Parse the URL string
 	u, err := url.Parse(in)
 	if err != nil {
@@ -207,6 +213,10 @@ func ParseURL(in string) (*url.URL, error) {
 		return nil, ErrURLSchemeMissed
 	default:
 		return nil, ErrURLSchemeInvalid
+	}
+
+	if u.Scheme != "unix" && u.Host == "" {
+		return nil, ErrURLHostMissed
 	}
 
 	if port != "" && u.Port() == port {
