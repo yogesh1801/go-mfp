@@ -410,3 +410,149 @@ func TestURLPort(t *testing.T) {
 		}
 	}
 }
+
+// TestURLForcePort the tests URLForcePort function
+func TestURLForcePort(t *testing.T) {
+	type testData struct {
+		in  string // Input URL
+		out string // URL after URLForcePort
+	}
+
+	tests := []testData{
+		{
+			in:  "http://127.0.0.1/ipp/print",
+			out: "http://127.0.0.1:80/ipp/print",
+		},
+
+		{
+			in:  "ipp://127.0.0.1/ipp/print",
+			out: "ipp://127.0.0.1:631/ipp/print",
+		},
+
+		{
+			in:  "http://[::1]/",
+			out: "http://[::1]:80/",
+		},
+
+		{
+			in:  "http://[::1]:1234/",
+			out: "http://[::1]:1234/",
+		},
+
+		{
+			in:  "http://localhost/",
+			out: "http://localhost:80/",
+		},
+
+		{
+			in:  "unix:/var/run/cups/cups.sock",
+			out: "unix:/var/run/cups/cups.sock",
+		},
+	}
+
+	for _, test := range tests {
+		u := MustParseURL(test.in)
+		URLForcePort(u)
+		out := u.String()
+
+		if out != test.out {
+			t.Errorf("%s:\n"+
+				"expected: %s\n"+
+				"present:  %s",
+				test.in, test.out, out)
+		}
+	}
+}
+
+// TestURLStripPort the tests URLStripPort function
+func TestURLStripPort(t *testing.T) {
+	type testData struct {
+		in  string // Input URL
+		out string // URL after URLForcePort
+	}
+
+	tests := []testData{
+		{
+			in:  "http://127.0.0.1/ipp/print",
+			out: "http://127.0.0.1/ipp/print",
+		},
+
+		{
+			in:  "http://127.0.0.1:80/ipp/print",
+			out: "http://127.0.0.1/ipp/print",
+		},
+
+		{
+			in:  "ipp://127.0.0.1/ipp/print",
+			out: "ipp://127.0.0.1/ipp/print",
+		},
+
+		{
+			in:  "ipp://127.0.0.1:631/ipp/print",
+			out: "ipp://127.0.0.1/ipp/print",
+		},
+
+		{
+			in:  "https://127.0.0.1/ipp/print",
+			out: "https://127.0.0.1/ipp/print",
+		},
+
+		{
+			in:  "https://127.0.0.1:443/ipp/print",
+			out: "https://127.0.0.1/ipp/print",
+		},
+
+		{
+			in:  "ipps://127.0.0.1/ipp/print",
+			out: "ipps://127.0.0.1/ipp/print",
+		},
+
+		{
+			in:  "ipps://127.0.0.1:631/ipp/print",
+			out: "ipps://127.0.0.1/ipp/print",
+		},
+
+		{
+			in:  "http://[::1]/",
+			out: "http://[::1]/",
+		},
+
+		{
+			in:  "http://[::1]:80/",
+			out: "http://[::1]/",
+		},
+
+		{
+			in:  "http://[::1]:1234/",
+			out: "http://[::1]:1234/",
+		},
+
+		{
+			in:  "http://localhost/",
+			out: "http://localhost/",
+		},
+
+		{
+			in:  "http://localhost:80/",
+			out: "http://localhost/",
+		},
+
+		{
+			in:  "unix:/var/run/cups/cups.sock",
+			out: "unix:/var/run/cups/cups.sock",
+		},
+	}
+
+	for _, test := range tests {
+		u := MustParseURL(test.in)
+		URLStripPort(u)
+		out := u.String()
+
+		if out != test.out {
+			t.Errorf("%s:\n"+
+				"expected: %s\n"+
+				"present:  %s",
+				test.in, test.out, out)
+		}
+	}
+}

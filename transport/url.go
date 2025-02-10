@@ -302,3 +302,38 @@ func URLPort(u *url.URL) int {
 
 	return -1
 }
+
+// URLForcePort ensures that u.Host includes the explicit port number,
+// if applicable.
+func URLForcePort(u *url.URL) {
+	port := URLPort(u)
+	if port >= 0 && u.Port() == "" {
+		u.Host += ":" + strconv.Itoa(port)
+	}
+}
+
+// URLStripPort strips unneeded explicit :port in the u.Host
+func URLStripPort(u *url.URL) {
+	port := URLPort(u)
+	if port >= 0 && port == DefaultPort(u.Scheme) {
+		suffix := ":" + strconv.Itoa(port)
+		u.Host, _ = strings.CutSuffix(u.Host, suffix)
+	}
+}
+
+// DefaultPort returns the default port number for the scheme.
+// For unknown schemes it returns -1.
+func DefaultPort(scheme string) int {
+	switch scheme {
+	case "http":
+		return DefaultPortHTTP
+	case "https":
+		return DefaultPortHTTPS
+	case "ipp":
+		return DefaultPortIPP
+	case "ipps":
+		return DefaultPortIPPS
+	}
+
+	return -1
+}
