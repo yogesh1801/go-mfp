@@ -158,43 +158,20 @@ func (p *proxy) msgxlat(in *http.Request) (*msgXlat, error) {
 
 // doIPP handles incoming IPP requests
 func (p *proxy) doIPP(w http.ResponseWriter, in *http.Request) {
-	ops := goipp.DecoderOptions{EnableWorkarounds: true}
-
 	// Create goipp.Message translator
 	msgxlat, err := p.msgxlat(in)
 	if err != nil {
 		p.httpReject(w, in, 503, err)
 	}
 
-	// Dump input request
-	dump, _ := httputil.DumpRequest(in, false)
-	log.Debug(p.ctx, "IPP: request received:")
-	log.Debug(p.ctx, "%s", dump)
-
-	// Fetch IPP Request message
-	ibody := transport.NewPeeker(in.Body)
-	var msg goipp.Message
-	err = msg.DecodeEx(ibody, ops)
+	// Prepare outgoing request
+	out, err := p.doIPPreq(in, msgxlat)
 	if err != nil {
 		p.httpReject(w, in, 503, fmt.Errorf("IPP error: %w", err))
 		return
 	}
 
-	var buf bytes.Buffer
-	msg.Print(&buf, true)
-	log.Debug(p.ctx, buf.String())
-
-	msg2, _ := msgxlat.Forward(&msg)
-	buf.Reset()
-	msg2.Print(&buf, true)
-	log.Debug(p.ctx, "IPP: request translated:")
-	log.Debug(p.ctx, buf.String())
-
-	// Setup and execute outgoing request
-	ibody.Rewind()
-	out := p.outreq(in, ibody)
-	out.ContentLength = in.ContentLength
-
+	// Execute outgoing request
 	log.Debug(p.ctx, "IPP: forward request to: %s", out.URL)
 
 	rsp, err := p.clnt.Do(out)
@@ -204,31 +181,94 @@ func (p *proxy) doIPP(w http.ResponseWriter, in *http.Request) {
 		return
 	}
 
-	dump, _ = httputil.DumpResponse(rsp, false)
+	err = p.doIPPrsp(rsp, msgxlat)
+	if err != nil {
+		log.Debug(p.ctx, "IPP: %s", err)
+		p.httpReject(w, in, http.StatusBadGateway, err)
+		return
+	}
+
+	io.Copy(w, rsp.Body)
+	rsp.Body.Close()
+}
+
+// doIPPreq performs (client->server) part of the IPP request handling
+// It returns modified request ready to be send to the server
+func (p *proxy) doIPPreq(in *http.Request,
+	msgxlat *msgXlat) (*http.Request, error) {
+
+	ops := goipp.DecoderOptions{EnableWorkarounds: true}
+
+	// Dump request HTTP headers
+	dump, _ := httputil.DumpRequest(in, false)
+	log.Debug(p.ctx, "IPP: request received:")
+	log.Debug(p.ctx, "%s", dump)
+
+	// Fetch IPP Request message
+	peeker := transport.NewPeeker(in.Body)
+	var msg goipp.Message
+	err := msg.DecodeEx(peeker, ops)
+	if err != nil {
+		return nil, err
+	}
+
+	var buf bytes.Buffer
+	msg.Print(&buf, true)
+	log.Debug(p.ctx, buf.String())
+
+	// Translate IPP message
+	msg2, _ := msgxlat.Forward(&msg)
+	buf.Reset()
+
+	msg2.Print(&buf, true)
+	log.Debug(p.ctx, "IPP: request translated:")
+	log.Debug(p.ctx, buf.String())
+
+	// Setup outgoing request
+	msg2bytes, _ := msg2.EncodeBytes()
+	peeker.Replace(msg2bytes)
+
+	out := p.outreq(in, peeker)
+	out.ContentLength = in.ContentLength
+
+	return out, nil
+}
+
+// doIPPreq performs (client->server) part of the IPP request handling
+func (p *proxy) doIPPrsp(rsp *http.Response, msgxlat *msgXlat) error {
+	ops := goipp.DecoderOptions{EnableWorkarounds: true}
+
+	// Dump response HTTP headers
+	dump, _ := httputil.DumpResponse(rsp, false)
 	log.Debug(p.ctx, "IPP: response received:")
 	log.Debug(p.ctx, "%s", dump)
 
 	// Fetch IPP response message
-	obody := transport.NewPeeker(rsp.Body)
-	msg.Reset()
-	err = msg.DecodeEx(obody, ops)
+	peeker := transport.NewPeeker(rsp.Body)
+	var msg goipp.Message
+	err := msg.DecodeEx(peeker, ops)
 	if err != nil {
-		obody.Rewind()
-		data, _ := io.ReadAll(obody)
-		println(err.Error())
-		log.Debug(p.ctx, "%2.2x", data)
-		p.httpReject(w, in, 503, errors.New("oops"))
-		return
+		peeker.Rewind()
+		return err
 	}
 
+	var buf bytes.Buffer
 	msg.Print(&buf, false)
 	log.Debug(p.ctx, buf.String())
 
-	msg2, _ = msgxlat.Reverse(&msg)
+	// Translate IPP response
+	msg2, _ := msgxlat.Reverse(&msg)
 	buf.Reset()
 	msg2.Print(&buf, true)
 	log.Debug(p.ctx, "IPP: response translated:")
 	log.Debug(p.ctx, buf.String())
+
+	// Replace http.Response body
+	msg2bytes, _ := msg2.EncodeBytes()
+	peeker.Replace(msg2bytes)
+	rsp.Body = peeker
+
+	return nil
 }
 
 // httpRemoveHopByHopHeaders removes HTTP hop-by-hop headers,
