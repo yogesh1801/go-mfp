@@ -38,7 +38,7 @@ func TestURLXlat(t *testing.T) {
 			local:  "ipp://127.0.0.1:1234",
 			remote: "unix:/var/run/cups/cups.sock",
 			in:     "ipp://127.0.0.1:1234/printers/1",
-			out:    "unix:///var/run/cups/cups.sock/printers/1",
+			out:    "unix:/var/run/cups/cups.sock/printers/1",
 		},
 
 		{
@@ -61,6 +61,27 @@ func TestURLXlat(t *testing.T) {
 			in:     "ipp://127.0.0.1/xxx-xxx/1",
 			out:    "ipp://127.0.0.1/xxx-xxx/1",
 		},
+
+		{
+			local:  "http://127.0.0.1/",
+			remote: "ipp://192.168.0.1/",
+			in:     "http://127.0.0.1/1",
+			out:    "http://192.168.0.1:631/1",
+		},
+
+		{
+			local:  "http://127.0.0.1:631/",
+			remote: "ipp://192.168.0.1/",
+			in:     "ipp://127.0.0.1/1",
+			out:    "ipp://192.168.0.1/1",
+		},
+
+		{
+			local:  "http://127.0.0.1:631/",
+			remote: "ipp://192.168.0.1/",
+			in:     "http://127.0.0.1:631/1",
+			out:    "http://192.168.0.1:631/1",
+		},
 	}
 
 	for _, test := range tests {
@@ -69,20 +90,22 @@ func TestURLXlat(t *testing.T) {
 
 		out := ux.Forward(MustParseURL(test.in)).String()
 		if out != test.out {
-			t.Errorf("%s->%s: forward %s\n"+
-				"expected: %s\n"+
-				"present:  %s\n",
-				test.local, test.remote, test.in,
-				test.out, out)
+			t.Errorf("forward %s->%s\n"+
+				"input:    %q\n"+
+				"expected: %q\n"+
+				"present:  %q\n",
+				test.local, test.remote,
+				test.in, test.out, out)
 		}
 
-		in := ux.Reverse(MustParseURL(test.in)).String()
+		in := ux.Reverse(MustParseURL(test.out)).String()
 		if in != test.in {
-			t.Errorf("%s->%s: reverse %s\n"+
-				"expected: %s\n"+
-				"present:  %s\n",
-				test.local, test.remote, test.in,
-				test.in, in)
+			t.Errorf("reverse %s<-%s\n"+
+				"input:    %q\n"+
+				"expected: %q\n"+
+				"present:  %q\n",
+				test.local, test.remote,
+				test.out, test.in, in)
 		}
 	}
 }
