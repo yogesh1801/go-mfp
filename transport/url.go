@@ -10,6 +10,7 @@ package transport
 
 import (
 	"errors"
+	"fmt"
 	"net/netip"
 	"net/url"
 	"path"
@@ -233,6 +234,7 @@ func ParseURL(in string) (*url.URL, error) {
 func MustParseAddr(in, template string) *url.URL {
 	u, err := ParseAddr(in, template)
 	if err != nil {
+		err = fmt.Errorf("%w (%q)", err, in)
 		panic(err)
 	}
 	return u
@@ -243,6 +245,7 @@ func MustParseAddr(in, template string) *url.URL {
 func MustParseURL(in string) *url.URL {
 	u, err := ParseURL(in)
 	if err != nil {
+		err = fmt.Errorf("%w (%q)", err, in)
 		panic(err)
 	}
 	return u

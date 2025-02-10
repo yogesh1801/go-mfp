@@ -188,8 +188,8 @@ func TestParseURL(t *testing.T) {
 // TestMustParseURL tests how MustParseURL panics in a case of errors
 func TestMustParseURL(t *testing.T) {
 	defer func() {
-		err := recover()
-		if err != ErrURLSchemeMissed {
+		err, ok := recover().(error)
+		if !ok || !errors.Is(err, ErrURLSchemeMissed) {
 			t.Errorf("Error expected: %q, present: %v",
 				ErrURLSchemeMissed, err)
 		}
