@@ -114,6 +114,9 @@ func (p *proxy) ServeHTTP(w http.ResponseWriter, in *http.Request) {
 		ct == "application/ipp":
 		p.doIPP(w, in)
 
+	case in.Method == "GET":
+		p.doHTTP(w, in)
+
 	default:
 		p.httpReject(w, in,
 			http.StatusBadRequest, errors.New("Bad Request"))
@@ -156,7 +159,37 @@ func (p *proxy) msgxlat(in *http.Request) (*msgXlat, error) {
 	return msgxlat, nil
 }
 
-// doIPP handles incoming IPP requests
+// doHTTP implements proxy for the bare HTTP requests
+func (p *proxy) doHTTP(w http.ResponseWriter, in *http.Request) {
+	// Dump request headers
+	p.httpLogRequest("HTTP", in)
+
+	// Prepare outgoing request
+	out := p.outreq(in, in.Body)
+	out.ContentLength = in.ContentLength
+
+	// Execute outgoing request
+	log.Debug(p.ctx, "HTTP: forward request to: %s", out.URL)
+
+	rsp, err := p.clnt.Do(out)
+	if err != nil {
+		log.Debug(p.ctx, "IPP: %s", err)
+		p.httpReject(w, in, http.StatusBadGateway, err)
+		return
+	}
+
+	// Strip hop-by-hop headers
+	p.httpRemoveHopByHopHeaders(rsp.Header)
+
+	// Dump response headers
+	p.httpLogResponse("HTTP", rsp)
+
+	// Forward response body
+	io.Copy(w, rsp.Body)
+	rsp.Body.Close()
+}
+
+// doIPP implements proxy for IPP requests
 func (p *proxy) doIPP(w http.ResponseWriter, in *http.Request) {
 	// Create goipp.Message translator
 	msgxlat, err := p.msgxlat(in)
@@ -188,6 +221,7 @@ func (p *proxy) doIPP(w http.ResponseWriter, in *http.Request) {
 		return
 	}
 
+	// Forward response body
 	io.Copy(w, rsp.Body)
 	rsp.Body.Close()
 }
@@ -200,9 +234,7 @@ func (p *proxy) doIPPreq(in *http.Request,
 	ops := goipp.DecoderOptions{EnableWorkarounds: true}
 
 	// Dump request HTTP headers
-	dump, _ := httputil.DumpRequest(in, false)
-	log.Debug(p.ctx, "IPP: request received:")
-	log.Debug(p.ctx, "%s", dump)
+	p.httpLogRequest("IPP", in)
 
 	// Fetch IPP Request message
 	peeker := transport.NewPeeker(in.Body)
@@ -240,10 +272,11 @@ func (p *proxy) doIPPreq(in *http.Request,
 func (p *proxy) doIPPrsp(rsp *http.Response, msgxlat *msgXlat) error {
 	ops := goipp.DecoderOptions{EnableWorkarounds: true}
 
+	// Strip hop-by-hop headers
+	p.httpRemoveHopByHopHeaders(rsp.Header)
+
 	// Dump response HTTP headers
-	dump, _ := httputil.DumpResponse(rsp, false)
-	log.Debug(p.ctx, "IPP: response received:")
-	log.Debug(p.ctx, "%s", dump)
+	p.httpLogResponse("IPP", rsp)
 
 	// Fetch IPP response message
 	peeker := transport.NewPeeker(rsp.Body)
@@ -302,6 +335,20 @@ func (p *proxy) httpRemoveHopByHopHeaders(hdr http.Header) {
 		"Proxy-Authorization", "Te", "Trailer", "Transfer-Encoding"} {
 		hdr.Del(c)
 	}
+}
+
+// httpLogRequest writes http.Request headers the log
+func (p *proxy) httpLogRequest(proto string, rq *http.Request) {
+	dump, _ := httputil.DumpRequest(rq, false)
+	log.Debug(p.ctx, "%s: request received:", proto)
+	log.Debug(p.ctx, "%s", dump)
+}
+
+// httpLogResponse writes http.Response headers the log
+func (p *proxy) httpLogResponse(proto string, rsp *http.Response) {
+	dump, _ := httputil.DumpResponse(rsp, false)
+	log.Debug(p.ctx, "%s: response received:", proto)
+	log.Debug(p.ctx, "%s", dump)
 }
 
 // httpReject completes request with a error
