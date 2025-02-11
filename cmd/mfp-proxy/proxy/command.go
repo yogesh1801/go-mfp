@@ -11,6 +11,7 @@ package proxy
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"github.com/alexpevzner/mfp/argv"
 	"github.com/alexpevzner/mfp/log"
@@ -52,6 +53,12 @@ var Command = argv.Command{
 			},
 		},
 		argv.Option{
+			Name:     "-t",
+			Help:     "write trace to file",
+			HelpArg:  "file[.tar]",
+			Validate: argv.ValidateAny,
+		},
+		argv.Option{
 			Name:    "-d",
 			Aliases: []string{"--debug"},
 			Help:    "Enable debug output",
@@ -82,6 +89,22 @@ func cmdProxyHandler(ctx context.Context, inv *argv.Invocation) error {
 
 	logger := log.NewLogger(level, log.Console)
 	ctx = log.NewContext(ctx, logger)
+
+	// Setup trace
+	var trace *traceWriter
+	if traceName, _ := inv.Get("-t"); traceName != "" {
+		if strings.IndexByte(traceName, '.') < 0 {
+			traceName += ".tar"
+		}
+
+		var err error
+		trace, err = newTraceWriter(ctx, traceName)
+		if err != nil {
+			return err
+		}
+
+		defer trace.Close()
+	}
 
 	// Start proxies
 	var mappings []mapping
