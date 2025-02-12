@@ -123,7 +123,7 @@ func cmdProxyHandler(ctx context.Context, inv *argv.Invocation) error {
 	}
 
 	for _, m := range mappings {
-		p, err := newProxy(ctx, m)
+		p, err := newProxy(ctx, m, trace)
 		if err != nil {
 			log.Error(ctx, "%s: %s", m.param, err)
 			return errors.New("Initialization failure")

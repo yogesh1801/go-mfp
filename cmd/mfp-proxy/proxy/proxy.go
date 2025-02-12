@@ -19,6 +19,7 @@ import (
 	"net/http/httputil"
 	"strings"
 	"sync"
+	"sync/atomic"
 
 	"github.com/OpenPrinting/goipp"
 	"github.com/alexpevzner/mfp/log"
@@ -28,16 +29,19 @@ import (
 // proxy implements an IPP/eSCL/WSD proxy
 type proxy struct {
 	ctx       context.Context   // Logging/shutdown context
+	trace     *traceWriter      // Trace writer (may be nil)
 	cancel    func()            // ctx cancel function
 	m         mapping           // Local/remote mapping
 	l         net.Listener      // TCP listener for incoming connections
 	srv       *transport.Server // HTTP server for incoming connections
 	clnt      *transport.Client // HTTP client part of proxy
 	closeWait sync.WaitGroup    // Wait for proxy.Close completion
+	rqnum     atomic.Uint32     // Request number, for logging
 }
 
 // newProxy creates a new proxy for the specified mapping.
-func newProxy(ctx context.Context, m mapping) (*proxy, error) {
+func newProxy(ctx context.Context, m mapping, trace *traceWriter) (
+	*proxy, error) {
 	log.Debug(ctx, "proxy started: %d->%s", m.localPort, m.targetURL)
 
 	// Create TCP listener
@@ -52,6 +56,7 @@ func newProxy(ctx context.Context, m mapping) (*proxy, error) {
 	// Create proxy structure
 	p := &proxy{
 		ctx:    ctx,
+		trace:  trace,
 		cancel: cancel,
 		m:      m,
 		l:      l,
@@ -191,6 +196,8 @@ func (p *proxy) doHTTP(w http.ResponseWriter, in *http.Request) {
 
 // doIPP implements proxy for IPP requests
 func (p *proxy) doIPP(w http.ResponseWriter, in *http.Request) {
+	rqnum := p.rqnum.Add(1)
+
 	// Create goipp.Message translator
 	msgxlat, err := p.msgxlat(in)
 	if err != nil {
@@ -199,7 +206,7 @@ func (p *proxy) doIPP(w http.ResponseWriter, in *http.Request) {
 	}
 
 	// Prepare outgoing request
-	out, err := p.doIPPreq(in, msgxlat)
+	out, err := p.doIPPreq(in, msgxlat, rqnum)
 	if err != nil {
 		err = fmt.Errorf("IPP error: %w", err)
 		p.httpReject(w, in, http.StatusBadGateway, err)
@@ -216,7 +223,7 @@ func (p *proxy) doIPP(w http.ResponseWriter, in *http.Request) {
 		return
 	}
 
-	err = p.doIPPrsp(rsp, msgxlat)
+	err = p.doIPPrsp(rsp, msgxlat, rqnum)
 	if err != nil {
 		log.Debug(p.ctx, "IPP: %s", err)
 		p.httpReject(w, in, http.StatusBadGateway, err)
@@ -231,7 +238,7 @@ func (p *proxy) doIPP(w http.ResponseWriter, in *http.Request) {
 // doIPPreq performs (client->server) part of the IPP request handling
 // It returns modified request ready to be send to the server
 func (p *proxy) doIPPreq(in *http.Request,
-	msgxlat *msgXlat) (*http.Request, error) {
+	msgxlat *msgXlat, rqnum uint32) (*http.Request, error) {
 
 	ops := goipp.DecoderOptions{EnableWorkarounds: true}
 
@@ -244,6 +251,13 @@ func (p *proxy) doIPPreq(in *http.Request,
 	err := msg.DecodeEx(peeker, ops)
 	if err != nil {
 		return nil, err
+	}
+
+	// Write trace
+	if p.trace != nil {
+		name := fmt.Sprintf("%8.8d-%s.ipp",
+			rqnum, goipp.Op(msg.Code))
+		p.trace.Send(name, peeker.Bytes())
 	}
 
 	// Translate IPP message
@@ -266,12 +280,18 @@ func (p *proxy) doIPPreq(in *http.Request,
 
 	out := p.outreq(in, peeker)
 	out.ContentLength = in.ContentLength
+	if out.ContentLength >= 0 {
+		out.ContentLength += int64(len(msg2bytes))
+		out.ContentLength -= peeker.Count()
+	}
 
 	return out, nil
 }
 
 // doIPPreq performs (client->server) part of the IPP request handling
-func (p *proxy) doIPPrsp(rsp *http.Response, msgxlat *msgXlat) error {
+func (p *proxy) doIPPrsp(rsp *http.Response,
+	msgxlat *msgXlat, rqnum uint32) error {
+
 	ops := goipp.DecoderOptions{EnableWorkarounds: true}
 
 	// Strip hop-by-hop headers
@@ -307,6 +327,19 @@ func (p *proxy) doIPPrsp(rsp *http.Response, msgxlat *msgXlat) error {
 	msg2bytes, _ := msg2.EncodeBytes()
 	peeker.Replace(msg2bytes)
 	rsp.Body = peeker
+
+	// Adjust rsp.ContentLength
+	if rsp.ContentLength >= 0 {
+		rsp.ContentLength += int64(len(msg2bytes))
+		rsp.ContentLength -= peeker.Count()
+	}
+
+	// Write trace
+	if p.trace != nil {
+		name := fmt.Sprintf("%8.8d-%s.ipp",
+			rqnum, goipp.Status(msg.Code))
+		p.trace.Send(name, msg2bytes)
+	}
 
 	return nil
 }
