@@ -206,11 +206,17 @@ func (p *proxy) doIPP(w http.ResponseWriter, in *http.Request) {
 	}
 
 	// Prepare outgoing request
-	out, err := p.doIPPreq(in, msgxlat, rqnum)
+	out, ipplen, err := p.doIPPreq(in, msgxlat, rqnum)
 	if err != nil {
 		err = fmt.Errorf("IPP error: %w", err)
 		p.httpReject(w, in, http.StatusBadGateway, err)
 		return
+	}
+
+	// Shiff outgoing data, if trace is active
+	var sniffBuff bytes.Buffer
+	if p.trace != nil {
+		out.Body = transport.TeeReadCloser(out.Body, &sniffBuff)
 	}
 
 	// Execute outgoing request
@@ -221,6 +227,12 @@ func (p *proxy) doIPP(w http.ResponseWriter, in *http.Request) {
 		log.Debug(p.ctx, "IPP: %s", err)
 		p.httpReject(w, in, http.StatusBadGateway, err)
 		return
+	}
+
+	// Save sniffed data
+	if p.trace != nil && sniffBuff.Len() > ipplen {
+		name := fmt.Sprintf("%8.8d-data.bin", rqnum)
+		p.trace.Send(name, sniffBuff.Bytes()[ipplen:])
 	}
 
 	err = p.doIPPrsp(rsp, msgxlat, rqnum)
@@ -236,9 +248,11 @@ func (p *proxy) doIPP(w http.ResponseWriter, in *http.Request) {
 }
 
 // doIPPreq performs (client->server) part of the IPP request handling
-// It returns modified request ready to be send to the server
+//
+// It returns modified request ready to be send to the server,
+// length of the IPP part of that request and error, if any.
 func (p *proxy) doIPPreq(in *http.Request,
-	msgxlat *msgXlat, rqnum uint32) (*http.Request, error) {
+	msgxlat *msgXlat, rqnum uint32) (*http.Request, int, error) {
 
 	ops := goipp.DecoderOptions{EnableWorkarounds: true}
 
@@ -250,7 +264,7 @@ func (p *proxy) doIPPreq(in *http.Request,
 	var msg goipp.Message
 	err := msg.DecodeEx(peeker, ops)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	// Write trace
@@ -285,7 +299,7 @@ func (p *proxy) doIPPreq(in *http.Request,
 		out.ContentLength -= peeker.Count()
 	}
 
-	return out, nil
+	return out, len(msg2bytes), nil
 }
 
 // doIPPreq performs (client->server) part of the IPP request handling
