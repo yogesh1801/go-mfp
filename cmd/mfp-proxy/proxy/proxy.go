@@ -231,8 +231,9 @@ func (p *proxy) doIPP(w http.ResponseWriter, in *http.Request) {
 
 	// Save sniffed data
 	if p.trace != nil && sniffBuff.Len() > ipplen {
-		name := fmt.Sprintf("%8.8d-data.bin", rqnum)
-		p.trace.Send(name, sniffBuff.Bytes()[ipplen:])
+		data := sniffBuff.Bytes()[ipplen:]
+		name := fmt.Sprintf("%8.8d-data.%s", rqnum, magic(data))
+		p.trace.Send(name, data)
 	}
 
 	err = p.doIPPrsp(rsp, msgxlat, rqnum)
