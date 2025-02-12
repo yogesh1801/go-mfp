@@ -89,6 +89,13 @@ func (trace *traceWriter) Send(name string, data []byte) {
 			trace.setError(err)
 		}
 	}
+
+	if trace.err == nil {
+		err := trace.tar.Flush()
+		if err != nil {
+			trace.setError(err)
+		}
+	}
 }
 
 // setError sets trace.err, when error occurs for the first time.
