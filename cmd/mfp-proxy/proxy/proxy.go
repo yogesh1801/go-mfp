@@ -194,13 +194,15 @@ func (p *proxy) doIPP(w http.ResponseWriter, in *http.Request) {
 	// Create goipp.Message translator
 	msgxlat, err := p.msgxlat(in)
 	if err != nil {
-		p.httpReject(w, in, 503, err)
+		p.httpReject(w, in, http.StatusBadGateway, err)
+		return
 	}
 
 	// Prepare outgoing request
 	out, err := p.doIPPreq(in, msgxlat)
 	if err != nil {
-		p.httpReject(w, in, 503, fmt.Errorf("IPP error: %w", err))
+		err = fmt.Errorf("IPP error: %w", err)
+		p.httpReject(w, in, http.StatusBadGateway, err)
 		return
 	}
 
