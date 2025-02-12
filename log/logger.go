@@ -146,7 +146,7 @@ func (lgr *Logger) send(prefix string, levels []Level, lines [][]byte) *Logger {
 
 		// Send to destination
 		if len(filteredLines) > 0 {
-			dest.backend.Send(levels, lines)
+			dest.backend.Send(filteredLevels, filteredLines)
 		}
 	}
 
