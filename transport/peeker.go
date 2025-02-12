@@ -11,6 +11,7 @@ package transport
 import (
 	"bytes"
 	"io"
+	"sync/atomic"
 )
 
 // Peeker wraps [io.ReadCloser] object and allows to peek some
@@ -31,6 +32,7 @@ type Peeker struct {
 	in  io.ReadCloser // Underlying io.ReadCloser
 	out io.Reader     // Output stream
 	buf bytes.Buffer  // Keeps consumed bytes for rewind
+	pos atomic.Int64  // Read count
 }
 
 // NewPeeker creates a new [Peeker] that wraps existing [io.ReadCloser].
@@ -47,12 +49,35 @@ func NewPeeker(in io.ReadCloser) *Peeker {
 // It returns the number of bytes read (0 <= n <= len(b))
 // and any error encountered.
 func (p *Peeker) Read(b []byte) (int, error) {
-	return p.out.Read(b)
+	n, err := p.out.Read(b)
+	if n > 0 {
+		p.pos.Add(int64(n))
+	}
+	return n, err
 }
 
 // Close closes the Peeker and its underlying io.ReadCloser.
 func (p *Peeker) Close() error {
 	return p.in.Close()
+}
+
+// Count reports total count of bytes returned by all preceding
+// calls to the [Peeker.Read].
+func (p *Peeker) Count() int64 {
+	return p.pos.Load()
+}
+
+// Bytes returns bytes, collected in the [Peeker] buffer (i.e.,
+// was read before [Peeker.Rewind] or [Peeker.Replace].
+//
+// This function should not be used after p.Rewind or p.Replace
+// is called.
+//
+// Caller should not modify returned bytes. The returned bytes are not
+// guaranteed to be valid after subsequent call to p.Read, p.Rewind or
+// p.Replace.
+func (p *Peeker) Bytes() []byte {
+	return p.buf.Bytes()
 }
 
 // Rewind rewinds the output stream to the beginning, making
