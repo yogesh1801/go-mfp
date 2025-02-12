@@ -95,7 +95,7 @@ func (bk *backendFile) Send(levels []Level, lines [][]byte) {
 	year, month, day := now.Date()
 	hour, min, sec := now.Clock()
 
-	prefix := fmt.Sprintf("%2.2d-%2.2d-%4.4d %2.2d:%2.2d:%2.2d: ",
+	prefix := fmt.Sprintf("%2.2d-%2.2d-%4.4d %2.2d:%2.2d:%2.2d:",
 		day, month, year,
 		hour, min, sec)
 
@@ -105,7 +105,10 @@ func (bk *backendFile) Send(levels []Level, lines [][]byte) {
 
 	for _, line := range lines {
 		buf.WriteString(prefix)
-		buf.Write(line)
+		if len(line) > 0 {
+			buf.WriteByte(' ')
+			buf.Write(line)
+		}
 		buf.WriteByte('\n')
 	}
 
