@@ -140,7 +140,8 @@ func (lgr *Logger) send(prefix string, levels []Level, lines [][]byte) *Logger {
 			lvl := levels[i]
 			if lvl >= dest.level {
 				filteredLevels = append(filteredLevels, lvl)
-				filteredLines = append(filteredLines, lines[i])
+				filteredLines = append(filteredLines,
+					trim(lines[i]))
 			}
 		}
 
