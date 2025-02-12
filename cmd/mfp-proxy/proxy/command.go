@@ -11,7 +11,6 @@ package proxy
 import (
 	"context"
 	"errors"
-	"strings"
 
 	"github.com/alexpevzner/mfp/argv"
 	"github.com/alexpevzner/mfp/log"
@@ -54,8 +53,7 @@ var Command = argv.Command{
 		},
 		argv.Option{
 			Name:     "-t",
-			Help:     "write trace to file",
-			HelpArg:  "file[.tar]",
+			Help:     "write trace to file.log and file.tar",
 			Validate: argv.ValidateAny,
 		},
 		argv.Option{
@@ -93,10 +91,6 @@ func cmdProxyHandler(ctx context.Context, inv *argv.Invocation) error {
 	// Setup trace
 	var trace *traceWriter
 	if traceName, _ := inv.Get("-t"); traceName != "" {
-		if strings.IndexByte(traceName, '.') < 0 {
-			traceName += ".tar"
-		}
-
 		var err error
 		trace, err = newTraceWriter(ctx, traceName)
 		if err != nil {

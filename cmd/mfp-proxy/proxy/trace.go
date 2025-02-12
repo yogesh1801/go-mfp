@@ -30,8 +30,17 @@ type traceWriter struct {
 
 // newTrace creates a new trace writer
 func newTraceWriter(ctx context.Context, name string) (*traceWriter, error) {
+	nameLog := name + ".log"
+	nameTar := name + ".tar"
+
+	// Create name.log
+	os.Remove(nameLog)
+	backend := log.NewFileBackend(nameLog, 0, 0)
+	log.CtxLogger(ctx).Attach(log.LevelTrace, backend)
+
+	// Create name.tar
 	const flags = os.O_WRONLY | os.O_CREATE | os.O_TRUNC
-	fp, err := os.OpenFile(name, flags, 0644)
+	fp, err := os.OpenFile(nameTar, flags, 0644)
 	if err != nil {
 		return nil, err
 	}
@@ -65,6 +74,8 @@ func (trace *traceWriter) Close() {
 func (trace *traceWriter) Send(name string, data []byte) {
 	trace.lock.Lock()
 	defer trace.lock.Unlock()
+
+	log.Debug(trace.ctx, "%s: %d bytes saved", name, len(data))
 
 	hdr := tar.Header{
 		Typeflag: tar.TypeReg,
