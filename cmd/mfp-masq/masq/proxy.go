@@ -17,6 +17,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httputil"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -183,8 +184,16 @@ func (p *proxy) doHTTP(w http.ResponseWriter, in *http.Request) {
 		return
 	}
 
-	// Strip hop-by-hop headers
+	// Copy response headers and status to the client
 	p.httpRemoveHopByHopHeaders(rsp.Header)
+	p.httpCopyHeaders(w.Header(), rsp.Header)
+
+	if rsp.ContentLength >= 0 {
+		rsp.Header.Set("Content-Length",
+			strconv.FormatInt(rsp.ContentLength, 10))
+	}
+
+	w.WriteHeader(rsp.StatusCode)
 
 	// Dump response headers
 	p.httpLogResponse("HTTP", rsp)
@@ -229,19 +238,37 @@ func (p *proxy) doIPP(w http.ResponseWriter, in *http.Request) {
 		return
 	}
 
-	// Save sniffed data
+	// Save sniffed request data
 	if p.trace != nil && sniffBuff.Len() > ipplen {
 		data := sniffBuff.Bytes()[ipplen:]
 		name := fmt.Sprintf("%8.8d-data.%s", rqnum, magic(data))
 		p.trace.Send(name, data)
 	}
 
-	err = p.doIPPrsp(rsp, msgxlat, rqnum)
-	if err != nil {
-		log.Debug(p.ctx, "IPP: %s", err)
-		p.httpReject(w, in, http.StatusBadGateway, err)
-		return
+	// Dump response HTTP headers
+	p.httpLogResponse("IPP", rsp)
+
+	// Translate IPP response
+	ct := strings.ToLower(rsp.Header.Get("Content-Type"))
+	if ct == "application/ipp" {
+		err = p.doIPPrsp(rsp, msgxlat, rqnum)
+		if err != nil {
+			log.Debug(p.ctx, "IPP: %s", err)
+			p.httpReject(w, in, http.StatusBadGateway, err)
+			return
+		}
 	}
+
+	// Copy response headers and status to the client
+	p.httpRemoveHopByHopHeaders(rsp.Header)
+	p.httpCopyHeaders(w.Header(), rsp.Header)
+
+	if rsp.ContentLength >= 0 {
+		rsp.Header.Set("Content-Length",
+			strconv.FormatInt(rsp.ContentLength, 10))
+	}
+
+	w.WriteHeader(rsp.StatusCode)
 
 	// Forward response body
 	io.Copy(w, rsp.Body)
@@ -308,12 +335,6 @@ func (p *proxy) doIPPrsp(rsp *http.Response,
 	msgxlat *msgXlat, rqnum uint32) error {
 
 	ops := goipp.DecoderOptions{EnableWorkarounds: true}
-
-	// Strip hop-by-hop headers
-	p.httpRemoveHopByHopHeaders(rsp.Header)
-
-	// Dump response HTTP headers
-	p.httpLogResponse("IPP", rsp)
 
 	// Fetch IPP response message
 	peeker := transport.NewPeeker(rsp.Body)
@@ -384,6 +405,15 @@ func (p *proxy) httpRemoveHopByHopHeaders(hdr http.Header) {
 		"Proxy-Authenticate", "Proxy-Connection",
 		"Proxy-Authorization", "Te", "Trailer", "Transfer-Encoding"} {
 		hdr.Del(c)
+	}
+}
+
+// httpCopyHeaders copies HTTP headers from src to dst
+func (p *proxy) httpCopyHeaders(dst, src http.Header) {
+	for k, v := range src {
+		if strings.ToLower(k) != "content-length" {
+			dst[k] = v
+		}
 	}
 }
 
