@@ -1,12 +1,12 @@
 // MFP - Miulti-Function Printers and scanners toolkit
-// The "proxy" command
+// The "masq" command
 //
 // Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
 // See LICENSE for license terms and conditions
 //
 // Command description.
 
-package proxy
+package masq
 
 import (
 	"context"
@@ -16,10 +16,10 @@ import (
 	"github.com/alexpevzner/mfp/log"
 )
 
-// Command is the 'proxy' command description
+// Command is the 'masq' command description
 var Command = argv.Command{
-	Name: "proxy",
-	Help: "IPP/eSCL/WSD proxy",
+	Name: "masq",
+	Help: "IPP/eSCL/WSD masquerading proxy",
 	Options: []argv.Option{
 		argv.Option{
 			Name: "--escl",

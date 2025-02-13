@@ -2,7 +2,7 @@ SUBDIRS = \
 	mfp \
 	mfp-discover \
 	mfp-cups \
-	mfp-proxy \
+	mfp-masq \
 	mfp-shell
 
 include ../Rules.mak

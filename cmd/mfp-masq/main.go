@@ -8,9 +8,9 @@
 
 package main
 
-import "github.com/alexpevzner/mfp/cmd/mfp-proxy/proxy"
+import "github.com/alexpevzner/mfp/cmd/mfp-masq/masq"
 
 // main function for the mfp-cups command
 func main() {
-	proxy.Command.Main(nil)
+	masq.Command.Main(nil)
 }
