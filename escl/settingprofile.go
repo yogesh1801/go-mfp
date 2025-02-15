@@ -12,11 +12,11 @@ package escl
 //
 // eSCL Technical Specification, 8.1.2.
 type SettingProfile struct {
-	ColorModes           ColorModes           // Supported color modes
+	ColorModes           []ColorMode          // Supported color modes
 	DocumentFormats      []string             // MIME types of supported formats
 	DocumentFormatsExt   []string             // eSCL 2.1+
 	SupportedResolutions SupportedResolutions // Supported resolutions
-	ColorSpaces          ColorSpaces          // Supported color spaces
-	CcdChannels          CcdChannels          // Supported CCD channels
-	BinaryRenderings     BinaryRenderings     // Supported bin renderings
+	ColorSpaces          []ColorSpace         // Supported color spaces
+	CcdChannels          []CcdChannel         // Supported CCD channels
+	BinaryRenderings     []BinaryRendering    // Supported bin renderings
 }

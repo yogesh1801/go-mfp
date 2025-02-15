@@ -32,8 +32,8 @@ type InputSourceCaps struct {
 	RiskyBottomMargins    optional.Val[int] // Risky bottom margins
 	MaxPhysicalWidth      optional.Val[int] // Max physical width
 	MaxPhysicalHeight     optional.Val[int] // Max physical height
-	SupportedIntents      Intents           // Supported intents
-	EdgeAutoDetection     SupportedEdges    // Supported edges detection
+	SupportedIntents      []Intent          // Supported intents
+	EdgeAutoDetection     []SupportedEdge   // Supported edges detection
 	SettingProfiles       []SettingProfile  // Supported scan profiles
-	FeedDirections        FeedDirections    // Available feed directions
+	FeedDirections        []FeedDirection   // Available feed directions
 }

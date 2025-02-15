@@ -15,6 +15,6 @@ type ADF struct {
 	ADFSimplexInputCaps optional.Val[InputSourceCaps] // ADF simplex caps
 	ADFDuplexInputCaps  optional.Val[InputSourceCaps] // ADF duples caps
 	FeederCapacity      optional.Val[int]             // Feeder capacity
-	ADFOptions          ADFOptions                    // ADF options
+	ADFOptions          []ADFOption                   // ADF options
 	Justification       optional.Val[Justification]   // Image justification
 }
