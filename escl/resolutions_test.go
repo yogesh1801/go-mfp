@@ -412,7 +412,7 @@ func TestSupportedResolutionsDecodeErrors(t *testing.T) {
 					),
 				),
 			),
-			err: `/scan:SupportedResolutions/scan:DiscreteResolution/scan:XResolution: invalid int: "AAA"`,
+			err: `/scan:SupportedResolutions/scan:DiscreteResolutions/scan:DiscreteResolution/scan:XResolution: invalid int: "AAA"`,
 		},
 		{
 			// Error in ResolutionRange

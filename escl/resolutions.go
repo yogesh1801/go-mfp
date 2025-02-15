@@ -66,6 +66,7 @@ func decodeSupportedResolutions(root xmldoc.Element) (
 			var res DiscreteResolution
 			res, err = decodeDiscreteResolution(elem)
 			if err != nil {
+				err = xmldoc.XMLErrWrap(discrete.Elem, err)
 				return
 			}
 
