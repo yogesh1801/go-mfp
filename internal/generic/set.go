@@ -23,6 +23,19 @@ func NewSet[T comparable]() Set[T] {
 	}
 }
 
+// NewSetOf creates and populates a new Set
+func NewSetOf[T comparable](elements ...T) Set[T] {
+	s := Set[T]{
+		members: make(map[T]struct{}, len(elements)),
+	}
+
+	for _, elem := range elements {
+		s.Add(elem)
+	}
+
+	return s
+}
+
 // Clear purges the set
 func (s Set[T]) Clear() {
 	for member := range s.members {
