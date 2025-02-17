@@ -8,7 +8,10 @@
 
 package escl
 
-import "github.com/alexpevzner/mfp/xmldoc"
+import (
+	"github.com/alexpevzner/mfp/internal/generic"
+	"github.com/alexpevzner/mfp/xmldoc"
+)
 
 // SettingProfile defines a valid combination of scanning parameters.
 //
@@ -100,15 +103,15 @@ func decodeSettingProfile(root xmldoc.Element) (
 	if ccdChannels.Found {
 		for _, elem := range formats.Elem.Children {
 			if elem.Name == NsScan+":CcdChannel" {
-				var sps CcdChannel
-				sps, err = decodeCcdChannel(elem)
+				var chn CcdChannel
+				chn, err = decodeCcdChannel(elem)
 				if err != nil {
 					err = xmldoc.XMLErrWrap(
 						ccdChannels.Elem, err)
 					return
 				}
 
-				prof.CcdChannels = append(prof.CcdChannels, sps)
+				prof.CcdChannels = append(prof.CcdChannels, chn)
 			}
 		}
 	}
@@ -131,4 +134,87 @@ func decodeSettingProfile(root xmldoc.Element) (
 	}
 
 	return
+}
+
+// toXML generates XML tree for the [SettingProfile].
+func (prof SettingProfile) toXML(name string) xmldoc.Element {
+	elm := xmldoc.Element{Name: name}
+	var chld xmldoc.Element
+
+	if prof.ColorModes != nil {
+		chld = xmldoc.Element{Name: NsScan + ":ColorModes"}
+		elm.Children = append(elm.Children, chld)
+		for _, cm := range prof.ColorModes {
+			chld2 := cm.toXML(NsScan + ":ColorMode")
+			chld.Children = append(chld.Children, chld2)
+		}
+	}
+
+	if prof.DocumentFormats != nil || prof.DocumentFormatsExt != nil {
+		// pwd:DocumentFormat and scan:DocumentFormatsExt both
+		// goes as children of the scan:DocumentFormats element,
+		// and our representation doesn't preserve the ordering
+		// between them.
+		//
+		// So here we behave as most scanners do: put elements
+		// with the same MIME type together.
+		//
+		// After that, we dump all remaining scan:DocumentFormatExt
+		// elements, if any.
+		chld = xmldoc.Element{Name: NsScan + ":DocumentFormats"}
+
+		ext := generic.NewSetOf(prof.DocumentFormatsExt...)
+
+		for _, fmt := range prof.DocumentFormats {
+			chld2 := xmldoc.WithText(NsPWG+":DocumentFormat", fmt)
+			chld.Children = append(chld.Children, chld2)
+
+			if ext.Contains(fmt) {
+				ext.Del(fmt)
+				chld2 = xmldoc.WithText(
+					NsScan+":DocumentFormatExt", fmt)
+				chld.Children = append(chld.Children, chld2)
+			}
+		}
+
+		for _, fmt := range prof.DocumentFormatsExt {
+			if ext.Contains(fmt) {
+				chld2 := xmldoc.WithText(
+					NsScan+":DocumentFormatExt", fmt)
+				chld.Children = append(chld.Children, chld2)
+			}
+		}
+	}
+
+	chld = prof.SupportedResolutions.toXML(NsScan + ":SupportedResolutions")
+	elm.Children = append(elm.Children, chld)
+
+	if prof.ColorSpaces != nil {
+		chld = xmldoc.Element{Name: NsScan + ":ColorSpaces"}
+		elm.Children = append(elm.Children, chld)
+		for _, sps := range prof.ColorSpaces {
+			chld2 := sps.toXML(NsScan + ":ColorSpace")
+			chld.Children = append(chld.Children, chld2)
+		}
+	}
+
+	if prof.CcdChannels != nil {
+		chld = xmldoc.Element{Name: NsScan + ":CcdChannels"}
+		elm.Children = append(elm.Children, chld)
+		for _, chn := range prof.CcdChannels {
+			chld2 := chn.toXML(NsScan + ":CcdChannel")
+			chld.Children = append(chld.Children, chld2)
+		}
+	}
+
+	if prof.BinaryRenderings != nil {
+		chld = xmldoc.Element{Name: NsScan + ":BinaryRenderings"}
+		elm.Children = append(elm.Children, chld)
+		for _, rnd := range prof.BinaryRenderings {
+			chld2 := rnd.toXML(NsScan + ":BinaryRendering")
+			chld.Children = append(chld.Children, chld2)
+		}
+	}
+
+	return elm
 }
