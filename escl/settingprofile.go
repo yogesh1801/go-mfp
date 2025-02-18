@@ -85,7 +85,7 @@ func decodeSettingProfile(root xmldoc.Element) (
 	}
 
 	if clrSpaces.Found {
-		for _, elem := range formats.Elem.Children {
+		for _, elem := range clrSpaces.Elem.Children {
 			if elem.Name == NsScan+":ColorSpace" {
 				var sps ColorSpace
 				sps, err = decodeColorSpace(elem)
@@ -101,7 +101,7 @@ func decodeSettingProfile(root xmldoc.Element) (
 	}
 
 	if ccdChannels.Found {
-		for _, elem := range formats.Elem.Children {
+		for _, elem := range ccdChannels.Elem.Children {
 			if elem.Name == NsScan+":CcdChannel" {
 				var chn CcdChannel
 				chn, err = decodeCcdChannel(elem)
@@ -117,8 +117,8 @@ func decodeSettingProfile(root xmldoc.Element) (
 	}
 
 	if binrend.Found {
-		for _, elem := range formats.Elem.Children {
-			if elem.Name == NsScan+":BinaryRenderings" {
+		for _, elem := range binrend.Elem.Children {
+			if elem.Name == NsScan+":BinaryRendering" {
 				var rns BinaryRendering
 				rns, err = decodeBinaryRendering(elem)
 				if err != nil {
@@ -143,11 +143,11 @@ func (prof SettingProfile) toXML(name string) xmldoc.Element {
 
 	if prof.ColorModes != nil {
 		chld = xmldoc.Element{Name: NsScan + ":ColorModes"}
-		elm.Children = append(elm.Children, chld)
 		for _, cm := range prof.ColorModes {
 			chld2 := cm.toXML(NsScan + ":ColorMode")
 			chld.Children = append(chld.Children, chld2)
 		}
+		elm.Children = append(elm.Children, chld)
 	}
 
 	if prof.DocumentFormats != nil || prof.DocumentFormatsExt != nil {
@@ -184,6 +184,8 @@ func (prof SettingProfile) toXML(name string) xmldoc.Element {
 				chld.Children = append(chld.Children, chld2)
 			}
 		}
+
+		elm.Children = append(elm.Children, chld)
 	}
 
 	chld = prof.SupportedResolutions.toXML(NsScan + ":SupportedResolutions")
@@ -191,29 +193,29 @@ func (prof SettingProfile) toXML(name string) xmldoc.Element {
 
 	if prof.ColorSpaces != nil {
 		chld = xmldoc.Element{Name: NsScan + ":ColorSpaces"}
-		elm.Children = append(elm.Children, chld)
 		for _, sps := range prof.ColorSpaces {
 			chld2 := sps.toXML(NsScan + ":ColorSpace")
 			chld.Children = append(chld.Children, chld2)
 		}
+		elm.Children = append(elm.Children, chld)
 	}
 
 	if prof.CcdChannels != nil {
 		chld = xmldoc.Element{Name: NsScan + ":CcdChannels"}
-		elm.Children = append(elm.Children, chld)
 		for _, chn := range prof.CcdChannels {
 			chld2 := chn.toXML(NsScan + ":CcdChannel")
 			chld.Children = append(chld.Children, chld2)
 		}
+		elm.Children = append(elm.Children, chld)
 	}
 
 	if prof.BinaryRenderings != nil {
 		chld = xmldoc.Element{Name: NsScan + ":BinaryRenderings"}
-		elm.Children = append(elm.Children, chld)
 		for _, rnd := range prof.BinaryRenderings {
 			chld2 := rnd.toXML(NsScan + ":BinaryRendering")
 			chld.Children = append(chld.Children, chld2)
 		}
+		elm.Children = append(elm.Children, chld)
 	}
 
 	return elm
