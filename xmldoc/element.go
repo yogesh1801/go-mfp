@@ -33,6 +33,123 @@ func (root Element) IsZero() bool {
 		root.Attrs == nil && root.Children == nil
 }
 
+// Equal tests that two XML trees are equal.
+func (root Element) Equal(root2 Element) bool {
+	switch {
+	case root.Name != root2.Name || root.Text != root2.Text:
+		return false
+	case len(root.Attrs) != len(root2.Attrs):
+		return false
+	case len(root.Children) != len(root2.Children):
+		return false
+	}
+
+	for i := range root.Attrs {
+		if !root.Attrs[i].Equal(root2.Attrs[i]) {
+			return false
+		}
+	}
+
+	for i := range root.Children {
+		if !root.Children[i].Equal(root2.Children[i]) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Similar tests that two XML trees are similar, which means that
+// they are equal, ignoring difference in order of children and
+// attributes with the different names.
+//
+// Note, children and attributes with the same name still needs
+// to be ordered equally.
+func (root Element) Similar(root2 Element) bool {
+	// Perform simple checks
+	switch {
+	case root.Name != root2.Name || root.Text != root2.Text:
+		return false
+	case len(root.Attrs) != len(root2.Attrs):
+		return false
+	case len(root.Children) != len(root2.Children):
+		return false
+	}
+
+	// Compare attributes and children
+	return root.attrsSimilar(root2) && root.childrenSimilar(root2)
+}
+
+// attrsSimilar tests that attributes of two XML elements are similar.
+func (root Element) attrsSimilar(root2 Element) bool {
+	attrs := make(map[string][]Attr, len(root.Attrs))
+	attrs2 := make(map[string][]Attr, len(root2.Attrs))
+
+	for i := range root.Attrs {
+		attr := root.Attrs[i]
+		list := attrs[attr.Name]
+		attrs[attr.Name] = append(list, attr)
+
+		attr = root2.Attrs[i]
+		list = attrs2[attr.Name]
+		attrs2[attr.Name] = append(list, attr)
+	}
+
+	for name, list := range attrs {
+		list2 := attrs2[name]
+
+		if len(list) != len(list2) {
+			return false
+		}
+
+		for i, attr := range list {
+			if attr.Value != list2[i].Value {
+				return false
+			}
+		}
+	}
+
+	return true
+}
+
+// childrenSimilar tests that children of two XML elements are similar,
+// recursively.
+func (root Element) childrenSimilar(root2 Element) bool {
+	children := make(map[string][]Element, len(root.Children))
+	children2 := make(map[string][]Element, len(root2.Children))
+
+	for i := range root.Children {
+		child := root.Children[i]
+		list := children[child.Name]
+		children[child.Name] = append(list, child)
+
+		child = root2.Children[i]
+		list = children2[child.Name]
+		children2[child.Name] = append(list, child)
+	}
+
+	for name, list := range children {
+		list2 := children2[name]
+
+		if len(list) != len(list2) {
+			return false
+		}
+
+		for i, child := range list {
+			if !child.Similar(list2[i]) {
+				return false
+			}
+		}
+	}
+
+	return true
+}
+
+// Equal tests that two XML attrubutes are equal.
+func (attr Attr) Equal(attr2 Attr) bool {
+	return attr == attr2
+}
+
 // Expand replaces ${var} or $var in the XML [Element.Text] and
 // [Attr.Value] of the entire XML tree based on the mapping
 // function and returns rewritten XML tree.
