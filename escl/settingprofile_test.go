@@ -31,6 +31,7 @@ func TestSettingProfile(t *testing.T) {
 
 	tests := []testData{
 		{
+			// Full data test
 			prof: SettingProfile{
 				ColorModes: []ColorMode{
 					Grayscale8, RGB24,
@@ -88,6 +89,38 @@ func TestSettingProfile(t *testing.T) {
 					xmldoc.WithText(NsScan+":BinaryRendering",
 						NsScan+":Threshold"),
 				),
+			),
+		},
+
+		// Missed optional elements
+		{
+			prof: SettingProfile{
+				SupportedResolutions: res,
+			},
+			xml: xmldoc.WithChildren(NsScan+":SettingProfile",
+				res.toXML(NsScan+":SupportedResolutions"),
+			),
+		},
+
+		// Difference between DocumentFormats and DocumentFormatsExt
+		{
+			prof: SettingProfile{
+				DocumentFormats: []string{
+					"image/jpeg",
+				},
+				DocumentFormatsExt: []string{
+					"application/pdf",
+				},
+				SupportedResolutions: res,
+			},
+			xml: xmldoc.WithChildren(NsScan+":SettingProfile",
+				xmldoc.WithChildren(NsScan+":DocumentFormats",
+					xmldoc.WithText(NsPWG+":DocumentFormat",
+						"image/jpeg"),
+					xmldoc.WithText(NsScan+":DocumentFormatExt",
+						"application/pdf"),
+				),
+				res.toXML(NsScan+":SupportedResolutions"),
 			),
 		},
 	}
