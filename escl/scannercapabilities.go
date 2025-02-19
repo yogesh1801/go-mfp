@@ -36,7 +36,7 @@ type ScannerCapabilities struct {
 	BrightnessSupport        optional.Val[Range] // Brightness
 	CompressionFactorSupport optional.Val[Range] // Lower num, better image
 	ContrastSupport          optional.Val[Range] // Contrast
-	GammaSupport             optional.Val[Range] // Gamma (y=x^(1/g)
+	GammaSupport             optional.Val[Range] // Gamma (y = x^(1/g))
 	HighlightSupport         optional.Val[Range] // Image Highlight
 	NoiseRemovalSupport      optional.Val[Range] // Noise removal level
 	ShadowSupport            optional.Val[Range] // The lower, the darger
