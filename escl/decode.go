@@ -36,17 +36,12 @@ func decodeNonNegativeInt(root xmldoc.Element) (v int, err error) {
 //
 // decode is the type-specific function that decodes T from string
 // (i.e., DecodeColorMode for ColorMode).
-//
-// ns is the XML namespace prefix (i.e., "scan" or "pwd").
 func decodeEnum[T ~int](root xmldoc.Element,
-	decode func(string) T, ns string) (val T, err error) {
+	decode func(string) T) (val T, err error) {
 
-	ns += ":"
-	if strings.HasPrefix(root.Text, ns) {
-		val = decode(root.Text[len(ns):])
-		if val != 0 {
-			return
-		}
+	val = decode(root.Text)
+	if val != 0 {
+		return
 	}
 
 	typeName := reflect.TypeOf(T(0)).String()

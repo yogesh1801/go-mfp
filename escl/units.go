@@ -8,7 +8,11 @@
 
 package escl
 
-import "github.com/alexpevzner/mfp/xmldoc"
+import (
+	"fmt"
+
+	"github.com/alexpevzner/mfp/xmldoc"
+)
 
 // Units specifies the feed direction of the input media
 // (affects the resulting image orientation).
@@ -24,14 +28,21 @@ const (
 
 // decodeUnits decodes [Units] from the XML tree.
 func decodeUnits(root xmldoc.Element) (units Units, err error) {
-	return decodeEnum(root, DecodeUnits, NsScan)
+	if root.Text == "escl:ThreeHundredthsOfInches" {
+		return ThreeHundredthsOfInches, nil
+	}
+
+	err = fmt.Errorf("invalid Units: %q", root.Text)
+	err = xmldoc.XMLErrWrap(root, err)
+
+	return
 }
 
 // toXML generates XML tree for the [Units].
 func (units Units) toXML(name string) xmldoc.Element {
 	return xmldoc.Element{
 		Name: name,
-		Text: NsScan + ":" + units.String(),
+		Text: units.String(),
 	}
 }
 
@@ -39,7 +50,7 @@ func (units Units) toXML(name string) xmldoc.Element {
 func (units Units) String() string {
 	switch units {
 	case ThreeHundredthsOfInches:
-		return "ThreeHundredthsOfInches"
+		return "escl:ThreeHundredthsOfInches"
 	}
 
 	return "Unknown"
@@ -49,7 +60,7 @@ func (units Units) String() string {
 // string representation.
 func DecodeUnits(s string) Units {
 	switch s {
-	case "ThreeHundredthsOfInches":
+	case "escl:ThreeHundredthsOfInches":
 		return ThreeHundredthsOfInches
 	}
 

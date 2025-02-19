@@ -13,7 +13,6 @@ import "testing"
 var testSupportedEdge = testEnum[SupportedEdge]{
 	decodeStr: DecodeSupportedEdge,
 	decodeXML: decodeSupportedEdge,
-	ns:        NsScan,
 	dataset: []testEnumData[SupportedEdge]{
 		{TopEdge, "TopEdge"},
 		{LeftEdge, "LeftEdge"},

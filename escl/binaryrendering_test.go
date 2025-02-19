@@ -13,7 +13,6 @@ import "testing"
 var testBinaryRendering = testEnum[BinaryRendering]{
 	decodeStr: DecodeBinaryRendering,
 	decodeXML: decodeBinaryRendering,
-	ns:        NsScan,
 	dataset: []testEnumData[BinaryRendering]{
 		{Halftone, "Halftone"},
 		{Threshold, "Threshold"},

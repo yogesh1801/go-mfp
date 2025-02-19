@@ -350,7 +350,7 @@ func TestSupportedResolutions(t *testing.T) {
 			},
 			xml: xmldoc.WithChildren(
 				NsScan+":SupportedResolutions",
-				xmldoc.WithText(NsScan+":ColorMode", NsScan+":RGB24"),
+				RGB24.toXML(NsScan+":ColorMode"),
 				xmldoc.WithChildren(
 					NsScan+":DiscreteResolutions",
 					xmldoc.WithChildren(
@@ -409,7 +409,7 @@ func TestSupportedResolutionsDecodeErrors(t *testing.T) {
 			// Missed DiscreteResolutions and ResolutionRange
 			xml: xmldoc.WithChildren(
 				NsScan+":SupportedResolutions",
-				xmldoc.WithText(NsScan+":ColorMode", NsScan+":RGB24"),
+				RGB24.toXML(NsScan+":ColorMode"),
 			),
 			err: `/scan:SupportedResolutions: missed scan:DiscreteResolutions and scan:ResolutionRange`,
 		},

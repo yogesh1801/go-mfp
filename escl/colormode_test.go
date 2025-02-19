@@ -13,7 +13,6 @@ import "testing"
 var testColorMode = testEnum[ColorMode]{
 	decodeStr: DecodeColorMode,
 	decodeXML: decodeColorMode,
-	ns:        NsScan,
 	dataset: []testEnumData[ColorMode]{
 		{BlackAndWhite1, "BlackAndWhite1"},
 		{Grayscale8, "Grayscale8"},

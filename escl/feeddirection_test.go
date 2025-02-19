@@ -13,7 +13,6 @@ import "testing"
 var testFeedDirection = testEnum[FeedDirection]{
 	decodeStr: DecodeFeedDirection,
 	decodeXML: decodeFeedDirection,
-	ns:        NsScan,
 	dataset: []testEnumData[FeedDirection]{
 		{LongEdgeFeed, "LongEdgeFeed"},
 		{ShortEdgeFeed, "ShortEdgeFeed"},

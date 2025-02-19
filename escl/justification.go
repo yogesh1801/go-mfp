@@ -25,14 +25,14 @@ const (
 
 // decodeJustification decodes [Justification] from the XML tree.
 func decodeJustification(root xmldoc.Element) (jst Justification, err error) {
-	return decodeEnum(root, DecodeJustification, NsScan)
+	return decodeEnum(root, DecodeJustification)
 }
 
 // toXML generates XML tree for the [Justification].
 func (jst Justification) toXML(name string) xmldoc.Element {
 	return xmldoc.Element{
 		Name: name,
-		Text: NsScan + ":" + jst.String(),
+		Text: jst.String(),
 	}
 }
 

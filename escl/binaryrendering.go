@@ -23,14 +23,14 @@ const (
 
 // decodeBinaryRendering decodes [BinaryRendering] from the XML tree.
 func decodeBinaryRendering(root xmldoc.Element) (rnd BinaryRendering, err error) {
-	return decodeEnum(root, DecodeBinaryRendering, NsScan)
+	return decodeEnum(root, DecodeBinaryRendering)
 }
 
 // toXML generates XML tree for the [BinaryRendering].
 func (rnd BinaryRendering) toXML(name string) xmldoc.Element {
 	return xmldoc.Element{
 		Name: name,
-		Text: NsScan + ":" + rnd.String(),
+		Text: rnd.String(),
 	}
 }
 

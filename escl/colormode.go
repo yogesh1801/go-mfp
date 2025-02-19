@@ -28,14 +28,14 @@ const (
 
 // decodeColorMode decodes [ColorMode] from the XML tree.
 func decodeColorMode(root xmldoc.Element) (cm ColorMode, err error) {
-	return decodeEnum(root, DecodeColorMode, NsScan)
+	return decodeEnum(root, DecodeColorMode)
 }
 
 // toXML generates XML tree for the [ColorMode].
 func (cm ColorMode) toXML(name string) xmldoc.Element {
 	return xmldoc.Element{
 		Name: name,
-		Text: NsScan + ":" + cm.String(),
+		Text: cm.String(),
 	}
 }
 

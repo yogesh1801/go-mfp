@@ -13,7 +13,6 @@ import "testing"
 var testContentType = testEnum[ContentType]{
 	decodeStr: DecodeContentType,
 	decodeXML: decodeContentType,
-	ns:        NsScan,
 	dataset: []testEnumData[ContentType]{
 		{ContentTypePhoto, "Photo"},
 		{ContentTypeText, "Text"},

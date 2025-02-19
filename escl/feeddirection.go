@@ -23,14 +23,14 @@ const (
 
 // decodeFeedDirection decodes [FeedDirection] from the XML tree.
 func decodeFeedDirection(root xmldoc.Element) (feed FeedDirection, err error) {
-	return decodeEnum(root, DecodeFeedDirection, NsScan)
+	return decodeEnum(root, DecodeFeedDirection)
 }
 
 // toXML generates XML tree for the [FeedDirection].
 func (feed FeedDirection) toXML(name string) xmldoc.Element {
 	return xmldoc.Element{
 		Name: name,
-		Text: NsScan + ":" + feed.String(),
+		Text: feed.String(),
 	}
 }
 

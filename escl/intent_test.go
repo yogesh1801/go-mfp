@@ -13,7 +13,6 @@ import "testing"
 var testIntent = testEnum[Intent]{
 	decodeStr: DecodeIntent,
 	decodeXML: decodeIntent,
-	ns:        NsScan,
 	dataset: []testEnumData[Intent]{
 		{Document, "Document"},
 		{TextAndGraphic, "TextAndGraphic"},

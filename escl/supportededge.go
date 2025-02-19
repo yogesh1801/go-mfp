@@ -24,14 +24,14 @@ const (
 
 // decodeSupportedEdge decodes [SupportedEdge] from the XML tree.
 func decodeSupportedEdge(root xmldoc.Element) (edge SupportedEdge, err error) {
-	return decodeEnum(root, DecodeSupportedEdge, NsScan)
+	return decodeEnum(root, DecodeSupportedEdge)
 }
 
 // toXML generates XML tree for the [SupportedEdge].
 func (edge SupportedEdge) toXML(name string) xmldoc.Element {
 	return xmldoc.Element{
 		Name: name,
-		Text: NsScan + ":" + edge.String(),
+		Text: edge.String(),
 	}
 }
 

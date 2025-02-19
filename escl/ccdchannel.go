@@ -27,14 +27,14 @@ const (
 
 // decodeCcdChannel decodes [CcdChannel] from the XML tree.
 func decodeCcdChannel(root xmldoc.Element) (ccd CcdChannel, err error) {
-	return decodeEnum(root, DecodeCcdChannel, NsScan)
+	return decodeEnum(root, DecodeCcdChannel)
 }
 
 // toXML generates XML tree for the [CcdChannel].
 func (ccd CcdChannel) toXML(name string) xmldoc.Element {
 	return xmldoc.Element{
 		Name: name,
-		Text: NsScan + ":" + ccd.String(),
+		Text: ccd.String(),
 	}
 }
 

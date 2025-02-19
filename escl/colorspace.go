@@ -21,14 +21,14 @@ const (
 
 // decodeColorSpace decodes [ColorSpace] from the XML tree.
 func decodeColorSpace(root xmldoc.Element) (sps ColorSpace, err error) {
-	return decodeEnum(root, DecodeColorSpace, NsScan)
+	return decodeEnum(root, DecodeColorSpace)
 }
 
 // toXML generates XML tree for the [ColorSpace].
 func (sps ColorSpace) toXML(name string) xmldoc.Element {
 	return xmldoc.Element{
 		Name: name,
-		Text: NsScan + ":" + sps.String(),
+		Text: sps.String(),
 	}
 }
 

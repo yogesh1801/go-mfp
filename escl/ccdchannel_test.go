@@ -13,7 +13,6 @@ import "testing"
 var testCcdChannel = testEnum[CcdChannel]{
 	decodeStr: DecodeCcdChannel,
 	decodeXML: decodeCcdChannel,
-	ns:        NsScan,
 	dataset: []testEnumData[CcdChannel]{
 		{Red, "Red"},
 		{Green, "Green"},

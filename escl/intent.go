@@ -27,14 +27,14 @@ const (
 
 // decodeIntent decodes [Intent] from the XML tree.
 func decodeIntent(root xmldoc.Element) (intent Intent, err error) {
-	return decodeEnum(root, DecodeIntent, NsScan)
+	return decodeEnum(root, DecodeIntent)
 }
 
 // toXML generates XML tree for the [Intent].
 func (intent Intent) toXML(name string) xmldoc.Element {
 	return xmldoc.Element{
 		Name: name,
-		Text: NsScan + ":" + intent.String(),
+		Text: intent.String(),
 	}
 }
 

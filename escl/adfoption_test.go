@@ -13,7 +13,6 @@ import "testing"
 var testADFOption = testEnum[ADFOption]{
 	decodeStr: DecodeADFOption,
 	decodeXML: decodeADFOption,
-	ns:        NsScan,
 	dataset: []testEnumData[ADFOption]{
 		{DetectPaperLoaded, "DetectPaperLoaded"},
 		{SelectSinglePage, "SelectSinglePage"},

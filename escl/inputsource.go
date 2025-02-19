@@ -23,14 +23,14 @@ const (
 
 // decodeInputSource decodes [InputSource] from the XML tree.
 func decodeInputSource(root xmldoc.Element) (input InputSource, err error) {
-	return decodeEnum(root, DecodeInputSource, NsScan)
+	return decodeEnum(root, DecodeInputSource)
 }
 
 // toXML generates XML tree for the [InputSource].
 func (input InputSource) toXML(name string) xmldoc.Element {
 	return xmldoc.Element{
 		Name: name,
-		Text: NsScan + ":" + input.String(),
+		Text: input.String(),
 	}
 }
 

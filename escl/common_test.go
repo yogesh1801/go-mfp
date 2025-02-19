@@ -28,7 +28,6 @@ type testEnumType interface {
 type testEnum[T testEnumType] struct {
 	decodeStr func(string) T                  // Decode value from string
 	decodeXML func(xmldoc.Element) (T, error) // Decode from XML element
-	ns        string                          // Value namespace prefix
 	dataset   []testEnumData[T]               // Test data cases
 }
 
@@ -69,7 +68,7 @@ func (test testEnum[T]) run(t *testing.T) {
 		xml := data.v.toXML(xmlName)
 		exp := xmldoc.Element{
 			Name: xmlName,
-			Text: test.ns + ":" + data.v.String(),
+			Text: data.v.String(),
 		}
 
 		if !reflect.DeepEqual(xml, exp) {
@@ -97,7 +96,7 @@ func (test testEnum[T]) run(t *testing.T) {
 	for _, data := range test.dataset {
 		xml := xmldoc.Element{
 			Name: xmlName,
-			Text: test.ns + ":" + data.s,
+			Text: data.s,
 		}
 
 		// normal decode
@@ -118,18 +117,9 @@ func (test testEnum[T]) run(t *testing.T) {
 				typeName, xml.EncodeString(nil), data.v, v)
 		}
 
-		// missed namespace prefix
-		xml.Text = data.s
-		_, err = test.decodeXML(xml)
-		if err == nil {
-			t.Errorf("decode%s():\n"+
-				"input: %s\n"+
-				"error: expected but did'n occur",
-				typeName, xml.EncodeString(nil))
-		}
-
 		// invalid value
-		xml.Text = test.ns + ":" + data.s + "-invalid"
+		xml.Text = data.s + "-invalid"
+
 		_, err = test.decodeXML(xml)
 		if err == nil {
 			t.Errorf("decode%s():\n"+

@@ -13,7 +13,6 @@ import "testing"
 var testColorSpace = testEnum[ColorSpace]{
 	decodeStr: DecodeColorSpace,
 	decodeXML: decodeColorSpace,
-	ns:        NsScan,
 	dataset: []testEnumData[ColorSpace]{
 		{SRGB, "sRGB"},
 	},

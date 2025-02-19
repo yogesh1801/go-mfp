@@ -13,7 +13,6 @@ import "testing"
 var testInputSource = testEnum[InputSource]{
 	decodeStr: DecodeInputSource,
 	decodeXML: decodeInputSource,
-	ns:        NsScan,
 	dataset: []testEnumData[InputSource]{
 		{InputPlaten, "Platen"},
 		{InputFeeder, "Feeder"},

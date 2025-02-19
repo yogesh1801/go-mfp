@@ -13,7 +13,6 @@ import "testing"
 var testJustification = testEnum[Justification]{
 	decodeStr: DecodeJustification,
 	decodeXML: decodeJustification,
-	ns:        NsScan,
 	dataset: []testEnumData[Justification]{
 		{Left, "Left"},
 		{Right, "Right"},

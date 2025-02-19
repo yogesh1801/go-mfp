@@ -13,9 +13,8 @@ import "testing"
 var testUnits = testEnum[Units]{
 	decodeStr: DecodeUnits,
 	decodeXML: decodeUnits,
-	ns:        NsScan,
 	dataset: []testEnumData[Units]{
-		{ThreeHundredthsOfInches, "ThreeHundredthsOfInches"},
+		{ThreeHundredthsOfInches, "escl:ThreeHundredthsOfInches"},
 	},
 }
 

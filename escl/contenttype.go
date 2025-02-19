@@ -32,14 +32,14 @@ const (
 
 // decodeContentType decodes [ContentType] from the XML tree.
 func decodeContentType(root xmldoc.Element) (ct ContentType, err error) {
-	return decodeEnum(root, DecodeContentType, NsScan)
+	return decodeEnum(root, DecodeContentType)
 }
 
 // toXML generates XML tree for the [ContentType].
 func (ct ContentType) toXML(name string) xmldoc.Element {
 	return xmldoc.Element{
 		Name: name,
-		Text: NsScan + ":" + ct.String(),
+		Text: ct.String(),
 	}
 }
 
