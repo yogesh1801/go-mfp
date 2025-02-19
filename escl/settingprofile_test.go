@@ -16,6 +16,30 @@ import (
 	"github.com/alexpevzner/mfp/xmldoc"
 )
 
+// testSettingProfile contains example of the initialized
+// SettingProfile structure
+var testSettingProfile = SettingProfile{
+	ColorModes: []ColorMode{
+		Grayscale8, RGB24,
+	},
+	DocumentFormats: []string{
+		"image/jpeg", "application/pdf",
+	},
+	DocumentFormatsExt: []string{
+		"image/jpeg", "application/pdf",
+	},
+	SupportedResolutions: testSupportedResolutions,
+	ColorSpaces: []ColorSpace{
+		SRGB,
+	},
+	CcdChannels: []CcdChannel{
+		Red, Green, Blue,
+	},
+	BinaryRenderings: []BinaryRendering{
+		Halftone, Threshold,
+	},
+}
+
 // TestSettingProfile tests [SettingProfile] conversion to and from the XML
 func TestSettingProfile(t *testing.T) {
 	type testData struct {
@@ -26,27 +50,7 @@ func TestSettingProfile(t *testing.T) {
 	tests := []testData{
 		{
 			// Full data test
-			prof: SettingProfile{
-				ColorModes: []ColorMode{
-					Grayscale8, RGB24,
-				},
-				DocumentFormats: []string{
-					"image/jpeg", "application/pdf",
-				},
-				DocumentFormatsExt: []string{
-					"image/jpeg", "application/pdf",
-				},
-				SupportedResolutions: testSupportedResolutions,
-				ColorSpaces: []ColorSpace{
-					SRGB,
-				},
-				CcdChannels: []CcdChannel{
-					Red, Green, Blue,
-				},
-				BinaryRenderings: []BinaryRendering{
-					Halftone, Threshold,
-				},
-			},
+			prof: testSettingProfile,
 			xml: xmldoc.WithChildren(NsScan+":SettingProfile",
 				xmldoc.WithChildren(NsScan+":ColorModes",
 					xmldoc.WithText(NsScan+":ColorMode",
