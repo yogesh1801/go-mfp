@@ -232,7 +232,7 @@ func decodeInputSourceCaps(root xmldoc.Element) (
 
 	if profiles.Found {
 		for _, elem := range profiles.Elem.Children {
-			if elem.Name == NsScan+":SupportedEdge" {
+			if elem.Name == NsScan+":SettingProfile" {
 				var prof SettingProfile
 				prof, err = decodeSettingProfile(elem)
 				if err != nil {
