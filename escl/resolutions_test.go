@@ -17,9 +17,8 @@ import (
 	"github.com/alexpevzner/mfp/xmldoc"
 )
 
-// testSupportedResolutions contains example
-// of the initialized SupportedResolutions structure
-
+// testSupportedResolutions contains example of the initialized
+// SupportedResolutions structure
 var testSupportedResolutions = SupportedResolutions{
 	DiscreteResolutions: []DiscreteResolution{
 		{100, 100},
