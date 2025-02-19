@@ -9,6 +9,8 @@
 package escl
 
 import (
+	"strconv"
+
 	"github.com/alexpevzner/mfp/optional"
 	"github.com/alexpevzner/mfp/xmldoc"
 )
@@ -263,4 +265,155 @@ func decodeInputSourceCaps(root xmldoc.Element) (
 	}
 
 	return
+}
+
+// toXML generates XML tree for the [InputSourceCaps].
+func (caps InputSourceCaps) toXML(name string) xmldoc.Element {
+	elm := xmldoc.Element{
+		Name: name,
+		Children: []xmldoc.Element{
+			{
+				Name: NsScan + ":MaxWidth",
+				Text: strconv.Itoa(caps.MaxWidth),
+			},
+			{
+				Name: NsScan + ":MinWidth",
+				Text: strconv.Itoa(caps.MinWidth),
+			},
+			{
+				Name: NsScan + ":MaxHeight",
+				Text: strconv.Itoa(caps.MaxHeight),
+			},
+			{
+				Name: NsScan + ":MinHeight",
+				Text: strconv.Itoa(caps.MinHeight),
+			},
+		},
+	}
+
+	if caps.MaxXOffset != nil {
+		chld := xmldoc.Element{
+			Name: NsScan + ":MaxXOffset",
+			Text: strconv.Itoa(*caps.MaxXOffset),
+		}
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if caps.MaxYOffset != nil {
+		chld := xmldoc.Element{
+			Name: NsScan + ":MaxYOffset",
+			Text: strconv.Itoa(*caps.MaxYOffset),
+		}
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if caps.MaxOpticalXResolution != nil {
+		chld := xmldoc.Element{
+			Name: NsScan + ":MaxOpticalXResolution",
+			Text: strconv.Itoa(*caps.MaxOpticalXResolution),
+		}
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if caps.MaxOpticalYResolution != nil {
+		chld := xmldoc.Element{
+			Name: NsScan + ":MaxOpticalYResolution",
+			Text: strconv.Itoa(*caps.MaxOpticalYResolution),
+		}
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if caps.MaxScanRegions != nil {
+		chld := xmldoc.Element{
+			Name: NsScan + ":MaxScanRegions",
+			Text: strconv.Itoa(*caps.MaxScanRegions),
+		}
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if caps.RiskyLeftMargins != nil {
+		chld := xmldoc.Element{
+			Name: NsScan + ":RiskyLeftMargins",
+			Text: strconv.Itoa(*caps.RiskyLeftMargins),
+		}
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if caps.RiskyRightMargins != nil {
+		chld := xmldoc.Element{
+			Name: NsScan + ":RiskyRightMargins",
+			Text: strconv.Itoa(*caps.RiskyRightMargins),
+		}
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if caps.RiskyTopMargins != nil {
+		chld := xmldoc.Element{
+			Name: NsScan + ":RiskyTopMargins",
+			Text: strconv.Itoa(*caps.RiskyTopMargins),
+		}
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if caps.RiskyBottomMargins != nil {
+		chld := xmldoc.Element{
+			Name: NsScan + ":RiskyBottomMargins",
+			Text: strconv.Itoa(*caps.RiskyBottomMargins),
+		}
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if caps.MaxPhysicalWidth != nil {
+		chld := xmldoc.Element{
+			Name: NsScan + ":MaxPhysicalWidth",
+			Text: strconv.Itoa(*caps.MaxPhysicalWidth),
+		}
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if caps.MaxPhysicalHeight != nil {
+		chld := xmldoc.Element{
+			Name: NsScan + ":MaxPhysicalHeight",
+			Text: strconv.Itoa(*caps.MaxPhysicalHeight),
+		}
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if caps.SupportedIntents != nil {
+		chld := xmldoc.Element{Name: NsScan + ":SupportedIntents"}
+		for _, intent := range caps.SupportedIntents {
+			chld2 := intent.toXML(NsScan + ":SupportedIntent")
+			chld.Children = append(chld.Children, chld2)
+		}
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if caps.EdgeAutoDetection != nil {
+		chld := xmldoc.Element{Name: NsScan + ":EdgeAutoDetection"}
+		for _, edge := range caps.EdgeAutoDetection {
+			chld2 := edge.toXML(NsScan + ":SupportedEdge")
+			chld.Children = append(chld.Children, chld2)
+		}
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if caps.SettingProfiles != nil {
+		chld := xmldoc.Element{Name: NsScan + ":SettingProfiles"}
+		for _, prof := range caps.SettingProfiles {
+			chld2 := prof.toXML(NsScan + ":SettingProfile")
+			chld.Children = append(chld.Children, chld2)
+		}
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if caps.FeedDirections != nil {
+		chld := xmldoc.Element{Name: NsScan + ":FeedDirections"}
+		for _, feed := range caps.FeedDirections {
+			chld2 := feed.toXML(NsScan + ":FeedDirection")
+			chld.Children = append(chld.Children, chld2)
+		}
+		elm.Children = append(elm.Children, chld)
+	}
+
+	return elm
 }
