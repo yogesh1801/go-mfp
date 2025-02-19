@@ -4,7 +4,7 @@
 // Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
 // See LICENSE for license terms and conditions
 //
-// Common types, functions and data for tests
+// Common types and functions for tests
 
 package escl
 
@@ -15,17 +15,6 @@ import (
 	"testing"
 
 	"github.com/alexpevzner/mfp/xmldoc"
-)
-
-var (
-	// tstSupportedResolutions contains example
-	// of the initialized SupportedResolutions structure
-	tstSupportedResolutions = SupportedResolutions{
-		DiscreteResolutions: []DiscreteResolution{
-			{100, 100},
-			{200, 200},
-		},
-	}
 )
 
 // testEnumType is the common interface of all enum-alike types

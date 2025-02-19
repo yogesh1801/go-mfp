@@ -36,7 +36,7 @@ func TestSettingProfile(t *testing.T) {
 				DocumentFormatsExt: []string{
 					"image/jpeg", "application/pdf",
 				},
-				SupportedResolutions: tstSupportedResolutions,
+				SupportedResolutions: testSupportedResolutions,
 				ColorSpaces: []ColorSpace{
 					SRGB,
 				},
@@ -64,7 +64,7 @@ func TestSettingProfile(t *testing.T) {
 					xmldoc.WithText(NsScan+":DocumentFormatExt",
 						"application/pdf"),
 				),
-				tstSupportedResolutions.toXML(NsScan+":SupportedResolutions"),
+				testSupportedResolutions.toXML(NsScan+":SupportedResolutions"),
 				xmldoc.WithChildren(NsScan+":ColorSpaces",
 					xmldoc.WithText(NsScan+":ColorSpace",
 						NsScan+":sRGB"),
@@ -89,10 +89,10 @@ func TestSettingProfile(t *testing.T) {
 		// Missed optional elements
 		{
 			prof: SettingProfile{
-				SupportedResolutions: tstSupportedResolutions,
+				SupportedResolutions: testSupportedResolutions,
 			},
 			xml: xmldoc.WithChildren(NsScan+":SettingProfile",
-				tstSupportedResolutions.toXML(NsScan+":SupportedResolutions"),
+				testSupportedResolutions.toXML(NsScan+":SupportedResolutions"),
 			),
 		},
 
@@ -105,7 +105,7 @@ func TestSettingProfile(t *testing.T) {
 				DocumentFormatsExt: []string{
 					"application/pdf",
 				},
-				SupportedResolutions: tstSupportedResolutions,
+				SupportedResolutions: testSupportedResolutions,
 			},
 			xml: xmldoc.WithChildren(NsScan+":SettingProfile",
 				xmldoc.WithChildren(NsScan+":DocumentFormats",
@@ -114,7 +114,7 @@ func TestSettingProfile(t *testing.T) {
 					xmldoc.WithText(NsScan+":DocumentFormatExt",
 						"application/pdf"),
 				),
-				tstSupportedResolutions.toXML(NsScan+":SupportedResolutions"),
+				testSupportedResolutions.toXML(NsScan+":SupportedResolutions"),
 			),
 		},
 	}

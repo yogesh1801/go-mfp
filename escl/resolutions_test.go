@@ -17,6 +17,16 @@ import (
 	"github.com/alexpevzner/mfp/xmldoc"
 )
 
+// testSupportedResolutions contains example
+// of the initialized SupportedResolutions structure
+
+var testSupportedResolutions = SupportedResolutions{
+	DiscreteResolutions: []DiscreteResolution{
+		{100, 100},
+		{200, 200},
+	},
+}
+
 // TestResolutionRange tests [ResolutionRange] to/from the XML conversion
 func TestResolutionRange(t *testing.T) {
 	type testData struct {
@@ -261,6 +271,27 @@ func TestSupportedResolutions(t *testing.T) {
 	}
 
 	tests := []testData{
+		{
+			// testSupportedResolutions
+			supp: testSupportedResolutions,
+			xml: xmldoc.WithChildren(
+				NsScan+":SupportedResolutions",
+				xmldoc.WithChildren(
+					NsScan+":DiscreteResolutions",
+					xmldoc.WithChildren(
+						NsScan+":DiscreteResolution",
+						xmldoc.WithText(NsScan+":XResolution", "100"),
+						xmldoc.WithText(NsScan+":YResolution", "100"),
+					),
+					xmldoc.WithChildren(
+						NsScan+":DiscreteResolution",
+						xmldoc.WithText(NsScan+":XResolution", "200"),
+						xmldoc.WithText(NsScan+":YResolution", "200"),
+					),
+				),
+			),
+		},
+
 		{
 			// DiscreteResolutions + ResolutionRange
 			supp: SupportedResolutions{
