@@ -9,6 +9,7 @@
 package escl
 
 import (
+	"errors"
 	"reflect"
 	"testing"
 
@@ -114,6 +115,309 @@ func TestInputSourceCaps(t *testing.T) {
 				"expected: %#v\n"+
 				"present:  %#v\n",
 				test.caps, caps)
+		}
+	}
+}
+
+// TestInputSourceCapsDecodeErrors tests [InputSourceCaps] XML decode
+// errors handling
+func TestInputSourceCapsDecodeErrors(t *testing.T) {
+	type testData struct {
+		xml xmldoc.Element
+		err string
+	}
+
+	tests := []testData{
+		// Test for missed elements handling
+		{
+			xml: xmldoc.WithChildren(
+				NsScan + ":PlatenInputCaps",
+			),
+			err: `/scan:PlatenInputCaps/scan:MinWidth: missed`,
+		},
+
+		{
+			xml: xmldoc.WithChildren(
+				NsScan+":PlatenInputCaps",
+				xmldoc.WithText(NsScan+":MinWidth", "591"),
+			),
+			err: `/scan:PlatenInputCaps/scan:MaxWidth: missed`,
+		},
+		{
+			xml: xmldoc.WithChildren(
+				NsScan+":PlatenInputCaps",
+				xmldoc.WithText(NsScan+":MinWidth", "591"),
+				xmldoc.WithText(NsScan+":MaxWidth", "2551"),
+			),
+			err: `/scan:PlatenInputCaps/scan:MinHeight: missed`,
+		},
+		{
+			xml: xmldoc.WithChildren(
+				NsScan+":PlatenInputCaps",
+				xmldoc.WithText(NsScan+":MinWidth", "591"),
+				xmldoc.WithText(NsScan+":MaxWidth", "2551"),
+				xmldoc.WithText(NsScan+":MinHeight", "600"),
+			),
+			err: `/scan:PlatenInputCaps/scan:MaxHeight: missed`,
+		},
+		{
+			xml: xmldoc.WithChildren(
+				NsScan+":PlatenInputCaps",
+				xmldoc.WithText(NsScan+":MinWidth", "591"),
+				xmldoc.WithText(NsScan+":MaxWidth", "2551"),
+				xmldoc.WithText(NsScan+":MinHeight", "600"),
+				xmldoc.WithText(NsScan+":MaxHeight", "4205"),
+			),
+			err: ``,
+		},
+
+		// Errors handling within nested integer elements
+		{
+			xml: xmldoc.WithChildren(
+				NsScan+":PlatenInputCaps",
+				xmldoc.WithText(NsScan+":MinWidth", "bad"),
+				xmldoc.WithText(NsScan+":MaxWidth", "2551"),
+				xmldoc.WithText(NsScan+":MinHeight", "600"),
+				xmldoc.WithText(NsScan+":MaxHeight", "4205"),
+			),
+			err: `/scan:PlatenInputCaps/scan:MinWidth: invalid int: "bad"`,
+		},
+
+		{
+			xml: xmldoc.WithChildren(
+				NsScan+":PlatenInputCaps",
+				xmldoc.WithText(NsScan+":MinWidth", "591"),
+				xmldoc.WithText(NsScan+":MaxWidth", "bad"),
+				xmldoc.WithText(NsScan+":MinHeight", "600"),
+				xmldoc.WithText(NsScan+":MaxHeight", "4205"),
+			),
+			err: `/scan:PlatenInputCaps/scan:MaxWidth: invalid int: "bad"`,
+		},
+
+		{
+			xml: xmldoc.WithChildren(
+				NsScan+":PlatenInputCaps",
+				xmldoc.WithText(NsScan+":MinWidth", "591"),
+				xmldoc.WithText(NsScan+":MaxWidth", "2551"),
+				xmldoc.WithText(NsScan+":MinHeight", "bad"),
+				xmldoc.WithText(NsScan+":MaxHeight", "4205"),
+			),
+			err: `/scan:PlatenInputCaps/scan:MinHeight: invalid int: "bad"`,
+		},
+
+		{
+			xml: xmldoc.WithChildren(
+				NsScan+":PlatenInputCaps",
+				xmldoc.WithText(NsScan+":MinWidth", "591"),
+				xmldoc.WithText(NsScan+":MaxWidth", "2551"),
+				xmldoc.WithText(NsScan+":MinHeight", "600"),
+				xmldoc.WithText(NsScan+":MaxHeight", "bad"),
+			),
+			err: `/scan:PlatenInputCaps/scan:MaxHeight: invalid int: "bad"`,
+		},
+
+		{
+			xml: xmldoc.WithChildren(
+				NsScan+":PlatenInputCaps",
+				xmldoc.WithText(NsScan+":MinWidth", "591"),
+				xmldoc.WithText(NsScan+":MaxWidth", "2551"),
+				xmldoc.WithText(NsScan+":MinHeight", "600"),
+				xmldoc.WithText(NsScan+":MaxHeight", "4205"),
+				xmldoc.WithText(NsScan+":MaxXOffset", "bad"),
+			),
+			err: `/scan:PlatenInputCaps/scan:MaxXOffset: invalid int: "bad"`,
+		},
+
+		{
+			xml: xmldoc.WithChildren(
+				NsScan+":PlatenInputCaps",
+				xmldoc.WithText(NsScan+":MinWidth", "591"),
+				xmldoc.WithText(NsScan+":MaxWidth", "2551"),
+				xmldoc.WithText(NsScan+":MinHeight", "600"),
+				xmldoc.WithText(NsScan+":MaxHeight", "4205"),
+				xmldoc.WithText(NsScan+":MaxYOffset", "bad"),
+			),
+			err: `/scan:PlatenInputCaps/scan:MaxYOffset: invalid int: "bad"`,
+		},
+
+		{
+			xml: xmldoc.WithChildren(
+				NsScan+":PlatenInputCaps",
+				xmldoc.WithText(NsScan+":MinWidth", "591"),
+				xmldoc.WithText(NsScan+":MaxWidth", "2551"),
+				xmldoc.WithText(NsScan+":MinHeight", "600"),
+				xmldoc.WithText(NsScan+":MaxHeight", "4205"),
+				xmldoc.WithText(NsScan+":MaxOpticalXResolution", "bad"),
+			),
+			err: `/scan:PlatenInputCaps/scan:MaxOpticalXResolution: invalid int: "bad"`,
+		},
+
+		{
+			xml: xmldoc.WithChildren(
+				NsScan+":PlatenInputCaps",
+				xmldoc.WithText(NsScan+":MinWidth", "591"),
+				xmldoc.WithText(NsScan+":MaxWidth", "2551"),
+				xmldoc.WithText(NsScan+":MinHeight", "600"),
+				xmldoc.WithText(NsScan+":MaxHeight", "4205"),
+				xmldoc.WithText(NsScan+":MaxOpticalYResolution", "bad"),
+			),
+			err: `/scan:PlatenInputCaps/scan:MaxOpticalYResolution: invalid int: "bad"`,
+		},
+
+		{
+			xml: xmldoc.WithChildren(
+				NsScan+":PlatenInputCaps",
+				xmldoc.WithText(NsScan+":MinWidth", "591"),
+				xmldoc.WithText(NsScan+":MaxWidth", "2551"),
+				xmldoc.WithText(NsScan+":MinHeight", "600"),
+				xmldoc.WithText(NsScan+":MaxHeight", "4205"),
+				xmldoc.WithText(NsScan+":MaxScanRegions", "bad"),
+			),
+			err: `/scan:PlatenInputCaps/scan:MaxScanRegions: invalid int: "bad"`,
+		},
+
+		{
+			xml: xmldoc.WithChildren(
+				NsScan+":PlatenInputCaps",
+				xmldoc.WithText(NsScan+":MinWidth", "591"),
+				xmldoc.WithText(NsScan+":MaxWidth", "2551"),
+				xmldoc.WithText(NsScan+":MinHeight", "600"),
+				xmldoc.WithText(NsScan+":MaxHeight", "4205"),
+				xmldoc.WithText(NsScan+":RiskyLeftMargins", "bad"),
+			),
+			err: `/scan:PlatenInputCaps/scan:RiskyLeftMargins: invalid int: "bad"`,
+		},
+
+		{
+			xml: xmldoc.WithChildren(
+				NsScan+":PlatenInputCaps",
+				xmldoc.WithText(NsScan+":MinWidth", "591"),
+				xmldoc.WithText(NsScan+":MaxWidth", "2551"),
+				xmldoc.WithText(NsScan+":MinHeight", "600"),
+				xmldoc.WithText(NsScan+":MaxHeight", "4205"),
+				xmldoc.WithText(NsScan+":RiskyRightMargins", "bad"),
+			),
+			err: `/scan:PlatenInputCaps/scan:RiskyRightMargins: invalid int: "bad"`,
+		},
+
+		{
+			xml: xmldoc.WithChildren(
+				NsScan+":PlatenInputCaps",
+				xmldoc.WithText(NsScan+":MinWidth", "591"),
+				xmldoc.WithText(NsScan+":MaxWidth", "2551"),
+				xmldoc.WithText(NsScan+":MinHeight", "600"),
+				xmldoc.WithText(NsScan+":MaxHeight", "4205"),
+				xmldoc.WithText(NsScan+":RiskyTopMargins", "bad"),
+			),
+			err: `/scan:PlatenInputCaps/scan:RiskyTopMargins: invalid int: "bad"`,
+		},
+
+		{
+			xml: xmldoc.WithChildren(
+				NsScan+":PlatenInputCaps",
+				xmldoc.WithText(NsScan+":MinWidth", "591"),
+				xmldoc.WithText(NsScan+":MaxWidth", "2551"),
+				xmldoc.WithText(NsScan+":MinHeight", "600"),
+				xmldoc.WithText(NsScan+":MaxHeight", "4205"),
+				xmldoc.WithText(NsScan+":RiskyBottomMargins", "bad"),
+			),
+			err: `/scan:PlatenInputCaps/scan:RiskyBottomMargins: invalid int: "bad"`,
+		},
+
+		{
+			xml: xmldoc.WithChildren(
+				NsScan+":PlatenInputCaps",
+				xmldoc.WithText(NsScan+":MinWidth", "591"),
+				xmldoc.WithText(NsScan+":MaxWidth", "2551"),
+				xmldoc.WithText(NsScan+":MinHeight", "600"),
+				xmldoc.WithText(NsScan+":MaxHeight", "4205"),
+				xmldoc.WithText(NsScan+":MaxPhysicalWidth", "bad"),
+			),
+			err: `/scan:PlatenInputCaps/scan:MaxPhysicalWidth: invalid int: "bad"`,
+		},
+
+		{
+			xml: xmldoc.WithChildren(
+				NsScan+":PlatenInputCaps",
+				xmldoc.WithText(NsScan+":MinWidth", "591"),
+				xmldoc.WithText(NsScan+":MaxWidth", "2551"),
+				xmldoc.WithText(NsScan+":MinHeight", "600"),
+				xmldoc.WithText(NsScan+":MaxHeight", "4205"),
+				xmldoc.WithText(NsScan+":MaxPhysicalHeight", "bad"),
+			),
+			err: `/scan:PlatenInputCaps/scan:MaxPhysicalHeight: invalid int: "bad"`,
+		},
+
+		// Errors handling within more complex nested elements
+		{
+			xml: xmldoc.WithChildren(
+				NsScan+":PlatenInputCaps",
+				xmldoc.WithText(NsScan+":MinWidth", "591"),
+				xmldoc.WithText(NsScan+":MaxWidth", "2551"),
+				xmldoc.WithText(NsScan+":MinHeight", "600"),
+				xmldoc.WithText(NsScan+":MaxHeight", "4205"),
+				xmldoc.WithChildren(NsScan+":SupportedIntents",
+					xmldoc.WithText(NsScan+":SupportedIntent", "bad"),
+				),
+			),
+			err: `/scan:PlatenInputCaps/scan:SupportedIntents/scan:SupportedIntent: invalid Intent: "bad"`,
+		},
+
+		{
+			xml: xmldoc.WithChildren(
+				NsScan+":PlatenInputCaps",
+				xmldoc.WithText(NsScan+":MinWidth", "591"),
+				xmldoc.WithText(NsScan+":MaxWidth", "2551"),
+				xmldoc.WithText(NsScan+":MinHeight", "600"),
+				xmldoc.WithText(NsScan+":MaxHeight", "4205"),
+				xmldoc.WithChildren(NsScan+":EdgeAutoDetection",
+					xmldoc.WithText(NsScan+":SupportedEdge", "bad"),
+				),
+			),
+			err: `/scan:PlatenInputCaps/scan:EdgeAutoDetection/scan:SupportedEdge: invalid SupportedEdge: "bad"`,
+		},
+
+		{
+			xml: xmldoc.WithChildren(
+				NsScan+":PlatenInputCaps",
+				xmldoc.WithText(NsScan+":MinWidth", "591"),
+				xmldoc.WithText(NsScan+":MaxWidth", "2551"),
+				xmldoc.WithText(NsScan+":MinHeight", "600"),
+				xmldoc.WithText(NsScan+":MaxHeight", "4205"),
+				xmldoc.WithChildren(NsScan+":FeedDirections",
+					xmldoc.WithText(NsScan+":FeedDirection", "bad"),
+				),
+			),
+			err: `/scan:PlatenInputCaps/scan:FeedDirections/scan:FeedDirection: invalid FeedDirection: "bad"`,
+		},
+
+		{
+			xml: xmldoc.WithChildren(
+				NsScan+":PlatenInputCaps",
+				xmldoc.WithText(NsScan+":MinWidth", "591"),
+				xmldoc.WithText(NsScan+":MaxWidth", "2551"),
+				xmldoc.WithText(NsScan+":MinHeight", "600"),
+				xmldoc.WithText(NsScan+":MaxHeight", "4205"),
+				xmldoc.WithChildren(NsScan+":SettingProfiles",
+					xmldoc.WithText(NsScan+":SettingProfile", "bad"),
+				),
+			),
+			err: `/scan:PlatenInputCaps/scan:SettingProfiles/scan:SettingProfile/scan:SupportedResolutions: missed`,
+		},
+	}
+
+	for _, test := range tests {
+		_, err := decodeInputSourceCaps(test.xml)
+		if err == nil {
+			err = errors.New("")
+		}
+
+		if err.Error() != test.err {
+			t.Errorf("error mismatch:\n"+
+				"input:    %s\n"+
+				"expected: %q\n"+
+				"present:  %q\n",
+				test.xml.EncodeString(nil), test.err, err)
 		}
 	}
 }
