@@ -4,71 +4,50 @@
 // Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
 // See LICENSE for license terms and conditions
 //
-// ADF image justification.
+// ADF image justification
 
 package escl
 
 import "github.com/alexpevzner/mfp/xmldoc"
 
 // Justification specifies how the ADF justify the document.
-type Justification int
+type Justification struct {
+	XImagePosition ImagePosition // Horizontal image position
+	YImagePosition ImagePosition // Vertical image position
+}
 
-// Known CCD Channels.
-const (
-	UnknownJustification Justification = iota // Unknown CCD
-	Left                                      // Left (horizontal)
-	Right                                     // Right (horizontal)
-	Top                                       // Top (vertical)
-	Bottom                                    // Bottom (vertical)
-	Center                                    // Center (both)
-)
-
-// decodeJustification decodes [Justification] from the XML tree.
+// decodeJustification decodes [Justification] from the XML tree
 func decodeJustification(root xmldoc.Element) (jst Justification, err error) {
-	return decodeEnum(root, DecodeJustification)
+	defer func() { err = xmldoc.XMLErrWrap(root, err) }()
+
+	// Lookup relevant XML elements
+	xpos := xmldoc.Lookup{Name: NsScan + ":XImagePosition", Required: true}
+	ypos := xmldoc.Lookup{Name: NsScan + ":YImagePosition", Required: true}
+
+	missed := root.Lookup(&xpos, &ypos)
+	if missed != nil {
+		err = xmldoc.XMLErrMissed(missed.Name)
+		return
+	}
+
+	// Decode elements
+	jst.XImagePosition, err = decodeImagePosition(xpos.Elem)
+	if err == nil {
+		jst.YImagePosition, err = decodeImagePosition(ypos.Elem)
+	}
+
+	return
 }
 
 // toXML generates XML tree for the [Justification].
 func (jst Justification) toXML(name string) xmldoc.Element {
-	return xmldoc.Element{
+	elm := xmldoc.Element{
 		Name: name,
-		Text: jst.String(),
-	}
-}
-
-// String returns a string representation of the [Justification]
-func (jst Justification) String() string {
-	switch jst {
-	case Left:
-		return "Left"
-	case Right:
-		return "Right"
-	case Top:
-		return "Top"
-	case Bottom:
-		return "Bottom"
-	case Center:
-		return "Center"
+		Children: []xmldoc.Element{
+			jst.XImagePosition.toXML(NsScan + ":XImagePosition"),
+			jst.YImagePosition.toXML(NsScan + ":YImagePosition"),
+		},
 	}
 
-	return "Unknown"
-}
-
-// DecodeJustification decodes [Justification] out of its XML
-// string representation.
-func DecodeJustification(s string) Justification {
-	switch s {
-	case "Left":
-		return Left
-	case "Right":
-		return Right
-	case "Top":
-		return Top
-	case "Bottom":
-		return Bottom
-	case "Center":
-		return Center
-	}
-
-	return UnknownJustification
+	return elm
 }
