@@ -10,6 +10,7 @@ package escl
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/alexpevzner/mfp/optional"
 	"github.com/alexpevzner/mfp/uuid"
@@ -282,4 +283,160 @@ func DecodeScannerCapabilities(root xmldoc.Element) (
 	}
 
 	return
+}
+
+// ToXML generates XML tree for the [ScannerCapabilities].
+func (scancaps ScannerCapabilities) ToXML() xmldoc.Element {
+	elm := xmldoc.Element{
+		Name: NsScan + ":ScannerCapabilities",
+		Children: []xmldoc.Element{
+			scancaps.Version.toXML(NsPWG + ":Version"),
+		},
+	}
+
+	if scancaps.MakeAndModel != nil {
+		chld := xmldoc.Element{
+			Name: NsPWG + ":MakeAndModel",
+			Text: *scancaps.MakeAndModel,
+		}
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if scancaps.SerialNumber != nil {
+		chld := xmldoc.Element{
+			Name: NsPWG + ":SerialNumber",
+			Text: *scancaps.SerialNumber,
+		}
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if scancaps.Manufacturer != nil {
+		chld := xmldoc.Element{
+			Name: NsPWG + ":Manufacturer",
+			Text: *scancaps.Manufacturer,
+		}
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if scancaps.UUID != nil {
+		chld := xmldoc.Element{
+			Name: NsScan + ":UUID",
+			Text: (*scancaps.UUID).String(),
+		}
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if scancaps.AdminURI != nil {
+		chld := xmldoc.Element{
+			Name: NsScan + ":AdminURI",
+			Text: *scancaps.AdminURI,
+		}
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if scancaps.IconURI != nil {
+		chld := xmldoc.Element{
+			Name: NsScan + ":IconURI",
+			Text: *scancaps.IconURI,
+		}
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if scancaps.SettingProfiles != nil {
+		chld := xmldoc.Element{Name: NsScan + ":SettingProfiles"}
+		for _, prof := range scancaps.SettingProfiles {
+			chld2 := prof.toXML(NsScan + ":SettingProfile")
+			chld.Children = append(chld.Children, chld2)
+
+		}
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if scancaps.Platen != nil {
+		chld := (*scancaps.Platen).toXML(NsScan + ":Platen")
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if scancaps.Camera != nil {
+		chld := (*scancaps.Camera).toXML(NsScan + ":Camera")
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if scancaps.ADF != nil {
+		chld := (*scancaps.ADF).toXML(NsScan + ":Adf")
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if scancaps.BrightnessSupport != nil {
+		chld := (*scancaps.BrightnessSupport).toXML(
+			NsScan + ":BrightnessSupport")
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if scancaps.CompressionFactorSupport != nil {
+		chld := (*scancaps.CompressionFactorSupport).toXML(
+			NsScan + ":CompressionFactorSupport")
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if scancaps.ContrastSupport != nil {
+		chld := (*scancaps.ContrastSupport).toXML(
+			NsScan + ":ContrastSupport")
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if scancaps.GammaSupport != nil {
+		chld := (*scancaps.GammaSupport).toXML(
+			NsScan + ":GammaSupport")
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if scancaps.HighlightSupport != nil {
+		chld := (*scancaps.HighlightSupport).toXML(
+			NsScan + ":HighlightSupport")
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if scancaps.NoiseRemovalSupport != nil {
+		chld := (*scancaps.NoiseRemovalSupport).toXML(
+			NsScan + ":NoiseRemovalSupport")
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if scancaps.ShadowSupport != nil {
+		chld := (*scancaps.ShadowSupport).toXML(
+			NsScan + ":ShadowSupport")
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if scancaps.SharpenSupport != nil {
+		chld := (*scancaps.SharpenSupport).toXML(
+			NsScan + ":SharpenSupport")
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if scancaps.ThresholdSupport != nil {
+		chld := (*scancaps.ThresholdSupport).toXML(
+			NsScan + ":ThresholdSupport")
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if scancaps.BlankPageDetection != nil {
+		chld := xmldoc.Element{
+			Name: NsScan + ":BlankPageDetection",
+			Text: strconv.FormatBool(*scancaps.BlankPageDetection),
+		}
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if scancaps.BlankPageDetectionAndRemoval != nil {
+		chld := xmldoc.Element{
+			Name: NsScan + ":BlankPageDetectionAndRemoval",
+			Text: strconv.FormatBool(
+				*scancaps.BlankPageDetectionAndRemoval),
+		}
+		elm.Children = append(elm.Children, chld)
+	}
+
+	return elm
 }

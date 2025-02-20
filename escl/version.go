@@ -66,6 +66,14 @@ func decodeVersion(root xmldoc.Element) (ver Version, err error) {
 	return
 }
 
+// toXML generates XML tree for the [Version].
+func (ver Version) toXML(name string) xmldoc.Element {
+	return xmldoc.Element{
+		Name: name,
+		Text: ver.String(),
+	}
+}
+
 // Major returns major part of the [Version]
 func (ver Version) Major() int {
 	return int(ver >> 16)
