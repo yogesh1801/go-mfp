@@ -32,6 +32,21 @@ func decodeNonNegativeInt(root xmldoc.Element) (v int, err error) {
 	return int(v64), err
 }
 
+// decodeBool decodes boolean from the XML tree.
+func decodeBool(root xmldoc.Element) (v bool, err error) {
+	switch root.Text {
+	case "true":
+		return true, nil
+	case "false":
+		return false, nil
+	}
+
+	err = fmt.Errorf("invalid bool: %q", root.Text)
+	err = xmldoc.XMLErrWrap(root, err)
+
+	return
+}
+
 // decodeEnum decodes value of enum-alike type T from the XML tree
 //
 // decode is the type-specific function that decodes T from string

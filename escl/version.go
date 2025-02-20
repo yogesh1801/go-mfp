@@ -12,6 +12,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+
+	"github.com/alexpevzner/mfp/xmldoc"
 )
 
 // Version represents a protocol version using the following encoding:
@@ -53,6 +55,15 @@ func DecodeVersion(s string) (Version, error) {
 
 ERROR:
 	return 0, fmt.Errorf("%q: invalid eSCL version", s)
+}
+
+// decodeVersion decodes version out of its XML string representation.
+func decodeVersion(root xmldoc.Element) (ver Version, err error) {
+	ver, err = DecodeVersion(root.Text)
+	if err != nil {
+		xmldoc.XMLErrWrap(root, err)
+	}
+	return
 }
 
 // Major returns major part of the [Version]
