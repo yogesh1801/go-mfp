@@ -13,7 +13,7 @@ import "github.com/alexpevzner/mfp/optional"
 // ADF contains scanner capabilities for the automated document feeded.
 type ADF struct {
 	ADFSimplexInputCaps optional.Val[InputSourceCaps] // ADF simplex caps
-	ADFDuplexInputCaps  optional.Val[InputSourceCaps] // ADF duples caps
+	ADFDuplexInputCaps  optional.Val[InputSourceCaps] // ADF duplex caps
 	FeederCapacity      optional.Val[int]             // Feeder capacity
 	ADFOptions          []ADFOption                   // ADF options
 	Justification       optional.Val[Justification]   // Image justification
