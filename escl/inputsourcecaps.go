@@ -20,10 +20,10 @@ import (
 //
 // eSCL Technical Specification, 8.1.3.
 type InputSourceCaps struct {
-	MaxWidth              int               // Max scan width
 	MinWidth              int               // Min scan width
-	MaxHeight             int               // Max scan height
+	MaxWidth              int               // Max scan width
 	MinHeight             int               // Min scan height
+	MaxHeight             int               // Max scan height
 	MaxXOffset            optional.Val[int] // Max XOffset
 	MaxYOffset            optional.Val[int] // Max YOffset
 	MaxOpticalXResolution optional.Val[int] // Max optical X resolution
@@ -48,10 +48,10 @@ func decodeInputSourceCaps(root xmldoc.Element) (
 	defer func() { err = xmldoc.XMLErrWrap(root, err) }()
 
 	// Lookup relevant XML elements
-	maxWidth := xmldoc.Lookup{Name: NsScan + ":MaxWidth", Required: true}
 	minWidth := xmldoc.Lookup{Name: NsScan + ":MinWidth", Required: true}
-	maxHeight := xmldoc.Lookup{Name: NsScan + ":MaxHeight", Required: true}
+	maxWidth := xmldoc.Lookup{Name: NsScan + ":MaxWidth", Required: true}
 	minHeight := xmldoc.Lookup{Name: NsScan + ":MinHeight", Required: true}
+	maxHeight := xmldoc.Lookup{Name: NsScan + ":MaxHeight", Required: true}
 	maxXOff := xmldoc.Lookup{Name: NsScan + ":MaxXOffset"}
 	maxYOff := xmldoc.Lookup{Name: NsScan + ":MaxYOffset"}
 	maxOptXRes := xmldoc.Lookup{Name: NsScan + ":MaxOpticalXResolution"}
@@ -68,7 +68,7 @@ func decodeInputSourceCaps(root xmldoc.Element) (
 	profiles := xmldoc.Lookup{Name: NsScan + ":SettingProfiles"}
 	feeds := xmldoc.Lookup{Name: NsScan + ":FeedDirections"}
 
-	missed := root.Lookup(&maxWidth, &minWidth, &maxHeight, &minHeight,
+	missed := root.Lookup(&minWidth, &maxWidth, &minHeight, &maxHeight,
 		&maxXOff, &maxYOff, &maxOptXRes, &maxOptYRes, &maxRegs,
 		&riskyLeft, &riskyRight, &riskyTop, &riskyBottom,
 		&maxPhysWidth, &maxPhysHeight,
@@ -80,15 +80,15 @@ func decodeInputSourceCaps(root xmldoc.Element) (
 	}
 
 	// Decode elements (oh, there are a lot of them here...)
-	caps.MaxWidth, err = decodeNonNegativeInt(maxWidth.Elem)
+	caps.MinWidth, err = decodeNonNegativeInt(minWidth.Elem)
 	if err == nil {
-		caps.MinWidth, err = decodeNonNegativeInt(minWidth.Elem)
-	}
-	if err == nil {
-		caps.MaxHeight, err = decodeNonNegativeInt(maxHeight.Elem)
+		caps.MaxWidth, err = decodeNonNegativeInt(maxWidth.Elem)
 	}
 	if err == nil {
 		caps.MinHeight, err = decodeNonNegativeInt(minHeight.Elem)
+	}
+	if err == nil {
+		caps.MaxHeight, err = decodeNonNegativeInt(maxHeight.Elem)
 	}
 
 	if err != nil {
@@ -273,20 +273,20 @@ func (caps InputSourceCaps) toXML(name string) xmldoc.Element {
 		Name: name,
 		Children: []xmldoc.Element{
 			{
-				Name: NsScan + ":MaxWidth",
-				Text: strconv.Itoa(caps.MaxWidth),
-			},
-			{
 				Name: NsScan + ":MinWidth",
 				Text: strconv.Itoa(caps.MinWidth),
 			},
 			{
-				Name: NsScan + ":MaxHeight",
-				Text: strconv.Itoa(caps.MaxHeight),
+				Name: NsScan + ":MaxWidth",
+				Text: strconv.Itoa(caps.MaxWidth),
 			},
 			{
 				Name: NsScan + ":MinHeight",
 				Text: strconv.Itoa(caps.MinHeight),
+			},
+			{
+				Name: NsScan + ":MaxHeight",
+				Text: strconv.Itoa(caps.MaxHeight),
 			},
 		},
 	}

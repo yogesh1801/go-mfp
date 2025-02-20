@@ -52,10 +52,10 @@ func TestInputSourceCaps(t *testing.T) {
 			caps: testInputSourceCaps,
 			xml: xmldoc.WithChildren(
 				NsScan+":PlatenInputCaps",
-				xmldoc.WithText(NsScan+":MaxWidth", "2551"),
 				xmldoc.WithText(NsScan+":MinWidth", "591"),
-				xmldoc.WithText(NsScan+":MaxHeight", "4205"),
+				xmldoc.WithText(NsScan+":MaxWidth", "2551"),
 				xmldoc.WithText(NsScan+":MinHeight", "600"),
+				xmldoc.WithText(NsScan+":MaxHeight", "4205"),
 				xmldoc.WithText(NsScan+":MaxXOffset", "50"),
 				xmldoc.WithText(NsScan+":MaxYOffset", "75"),
 				xmldoc.WithText(NsScan+":MaxOpticalXResolution", "2400"),
@@ -92,7 +92,7 @@ func TestInputSourceCaps(t *testing.T) {
 
 	for _, test := range tests {
 		xml := test.caps.toXML(NsScan + ":PlatenInputCaps")
-		if !reflect.DeepEqual(xml, test.xml) {
+		if !xml.Similar(test.xml) {
 			t.Errorf("encode mismatch:\n"+
 				"expected: %s\n"+
 				"present:  %s\n",
