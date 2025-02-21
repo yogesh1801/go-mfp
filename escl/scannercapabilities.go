@@ -124,6 +124,14 @@ func DecodeScannerCapabilities(root xmldoc.Element) (
 		scancaps.UUID = optional.New(u)
 	}
 
+	if admin.Found {
+		scancaps.AdminURI = optional.New(admin.Elem.Text)
+	}
+
+	if icon.Found {
+		scancaps.IconURI = optional.New(icon.Elem.Text)
+	}
+
 	if profiles.Found {
 		for _, elem := range profiles.Elem.Children {
 			if elem.Name == NsScan+":SettingProfile" {
