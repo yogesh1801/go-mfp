@@ -53,6 +53,7 @@ func TestScannerCapabilities(t *testing.T) {
 	}
 
 	tests := []testData{
+		// Full-data test
 		{
 			scancaps: testScannerCapabilities,
 			xml: xmldoc.WithChildren(
@@ -99,6 +100,44 @@ func TestScannerCapabilities(t *testing.T) {
 					"true"),
 				xmldoc.WithText(NsScan+":BlankPageDetectionAndRemoval",
 					"true"),
+			),
+		},
+
+		// Tests to see that Platen/Camera/ADF capabilites
+		// are not messed up
+		{
+			scancaps: ScannerCapabilities{
+				Version: MakeVersion(2, 0),
+				Platen:  optional.New(testPlaten),
+			},
+			xml: xmldoc.WithChildren(
+				NsScan+":ScannerCapabilities",
+				xmldoc.WithText(NsPWG+":Version", "2.0"),
+				testPlaten.toXML(NsScan+":Platen"),
+			),
+		},
+
+		{
+			scancaps: ScannerCapabilities{
+				Version: MakeVersion(2, 0),
+				Camera:  optional.New(testCamera),
+			},
+			xml: xmldoc.WithChildren(
+				NsScan+":ScannerCapabilities",
+				xmldoc.WithText(NsPWG+":Version", "2.0"),
+				testCamera.toXML(NsScan+":Camera"),
+			),
+		},
+
+		{
+			scancaps: ScannerCapabilities{
+				Version: MakeVersion(2, 0),
+				ADF:     optional.New(testADF),
+			},
+			xml: xmldoc.WithChildren(
+				NsScan+":ScannerCapabilities",
+				xmldoc.WithText(NsPWG+":Version", "2.0"),
+				testADF.toXML(NsScan+":Adf"),
 			),
 		},
 	}
