@@ -43,7 +43,7 @@ type ScannerCapabilities struct {
 	GammaSupport             optional.Val[Range] // Gamma (y = x^(1/g))
 	HighlightSupport         optional.Val[Range] // Image Highlight
 	NoiseRemovalSupport      optional.Val[Range] // Noise removal level
-	ShadowSupport            optional.Val[Range] // The lower, the darger
+	ShadowSupport            optional.Val[Range] // The lower, the darker
 	SharpenSupport           optional.Val[Range] // Image sharpen
 	ThresholdSupport         optional.Val[Range] // For BlackAndWhite1
 
