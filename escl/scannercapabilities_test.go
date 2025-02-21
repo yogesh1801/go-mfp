@@ -9,6 +9,7 @@
 package escl
 
 import (
+	"errors"
 	"reflect"
 	"testing"
 
@@ -166,6 +167,205 @@ func TestScannerCapabilities(t *testing.T) {
 				"expected: %#v\n"+
 				"present:  %#v\n",
 				test.scancaps, scancaps)
+		}
+	}
+}
+
+// TestScannerCapabilitiesDecodeErrors tests [ScannerCapabilities] XML decode
+// errors handling
+func TestScannerCapabilitiesDecodeErrors(t *testing.T) {
+	type testData struct {
+		xml xmldoc.Element
+		err string
+	}
+
+	tests := []testData{
+		// Missed required fields
+		{
+			xml: xmldoc.WithChildren(
+				NsScan + ":ScannerCapabilities",
+			),
+			err: `/scan:ScannerCapabilities/pwg:Version: missed`,
+		},
+
+		// Bad data, field by field
+		{
+			xml: xmldoc.WithChildren(
+				NsScan+":ScannerCapabilities",
+				xmldoc.WithText(NsPWG+":Version", "bad"),
+			),
+			err: `/scan:ScannerCapabilities: "bad": invalid eSCL version`,
+		},
+
+		{
+			xml: xmldoc.WithChildren(
+				NsScan+":ScannerCapabilities",
+				xmldoc.WithText(NsPWG+":Version", "2.0"),
+				xmldoc.WithText(NsScan+":UUID", "bad"),
+			),
+			err: `/scan:ScannerCapabilities: invalid UUID: "bad"`,
+		},
+
+		{
+			xml: xmldoc.WithChildren(
+				NsScan+":ScannerCapabilities",
+				xmldoc.WithText(NsPWG+":Version", "2.0"),
+				xmldoc.WithChildren(NsScan+":SettingProfiles",
+					xmldoc.WithText(
+						NsScan+":SettingProfile", "bad"),
+				),
+			),
+			err: `/scan:ScannerCapabilities/scan:SettingProfiles/scan:SettingProfile/scan:SupportedResolutions: missed`,
+		},
+
+		{
+			xml: xmldoc.WithChildren(
+				NsScan+":ScannerCapabilities",
+				xmldoc.WithText(NsPWG+":Version", "2.0"),
+				xmldoc.WithChildren(NsScan+":Platen",
+					xmldoc.WithText(
+						NsScan+":PlatenInputCaps", "bad"),
+				),
+			),
+			err: `/scan:ScannerCapabilities/scan:Platen/scan:PlatenInputCaps/scan:MinWidth: missed`,
+		},
+
+		{
+			xml: xmldoc.WithChildren(
+				NsScan+":ScannerCapabilities",
+				xmldoc.WithText(NsPWG+":Version", "2.0"),
+				xmldoc.WithChildren(NsScan+":Camera",
+					xmldoc.WithText(
+						NsScan+":CameraInputCaps", "bad"),
+				),
+			),
+			err: `/scan:ScannerCapabilities/scan:Camera/scan:CameraInputCaps/scan:MinWidth: missed`,
+		},
+
+		{
+			xml: xmldoc.WithChildren(
+				NsScan+":ScannerCapabilities",
+				xmldoc.WithText(NsPWG+":Version", "2.0"),
+				xmldoc.WithChildren(NsScan+":Adf",
+					xmldoc.WithText(
+						NsScan+":AdfSimplexInputCaps", "bad"),
+				),
+			),
+			err: `/scan:ScannerCapabilities/scan:Adf/scan:AdfSimplexInputCaps/scan:MinWidth: missed`,
+		},
+
+		{
+			xml: xmldoc.WithChildren(
+				NsScan+":ScannerCapabilities",
+				xmldoc.WithText(NsPWG+":Version", "2.0"),
+				xmldoc.WithText(NsScan+":BrightnessSupport", "bad"),
+			),
+			err: `/scan:ScannerCapabilities/scan:BrightnessSupport/scan:Min: missed`,
+		},
+
+		{
+			xml: xmldoc.WithChildren(
+				NsScan+":ScannerCapabilities",
+				xmldoc.WithText(NsPWG+":Version", "2.0"),
+				xmldoc.WithText(NsScan+":CompressionFactorSupport", "bad"),
+			),
+			err: `/scan:ScannerCapabilities/scan:CompressionFactorSupport/scan:Min: missed`,
+		},
+
+		{
+			xml: xmldoc.WithChildren(
+				NsScan+":ScannerCapabilities",
+				xmldoc.WithText(NsPWG+":Version", "2.0"),
+				xmldoc.WithText(NsScan+":ContrastSupport", "bad"),
+			),
+			err: `/scan:ScannerCapabilities/scan:ContrastSupport/scan:Min: missed`,
+		},
+
+		{
+			xml: xmldoc.WithChildren(
+				NsScan+":ScannerCapabilities",
+				xmldoc.WithText(NsPWG+":Version", "2.0"),
+				xmldoc.WithText(NsScan+":GammaSupport", "bad"),
+			),
+			err: `/scan:ScannerCapabilities/scan:GammaSupport/scan:Min: missed`,
+		},
+
+		{
+			xml: xmldoc.WithChildren(
+				NsScan+":ScannerCapabilities",
+				xmldoc.WithText(NsPWG+":Version", "2.0"),
+				xmldoc.WithText(NsScan+":HighlightSupport", "bad"),
+			),
+			err: `/scan:ScannerCapabilities/scan:HighlightSupport/scan:Min: missed`,
+		},
+
+		{
+			xml: xmldoc.WithChildren(
+				NsScan+":ScannerCapabilities",
+				xmldoc.WithText(NsPWG+":Version", "2.0"),
+				xmldoc.WithText(NsScan+":NoiseRemovalSupport", "bad"),
+			),
+			err: `/scan:ScannerCapabilities/scan:NoiseRemovalSupport/scan:Min: missed`,
+		},
+
+		{
+			xml: xmldoc.WithChildren(
+				NsScan+":ScannerCapabilities",
+				xmldoc.WithText(NsPWG+":Version", "2.0"),
+				xmldoc.WithText(NsScan+":ShadowSupport", "bad"),
+			),
+			err: `/scan:ScannerCapabilities/scan:ShadowSupport/scan:Min: missed`,
+		},
+
+		{
+			xml: xmldoc.WithChildren(
+				NsScan+":ScannerCapabilities",
+				xmldoc.WithText(NsPWG+":Version", "2.0"),
+				xmldoc.WithText(NsScan+":SharpenSupport", "bad"),
+			),
+			err: `/scan:ScannerCapabilities/scan:SharpenSupport/scan:Min: missed`,
+		},
+
+		{
+			xml: xmldoc.WithChildren(
+				NsScan+":ScannerCapabilities",
+				xmldoc.WithText(NsPWG+":Version", "2.0"),
+				xmldoc.WithText(NsScan+":ThresholdSupport", "bad"),
+			),
+			err: `/scan:ScannerCapabilities/scan:ThresholdSupport/scan:Min: missed`,
+		},
+
+		{
+			xml: xmldoc.WithChildren(
+				NsScan+":ScannerCapabilities",
+				xmldoc.WithText(NsPWG+":Version", "2.0"),
+				xmldoc.WithText(NsScan+":BlankPageDetection", "bad"),
+			),
+			err: `/scan:ScannerCapabilities/scan:BlankPageDetection: invalid bool: "bad"`,
+		},
+
+		{
+			xml: xmldoc.WithChildren(
+				NsScan+":ScannerCapabilities",
+				xmldoc.WithText(NsPWG+":Version", "2.0"),
+				xmldoc.WithText(NsScan+":BlankPageDetectionAndRemoval", "bad"),
+			),
+			err: `/scan:ScannerCapabilities/scan:BlankPageDetectionAndRemoval: invalid bool: "bad"`,
+		},
+	}
+
+	for _, test := range tests {
+		_, err := DecodeScannerCapabilities(test.xml)
+		if err == nil {
+			err = errors.New("")
+		}
+
+		if err.Error() != test.err {
+			t.Errorf("error mismatch:\n"+
+				"input:    %s\n"+
+				"expected: %q\n"+
+				"present:  %q\n",
+				test.xml.EncodeString(nil), test.err, err)
 		}
 	}
 }
