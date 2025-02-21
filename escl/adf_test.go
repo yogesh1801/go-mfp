@@ -17,6 +17,22 @@ import (
 	"github.com/alexpevzner/mfp/xmldoc"
 )
 
+// testADF contains example of the initialized
+// ADF structure
+var testADF = ADF{
+	ADFSimplexInputCaps: optional.New(testInputSourceCaps),
+	ADFDuplexInputCaps:  optional.New(testInputSourceCaps),
+	FeederCapacity:      optional.New(50),
+	ADFOptions: []ADFOption{
+		DetectPaperLoaded,
+		Duplex,
+	},
+	Justification: optional.New(Justification{
+		XImagePosition: Center,
+		YImagePosition: Top,
+	}),
+}
+
 // TestADF tests [ADF] to/from the XML conversion
 func TestADF(t *testing.T) {
 	type testData struct {
@@ -41,19 +57,7 @@ func TestADF(t *testing.T) {
 		},
 
 		{
-			adf: ADF{
-				ADFSimplexInputCaps: optional.New(testInputSourceCaps),
-				ADFDuplexInputCaps:  optional.New(testInputSourceCaps),
-				FeederCapacity:      optional.New(50),
-				ADFOptions: []ADFOption{
-					DetectPaperLoaded,
-					Duplex,
-				},
-				Justification: optional.New(Justification{
-					XImagePosition: Center,
-					YImagePosition: Top,
-				}),
-			},
+			adf: testADF,
 			xml: xmldoc.WithChildren(
 				NsScan+":Adf",
 				testInputSourceCaps.toXML(NsScan+":AdfSimplexInputCaps"),

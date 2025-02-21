@@ -17,6 +17,12 @@ import (
 	"github.com/alexpevzner/mfp/xmldoc"
 )
 
+// testPlaten contains example of the initialized
+// Platen structure
+var testPlaten = Platen{
+	PlatenInputCaps: optional.New(testInputSourceCaps),
+}
+
 // TestPlaten tests [Platen] to/from the XML conversion
 func TestPlaten(t *testing.T) {
 	type testData struct {
@@ -31,9 +37,7 @@ func TestPlaten(t *testing.T) {
 		},
 
 		{
-			platen: Platen{
-				PlatenInputCaps: optional.New(testInputSourceCaps),
-			},
+			platen: testPlaten,
 			xml: xmldoc.WithChildren(
 				NsScan+":Platen",
 				testInputSourceCaps.toXML(NsScan+":PlatenInputCaps"),

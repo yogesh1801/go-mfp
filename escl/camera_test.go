@@ -17,6 +17,12 @@ import (
 	"github.com/alexpevzner/mfp/xmldoc"
 )
 
+// testCamera contains example of the initialized
+// Camera structure
+var testCamera = Camera{
+	CameraInputCaps: optional.New(testInputSourceCaps),
+}
+
 // TestCamera tests [Camera] to/from the XML conversion
 func TestCamera(t *testing.T) {
 	type testData struct {
@@ -31,9 +37,7 @@ func TestCamera(t *testing.T) {
 		},
 
 		{
-			camera: Camera{
-				CameraInputCaps: optional.New(testInputSourceCaps),
-			},
+			camera: testCamera,
 			xml: xmldoc.WithChildren(
 				NsScan+":Camera",
 				testInputSourceCaps.toXML(NsScan+":CameraInputCaps"),
