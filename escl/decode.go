@@ -4,7 +4,7 @@
 // Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
 // See LICENSE for license terms and conditions
 //
-// Functions for XML decoding
+// Basic XML decoding functions
 
 package escl
 
@@ -20,16 +20,22 @@ import (
 
 // decodeNonNegativeInt decodes non-negative integer from the XML tree.
 func decodeNonNegativeInt(root xmldoc.Element) (v int, err error) {
-	var v64 uint64
-	v64, err = strconv.ParseUint(root.Text, 10, 32)
+	var v64 int64
+	v64, err = strconv.ParseInt(root.Text, 10, 64)
 
-	if err != nil || v > math.MaxInt32 {
+	switch {
+	case err != nil:
 		err = fmt.Errorf("invalid int: %q", root.Text)
-		err = xmldoc.XMLErrWrap(root, err)
-		v64 = 0
+	case v64 < 0 || v64 > math.MaxInt32:
+		err = fmt.Errorf("int out of range: %d", v64)
 	}
 
-	return int(v64), err
+	if err != nil {
+		err = xmldoc.XMLErrWrap(root, err)
+		return 0, err
+	}
+
+	return int(v64), nil
 }
 
 // decodeBool decodes boolean from the XML tree.
