@@ -10,8 +10,8 @@ package testutils
 
 import "testing"
 
-// TestIppMustParse tests ippMustParse function
-func TestIppMustParse(t *testing.T) {
+// TestIPPMustParse tests IPPMustParse function
+func TestIPPMustParse(t *testing.T) {
 	defer func() {
 		p := recover()
 		if err, ok := p.(error); ok {
@@ -24,6 +24,6 @@ func TestIppMustParse(t *testing.T) {
 	}()
 
 	// Must panic on invalid input
-	ippMustParse([]byte{})
+	IPPMustParse([]byte{})
 	panic("ippMustParse must panic on invalid input")
 }

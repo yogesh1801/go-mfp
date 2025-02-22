@@ -10,10 +10,23 @@ package testutils
 
 import "github.com/OpenPrinting/goipp"
 
-func ippMustParse(blob []byte) *goipp.Message {
+// IPPParse parses IPP binary data into the [goipp.Message].
+func IPPParse(blob []byte) (*goipp.Message, error) {
 	msg := &goipp.Message{}
 	err := msg.DecodeBytesEx(blob,
 		goipp.DecoderOptions{EnableWorkarounds: true})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return msg, nil
+}
+
+// IPPMustParse parses IPP binary data into the [goipp.Message].
+// It panics if data cannot be parsed.
+func IPPMustParse(blob []byte) *goipp.Message {
+	msg, err := IPPParse(blob)
 
 	if err != nil {
 		panic(err)

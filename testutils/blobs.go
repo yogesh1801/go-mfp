@@ -8,21 +8,8 @@
 
 package testutils
 
-import (
-	// Import "embed" for its side effects
-	_ "embed"
-
-	"github.com/OpenPrinting/goipp"
-)
-
 // Parsed BLOBs
 var (
-	ParsedKyoceraM2040dnPrinterAttributes *goipp.Message = ippMustParse(
-		KyoceraM2040dnPrinterAttributes)
+//ParsedKyoceraM2040dnPrinterAttributes *goipp.Message = ippMustParse(
+//	KyoceraM2040dnPrinterAttributes)
 )
-
-// KyoceraM2040dnPrinterAttributes contains Kyocera-ECOSYS-M2040dn
-// response to the Get-Printer-Attributes request
-//
-//go:embed "Kyocera-ECOSYS-M2040dn-Printer-Attributes.ipp"
-var KyoceraM2040dnPrinterAttributes []byte

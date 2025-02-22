@@ -17,7 +17,8 @@ import (
 )
 
 func TestKyoceraM2040dnPrinterAttributes(t *testing.T) {
-	msg := testutils.ParsedKyoceraM2040dnPrinterAttributes
+	msg := testutils.IPPMustParse(
+		testutils.Kyocera.ECOSYS.M2040dn.IPP.PrinterAttributes)
 
 	// Decode printer attributes from real printer
 	var pa PrinterAttributes
