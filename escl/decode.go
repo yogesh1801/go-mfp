@@ -18,6 +18,26 @@ import (
 	"github.com/alexpevzner/mfp/xmldoc"
 )
 
+// decodeInt decodes integer from the XML tree.
+func decodeInt(root xmldoc.Element) (v int, err error) {
+	var v64 int64
+	v64, err = strconv.ParseInt(root.Text, 10, 64)
+
+	switch {
+	case err != nil:
+		err = fmt.Errorf("invalid int: %q", root.Text)
+	case v64 < math.MinInt32 || v64 > math.MaxInt32:
+		err = fmt.Errorf("int out of range: %d", v64)
+	}
+
+	if err != nil {
+		err = xmldoc.XMLErrWrap(root, err)
+		return 0, err
+	}
+
+	return int(v64), nil
+}
+
 // decodeNonNegativeInt decodes non-negative integer from the XML tree.
 func decodeNonNegativeInt(root xmldoc.Element) (v int, err error) {
 	var v64 int64
