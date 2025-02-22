@@ -3,6 +3,58 @@
 xmlns:scan="http://schemas.hp.com/imaging/escl/2011/05/03"
 xmlns:pwg="http://www.pwg.org/schemas/2010/12/sm">
   <pwg:Version>2.62</pwg:Version>
-  <pwg:State>Idle</pwg:State>
+  <pwg:State>Processing</pwg:State>
   <scan:AdfState>ScannerAdfProcessing</scan:AdfState>
+  <scan:Jobs>
+    <scan:JobInfo>
+      <pwg:JobUri>/eSCL/ScanJobs/urn:uuid:4509a320-00a0-008f-00b6-00559a327d32</pwg:JobUri>
+      <pwg:JobUuid>urn:uuid:4509a320-00a0-008f-00b6-00559a327d32</pwg:JobUuid>
+      <scan:Age>2</scan:Age>
+      <pwg:ImagesCompleted>0</pwg:ImagesCompleted>
+      <pwg:JobState>Processing</pwg:JobState>
+      <pwg:JobStateReasons>
+        <pwg:JobStateReason>JobScanningAndTransferring</pwg:JobStateReason>
+      </pwg:JobStateReasons>
+    </scan:JobInfo>
+    <scan:JobInfo>
+      <pwg:JobUri>/eSCL/ScanJobs/urn:uuid:4509a320-00a0-008f-00b6-00559a327d31</pwg:JobUri>
+      <pwg:JobUuid>urn:uuid:4509a320-00a0-008f-00b6-00559a327d31</pwg:JobUuid>
+      <scan:Age>19</scan:Age>
+      <pwg:ImagesCompleted>1</pwg:ImagesCompleted>
+      <pwg:JobState>Completed</pwg:JobState>
+      <pwg:JobStateReasons>
+        <pwg:JobStateReason>JobCompletedSuccessfully</pwg:JobStateReason>
+      </pwg:JobStateReasons>
+    </scan:JobInfo>
+    <scan:JobInfo>
+      <pwg:JobUri>/eSCL/ScanJobs/urn:uuid:4509a320-00a0-008f-00b6-00559a327d30</pwg:JobUri>
+      <pwg:JobUuid>urn:uuid:4509a320-00a0-008f-00b6-00559a327d30</pwg:JobUuid>
+      <scan:Age>35</scan:Age>
+      <pwg:ImagesCompleted>1</pwg:ImagesCompleted>
+      <pwg:JobState>Completed</pwg:JobState>
+      <pwg:JobStateReasons>
+        <pwg:JobStateReason>JobCompletedSuccessfully</pwg:JobStateReason>
+      </pwg:JobStateReasons>
+    </scan:JobInfo>
+    <scan:JobInfo>
+      <pwg:JobUri>/eSCL/ScanJobs/urn:uuid:4509a320-00a0-008f-00b6-00559a327d2f</pwg:JobUri>
+      <pwg:JobUuid>urn:uuid:4509a320-00a0-008f-00b6-00559a327d2f</pwg:JobUuid>
+      <scan:Age>60</scan:Age>
+      <pwg:ImagesCompleted>1</pwg:ImagesCompleted>
+      <pwg:JobState>Completed</pwg:JobState>
+      <pwg:JobStateReasons>
+        <pwg:JobStateReason>JobCompletedSuccessfully</pwg:JobStateReason>
+      </pwg:JobStateReasons>
+    </scan:JobInfo>
+    <scan:JobInfo>
+      <pwg:JobUri>/eSCL/ScanJobs/urn:uuid:4509a320-00a0-008f-00b6-00559a327d07</pwg:JobUri>
+      <pwg:JobUuid>urn:uuid:4509a320-00a0-008f-00b6-00559a327d07</pwg:JobUuid>
+      <scan:Age>72</scan:Age>
+      <pwg:ImagesCompleted>1</pwg:ImagesCompleted>
+      <pwg:JobState>Completed</pwg:JobState>
+      <pwg:JobStateReasons>
+        <pwg:JobStateReason>JobCompletedSuccessfully</pwg:JobStateReason>
+      </pwg:JobStateReasons>
+    </scan:JobInfo>
+  </scan:Jobs>
 </scan:ScannerStatus>
