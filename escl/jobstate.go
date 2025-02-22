@@ -16,11 +16,11 @@ type JobState int
 // Known Job states
 const (
 	UnknownJobState JobState = iota // Unknown Job state
-	Canceled                        // Job was canceled by user
-	Aborted                         // Job was aborted due to fatal error
-	Completed                       // Job is finished successfully
-	Pending                         // Job was initiated
-	Processing                      // Job is in progress
+	JobCanceled                     // Job was canceled by user
+	JobAborted                      // Job was aborted due to fatal error
+	JobCompleted                    // Job is finished successfully
+	JobPending                      // Job was initiated
+	JobProcessing                   // Job is in progress
 )
 
 // decodeJobState decodes [JobState] from the XML tree.
@@ -39,15 +39,15 @@ func (state JobState) toXML(name string) xmldoc.Element {
 // String returns a string representation of the [JobState]
 func (state JobState) String() string {
 	switch state {
-	case Canceled:
+	case JobCanceled:
 		return "Canceled"
-	case Aborted:
+	case JobAborted:
 		return "Aborted"
-	case Completed:
+	case JobCompleted:
 		return "Completed"
-	case Pending:
+	case JobPending:
 		return "Pending"
-	case Processing:
+	case JobProcessing:
 		return "Processing"
 	}
 
@@ -58,15 +58,15 @@ func (state JobState) String() string {
 func DecodeJobState(s string) JobState {
 	switch s {
 	case "Canceled":
-		return Canceled
+		return JobCanceled
 	case "Aborted":
-		return Aborted
+		return JobAborted
 	case "Completed":
-		return Completed
+		return JobCompleted
 	case "Pending":
-		return Pending
+		return JobPending
 	case "Processing":
-		return Processing
+		return JobProcessing
 	}
 
 	return UnknownJobState

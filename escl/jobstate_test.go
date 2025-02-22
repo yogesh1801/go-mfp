@@ -14,11 +14,11 @@ var testJobState = testEnum[JobState]{
 	decodeStr: DecodeJobState,
 	decodeXML: decodeJobState,
 	dataset: []testEnumData[JobState]{
-		{Canceled, "Canceled"},
-		{Aborted, "Aborted"},
-		{Completed, "Completed"},
-		{Pending, "Pending"},
-		{Processing, "Processing"},
+		{JobCanceled, "Canceled"},
+		{JobAborted, "Aborted"},
+		{JobCompleted, "Completed"},
+		{JobPending, "Pending"},
+		{JobProcessing, "Processing"},
 	},
 }
 
