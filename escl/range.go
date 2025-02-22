@@ -41,15 +41,12 @@ func decodeRange(root xmldoc.Element) (r Range, err error) {
 	}
 
 	// Decode elements
-	r.Min, err = decodeNonNegativeInt(min.Elem)
+	r.Min, err = decodeInt(min.Elem)
 	if err == nil {
-		r.Min, err = decodeNonNegativeInt(min.Elem)
+		r.Max, err = decodeInt(max.Elem)
 	}
 	if err == nil {
-		r.Max, err = decodeNonNegativeInt(max.Elem)
-	}
-	if err == nil {
-		r.Normal, err = decodeNonNegativeInt(normal.Elem)
+		r.Normal, err = decodeInt(normal.Elem)
 	}
 	if err == nil && step.Found {
 		var tmp int
