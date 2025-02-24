@@ -73,6 +73,39 @@ func decodeBool(root xmldoc.Element) (v bool, err error) {
 	return
 }
 
+// decodeNMTOKEN decodes xs:NMTOKEN from the XML tree.
+//
+// XML 1.0 defines xs:NMTOKEN as a token, composed of characters,
+// digits, “.”, “:”, “-”, and the characters defined by Unicode,
+// such as “combining” or “extender”.
+//
+// Here we implement the simplified version that only allows
+// Latin characters and punctuation signs mentioned above.
+// This simplification looks reasonable, as we are implementing
+// eSCL parser, not the universal XML toolkit.
+func decodeNMTOKEN(root xmldoc.Element) (v string, err error) {
+	if root.Text != "" {
+		for _, c := range root.Text {
+			switch {
+			case '0' <= c && c <= '9':
+			case 'a' <= c && c <= 'z':
+			case 'A' <= c && c <= 'Z':
+			case c == '.' || c == ':' || c == '-':
+			default:
+				goto ERROR
+			}
+		}
+
+		return root.Text, nil
+	}
+
+ERROR:
+	err = fmt.Errorf("invalid xs:NMTOKEN: %q", root.Text)
+	err = xmldoc.XMLErrWrap(root, err)
+
+	return
+}
+
 // decodeEnum decodes value of enum-alike type T from the XML tree
 //
 // decode is the type-specific function that decodes T from string
