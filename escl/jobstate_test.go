@@ -19,6 +19,7 @@ var testJobState = testEnum[JobState]{
 		{JobCompleted, "Completed"},
 		{JobPending, "Pending"},
 		{JobProcessing, "Processing"},
+		{JobPendingHeld, "PendingHeld"},
 	},
 }
 

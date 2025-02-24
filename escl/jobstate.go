@@ -21,6 +21,7 @@ const (
 	JobCompleted                    // Job is finished successfully
 	JobPending                      // Job was initiated
 	JobProcessing                   // Job is in progress
+	JobPendingHeld                  // Stored job request
 )
 
 // decodeJobState decodes [JobState] from the XML tree.
@@ -49,6 +50,8 @@ func (state JobState) String() string {
 		return "Pending"
 	case JobProcessing:
 		return "Processing"
+	case JobPendingHeld:
+		return "PendingHeld"
 	}
 
 	return "Unknown"
@@ -67,6 +70,8 @@ func DecodeJobState(s string) JobState {
 		return JobPending
 	case "Processing":
 		return JobProcessing
+	case "PendingHeld":
+		return JobPendingHeld
 	}
 
 	return UnknownJobState
