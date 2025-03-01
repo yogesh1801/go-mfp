@@ -9,21 +9,159 @@
 package escl
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/alexpevzner/mfp/optional"
 	"github.com/alexpevzner/mfp/uuid"
+	"github.com/alexpevzner/mfp/xmldoc"
 )
 
 // JobInfo reports the state of a particular scan job.
 //
 // eSCL Technical Specification, 9.1.
 type JobInfo struct {
-	JobUUID          optional.Val[uuid.UUID]     // Unique, persistent
 	JobURI           string                      // Unique Job URI, that identifies the job
+	JobUUID          optional.Val[uuid.UUID]     // Unique, persistent
 	Age              optional.Val[time.Duration] // Time since last update
 	ImagesCompleted  optional.Val[int]           // Images completed so far
 	ImagesToTransfer optional.Val[int]           // Images to transfer
 	JobState         JobState                    // Job state
 	JobStateReasons  JobStateReason              // Reason of the job state
+}
+
+// decodeJobInfo decodes [JobInfo] from the XML tree.
+func decodeJobInfo(root xmldoc.Element) (info JobInfo, err error) {
+	defer func() { err = xmldoc.XMLErrWrap(root, err) }()
+
+	// Lookup relevant XML elements
+	jobURI := xmldoc.Lookup{Name: NsPWG + ":JobUri", Required: true}
+	jobUUID := xmldoc.Lookup{Name: NsPWG + ":JobUuid"}
+	age := xmldoc.Lookup{Name: NsScan + ":Age"}
+	compl := xmldoc.Lookup{Name: NsPWG + ":ImagesCompleted"}
+	xfer := xmldoc.Lookup{Name: NsPWG + ":ImagesToTransfer"}
+	state := xmldoc.Lookup{Name: NsPWG + ":JobState", Required: true}
+	reasons := xmldoc.Lookup{Name: NsPWG + ":JobStateReasons",
+		Required: true}
+
+	missed := root.Lookup(&jobURI, &jobUUID, &age, &compl, &xfer,
+		&state, &reasons)
+	if missed != nil {
+		err = xmldoc.XMLErrMissed(missed.Name)
+		return
+	}
+
+	// Decode elements
+	info.JobURI = jobURI.Elem.Text
+
+	if jobUUID.Found {
+		var uu uuid.UUID
+		uu, err = uuid.Parse(jobUUID.Elem.Text)
+		if err != nil {
+			return
+		}
+		info.JobUUID = optional.New(uu)
+	}
+
+	if age.Found {
+		var v int
+		v, err = decodeNonNegativeInt(age.Elem)
+		if err != nil {
+			return
+		}
+		info.Age = optional.New(time.Duration(v) * time.Second)
+	}
+
+	if compl.Found {
+		var v int
+		v, err = decodeNonNegativeInt(compl.Elem)
+		if err != nil {
+			return
+		}
+		info.ImagesCompleted = optional.New(v)
+	}
+
+	if xfer.Found {
+		var v int
+		v, err = decodeNonNegativeInt(xfer.Elem)
+		if err != nil {
+			return
+		}
+		info.ImagesToTransfer = optional.New(v)
+	}
+
+	info.JobState, err = decodeJobState(state.Elem)
+	if err != nil {
+		return
+	}
+
+	reason, found := reasons.Elem.ChildByName(NsPWG + ":JobStateReason")
+	if !found {
+		err = xmldoc.XMLErrMissed(NsPWG + ":JobStateReason")
+		err = xmldoc.XMLErrWrap(reasons.Elem, err)
+		return
+	}
+
+	info.JobStateReasons, err = decodeJobStateReason(reason)
+	if err != nil {
+		err = xmldoc.XMLErrWrap(reasons.Elem, err)
+		return
+	}
+
+	return
+}
+
+// toXML generates XML tree for the [JobInfo].
+func (info JobInfo) toXML(name string) xmldoc.Element {
+	elm := xmldoc.Element{
+		Name: name,
+		Children: []xmldoc.Element{
+			{Name: NsPWG + ":JobUri", Text: info.JobURI},
+		},
+	}
+
+	if info.JobUUID != nil {
+		chld := xmldoc.Element{
+			Name: NsPWG + ":JobUuid",
+			Text: (*info.JobUUID).URN(),
+		}
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if info.Age != nil {
+		age := *info.Age
+		age += time.Second / 2
+		age /= time.Second
+
+		chld := xmldoc.Element{
+			Name: NsScan + ":Age",
+			Text: strconv.FormatUint(uint64(age), 10),
+		}
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if info.ImagesCompleted != nil {
+		chld := xmldoc.Element{
+			Name: NsPWG + ":ImagesCompleted",
+			Text: strconv.Itoa(*info.ImagesCompleted),
+		}
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if info.ImagesToTransfer != nil {
+		chld := xmldoc.Element{
+			Name: NsPWG + ":ImagesToTransfer",
+			Text: strconv.Itoa(*info.ImagesToTransfer),
+		}
+		elm.Children = append(elm.Children, chld)
+	}
+
+	elm.Children = append(elm.Children,
+		info.JobState.toXML(NsPWG+":JobState"))
+
+	elm.Children = append(elm.Children,
+		xmldoc.WithChildren(NsPWG+":JobStatereasons",
+			info.JobStateReasons.toXML(NsPWG+":JobStateReason")))
+
+	return elm
 }
