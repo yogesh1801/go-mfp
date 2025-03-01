@@ -9,6 +9,7 @@
 package escl
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 
@@ -57,6 +58,8 @@ func decodeJobInfo(root xmldoc.Element) (info JobInfo, err error) {
 		var uu uuid.UUID
 		uu, err = uuid.Parse(jobUUID.Elem.Text)
 		if err != nil {
+			err = fmt.Errorf("invalid UUID: %q", jobUUID.Elem.Text)
+			err = xmldoc.XMLErrWrap(jobUUID.Elem, err)
 			return
 		}
 		info.JobUUID = optional.New(uu)

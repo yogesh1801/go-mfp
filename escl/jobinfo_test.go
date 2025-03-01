@@ -9,6 +9,7 @@
 package escl
 
 import (
+	"errors"
 	"reflect"
 	"testing"
 	"time"
@@ -94,6 +95,113 @@ func TestJobInfo(t *testing.T) {
 				"expected: %#v\n"+
 				"present:  %#v\n",
 				test.info, info)
+		}
+	}
+}
+
+// TestJobInfoDecodeErrors tests [JobInfo] XML decode
+// errors handling
+func TestJobInfoDecodeErrors(t *testing.T) {
+	type testData struct {
+		xml xmldoc.Element // Input XML
+		err string         // Expected error
+	}
+
+	tests := []testData{
+		// Missed required element (JobURI)
+		{
+			xml: xmldoc.WithChildren(NsScan + ":JobInfo"),
+			err: `/scan:JobInfo/pwg:JobUri: missed`,
+		},
+
+		// Missed required element (JobState)
+		{
+			xml: xmldoc.WithChildren(NsScan+":JobInfo",
+				xmldoc.WithText(NsPWG+":JobUri",
+					"/eSCL/ScanJobs/1"),
+			),
+			err: `/scan:JobInfo/pwg:JobState: missed`,
+		},
+
+		// Error in JobUUID
+		{
+			xml: xmldoc.WithChildren(NsScan+":JobInfo",
+				xmldoc.WithText(NsPWG+":JobUri",
+					"/eSCL/ScanJobs/1"),
+				JobProcessing.toXML(NsPWG+":JobState"),
+				xmldoc.WithText(NsPWG+":JobUuid", "bad"),
+			),
+			err: `/scan:JobInfo/pwg:JobUuid: invalid UUID: "bad"`,
+		},
+
+		// Error in Age
+		{
+			xml: xmldoc.WithChildren(NsScan+":JobInfo",
+				xmldoc.WithText(NsPWG+":JobUri",
+					"/eSCL/ScanJobs/1"),
+				JobProcessing.toXML(NsPWG+":JobState"),
+				xmldoc.WithText(NsScan+":Age", "bad"),
+			),
+			err: `/scan:JobInfo/scan:Age: invalid int: "bad"`,
+		},
+
+		// Error in ImagesCompleted
+		{
+			xml: xmldoc.WithChildren(NsScan+":JobInfo",
+				xmldoc.WithText(NsPWG+":JobUri",
+					"/eSCL/ScanJobs/1"),
+				JobProcessing.toXML(NsPWG+":JobState"),
+				xmldoc.WithText(NsPWG+":ImagesCompleted", "bad"),
+			),
+			err: `/scan:JobInfo/pwg:ImagesCompleted: invalid int: "bad"`,
+		},
+
+		// Error in ImagesToTransfer
+		{
+			xml: xmldoc.WithChildren(NsScan+":JobInfo",
+				xmldoc.WithText(NsPWG+":JobUri",
+					"/eSCL/ScanJobs/1"),
+				JobProcessing.toXML(NsPWG+":JobState"),
+				xmldoc.WithText(NsPWG+":ImagesToTransfer", "bad"),
+			),
+			err: `/scan:JobInfo/pwg:ImagesToTransfer: invalid int: "bad"`,
+		},
+
+		// Error in JobState
+		{
+			xml: xmldoc.WithChildren(NsScan+":JobInfo",
+				xmldoc.WithText(NsPWG+":JobUri",
+					"/eSCL/ScanJobs/1"),
+				xmldoc.WithText(NsPWG+":JobState", "bad"),
+			),
+			err: `/scan:JobInfo/pwg:JobState: invalid JobState: "bad"`,
+		},
+
+		// Error in JobStateReasons
+		{
+			xml: xmldoc.WithChildren(NsScan+":JobInfo",
+				xmldoc.WithText(NsPWG+":JobUri",
+					"/eSCL/ScanJobs/1"),
+				JobProcessing.toXML(NsPWG+":JobState"),
+				xmldoc.WithChildren(NsPWG+":JobStateReasons",
+					xmldoc.WithText(NsPWG+":JobStateReason", "")),
+			),
+			err: `/scan:JobInfo/pwg:JobStateReasons/pwg:JobStateReason: invalid JobStateReason: ""`,
+		},
+	}
+
+	for _, test := range tests {
+		_, err := decodeJobInfo(test.xml)
+		if err == nil {
+			err = errors.New("")
+		}
+
+		if err.Error() != test.err {
+			t.Errorf("error mismatch:\n"+
+				"input:    %s\n"+
+				"expected: %q\n"+
+				"present:  %q\n",
+				test.xml.EncodeString(nil), test.err, err)
 		}
 	}
 }
