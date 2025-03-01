@@ -27,7 +27,7 @@ type JobInfo struct {
 	ImagesCompleted  optional.Val[int]           // Images completed so far
 	ImagesToTransfer optional.Val[int]           // Images to transfer
 	JobState         JobState                    // Job state
-	JobStateReasons  JobStateReason              // Reason of the job state
+	JobStateReasons  []JobStateReason            // Reason of the job state
 }
 
 // decodeJobInfo decodes [JobInfo] from the XML tree.
@@ -41,8 +41,7 @@ func decodeJobInfo(root xmldoc.Element) (info JobInfo, err error) {
 	compl := xmldoc.Lookup{Name: NsPWG + ":ImagesCompleted"}
 	xfer := xmldoc.Lookup{Name: NsPWG + ":ImagesToTransfer"}
 	state := xmldoc.Lookup{Name: NsPWG + ":JobState", Required: true}
-	reasons := xmldoc.Lookup{Name: NsPWG + ":JobStateReasons",
-		Required: true}
+	reasons := xmldoc.Lookup{Name: NsPWG + ":JobStateReasons"}
 
 	missed := root.Lookup(&jobURI, &jobUUID, &age, &compl, &xfer,
 		&state, &reasons)
@@ -95,17 +94,21 @@ func decodeJobInfo(root xmldoc.Element) (info JobInfo, err error) {
 		return
 	}
 
-	reason, found := reasons.Elem.ChildByName(NsPWG + ":JobStateReason")
-	if !found {
-		err = xmldoc.XMLErrMissed(NsPWG + ":JobStateReason")
-		err = xmldoc.XMLErrWrap(reasons.Elem, err)
-		return
-	}
+	if reasons.Found {
+		for _, elem := range reasons.Elem.Children {
+			if elem.Name == NsPWG+":JobStateReason" {
+				var reason JobStateReason
+				reason, err = decodeJobStateReason(elem)
+				if err != nil {
+					err = xmldoc.XMLErrWrap(
+						reasons.Elem, err)
+					return
+				}
 
-	info.JobStateReasons, err = decodeJobStateReason(reason)
-	if err != nil {
-		err = xmldoc.XMLErrWrap(reasons.Elem, err)
-		return
+				info.JobStateReasons = append(
+					info.JobStateReasons, reason)
+			}
+		}
 	}
 
 	return
@@ -159,9 +162,14 @@ func (info JobInfo) toXML(name string) xmldoc.Element {
 	elm.Children = append(elm.Children,
 		info.JobState.toXML(NsPWG+":JobState"))
 
-	elm.Children = append(elm.Children,
-		xmldoc.WithChildren(NsPWG+":JobStatereasons",
-			info.JobStateReasons.toXML(NsPWG+":JobStateReason")))
+	if info.JobStateReasons != nil {
+		chld := xmldoc.Element{Name: NsPWG + ":JobStatereasons"}
+		for _, reason := range info.JobStateReasons {
+			chld2 := reason.toXML(NsPWG + ":JobStateReason")
+			chld.Children = append(chld.Children, chld2)
+		}
+		elm.Children = append(elm.Children, chld)
+	}
 
 	return elm
 }
