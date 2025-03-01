@@ -8,7 +8,11 @@
 
 package escl
 
-import "github.com/alexpevzner/mfp/xmldoc"
+import (
+	"fmt"
+
+	"github.com/alexpevzner/mfp/xmldoc"
+)
 
 // JobStateReason accompanies the [JobState] and gives additional
 // information why job has reached the particular state.
@@ -109,9 +113,15 @@ const (
 func decodeJobStateReason(root xmldoc.Element) (reason JobStateReason, err error) {
 	var v string
 	v, err = decodeNMTOKEN(root)
-	if err == nil {
-		reason = JobStateReason(v)
+
+	if err != nil {
+		err = fmt.Errorf("invalid JobStateReason: %q",
+			root.Text)
+		err = xmldoc.XMLErrWrap(root, err)
+		return
 	}
+
+	reason = JobStateReason(v)
 	return
 }
 

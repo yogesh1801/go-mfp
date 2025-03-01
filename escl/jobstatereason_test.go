@@ -29,12 +29,12 @@ func TestJobStateReason(t *testing.T) {
 
 		{
 			in:  "",
-			err: `/pwg:JobStateReason: invalid xs:NMTOKEN: ""`,
+			err: `/pwg:JobStateReason: invalid JobStateReason: ""`,
 		},
 
 		{
 			in:  "aa bb",
-			err: `/pwg:JobStateReason: invalid xs:NMTOKEN: "aa bb"`,
+			err: `/pwg:JobStateReason: invalid JobStateReason: "aa bb"`,
 		},
 	}
 
