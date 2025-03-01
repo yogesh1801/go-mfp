@@ -163,7 +163,7 @@ func (info JobInfo) toXML(name string) xmldoc.Element {
 		info.JobState.toXML(NsPWG+":JobState"))
 
 	if info.JobStateReasons != nil {
-		chld := xmldoc.Element{Name: NsPWG + ":JobStatereasons"}
+		chld := xmldoc.Element{Name: NsPWG + ":JobStateReasons"}
 		for _, reason := range info.JobStateReasons {
 			chld2 := reason.toXML(NsPWG + ":JobStateReason")
 			chld.Children = append(chld.Children, chld2)
