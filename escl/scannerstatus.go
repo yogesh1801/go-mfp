@@ -8,12 +8,14 @@
 
 package escl
 
+import "github.com/alexpevzner/mfp/optional"
+
 // ScannerStatus represents the scanner status.
 //
 // eSCL Technical Specification, 9.
 type ScannerStatus struct {
-	Version  Version      // eSCL protocol version
-	State    ScannerState // Overall scanner state
-	ADFState ADFState     // ADF state
-	Jobs     []JobInfo    // State of particular jobs
+	Version  Version                // eSCL protocol version
+	State    ScannerState           // Overall scanner state
+	ADFState optional.Val[ADFState] // ADF state
+	Jobs     []JobInfo              // State of particular jobs
 }
