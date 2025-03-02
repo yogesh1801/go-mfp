@@ -12,6 +12,7 @@ import (
 	"bytes"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/alexpevzner/mfp/optional"
 	"github.com/alexpevzner/mfp/testutils"
@@ -19,7 +20,7 @@ import (
 	"github.com/alexpevzner/mfp/xmldoc"
 )
 
-// TestKyoceraECOSYSM2040dnScannerCapabilities ScannerCapabilities decoding
+// TestKyoceraECOSYSM2040dnScannerCapabilities tests ScannerCapabilities decoding
 // for Kyocera ECOSYS M2040dn MFP
 func TestKyoceraECOSYSM2040dnScannerCapabilities(t *testing.T) {
 	// Parse XML
@@ -242,5 +243,80 @@ func TestKyoceraECOSYSM2040dnScannerCapabilities(t *testing.T) {
 			"expected: %#v\n"+
 			"present:  %#v\n",
 			expected, scancaps)
+	}
+}
+
+// TestKyoceraECOSYSM2040dnScannerStatus tests ScannerStatus decoding
+// for Kyocera ECOSYS M2040dn MFP
+func TestKyoceraECOSYSM2040dnScannerStatus(t *testing.T) {
+	// Parse XML
+	data := bytes.NewReader(testutils.
+		Kyocera.ECOSYS.M2040dn.ESCL.ScannerStatus)
+	xml, err := xmldoc.Decode(NsMap, data)
+	if err != nil {
+		panic(err)
+	}
+
+	// Decode ScannerStatus
+	status, err := DecodeScannerStatus(xml)
+	if err != nil {
+		t.Errorf("%s", err)
+		return
+	}
+
+	// Verify ScannerStatus
+	expected := ScannerStatus{
+		Version:  MakeVersion(2, 62),
+		State:    ScannerProcessing,
+		ADFState: optional.New(ScannerAdfProcessing),
+		Jobs: []JobInfo{
+			{
+				JobURI:          "/eSCL/ScanJobs/urn:uuid:4509a320-00a0-008f-00b6-00559a327d32",
+				JobUUID:         optional.New(uuid.Must(uuid.Parse("4509a320-00a0-008f-00b6-00559a327d32"))),
+				Age:             optional.New(2 * time.Second),
+				ImagesCompleted: optional.New(0),
+				JobState:        JobProcessing,
+				JobStateReasons: []JobStateReason{JobScanningAndTransferring},
+			},
+			{
+				JobURI:          "/eSCL/ScanJobs/urn:uuid:4509a320-00a0-008f-00b6-00559a327d31",
+				JobUUID:         optional.New(uuid.Must(uuid.Parse("4509a320-00a0-008f-00b6-00559a327d31"))),
+				Age:             optional.New(19 * time.Second),
+				ImagesCompleted: optional.New(1),
+				JobState:        JobCompleted,
+				JobStateReasons: []JobStateReason{JobCompletedSuccessfully},
+			},
+			{
+				JobURI:          "/eSCL/ScanJobs/urn:uuid:4509a320-00a0-008f-00b6-00559a327d30",
+				JobUUID:         optional.New(uuid.Must(uuid.Parse("4509a320-00a0-008f-00b6-00559a327d30"))),
+				Age:             optional.New(35 * time.Second),
+				ImagesCompleted: optional.New(1),
+				JobState:        JobCompleted,
+				JobStateReasons: []JobStateReason{JobCompletedSuccessfully},
+			},
+			{
+				JobURI:          "/eSCL/ScanJobs/urn:uuid:4509a320-00a0-008f-00b6-00559a327d2f",
+				JobUUID:         optional.New(uuid.Must(uuid.Parse("4509a320-00a0-008f-00b6-00559a327d2f"))),
+				Age:             optional.New(60 * time.Second),
+				ImagesCompleted: optional.New(1),
+				JobState:        JobCompleted,
+				JobStateReasons: []JobStateReason{JobCompletedSuccessfully},
+			},
+			{
+				JobURI:          "/eSCL/ScanJobs/urn:uuid:4509a320-00a0-008f-00b6-00559a327d07",
+				JobUUID:         optional.New(uuid.Must(uuid.Parse("4509a320-00a0-008f-00b6-00559a327d07"))),
+				Age:             optional.New(72 * time.Second),
+				ImagesCompleted: optional.New(1),
+				JobState:        JobCompleted,
+				JobStateReasons: []JobStateReason{JobCompletedSuccessfully},
+			},
+		},
+	}
+
+	if !reflect.DeepEqual(status, expected) {
+		t.Errorf("decoded data mismatch:\n"+
+			"expected: %#v\n"+
+			"present:  %#v\n",
+			expected, status)
 	}
 }
