@@ -46,7 +46,8 @@ var testScannerCapabilities = ScannerCapabilities{
 	BlankPageDetectionAndRemoval: optional.New(true),
 }
 
-// TestScannerCapabilities tests [ScannerCapabilities] conversion to and from the XML
+// TestScannerCapabilities tests [ScannerCapabilities] conversion
+// to and from the XML
 func TestScannerCapabilities(t *testing.T) {
 	type testData struct {
 		scancaps ScannerCapabilities
