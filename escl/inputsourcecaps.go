@@ -198,7 +198,24 @@ func decodeInputSourceCaps(root xmldoc.Element) (
 
 	if intents.Found {
 		for _, elem := range intents.Elem.Children {
-			if elem.Name == NsScan+":SupportedIntent" {
+			switch elem.Name {
+			// Note, some printers use the "scan:SupportedIntent"
+			// name for intents in the InputSourceCaps while other
+			// use the "scan:Intent" name.
+			//
+			// For example, Kyocera ECOSYS, use the first
+			// while others, like HP LaserJet M426fdn or
+			// Pantum BM5100ADW, use the second form
+			//
+			// The Mopria eSCL specification doesn't cleanly
+			// state which form is correct.
+			//
+			// Here we assume (based on the intuition and
+			// experience), that "scan:SupportedIntent" is
+			// the correct form (and we use it when encoding),
+			// but for compatibility with other firmwares
+			// support both forms while decoding.
+			case NsScan + ":SupportedIntent", NsScan + ":Intent":
 				var intent Intent
 				intent, err = decodeIntent(elem)
 				if err != nil {
