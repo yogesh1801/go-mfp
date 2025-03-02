@@ -105,9 +105,9 @@ const (
 	WarningsDetected                 JobStateReason = "WarningsDetected"
 
 	// Additional values, mentioned in the eSCL specification
-	JobScanning                = "JobScanning"
-	JobHeldByService           = "JobHeldByService"
-	JobScanningAndTransferring = "JobScanningAndTransferring"
+	JobScanning                JobStateReason = "JobScanning"
+	JobHeldByService           JobStateReason = "JobHeldByService"
+	JobScanningAndTransferring JobStateReason = "JobScanningAndTransferring"
 )
 
 // decodeJobStateReason decodes [JobStateReason] from the XML tree.
