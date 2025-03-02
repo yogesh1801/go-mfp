@@ -15,7 +15,6 @@ import (
 	"time"
 
 	"github.com/alexpevzner/mfp/optional"
-	"github.com/alexpevzner/mfp/uuid"
 	"github.com/alexpevzner/mfp/xmldoc"
 )
 
@@ -28,7 +27,7 @@ var testScannerStatus = ScannerStatus{
 	Jobs: []JobInfo{
 		{
 			JobURI:           "/eSCL/ScanJobs/urn:uuid:4509a320-00a0-008f-00b6-00559a327d32",
-			JobUUID:          optional.New(uuid.Must(uuid.Parse("4509a320-00a0-008f-00b6-00559a327d32"))),
+			JobUUID:          optional.New("4509a320-00a0-008f-00b6-00559a327d32"),
 			Age:              optional.New(20 * time.Second),
 			ImagesCompleted:  optional.New(2),
 			ImagesToTransfer: optional.New(1),
@@ -37,7 +36,7 @@ var testScannerStatus = ScannerStatus{
 		},
 		{
 			JobURI:           "/eSCL/ScanJobs/urn:uuid:4509a320-00a0-008f-00b6-00559a327d31",
-			JobUUID:          optional.New(uuid.Must(uuid.Parse("4509a320-00a0-008f-00b6-00559a327d31"))),
+			JobUUID:          optional.New("4509a320-00a0-008f-00b6-00559a327d31"),
 			Age:              optional.New(39 * time.Second),
 			ImagesCompleted:  optional.New(1),
 			ImagesToTransfer: optional.New(1),

@@ -272,7 +272,7 @@ func TestKyoceraECOSYSM2040dnScannerStatus(t *testing.T) {
 		Jobs: []JobInfo{
 			{
 				JobURI:          "/eSCL/ScanJobs/urn:uuid:4509a320-00a0-008f-00b6-00559a327d32",
-				JobUUID:         optional.New(uuid.Must(uuid.Parse("4509a320-00a0-008f-00b6-00559a327d32"))),
+				JobUUID:         optional.New("urn:uuid:4509a320-00a0-008f-00b6-00559a327d32"),
 				Age:             optional.New(2 * time.Second),
 				ImagesCompleted: optional.New(0),
 				JobState:        JobProcessing,
@@ -280,7 +280,7 @@ func TestKyoceraECOSYSM2040dnScannerStatus(t *testing.T) {
 			},
 			{
 				JobURI:          "/eSCL/ScanJobs/urn:uuid:4509a320-00a0-008f-00b6-00559a327d31",
-				JobUUID:         optional.New(uuid.Must(uuid.Parse("4509a320-00a0-008f-00b6-00559a327d31"))),
+				JobUUID:         optional.New("urn:uuid:4509a320-00a0-008f-00b6-00559a327d31"),
 				Age:             optional.New(19 * time.Second),
 				ImagesCompleted: optional.New(1),
 				JobState:        JobCompleted,
@@ -288,7 +288,7 @@ func TestKyoceraECOSYSM2040dnScannerStatus(t *testing.T) {
 			},
 			{
 				JobURI:          "/eSCL/ScanJobs/urn:uuid:4509a320-00a0-008f-00b6-00559a327d30",
-				JobUUID:         optional.New(uuid.Must(uuid.Parse("4509a320-00a0-008f-00b6-00559a327d30"))),
+				JobUUID:         optional.New("urn:uuid:4509a320-00a0-008f-00b6-00559a327d30"),
 				Age:             optional.New(35 * time.Second),
 				ImagesCompleted: optional.New(1),
 				JobState:        JobCompleted,
@@ -296,7 +296,7 @@ func TestKyoceraECOSYSM2040dnScannerStatus(t *testing.T) {
 			},
 			{
 				JobURI:          "/eSCL/ScanJobs/urn:uuid:4509a320-00a0-008f-00b6-00559a327d2f",
-				JobUUID:         optional.New(uuid.Must(uuid.Parse("4509a320-00a0-008f-00b6-00559a327d2f"))),
+				JobUUID:         optional.New("urn:uuid:4509a320-00a0-008f-00b6-00559a327d2f"),
 				Age:             optional.New(60 * time.Second),
 				ImagesCompleted: optional.New(1),
 				JobState:        JobCompleted,
@@ -304,7 +304,7 @@ func TestKyoceraECOSYSM2040dnScannerStatus(t *testing.T) {
 			},
 			{
 				JobURI:          "/eSCL/ScanJobs/urn:uuid:4509a320-00a0-008f-00b6-00559a327d07",
-				JobUUID:         optional.New(uuid.Must(uuid.Parse("4509a320-00a0-008f-00b6-00559a327d07"))),
+				JobUUID:         optional.New("urn:uuid:4509a320-00a0-008f-00b6-00559a327d07"),
 				Age:             optional.New(72 * time.Second),
 				ImagesCompleted: optional.New(1),
 				JobState:        JobCompleted,

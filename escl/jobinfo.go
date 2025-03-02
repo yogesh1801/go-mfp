@@ -9,21 +9,23 @@
 package escl
 
 import (
-	"fmt"
 	"strconv"
 	"time"
 
 	"github.com/alexpevzner/mfp/optional"
-	"github.com/alexpevzner/mfp/uuid"
 	"github.com/alexpevzner/mfp/xmldoc"
 )
 
 // JobInfo reports the state of a particular scan job.
 //
 // eSCL Technical Specification, 9.1.
+//
+// Note, JobUUID, despite its name, often used by firmwares as an arbitrary
+// string, uniquely identifying the job, but lacking the correct UUID
+// syntax. So JobUUID is defined as string, not uuid.UUID.
 type JobInfo struct {
-	JobURI           string                      // Unique Job URI, that identifies the job
-	JobUUID          optional.Val[uuid.UUID]     // Unique, persistent
+	JobURI           string                      // Base URL for the job
+	JobUUID          optional.Val[string]        // Unique, persistent
 	Age              optional.Val[time.Duration] // Time since last update
 	ImagesCompleted  optional.Val[int]           // Images completed so far
 	ImagesToTransfer optional.Val[int]           // Images to transfer
@@ -55,14 +57,7 @@ func decodeJobInfo(root xmldoc.Element) (info JobInfo, err error) {
 	info.JobURI = jobURI.Elem.Text
 
 	if jobUUID.Found {
-		var uu uuid.UUID
-		uu, err = uuid.Parse(jobUUID.Elem.Text)
-		if err != nil {
-			err = fmt.Errorf("invalid UUID: %q", jobUUID.Elem.Text)
-			err = xmldoc.XMLErrWrap(jobUUID.Elem, err)
-			return
-		}
-		info.JobUUID = optional.New(uu)
+		info.JobUUID = optional.New(jobUUID.Elem.Text)
 	}
 
 	if age.Found {
@@ -129,7 +124,7 @@ func (info JobInfo) toXML(name string) xmldoc.Element {
 	if info.JobUUID != nil {
 		chld := xmldoc.Element{
 			Name: NsPWG + ":JobUuid",
-			Text: (*info.JobUUID).URN(),
+			Text: *info.JobUUID,
 		}
 		elm.Children = append(elm.Children, chld)
 	}

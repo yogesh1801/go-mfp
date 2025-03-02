@@ -15,7 +15,6 @@ import (
 	"time"
 
 	"github.com/alexpevzner/mfp/optional"
-	"github.com/alexpevzner/mfp/uuid"
 	"github.com/alexpevzner/mfp/xmldoc"
 )
 
@@ -23,7 +22,7 @@ import (
 // testJobInfo=JobInfo structure
 var testJobInfo = JobInfo{
 	JobURI:           "/eSCL/ScanJobs/urn:uuid:4509a320-00a0-008f-00b6-00559a327d32",
-	JobUUID:          optional.New(uuid.Must(uuid.Parse("4509a320-00a0-008f-00b6-00559a327d32"))),
+	JobUUID:          optional.New("urn:uuid:4509a320-00a0-008f-00b6-00559a327d32"),
 	Age:              optional.New(20 * time.Second),
 	ImagesCompleted:  optional.New(2),
 	ImagesToTransfer: optional.New(1),
@@ -121,17 +120,6 @@ func TestJobInfoDecodeErrors(t *testing.T) {
 					"/eSCL/ScanJobs/1"),
 			),
 			err: `/scan:JobInfo/pwg:JobState: missed`,
-		},
-
-		// Error in JobUUID
-		{
-			xml: xmldoc.WithChildren(NsScan+":JobInfo",
-				xmldoc.WithText(NsPWG+":JobUri",
-					"/eSCL/ScanJobs/1"),
-				JobProcessing.toXML(NsPWG+":JobState"),
-				xmldoc.WithText(NsPWG+":JobUuid", "bad"),
-			),
-			err: `/scan:JobInfo/pwg:JobUuid: invalid UUID: "bad"`,
 		},
 
 		// Error in Age
