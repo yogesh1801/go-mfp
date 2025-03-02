@@ -54,7 +54,7 @@ func DecodeScannerStatus(root xmldoc.Element) (
 
 	if adfState.Found {
 		var s ADFState
-		s, err = decodeADFState(state.Elem)
+		s, err = decodeADFState(adfState.Elem)
 		if err != nil {
 			return
 		}
@@ -95,10 +95,12 @@ func (status ScannerStatus) ToXML() xmldoc.Element {
 	}
 
 	if status.Jobs != nil {
+		chld := xmldoc.Element{Name: NsScan + ":Jobs"}
 		for _, job := range status.Jobs {
-			chld := job.toXML(NsScan + ":JobInfo")
-			elm.Children = append(elm.Children, chld)
+			chld2 := job.toXML(NsScan + ":JobInfo")
+			chld.Children = append(chld.Children, chld2)
 		}
+		elm.Children = append(elm.Children, chld)
 	}
 
 	return elm
