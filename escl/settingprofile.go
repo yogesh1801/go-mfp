@@ -18,6 +18,7 @@ import (
 // eSCL Technical Specification, 8.1.2.
 type SettingProfile struct {
 	ColorModes           []ColorMode          // Supported color modes
+	ContentTypes         []ContentType        // Supported content types
 	DocumentFormats      []string             // MIME types of supported formats
 	DocumentFormatsExt   []string             // eSCL 2.1+
 	SupportedResolutions SupportedResolutions // Supported resolutions
@@ -34,6 +35,7 @@ func decodeSettingProfile(root xmldoc.Element) (
 
 	// Lookup relevant XML elements
 	colormodes := xmldoc.Lookup{Name: NsScan + ":ColorModes"}
+	contenttypes := xmldoc.Lookup{Name: NsScan + ":ContentTypes"}
 	formats := xmldoc.Lookup{Name: NsScan + ":DocumentFormats"}
 	resolutions := xmldoc.Lookup{Name: NsScan + ":SupportedResolutions",
 		Required: true}
@@ -41,8 +43,8 @@ func decodeSettingProfile(root xmldoc.Element) (
 	ccdChannels := xmldoc.Lookup{Name: NsScan + ":CcdChannels"}
 	binrend := xmldoc.Lookup{Name: NsScan + ":BinaryRenderings"}
 
-	missed := root.Lookup(&colormodes, &formats, &resolutions,
-		&clrSpaces, &ccdChannels, &binrend)
+	missed := root.Lookup(&colormodes, &contenttypes, &formats,
+		&resolutions, &clrSpaces, &ccdChannels, &binrend)
 	if missed != nil {
 		err = xmldoc.XMLErrMissed(missed.Name)
 		return
@@ -61,6 +63,23 @@ func decodeSettingProfile(root xmldoc.Element) (
 				}
 
 				prof.ColorModes = append(prof.ColorModes, cm)
+			}
+		}
+	}
+
+	if contenttypes.Found {
+		for _, elem := range contenttypes.Elem.Children {
+			if elem.Name == NsScan+":ContentType" {
+				var ct ContentType
+				ct, err = decodeContentType(elem)
+				if err != nil {
+					err = xmldoc.XMLErrWrap(
+						contenttypes.Elem, err)
+					return
+				}
+
+				prof.ContentTypes = append(
+					prof.ContentTypes, ct)
 			}
 		}
 	}
@@ -145,6 +164,15 @@ func (prof SettingProfile) toXML(name string) xmldoc.Element {
 		chld = xmldoc.Element{Name: NsScan + ":ColorModes"}
 		for _, cm := range prof.ColorModes {
 			chld2 := cm.toXML(NsScan + ":ColorMode")
+			chld.Children = append(chld.Children, chld2)
+		}
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if prof.ContentTypes != nil {
+		chld = xmldoc.Element{Name: NsScan + ":ContentTypes"}
+		for _, ct := range prof.ContentTypes {
+			chld2 := ct.toXML(NsScan + ":ContentType")
 			chld.Children = append(chld.Children, chld2)
 		}
 		elm.Children = append(elm.Children, chld)

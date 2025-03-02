@@ -22,6 +22,9 @@ var testSettingProfile = SettingProfile{
 	ColorModes: []ColorMode{
 		Grayscale8, RGB24,
 	},
+	ContentTypes: []ContentType{
+		ContentTypePhoto, ContentTypeText, ContentTypeTextAndPhoto,
+	},
 	DocumentFormats: []string{
 		"image/jpeg", "application/pdf",
 	},
@@ -55,6 +58,11 @@ func TestSettingProfile(t *testing.T) {
 				xmldoc.WithChildren(NsScan+":ColorModes",
 					Grayscale8.toXML(NsScan+":ColorMode"),
 					RGB24.toXML(NsScan+":ColorMode"),
+				),
+				xmldoc.WithChildren(NsScan+":ContentTypes",
+					ContentTypePhoto.toXML(NsScan+":ContentType"),
+					ContentTypeText.toXML(NsScan+":ContentType"),
+					ContentTypeTextAndPhoto.toXML(NsScan+":ContentType"),
 				),
 				xmldoc.WithChildren(NsScan+":DocumentFormats",
 					xmldoc.WithText(NsPWG+":DocumentFormat",
@@ -184,6 +192,18 @@ func TestSettingProfileDecodeErrors(t *testing.T) {
 				res.toXML(NsScan+":SupportedResolutions"),
 			),
 			err: `/scan:SettingProfile/scan:ColorModes/scan:ColorMode: invalid ColorMode: "Unknown"`,
+		},
+
+		// Error in ContentType
+		{
+			xml: xmldoc.WithChildren(NsScan+":SettingProfile",
+				xmldoc.WithChildren(NsScan+":ContentTypes",
+					xmldoc.WithText(NsScan+":ContentType",
+						"Unknown"),
+				),
+				res.toXML(NsScan+":SupportedResolutions"),
+			),
+			err: `/scan:SettingProfile/scan:ContentTypes/scan:ContentType: invalid ContentType: "Unknown"`,
 		},
 
 		// Error in ColorSpaces
