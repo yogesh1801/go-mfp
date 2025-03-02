@@ -60,9 +60,9 @@ func TestSettingProfile(t *testing.T) {
 					RGB24.toXML(NsScan+":ColorMode"),
 				),
 				xmldoc.WithChildren(NsScan+":ContentTypes",
-					ContentTypePhoto.toXML(NsScan+":ContentType"),
-					ContentTypeText.toXML(NsScan+":ContentType"),
-					ContentTypeTextAndPhoto.toXML(NsScan+":ContentType"),
+					ContentTypePhoto.toXML(NsPWG+":ContentType"),
+					ContentTypeText.toXML(NsPWG+":ContentType"),
+					ContentTypeTextAndPhoto.toXML(NsPWG+":ContentType"),
 				),
 				xmldoc.WithChildren(NsScan+":DocumentFormats",
 					xmldoc.WithText(NsPWG+":DocumentFormat",
@@ -198,12 +198,12 @@ func TestSettingProfileDecodeErrors(t *testing.T) {
 		{
 			xml: xmldoc.WithChildren(NsScan+":SettingProfile",
 				xmldoc.WithChildren(NsScan+":ContentTypes",
-					xmldoc.WithText(NsScan+":ContentType",
+					xmldoc.WithText(NsPWG+":ContentType",
 						"Unknown"),
 				),
 				res.toXML(NsScan+":SupportedResolutions"),
 			),
-			err: `/scan:SettingProfile/scan:ContentTypes/scan:ContentType: invalid ContentType: "Unknown"`,
+			err: `/scan:SettingProfile/scan:ContentTypes/pwg:ContentType: invalid ContentType: "Unknown"`,
 		},
 
 		// Error in ColorSpaces

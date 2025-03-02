@@ -69,7 +69,7 @@ func decodeSettingProfile(root xmldoc.Element) (
 
 	if contenttypes.Found {
 		for _, elem := range contenttypes.Elem.Children {
-			if elem.Name == NsScan+":ContentType" {
+			if elem.Name == NsPWG+":ContentType" {
 				var ct ContentType
 				ct, err = decodeContentType(elem)
 				if err != nil {
@@ -172,7 +172,7 @@ func (prof SettingProfile) toXML(name string) xmldoc.Element {
 	if prof.ContentTypes != nil {
 		chld = xmldoc.Element{Name: NsScan + ":ContentTypes"}
 		for _, ct := range prof.ContentTypes {
-			chld2 := ct.toXML(NsScan + ":ContentType")
+			chld2 := ct.toXML(NsPWG + ":ContentType")
 			chld.Children = append(chld.Children, chld2)
 		}
 		elm.Children = append(elm.Children, chld)
