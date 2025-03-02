@@ -320,3 +320,219 @@ func TestKyoceraECOSYSM2040dnScannerStatus(t *testing.T) {
 			expected, status)
 	}
 }
+
+// TestHPLaserJetM426fdnScannerCapabilities tests ScannerCapabilities decoding
+// for the HP LaserJet M426fdn
+func TestHPLaserJetM426fdnScannerCapabilities(t *testing.T) {
+	// Parse XML
+	data := bytes.NewReader(testutils.
+		HP.LaserJet.M426fdn.ESCL.ScannerCapabilities)
+	xml, err := xmldoc.Decode(NsMap, data)
+	if err != nil {
+		panic(err)
+	}
+
+	// Decode ScannerCapabilities
+	scancaps, err := DecodeScannerCapabilities(xml)
+	if err != nil {
+		t.Errorf("%s", err)
+		return
+	}
+
+	// Verify ScannerCapabilities
+	expected := ScannerCapabilities{
+		Version:      MakeVersion(2, 5),
+		MakeAndModel: optional.New("HP LaserJet MFP M426fdn"),
+		SerialNumber: optional.New("PHBLL6F5GB"),
+		Platen: &Platen{
+			PlatenInputCaps: &InputSourceCaps{
+				MinWidth:       576,
+				MaxWidth:       2550,
+				MinHeight:      576,
+				MaxHeight:      3508,
+				MaxScanRegions: optional.New(1),
+				SupportedIntents: []Intent{
+					Document,
+					Photo,
+					Preview,
+					TextAndGraphic,
+				},
+				MaxOpticalXResolution: optional.New(1200),
+				MaxOpticalYResolution: optional.New(1200),
+				SettingProfiles: []SettingProfile{
+					SettingProfile{
+						ColorModes: []ColorMode{
+							RGB24,
+							Grayscale8,
+						},
+						ContentTypes: []ContentType{
+							ContentTypePhoto,
+							ContentTypeText,
+							ContentTypeTextAndPhoto,
+						},
+						DocumentFormats: []string{
+							"image/jpeg",
+							"application/pdf",
+						},
+						DocumentFormatsExt: []string{
+							"image/jpeg",
+							"application/pdf",
+						},
+						SupportedResolutions: SupportedResolutions{
+							DiscreteResolutions: DiscreteResolutions{
+								DiscreteResolution{
+									XResolution: 75,
+									YResolution: 75,
+								},
+								DiscreteResolution{
+									XResolution: 200,
+									YResolution: 200,
+								},
+								DiscreteResolution{
+									XResolution: 300,
+									YResolution: 300,
+								},
+								DiscreteResolution{
+									XResolution: 600,
+									YResolution: 600,
+								},
+								DiscreteResolution{
+									XResolution: 1200,
+									YResolution: 1200,
+								},
+							},
+						},
+						ColorSpaces: []ColorSpace{SRGB},
+					},
+				},
+			},
+		},
+		ADF: &ADF{
+			ADFSimplexInputCaps: &InputSourceCaps{
+				MinWidth:       576,
+				MaxWidth:       2550,
+				MinHeight:      576,
+				MaxHeight:      4500,
+				MaxScanRegions: optional.New(1),
+				SupportedIntents: []Intent{
+					Document,
+					Photo,
+					Preview,
+					TextAndGraphic,
+				},
+				MaxOpticalXResolution: optional.New(300),
+				MaxOpticalYResolution: optional.New(300),
+				SettingProfiles: []SettingProfile{
+					SettingProfile{
+						ColorModes: []ColorMode{
+							RGB24,
+							Grayscale8,
+						},
+						ContentTypes: []ContentType{
+							ContentTypePhoto,
+							ContentTypeText,
+							ContentTypeTextAndPhoto,
+						},
+						DocumentFormats: []string{
+							"image/jpeg",
+							"application/pdf",
+						},
+						DocumentFormatsExt: []string{
+							"image/jpeg",
+							"application/pdf",
+						},
+						SupportedResolutions: SupportedResolutions{
+							DiscreteResolutions: DiscreteResolutions{
+								DiscreteResolution{
+									XResolution: 75,
+									YResolution: 75,
+								},
+								DiscreteResolution{
+									XResolution: 200,
+									YResolution: 200,
+								},
+								DiscreteResolution{
+									XResolution: 300,
+									YResolution: 300,
+								},
+							},
+						},
+						ColorSpaces: []ColorSpace{SRGB},
+					},
+				},
+			},
+			ADFDuplexInputCaps: &InputSourceCaps{
+				MinWidth:       576,
+				MaxWidth:       2550,
+				MinHeight:      576,
+				MaxHeight:      4500,
+				MaxScanRegions: optional.New(1),
+				SupportedIntents: []Intent{
+					Document,
+					Photo,
+					Preview,
+					TextAndGraphic,
+				},
+				MaxOpticalXResolution: optional.New(300),
+				MaxOpticalYResolution: optional.New(300),
+				SettingProfiles: []SettingProfile{
+					SettingProfile{
+						ColorModes: []ColorMode{
+							RGB24,
+							Grayscale8,
+						},
+						ContentTypes: []ContentType{
+							ContentTypePhoto,
+							ContentTypeText,
+							ContentTypeTextAndPhoto,
+						},
+						DocumentFormats: []string{
+							"image/jpeg",
+							"application/pdf",
+						},
+						DocumentFormatsExt: []string{
+							"image/jpeg",
+							"application/pdf",
+						},
+						SupportedResolutions: SupportedResolutions{
+							DiscreteResolutions: DiscreteResolutions{
+								DiscreteResolution{
+									XResolution: 75,
+									YResolution: 75,
+								},
+								DiscreteResolution{
+									XResolution: 200,
+									YResolution: 200,
+								},
+								DiscreteResolution{
+									XResolution: 300,
+									YResolution: 300,
+								},
+							},
+						},
+						ColorSpaces: []ColorSpace{SRGB},
+					},
+				},
+			},
+			FeederCapacity: optional.New(50),
+			ADFOptions: []ADFOption{
+				DetectPaperLoaded,
+				Duplex,
+				SelectSinglePage,
+			},
+		},
+		ContrastSupport: &Range{
+			Min:    -127,
+			Max:    127,
+			Normal: 0,
+			Step:   optional.New(1),
+		},
+	}
+
+	if !reflect.DeepEqual(scancaps, expected) {
+		t.Errorf("decoded data mismatch:\n"+
+			"expected: %#v\n"+
+			"present:  %#v\n",
+			expected, scancaps)
+	}
+}
