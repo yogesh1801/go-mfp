@@ -12,10 +12,10 @@ import "github.com/alexpevzner/mfp/optional"
 
 // ScanRegion defines the desired scan region
 type ScanRegion struct {
-	XOffset   int                // Horizontal offset, 0-based
-	YOffset   int                // Vertical offset, 0-based
-	Width     int                // Region width
-	Height    int                // Region height
-	Units     Units              // Always ThreeHundredthsOfInches
-	MustHonor optional.Val[bool] // Must override edge detection
+	XOffset            int                // Horizontal offset, 0-based
+	YOffset            int                // Vertical offset, 0-based
+	Width              int                // Region width
+	Height             int                // Region height
+	ContentRegionUnits Units              // Always ThreeHundredthsOfInches
+	MustHonor          optional.Val[bool] // Must override edge detection
 }
