@@ -13,7 +13,7 @@ import (
 	"testing"
 
 	"github.com/OpenPrinting/goipp"
-	"github.com/alexpevzner/mfp/testutils"
+	"github.com/alexpevzner/mfp/internal/testutils"
 )
 
 func TestKyoceraM2040dnPrinterAttributes(t *testing.T) {

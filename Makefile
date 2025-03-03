@@ -8,7 +8,6 @@ SUBDIRS	= \
 	ipp \
 	log \
 	optional \
-	testutils \
 	transport \
 	uuid \
 	wsd \

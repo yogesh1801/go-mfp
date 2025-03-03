@@ -14,8 +14,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/alexpevzner/mfp/internal/testutils"
 	"github.com/alexpevzner/mfp/optional"
-	"github.com/alexpevzner/mfp/testutils"
 	"github.com/alexpevzner/mfp/uuid"
 	"github.com/alexpevzner/mfp/xmldoc"
 )
