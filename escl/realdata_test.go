@@ -536,3 +536,56 @@ func TestHPLaserJetM426fdnScannerCapabilities(t *testing.T) {
 			expected, scancaps)
 	}
 }
+
+// TestHPLaserJetM426fdnScannerStatus tests ScannerStatus decoding
+// for the HP LaserJet M426fdn
+func TestHPLaserJetM426fdnScannerStatus(t *testing.T) {
+	// Parse XML
+	data := bytes.NewReader(testutils.
+		HP.LaserJet.M426fdn.ESCL.ScannerStatus)
+	xml, err := xmldoc.Decode(NsMap, data)
+	if err != nil {
+		panic(err)
+	}
+
+	// Decode ScannerStatus
+	status, err := DecodeScannerStatus(xml)
+	if err != nil {
+		t.Errorf("%s", err)
+		return
+	}
+
+	// Verify ScannerStatus
+	expected := ScannerStatus{
+		Version:  MakeVersion(2, 5),
+		State:    ScannerIdle,
+		ADFState: optional.New(ScannerAdfEmpty),
+		Jobs: []JobInfo{
+			{
+				JobURI:           "/eSCL/ScanJobs/1005",
+				JobUUID:          optional.New("166-1005"),
+				Age:              optional.New(2 * time.Second),
+				ImagesCompleted:  optional.New(1),
+				ImagesToTransfer: optional.New(0),
+				JobState:         JobCompleted,
+				JobStateReasons:  []JobStateReason{JobCompletedSuccessfully},
+			},
+			{
+				JobURI:           "/eSCL/ScanJobs/1004",
+				JobUUID:          optional.New("166-1004"),
+				Age:              optional.New(50 * time.Second),
+				ImagesCompleted:  optional.New(1),
+				ImagesToTransfer: optional.New(0),
+				JobState:         JobCompleted,
+				JobStateReasons:  []JobStateReason{JobCompletedSuccessfully},
+			},
+		},
+	}
+
+	if !reflect.DeepEqual(status, expected) {
+		t.Errorf("decoded data mismatch:\n"+
+			"expected: %#v\n"+
+			"present:  %#v\n",
+			expected, status)
+	}
+}
