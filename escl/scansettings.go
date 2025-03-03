@@ -19,7 +19,7 @@ type ScanSettings struct {
 
 	// General parameters
 	Intent            optional.Val[Intent]          // Scan intent
-	ScanRegioons      []ScanRegion                  // List of scan regions
+	ScanRegions       []ScanRegion                  // List of scan regions
 	DocumentFormat    optional.Val[string]          // Image fmt (MIME type)
 	DocumentFormatExt optional.Val[string]          // Image fmt, eSCL 2.1+
 	ContentType       optional.Val[ContentType]     // Content type
