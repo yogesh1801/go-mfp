@@ -17,7 +17,7 @@ import (
 
 	"github.com/alexpevzner/mfp/argv"
 	"github.com/alexpevzner/mfp/cmd"
-	"github.com/alexpevzner/mfp/env"
+	"github.com/alexpevzner/mfp/internal/env"
 	"github.com/peterh/liner"
 )
 

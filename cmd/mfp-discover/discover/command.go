@@ -16,7 +16,7 @@ import (
 	"github.com/alexpevzner/mfp/discovery"
 	"github.com/alexpevzner/mfp/discovery/dnssd"
 	"github.com/alexpevzner/mfp/discovery/wsdd"
-	"github.com/alexpevzner/mfp/env"
+	"github.com/alexpevzner/mfp/internal/env"
 	"github.com/alexpevzner/mfp/log"
 )
 

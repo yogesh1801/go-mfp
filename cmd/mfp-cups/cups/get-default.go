@@ -13,7 +13,7 @@ import (
 
 	"github.com/alexpevzner/mfp/argv"
 	"github.com/alexpevzner/mfp/cups"
-	"github.com/alexpevzner/mfp/env"
+	"github.com/alexpevzner/mfp/internal/env"
 )
 
 // cmdGetDefault defines the "get-default" sub-command

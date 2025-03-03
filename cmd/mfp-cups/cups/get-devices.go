@@ -13,7 +13,7 @@ import (
 
 	"github.com/alexpevzner/mfp/argv"
 	"github.com/alexpevzner/mfp/cups"
-	"github.com/alexpevzner/mfp/env"
+	"github.com/alexpevzner/mfp/internal/env"
 )
 
 // cmdGetPrinters defines the "get-printers" sub-command.

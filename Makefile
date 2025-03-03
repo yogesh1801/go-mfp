@@ -2,7 +2,6 @@ SUBDIRS	= \
 	cmd \
 	cups \
 	discovery \
-	env \
 	escl \
 	internal \
 	ipp \
