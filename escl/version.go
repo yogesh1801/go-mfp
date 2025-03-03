@@ -16,18 +16,42 @@ import (
 	"github.com/alexpevzner/mfp/xmldoc"
 )
 
-// Version represents a protocol version using the following encoding:
+// Version represents the eSCL protocol version.
 //
-// [byte 2][byte 2][byte 1][byte 0]
-// [     major    ][     minor    ]
+// eSCL uses the following syntax for version "2.85" and it should be
+// interpreted as a decimal fraction. Hence, 2.35 is greater that 2.3
+// and less that 2.4
+//
+// We use the following representation:
+//
+//	[byte 2][byte 2][byte 1][byte 0]
+//	[     major    ][     minor    ]
+//
+// The minor part is normalized to fit the 0...9999 rage
 type Version uint32
 
 // MakeVersion makes a [Version] from bajor and minor parts, i.e.:
 //
-//	v := MakeVersion(2,0)
+//	MakeVersion(2,0)   -> "2.0"
+//	MakeVersion(2,12)  -> "2.12"
+//	MakeVersion(2,123) -> "2.123"
 func MakeVersion(major, minor int) Version {
+	switch {
+	case minor < 10:
+		minor *= 1000
+	case minor < 100:
+		minor *= 100
+	case minor < 1000:
+		minor *= 10
+	default:
+		for minor >= 10000 {
+			minor /= 10
+		}
+	}
+
 	ver := Version(major<<16) & 0xffff0000
 	ver += Version(minor & 0xffff)
+
 	return ver
 }
 
@@ -48,6 +72,10 @@ func DecodeVersion(s string) (Version, error) {
 
 	minor, err = strconv.ParseUint(s[dot+1:], 10, 16)
 	if err != nil {
+		goto ERROR
+	}
+
+	if minor >= 10000 {
 		goto ERROR
 	}
 
@@ -81,7 +109,13 @@ func (ver Version) Major() int {
 
 // Minor returns minor part of the [Version]
 func (ver Version) Minor() int {
-	return int(ver & 0xffff)
+	minor := int(ver & 0xffff)
+	if minor != 0 {
+		for minor%10 == 0 {
+			minor /= 10
+		}
+	}
+	return minor
 }
 
 // String returns string representation of the [Version] (e.g., "2.0")

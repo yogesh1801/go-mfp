@@ -17,12 +17,16 @@ import (
 func TestMakeVersion(t *testing.T) {
 	type testData struct {
 		major, minor int
-		ver          Version
+		ver          string
 	}
 
 	tests := []testData{
-		{2, 0, 2<<16 | 0},
-		{1, 5, 1<<16 | 5},
+		{2, 0, "2.0"},
+		{1, 5, "1.5"},
+		{2, 1, "2.1"},
+		{2, 12, "2.12"},
+		{2, 123, "2.123"},
+		{2, 1234, "2.1234"},
 	}
 
 	for _, test := range tests {
@@ -32,9 +36,9 @@ func TestMakeVersion(t *testing.T) {
 		major := ver.Major()
 		minor := ver.Minor()
 
-		if ver != test.ver {
-			t.Errorf("%q: version expected 0x%.8x, present 0x%.8x",
-				name, uint32(test.ver), uint32(ver))
+		if ver.String() != test.ver {
+			t.Errorf("%q: version expected %s, present %s",
+				name, test.ver, ver)
 		}
 
 		if major != test.major {
@@ -59,6 +63,11 @@ func TestVersionString(t *testing.T) {
 	tests := []testData{
 		{MakeVersion(1, 2), "1.2"},
 		{MakeVersion(2, 0), "2.0"},
+		{MakeVersion(2, 1), "2.1"},
+		{MakeVersion(2, 12), "2.12"},
+		{MakeVersion(2, 123), "2.123"},
+		{MakeVersion(2, 1234), "2.1234"},
+		{MakeVersion(2, 12345), "2.1234"},
 	}
 
 	for _, test := range tests {
@@ -67,7 +76,7 @@ func TestVersionString(t *testing.T) {
 
 		s := test.ver.String()
 		if s != test.s {
-			t.Errorf("%q: expected %q, presenr %q",
+			t.Errorf("%q: expected %q, present %q",
 				name, test.s, s)
 		}
 	}
@@ -87,6 +96,7 @@ func TestDecodeVersion(t *testing.T) {
 		{"2.", 0, `"2.": invalid eSCL version`},
 		{".0", 0, `".0": invalid eSCL version`},
 		{"2.0a", 0, `"2.0a": invalid eSCL version`},
+		{"2.12345", 0, `"2.12345": invalid eSCL version`},
 	}
 
 	for _, test := range tests {
