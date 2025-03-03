@@ -24,13 +24,14 @@ import (
 // string, uniquely identifying the job, but lacking the correct UUID
 // syntax. So JobUUID is defined as string, not uuid.UUID.
 type JobInfo struct {
-	JobURI           string                      // Base URL for the job
-	JobUUID          optional.Val[string]        // Unique, persistent
-	Age              optional.Val[time.Duration] // Time since last update
-	ImagesCompleted  optional.Val[int]           // Images completed so far
-	ImagesToTransfer optional.Val[int]           // Images to transfer
-	JobState         JobState                    // Job state
-	JobStateReasons  []JobStateReason            // Reason of the job state
+	JobURI             string                      // Base URL for the job
+	JobUUID            optional.Val[string]        // Unique, persistent
+	Age                optional.Val[time.Duration] // Time since last update
+	ImagesCompleted    optional.Val[int]           // Images now completed
+	ImagesToTransfer   optional.Val[int]           // Images yet to transfer
+	TransferRetryCount optional.Val[int]           // Load retries for now
+	JobState           JobState                    // Job state
+	JobStateReasons    []JobStateReason            // Reason of the state
 }
 
 // decodeJobInfo decodes [JobInfo] from the XML tree.
@@ -43,11 +44,12 @@ func decodeJobInfo(root xmldoc.Element) (info JobInfo, err error) {
 	age := xmldoc.Lookup{Name: NsScan + ":Age"}
 	compl := xmldoc.Lookup{Name: NsPWG + ":ImagesCompleted"}
 	xfer := xmldoc.Lookup{Name: NsPWG + ":ImagesToTransfer"}
+	retry := xmldoc.Lookup{Name: NsScan + ":TransferRetryCount"}
 	state := xmldoc.Lookup{Name: NsPWG + ":JobState", Required: true}
 	reasons := xmldoc.Lookup{Name: NsPWG + ":JobStateReasons"}
 
 	missed := root.Lookup(&jobURI, &jobUUID, &age, &compl, &xfer,
-		&state, &reasons)
+		&retry, &state, &reasons)
 	if missed != nil {
 		err = xmldoc.XMLErrMissed(missed.Name)
 		return
@@ -85,6 +87,15 @@ func decodeJobInfo(root xmldoc.Element) (info JobInfo, err error) {
 			return
 		}
 		info.ImagesToTransfer = optional.New(v)
+	}
+
+	if retry.Found {
+		var v int
+		v, err = decodeNonNegativeInt(retry.Elem)
+		if err != nil {
+			return
+		}
+		info.TransferRetryCount = optional.New(v)
 	}
 
 	info.JobState, err = decodeJobState(state.Elem)
@@ -153,6 +164,14 @@ func (info JobInfo) toXML(name string) xmldoc.Element {
 		chld := xmldoc.Element{
 			Name: NsPWG + ":ImagesToTransfer",
 			Text: strconv.Itoa(*info.ImagesToTransfer),
+		}
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if info.TransferRetryCount != nil {
+		chld := xmldoc.Element{
+			Name: NsScan + ":TransferRetryCount",
+			Text: strconv.Itoa(*info.TransferRetryCount),
 		}
 		elm.Children = append(elm.Children, chld)
 	}

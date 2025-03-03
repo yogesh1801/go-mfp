@@ -155,6 +155,17 @@ func TestJobInfoDecodeErrors(t *testing.T) {
 			err: `/scan:JobInfo/pwg:ImagesToTransfer: invalid int: "bad"`,
 		},
 
+		// Error in TransferRetryCount
+		{
+			xml: xmldoc.WithChildren(NsScan+":JobInfo",
+				xmldoc.WithText(NsPWG+":JobUri",
+					"/eSCL/ScanJobs/1"),
+				JobProcessing.toXML(NsPWG+":JobState"),
+				xmldoc.WithText(NsScan+":TransferRetryCount", "bad"),
+			),
+			err: `/scan:JobInfo/scan:TransferRetryCount: invalid int: "bad"`,
+		},
+
 		// Error in JobState
 		{
 			xml: xmldoc.WithChildren(NsScan+":JobInfo",
