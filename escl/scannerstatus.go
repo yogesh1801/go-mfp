@@ -16,6 +16,8 @@ import (
 // ScannerStatus represents the scanner status.
 //
 // eSCL Technical Specification, 9.
+//
+// GET /{root}/ScannerStatus
 type ScannerStatus struct {
 	Version  Version                // eSCL protocol version
 	State    ScannerState           // Overall scanner state

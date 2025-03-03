@@ -20,6 +20,8 @@ import (
 // ScannerCapabilities defines the scanner capabilities.
 //
 // eSCL Technical Specification, 8.1.4.
+//
+// GET /{root}/ScannerCapabilities
 type ScannerCapabilities struct {
 	// General options
 	Version         Version                 // eSCL protocol version
