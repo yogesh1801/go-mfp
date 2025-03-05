@@ -129,7 +129,256 @@ func TestScanSettingsDecodeErrors(t *testing.T) {
 		err string
 	}
 
-	tests := []testData{}
+	tests := []testData{
+		{
+			// Missed required elements
+			xml: xmldoc.WithChildren(
+				NsScan + ":ScanSettings",
+			),
+			err: `/scan:ScanSettings/pwg:Version: missed`,
+		},
+
+		{
+			// Invalid Version
+			xml: xmldoc.WithChildren(
+				NsScan+":ScanSettings",
+				xmldoc.WithText(NsPWG+":Version", "bad"),
+			),
+			err: `/scan:ScanSettings/pwg:Version: "bad": invalid eSCL version`,
+		},
+
+		{
+			// Invalid Intent
+			xml: xmldoc.WithChildren(
+				NsScan+":ScanSettings",
+				xmldoc.WithText(NsPWG+":Version", "2.0"),
+				xmldoc.WithText(NsScan+":Intent", "bad"),
+			),
+			err: `/scan:ScanSettings/scan:Intent: invalid Intent: "bad"`,
+		},
+
+		{
+			// Invalid ScanRegions
+			xml: xmldoc.WithChildren(
+				NsScan+":ScanSettings",
+				xmldoc.WithText(NsPWG+":Version", "2.0"),
+				xmldoc.WithChildren(NsPWG+":ScanRegions",
+					xmldoc.WithText(NsPWG+":ScanRegion", "bad"),
+				),
+			),
+			err: `/scan:ScanSettings/pwg:ScanRegions/pwg:ScanRegion/pwg:XOffset: missed`,
+		},
+
+		{
+			// Invalid ContentType
+			xml: xmldoc.WithChildren(
+				NsScan+":ScanSettings",
+				xmldoc.WithText(NsPWG+":Version", "2.0"),
+				xmldoc.WithText(NsPWG+":ContentType", "bad"),
+			),
+			err: `/scan:ScanSettings/pwg:ContentType: invalid ContentType: "bad"`,
+		},
+
+		{
+			// Invalid InputSource
+			xml: xmldoc.WithChildren(
+				NsScan+":ScanSettings",
+				xmldoc.WithText(NsPWG+":Version", "2.0"),
+				xmldoc.WithText(NsPWG+":InputSource", "bad"),
+			),
+			err: `/scan:ScanSettings/pwg:InputSource: invalid InputSource: "bad"`,
+		},
+
+		{
+			// Invalid XResolution
+			xml: xmldoc.WithChildren(
+				NsScan+":ScanSettings",
+				xmldoc.WithText(NsPWG+":Version", "2.0"),
+				xmldoc.WithText(NsScan+":XResolution", "bad"),
+			),
+			err: `/scan:ScanSettings/scan:XResolution: invalid int: "bad"`,
+		},
+
+		{
+			// Invalid YResolution
+			xml: xmldoc.WithChildren(
+				NsScan+":ScanSettings",
+				xmldoc.WithText(NsPWG+":Version", "2.0"),
+				xmldoc.WithText(NsScan+":YResolution", "bad"),
+			),
+			err: `/scan:ScanSettings/scan:YResolution: invalid int: "bad"`,
+		},
+
+		{
+			// Invalid ColorMode
+			xml: xmldoc.WithChildren(
+				NsScan+":ScanSettings",
+				xmldoc.WithText(NsPWG+":Version", "2.0"),
+				xmldoc.WithText(NsScan+":ColorMode", "bad"),
+			),
+			err: `/scan:ScanSettings/scan:ColorMode: invalid ColorMode: "bad"`,
+		},
+
+		{
+			// Invalid ColorSpace
+			xml: xmldoc.WithChildren(
+				NsScan+":ScanSettings",
+				xmldoc.WithText(NsPWG+":Version", "2.0"),
+				xmldoc.WithText(NsScan+":ColorSpace", "bad"),
+			),
+			err: `/scan:ScanSettings/scan:ColorSpace: invalid ColorSpace: "bad"`,
+		},
+
+		{
+			// Invalid CcdChannel
+			xml: xmldoc.WithChildren(
+				NsScan+":ScanSettings",
+				xmldoc.WithText(NsPWG+":Version", "2.0"),
+				xmldoc.WithText(NsScan+":CcdChannel", "bad"),
+			),
+			err: `/scan:ScanSettings/scan:CcdChannel: invalid CcdChannel: "bad"`,
+		},
+
+		{
+			// Invalid BinaryRendering
+			xml: xmldoc.WithChildren(
+				NsScan+":ScanSettings",
+				xmldoc.WithText(NsPWG+":Version", "2.0"),
+				xmldoc.WithText(NsScan+":BinaryRendering", "bad"),
+			),
+			err: `/scan:ScanSettings/scan:BinaryRendering: invalid BinaryRendering: "bad"`,
+		},
+
+		{
+			// Invalid Duplex
+			xml: xmldoc.WithChildren(
+				NsScan+":ScanSettings",
+				xmldoc.WithText(NsPWG+":Version", "2.0"),
+				xmldoc.WithText(NsScan+":Duplex", "bad"),
+			),
+			err: `/scan:ScanSettings/scan:Duplex: invalid bool: "bad"`,
+		},
+
+		{
+			// Invalid Duplex
+			xml: xmldoc.WithChildren(
+				NsScan+":ScanSettings",
+				xmldoc.WithText(NsPWG+":Version", "2.0"),
+				xmldoc.WithText(NsScan+":FeedDirection", "bad"),
+			),
+			err: `/scan:ScanSettings/scan:FeedDirection: invalid FeedDirection: "bad"`,
+		},
+
+		{
+			// Invalid Brightness
+			xml: xmldoc.WithChildren(
+				NsScan+":ScanSettings",
+				xmldoc.WithText(NsPWG+":Version", "2.0"),
+				xmldoc.WithText(NsScan+":Brightness", "bad"),
+			),
+			err: `/scan:ScanSettings/scan:Brightness: invalid int: "bad"`,
+		},
+
+		{
+			// Invalid CompressionFactor
+			xml: xmldoc.WithChildren(
+				NsScan+":ScanSettings",
+				xmldoc.WithText(NsPWG+":Version", "2.0"),
+				xmldoc.WithText(NsScan+":CompressionFactor", "bad"),
+			),
+			err: `/scan:ScanSettings/scan:CompressionFactor: invalid int: "bad"`,
+		},
+
+		{
+			// Invalid Contrast
+			xml: xmldoc.WithChildren(
+				NsScan+":ScanSettings",
+				xmldoc.WithText(NsPWG+":Version", "2.0"),
+				xmldoc.WithText(NsScan+":Contrast", "bad"),
+			),
+			err: `/scan:ScanSettings/scan:Contrast: invalid int: "bad"`,
+		},
+
+		{
+			// Invalid Gamma
+			xml: xmldoc.WithChildren(
+				NsScan+":ScanSettings",
+				xmldoc.WithText(NsPWG+":Version", "2.0"),
+				xmldoc.WithText(NsScan+":Gamma", "bad"),
+			),
+			err: `/scan:ScanSettings/scan:Gamma: invalid int: "bad"`,
+		},
+
+		{
+			// Invalid Highlight
+			xml: xmldoc.WithChildren(
+				NsScan+":ScanSettings",
+				xmldoc.WithText(NsPWG+":Version", "2.0"),
+				xmldoc.WithText(NsScan+":Highlight", "bad"),
+			),
+			err: `/scan:ScanSettings/scan:Highlight: invalid int: "bad"`,
+		},
+
+		{
+			// Invalid NoiseRemoval
+			xml: xmldoc.WithChildren(
+				NsScan+":ScanSettings",
+				xmldoc.WithText(NsPWG+":Version", "2.0"),
+				xmldoc.WithText(NsScan+":NoiseRemoval", "bad"),
+			),
+			err: `/scan:ScanSettings/scan:NoiseRemoval: invalid int: "bad"`,
+		},
+
+		{
+			// Invalid Shadow
+			xml: xmldoc.WithChildren(
+				NsScan+":ScanSettings",
+				xmldoc.WithText(NsPWG+":Version", "2.0"),
+				xmldoc.WithText(NsScan+":Shadow", "bad"),
+			),
+			err: `/scan:ScanSettings/scan:Shadow: invalid int: "bad"`,
+		},
+
+		{
+			// Invalid Sharpen
+			xml: xmldoc.WithChildren(
+				NsScan+":ScanSettings",
+				xmldoc.WithText(NsPWG+":Version", "2.0"),
+				xmldoc.WithText(NsScan+":Sharpen", "bad"),
+			),
+			err: `/scan:ScanSettings/scan:Sharpen: invalid int: "bad"`,
+		},
+
+		{
+			// Invalid Threshold
+			xml: xmldoc.WithChildren(
+				NsScan+":ScanSettings",
+				xmldoc.WithText(NsPWG+":Version", "2.0"),
+				xmldoc.WithText(NsScan+":Threshold", "bad"),
+			),
+			err: `/scan:ScanSettings/scan:Threshold: invalid int: "bad"`,
+		},
+
+		{
+			// Invalid BlankPageDetection
+			xml: xmldoc.WithChildren(
+				NsScan+":ScanSettings",
+				xmldoc.WithText(NsPWG+":Version", "2.0"),
+				xmldoc.WithText(NsScan+":BlankPageDetection", "bad"),
+			),
+			err: `/scan:ScanSettings/scan:BlankPageDetection: invalid bool: "bad"`,
+		},
+
+		{
+			// Invalid BlankPageDetectionAndRemoval
+			xml: xmldoc.WithChildren(
+				NsScan+":ScanSettings",
+				xmldoc.WithText(NsPWG+":Version", "2.0"),
+				xmldoc.WithText(NsScan+":BlankPageDetectionAndRemoval", "bad"),
+			),
+			err: `/scan:ScanSettings/scan:BlankPageDetectionAndRemoval: invalid bool: "bad"`,
+		},
+	}
 
 	for _, test := range tests {
 		_, err := DecodeScanSettings(test.xml)
