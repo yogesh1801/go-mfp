@@ -89,7 +89,7 @@ ERROR:
 func decodeVersion(root xmldoc.Element) (ver Version, err error) {
 	ver, err = DecodeVersion(root.Text)
 	if err != nil {
-		xmldoc.XMLErrWrap(root, err)
+		err = xmldoc.XMLErrWrap(root, err)
 	}
 	return
 }

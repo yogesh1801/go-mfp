@@ -195,7 +195,7 @@ func TestScannerCapabilitiesDecodeErrors(t *testing.T) {
 				NsScan+":ScannerCapabilities",
 				xmldoc.WithText(NsPWG+":Version", "bad"),
 			),
-			err: `/scan:ScannerCapabilities: "bad": invalid eSCL version`,
+			err: `/scan:ScannerCapabilities/pwg:Version: "bad": invalid eSCL version`,
 		},
 
 		{
@@ -204,7 +204,7 @@ func TestScannerCapabilitiesDecodeErrors(t *testing.T) {
 				xmldoc.WithText(NsPWG+":Version", "2.0"),
 				xmldoc.WithText(NsScan+":UUID", "bad"),
 			),
-			err: `/scan:ScannerCapabilities: invalid UUID: "bad"`,
+			err: `/scan:ScannerCapabilities/scan:UUID: invalid UUID: "bad"`,
 		},
 
 		{

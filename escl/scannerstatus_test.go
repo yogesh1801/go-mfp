@@ -138,7 +138,7 @@ func TestScannerStatusDecodeErrors(t *testing.T) {
 				xmldoc.WithText(NsPWG+":Version", "Bad"),
 				ScannerIdle.toXML(NsPWG+":State"),
 			),
-			err: `/scan:ScannerStatus: "Bad": invalid eSCL version`,
+			err: `/scan:ScannerStatus/pwg:Version: "Bad": invalid eSCL version`,
 		},
 
 		// Bad ScannerStatus.State

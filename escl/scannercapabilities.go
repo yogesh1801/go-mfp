@@ -120,6 +120,7 @@ func DecodeScannerCapabilities(root xmldoc.Element) (
 		u, err = uuid.Parse(uu.Elem.Text)
 		if err != nil {
 			err = fmt.Errorf("invalid UUID: %q", uu.Elem.Text)
+			err = xmldoc.XMLErrWrap(uu.Elem, err)
 			return
 		}
 
