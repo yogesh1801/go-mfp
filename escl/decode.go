@@ -15,6 +15,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/alexpevzner/mfp/util/optional"
 	"github.com/alexpevzner/mfp/util/xmldoc"
 )
 
@@ -127,4 +128,18 @@ func decodeEnum[T ~int](root xmldoc.Element,
 	err = xmldoc.XMLErrWrap(root, err)
 
 	return
+}
+
+// decodeOptional wraps decodeXXX function that decodes xmldoc.Element
+// into the value of type T, to decode xmldoc.Element into the optional
+// value of type optional.Val[T]
+func decodeOptional[T any](root xmldoc.Element,
+	decodeXXX func(xmldoc.Element) (T, error)) (optional.Val[T], error) {
+
+	v, err := decodeXXX(root)
+	if err != nil {
+		return nil, err
+	}
+
+	return optional.New(v), nil
 }
