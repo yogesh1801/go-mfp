@@ -9,6 +9,8 @@
 package escl
 
 import (
+	"strconv"
+
 	"github.com/alexpevzner/mfp/util/optional"
 	"github.com/alexpevzner/mfp/util/xmldoc"
 )
@@ -75,7 +77,7 @@ func DecodeScanSettings(root xmldoc.Element) (
 	input := xmldoc.Lookup{Name: NsPWG + ":InputSource"}
 	xres := xmldoc.Lookup{Name: NsScan + ":XResolution"}
 	yres := xmldoc.Lookup{Name: NsScan + ":YResolution"}
-	mode := xmldoc.Lookup{Name: NsScan + ":ColorSpace"}
+	mode := xmldoc.Lookup{Name: NsScan + ":ColorMode"}
 	space := xmldoc.Lookup{Name: NsScan + ":ColorSpace"}
 	ccd := xmldoc.Lookup{Name: NsScan + ":CcdChannel"}
 	binrend := xmldoc.Lookup{Name: NsScan + ":BinaryRendering"}
@@ -328,4 +330,161 @@ func DecodeScanSettings(root xmldoc.Element) (
 	}
 
 	return
+}
+
+// ToXML generates XML tree for the [ScanSettings].
+func (ss ScanSettings) ToXML() xmldoc.Element {
+	elm := xmldoc.Element{
+		Name: NsScan + ":ScanSettings",
+		Children: []xmldoc.Element{
+			ss.Version.toXML(NsPWG + ":Version"),
+		},
+	}
+
+	if ss.Intent != nil {
+		chld := (*ss.Intent).toXML(NsScan + ":Intent")
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if ss.ScanRegions != nil {
+		chld := xmldoc.Element{Name: NsPWG + ":ScanRegions"}
+		for _, reg := range ss.ScanRegions {
+			chld2 := reg.toXML(NsScan + ":ScanRegion")
+			chld.Children = append(chld.Children, chld2)
+		}
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if ss.DocumentFormat != nil {
+		chld := xmldoc.WithText(NsPWG+":DocumentFormat",
+			*ss.DocumentFormat)
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if ss.DocumentFormatExt != nil {
+		chld := xmldoc.WithText(NsScan+":DocumentFormatExt",
+			*ss.DocumentFormatExt)
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if ss.ContentType != nil {
+		chld := (*ss.ContentType).toXML(NsPWG + ":ContentType")
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if ss.InputSource != nil {
+		chld := (*ss.InputSource).toXML(NsPWG + ":InputSource")
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if ss.XResolution != nil {
+		chld := xmldoc.WithText(NsScan+":XResolution",
+			strconv.FormatUint(uint64(*ss.XResolution), 10))
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if ss.YResolution != nil {
+		chld := xmldoc.WithText(NsScan+":YResolution",
+			strconv.FormatUint(uint64(*ss.YResolution), 10))
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if ss.ColorMode != nil {
+		chld := (*ss.ColorMode).toXML(NsScan + ":ColorMode")
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if ss.ColorSpace != nil {
+		chld := (*ss.ColorSpace).toXML(NsScan + ":ColorSpace")
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if ss.CcdChannel != nil {
+		chld := (*ss.CcdChannel).toXML(NsScan + ":CcdChannel")
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if ss.BinaryRendering != nil {
+		chld := (*ss.BinaryRendering).toXML(NsScan + ":BinaryRendering")
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if ss.Duplex != nil {
+		chld := xmldoc.WithText(NsScan+":Duplex",
+			strconv.FormatBool(*ss.Duplex))
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if ss.FeedDirection != nil {
+		chld := (*ss.FeedDirection).toXML(NsScan + ":FeedDirection")
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if ss.Brightness != nil {
+		chld := xmldoc.WithText(NsScan+":Brightness",
+			strconv.FormatUint(uint64(*ss.Brightness), 10))
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if ss.CompressionFactor != nil {
+		chld := xmldoc.WithText(NsScan+":CompressionFactor",
+			strconv.FormatUint(uint64(*ss.CompressionFactor), 10))
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if ss.Contrast != nil {
+		chld := xmldoc.WithText(NsScan+":Contrast",
+			strconv.FormatUint(uint64(*ss.Contrast), 10))
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if ss.Gamma != nil {
+		chld := xmldoc.WithText(NsScan+":Gamma",
+			strconv.FormatUint(uint64(*ss.Gamma), 10))
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if ss.Highlight != nil {
+		chld := xmldoc.WithText(NsScan+":Highlight",
+			strconv.FormatUint(uint64(*ss.Highlight), 10))
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if ss.NoiseRemoval != nil {
+		chld := xmldoc.WithText(NsScan+":NoiseRemoval",
+			strconv.FormatUint(uint64(*ss.NoiseRemoval), 10))
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if ss.Shadow != nil {
+		chld := xmldoc.WithText(NsScan+":Shadow",
+			strconv.FormatUint(uint64(*ss.Shadow), 10))
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if ss.Sharpen != nil {
+		chld := xmldoc.WithText(NsScan+":Sharpen",
+			strconv.FormatUint(uint64(*ss.Sharpen), 10))
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if ss.Threshold != nil {
+		chld := xmldoc.WithText(NsScan+":Threshold",
+			strconv.FormatUint(uint64(*ss.Threshold), 10))
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if ss.BlankPageDetection != nil {
+		chld := xmldoc.WithText(NsScan+":BlankPageDetection",
+			strconv.FormatBool(*ss.BlankPageDetection))
+		elm.Children = append(elm.Children, chld)
+	}
+
+	if ss.BlankPageDetectionAndRemoval != nil {
+		chld := xmldoc.WithText(NsScan+":BlankPageDetectionAndRemoval",
+			strconv.FormatBool(*ss.BlankPageDetectionAndRemoval))
+		elm.Children = append(elm.Children, chld)
+	}
+
+	return elm
 }
