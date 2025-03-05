@@ -11,7 +11,7 @@ package wsd
 import (
 	"strings"
 
-	"github.com/alexpevzner/mfp/xmldoc"
+	"github.com/alexpevzner/mfp/util/xmldoc"
 )
 
 // LocalizedString represents a string with language

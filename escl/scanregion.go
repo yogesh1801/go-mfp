@@ -8,7 +8,7 @@
 
 package escl
 
-import "github.com/alexpevzner/mfp/optional"
+import "github.com/alexpevzner/mfp/util/optional"
 
 // ScanRegion defines the desired scan region
 type ScanRegion struct {

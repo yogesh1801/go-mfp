@@ -8,7 +8,7 @@
 
 package escl
 
-import "github.com/alexpevzner/mfp/optional"
+import "github.com/alexpevzner/mfp/util/optional"
 
 // ScanSettings defines the set of parameters for scan request.
 //

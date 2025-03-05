@@ -8,7 +8,7 @@
 
 package escl
 
-import "github.com/alexpevzner/mfp/xmldoc"
+import "github.com/alexpevzner/mfp/util/xmldoc"
 
 // ADFState represents the overall scanner state
 type ADFState int

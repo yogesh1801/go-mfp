@@ -8,7 +8,7 @@
 
 package escl
 
-import "github.com/alexpevzner/mfp/xmldoc"
+import "github.com/alexpevzner/mfp/util/xmldoc"
 
 // Justification specifies how the ADF justify the document.
 type Justification struct {

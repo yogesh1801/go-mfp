@@ -11,7 +11,7 @@ package escl
 import (
 	"fmt"
 
-	"github.com/alexpevzner/mfp/xmldoc"
+	"github.com/alexpevzner/mfp/util/xmldoc"
 )
 
 // JobStateReason accompanies the [JobState] and gives additional

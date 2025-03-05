@@ -13,7 +13,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/alexpevzner/mfp/xmldoc"
+	"github.com/alexpevzner/mfp/util/xmldoc"
 )
 
 // Version represents the eSCL protocol version.

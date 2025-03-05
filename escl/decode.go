@@ -15,7 +15,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/alexpevzner/mfp/xmldoc"
+	"github.com/alexpevzner/mfp/util/xmldoc"
 )
 
 // decodeInt decodes integer from the XML tree.

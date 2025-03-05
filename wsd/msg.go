@@ -14,7 +14,7 @@ import (
 	"net/netip"
 	"slices"
 
-	"github.com/alexpevzner/mfp/xmldoc"
+	"github.com/alexpevzner/mfp/util/xmldoc"
 )
 
 // Msg represents a WSD protocol message.

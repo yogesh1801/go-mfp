@@ -8,7 +8,7 @@
 
 package escl
 
-import "github.com/alexpevzner/mfp/xmldoc"
+import "github.com/alexpevzner/mfp/util/xmldoc"
 
 // ScannerState represents the overall scanner state
 type ScannerState int

@@ -9,7 +9,7 @@
 package escl
 
 import (
-	"github.com/alexpevzner/mfp/xmldoc"
+	"github.com/alexpevzner/mfp/util/xmldoc"
 )
 
 // ColorMode specifies combination of the color mode (color/grayscale/1-bit

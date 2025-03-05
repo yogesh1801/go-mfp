@@ -14,8 +14,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/alexpevzner/mfp/optional"
-	"github.com/alexpevzner/mfp/xmldoc"
+	"github.com/alexpevzner/mfp/util/optional"
+	"github.com/alexpevzner/mfp/util/xmldoc"
 )
 
 // testtestJobInfo=JobInfo contains example of the initialized

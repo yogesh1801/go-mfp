@@ -13,7 +13,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/alexpevzner/mfp/xmldoc"
+	"github.com/alexpevzner/mfp/util/xmldoc"
 )
 
 // TestResolveMatches tests ResolveMatches encoding and decoding

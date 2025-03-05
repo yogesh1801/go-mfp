@@ -12,7 +12,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/alexpevzner/mfp/xmldoc"
+	"github.com/alexpevzner/mfp/util/xmldoc"
 )
 
 func TestJobStateReason(t *testing.T) {

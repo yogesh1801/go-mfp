@@ -12,8 +12,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/alexpevzner/mfp/optional"
-	"github.com/alexpevzner/mfp/xmldoc"
+	"github.com/alexpevzner/mfp/util/optional"
+	"github.com/alexpevzner/mfp/util/xmldoc"
 )
 
 // SupportedResolutions defines the set of resolutions,

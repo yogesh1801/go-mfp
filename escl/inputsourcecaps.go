@@ -11,8 +11,8 @@ package escl
 import (
 	"strconv"
 
-	"github.com/alexpevzner/mfp/optional"
-	"github.com/alexpevzner/mfp/xmldoc"
+	"github.com/alexpevzner/mfp/util/optional"
+	"github.com/alexpevzner/mfp/util/xmldoc"
 )
 
 // InputSourceCaps specifies capabilities of each input source

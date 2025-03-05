@@ -8,7 +8,7 @@
 
 package escl
 
-import "github.com/alexpevzner/mfp/xmldoc"
+import "github.com/alexpevzner/mfp/util/xmldoc"
 
 // ContentType is similar to [Intent] but is limited to image processing.
 //

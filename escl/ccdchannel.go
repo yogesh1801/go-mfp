@@ -8,7 +8,7 @@
 
 package escl
 
-import "github.com/alexpevzner/mfp/xmldoc"
+import "github.com/alexpevzner/mfp/util/xmldoc"
 
 // CcdChannel specifies which CCD color channel to use for grayscale
 // and monochrome scannig.

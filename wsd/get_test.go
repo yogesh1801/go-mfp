@@ -11,7 +11,7 @@ package wsd
 import (
 	"testing"
 
-	"github.com/alexpevzner/mfp/xmldoc"
+	"github.com/alexpevzner/mfp/util/xmldoc"
 )
 
 // TestGet tests Get encoding and decoding

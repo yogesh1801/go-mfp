@@ -9,7 +9,7 @@
 package wsd
 
 import (
-	"github.com/alexpevzner/mfp/xmldoc"
+	"github.com/alexpevzner/mfp/util/xmldoc"
 )
 
 // EndpointReference represents a WSA endpoint address.

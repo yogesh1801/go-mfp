@@ -18,7 +18,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/alexpevzner/mfp/uuid"
+	"github.com/alexpevzner/mfp/util/uuid"
 	"github.com/alexpevzner/mfp/wsd"
 )
 

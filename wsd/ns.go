@@ -8,7 +8,7 @@
 
 package wsd
 
-import "github.com/alexpevzner/mfp/xmldoc"
+import "github.com/alexpevzner/mfp/util/xmldoc"
 
 // Namespace prefixes:
 const (

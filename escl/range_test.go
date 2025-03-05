@@ -12,8 +12,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/alexpevzner/mfp/optional"
-	"github.com/alexpevzner/mfp/xmldoc"
+	"github.com/alexpevzner/mfp/util/optional"
+	"github.com/alexpevzner/mfp/util/xmldoc"
 )
 
 // TestRange tests Range

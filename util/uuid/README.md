@@ -1,6 +1,6 @@
 # github.com/alexpevzner/mfp/uuid
 ```
-import "github.com/alexpevzner/mfp/uuid"
+import "github.com/alexpevzner/mfp/util/uuid"
 ```
 
 This package implements an UUID mini library.

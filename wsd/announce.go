@@ -11,7 +11,7 @@ package wsd
 import (
 	"strconv"
 
-	"github.com/alexpevzner/mfp/xmldoc"
+	"github.com/alexpevzner/mfp/util/xmldoc"
 )
 
 // Announce is the common data structure, used for the [Hello],

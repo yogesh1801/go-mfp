@@ -12,7 +12,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/alexpevzner/mfp/xmldoc"
+	"github.com/alexpevzner/mfp/util/xmldoc"
 )
 
 // XAddrs represents a collection of transport addresses (URLs)

@@ -13,7 +13,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/alexpevzner/mfp/xmldoc"
+	"github.com/alexpevzner/mfp/util/xmldoc"
 )
 
 // testSettingProfile contains example of the initialized

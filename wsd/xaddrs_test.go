@@ -12,7 +12,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/alexpevzner/mfp/xmldoc"
+	"github.com/alexpevzner/mfp/util/xmldoc"
 )
 
 // TestXAddrs tests XAddrs encoding and decoding

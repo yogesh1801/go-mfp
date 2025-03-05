@@ -12,7 +12,7 @@ import (
 	"net/netip"
 	"slices"
 
-	"github.com/alexpevzner/mfp/uuid"
+	"github.com/alexpevzner/mfp/util/uuid"
 )
 
 // Device consist of the multiple functional units. There are

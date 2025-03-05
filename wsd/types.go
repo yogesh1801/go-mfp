@@ -11,7 +11,7 @@ package wsd
 import (
 	"strings"
 
-	"github.com/alexpevzner/mfp/xmldoc"
+	"github.com/alexpevzner/mfp/util/xmldoc"
 )
 
 // Types represents set of device types, for discovery

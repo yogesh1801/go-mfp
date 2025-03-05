@@ -15,7 +15,7 @@ import (
 	"strings"
 
 	"github.com/alexpevzner/mfp/discovery"
-	"github.com/alexpevzner/mfp/uuid"
+	"github.com/alexpevzner/mfp/util/uuid"
 )
 
 // txtPrinter represents a decoded TXT record for printer

@@ -14,7 +14,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/alexpevzner/mfp/xmldoc"
+	"github.com/alexpevzner/mfp/util/xmldoc"
 )
 
 // testEnumType is the common interface of all enum-alike types

@@ -13,7 +13,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/alexpevzner/mfp/xmldoc"
+	"github.com/alexpevzner/mfp/util/xmldoc"
 )
 
 // TestTypes tests Types encoding and decoding

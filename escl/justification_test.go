@@ -13,7 +13,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/alexpevzner/mfp/xmldoc"
+	"github.com/alexpevzner/mfp/util/xmldoc"
 )
 
 // TestJustification tests [Justification] conversion to and from the XML

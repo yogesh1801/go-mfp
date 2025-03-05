@@ -8,7 +8,7 @@
 
 package escl
 
-import "github.com/alexpevzner/mfp/xmldoc"
+import "github.com/alexpevzner/mfp/util/xmldoc"
 
 // Intent represents a scan intent, which implies automatic
 // choosing of the appropriate scan parameters by the scanner.

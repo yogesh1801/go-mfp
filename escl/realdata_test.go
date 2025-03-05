@@ -15,9 +15,9 @@ import (
 	"time"
 
 	"github.com/alexpevzner/mfp/internal/testutils"
-	"github.com/alexpevzner/mfp/optional"
-	"github.com/alexpevzner/mfp/uuid"
-	"github.com/alexpevzner/mfp/xmldoc"
+	"github.com/alexpevzner/mfp/util/optional"
+	"github.com/alexpevzner/mfp/util/uuid"
+	"github.com/alexpevzner/mfp/util/xmldoc"
 )
 
 // TestKyoceraECOSYSM2040dnScannerCapabilities tests ScannerCapabilities decoding

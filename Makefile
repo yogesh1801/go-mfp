@@ -6,10 +6,8 @@ SUBDIRS	= \
 	internal \
 	ipp \
 	log \
-	optional \
 	transport \
-	uuid \
-	wsd \
-	xmldoc
+	util \
+	wsd
 
 include Rules.mak

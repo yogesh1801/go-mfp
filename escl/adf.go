@@ -11,8 +11,8 @@ package escl
 import (
 	"strconv"
 
-	"github.com/alexpevzner/mfp/optional"
-	"github.com/alexpevzner/mfp/xmldoc"
+	"github.com/alexpevzner/mfp/util/optional"
+	"github.com/alexpevzner/mfp/util/xmldoc"
 )
 
 // ADF contains scanner capabilities for the automated document feeder.

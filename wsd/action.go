@@ -8,7 +8,7 @@
 
 package wsd
 
-import "github.com/alexpevzner/mfp/xmldoc"
+import "github.com/alexpevzner/mfp/util/xmldoc"
 
 // Action represents a message action (or message type).
 //

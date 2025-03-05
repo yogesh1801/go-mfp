@@ -10,7 +10,7 @@ package escl
 
 import (
 	"github.com/alexpevzner/mfp/internal/generic"
-	"github.com/alexpevzner/mfp/xmldoc"
+	"github.com/alexpevzner/mfp/util/xmldoc"
 )
 
 // SettingProfile defines a valid combination of scanning parameters.

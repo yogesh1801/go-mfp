@@ -13,9 +13,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/alexpevzner/mfp/optional"
-	"github.com/alexpevzner/mfp/uuid"
-	"github.com/alexpevzner/mfp/xmldoc"
+	"github.com/alexpevzner/mfp/util/optional"
+	"github.com/alexpevzner/mfp/util/uuid"
+	"github.com/alexpevzner/mfp/util/xmldoc"
 )
 
 // testScannerCapabilities contains example of the initialized

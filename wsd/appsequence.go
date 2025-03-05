@@ -12,7 +12,7 @@ import (
 	"errors"
 	"strconv"
 
-	"github.com/alexpevzner/mfp/xmldoc"
+	"github.com/alexpevzner/mfp/util/xmldoc"
 )
 
 // AppSequence provides a mechanism that allows a receiver
