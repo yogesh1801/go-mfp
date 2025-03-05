@@ -21,13 +21,14 @@ import (
 // testtestJobInfo=JobInfo contains example of the initialized
 // testJobInfo=JobInfo structure
 var testJobInfo = JobInfo{
-	JobURI:           "/eSCL/ScanJobs/urn:uuid:4509a320-00a0-008f-00b6-00559a327d32",
-	JobUUID:          optional.New("urn:uuid:4509a320-00a0-008f-00b6-00559a327d32"),
-	Age:              optional.New(20 * time.Second),
-	ImagesCompleted:  optional.New(2),
-	ImagesToTransfer: optional.New(1),
-	JobState:         JobCompleted,
-	JobStateReasons:  []JobStateReason{JobCompletedSuccessfully},
+	JobURI:             "/eSCL/ScanJobs/urn:uuid:4509a320-00a0-008f-00b6-00559a327d32",
+	JobUUID:            optional.New("urn:uuid:4509a320-00a0-008f-00b6-00559a327d32"),
+	Age:                optional.New(20 * time.Second),
+	ImagesCompleted:    optional.New(2),
+	ImagesToTransfer:   optional.New(1),
+	TransferRetryCount: optional.New(0),
+	JobState:           JobCompleted,
+	JobStateReasons:    []JobStateReason{JobCompletedSuccessfully},
 }
 
 // TestJobInfo tests [JobInfo] conversion to and from the XML
@@ -49,6 +50,7 @@ func TestJobInfo(t *testing.T) {
 				xmldoc.WithText(NsScan+":Age", "20"),
 				xmldoc.WithText(NsPWG+":ImagesCompleted", "2"),
 				xmldoc.WithText(NsPWG+":ImagesToTransfer", "1"),
+				xmldoc.WithText(NsScan+":TransferRetryCount", "0"),
 				JobCompleted.toXML(NsPWG+":JobState"),
 				xmldoc.WithChildren(NsPWG+":JobStateReasons",
 					JobCompletedSuccessfully.toXML(
