@@ -16,6 +16,16 @@ import (
 	"github.com/alexpevzner/mfp/util/xmldoc"
 )
 
+// testScanRegion contains example of the initialized
+// ScanRegion structure
+var testScanRegion = ScanRegion{
+	XOffset:            5,
+	YOffset:            10,
+	Width:              2551,
+	Height:             3508,
+	ContentRegionUnits: ThreeHundredthsOfInches,
+}
+
 // TestScanRegion tests ScanRegion
 func TestScanRegion(t *testing.T) {
 	type testData struct {
@@ -26,13 +36,7 @@ func TestScanRegion(t *testing.T) {
 	tests := []testData{
 		{
 			// Full-data test
-			reg: ScanRegion{
-				XOffset:            5,
-				YOffset:            10,
-				Width:              2551,
-				Height:             3508,
-				ContentRegionUnits: ThreeHundredthsOfInches,
-			},
+			reg: testScanRegion,
 			xml: xmldoc.WithChildren(
 				NsPWG+":ScanRegion",
 				xmldoc.WithText(NsPWG+":XOffset", "5"),
