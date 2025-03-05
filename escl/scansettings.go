@@ -349,7 +349,7 @@ func (ss ScanSettings) ToXML() xmldoc.Element {
 	if ss.ScanRegions != nil {
 		chld := xmldoc.Element{Name: NsPWG + ":ScanRegions"}
 		for _, reg := range ss.ScanRegions {
-			chld2 := reg.toXML(NsScan + ":ScanRegion")
+			chld2 := reg.toXML(NsPWG + ":ScanRegion")
 			chld.Children = append(chld.Children, chld2)
 		}
 		elm.Children = append(elm.Children, chld)
