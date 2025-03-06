@@ -49,17 +49,17 @@ func (bits Bitset[T]) String() string {
 	return strings.Join(s, ",")
 }
 
-// Add adds [ColorMode] to the set.
+// Add adds element to the set.
 func (bits *Bitset[T]) Add(elem T) {
 	*bits |= 1 << elem
 }
 
-// Del deletes [ColorMode] from the set.
+// Del deletes element from the set.
 func (bits *Bitset[T]) Del(elem T) {
 	*bits &^= 1 << elem
 }
 
-// Contains reports if [ColorMode] exists in the set.
+// Contains reports if element exists in the set.
 func (bits Bitset[T]) Contains(elem T) bool {
 	return (bits & (1 << elem)) != 0
 }
