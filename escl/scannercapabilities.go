@@ -17,7 +17,8 @@ import (
 	"github.com/alexpevzner/mfp/util/xmldoc"
 )
 
-// ScannerCapabilities defines the scanner capabilities.
+// ScannerCapabilities is the scanner response, that defines the scanner
+// capabilities.
 //
 // eSCL Technical Specification, 8.1.4.
 //

@@ -15,9 +15,12 @@ import (
 	"github.com/alexpevzner/mfp/util/xmldoc"
 )
 
-// ScanSettings defines the set of parameters for scan request.
+// ScanSettings is the client request, that defines the set of scan parameters.
 //
 // eSCL Technical Specification, 7.
+//
+// POST /{root}/ScanJobs
+// PUT /eSCL/ScanBufferInfo
 type ScanSettings struct {
 	// Version is the only required parameter
 	Version Version // eSCL protocol version

@@ -13,7 +13,8 @@ import (
 	"github.com/alexpevzner/mfp/util/xmldoc"
 )
 
-// ScannerStatus represents the scanner status.
+// ScannerStatus is the scanner response, that represents the current
+// scanner status.
 //
 // eSCL Technical Specification, 9.
 //
