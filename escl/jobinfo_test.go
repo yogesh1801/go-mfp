@@ -18,8 +18,8 @@ import (
 	"github.com/alexpevzner/mfp/util/xmldoc"
 )
 
-// testtestJobInfo=JobInfo contains example of the initialized
-// testJobInfo=JobInfo structure
+// testJobInfo contains example of the initialized
+// JobInfo structure
 var testJobInfo = JobInfo{
 	JobURI:             "/eSCL/ScanJobs/urn:uuid:4509a320-00a0-008f-00b6-00559a327d32",
 	JobUUID:            optional.New("urn:uuid:4509a320-00a0-008f-00b6-00559a327d32"),
