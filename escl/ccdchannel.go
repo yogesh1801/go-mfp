@@ -17,9 +17,9 @@ type CCDChannel int
 // Known CCD Channels.
 const (
 	UnknownCCDChannel CCDChannel = iota // Unknown CCD
-	Red                                 // Use the RED DDC
-	Green                               // Use the Green CCD
-	Blue                                // Use the Blue CCD
+	Red                                 // Use the RED channel
+	Green                               // Use the Green channel
+	Blue                                // Use the Blue channel
 	NTSC                                // NTSC-standard mix
 	GrayCcd                             // Dedicated hardware Gray CCD
 	GrayCcdEmulated                     // Emulated Gray CCD (1/3 RGB)

@@ -10,12 +10,12 @@ package escl
 
 import "github.com/alexpevzner/mfp/util/xmldoc"
 
-// ADFState represents the overall scanner state
+// ADFState represents the ADF state
 type ADFState int
 
-// Known scanner states
+// Known ADF states
 const (
-	UnknownADFState               ADFState = iota // Unknown scanner state
+	UnknownADFState               ADFState = iota // Unknown ADF state
 	ScannerAdfProcessing                          // This is the OK state
 	ScannerAdfEmpty                               // ADF is empty
 	ScannerAdfJam                                 // Paper jam in the ADF
