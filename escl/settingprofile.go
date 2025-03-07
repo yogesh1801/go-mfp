@@ -23,7 +23,7 @@ type SettingProfile struct {
 	DocumentFormatsExt   []string             // eSCL 2.1+
 	SupportedResolutions SupportedResolutions // Supported resolutions
 	ColorSpaces          []ColorSpace         // Supported color spaces
-	CcdChannels          []CcdChannel         // Supported CCD channels
+	CCDChannels          []CCDChannel         // Supported CCD channels
 	BinaryRenderings     []BinaryRendering    // Supported bin renderings
 }
 
@@ -122,15 +122,15 @@ func decodeSettingProfile(root xmldoc.Element) (
 	if ccdChannels.Found {
 		for _, elem := range ccdChannels.Elem.Children {
 			if elem.Name == NsScan+":CcdChannel" {
-				var chn CcdChannel
-				chn, err = decodeCcdChannel(elem)
+				var chn CCDChannel
+				chn, err = decodeCCDChannel(elem)
 				if err != nil {
 					err = xmldoc.XMLErrWrap(
 						ccdChannels.Elem, err)
 					return
 				}
 
-				prof.CcdChannels = append(prof.CcdChannels, chn)
+				prof.CCDChannels = append(prof.CCDChannels, chn)
 			}
 		}
 	}
@@ -228,9 +228,9 @@ func (prof SettingProfile) toXML(name string) xmldoc.Element {
 		elm.Children = append(elm.Children, chld)
 	}
 
-	if prof.CcdChannels != nil {
+	if prof.CCDChannels != nil {
 		chld = xmldoc.Element{Name: NsScan + ":CcdChannels"}
-		for _, chn := range prof.CcdChannels {
+		for _, chn := range prof.CCDChannels {
 			chld2 := chn.toXML(NsScan + ":CcdChannel")
 			chld.Children = append(chld.Children, chld2)
 		}

@@ -10,13 +10,13 @@ package escl
 
 import "github.com/alexpevzner/mfp/util/xmldoc"
 
-// CcdChannel specifies which CCD color channel to use for grayscale
+// CCDChannel specifies which CCD color channel to use for grayscale
 // and monochrome scannig.
-type CcdChannel int
+type CCDChannel int
 
 // Known CCD Channels.
 const (
-	UnknownCcdChannel CcdChannel = iota // Unknown CCD
+	UnknownCCDChannel CCDChannel = iota // Unknown CCD
 	Red                                 // Use the RED DDC
 	Green                               // Use the Green CCD
 	Blue                                // Use the Blue CCD
@@ -25,21 +25,21 @@ const (
 	GrayCcdEmulated                     // Emulated Gray CCD (1/3 RGB)
 )
 
-// decodeCcdChannel decodes [CcdChannel] from the XML tree.
-func decodeCcdChannel(root xmldoc.Element) (ccd CcdChannel, err error) {
-	return decodeEnum(root, DecodeCcdChannel)
+// decodeCCDChannel decodes [CCDChannel] from the XML tree.
+func decodeCCDChannel(root xmldoc.Element) (ccd CCDChannel, err error) {
+	return decodeEnum(root, DecodeCCDChannel)
 }
 
-// toXML generates XML tree for the [CcdChannel].
-func (ccd CcdChannel) toXML(name string) xmldoc.Element {
+// toXML generates XML tree for the [CCDChannel].
+func (ccd CCDChannel) toXML(name string) xmldoc.Element {
 	return xmldoc.Element{
 		Name: name,
 		Text: ccd.String(),
 	}
 }
 
-// String returns a string representation of the [CcdChannel]
-func (ccd CcdChannel) String() string {
+// String returns a string representation of the [CCDChannel]
+func (ccd CCDChannel) String() string {
 	switch ccd {
 	case Red:
 		return "Red"
@@ -58,8 +58,8 @@ func (ccd CcdChannel) String() string {
 	return "Unknown"
 }
 
-// DecodeCcdChannel decodes [CcdChannel] out of its XML string representation.
-func DecodeCcdChannel(s string) CcdChannel {
+// DecodeCCDChannel decodes [CCDChannel] out of its XML string representation.
+func DecodeCCDChannel(s string) CCDChannel {
 	switch s {
 	case "Red":
 		return Red
@@ -75,5 +75,5 @@ func DecodeCcdChannel(s string) CcdChannel {
 		return GrayCcdEmulated
 	}
 
-	return UnknownCcdChannel
+	return UnknownCCDChannel
 }

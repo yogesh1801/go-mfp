@@ -31,7 +31,7 @@ var testScanSettings = ScanSettings{
 	YResolution:                  optional.New(400),
 	ColorMode:                    optional.New(RGB24),
 	ColorSpace:                   optional.New(SRGB),
-	CcdChannel:                   optional.New(NTSC),
+	CCDChannel:                   optional.New(NTSC),
 	BinaryRendering:              optional.New(Threshold),
 	Duplex:                       optional.New(true),
 	FeedDirection:                optional.New(ShortEdgeFeed),
@@ -230,13 +230,13 @@ func TestScanSettingsDecodeErrors(t *testing.T) {
 		},
 
 		{
-			// Invalid CcdChannel
+			// Invalid CCDChannel
 			xml: xmldoc.WithChildren(
 				NsScan+":ScanSettings",
 				xmldoc.WithText(NsPWG+":Version", "2.0"),
 				xmldoc.WithText(NsScan+":CcdChannel", "bad"),
 			),
-			err: `/scan:ScanSettings/scan:CcdChannel: invalid CcdChannel: "bad"`,
+			err: `/scan:ScanSettings/scan:CcdChannel: invalid CCDChannel: "bad"`,
 		},
 
 		{

@@ -35,7 +35,7 @@ var testSettingProfile = SettingProfile{
 	ColorSpaces: []ColorSpace{
 		SRGB,
 	},
-	CcdChannels: []CcdChannel{
+	CCDChannels: []CCDChannel{
 		Red, Green, Blue,
 	},
 	BinaryRenderings: []BinaryRendering{
@@ -218,7 +218,7 @@ func TestSettingProfileDecodeErrors(t *testing.T) {
 			err: `/scan:SettingProfile/scan:ColorSpaces/scan:ColorSpace: invalid ColorSpace: "Unknown"`,
 		},
 
-		// Error in CcdChannels
+		// Error in CCDChannels
 		{
 			xml: xmldoc.WithChildren(NsScan+":SettingProfile",
 				xmldoc.WithChildren(NsScan+":CcdChannels",
@@ -227,7 +227,7 @@ func TestSettingProfileDecodeErrors(t *testing.T) {
 				),
 				res.toXML(NsScan+":SupportedResolutions"),
 			),
-			err: `/scan:SettingProfile/scan:CcdChannels/scan:CcdChannel: invalid CcdChannel: "Unknown"`,
+			err: `/scan:SettingProfile/scan:CcdChannels/scan:CcdChannel: invalid CCDChannel: "Unknown"`,
 		},
 
 		// Error in BinaryRenderings

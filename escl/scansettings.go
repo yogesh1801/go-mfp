@@ -36,7 +36,7 @@ type ScanSettings struct {
 	YResolution       optional.Val[int]             // Y resolution, DPI
 	ColorMode         optional.Val[ColorMode]       // Desired color mode
 	ColorSpace        optional.Val[ColorSpace]      // Desired color space
-	CcdChannel        optional.Val[CcdChannel]      // Desired CCD channel
+	CCDChannel        optional.Val[CCDChannel]      // Desired CCD channel
 	BinaryRendering   optional.Val[BinaryRendering] // For BlackAndWhite1
 	Duplex            optional.Val[bool]            // For ADF
 	FeedDirection     optional.Val[FeedDirection]   // Desired feed dir
@@ -204,7 +204,7 @@ func DecodeScanSettings(root xmldoc.Element) (
 	}
 
 	if ccd.Found {
-		ss.CcdChannel, err = decodeOptional(ccd.Elem, decodeCcdChannel)
+		ss.CCDChannel, err = decodeOptional(ccd.Elem, decodeCCDChannel)
 		if err != nil {
 			return
 		}
@@ -402,8 +402,8 @@ func (ss ScanSettings) ToXML() xmldoc.Element {
 		elm.Children = append(elm.Children, chld)
 	}
 
-	if ss.CcdChannel != nil {
-		chld := (*ss.CcdChannel).toXML(NsScan + ":CcdChannel")
+	if ss.CCDChannel != nil {
+		chld := (*ss.CCDChannel).toXML(NsScan + ":CcdChannel")
 		elm.Children = append(elm.Children, chld)
 	}
 

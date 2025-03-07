@@ -10,10 +10,10 @@ package escl
 
 import "testing"
 
-var testCcdChannel = testEnum[CcdChannel]{
-	decodeStr: DecodeCcdChannel,
-	decodeXML: decodeCcdChannel,
-	dataset: []testEnumData[CcdChannel]{
+var testCCDChannel = testEnum[CCDChannel]{
+	decodeStr: DecodeCCDChannel,
+	decodeXML: decodeCCDChannel,
+	dataset: []testEnumData[CCDChannel]{
 		{Red, "Red"},
 		{Green, "Green"},
 		{Blue, "Blue"},
@@ -23,7 +23,7 @@ var testCcdChannel = testEnum[CcdChannel]{
 	},
 }
 
-// TestCcdChannel tests [CcdChannel] common methods and functions.
-func TestCcdChannel(t *testing.T) {
-	testCcdChannel.run(t)
+// TestCCDChannel tests [CCDChannel] common methods and functions.
+func TestCCDChannel(t *testing.T) {
+	testCCDChannel.run(t)
 }
