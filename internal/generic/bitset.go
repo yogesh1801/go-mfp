@@ -11,10 +11,11 @@ package generic
 import (
 	"fmt"
 	"strings"
+	"sync/atomic"
 )
 
 // Bitset represents a bitset of instances of some integer type T
-type Bitset[T BitsetElem] int
+type Bitset[T BitsetElem] uint32
 
 // BitsetElem is the member type for Bitset[T].
 type BitsetElem interface {
@@ -38,7 +39,6 @@ func MakeBitset[T BitsetElem](list ...T) Bitset[T] {
 func (bits Bitset[T]) String() string {
 	s := make([]string, 0, 31)
 
-	bits &= 0x7fffffff
 	for elem := T(0); bits != 0; elem++ {
 		if bits.Contains(elem) {
 			s = append(s, elem.String())
@@ -50,16 +50,24 @@ func (bits Bitset[T]) String() string {
 }
 
 // Add adds element to the set.
-func (bits *Bitset[T]) Add(elem T) {
-	*bits |= 1 << elem
+// It returns true if element was actually added.
+func (bits *Bitset[T]) Add(elem T) bool {
+	mask := uint32(1) << elem
+	old := atomic.OrUint32((*uint32)(bits), mask)
+	return old&mask == 0
 }
 
 // Del deletes element from the set.
-func (bits *Bitset[T]) Del(elem T) {
-	*bits &^= 1 << elem
+// It returns true if element was actually deleted.
+func (bits *Bitset[T]) Del(elem T) bool {
+	mask := uint32(1) << elem
+	old := atomic.AndUint32((*uint32)(bits), ^mask)
+	return old&mask != 0
 }
 
 // Contains reports if element exists in the set.
-func (bits Bitset[T]) Contains(elem T) bool {
-	return (bits & (1 << elem)) != 0
+func (bits *Bitset[T]) Contains(elem T) bool {
+	mask := uint32(1) << elem
+	load := atomic.LoadUint32((*uint32)(bits))
+	return load&mask != 0
 }
