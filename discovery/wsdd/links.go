@@ -14,7 +14,7 @@ import (
 	"sync"
 
 	"github.com/alexpevzner/mfp/discovery/netstate"
-	"github.com/alexpevzner/mfp/internal/generic"
+	"github.com/alexpevzner/mfp/util/generic"
 	"github.com/alexpevzner/mfp/util/uuid"
 	"github.com/alexpevzner/mfp/wsd"
 )

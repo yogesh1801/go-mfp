@@ -16,8 +16,8 @@ import (
 
 	"github.com/alexpevzner/go-avahi"
 	"github.com/alexpevzner/mfp/discovery"
-	"github.com/alexpevzner/mfp/internal/generic"
 	"github.com/alexpevzner/mfp/internal/zone"
+	"github.com/alexpevzner/mfp/util/generic"
 )
 
 // Parameters:

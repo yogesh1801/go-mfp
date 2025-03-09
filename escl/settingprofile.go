@@ -9,7 +9,7 @@
 package escl
 
 import (
-	"github.com/alexpevzner/mfp/internal/generic"
+	"github.com/alexpevzner/mfp/util/generic"
 	"github.com/alexpevzner/mfp/util/xmldoc"
 )
 

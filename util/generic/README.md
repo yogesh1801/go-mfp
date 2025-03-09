@@ -1,7 +1,7 @@
 # Useful generics
 
 ```
-import "github.com/alexpevzner/mfp/internal/generic"
+import "github.com/alexpevzner/mfp/util/generic"
 ```
 
 This package provides useful generic types and functions, such as

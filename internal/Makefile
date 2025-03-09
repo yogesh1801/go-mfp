@@ -1,3 +1,3 @@
-SUBDIRS	= env generic random testutils zone
+SUBDIRS	= env random testutils zone
 
 include ../Rules.mak

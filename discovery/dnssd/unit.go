@@ -14,7 +14,7 @@ import (
 	"strconv"
 
 	"github.com/alexpevzner/mfp/discovery"
-	"github.com/alexpevzner/mfp/internal/generic"
+	"github.com/alexpevzner/mfp/util/generic"
 )
 
 // unit represents a discovered print or scan unit.
