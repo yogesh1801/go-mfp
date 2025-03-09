@@ -25,24 +25,24 @@ type BitsetElem interface {
 
 // MakeBitset makes [Bitset] from the list of elements of type T.
 func MakeBitset[T BitsetElem](list ...T) Bitset[T] {
-	var bits Bitset[T]
+	var set Bitset[T]
 
 	for _, elem := range list {
-		bits.Add(elem)
+		set.Add(elem)
 	}
 
-	return bits
+	return set
 }
 
 // String returns a string representation of the [Bitset],
 // for debugging.
-func (bits Bitset[T]) String() string {
+func (set Bitset[T]) String() string {
 	s := make([]string, 0, 31)
 
-	for elem := T(0); bits != 0; elem++ {
-		if bits.Contains(elem) {
+	for elem := T(0); set != 0; elem++ {
+		if set.Contains(elem) {
 			s = append(s, elem.String())
-			bits.Del(elem)
+			set.Del(elem)
 		}
 	}
 
@@ -51,23 +51,23 @@ func (bits Bitset[T]) String() string {
 
 // Add adds element to the set.
 // It returns true if element was actually added.
-func (bits *Bitset[T]) Add(elem T) bool {
+func (set *Bitset[T]) Add(elem T) bool {
 	mask := uint32(1) << elem
-	old := atomic.OrUint32((*uint32)(bits), mask)
+	old := atomic.OrUint32((*uint32)(set), mask)
 	return old&mask == 0
 }
 
 // Del deletes element from the set.
 // It returns true if element was actually deleted.
-func (bits *Bitset[T]) Del(elem T) bool {
+func (set *Bitset[T]) Del(elem T) bool {
 	mask := uint32(1) << elem
-	old := atomic.AndUint32((*uint32)(bits), ^mask)
+	old := atomic.AndUint32((*uint32)(set), ^mask)
 	return old&mask != 0
 }
 
 // Contains reports if element exists in the set.
-func (bits *Bitset[T]) Contains(elem T) bool {
+func (set *Bitset[T]) Contains(elem T) bool {
 	mask := uint32(1) << elem
-	load := atomic.LoadUint32((*uint32)(bits))
+	load := atomic.LoadUint32((*uint32)(set))
 	return load&mask != 0
 }
