@@ -14,7 +14,8 @@ import (
 	"sync/atomic"
 )
 
-// Bitset represents a bitset of instances of some integer type T
+// Bitset represents a bitset of instances of some integer type T.
+// Operations with Bitset are goroutine-safe.
 type Bitset[T BitsetElem] uint32
 
 // BitsetElem is the member type for Bitset[T].
@@ -66,8 +67,7 @@ func (set *Bitset[T]) Del(elem T) bool {
 }
 
 // Contains reports if element exists in the set.
-func (set *Bitset[T]) Contains(elem T) bool {
+func (set Bitset[T]) Contains(elem T) bool {
 	mask := uint32(1) << elem
-	load := atomic.LoadUint32((*uint32)(set))
-	return load&mask != 0
+	return uint32(set)&mask != 0
 }
