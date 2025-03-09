@@ -16,16 +16,10 @@ import (
 
 // Bitset represents a bitset of instances of some integer type T.
 // Operations with Bitset are goroutine-safe.
-type Bitset[T BitsetElem] uint32
-
-// BitsetElem is the member type for Bitset[T].
-type BitsetElem interface {
-	~int
-	fmt.Stringer
-}
+type Bitset[T ~int | ~uint] uint32
 
 // MakeBitset makes [Bitset] from the list of elements of type T.
-func MakeBitset[T BitsetElem](list ...T) Bitset[T] {
+func MakeBitset[T ~int](list ...T) Bitset[T] {
 	var set Bitset[T]
 
 	for _, elem := range list {
@@ -35,14 +29,13 @@ func MakeBitset[T BitsetElem](list ...T) Bitset[T] {
 	return set
 }
 
-// String returns a string representation of the [Bitset],
-// for debugging.
+// String returns a string representation of the [Bitset], for debugging.
 func (set Bitset[T]) String() string {
 	s := make([]string, 0, 31)
 
 	for elem := T(0); set != 0; elem++ {
 		if set.Contains(elem) {
-			s = append(s, elem.String())
+			s = append(s, fmt.Sprintf("%v", elem))
 			set.Del(elem)
 		}
 	}
