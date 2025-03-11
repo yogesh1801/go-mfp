@@ -33,8 +33,18 @@ type ScannerCapabilities struct {
 	DocumentFormats  []string // Supported output formats
 	CompressionRange Range    // Lower num, better image
 
+	// Exposure control parameters
+	BrightnessRange   Range // Brightness
+	ContrastRange     Range // Contrast
+	GammaRange        Range // Gamma (y=x^(1/g)
+	HighlightRange    Range // Image Highlight
+	NoiseRemovalRange Range // Noise removal level
+	ShadowRange       Range // The lower, the darger
+	SharpenRange      Range // Image sharpen
+	ThresholdRange    Range // ColorModeBinary+BinaryRenderingThreshold
+
 	// Input capabilities (nil if input not suppored)
-	Platen     *InputCapabilities // Capabilities of InputPlaten
+	Platen     *InputCapabilities // InputPlaten capabilities
 	ADFSimplex *InputCapabilities // InputADF+ADFModeSimplex
 	ADFDuplex  *InputCapabilities // InputADF+ADFModeDuplex
 }

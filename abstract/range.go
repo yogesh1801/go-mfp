@@ -11,14 +11,19 @@ package abstract
 // Range defines a range of "analog" parameter, like
 // brightness, contrast and similar.
 //
-// The following constraints MUST be true:
+// The following constraint MUST be true:
 //
-//	-1.0 <= Min <= 0 && 0 <= Max <= +1.0
-//	Min <= Max
+//	Min <= Normal <= Max
 //
-// The 0 value of the appropriate parameter means the "normal" value.
-// Note, if Min == Max, it means that the appropriate parameter
-// cannot be adjusted by user
+// If Min == Max, the corresponding parameter considered unsupported
 type Range struct {
-	Min, Max float64
+	Min, Max, Normal int
+}
+
+// Supported tells if the parameter, defined by the [Range] is "supported"
+// (i.e., can be changed).
+//
+// Range considered supported, if r.Min != r.Max
+func (r Range) Supported() bool {
+	return r.Min != r.Max
 }
