@@ -16,6 +16,9 @@ import (
 	"github.com/alexpevzner/mfp/util/xmldoc"
 )
 
+// DefaultVersion is the default [Version] used by [AbstractServer].
+var DefaultVersion = MakeVersion(2, 5)
+
 // Version represents the eSCL protocol version.
 //
 // eSCL uses the following syntax for version "2.85" and it should be
