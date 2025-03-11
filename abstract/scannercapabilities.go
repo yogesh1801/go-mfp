@@ -28,4 +28,13 @@ type ScannerCapabilities struct {
 	ADFModesSupported  generic.Bitset[ADFMode]   // Supported ADF modes
 	ColorModeSupported generic.Bitset[ColorMode] // Supported color modes
 	DepthSupported     generic.Bitset[Depth]     // Supported image depths
+
+	// Common image processing parameters
+	DocumentFormats  []string // Supported output formats
+	CompressionRange Range    // Lower num, better image
+
+	// Input capabilities (nil if input not suppored)
+	Platen     *InputCapabilities // Capabilities of InputPlaten
+	ADFSimplex *InputCapabilities // InputADF+ADFModeSimplex
+	ADFDuplex  *InputCapabilities // InputADF+ADFModeDuplex
 }

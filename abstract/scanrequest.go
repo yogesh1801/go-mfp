@@ -23,13 +23,13 @@ type ScannerRequest struct {
 	Intent          Intent          // Scan intent hint
 
 	// Image processing parameters
-	Brightness        float64 // Brightness
-	CompressionFactor float64 // Lower num, better image
-	Contrast          float64 // Contrast
-	Gamma             float64 // Gamma (y=x^(1/g)
-	Highlight         float64 // Image Highlight
-	NoiseRemoval      float64 // Noise removal level
-	Shadow            float64 // The lower, the darger
-	Sharpen           float64 // Image sharpen
-	Threshold         float64 // ColorModeBinary+BinaryRenderingThreshold
+	Brightness   float64 // Brightness
+	Contrast     float64 // Contrast
+	Gamma        float64 // Gamma (y=x^(1/g)
+	Highlight    float64 // Image Highlight
+	NoiseRemoval float64 // Noise removal level
+	Shadow       float64 // The lower, the darger
+	Sharpen      float64 // Image sharpen
+	Threshold    float64 // ColorModeBinary+BinaryRenderingThreshold
+	Compression  float64 // Lower num, better image
 }

@@ -8,10 +8,14 @@
 
 package abstract
 
-import "github.com/alexpevzner/mfp/util/optional"
-
 // Resolution specifies a discrete scanner resolution.
 type Resolution struct {
-	XResolution optional.Val[int] // X resolution, DPI
-	YResolution optional.Val[int] // Y resolution, DPI
+	XResolution int // X resolution, DPI
+	YResolution int // Y resolution, DPI
+}
+
+// ResolutionRange specifies a range of scanner resolutions.
+type ResolutionRange struct {
+	XMin, XMax, XStep int // X resolution range, DPI
+	YMin, YMax, YStep int // Y resolution range, DPI
 }
