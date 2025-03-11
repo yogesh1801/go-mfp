@@ -9,10 +9,10 @@
 package abstract
 
 // Region defines a scanning region.
-// See [Coord] description for definition of the coordinate system.
+// See [Dimension] description for definition of the coordinate system.
 type Region struct {
-	XOffset Coord // Horizontal offset, 0-based
-	YOffset Coord // Vertical offset, 0-based
-	Width   Coord // Region width
-	Height  Coord // Region height
+	XOffset Dimension // Horizontal offset, 0-based
+	YOffset Dimension // Vertical offset, 0-based
+	Width   Dimension // Region width
+	Height  Dimension // Region height
 }

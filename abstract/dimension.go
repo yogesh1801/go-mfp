@@ -8,7 +8,7 @@
 
 package abstract
 
-// Coord represents image coordinates and sizes.
+// Dimension represents image coordinates and sizes.
 //
 // Coordinates are 0-based, with the (0,0) point placed at the
 // image top-left corner:
@@ -22,4 +22,4 @@ package abstract
 //
 // Units are 1/100 of millimeters (1/2540th of an inch).
 // This is consistent with the coordinate system, used by IPP.
-type Coord int
+type Dimension int
