@@ -14,12 +14,18 @@ import "github.com/alexpevzner/mfp/util/generic"
 // particular [Input].
 type InputCapabilities struct {
 	// Input geometry
-	MinWidth   Dimension // Min scan width
-	MaxWidth   Dimension // Max scan width
-	MinHeight  Dimension // Min scan height
-	MaxHeight  Dimension // Max scan height
-	MaxXOffset Dimension // Max XOffset
-	MaxYOffset Dimension // Max YOffset
+	MinWidth              Dimension // Min scan width
+	MaxWidth              Dimension // Max scan width
+	MinHeight             Dimension // Min scan height
+	MaxHeight             Dimension // Max scan height
+	MaxXOffset            Dimension // Max XOffset
+	MaxYOffset            Dimension // Max YOffset
+	MaxOpticalXResolution int       // DPI, 0 - unknown
+	MaxOpticalYResolution int       // DPI, 0 - unknown
+	RiskyLeftMargins      Dimension // Risky left margins, 0 - unknown
+	RiskyRightMargins     Dimension // Risky right margins, 0 - unknown
+	RiskyTopMargins       Dimension // Risky top margins, 0 - unknown
+	RiskyBottomMargins    Dimension // Risky bottom margins, 0 - unknown
 
 	// Scanning parameters
 	Intents generic.Bitset[Intent] // Supported intents

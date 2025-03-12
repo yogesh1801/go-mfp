@@ -14,13 +14,11 @@ import "github.com/alexpevzner/mfp/util/generic"
 //
 // Each [InputCapabilities] may include multiple instances of
 // SettingsProfile.
-//
-// SettingsProfile may be constrained by [ColorMode], [Depth]
-// and [BinaryRendering].
 type SettingsProfile struct {
 	ColorModes       generic.Bitset[ColorMode]       // Allowed color modes
-	Depts            generic.Bitset[Depth]           // Allowed depths
+	Depths           generic.Bitset[Depth]           // Allowed depths
 	BinaryRenderings generic.Bitset[BinaryRendering] // For 1-bit B&W
+	CCDChannels      generic.Bitset[CCDChannel]      // Allowed CCD channel
 	Resolutions      []Resolution                    // Allowed resolutions
 	ResolutionRanges []ResolutionRange               // Resolution ranges
 }
