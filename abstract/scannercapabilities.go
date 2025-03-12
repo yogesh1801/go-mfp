@@ -28,6 +28,7 @@ type ScannerCapabilities struct {
 	ADFModesSupported  generic.Bitset[ADFMode]   // Supported ADF modes
 	ColorModeSupported generic.Bitset[ColorMode] // Supported color modes
 	DepthSupported     generic.Bitset[Depth]     // Supported image depths
+	ADFCapacity        int                       // 0 if unknown or no ADF
 
 	// Common image processing parameters
 	DocumentFormats  []string // Supported output formats

@@ -8,15 +8,21 @@
 
 package abstract
 
+import "github.com/alexpevzner/mfp/util/generic"
+
 // InputCapabilities defines scanning capabilities of the
 // particular [Input].
 type InputCapabilities struct {
-	MinWidth   int // Min scan width
-	MaxWidth   int // Max scan width
-	MinHeight  int // Min scan height
-	MaxHeight  int // Max scan height
-	MaxXOffset int // Max XOffset
-	MaxYOffset int // Max YOffset
+	// Input geometry
+	MinWidth   Dimension // Min scan width
+	MaxWidth   Dimension // Max scan width
+	MinHeight  Dimension // Min scan height
+	MaxHeight  Dimension // Max scan height
+	MaxXOffset Dimension // Max XOffset
+	MaxYOffset Dimension // Max YOffset
+
+	// Scanning parameters
+	Intents generic.Bitset[Intent] // Supported intents
 
 	// Supported setting profiles
 	Profiles []SettingsProfile // List of supported profiles
