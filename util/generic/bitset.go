@@ -10,6 +10,7 @@ package generic
 
 import (
 	"fmt"
+	"math/bits"
 	"strings"
 	"sync/atomic"
 )
@@ -41,6 +42,25 @@ func (set Bitset[T]) String() string {
 	}
 
 	return strings.Join(s, ",")
+}
+
+// Elements returns slice of the Bitset elements
+func (set Bitset[T]) Elements() []T {
+	out := make([]T, 0, bits.OnesCount32(uint32(set)))
+
+	for elem := T(0); set != 0; elem++ {
+		if set.Contains(elem) {
+			out = append(out, elem)
+			set.Del(elem)
+		}
+	}
+
+	return out
+}
+
+// IsEmpty reports if set is empty.
+func (set Bitset[T]) IsEmpty() bool {
+	return set == 0
 }
 
 // Add adds element to the set.
