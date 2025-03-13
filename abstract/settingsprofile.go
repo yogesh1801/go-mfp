@@ -20,5 +20,5 @@ type SettingsProfile struct {
 	BinaryRenderings generic.Bitset[BinaryRendering] // For 1-bit B&W
 	CCDChannels      generic.Bitset[CCDChannel]      // Allowed CCD channel
 	Resolutions      []Resolution                    // Allowed resolutions
-	ResolutionRanges []ResolutionRange               // Resolution ranges
+	ResolutionRange  ResolutionRange                 // Zero if unset
 }

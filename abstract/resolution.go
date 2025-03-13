@@ -16,6 +16,11 @@ type Resolution struct {
 
 // ResolutionRange specifies a range of scanner resolutions.
 type ResolutionRange struct {
-	XMin, XMax, XStep int // X resolution range, DPI
-	YMin, YMax, YStep int // Y resolution range, DPI
+	XMin, XMax, XStep, XNormal int // X resolution range, DPI
+	YMin, YMax, YStep, YNormal int // Y resolution range, DPI
+}
+
+// IsZero reports if ResolutionRange has zero value.
+func (rr ResolutionRange) IsZero() bool {
+	return rr == ResolutionRange{}
 }

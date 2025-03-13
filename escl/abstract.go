@@ -147,6 +147,43 @@ func fromAbstractInputSourceCaps(
 		}
 
 		// Translate resolutions
+		res := SupportedResolutions{}
+		for _, absres := range absprof.Resolutions {
+			res.DiscreteResolutions = append(
+				res.DiscreteResolutions,
+				DiscreteResolution{
+					absres.XResolution, absres.YResolution,
+				})
+		}
+
+		if absrng := absprof.ResolutionRange; !absrng.IsZero() {
+			xstep := absrng.XStep
+			if xstep < 1 {
+				xstep = 0
+			}
+
+			ystep := absrng.YStep
+			if ystep < 1 {
+				ystep = 0
+			}
+
+			rng := ResolutionRange{
+				XResolutionRange: Range{
+					Min:  absrng.XMin,
+					Max:  absrng.XMax,
+					Step: optional.New(xstep),
+				},
+				YResolutionRange: Range{
+					Min:  absrng.YMin,
+					Max:  absrng.YMax,
+					Step: optional.New(ystep),
+				},
+			}
+
+			res.ResolutionRange = optional.New(rng)
+		}
+
+		prof.SupportedResolutions = res
 
 		// Append to capabilities
 		caps.SettingProfiles = append(caps.SettingProfiles, prof)
