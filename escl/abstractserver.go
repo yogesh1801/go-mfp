@@ -11,6 +11,7 @@ package escl
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
@@ -28,13 +29,12 @@ const AbstractServerHistorySize = 10
 
 // AbstractServer implements eSCL server on a top of [abstract.Scanner].
 type AbstractServer struct {
-	ctx        context.Context               // Logging context
-	base       *url.URL                      // Base URL
-	scanner    abstract.Scanner              // Underlying abstract.Scanner
-	caps       *abstract.ScannerCapabilities // Scanner capabilities
-	esclCaps   ScannerCapabilities           // Caps, translated to eSCL
-	esclStatus ScannerStatus                 // Scanner status
-	lock       sync.Mutex                    // Access lock
+	ctx     context.Context               // Logging context
+	base    *url.URL                      // Base URL
+	scanner abstract.Scanner              // Underlying abstract.Scanner
+	caps    *abstract.ScannerCapabilities // Scanner capabilities
+	status  ScannerStatus                 // Scanner status
+	lock    sync.Mutex                    // Access lock
 }
 
 // NewAbstractServer returns a new [AbstractServer].
@@ -62,16 +62,35 @@ func NewAbstractServer(ctx context.Context,
 		caps:    scanner.Capabilities(),
 	}
 
-	srv.esclStatus = ScannerStatus{
+	srv.status = ScannerStatus{
 		Version: DefaultVersion,
 		State:   ScannerIdle,
 	}
 
 	if srv.caps.InputSupported.Contains(abstract.InputADF) {
-		srv.esclStatus.ADFState = optional.New(ScannerAdfProcessing)
+		srv.status.ADFState = optional.New(ScannerAdfProcessing)
 	}
 
 	return srv
+}
+
+// GetVersion returns eSCL [Version], implemented by the server.
+func (srv *AbstractServer) GetVersion() Version {
+	srv.lock.Lock()
+	defer srv.lock.Unlock()
+
+	return srv.status.Version
+}
+
+// SetVersion sets eSCL [Version], implemented by the server.
+//
+// As version affects some aspects of the server behavior, this
+// is not recommended to change the eSCL on the running server.
+// Do it at the initialization time only.
+func (srv *AbstractServer) SetVersion(ver Version) {
+	srv.lock.Lock()
+	srv.status.Version = ver
+	srv.lock.Unlock()
 }
 
 // ServeHTTP serves incoming HTTP requests.
@@ -112,9 +131,11 @@ func (srv *AbstractServer) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 func (srv *AbstractServer) getScannerCapabilities(
 	w http.ResponseWriter, rq *http.Request) {
 
-	// No need to acquire srv.lock here, because srv.esclCaps
-	// are immutable.
-	xml := srv.esclCaps.ToXML()
+	srv.lock.Lock()
+	ver := srv.status.Version
+	xml := fromAbstractScannerCapabilities(ver, srv.caps).ToXML()
+	srv.lock.Unlock()
+
 	srv.httpSendXML(w, xml)
 }
 
@@ -123,7 +144,7 @@ func (srv *AbstractServer) getScannerStatus(
 	w http.ResponseWriter, rq *http.Request) {
 
 	srv.lock.Lock()
-	xml := srv.esclStatus.ToXML()
+	xml := srv.status.ToXML()
 	srv.lock.Unlock()
 
 	srv.httpSendXML(w, xml)
@@ -156,7 +177,8 @@ func (srv *AbstractServer) httpReject(w http.ResponseWriter, rq *http.Request,
 		err = errors.New(http.StatusText(status))
 	}
 
-	w.Write([]byte(err.Error()))
+	s := fmt.Sprintf("%3.3d %s\n", status, err)
+	w.Write([]byte(s))
 	w.Write([]byte("\n"))
 }
 
