@@ -17,7 +17,7 @@ import (
 )
 
 // DefaultVersion is the default [Version] used by [AbstractServer].
-var DefaultVersion = MakeVersion(2, 5)
+var DefaultVersion = MakeVersion(2, 9)
 
 // Version represents the eSCL protocol version.
 //
