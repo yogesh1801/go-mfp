@@ -57,6 +57,22 @@ func TestRange(t *testing.T) {
 				},
 			},
 		},
+
+		{
+			rng: Range{
+				Min:    -100,
+				Max:    100,
+				Normal: 0,
+			},
+			xml: xmldoc.Element{
+				Name: NsScan + ":Range",
+				Children: []xmldoc.Element{
+					{Name: NsScan + ":Min", Text: "-100"},
+					{Name: NsScan + ":Max", Text: "100"},
+					{Name: NsScan + ":Normal", Text: "0"},
+				},
+			},
+		},
 	}
 
 	for _, test := range tests {

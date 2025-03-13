@@ -64,15 +64,15 @@ func (r Range) toXML(name string) xmldoc.Element {
 		Children: []xmldoc.Element{
 			{
 				Name: NsScan + ":" + "Min",
-				Text: strconv.FormatUint(uint64(r.Min), 10),
+				Text: strconv.FormatInt(int64(r.Min), 10),
 			},
 			{
 				Name: NsScan + ":" + "Max",
-				Text: strconv.FormatUint(uint64(r.Max), 10),
+				Text: strconv.FormatInt(int64(r.Max), 10),
 			},
 			{
 				Name: NsScan + ":" + "Normal",
-				Text: strconv.FormatUint(uint64(r.Normal), 10),
+				Text: strconv.FormatInt(int64(r.Normal), 10),
 			},
 		},
 	}
@@ -80,7 +80,7 @@ func (r Range) toXML(name string) xmldoc.Element {
 	if r.Step != nil {
 		step := xmldoc.Element{
 			Name: NsScan + ":" + "Step",
-			Text: strconv.FormatUint(uint64(*r.Step), 10),
+			Text: strconv.FormatInt(int64(*r.Step), 10),
 		}
 		elm.Children = append(elm.Children, step)
 	}
