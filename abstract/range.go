@@ -22,5 +22,5 @@ type Range struct {
 
 // IsZero reports if Range has a zero value.
 func (r Range) IsZero() bool {
-	return r.Min != r.Max
+	return r == Range{}
 }
