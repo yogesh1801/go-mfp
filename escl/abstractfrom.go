@@ -4,7 +4,7 @@
 // Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
 // See LICENSE for license terms and conditions
 //
-// Conversion between eSCL and abstract.Scanner structures
+// Conversions from abstract.Scanner to eSCL data structures
 
 package escl
 
