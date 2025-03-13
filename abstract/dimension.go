@@ -24,11 +24,24 @@ package abstract
 // This is consistent with the coordinate system, used by IPP.
 type Dimension int
 
-// Common units, represented as [Dimension]
+// Common sizes, represented as [Dimension]
 const (
+	// Common units
 	Millimeter Dimension = 100
 	Centimeter           = 10 * Millimeter
 	Inch       Dimension = 2540
+
+	// Popular paper sizes -- ISO
+	A4Width  = 210 * Millimeter
+	A4Height = 297 * Millimeter
+	A3Width  = 297 * Millimeter
+	A3Height = 420 * Millimeter
+
+	// Popular paper sizes -- USA
+	LetterWidth  = Inch * 85 / 10
+	LetterHeight = Inch * 11
+	LegalWidth   = Inch * 85 / 10
+	LegalHeight  = Inch * 14
 )
 
 // Dots converts Dimension value into number of image dots,
