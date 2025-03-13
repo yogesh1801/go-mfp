@@ -80,6 +80,7 @@ func fromAbstractScannerCapabilities(
 			caps := fromAbstractInputSourceCaps(version,
 				abscaps.DocumentFormats, abscaps.ADFDuplex)
 			adf.ADFDuplexInputCaps = optional.New(caps)
+			adf.ADFOptions = append(adf.ADFOptions, Duplex)
 		}
 
 		scancaps.ADF = optional.New(adf)
