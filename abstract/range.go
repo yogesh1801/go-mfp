@@ -20,10 +20,7 @@ type Range struct {
 	Min, Max, Normal int
 }
 
-// Supported tells if the parameter, defined by the [Range] is "supported"
-// (i.e., can be changed).
-//
-// Range considered supported, if r.Min != r.Max
-func (r Range) Supported() bool {
+// IsZero reports if Range has a zero value.
+func (r Range) IsZero() bool {
 	return r.Min != r.Max
 }

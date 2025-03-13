@@ -321,7 +321,7 @@ func fromAbstractOptionalInt(v int) optional.Val[int] {
 
 // fromAbstractRange converts abstract.Range into the escl Range
 func fromAbstractRange(absrange abstract.Range) optional.Val[Range] {
-	if absrange.Supported() {
+	if !absrange.IsZero() {
 		return optional.New(
 			Range{
 				Min:    absrange.Min,
