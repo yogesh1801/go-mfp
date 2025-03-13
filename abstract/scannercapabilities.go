@@ -9,7 +9,6 @@
 package abstract
 
 import (
-	"github.com/alexpevzner/mfp/util/generic"
 	"github.com/alexpevzner/mfp/util/uuid"
 )
 
@@ -23,16 +22,10 @@ type ScannerCapabilities struct {
 	AdminURI     string    // Configuration mage URL
 	IconURI      string    // Device icon URL
 
-	// Overall capabilities
-	InputSupported     generic.Bitset[Input]     // Supported inputs
-	ADFModesSupported  generic.Bitset[ADFMode]   // Supported ADF modes
-	ColorModeSupported generic.Bitset[ColorMode] // Supported color modes
-	DepthSupported     generic.Bitset[Depth]     // Supported image depths
-	ADFCapacity        int                       // 0 if unknown or no ADF
-
 	// Common image processing parameters
 	DocumentFormats  []string // Supported output formats
 	CompressionRange Range    // Lower num, better image
+	ADFCapacity      int      // 0 if unknown or no ADF
 
 	// Exposure control parameters
 	BrightnessRange   Range // Brightness

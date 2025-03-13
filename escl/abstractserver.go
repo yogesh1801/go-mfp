@@ -67,7 +67,7 @@ func NewAbstractServer(ctx context.Context,
 		State:   ScannerIdle,
 	}
 
-	if srv.caps.InputSupported.Contains(abstract.InputADF) {
+	if srv.caps.ADFSimplex != nil || srv.caps.ADFDuplex != nil {
 		srv.status.ADFState = optional.New(ScannerAdfProcessing)
 	}
 
