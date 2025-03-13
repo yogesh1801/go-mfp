@@ -10,7 +10,6 @@ package abstract
 
 import (
 	"context"
-	"io"
 )
 
 // Scanner represents the abstract (implementation-independent)
@@ -30,8 +29,16 @@ type Scanner interface {
 	// Scan supplies the scan request. Request parameters are
 	// defined via [ScannerRequest] structure.
 	//
-	// Requests are cancelable via provided [context.Context].
-	Scan(context.Context, ScannerRequest) (io.ReadCloser, error)
+	// Scan is not guaranteed to return immediately and can
+	// block for some time.
+	//
+	// On success, it returns [Document] that can contain one
+	// or multiple image pages.
+	//
+	// Request processing can be canceled via provided [context.Context].
+	// The entire Request lifetime, including consuming the returned
+	// document, is covered by this context.
+	Scan(context.Context, ScannerRequest) (Document, error)
 
 	// Close closes the scanner connection.
 	Close() error
