@@ -11,6 +11,9 @@ package abstract
 import "io"
 
 // Document contains one or more image pages.
+//
+// The document interface is optimized for streaming images, eliminating
+// the need to maintain a full-page image buffer in memory.
 type Document interface {
 	// Format returns the MIME type of the image format used by
 	// the document.
