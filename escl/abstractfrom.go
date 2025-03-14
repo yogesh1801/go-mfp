@@ -130,9 +130,7 @@ func fromAbstractInputSourceCaps(
 	}
 
 	// Translate intents
-	if !abscaps.Intents.IsEmpty() {
-		caps.SupportedIntents = fromAbstractIntents(abscaps.Intents)
-	}
+	caps.SupportedIntents = fromAbstractIntents(abscaps.Intents)
 
 	// Translate setting profiles
 	for _, absprof := range abscaps.Profiles {
@@ -202,6 +200,8 @@ func fromAbstractInputSourceCaps(
 
 // fromAbstractColorModes translates abstract color modes into
 // the []ColorMode slice
+//
+// It returns nil if resulting slice is empty.
 func fromAbstractColorModes(
 	absmodes generic.Bitset[abstract.ColorMode],
 	absdepths generic.Bitset[abstract.Depth]) []ColorMode {
@@ -232,15 +232,25 @@ func fromAbstractColorModes(
 		}
 	}
 
+	if len(modes) == 0 {
+		return nil
+	}
+
 	return modes
 }
 
 // fromAbstractCCDChannels translates generic.Bitset[abstract.CCDChannels]
 // into the []CCDChannels slice.
+//
+// It returns nil if resulting slice is empty.
 func fromAbstractCCDChannels(
-	absrend generic.Bitset[abstract.CCDChannel]) []CCDChannel {
+	abschannels generic.Bitset[abstract.CCDChannel]) []CCDChannel {
 
-	in := absrend.Elements()
+	if abschannels.IsEmpty() {
+		return nil
+	}
+
+	in := abschannels.Elements()
 	out := make([]CCDChannel, 0, len(in))
 
 	for _, ccd := range in {
@@ -263,13 +273,23 @@ func fromAbstractCCDChannels(
 		}
 	}
 
+	if len(out) == 0 {
+		return nil
+	}
+
 	return out
 }
 
 // fromAbstractBinaryRenderings translates
 // generic.Bitset[abstract.BinaryRendering] into []BinaryRendering slice
+//
+// It returns nil if resulting slice is empty.
 func fromAbstractBinaryRenderings(
 	absrend generic.Bitset[abstract.BinaryRendering]) []BinaryRendering {
+
+	if absrend.IsEmpty() {
+		return nil
+	}
 
 	in := absrend.Elements()
 	out := make([]BinaryRendering, 0, len(in))
@@ -286,12 +306,22 @@ func fromAbstractBinaryRenderings(
 		}
 	}
 
+	if len(out) == 0 {
+		return nil
+	}
+
 	return out
 }
 
 // fromAbstractIntents translates generic.Bitset[abstract.Intent]
-// into []Intent slice
+// into []Intent slice.
+//
+// It returns nil if resulting slice is empty.
 func fromAbstractIntents(absintents generic.Bitset[abstract.Intent]) []Intent {
+	if absintents.IsEmpty() {
+		return nil
+	}
+
 	in := absintents.Elements()
 	out := make([]Intent, 0, len(in))
 
@@ -313,6 +343,10 @@ func fromAbstractIntents(absintents generic.Bitset[abstract.Intent]) []Intent {
 			// Don't know how to translate to the eSCL.
 			// Just skip it...
 		}
+	}
+
+	if len(out) == 0 {
+		return nil
 	}
 
 	return out
