@@ -368,3 +368,57 @@ func TestFromAbstractColorModes(t *testing.T) {
 		}
 	}
 }
+
+// TestFromAbstractInputSourceCaps tests fromAbstractInputSourceCaps
+// function
+func TestFromAbstractInputSourceCaps(t *testing.T) {
+	type testData struct {
+		ver     Version
+		formats []string
+		in      *abstract.InputCapabilities
+		out     InputSourceCaps
+	}
+
+	formats := []string{"image/jpeg", "application/pdf"}
+	intents := generic.MakeBitset(
+		abstract.IntentDocument,
+	)
+
+	tests := []testData{
+		{
+			// Bare minimum structure
+			ver:     MakeVersion(2, 0),
+			formats: formats,
+			in: &abstract.InputCapabilities{
+				MinWidth:  3 * abstract.Millimeter,
+				MinHeight: 5 * abstract.Millimeter,
+				MaxWidth:  abstract.A4Width,
+				MaxHeight: abstract.A4Height,
+				Intents:   intents,
+			},
+			out: InputSourceCaps{
+				MinWidth:         (3 * abstract.Millimeter).Dots(300),
+				MinHeight:        (5 * abstract.Millimeter).Dots(300),
+				MaxWidth:         abstract.A4Width.Dots(300),
+				MaxHeight:        abstract.A4Height.Dots(300),
+				MaxXOffset:       optional.New(0),
+				MaxYOffset:       optional.New(0),
+				MaxScanRegions:   optional.New(1),
+				SupportedIntents: []Intent{Document},
+			},
+		},
+	}
+
+	for _, test := range tests {
+		out := fromAbstractInputSourceCaps(
+			test.ver, test.formats, test.in)
+		if !reflect.DeepEqual(out, test.out) {
+			t.Errorf("input:        %#v\n"+
+				"escl version: %s\n"+
+				"formats:      %#v\n"+
+				"expected:     %#v\n"+
+				"present:      %#v",
+				test.in, test.formats, test.ver, test.out, out)
+		}
+	}
+}
