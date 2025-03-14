@@ -45,16 +45,23 @@ func fromAbstractScannerCapabilities(
 	}
 
 	// Translate image transform parameters
-	scancaps.BrightnessSupport = fromAbstractRange(abscaps.BrightnessRange)
-	scancaps.ContrastSupport = fromAbstractRange(abscaps.ContrastRange)
-	scancaps.GammaSupport = fromAbstractRange(abscaps.GammaRange)
-	scancaps.HighlightSupport = fromAbstractRange(abscaps.HighlightRange)
-	scancaps.NoiseRemovalSupport = fromAbstractRange(
+	scancaps.BrightnessSupport = fromAbstractOptionalRange(
+		abscaps.BrightnessRange)
+	scancaps.ContrastSupport = fromAbstractOptionalRange(
+		abscaps.ContrastRange)
+	scancaps.GammaSupport = fromAbstractOptionalRange(
+		abscaps.GammaRange)
+	scancaps.HighlightSupport = fromAbstractOptionalRange(
+		abscaps.HighlightRange)
+	scancaps.NoiseRemovalSupport = fromAbstractOptionalRange(
 		abscaps.NoiseRemovalRange)
-	scancaps.ShadowSupport = fromAbstractRange(abscaps.ShadowRange)
-	scancaps.SharpenSupport = fromAbstractRange(abscaps.SharpenRange)
-	scancaps.ThresholdSupport = fromAbstractRange(abscaps.ThresholdRange)
-	scancaps.CompressionFactorSupport = fromAbstractRange(
+	scancaps.ShadowSupport = fromAbstractOptionalRange(
+		abscaps.ShadowRange)
+	scancaps.SharpenSupport = fromAbstractOptionalRange(
+		abscaps.SharpenRange)
+	scancaps.ThresholdSupport = fromAbstractOptionalRange(
+		abscaps.ThresholdRange)
+	scancaps.CompressionFactorSupport = fromAbstractOptionalRange(
 		abscaps.CompressionRange)
 
 	// Translate input capabilities
@@ -319,8 +326,9 @@ func fromAbstractOptionalInt(v int) optional.Val[int] {
 	return nil
 }
 
-// fromAbstractRange converts abstract.Range into the escl Range
-func fromAbstractRange(absrange abstract.Range) optional.Val[Range] {
+// fromAbstractRange converts abstract.Range into the escl Range if
+// Range is not zero, nil otherwise
+func fromAbstractOptionalRange(absrange abstract.Range) optional.Val[Range] {
 	if !absrange.IsZero() {
 		return optional.New(
 			Range{
