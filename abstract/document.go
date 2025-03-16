@@ -10,7 +10,20 @@ package abstract
 
 import "io"
 
-// Document contains one or more image pages.
+// Document contains one or more image files, each of which may include
+// (depending on the format) one or more image pages.
+//
+// All files in the document use the same format. The MIME type of
+// the format can be obtained using the Document.Format method.
+//
+// For example, a document might contain three JPEG image files.
+// Alternatively, it could include five multipage PDF files, each
+// containing several image pages.
+//
+// This document can be used, for instance, to represent a sequence of
+// images returned by a [Scanner]. Depending on the scanner's
+// capabilities and the selected image format, this could result in
+// either one image per file or a series of multipage files.
 //
 // The document interface is optimized for streaming images, eliminating
 // the need to maintain a full-page image buffer in memory.
@@ -29,6 +42,6 @@ type Document interface {
 	Next() (io.Reader, error)
 
 	// Close closes the Document. It implicitly closes the current
-	// image being read, unless EOF is reached.
+	// image being read.
 	Close() error
 }
