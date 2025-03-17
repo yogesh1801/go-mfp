@@ -16,6 +16,7 @@ import (
 	"github.com/alexpevzner/mfp/abstract"
 	"github.com/alexpevzner/mfp/util/generic"
 	"github.com/alexpevzner/mfp/util/optional"
+	"github.com/alexpevzner/mfp/util/uuid"
 )
 
 // testAbstractResolutions contains initialized []abstract.Resolution slice
@@ -63,6 +64,53 @@ var testAbstractSettingsProfiles = []abstract.SettingsProfile{
 		CCDChannels:      testAbstractCCDChannels,
 		Resolutions:      testAbstractResolutions,
 	},
+}
+
+// testAbstractUUID contains a parsed UUID
+var testAbstractUUID = uuid.Must(
+	uuid.Parse("418b75ab-1bd7-4d01-8178-75a84450a11c"),
+)
+
+// testAbstractInputCapabilities contains initialized
+// abstract.InputCapabilities structure
+var testAbstractInputCapabilities = &abstract.InputCapabilities{
+	MinWidth:              15 * abstract.Millimeter,
+	MinHeight:             20 * abstract.Millimeter,
+	MaxWidth:              abstract.A4Width,
+	MaxHeight:             abstract.A4Height,
+	MaxXOffset:            2 * abstract.Inch,
+	MaxYOffset:            3 * abstract.Inch,
+	RiskyLeftMargins:      3 * abstract.Millimeter,
+	RiskyRightMargins:     4 * abstract.Millimeter,
+	RiskyTopMargins:       5 * abstract.Millimeter,
+	RiskyBottomMargins:    6 * abstract.Millimeter,
+	MaxOpticalXResolution: 1200,
+	MaxOpticalYResolution: 600,
+	Intents:               generic.MakeBitset(abstract.IntentDocument),
+	Profiles:              testAbstractSettingsProfiles,
+}
+
+// testAbstractScannerCapabilities contains initialized
+// abstract.ScannerCapabilities structure
+var testAbstractScannerCapabilities = &abstract.ScannerCapabilities{
+	UUID:              testAbstractUUID,
+	MakeAndModel:      "Abstract Scanner",
+	SerialNumber:      "AS-12345",
+	Manufacturer:      "Abstract Corp.",
+	AdminURI:          "http://192.168.0.1/admin",
+	IconURI:           "http://192.168.0.1/icon.png",
+	DocumentFormats:   []string{"image/jpeg", "application/pdf"},
+	CompressionRange:  abstract.Range{Min: 2, Max: 10, Normal: 5},
+	ADFCapacity:       35,
+	BrightnessRange:   abstract.Range{Min: -100, Max: 100, Normal: 0},
+	ContrastRange:     abstract.Range{Min: 0, Max: 100, Normal: 75},
+	GammaRange:        abstract.Range{Min: 1, Max: 40, Normal: 20},
+	HighlightRange:    abstract.Range{Min: 0, Max: 100, Normal: 60},
+	NoiseRemovalRange: abstract.Range{Min: 0, Max: 10, Normal: 2},
+	ShadowRange:       abstract.Range{Min: 0, Max: 100, Normal: 10},
+	SharpenRange:      abstract.Range{Min: 0, Max: 100, Normal: 15},
+	ThresholdRange:    abstract.Range{Min: 0, Max: 100, Normal: 50},
+	Platen:            testAbstractInputCapabilities,
 }
 
 // TestFromAbstracOptionaltRange tests fromAbstractOptionalRange
@@ -637,22 +685,7 @@ func TestFromAbstractInputSourceCaps(t *testing.T) {
 			// Full-data test
 			ver:     DefaultVersion,
 			formats: formats,
-			in: &abstract.InputCapabilities{
-				MinWidth:              15 * abstract.Millimeter,
-				MinHeight:             20 * abstract.Millimeter,
-				MaxWidth:              abstract.A4Width,
-				MaxHeight:             abstract.A4Height,
-				MaxXOffset:            2 * abstract.Inch,
-				MaxYOffset:            3 * abstract.Inch,
-				RiskyLeftMargins:      3 * abstract.Millimeter,
-				RiskyRightMargins:     4 * abstract.Millimeter,
-				RiskyTopMargins:       5 * abstract.Millimeter,
-				RiskyBottomMargins:    6 * abstract.Millimeter,
-				MaxOpticalXResolution: 1200,
-				MaxOpticalYResolution: 600,
-				Intents:               intents,
-				Profiles:              testAbstractSettingsProfiles,
-			},
+			in:      testAbstractInputCapabilities,
 			out: InputSourceCaps{
 				MinWidth:  (15 * abstract.Millimeter).Dots(300),
 				MinHeight: (20 * abstract.Millimeter).Dots(300),
@@ -693,6 +726,93 @@ func TestFromAbstractInputSourceCaps(t *testing.T) {
 				"expected:     %#v\n"+
 				"present:      %#v",
 				test.in, test.formats, test.ver, test.out, out)
+		}
+	}
+}
+
+// TestFromAbstractScannerCapabilities tests fromAbstractScannerCapabilities
+// function
+func TestFromAbstractScannerCapabilities(t *testing.T) {
+	type testData struct {
+		in  *abstract.ScannerCapabilities
+		out ScannerCapabilities
+	}
+
+	formats := []string{"image/jpeg", "application/pdf"}
+
+	platen := optional.New(Platen{
+		optional.New(fromAbstractInputSourceCaps(
+			DefaultVersion, formats, testAbstractInputCapabilities)),
+	})
+
+	tests := []testData{
+		{
+			// Bare minimum
+			in: &abstract.ScannerCapabilities{
+				UUID: testAbstractUUID,
+			},
+			out: ScannerCapabilities{
+				Version: DefaultVersion,
+				UUID:    optional.New(testAbstractUUID),
+			},
+		},
+
+		{
+			// Bare minimim with Platen source
+			in: &abstract.ScannerCapabilities{
+				UUID:            testAbstractUUID,
+				DocumentFormats: formats,
+				Platen:          testAbstractInputCapabilities,
+			},
+			out: ScannerCapabilities{
+				Version: DefaultVersion,
+				UUID:    optional.New(testAbstractUUID),
+				Platen:  platen,
+			},
+		},
+
+		{
+			// Full-data test
+			in: testAbstractScannerCapabilities,
+			out: ScannerCapabilities{
+				Version:      DefaultVersion,
+				UUID:         optional.New(testAbstractUUID),
+				MakeAndModel: optional.New("Abstract Scanner"),
+				SerialNumber: optional.New("AS-12345"),
+				Manufacturer: optional.New("Abstract Corp."),
+				AdminURI:     optional.New("http://192.168.0.1/admin"),
+				IconURI:      optional.New("http://192.168.0.1/icon.png"),
+				Platen:       platen,
+				BrightnessSupport: optional.New(
+					Range{Min: -100, Max: 100, Normal: 0}),
+				CompressionFactorSupport: optional.New(
+					Range{Min: 2, Max: 10, Normal: 5}),
+				ContrastSupport: optional.New(
+					Range{Min: 0, Max: 100, Normal: 75}),
+				GammaSupport: optional.New(
+					Range{Min: 1, Max: 40, Normal: 20}),
+				HighlightSupport: optional.New(
+					Range{Min: 0, Max: 100, Normal: 60}),
+				NoiseRemovalSupport: optional.New(
+					Range{Min: 0, Max: 10, Normal: 2}),
+				ShadowSupport: optional.New(
+					Range{Min: 0, Max: 100, Normal: 10}),
+				SharpenSupport: optional.New(
+					Range{Min: 0, Max: 100, Normal: 15}),
+				ThresholdSupport: optional.New(
+					Range{Min: 0, Max: 100, Normal: 50}),
+			},
+		},
+	}
+
+	for _, test := range tests {
+		out := fromAbstractScannerCapabilities(
+			DefaultVersion, test.in)
+		if !reflect.DeepEqual(out, test.out) {
+			t.Errorf("input:        %#v\n"+
+				"expected:     %#v\n"+
+				"present:      %#v",
+				test.in, test.out, out)
 		}
 	}
 }
