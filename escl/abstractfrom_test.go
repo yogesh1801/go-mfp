@@ -18,6 +18,53 @@ import (
 	"github.com/alexpevzner/mfp/util/optional"
 )
 
+// testAbstractResolutions contains initialized []abstract.Resolution slice
+var testAbstractResolutions = []abstract.Resolution{
+	{XResolution: 75, YResolution: 75},
+	{XResolution: 150, YResolution: 150},
+	{XResolution: 300, YResolution: 300},
+	{XResolution: 600, YResolution: 600},
+}
+
+// testAbstractColorModes contains initialized abstract.ColorMode set
+var testAbstractColorModes = generic.MakeBitset(
+	abstract.ColorModeBinary,
+	abstract.ColorModeMono,
+	abstract.ColorModeColor,
+)
+
+// testAbstractDepth contains initialized abstract.Depth set
+var testAbstractDepth = generic.MakeBitset(abstract.Depth8)
+
+// testAbstractBinaryRenderings contains initialized
+// abstract.BinaryRendering set
+var testAbstractBinaryRenderings = generic.MakeBitset(
+	abstract.BinaryRenderingHalftone,
+	abstract.BinaryRenderingThreshold,
+)
+
+// testAbstractCCDChannels contains initialized abstract.CCDChannel set
+var testAbstractCCDChannels = generic.MakeBitset(
+	abstract.CCDChannelRed,
+	abstract.CCDChannelGreen,
+	abstract.CCDChannelBlue,
+	abstract.CCDChannelNTSC,
+	abstract.CCDChannelGrayCcd,
+	abstract.CCDChannelGrayCcdEmulated,
+)
+
+// testAbstractSettingsProfiles contains initialized []abstract.SettingsProfile
+// slice
+var testAbstractSettingsProfiles = []abstract.SettingsProfile{
+	{
+		ColorModes:       testAbstractColorModes,
+		Depths:           testAbstractDepth,
+		BinaryRenderings: testAbstractBinaryRenderings,
+		CCDChannels:      testAbstractCCDChannels,
+		Resolutions:      testAbstractResolutions,
+	},
+}
+
 // TestFromAbstracOptionaltRange tests fromAbstractOptionalRange
 func TestFromAbstractRange(t *testing.T) {
 	type testData struct {
@@ -168,10 +215,7 @@ func TestFromAbstractBinaryRenderings(t *testing.T) {
 		},
 		{
 			// Full set
-			in: generic.MakeBitset(
-				abstract.BinaryRenderingHalftone,
-				abstract.BinaryRenderingThreshold,
-			),
+			in:  testAbstractBinaryRenderings,
 			out: []BinaryRendering{Halftone, Threshold},
 		},
 		{
@@ -230,14 +274,7 @@ func TestFromAbstractCCDChannels(t *testing.T) {
 		},
 		{
 			// Full set
-			in: generic.MakeBitset(
-				abstract.CCDChannelRed,
-				abstract.CCDChannelGreen,
-				abstract.CCDChannelBlue,
-				abstract.CCDChannelNTSC,
-				abstract.CCDChannelGrayCcd,
-				abstract.CCDChannelGrayCcdEmulated,
-			),
+			in: testAbstractCCDChannels,
 			out: []CCDChannel{Red, Green, Blue,
 				NTSC, GrayCcd, GrayCcdEmulated},
 		},
@@ -291,15 +328,9 @@ func TestFromAbstractColorModes(t *testing.T) {
 		},
 		{
 			// All modes, 8 bit
-			modes: generic.MakeBitset(
-				abstract.ColorModeBinary,
-				abstract.ColorModeMono,
-				abstract.ColorModeColor,
-			),
-			depths: generic.MakeBitset(
-				abstract.Depth8,
-			),
-			out: []ColorMode{BlackAndWhite1, Grayscale8, RGB24},
+			modes:  testAbstractColorModes,
+			depths: testAbstractDepth,
+			out:    []ColorMode{BlackAndWhite1, Grayscale8, RGB24},
 		},
 		{
 			// All modes, 8+16 bit
@@ -369,6 +400,200 @@ func TestFromAbstractColorModes(t *testing.T) {
 	}
 }
 
+// TestFromAbstractResolutions tests fromAbstractResolutions
+// function
+func TestFromAbstractResolutions(t *testing.T) {
+	type testData struct {
+		absres      []abstract.Resolution
+		absresrange abstract.ResolutionRange
+		out         SupportedResolutions
+	}
+
+	tests := []testData{
+		{
+			// Only discrete resolutions
+			absres: testAbstractResolutions,
+			out: SupportedResolutions{
+				DiscreteResolutions: []DiscreteResolution{
+					{75, 75},
+					{150, 150},
+					{300, 300},
+					{600, 600},
+				},
+			},
+		},
+
+		{
+			// Range of resolutions
+			absresrange: abstract.ResolutionRange{
+				XMin: 200, XMax: 1200, XStep: 100, XNormal: 400,
+				YMin: 100, YMax: 600, YStep: 50, YNormal: 300,
+			},
+
+			out: SupportedResolutions{
+				ResolutionRange: optional.New(ResolutionRange{
+					XResolutionRange: Range{
+						Min:    200,
+						Max:    1200,
+						Normal: 400,
+						Step:   optional.New(100),
+					},
+					YResolutionRange: Range{
+						Min:    100,
+						Max:    600,
+						Normal: 300,
+						Step:   optional.New(50),
+					},
+				}),
+			},
+		},
+
+		{
+			// Range of resolutions with missed step
+			absresrange: abstract.ResolutionRange{
+				XMin: 200, XMax: 1200, XNormal: 400,
+				YMin: 100, YMax: 600, YNormal: 300,
+			},
+
+			out: SupportedResolutions{
+				ResolutionRange: optional.New(ResolutionRange{
+					XResolutionRange: Range{
+						Min:    200,
+						Max:    1200,
+						Normal: 400,
+						Step:   optional.New(1),
+					},
+					YResolutionRange: Range{
+						Min:    100,
+						Max:    600,
+						Normal: 300,
+						Step:   optional.New(1),
+					},
+				}),
+			},
+		},
+
+		{
+			// Mix of discrete and range resolutions
+			absres: testAbstractResolutions,
+			absresrange: abstract.ResolutionRange{
+				XMin: 200, XMax: 1200, XStep: 100, XNormal: 400,
+				YMin: 100, YMax: 600, YStep: 50, YNormal: 300,
+			},
+			out: SupportedResolutions{
+				DiscreteResolutions: []DiscreteResolution{
+					{75, 75},
+					{150, 150},
+					{300, 300},
+					{600, 600},
+				},
+				ResolutionRange: optional.New(ResolutionRange{
+					XResolutionRange: Range{
+						Min:    200,
+						Max:    1200,
+						Normal: 400,
+						Step:   optional.New(100),
+					},
+					YResolutionRange: Range{
+						Min:    100,
+						Max:    600,
+						Normal: 300,
+						Step:   optional.New(50),
+					},
+				}),
+			},
+		},
+	}
+
+	for _, test := range tests {
+		out := fromAbstractResolutions(test.absres, test.absresrange)
+		if !reflect.DeepEqual(out, test.out) {
+			t.Errorf("input:\n"+
+				"[]abstract.Resolution:      %#v\n"+
+				"[]abstract.ResolutionRange: %#v\n"+
+				"expected:     %#v\n"+
+				"present:      %#v",
+				test.absres, test.absresrange,
+				test.out, out)
+		}
+	}
+}
+
+// TestFromAbstractSettingsProfiles tests fromAbstractSettingsProfiles
+// function
+func TestFromAbstractSettingsProfiles(t *testing.T) {
+	type testData struct {
+		ver     Version
+		formats []string
+		in      []abstract.SettingsProfile
+		out     []SettingProfile
+	}
+
+	formats := []string{"image/jpeg", "application/pdf"}
+
+	tests := []testData{
+		{
+			// eSCL 2.0
+			ver:     MakeVersion(2, 0),
+			formats: formats,
+			in:      testAbstractSettingsProfiles,
+			out: []SettingProfile{
+				{
+					ColorModes: fromAbstractColorModes(
+						testAbstractColorModes,
+						testAbstractDepth),
+					ColorSpaces:     []ColorSpace{SRGB},
+					DocumentFormats: formats,
+					CCDChannels: fromAbstractCCDChannels(
+						testAbstractCCDChannels),
+					BinaryRenderings: fromAbstractBinaryRenderings(
+						testAbstractBinaryRenderings),
+					SupportedResolutions: fromAbstractResolutions(
+						testAbstractResolutions,
+						abstract.ResolutionRange{}),
+				},
+			},
+		},
+
+		{
+			// eSCL 2.1+
+			ver:     MakeVersion(2, 1),
+			formats: formats,
+			in:      testAbstractSettingsProfiles,
+			out: []SettingProfile{
+				{
+					ColorModes: fromAbstractColorModes(
+						testAbstractColorModes,
+						testAbstractDepth),
+					ColorSpaces:        []ColorSpace{SRGB},
+					DocumentFormats:    formats,
+					DocumentFormatsExt: formats,
+					CCDChannels: fromAbstractCCDChannels(
+						testAbstractCCDChannels),
+					BinaryRenderings: fromAbstractBinaryRenderings(
+						testAbstractBinaryRenderings),
+					SupportedResolutions: fromAbstractResolutions(
+						testAbstractResolutions,
+						abstract.ResolutionRange{}),
+				},
+			},
+		},
+	}
+
+	for _, test := range tests {
+		out := fromAbstractSettingsProfiles(
+			test.ver, test.formats, test.in)
+		if !reflect.DeepEqual(out, test.out) {
+			t.Errorf("input:        %#v\n"+
+				"escl version: %s\n"+
+				"formats:      %#v\n"+
+				"expected:     %#v\n"+
+				"present:      %#v",
+				test.in, test.formats, test.ver, test.out, out)
+		}
+	}
+}
+
 // TestFromAbstractInputSourceCaps tests fromAbstractInputSourceCaps
 // function
 func TestFromAbstractInputSourceCaps(t *testing.T) {
@@ -387,7 +612,7 @@ func TestFromAbstractInputSourceCaps(t *testing.T) {
 	tests := []testData{
 		{
 			// Bare minimum structure
-			ver:     MakeVersion(2, 0),
+			ver:     DefaultVersion,
 			formats: formats,
 			in: &abstract.InputCapabilities{
 				MinWidth:  3 * abstract.Millimeter,
@@ -405,6 +630,55 @@ func TestFromAbstractInputSourceCaps(t *testing.T) {
 				MaxYOffset:       optional.New(0),
 				MaxScanRegions:   optional.New(1),
 				SupportedIntents: []Intent{Document},
+			},
+		},
+
+		{
+			// Full-data test
+			ver:     DefaultVersion,
+			formats: formats,
+			in: &abstract.InputCapabilities{
+				MinWidth:              15 * abstract.Millimeter,
+				MinHeight:             20 * abstract.Millimeter,
+				MaxWidth:              abstract.A4Width,
+				MaxHeight:             abstract.A4Height,
+				MaxXOffset:            2 * abstract.Inch,
+				MaxYOffset:            3 * abstract.Inch,
+				RiskyLeftMargins:      3 * abstract.Millimeter,
+				RiskyRightMargins:     4 * abstract.Millimeter,
+				RiskyTopMargins:       5 * abstract.Millimeter,
+				RiskyBottomMargins:    6 * abstract.Millimeter,
+				MaxOpticalXResolution: 1200,
+				MaxOpticalYResolution: 600,
+				Intents:               intents,
+				Profiles:              testAbstractSettingsProfiles,
+			},
+			out: InputSourceCaps{
+				MinWidth:  (15 * abstract.Millimeter).Dots(300),
+				MinHeight: (20 * abstract.Millimeter).Dots(300),
+				MaxWidth:  abstract.A4Width.Dots(300),
+				MaxHeight: abstract.A4Height.Dots(300),
+				MaxXOffset: optional.New(
+					(2 * abstract.Inch).Dots(300)),
+				MaxYOffset: optional.New(
+					(3 * abstract.Inch).Dots(300)),
+				MaxOpticalXResolution: optional.New(1200),
+				MaxOpticalYResolution: optional.New(600),
+				RiskyLeftMargins: optional.New(
+					(3 * abstract.Millimeter).Dots(300)),
+				RiskyRightMargins: optional.New(
+					(4 * abstract.Millimeter).Dots(300)),
+				RiskyTopMargins: optional.New(
+					(5 * abstract.Millimeter).Dots(300)),
+				RiskyBottomMargins: optional.New(
+					(6 * abstract.Millimeter).Dots(300)),
+				MaxScanRegions:   optional.New(1),
+				SupportedIntents: []Intent{Document},
+				SettingProfiles: fromAbstractSettingsProfiles(
+					DefaultVersion,
+					formats,
+					testAbstractSettingsProfiles,
+				),
 			},
 		},
 	}

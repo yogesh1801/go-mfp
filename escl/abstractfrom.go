@@ -133,18 +133,36 @@ func fromAbstractInputSourceCaps(
 	caps.SupportedIntents = fromAbstractIntents(abscaps.Intents)
 
 	// Translate setting profiles
-	for _, absprof := range abscaps.Profiles {
+	caps.SettingProfiles = fromAbstractSettingsProfiles(
+		version, docFormats, abscaps.Profiles)
+
+	return caps
+}
+
+// fromAbstractSettingsProfiles translates a []abstract.SettingsProfile
+// slice into the eSCL []SettingProfile.
+//
+// The version parameters affects how some fields are converted.
+func fromAbstractSettingsProfiles(
+	version Version, docFormats []string,
+	absprof []abstract.SettingsProfile) []SettingProfile {
+
+	var profiles []SettingProfile
+	for _, ap := range absprof {
 		// Create SettingProfile structure
 		prof := SettingProfile{
 			ColorModes: fromAbstractColorModes(
-				absprof.ColorModes,
-				absprof.Depths),
+				ap.ColorModes,
+				ap.Depths),
 			ColorSpaces:     []ColorSpace{SRGB},
 			DocumentFormats: docFormats,
 			CCDChannels: fromAbstractCCDChannels(
-				absprof.CCDChannels),
+				ap.CCDChannels),
 			BinaryRenderings: fromAbstractBinaryRenderings(
-				absprof.BinaryRenderings),
+				ap.BinaryRenderings),
+			SupportedResolutions: fromAbstractResolutions(
+				ap.Resolutions,
+				ap.ResolutionRange),
 		}
 
 		if version >= MakeVersion(2, 1) {
@@ -152,50 +170,58 @@ func fromAbstractInputSourceCaps(
 			prof.DocumentFormatsExt = prof.DocumentFormats
 		}
 
-		// Translate resolutions
-		res := SupportedResolutions{}
-		for _, absres := range absprof.Resolutions {
-			res.DiscreteResolutions = append(
-				res.DiscreteResolutions,
-				DiscreteResolution{
-					absres.XResolution, absres.YResolution,
-				})
-		}
-
-		if absrng := absprof.ResolutionRange; !absrng.IsZero() {
-			xstep := absrng.XStep
-			if xstep < 1 {
-				xstep = 0
-			}
-
-			ystep := absrng.YStep
-			if ystep < 1 {
-				ystep = 0
-			}
-
-			rng := ResolutionRange{
-				XResolutionRange: Range{
-					Min:  absrng.XMin,
-					Max:  absrng.XMax,
-					Step: optional.New(xstep),
-				},
-				YResolutionRange: Range{
-					Min:  absrng.YMin,
-					Max:  absrng.YMax,
-					Step: optional.New(ystep),
-				},
-			}
-
-			res.ResolutionRange = optional.New(rng)
-		}
-
-		prof.SupportedResolutions = res
-
-		// Append to capabilities
-		caps.SettingProfiles = append(caps.SettingProfiles, prof)
+		// Append to the output
+		profiles = append(profiles, prof)
 	}
 
-	return caps
+	return profiles
+}
+
+// fromAbstractResolutions translates []abstract.Resolution and
+// abstract.ResolutionRange into the [SupportedResolutions].
+func fromAbstractResolutions(
+	absres []abstract.Resolution,
+	absresrange abstract.ResolutionRange) SupportedResolutions {
+
+	res := SupportedResolutions{}
+	for _, ar := range absres {
+		res.DiscreteResolutions = append(
+			res.DiscreteResolutions,
+			DiscreteResolution{
+				ar.XResolution, ar.YResolution,
+			})
+	}
+
+	if !absresrange.IsZero() {
+		xstep := absresrange.XStep
+		if xstep < 1 {
+			xstep = 1
+		}
+
+		ystep := absresrange.YStep
+		if ystep < 1 {
+			ystep = 1
+		}
+
+		rng := ResolutionRange{
+			XResolutionRange: Range{
+				Min:    absresrange.XMin,
+				Max:    absresrange.XMax,
+				Normal: absresrange.XNormal,
+				Step:   optional.New(xstep),
+			},
+			YResolutionRange: Range{
+				Min:    absresrange.YMin,
+				Max:    absresrange.YMax,
+				Normal: absresrange.YNormal,
+				Step:   optional.New(ystep),
+			},
+		}
+
+		res.ResolutionRange = optional.New(rng)
+	}
+
+	return res
 }
 
 // fromAbstractColorModes translates abstract color modes into
