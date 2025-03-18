@@ -12,11 +12,10 @@ import (
 	"fmt"
 	"math/bits"
 	"strings"
-	"sync/atomic"
 )
 
 // Bitset represents a bitset of instances of some integer type T.
-// Operations with Bitset are goroutine-safe.
+// Operations with Bitset are NOT goroutine-safe.
 type Bitset[T ~int | ~uint] uint32
 
 // MakeBitset makes [Bitset] from the list of elements of type T.
@@ -66,16 +65,18 @@ func (set Bitset[T]) IsEmpty() bool {
 // Add adds element to the set.
 // It returns true if element was actually added.
 func (set *Bitset[T]) Add(elem T) bool {
-	mask := uint32(1) << elem
-	old := atomic.OrUint32((*uint32)(set), mask)
+	mask := Bitset[T](1) << elem
+	old := *set
+	*set |= mask
 	return old&mask == 0
 }
 
 // Del deletes element from the set.
 // It returns true if element was actually deleted.
 func (set *Bitset[T]) Del(elem T) bool {
-	mask := uint32(1) << elem
-	old := atomic.AndUint32((*uint32)(set), ^mask)
+	mask := Bitset[T](1) << elem
+	old := *set
+	*set &= ^mask
 	return old&mask != 0
 }
 
