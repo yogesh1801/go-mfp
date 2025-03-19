@@ -726,10 +726,26 @@ func TestFromAbstractScannerCapabilities(t *testing.T) {
 
 	formats := []string{"image/jpeg", "application/pdf"}
 
-	platen := optional.New(Platen{
-		optional.New(fromAbstractInputSourceCaps(
-			DefaultVersion, formats, testAbstractInputCapabilities)),
-	})
+	capacity := 25
+
+	abscaps := fromAbstractInputSourceCaps(
+		DefaultVersion, formats, testAbstractInputCapabilities)
+
+	platen := Platen{
+		optional.New(abscaps),
+	}
+
+	adfSimplex := ADF{
+		ADFSimplexInputCaps: optional.New(abscaps),
+		FeederCapacity:      optional.New(capacity),
+	}
+
+	adfDuplex := ADF{
+		ADFSimplexInputCaps: optional.New(abscaps),
+		ADFDuplexInputCaps:  optional.New(abscaps),
+		FeederCapacity:      optional.New(capacity),
+		ADFOptions:          []ADFOption{Duplex},
+	}
 
 	tests := []testData{
 		{
@@ -753,7 +769,42 @@ func TestFromAbstractScannerCapabilities(t *testing.T) {
 			out: ScannerCapabilities{
 				Version: DefaultVersion,
 				UUID:    optional.New(testAbstractUUID),
-				Platen:  platen,
+				Platen:  optional.New(platen),
+			},
+		},
+
+		{
+			comment: "Bare minimim with Platen + ADF Simplex",
+			in: &abstract.ScannerCapabilities{
+				UUID:            testAbstractUUID,
+				DocumentFormats: formats,
+				ADFCapacity:     capacity,
+				Platen:          testAbstractInputCapabilities,
+				ADFSimplex:      testAbstractInputCapabilities,
+			},
+			out: ScannerCapabilities{
+				Version: DefaultVersion,
+				UUID:    optional.New(testAbstractUUID),
+				Platen:  optional.New(platen),
+				ADF:     optional.New(adfSimplex),
+			},
+		},
+
+		{
+			comment: "Bare minimim with Platen + ADF Duplex",
+			in: &abstract.ScannerCapabilities{
+				UUID:            testAbstractUUID,
+				DocumentFormats: formats,
+				ADFCapacity:     capacity,
+				Platen:          testAbstractInputCapabilities,
+				ADFSimplex:      testAbstractInputCapabilities,
+				ADFDuplex:       testAbstractInputCapabilities,
+			},
+			out: ScannerCapabilities{
+				Version: DefaultVersion,
+				UUID:    optional.New(testAbstractUUID),
+				Platen:  optional.New(platen),
+				ADF:     optional.New(adfDuplex),
 			},
 		},
 
@@ -768,7 +819,7 @@ func TestFromAbstractScannerCapabilities(t *testing.T) {
 				Manufacturer: optional.New("Abstract Corp."),
 				AdminURI:     optional.New("http://192.168.0.1/admin"),
 				IconURI:      optional.New("http://192.168.0.1/icon.png"),
-				Platen:       platen,
+				Platen:       optional.New(platen),
 				BrightnessSupport: optional.New(
 					Range{Min: -100, Max: 100, Normal: 0}),
 				CompressionFactorSupport: optional.New(
