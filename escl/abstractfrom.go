@@ -14,8 +14,8 @@ import (
 	"github.com/alexpevzner/mfp/util/optional"
 )
 
-// fromAbstractScannerCapabilities decodes [ScannerCapabilities]
-// from the [abstract.ScannerCapabilities].
+// fromAbstractScannerCapabilities translates [abstract.ScannerCapabilities]
+// into the [ScannerCapabilities].
 //
 // The version parameters affects how some fields are converted.
 func fromAbstractScannerCapabilities(
@@ -96,8 +96,8 @@ func fromAbstractScannerCapabilities(
 	return scancaps
 }
 
-// fromAbstractInputSourceCaps decodes [InputSourceCaps] from
-// the abstract.InputCapabilities.
+// fromAbstractInputSourceCaps translates [abstract.InputCapabilities]
+// into the [InputSourceCaps].
 //
 // The version parameters affects how some fields are converted.
 func fromAbstractInputSourceCaps(
