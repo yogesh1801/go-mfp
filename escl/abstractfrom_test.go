@@ -9,11 +9,12 @@
 package escl
 
 import (
-	"reflect"
+	"fmt"
 	"slices"
 	"testing"
 
 	"github.com/alexpevzner/mfp/abstract"
+	"github.com/alexpevzner/mfp/internal/testutils"
 	"github.com/alexpevzner/mfp/util/generic"
 	"github.com/alexpevzner/mfp/util/optional"
 	"github.com/alexpevzner/mfp/util/uuid"
@@ -135,12 +136,11 @@ func TestFromAbstractRange(t *testing.T) {
 
 	for _, test := range tests {
 		out := fromAbstractOptionalRange(test.in)
-		if !reflect.DeepEqual(out, test.out) {
-			t.Errorf("input: %d\n"+
-				"expected: %#v\n"+
-				"present:  %#v",
-				test.in, test.out, out)
-		}
+		comment := fmt.Sprintf("input: %+v", test.in)
+
+		testutils.CheckConvertionTest(t,
+			"fromAbstractOptionalRange",
+			comment, test.out, out)
 	}
 }
 
@@ -158,30 +158,30 @@ func TestFromAbstractOptionalInt(t *testing.T) {
 
 	for _, test := range tests {
 		out := fromAbstractOptionalInt(test.in)
-		if !reflect.DeepEqual(out, test.out) {
-			t.Errorf("input: %d\n"+
-				"expected: %#v\n"+
-				"present:  %#v",
-				test.in, test.out, out)
-		}
+		comment := fmt.Sprintf("input: %+v", test.in)
+
+		testutils.CheckConvertionTest(t,
+			"fromAbstractOptionalRange",
+			comment, test.out, out)
 	}
 }
 
 // TestFromAbstractIntents tests fromAbstractIntents
 func TestFromAbstractIntents(t *testing.T) {
 	type testData struct {
-		in  generic.Bitset[abstract.Intent]
-		out []Intent
+		comment string
+		in      generic.Bitset[abstract.Intent]
+		out     []Intent
 	}
 
 	tests := []testData{
 		{
-			// Empty set
-			in:  0,
-			out: nil,
+			comment: "Empty set",
+			in:      0,
+			out:     nil,
 		},
 		{
-			// A couple of elements
+			comment: "A couple of elements",
 			in: generic.MakeBitset(
 				abstract.IntentDocument,
 				abstract.IntentTextAndGraphic,
@@ -189,7 +189,7 @@ func TestFromAbstractIntents(t *testing.T) {
 			out: []Intent{Document, TextAndGraphic},
 		},
 		{
-			// Full set
+			comment: "Full set",
 			in: generic.MakeBitset(
 				abstract.IntentDocument,
 				abstract.IntentTextAndGraphic,
@@ -208,7 +208,7 @@ func TestFromAbstractIntents(t *testing.T) {
 			},
 		},
 		{
-			// Set with some unknown element
+			comment: "Set with some unknown element",
 			in: generic.MakeBitset(
 				abstract.IntentDocument,
 				abstract.IntentTextAndGraphic,
@@ -217,7 +217,7 @@ func TestFromAbstractIntents(t *testing.T) {
 			out: []Intent{Document, TextAndGraphic},
 		},
 		{
-			// Only unknown elements
+			comment: "Only unknown elements",
 			in: generic.MakeBitset(
 				abstract.Intent(30), // Unknown
 			),
@@ -232,42 +232,40 @@ func TestFromAbstractIntents(t *testing.T) {
 		slices.Sort(out)
 		slices.Sort(expected)
 
-		if !reflect.DeepEqual(out, expected) {
-			t.Errorf("input: %d\n"+
-				"expected: %#v\n"+
-				"present:  %#v",
-				test.in, test.out, out)
-		}
+		testutils.CheckConvertionTest(t,
+			"fromAbstractIntents",
+			test.comment, expected, out)
 	}
 }
 
 // TestFromAbstractBinaryRenderings tests fromAbstractBinaryRenderings
 func TestFromAbstractBinaryRenderings(t *testing.T) {
 	type testData struct {
-		in  generic.Bitset[abstract.BinaryRendering]
-		out []BinaryRendering
+		comment string
+		in      generic.Bitset[abstract.BinaryRendering]
+		out     []BinaryRendering
 	}
 
 	tests := []testData{
 		{
-			// Empty set
-			in:  0,
-			out: nil,
+			comment: "Empty set",
+			in:      0,
+			out:     nil,
 		},
 		{
-			// Single element
+			comment: "Single element",
 			in: generic.MakeBitset(
 				abstract.BinaryRenderingHalftone,
 			),
 			out: []BinaryRendering{Halftone},
 		},
 		{
-			// Full set
-			in:  testAbstractBinaryRenderings,
-			out: []BinaryRendering{Halftone, Threshold},
+			comment: "Full set",
+			in:      testAbstractBinaryRenderings,
+			out:     []BinaryRendering{Halftone, Threshold},
 		},
 		{
-			// Set with some unknown element
+			comment: "Set with some unknown element",
 			in: generic.MakeBitset(
 				abstract.BinaryRenderingHalftone,
 				30, // Unknown
@@ -275,7 +273,7 @@ func TestFromAbstractBinaryRenderings(t *testing.T) {
 			out: []BinaryRendering{Halftone},
 		},
 		{
-			// Only unknown elements
+			comment: "Only unknown elements",
 			in: generic.MakeBitset(
 				abstract.BinaryRendering(30), // Unknown
 			),
@@ -290,30 +288,28 @@ func TestFromAbstractBinaryRenderings(t *testing.T) {
 		slices.Sort(out)
 		slices.Sort(expected)
 
-		if !reflect.DeepEqual(out, expected) {
-			t.Errorf("input: %d\n"+
-				"expected: %#v\n"+
-				"present:  %#v",
-				test.in, test.out, out)
-		}
+		testutils.CheckConvertionTest(t,
+			"fromAbstractBinaryRenderings",
+			test.comment, expected, out)
 	}
 }
 
 // TestFromAbstractCCDChannels tests fromAbstractCCDChannels
 func TestFromAbstractCCDChannels(t *testing.T) {
 	type testData struct {
-		in  generic.Bitset[abstract.CCDChannel]
-		out []CCDChannel
+		comment string
+		in      generic.Bitset[abstract.CCDChannel]
+		out     []CCDChannel
 	}
 
 	tests := []testData{
 		{
-			// Empty set
-			in:  0,
-			out: nil,
+			comment: "Empty set",
+			in:      0,
+			out:     nil,
 		},
 		{
-			// A couple of elements
+			comment: "A couple of elements",
 			in: generic.MakeBitset(
 				abstract.CCDChannelRed,
 				abstract.CCDChannelBlue,
@@ -321,13 +317,13 @@ func TestFromAbstractCCDChannels(t *testing.T) {
 			out: []CCDChannel{Red, Blue},
 		},
 		{
-			// Full set
-			in: testAbstractCCDChannels,
+			comment: "Full set",
+			in:      testAbstractCCDChannels,
 			out: []CCDChannel{Red, Green, Blue,
 				NTSC, GrayCcd, GrayCcdEmulated},
 		},
 		{
-			// Set with some unknown element
+			comment: "Set with some unknown element",
 			in: generic.MakeBitset(
 				abstract.CCDChannelRed,
 				30, // Unknown
@@ -335,7 +331,7 @@ func TestFromAbstractCCDChannels(t *testing.T) {
 			out: []CCDChannel{Red},
 		},
 		{
-			// Only unknown elements
+			comment: "Only unknown elements",
 			in: generic.MakeBitset(
 				abstract.CCDChannel(30), // Unknown
 			),
@@ -350,38 +346,36 @@ func TestFromAbstractCCDChannels(t *testing.T) {
 		slices.Sort(out)
 		slices.Sort(expected)
 
-		if !reflect.DeepEqual(out, expected) {
-			t.Errorf("input: %d\n"+
-				"expected: %#v\n"+
-				"present:  %#v",
-				test.in, test.out, out)
-		}
+		testutils.CheckConvertionTest(t,
+			"fromAbstractCCDChannels",
+			test.comment, expected, out)
 	}
 }
 
 // TestFromAbstractColorModes tests fromAbstractColorModes
 func TestFromAbstractColorModes(t *testing.T) {
 	type testData struct {
-		modes  generic.Bitset[abstract.ColorMode]
-		depths generic.Bitset[abstract.Depth]
-		out    []ColorMode
+		comment string
+		modes   generic.Bitset[abstract.ColorMode]
+		depths  generic.Bitset[abstract.Depth]
+		out     []ColorMode
 	}
 
 	tests := []testData{
 		{
-			// Empty set
-			modes:  0,
-			depths: 0,
-			out:    nil,
+			comment: "Empty set",
+			modes:   0,
+			depths:  0,
+			out:     nil,
 		},
 		{
-			// All modes, 8 bit
-			modes:  testAbstractColorModes,
-			depths: testAbstractDepth,
-			out:    []ColorMode{BlackAndWhite1, Grayscale8, RGB24},
+			comment: "All modes, 8 bit",
+			modes:   testAbstractColorModes,
+			depths:  testAbstractDepth,
+			out:     []ColorMode{BlackAndWhite1, Grayscale8, RGB24},
 		},
 		{
-			// All modes, 8+16 bit
+			comment: "All modes, 8+16 bit",
 			modes: generic.MakeBitset(
 				abstract.ColorModeBinary,
 				abstract.ColorModeMono,
@@ -395,7 +389,7 @@ func TestFromAbstractColorModes(t *testing.T) {
 				Grayscale16, RGB48},
 		},
 		{
-			// Unknown mode
+			comment: "Unknown mode",
 			modes: generic.MakeBitset(
 				abstract.ColorModeBinary,
 				abstract.ColorModeMono,
@@ -408,7 +402,7 @@ func TestFromAbstractColorModes(t *testing.T) {
 			out: []ColorMode{BlackAndWhite1, Grayscale8, RGB24},
 		},
 		{
-			// Unknown depth
+			comment: "Unknown depth",
 			modes: generic.MakeBitset(
 				abstract.ColorModeBinary,
 				abstract.ColorModeMono,
@@ -421,7 +415,7 @@ func TestFromAbstractColorModes(t *testing.T) {
 			out: []ColorMode{BlackAndWhite1, Grayscale8, RGB24},
 		},
 		{
-			// Only unknown modes
+			comment: "Only unknown modes",
 			modes: generic.MakeBitset(
 				abstract.ColorMode(30),
 			),
@@ -439,12 +433,9 @@ func TestFromAbstractColorModes(t *testing.T) {
 		slices.Sort(out)
 		slices.Sort(expected)
 
-		if !reflect.DeepEqual(out, expected) {
-			t.Errorf("input: modes: %s, depths: %s\n"+
-				"expected: %#v\n"+
-				"present:  %#v",
-				test.modes, test.depths, test.out, out)
-		}
+		testutils.CheckConvertionTest(t,
+			"fromAbstractResolutions",
+			test.comment, expected, out)
 	}
 }
 
@@ -452,6 +443,7 @@ func TestFromAbstractColorModes(t *testing.T) {
 // function
 func TestFromAbstractResolutions(t *testing.T) {
 	type testData struct {
+		comment     string
 		absres      []abstract.Resolution
 		absresrange abstract.ResolutionRange
 		out         SupportedResolutions
@@ -459,8 +451,8 @@ func TestFromAbstractResolutions(t *testing.T) {
 
 	tests := []testData{
 		{
-			// Only discrete resolutions
-			absres: testAbstractResolutions,
+			comment: "Only discrete resolutions",
+			absres:  testAbstractResolutions,
 			out: SupportedResolutions{
 				DiscreteResolutions: []DiscreteResolution{
 					{75, 75},
@@ -472,7 +464,7 @@ func TestFromAbstractResolutions(t *testing.T) {
 		},
 
 		{
-			// Range of resolutions
+			comment: "Range of resolutions",
 			absresrange: abstract.ResolutionRange{
 				XMin: 200, XMax: 1200, XStep: 100, XNormal: 400,
 				YMin: 100, YMax: 600, YStep: 50, YNormal: 300,
@@ -497,7 +489,7 @@ func TestFromAbstractResolutions(t *testing.T) {
 		},
 
 		{
-			// Range of resolutions with missed step
+			comment: "Range of resolutions with missed step",
 			absresrange: abstract.ResolutionRange{
 				XMin: 200, XMax: 1200, XNormal: 400,
 				YMin: 100, YMax: 600, YNormal: 300,
@@ -522,8 +514,8 @@ func TestFromAbstractResolutions(t *testing.T) {
 		},
 
 		{
-			// Mix of discrete and range resolutions
-			absres: testAbstractResolutions,
+			comment: "Mix of discrete and range resolutions",
+			absres:  testAbstractResolutions,
 			absresrange: abstract.ResolutionRange{
 				XMin: 200, XMax: 1200, XStep: 100, XNormal: 400,
 				YMin: 100, YMax: 600, YStep: 50, YNormal: 300,
@@ -555,15 +547,10 @@ func TestFromAbstractResolutions(t *testing.T) {
 
 	for _, test := range tests {
 		out := fromAbstractResolutions(test.absres, test.absresrange)
-		if !reflect.DeepEqual(out, test.out) {
-			t.Errorf("input:\n"+
-				"[]abstract.Resolution:      %#v\n"+
-				"[]abstract.ResolutionRange: %#v\n"+
-				"expected:     %#v\n"+
-				"present:      %#v",
-				test.absres, test.absresrange,
-				test.out, out)
-		}
+
+		testutils.CheckConvertionTest(t,
+			"fromAbstractResolutions",
+			test.comment, test.out, out)
 	}
 }
 
@@ -571,6 +558,7 @@ func TestFromAbstractResolutions(t *testing.T) {
 // function
 func TestFromAbstractSettingsProfiles(t *testing.T) {
 	type testData struct {
+		comment string // Not used
 		ver     Version
 		formats []string
 		in      []abstract.SettingsProfile
@@ -631,14 +619,12 @@ func TestFromAbstractSettingsProfiles(t *testing.T) {
 	for _, test := range tests {
 		out := fromAbstractSettingsProfiles(
 			test.ver, test.formats, test.in)
-		if !reflect.DeepEqual(out, test.out) {
-			t.Errorf("input:        %#v\n"+
-				"escl version: %s\n"+
-				"formats:      %#v\n"+
-				"expected:     %#v\n"+
-				"present:      %#v",
-				test.in, test.formats, test.ver, test.out, out)
-		}
+
+		comment := fmt.Sprintf("eSCL %s", test.ver)
+
+		testutils.CheckConvertionTest(t,
+			"fromAbstractScannerCapabilities",
+			comment, test.out, out)
 	}
 }
 
@@ -646,6 +632,7 @@ func TestFromAbstractSettingsProfiles(t *testing.T) {
 // function
 func TestFromAbstractInputSourceCaps(t *testing.T) {
 	type testData struct {
+		comment string
 		ver     Version
 		formats []string
 		in      *abstract.InputCapabilities
@@ -659,7 +646,7 @@ func TestFromAbstractInputSourceCaps(t *testing.T) {
 
 	tests := []testData{
 		{
-			// Bare minimum structure
+			comment: "Bare minimum structure",
 			ver:     DefaultVersion,
 			formats: formats,
 			in: &abstract.InputCapabilities{
@@ -682,7 +669,7 @@ func TestFromAbstractInputSourceCaps(t *testing.T) {
 		},
 
 		{
-			// Full-data test
+			comment: " Full-data test",
 			ver:     DefaultVersion,
 			formats: formats,
 			in:      testAbstractInputCapabilities,
@@ -719,14 +706,12 @@ func TestFromAbstractInputSourceCaps(t *testing.T) {
 	for _, test := range tests {
 		out := fromAbstractInputSourceCaps(
 			test.ver, test.formats, test.in)
-		if !reflect.DeepEqual(out, test.out) {
-			t.Errorf("input:        %#v\n"+
-				"escl version: %s\n"+
-				"formats:      %#v\n"+
-				"expected:     %#v\n"+
-				"present:      %#v",
-				test.in, test.formats, test.ver, test.out, out)
-		}
+
+		comment := fmt.Sprintf("%s (eSCL %s)", test.comment, test.ver)
+
+		testutils.CheckConvertionTest(t,
+			"fromAbstractScannerCapabilities",
+			comment, test.out, out)
 	}
 }
 
@@ -734,8 +719,9 @@ func TestFromAbstractInputSourceCaps(t *testing.T) {
 // function
 func TestFromAbstractScannerCapabilities(t *testing.T) {
 	type testData struct {
-		in  *abstract.ScannerCapabilities
-		out ScannerCapabilities
+		comment string
+		in      *abstract.ScannerCapabilities
+		out     ScannerCapabilities
 	}
 
 	formats := []string{"image/jpeg", "application/pdf"}
@@ -747,7 +733,7 @@ func TestFromAbstractScannerCapabilities(t *testing.T) {
 
 	tests := []testData{
 		{
-			// Bare minimum
+			comment: "Bare minimum",
 			in: &abstract.ScannerCapabilities{
 				UUID: testAbstractUUID,
 			},
@@ -758,7 +744,7 @@ func TestFromAbstractScannerCapabilities(t *testing.T) {
 		},
 
 		{
-			// Bare minimim with Platen source
+			comment: "Bare minimim with Platen source",
 			in: &abstract.ScannerCapabilities{
 				UUID:            testAbstractUUID,
 				DocumentFormats: formats,
@@ -772,8 +758,8 @@ func TestFromAbstractScannerCapabilities(t *testing.T) {
 		},
 
 		{
-			// Full-data test
-			in: testAbstractScannerCapabilities,
+			comment: "Full-data test",
+			in:      testAbstractScannerCapabilities,
 			out: ScannerCapabilities{
 				Version:      DefaultVersion,
 				UUID:         optional.New(testAbstractUUID),
@@ -808,11 +794,9 @@ func TestFromAbstractScannerCapabilities(t *testing.T) {
 	for _, test := range tests {
 		out := fromAbstractScannerCapabilities(
 			DefaultVersion, test.in)
-		if !reflect.DeepEqual(out, test.out) {
-			t.Errorf("input:        %#v\n"+
-				"expected:     %#v\n"+
-				"present:      %#v",
-				test.in, test.out, out)
-		}
+
+		testutils.CheckConvertionTest(t,
+			"fromAbstractScannerCapabilities",
+			test.comment, test.out, out)
 	}
 }
