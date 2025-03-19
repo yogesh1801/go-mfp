@@ -14,6 +14,11 @@ type Resolution struct {
 	YResolution int // Y resolution, DPI
 }
 
+// IsZero reports if Resolution has zero value.
+func (res Resolution) IsZero() bool {
+	return res == Resolution{}
+}
+
 // ResolutionRange specifies a range of scanner resolutions.
 type ResolutionRange struct {
 	XMin, XMax, XStep, XNormal int // X resolution range, DPI

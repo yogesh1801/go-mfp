@@ -16,3 +16,8 @@ type Region struct {
 	Width   Dimension // Region width
 	Height  Dimension // Region height
 }
+
+// IsZero reports if Region has a zero value.
+func (reg Region) IsZero() bool {
+	return reg == Region{}
+}
