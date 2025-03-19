@@ -14,6 +14,104 @@ import (
 	"github.com/alexpevzner/mfp/util/optional"
 )
 
+// fromAbstractScanSettings translates [abstract.ScannerRequest
+// into the [ScanSettings].
+//
+// The version parameters affects how some fields are converted.
+func fromAbstractScanSettings(
+	version Version,
+	absreq *abstract.ScannerRequest) ScanSettings {
+
+	ss := ScanSettings{
+		Version:           version,
+		Brightness:        fromAbstractOptionalInt(absreq.Brightness),
+		Contrast:          fromAbstractOptionalInt(absreq.Contrast),
+		Gamma:             fromAbstractOptionalInt(absreq.Gamma),
+		Highlight:         fromAbstractOptionalInt(absreq.Highlight),
+		NoiseRemoval:      fromAbstractOptionalInt(absreq.NoiseRemoval),
+		Shadow:            fromAbstractOptionalInt(absreq.Shadow),
+		Sharpen:           fromAbstractOptionalInt(absreq.Sharpen),
+		CompressionFactor: fromAbstractOptionalInt(absreq.Compression),
+	}
+
+	// Translate intent
+	intent := fromAbstractIntent(absreq.Intent)
+	if intent != UnknownIntent {
+		ss.Intent = optional.New(intent)
+	}
+
+	// Translate ScanRegions
+	if !absreq.Region.IsZero() {
+		reg := ScanRegion{
+			XOffset:            absreq.Region.XOffset.Dots(300),
+			YOffset:            absreq.Region.YOffset.Dots(300),
+			Width:              absreq.Region.Width.Dots(300),
+			Height:             absreq.Region.Height.Dots(300),
+			ContentRegionUnits: ThreeHundredthsOfInches,
+		}
+		ss.ScanRegions = []ScanRegion{reg}
+	}
+
+	// Translate DocumentFormat/DocumentFormatExt
+	if absreq.DocumentFormat != "" {
+		ss.DocumentFormat = optional.New(absreq.DocumentFormat)
+		if version >= MakeVersion(2, 1) {
+			// eSCL 2.1+
+			ss.DocumentFormatExt = ss.DocumentFormat
+		}
+	}
+
+	// Translate InputSource and Duplex
+	switch absreq.Input {
+	case abstract.InputPlaten:
+		ss.InputSource = optional.New(InputPlaten)
+	case abstract.InputADF:
+		ss.InputSource = optional.New(InputFeeder)
+		if absreq.ADFMode == abstract.ADFModeDuplex {
+			ss.Duplex = optional.New(true)
+		}
+	}
+
+	// Translate XResolution and YResolution
+	if !absreq.Resolution.IsZero() {
+		ss.XResolution = optional.New(absreq.Resolution.XResolution)
+		ss.YResolution = optional.New(absreq.Resolution.YResolution)
+	}
+
+	// Translate ColorMode, BinaryRendering and Threshold
+	switch absreq.ColorMode {
+	case abstract.ColorModeBinary:
+		ss.ColorMode = optional.New(BlackAndWhite1)
+		switch absreq.BinaryRendering {
+		case abstract.BinaryRenderingHalftone:
+			ss.BinaryRendering = optional.New(Halftone)
+		case abstract.BinaryRenderingThreshold:
+			ss.BinaryRendering = optional.New(Threshold)
+			ss.Threshold = fromAbstractOptionalInt(absreq.Threshold)
+		}
+	case abstract.ColorModeMono:
+		if absreq.Depth == abstract.Depth16 {
+			ss.ColorMode = optional.New(Grayscale16)
+		} else {
+			ss.ColorMode = optional.New(Grayscale8)
+		}
+	case abstract.ColorModeColor:
+		if absreq.Depth == abstract.Depth16 {
+			ss.ColorMode = optional.New(RGB48)
+		} else {
+			ss.ColorMode = optional.New(RGB24)
+		}
+	}
+
+	// Translate CCDChannel
+	ccd := fromAbstractCCDChannel(absreq.CCDChannel)
+	if ccd != UnknownCCDChannel {
+		ss.CCDChannel = optional.New(ccd)
+	}
+
+	return ss
+}
+
 // fromAbstractScannerCapabilities translates [abstract.ScannerCapabilities]
 // into the [ScannerCapabilities].
 //
@@ -265,6 +363,29 @@ func fromAbstractColorModes(
 	return modes
 }
 
+// fromAbstractCCDChannel translates abstract.CCDChannel into the
+// eSCL CCDChannel.
+//
+// For invalid or unknown CCDChannel, UnknownCCDChannel is returned.
+func fromAbstractCCDChannel(absccd abstract.CCDChannel) CCDChannel {
+	switch absccd {
+	case abstract.CCDChannelRed:
+		return Red
+	case abstract.CCDChannelGreen:
+		return Green
+	case abstract.CCDChannelBlue:
+		return Blue
+	case abstract.CCDChannelNTSC:
+		return NTSC
+	case abstract.CCDChannelGrayCcd:
+		return GrayCcd
+	case abstract.CCDChannelGrayCcdEmulated:
+		return GrayCcdEmulated
+	}
+
+	return UnknownCCDChannel
+}
+
 // fromAbstractCCDChannels translates generic.Bitset[abstract.CCDChannels]
 // into the []CCDChannels slice.
 //
@@ -279,23 +400,10 @@ func fromAbstractCCDChannels(
 	in := abschannels.Elements()
 	out := make([]CCDChannel, 0, len(in))
 
-	for _, ccd := range in {
-		switch ccd {
-		case abstract.CCDChannelRed:
-			out = append(out, Red)
-		case abstract.CCDChannelGreen:
-			out = append(out, Green)
-		case abstract.CCDChannelBlue:
-			out = append(out, Blue)
-		case abstract.CCDChannelNTSC:
-			out = append(out, NTSC)
-		case abstract.CCDChannelGrayCcd:
-			out = append(out, GrayCcd)
-		case abstract.CCDChannelGrayCcdEmulated:
-			out = append(out, GrayCcdEmulated)
-		default:
-			// Don't know how to translate to the eSCL.
-			// Just skip it...
+	for _, absccd := range in {
+		ccd := fromAbstractCCDChannel(absccd)
+		if ccd != UnknownCCDChannel {
+			out = append(out, ccd)
 		}
 	}
 
@@ -339,6 +447,28 @@ func fromAbstractBinaryRenderings(
 	return out
 }
 
+// fromAbstractIntent translates [abstract.Intent] into the
+// Intent.
+//
+// For invalid or unknown Intent, UnknownIntent is returned.
+func fromAbstractIntent(absintent abstract.Intent) Intent {
+	switch absintent {
+	case abstract.IntentDocument:
+		return Document
+	case abstract.IntentTextAndGraphic:
+		return TextAndGraphic
+	case abstract.IntentPhoto:
+		return Photo
+	case abstract.IntentPreview:
+		return Preview
+	case abstract.IntentObject:
+		return Object
+	case abstract.IntentBusinessCard:
+		return BusinessCard
+	}
+	return UnknownIntent
+}
+
 // fromAbstractIntents translates generic.Bitset[abstract.Intent]
 // into []Intent slice.
 //
@@ -351,23 +481,10 @@ func fromAbstractIntents(absintents generic.Bitset[abstract.Intent]) []Intent {
 	in := absintents.Elements()
 	out := make([]Intent, 0, len(in))
 
-	for _, intent := range in {
-		switch intent {
-		case abstract.IntentDocument:
-			out = append(out, Document)
-		case abstract.IntentTextAndGraphic:
-			out = append(out, TextAndGraphic)
-		case abstract.IntentPhoto:
-			out = append(out, Photo)
-		case abstract.IntentPreview:
-			out = append(out, Preview)
-		case abstract.IntentObject:
-			out = append(out, Object)
-		case abstract.IntentBusinessCard:
-			out = append(out, BusinessCard)
-		default:
-			// Don't know how to translate to the eSCL.
-			// Just skip it...
+	for _, absintent := range in {
+		intent := fromAbstractIntent(absintent)
+		if intent != UnknownIntent {
+			out = append(out, intent)
 		}
 	}
 
