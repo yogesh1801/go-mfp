@@ -18,6 +18,7 @@ import (
 	"sync"
 
 	"github.com/alexpevzner/mfp/abstract"
+	"github.com/alexpevzner/mfp/log"
 	"github.com/alexpevzner/mfp/transport"
 	"github.com/alexpevzner/mfp/util/optional"
 	"github.com/alexpevzner/mfp/util/xmldoc"
@@ -96,6 +97,9 @@ func (srv *AbstractServer) SetVersion(ver Version) {
 // ServeHTTP serves incoming HTTP requests.
 // It implements the [http.Handler] interface.
 func (srv *AbstractServer) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
+	// Log the request
+	log.Debug(srv.ctx, "HTTP %s %s", rq.Method, rq.URL)
+
 	// Dispatch the request
 	if !strings.HasPrefix(rq.URL.Path, srv.base.Path) {
 		srv.httpReject(w, rq, http.StatusNotFound, nil)
@@ -150,9 +154,26 @@ func (srv *AbstractServer) getScannerStatus(
 	srv.httpSendXML(w, xml)
 }
 
-// postScanJobs handles GET /{root}/ScannerStatus request
+// postScanJobs handles POST /{root}/ScanJobs
 func (srv *AbstractServer) postScanJobs(
 	w http.ResponseWriter, rq *http.Request) {
+
+	// Fetch the XML request body
+	xml, err := xmldoc.Decode(NsMap, rq.Body)
+	if err != nil {
+		srv.httpReject(w, rq, http.StatusBadRequest, err)
+		return
+	}
+
+	// Decode ScanSettings request
+	ss, err := DecodeScanSettings(xml)
+	if err != nil {
+		srv.httpReject(w, rq, http.StatusBadRequest, err)
+		return
+	}
+
+	_ = ss
+
 	srv.httpReject(w, rq, http.StatusNotImplemented, nil)
 }
 
