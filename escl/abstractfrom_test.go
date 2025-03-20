@@ -114,6 +114,28 @@ var testAbstractScannerCapabilities = &abstract.ScannerCapabilities{
 	Platen:            testAbstractInputCapabilities,
 }
 
+// TestFromAbstractOptionalInt tests fromAbstractOptionalInt
+func TestFromAbstractOptionalInt(t *testing.T) {
+	type testData struct {
+		in  int
+		out optional.Val[int]
+	}
+
+	tests := []testData{
+		{0, nil},
+		{1, optional.New(1)},
+	}
+
+	for _, test := range tests {
+		out := fromAbstractOptionalInt(test.in)
+		comment := fmt.Sprintf("input: %+v", test.in)
+
+		testutils.CheckConvertionTest(t,
+			"fromAbstractOptionalRange",
+			comment, test.out, out)
+	}
+}
+
 // TestFromAbstracOptionaltRange tests fromAbstractOptionalRange
 func TestFromAbstractRange(t *testing.T) {
 	type testData struct {
@@ -136,28 +158,6 @@ func TestFromAbstractRange(t *testing.T) {
 
 	for _, test := range tests {
 		out := fromAbstractOptionalRange(test.in)
-		comment := fmt.Sprintf("input: %+v", test.in)
-
-		testutils.CheckConvertionTest(t,
-			"fromAbstractOptionalRange",
-			comment, test.out, out)
-	}
-}
-
-// TestFromAbstractOptionalInt tests fromAbstractOptionalInt
-func TestFromAbstractOptionalInt(t *testing.T) {
-	type testData struct {
-		in  int
-		out optional.Val[int]
-	}
-
-	tests := []testData{
-		{0, nil},
-		{1, optional.New(1)},
-	}
-
-	for _, test := range tests {
-		out := fromAbstractOptionalInt(test.in)
 		comment := fmt.Sprintf("input: %+v", test.in)
 
 		testutils.CheckConvertionTest(t,
