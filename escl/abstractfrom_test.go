@@ -851,3 +851,357 @@ func TestFromAbstractScannerCapabilities(t *testing.T) {
 			test.comment, test.out, out)
 	}
 }
+
+// TestFromAbstractScanSettings tests fromAbstractScanSettings
+// function
+func TestFromAbstractScanSettings(t *testing.T) {
+	type testData struct {
+		comment string
+		ver     Version
+		in      *abstract.ScannerRequest
+		out     ScanSettings
+	}
+
+	tests := []testData{
+		// Empty request; all default
+		{
+			comment: "Empty request",
+			ver:     DefaultVersion,
+			in:      &abstract.ScannerRequest{},
+			out: ScanSettings{
+				Version: DefaultVersion,
+			},
+		},
+
+		// Intents support
+		{
+			comment: "Intent=Document",
+			ver:     DefaultVersion,
+			in: &abstract.ScannerRequest{
+				Intent: abstract.IntentDocument,
+			},
+			out: ScanSettings{
+				Version: DefaultVersion,
+				Intent:  optional.New(Document),
+			},
+		},
+
+		{
+			comment: "Intent=Invaid",
+			ver:     DefaultVersion,
+			in: &abstract.ScannerRequest{
+				Intent: abstract.Intent(-1),
+			},
+			out: ScanSettings{
+				Version: DefaultVersion,
+				Intent:  nil, // Must default to nil
+			},
+		},
+
+		// Inputs
+		{
+			comment: "InputPlaten",
+			ver:     DefaultVersion,
+			in: &abstract.ScannerRequest{
+				Input: abstract.InputPlaten,
+			},
+			out: ScanSettings{
+				Version:     DefaultVersion,
+				InputSource: optional.New(InputPlaten),
+			},
+		},
+
+		{
+			comment: "InputFeeder+Simplex(by default)",
+			ver:     DefaultVersion,
+			in: &abstract.ScannerRequest{
+				Input: abstract.InputADF,
+			},
+			out: ScanSettings{
+				Version:     DefaultVersion,
+				InputSource: optional.New(InputFeeder),
+			},
+		},
+
+		{
+			comment: "InputFeeder+Simplex",
+			ver:     DefaultVersion,
+			in: &abstract.ScannerRequest{
+				Input:   abstract.InputADF,
+				ADFMode: abstract.ADFModeSimplex,
+			},
+			out: ScanSettings{
+				Version:     DefaultVersion,
+				InputSource: optional.New(InputFeeder),
+			},
+		},
+
+		{
+			comment: "InputFeeder+Duplex",
+			ver:     DefaultVersion,
+			in: &abstract.ScannerRequest{
+				Input:   abstract.InputADF,
+				ADFMode: abstract.ADFModeDuplex,
+			},
+			out: ScanSettings{
+				Version:     DefaultVersion,
+				InputSource: optional.New(InputFeeder),
+				Duplex:      optional.New(true),
+			},
+		},
+
+		// Color modes support
+		{
+			comment: "BlackAndWhite1",
+			ver:     DefaultVersion,
+			in: &abstract.ScannerRequest{
+				ColorMode: abstract.ColorModeBinary,
+			},
+			out: ScanSettings{
+				Version:   DefaultVersion,
+				ColorMode: optional.New(BlackAndWhite1),
+			},
+		},
+
+		{
+			comment: "BlackAndWhite1+Halftone",
+			ver:     DefaultVersion,
+			in: &abstract.ScannerRequest{
+				ColorMode:       abstract.ColorModeBinary,
+				BinaryRendering: abstract.BinaryRenderingHalftone,
+			},
+			out: ScanSettings{
+				Version:         DefaultVersion,
+				ColorMode:       optional.New(BlackAndWhite1),
+				BinaryRendering: optional.New(Halftone),
+			},
+		},
+
+		{
+			comment: "BlackAndWhite1+Threshold(default)",
+			ver:     DefaultVersion,
+			in: &abstract.ScannerRequest{
+				ColorMode:       abstract.ColorModeBinary,
+				BinaryRendering: abstract.BinaryRenderingThreshold,
+			},
+			out: ScanSettings{
+				Version:         DefaultVersion,
+				ColorMode:       optional.New(BlackAndWhite1),
+				BinaryRendering: optional.New(Threshold),
+			},
+		},
+
+		{
+			comment: "BlackAndWhite1+Threshold=50",
+			ver:     DefaultVersion,
+			in: &abstract.ScannerRequest{
+				ColorMode:       abstract.ColorModeBinary,
+				BinaryRendering: abstract.BinaryRenderingThreshold,
+				Threshold:       50,
+			},
+			out: ScanSettings{
+				Version:         DefaultVersion,
+				ColorMode:       optional.New(BlackAndWhite1),
+				BinaryRendering: optional.New(Threshold),
+				Threshold:       optional.New(50),
+			},
+		},
+
+		{
+			comment: "Grayscale8",
+			ver:     DefaultVersion,
+			in: &abstract.ScannerRequest{
+				ColorMode: abstract.ColorModeMono,
+				Depth:     abstract.Depth8,
+			},
+			out: ScanSettings{
+				Version:   DefaultVersion,
+				ColorMode: optional.New(Grayscale8),
+			},
+		},
+
+		{
+			comment: "Grayscale8 (default depth)",
+			ver:     DefaultVersion,
+			in: &abstract.ScannerRequest{
+				ColorMode: abstract.ColorModeMono,
+			},
+			out: ScanSettings{
+				Version:   DefaultVersion,
+				ColorMode: optional.New(Grayscale8),
+			},
+		},
+
+		{
+			comment: "Grayscale16",
+			ver:     DefaultVersion,
+			in: &abstract.ScannerRequest{
+				ColorMode: abstract.ColorModeMono,
+				Depth:     abstract.Depth16,
+			},
+			out: ScanSettings{
+				Version:   DefaultVersion,
+				ColorMode: optional.New(Grayscale16),
+			},
+		},
+
+		{
+			comment: "RGB24",
+			ver:     DefaultVersion,
+			in: &abstract.ScannerRequest{
+				ColorMode: abstract.ColorModeColor,
+				Depth:     abstract.Depth8,
+			},
+			out: ScanSettings{
+				Version:   DefaultVersion,
+				ColorMode: optional.New(RGB24),
+			},
+		},
+
+		{
+			comment: "RGB24 (default depth)",
+			ver:     DefaultVersion,
+			in: &abstract.ScannerRequest{
+				ColorMode: abstract.ColorModeColor,
+			},
+			out: ScanSettings{
+				Version:   DefaultVersion,
+				ColorMode: optional.New(RGB24),
+			},
+		},
+
+		{
+			comment: "RGB24",
+			ver:     DefaultVersion,
+			in: &abstract.ScannerRequest{
+				ColorMode: abstract.ColorModeColor,
+				Depth:     abstract.Depth16,
+			},
+			out: ScanSettings{
+				Version:   DefaultVersion,
+				ColorMode: optional.New(RGB48),
+			},
+		},
+
+		// DocumentFormat/DocumentFormatExt (depends on version)
+		{
+			comment: "DocumentFormat",
+			ver:     MakeVersion(2, 0),
+			in: &abstract.ScannerRequest{
+				DocumentFormat: "image/jpeg",
+			},
+			out: ScanSettings{
+				Version:           MakeVersion(2, 0),
+				DocumentFormat:    optional.New("image/jpeg"),
+				DocumentFormatExt: nil, // eSCL < 2.1
+			},
+		},
+
+		{
+			comment: "DocumentFormat",
+			ver:     DefaultVersion,
+			in: &abstract.ScannerRequest{
+				DocumentFormat: "image/jpeg",
+			},
+			out: ScanSettings{
+				Version:           DefaultVersion,
+				DocumentFormat:    optional.New("image/jpeg"),
+				DocumentFormatExt: optional.New("image/jpeg"),
+			},
+		},
+
+		// Region
+		{
+			comment: "Region",
+			ver:     DefaultVersion,
+			in: &abstract.ScannerRequest{
+				Region: abstract.Region{
+					XOffset: abstract.Inch,
+					YOffset: abstract.Inch * 2,
+					Width:   abstract.Inch * 10,
+					Height:  abstract.Inch * 11,
+				},
+			},
+			out: ScanSettings{
+				Version: DefaultVersion,
+				ScanRegions: []ScanRegion{
+					{
+						XOffset:            300,
+						YOffset:            600,
+						Width:              3000,
+						Height:             3300,
+						ContentRegionUnits: ThreeHundredthsOfInches,
+					},
+				},
+			},
+		},
+
+		// Resolution
+		{
+			comment: "Resolution",
+			ver:     DefaultVersion,
+			in: &abstract.ScannerRequest{
+				Resolution: abstract.Resolution{
+					XResolution: 600,
+					YResolution: 300,
+				},
+			},
+			out: ScanSettings{
+				Version:     DefaultVersion,
+				XResolution: optional.New(600),
+				YResolution: optional.New(300),
+			},
+		},
+
+		// CCDChannel
+		{
+			comment: "CCDChannel",
+			ver:     DefaultVersion,
+			in: &abstract.ScannerRequest{
+				CCDChannel: abstract.CCDChannelNTSC,
+			},
+			out: ScanSettings{
+				Version:    DefaultVersion,
+				CCDChannel: optional.New(NTSC),
+			},
+		},
+
+		// Image processing parameters
+		{
+			comment: "CCDChannel",
+			ver:     DefaultVersion,
+			in: &abstract.ScannerRequest{
+				Brightness:   100,
+				Contrast:     80,
+				Gamma:        20,
+				Highlight:    85,
+				NoiseRemoval: 30,
+				Shadow:       15,
+				Sharpen:      10,
+				Compression:  5,
+			},
+			out: ScanSettings{
+				Version:           DefaultVersion,
+				Brightness:        optional.New(100),
+				Contrast:          optional.New(80),
+				Gamma:             optional.New(20),
+				Highlight:         optional.New(85),
+				NoiseRemoval:      optional.New(30),
+				Shadow:            optional.New(15),
+				Sharpen:           optional.New(10),
+				CompressionFactor: optional.New(5),
+			},
+		},
+	}
+
+	for _, test := range tests {
+		out := fromAbstractScanSettings(
+			test.ver, test.in)
+
+		comment := fmt.Sprintf("%s (eSCL %s)", test.comment, test.ver)
+
+		testutils.CheckConvertionTest(t,
+			"fromAbstractScannerCapabilities",
+			comment, test.out, out)
+	}
+}
