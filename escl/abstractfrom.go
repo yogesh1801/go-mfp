@@ -421,7 +421,7 @@ func fromAbstractScannerCapabilities(
 	return scancaps
 }
 
-// fromAbstractScanSettings translates [abstract.ScannerRequest
+// fromAbstractScanSettings translates [abstract.ScannerRequest]
 // into the [ScanSettings].
 //
 // The version parameters affects how some fields are converted.
