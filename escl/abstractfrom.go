@@ -431,14 +431,14 @@ func fromAbstractScanSettings(
 
 	ss := ScanSettings{
 		Version:           version,
-		Brightness:        fromAbstractOptionalInt(absreq.Brightness),
-		Contrast:          fromAbstractOptionalInt(absreq.Contrast),
-		Gamma:             fromAbstractOptionalInt(absreq.Gamma),
-		Highlight:         fromAbstractOptionalInt(absreq.Highlight),
-		NoiseRemoval:      fromAbstractOptionalInt(absreq.NoiseRemoval),
-		Shadow:            fromAbstractOptionalInt(absreq.Shadow),
-		Sharpen:           fromAbstractOptionalInt(absreq.Sharpen),
-		CompressionFactor: fromAbstractOptionalInt(absreq.Compression),
+		Brightness:        absreq.Brightness,
+		Contrast:          absreq.Contrast,
+		Gamma:             absreq.Gamma,
+		Highlight:         absreq.Highlight,
+		NoiseRemoval:      absreq.NoiseRemoval,
+		Shadow:            absreq.Shadow,
+		Sharpen:           absreq.Sharpen,
+		CompressionFactor: absreq.Compression,
 	}
 
 	// Translate intent
@@ -494,7 +494,7 @@ func fromAbstractScanSettings(
 			ss.BinaryRendering = optional.New(Halftone)
 		case abstract.BinaryRenderingThreshold:
 			ss.BinaryRendering = optional.New(Threshold)
-			ss.Threshold = fromAbstractOptionalInt(absreq.Threshold)
+			ss.Threshold = absreq.Threshold
 		}
 	case abstract.ColorModeMono:
 		if absreq.Depth == abstract.Depth16 {

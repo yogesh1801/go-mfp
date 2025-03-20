@@ -997,7 +997,7 @@ func TestFromAbstractScanSettings(t *testing.T) {
 			in: &abstract.ScannerRequest{
 				ColorMode:       abstract.ColorModeBinary,
 				BinaryRendering: abstract.BinaryRenderingThreshold,
-				Threshold:       50,
+				Threshold:       optional.New(50),
 			},
 			out: ScanSettings{
 				Version:         DefaultVersion,
@@ -1171,14 +1171,14 @@ func TestFromAbstractScanSettings(t *testing.T) {
 			comment: "CCDChannel",
 			ver:     DefaultVersion,
 			in: &abstract.ScannerRequest{
-				Brightness:   100,
-				Contrast:     80,
-				Gamma:        20,
-				Highlight:    85,
-				NoiseRemoval: 30,
-				Shadow:       15,
-				Sharpen:      10,
-				Compression:  5,
+				Brightness:   optional.New(100),
+				Contrast:     optional.New(80),
+				Gamma:        optional.New(20),
+				Highlight:    optional.New(85),
+				NoiseRemoval: optional.New(30),
+				Shadow:       optional.New(15),
+				Sharpen:      optional.New(10),
+				Compression:  optional.New(5),
 			},
 			out: ScanSettings{
 				Version:           DefaultVersion,
