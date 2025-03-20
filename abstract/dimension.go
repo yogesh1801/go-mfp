@@ -54,3 +54,14 @@ func (dim Dimension) Dots(dpi int) int {
 
 	return int(tmp)
 }
+
+// DimensionFromDots decodes Dimension value from number of image dots,
+// assuming specified DPI (dots per inch).
+func DimensionFromDots(dpi, dots int) Dimension {
+	tmp := uint64(dots)
+	tmp *= uint64(Inch)
+	tmp += uint64(dpi / 2)
+	tmp /= uint64(dpi)
+
+	return Dimension(tmp)
+}

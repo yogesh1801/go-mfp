@@ -56,3 +56,43 @@ func TestDimensionDots(t *testing.T) {
 		}
 	}
 }
+
+// TestDimensionFromDots tests DimensionFromDots function
+func TestDimensionFromDots(t *testing.T) {
+	type testData struct {
+		dpi  int       // Input DPI
+		dots int       // Input dots output
+		dim  Dimension // Expected output
+	}
+
+	tests := []testData{
+		{
+			dpi:  300,
+			dots: 300,
+			dim:  Inch,
+		},
+
+		{
+			dpi:  600,
+			dots: 300,
+			dim:  Inch / 2,
+		},
+
+		{
+			dpi:  150,
+			dots: 300,
+			dim:  Inch * 2,
+		},
+	}
+
+	for _, test := range tests {
+		dim := DimensionFromDots(test.dpi, test.dots)
+		if dim != test.dim {
+			println("    ->", dim, test.dim)
+			t.Errorf("DimensionFromDots(%d,%d):\n"+
+				"expected: %d\n"+
+				"present:  %d",
+				test.dpi, test.dots, test.dim, dim)
+		}
+	}
+}
