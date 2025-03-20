@@ -19,8 +19,8 @@ import (
 //
 // eSCL Technical Specification, 7.
 //
-// POST /{root}/ScanJobs
-// PUT /eSCL/ScanBufferInfo
+// POST /{root}/ScanJobs       - to start scanning
+// PUT  /{root}/ScanBufferInfo - to estimate actual scanning parameters
 type ScanSettings struct {
 	// Version is the only required parameter
 	Version Version // eSCL protocol version
