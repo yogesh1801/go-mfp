@@ -89,6 +89,10 @@ func (ss ScanSettings) toAbstract() abstract.ScannerRequest {
 	}
 
 	// Translate DocumentFormat
+	//
+	// Although DocumentFormatExt was introduced by the eSCL 2.1+,
+	// we always prefer DocumentFormatExt with fallback to DocumentFormat,
+	// regardless of the eSCL version.
 	switch {
 	case ss.DocumentFormatExt != nil:
 		absreq.DocumentFormat = *ss.DocumentFormatExt
