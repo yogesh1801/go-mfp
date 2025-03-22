@@ -49,60 +49,85 @@ type ScannerRequest struct {
 // Validate checks request validity against the [ScannerCapabilities]
 // and reports found error, if any.
 func (req *ScannerRequest) Validate(scancaps *ScannerCapabilities) error {
+	// Check Input and ADFMode. Choose relevant input capabilities.
+	var inputs []*InputCapabilities
+
+	switch req.Input {
+	case InputUnset:
+		if scancaps.Platen != nil {
+			inputs = append(inputs, scancaps.Platen)
+		}
+		if scancaps.ADFSimplex != nil {
+			inputs = append(inputs, scancaps.ADFSimplex)
+		}
+		if scancaps.ADFDuplex != nil {
+			inputs = append(inputs, scancaps.ADFDuplex)
+		}
+		if len(inputs) == 0 {
+			return ErrParam{ErrUnsupportedParam, "Input", req.Input}
+		}
+
+	case InputPlaten:
+		if scancaps.Platen == nil {
+			return ErrParam{ErrUnsupportedParam, "Input", req.Input}
+		}
+		inputs = []*InputCapabilities{scancaps.Platen}
+
+	case InputADF:
+		switch req.ADFMode {
+		case ADFModeUnset:
+			// If ADF mode is not set, we prefer ADFSimplex
+			// with fallback to the ADFDuplex.
+			//
+			// If none is available, this is unsupported
+			// req.Input, not the req.ADFMode!
+			switch {
+			case scancaps.ADFSimplex != nil:
+				inputs = append(inputs, scancaps.ADFSimplex)
+			case scancaps.ADFDuplex == nil:
+				inputs = append(inputs, scancaps.ADFDuplex)
+			default:
+				return ErrParam{ErrUnsupportedParam,
+					"Input", req.Input}
+			}
+
+		case ADFModeSimplex:
+			if scancaps.ADFSimplex == nil {
+				return ErrParam{ErrUnsupportedParam,
+					"ADFMode", req.ADFMode}
+			}
+			inputs = append(inputs, scancaps.ADFSimplex)
+
+		case ADFModeDuplex:
+			if scancaps.ADFDuplex == nil {
+				return ErrParam{ErrUnsupportedParam,
+					"ADFMode", req.ADFMode}
+			}
+			inputs = append(inputs, scancaps.ADFDuplex)
+
+		default:
+			return ErrParam{ErrInvalidParam, "ADFMode", req.ADFMode}
+		}
+
+	default:
+		return ErrParam{ErrInvalidParam, "Input", req.Input}
+	}
+
 	// Gather overall scanner parameters
-	var inputs generic.Bitset[Input]
-	var adfmodes generic.Bitset[ADFMode]
 	var intents generic.Bitset[Intent]
 	var colorModes generic.Bitset[ColorMode]
 	var depths generic.Bitset[Depth]
 	var binrend generic.Bitset[BinaryRendering]
 	var ccdChannels generic.Bitset[CCDChannel]
 
-	if scancaps.Platen != nil {
-		inputs.Add(InputPlaten)
-	}
-
-	if scancaps.ADFSimplex != nil || scancaps.ADFDuplex != nil {
-		inputs.Add(InputADF)
-		if scancaps.ADFSimplex != nil {
-			adfmodes.Add(ADFModeSimplex)
-		}
-		if scancaps.ADFDuplex != nil {
-			adfmodes.Add(ADFModeDuplex)
-		}
-	}
-
-	for _, inpcaps := range []*InputCapabilities{
-		scancaps.Platen, scancaps.ADFSimplex, scancaps.ADFDuplex} {
-		if inpcaps == nil {
-			continue
-		}
-
-		intents = intents.Union(inpcaps.Intents)
-		for _, prof := range inpcaps.Profiles {
+	for _, inp := range inputs {
+		intents = intents.Union(inp.Intents)
+		for _, prof := range inp.Profiles {
 			colorModes = colorModes.Union(prof.ColorModes)
 			depths = depths.Union(prof.Depths)
 			binrend = binrend.Union(prof.BinaryRenderings)
 			ccdChannels = ccdChannels.Union(prof.CCDChannels)
 		}
-	}
-
-	// Check Input and ADFMode
-	switch {
-	case req.Input == InputUnset:
-	case req.Input < 0 || req.Input >= inputMax:
-		return ErrParam{ErrInvalidParam, "Input", req.Input}
-	case !inputs.Contains(req.Input):
-		return ErrParam{ErrUnsupportedParam, "Input", req.Input}
-	}
-
-	switch {
-	case req.Input != InputADF:
-	case req.ADFMode == ADFModeUnset:
-	case req.ADFMode < 0 || req.ADFMode >= adfModeMax:
-		return ErrParam{ErrInvalidParam, "ADFMode", req.ADFMode}
-	case !adfmodes.Contains(req.ADFMode):
-		return ErrParam{ErrUnsupportedParam, "ADFMode", req.ADFMode}
 	}
 
 	// Check ColorMode, Depth, BinaryRendering and Threshold
