@@ -29,6 +29,16 @@ func MakeBitset[T ~int](list ...T) Bitset[T] {
 	return set
 }
 
+// Union returns union of two bitsets
+func (set Bitset[T]) Union(set2 Bitset[T]) Bitset[T] {
+	return set | set2
+}
+
+// Intersection returns intersection of two bitsets
+func (set Bitset[T]) Intersection(set2 Bitset[T]) Bitset[T] {
+	return set & set2
+}
+
 // String returns a string representation of the [Bitset], for debugging.
 func (set Bitset[T]) String() string {
 	s := make([]string, 0, 31)
