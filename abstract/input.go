@@ -17,4 +17,5 @@ const (
 	InputPlaten              // Scan from platen
 	InputADF                 // Automatic Document Feeder
 	InputCamera              // Scan from camera
+	inputMax
 )

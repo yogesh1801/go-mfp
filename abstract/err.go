@@ -4,17 +4,20 @@
 // Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
 // See LICENSE for license terms and conditions
 //
-// ADF mode
+// Errors
 
 package abstract
 
-// ADFMode specifies the ADF scanning mode.
-type ADFMode int
+// Error is the error code.
+type Error int
 
-// Known intents
+// Standard error codes:
 const (
-	ADFModeUnset   ADFMode = iota // Not set
-	ADFModeSimplex                // AFD simplex mode
-	ADFModeDuplex                 // AFD duplex mode
-	adfModeMax
+	_ Error = iota
+	ErrInvalidInput
+	ErrUnsupportedInput
+	ErrInvalidADFMode
+	ErrUnsupportedADFMode
 )
+
+func (Error) Error() string { return "" }
