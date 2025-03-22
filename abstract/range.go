@@ -8,6 +8,8 @@
 
 package abstract
 
+import "github.com/alexpevzner/mfp/util/optional"
+
 // Range defines a range of "analog" parameter, like
 // brightness, contrast and similar.
 //
@@ -23,4 +25,21 @@ type Range struct {
 // IsZero reports if Range has a zero value.
 func (r Range) IsZero() bool {
 	return r == Range{}
+}
+
+// Within reports if value is within the [Range].
+func (r Range) Within(v int) bool {
+	return r.Min <= v && v <= r.Max
+}
+
+// validate returns ErrParam errir if parameter is not within the Range.
+func (r Range) validate(name string, param optional.Val[int]) error {
+	if param != nil {
+		v := *param
+		if !r.Within(v) {
+			return ErrParam{ErrUnsupportedParam, name, v}
+		}
+	}
+
+	return nil
 }

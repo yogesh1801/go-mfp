@@ -17,4 +17,5 @@ const (
 	BinaryRenderingUnset     BinaryRendering = iota // Not set
 	BinaryRenderingHalftone                         // Simulate Halftone
 	BinaryRenderingThreshold                        // Use Threshold
+	binaryRenderingMax
 )

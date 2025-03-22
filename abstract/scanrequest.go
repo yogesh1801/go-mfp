@@ -87,23 +87,101 @@ func (req *ScannerRequest) Validate(scancaps *ScannerCapabilities) error {
 		}
 	}
 
-	// Check Input
+	// Check Input and ADFMode
 	switch {
 	case req.Input == InputUnset:
 	case req.Input < 0 || req.Input >= inputMax:
-		return ErrInvalidInput
+		return ErrParam{ErrInvalidParam, "Input", req.Input}
 	case !inputs.Contains(req.Input):
-		return ErrUnsupportedInput
+		return ErrParam{ErrUnsupportedParam, "Input", req.Input}
 	}
 
-	// Check ADFMode
 	switch {
 	case req.Input != InputADF:
 	case req.ADFMode == ADFModeUnset:
 	case req.ADFMode < 0 || req.ADFMode >= adfModeMax:
-		return ErrInvalidADFMode
+		return ErrParam{ErrInvalidParam, "ADFMode", req.ADFMode}
 	case !adfmodes.Contains(req.ADFMode):
-		return ErrUnsupportedADFMode
+		return ErrParam{ErrUnsupportedParam, "ADFMode", req.ADFMode}
+	}
+
+	// Check ColorMode, Depth, BinaryRendering and Threshold
+	switch {
+	case req.ColorMode == ColorModeUnset:
+	case req.ColorMode < 0 || req.ColorMode >= colorModeMax:
+		return ErrParam{ErrInvalidParam, "ColorMode,", req.ColorMode}
+	case !colorModes.Contains(req.ColorMode):
+		return ErrParam{ErrUnsupportedParam,
+			"ColorMode,", req.ColorMode}
+	}
+
+	switch req.ColorMode {
+	case ColorModeBinary:
+		switch {
+		case req.BinaryRendering == BinaryRenderingUnset:
+		case req.BinaryRendering < 0 || req.BinaryRendering >= binaryRenderingMax:
+			return ErrParam{ErrInvalidParam,
+				"BinaryRendering", req.BinaryRendering}
+		case !binrend.Contains(req.BinaryRendering):
+			return ErrParam{ErrUnsupportedParam,
+				"BinaryRendering", req.BinaryRendering}
+		}
+
+		err := scancaps.ThresholdRange.validate(
+			"Threshold", req.Threshold)
+		if err != nil {
+			return err
+		}
+
+	case ColorModeMono, ColorModeColor:
+		switch {
+		case req.Depth == DepthUnset:
+		case req.Depth < 0 || req.Depth >= depthMax:
+			return ErrParam{ErrInvalidParam, "Depth", req.Depth}
+		case !depths.Contains(req.Depth):
+			return ErrParam{ErrUnsupportedParam, "Depth", req.Depth}
+		}
+	}
+
+	// Check CCDChannel
+	switch {
+	case req.CCDChannel == CCDChannelUnset:
+	case req.CCDChannel < 0 || req.CCDChannel >= ccdChannelMax:
+		return ErrParam{ErrInvalidParam, "CCDChannel", req.CCDChannel}
+	case !ccdChannels.Contains(req.CCDChannel):
+		return ErrParam{ErrUnsupportedParam,
+			"CCDChannel", req.CCDChannel}
+	}
+
+	// Check image processing parameters.
+	err := scancaps.BrightnessRange.validate("Brightness", req.Brightness)
+	if err == nil {
+		err = scancaps.ContrastRange.validate("Contrast", req.Contrast)
+	}
+	if err == nil {
+		err = scancaps.GammaRange.validate("Gamma", req.Gamma)
+	}
+	if err == nil {
+		err = scancaps.HighlightRange.validate(
+			"Highlight", req.Highlight)
+	}
+	if err == nil {
+		err = scancaps.NoiseRemovalRange.validate(
+			"NoiseRemoval", req.NoiseRemoval)
+	}
+	if err == nil {
+		err = scancaps.ShadowRange.validate("Shadow", req.Shadow)
+	}
+	if err == nil {
+		err = scancaps.SharpenRange.validate("Sharpen", req.Sharpen)
+	}
+	if err == nil {
+		err = scancaps.CompressionRange.validate(
+			"Compression", req.Compression)
+	}
+
+	if err != nil {
+		return err
 	}
 
 	return nil

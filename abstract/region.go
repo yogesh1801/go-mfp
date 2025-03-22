@@ -21,3 +21,11 @@ type Region struct {
 func (reg Region) IsZero() bool {
 	return reg == Region{}
 }
+
+// Within reports if reg2 is within reg.
+func (reg Region) Within(reg2 Region) bool {
+	return reg.XOffset <= reg2.XOffset &&
+		reg2.XOffset+reg2.Width <= reg.XOffset+reg.Width &&
+		reg.YOffset <= reg2.YOffset &&
+		reg2.YOffset+reg2.Height <= reg.YOffset+reg.Height
+}

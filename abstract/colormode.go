@@ -18,4 +18,5 @@ const (
 	ColorModeBinary                  // 1-bit monochrome
 	ColorModeMono                    // Gray scale monochrome
 	ColorModeColor                   // Full-color mode
+	colorModeMax
 )

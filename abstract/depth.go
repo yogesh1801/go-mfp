@@ -14,7 +14,7 @@ type Depth int
 // Known color modes:
 const (
 	DepthUnset Depth = 0  // Not set
-	Depth1     Depth = 1  // 1-bit (lineart or halftone)
 	Depth8     Depth = 8  // 8 bit (24 bit RGB)
 	Depth16    Depth = 16 // 16 bit (48 bit RGB)
+	depthMax
 )

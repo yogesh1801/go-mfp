@@ -8,16 +8,43 @@
 
 package abstract
 
-// Error is the error code.
-type Error int
+import "fmt"
+
+// ErrCode is the error code.
+type ErrCode int
 
 // Standard error codes:
 const (
-	_ Error = iota
-	ErrInvalidInput
-	ErrUnsupportedInput
-	ErrInvalidADFMode
-	ErrUnsupportedADFMode
+	_ ErrCode = iota
+	ErrInvalidParam
+	ErrUnsupportedParam
 )
 
-func (Error) Error() string { return "" }
+// Error returns error string. It implements the [error] interface.
+func (e ErrCode) Error() string {
+	switch e {
+	case ErrInvalidParam:
+		return "Invalid parameter"
+	case ErrUnsupportedParam:
+		return "Unsupported parameter"
+	}
+	return ""
+}
+
+// ErrParam used by functions like [ScannerRequest.Validate] to
+// represent parameter error in the supplied request.
+type ErrParam struct {
+	Err   ErrCode // Underlying error
+	Name  string  // Parameter name
+	Value any     // Parameter value
+}
+
+// Error returns error string. It implements the [error] interface.
+func (e ErrParam) Error() string {
+	return fmt.Sprintf("%s %s: %v", e.Err, e.Name, e.Value)
+}
+
+// Unwrap unwraps the underlying parameter error.
+func (e ErrParam) Unwrap() error {
+	return e.Err
+}

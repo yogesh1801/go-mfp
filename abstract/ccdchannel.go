@@ -21,4 +21,5 @@ const (
 	CCDChannelNTSC                              // NTSC-standard mix
 	CCDChannelGrayCcd                           // Gray channel in hawdware
 	CCDChannelGrayCcdEmulated                   // Emulated Gray
+	ccdChannelMax
 )
