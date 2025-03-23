@@ -178,6 +178,71 @@ func (req *ScannerRequest) Validate(scancaps *ScannerCapabilities) error {
 			"CCDChannel", req.CCDChannel}
 	}
 
+	// Check Intent
+	switch {
+	case req.Intent == IntentUnset:
+	case req.Intent < 0 || req.Intent >= intentMax:
+		return ErrParam{ErrInvalidParam, "Intent", req.Intent}
+	case !intents.Contains(req.Intent):
+		return ErrParam{ErrUnsupportedParam, "Intent", req.Intent}
+	}
+
+	// Check Region
+	if !req.Region.IsZero() {
+		if !req.Region.Valid() {
+			return ErrParam{ErrInvalidParam, "Region", req.Region}
+		}
+
+		ok := false
+		for _, inp := range inputs {
+			if req.Region.FitsCapabilities(inp) {
+				ok = true
+				break
+			}
+		}
+
+		if !ok {
+			return ErrParam{ErrUnsupportedParam,
+				"Region", req.Region}
+		}
+	}
+
+	// Check Resolution
+	if !req.Resolution.IsZero() {
+		if !req.Resolution.Valid() {
+			return ErrParam{ErrInvalidParam,
+				"Resolution", req.Resolution}
+		}
+
+		ok := false
+	loop:
+		for _, inp := range inputs {
+			for _, prof := range inp.Profiles {
+				if !prof.AllowsColorMode(req.ColorMode,
+					req.Depth, req.BinaryRendering) {
+					continue
+				}
+
+				if !prof.AllowsCCDChannel(req.CCDChannel) {
+					continue
+				}
+
+				if !prof.AllowsResolution(
+					req.Resolution) {
+					continue
+				}
+
+				ok = true
+				break loop
+			}
+		}
+
+		if !ok {
+			return ErrParam{ErrUnsupportedParam,
+				"Resolution", req.Resolution}
+		}
+	}
+
 	// Check image processing parameters.
 	err := scancaps.BrightnessRange.validate("Brightness", req.Brightness)
 	if err == nil {

@@ -19,6 +19,15 @@ func (res Resolution) IsZero() bool {
 	return res == Resolution{}
 }
 
+// Valid reports if Resolution is valid.
+func (res Resolution) Valid() bool {
+	if res.IsZero() {
+		return true
+	}
+
+	return res.XResolution > 0 && res.YResolution > 0
+}
+
 // ResolutionRange specifies a range of scanner resolutions.
 type ResolutionRange struct {
 	XMin, XMax, XStep, XNormal int // X resolution range, DPI

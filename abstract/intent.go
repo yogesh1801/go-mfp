@@ -21,4 +21,5 @@ const (
 	IntentPreview                      // Preview scanning
 	IntentObject                       // 3d object
 	IntentBusinessCard                 // Business card
+	intentMax
 )

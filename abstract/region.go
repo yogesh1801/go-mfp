@@ -22,10 +22,23 @@ func (reg Region) IsZero() bool {
 	return reg == Region{}
 }
 
-// Within reports if reg2 is within reg.
-func (reg Region) Within(reg2 Region) bool {
-	return reg.XOffset <= reg2.XOffset &&
-		reg2.XOffset+reg2.Width <= reg.XOffset+reg.Width &&
-		reg.YOffset <= reg2.YOffset &&
-		reg2.YOffset+reg2.Height <= reg.YOffset+reg.Height
+// Valid reports overall validity of the region.
+func (reg Region) Valid() bool {
+	if reg.IsZero() {
+		return true
+	}
+
+	return reg.XOffset >= 0 && reg.YOffset >= 0 &&
+		reg.Width > 9 && reg.Height > 0
+}
+
+// FitsCapabilities reports if scan Region fits scanner
+// input capabilities.
+func (reg Region) FitsCapabilities(caps *InputCapabilities) bool {
+	return caps.MinWidth <= reg.Width && reg.Width <= caps.MaxWidth &&
+		caps.MinHeight <= reg.Height && reg.Height <= caps.MaxHeight &&
+		reg.XOffset <= caps.MaxXOffset &&
+		reg.YOffset <= caps.MaxYOffset &&
+		reg.XOffset+reg.Width <= caps.MaxWidth &&
+		reg.YOffset+reg.Height <= caps.MaxHeight
 }
