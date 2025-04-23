@@ -42,3 +42,9 @@ type ScannerCapabilities struct {
 	ADFSimplex *InputCapabilities // InputADF+ADFModeSimplex
 	ADFDuplex  *InputCapabilities // InputADF+ADFModeDuplex
 }
+
+// Clone makes a shallow copy of the [ScannerCapabilities].
+func (scancaps *ScannerCapabilities) Clone() *ScannerCapabilities {
+	clone := *scancaps
+	return &clone
+}

@@ -74,21 +74,18 @@ func (req *ScannerRequest) Validate(scancaps *ScannerCapabilities) error {
 		inputs = []*InputCapabilities{scancaps.Platen}
 
 	case InputADF:
+		if scancaps.ADFSimplex == nil && scancaps.ADFDuplex == nil {
+			return ErrParam{ErrUnsupportedParam, "Input", req.Input}
+		}
+
 		switch req.ADFMode {
 		case ADFModeUnset:
 			// If ADF mode is not set, we prefer ADFSimplex
 			// with fallback to the ADFDuplex.
-			//
-			// If none is available, this is unsupported
-			// req.Input, not the req.ADFMode!
-			switch {
-			case scancaps.ADFSimplex != nil:
+			if scancaps.ADFSimplex != nil {
 				inputs = append(inputs, scancaps.ADFSimplex)
-			case scancaps.ADFDuplex == nil:
+			} else {
 				inputs = append(inputs, scancaps.ADFDuplex)
-			default:
-				return ErrParam{ErrUnsupportedParam,
-					"Input", req.Input}
 			}
 
 		case ADFModeSimplex:
