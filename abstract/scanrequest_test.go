@@ -180,7 +180,7 @@ func TestScannerRequestValidate(t *testing.T) {
 	}
 
 	tests := []testData{
-		// Zero request
+		// Zero request tests
 		{
 			comment:  "all-default request",
 			scancaps: testScannerCapabilities,
@@ -196,7 +196,7 @@ func TestScannerRequestValidate(t *testing.T) {
 			},
 		},
 
-		// InputPlaten
+		// InputPlaten tests
 		{
 			comment:  "InputPlaten",
 			scancaps: testScannerCapabilities,
@@ -216,7 +216,7 @@ func TestScannerRequestValidate(t *testing.T) {
 			},
 		},
 
-		// InputADF/ADFModeUnset
+		// InputADF/ADFModeUnset tests
 		{
 			comment:  "InputADF/ADFModeUnset",
 			scancaps: testScannerCapabilities,
@@ -252,7 +252,7 @@ func TestScannerRequestValidate(t *testing.T) {
 			},
 		},
 
-		// InputADF/ADFModeSimplex
+		// InputADF/ADFModeSimplex tests
 		{
 			comment:  "InputADF/ADFModeSimplex",
 			scancaps: testScannerCapabilities,
@@ -286,7 +286,7 @@ func TestScannerRequestValidate(t *testing.T) {
 			},
 		},
 
-		// InputADF/ADFModeDuplex
+		// InputADF/ADFModeDuplex tests
 		{
 			comment:  "InputADF/ADFModeDuplex",
 			scancaps: testScannerCapabilities,
