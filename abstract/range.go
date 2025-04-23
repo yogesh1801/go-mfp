@@ -32,7 +32,7 @@ func (r Range) Within(v int) bool {
 	return r.Min <= v && v <= r.Max
 }
 
-// validate returns ErrParam errir if parameter is not within the Range.
+// validate returns ErrParam error if parameter is not within the Range.
 func (r Range) validate(name string, param optional.Val[int]) error {
 	if param != nil {
 		v := *param
