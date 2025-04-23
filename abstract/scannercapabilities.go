@@ -33,7 +33,7 @@ type ScannerCapabilities struct {
 	GammaRange        Range // Gamma (y=x^(1/g)
 	HighlightRange    Range // Image Highlight
 	NoiseRemovalRange Range // Noise removal level
-	ShadowRange       Range // The lower, the darger
+	ShadowRange       Range // The lower, the darker
 	SharpenRange      Range // Image sharpen
 	ThresholdRange    Range // ColorModeBinary+BinaryRenderingThreshold
 
