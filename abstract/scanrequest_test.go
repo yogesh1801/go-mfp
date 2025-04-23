@@ -1,0 +1,404 @@
+// MFP - Miulti-Function Printers and scanners toolkit
+// Abstract definition for printer and scanner interfaces
+//
+// Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
+// See LICENSE for license terms and conditions
+//
+// Scan request tests
+
+package abstract
+
+import (
+	"slices"
+	"testing"
+
+	"github.com/alexpevzner/mfp/internal/testutils"
+	"github.com/alexpevzner/mfp/util/generic"
+	"github.com/alexpevzner/mfp/util/uuid"
+)
+
+// testUUID contains a parsed UUID
+var testUUID = uuid.Must(
+	uuid.Parse("418b75ab-1bd7-4d01-8178-75a84450a11c"),
+)
+
+// testIntents contains initialized set of Intents
+var testIntents = generic.MakeBitset(
+	IntentDocument,
+	IntentTextAndGraphic,
+	IntentPhoto,
+	IntentPreview,
+)
+
+// testColorModes contains initialized ColorMode set
+var testColorModes = generic.MakeBitset(
+	ColorModeBinary,
+	ColorModeMono,
+	ColorModeColor,
+)
+
+// testDepth contains initialized abstract.Depth set
+var testDepth = generic.MakeBitset(Depth8)
+
+// testBinaryRenderings contains initialized BinaryRendering set
+var testBinaryRenderings = generic.MakeBitset(
+	BinaryRenderingHalftone,
+	BinaryRenderingThreshold,
+)
+
+// testCCDChannels contains initialized CCDChannel set
+var testCCDChannels = generic.MakeBitset(
+	CCDChannelRed,
+	CCDChannelGreen,
+	CCDChannelBlue,
+	CCDChannelNTSC,
+	CCDChannelGrayCcd,
+	CCDChannelGrayCcdEmulated,
+)
+
+// testResolutions contains initialized []Resolution slice
+var testResolutions = []Resolution{
+	{XResolution: 200, YResolution: 100},
+	{XResolution: 200, YResolution: 200},
+	{XResolution: 200, YResolution: 400},
+	{XResolution: 300, YResolution: 300},
+	{XResolution: 400, YResolution: 400},
+	{XResolution: 600, YResolution: 600},
+}
+
+// testSettingsProfiles contains initialized []abstract.SettingsProfile
+// slice
+var testSettingsProfiles = []SettingsProfile{
+	{
+		ColorModes:       testColorModes,
+		Depths:           testDepth,
+		BinaryRenderings: testBinaryRenderings,
+		CCDChannels:      testCCDChannels,
+		Resolutions:      testResolutions,
+	},
+}
+
+// testPlatenInputCapabilities contains InputCapabilities for
+// the Platen source
+var testPlatenInputCapabilities = &InputCapabilities{
+	MinWidth:  DimensionFromDots(118, 300),
+	MinHeight: DimensionFromDots(118, 300),
+	MaxWidth:  DimensionFromDots(2551, 300),
+	MaxHeight: DimensionFromDots(3508, 300),
+	Intents:   testIntents,
+	Profiles:  testSettingsProfiles,
+}
+
+// testADFenInputCapabilities contains InputCapabilities for
+// the ADFen source
+var testADFenInputCapabilities = &InputCapabilities{
+	MinWidth:  DimensionFromDots(591, 300),
+	MinHeight: DimensionFromDots(591, 300),
+	MaxWidth:  DimensionFromDots(2551, 300),
+	MaxHeight: DimensionFromDots(4205, 300),
+	Intents:   testIntents,
+	Profiles:  testSettingsProfiles,
+}
+
+// testScannerCapabilities contains initialized ScannerCapabilities
+// structure
+var testScannerCapabilities = &ScannerCapabilities{
+	UUID:              testUUID,
+	MakeAndModel:      "Abstract Scanner",
+	SerialNumber:      "AS-12345",
+	Manufacturer:      "Abstract Corp.",
+	CompressionRange:  Range{Min: 1, Max: 5, Normal: 1},
+	ADFCapacity:       75,
+	BrightnessRange:   Range{Min: -100, Max: 100, Normal: 0},
+	ContrastRange:     Range{Min: -127, Max: 127, Normal: 0},
+	GammaRange:        Range{Min: 1, Max: 40, Normal: 20},
+	HighlightRange:    Range{Min: 0, Max: 100, Normal: 60},
+	NoiseRemovalRange: Range{Min: 0, Max: 10, Normal: 2},
+	ShadowRange:       Range{Min: 0, Max: 100, Normal: 10},
+	SharpenRange:      Range{Min: 0, Max: 100, Normal: 15},
+	ThresholdRange:    Range{Min: 0, Max: 100, Normal: 50},
+	Platen:            testPlatenInputCapabilities,
+	ADFSimplex:        testADFenInputCapabilities,
+	ADFDuplex:         testADFenInputCapabilities,
+}
+
+// Variations of the initialized ScannerCapabilities structure:
+//   - testScannerCapabilitiesNoPlaten     - no platen source
+//   - testScannerCapabilitiesNoADF        - no ADF
+//   - testScannerCapabilitiesNoADFSimplex - no ADFSimplex
+//   - testScannerCapabilitiesNoADFDuplex  - no ADFDuplex
+//   - testScannerCapabilitiesNoInput      - no inputs at all
+//   - testScannerCapabilitiesNoColor      - no ColorModeColor support
+var testScannerCapabilitiesNoPlaten *ScannerCapabilities
+var testScannerCapabilitiesNoADF *ScannerCapabilities
+var testScannerCapabilitiesNoADFSimplex *ScannerCapabilities
+var testScannerCapabilitiesNoADFDuplex *ScannerCapabilities
+var testScannerCapabilitiesNoInput *ScannerCapabilities
+var testScannerCapabilitiesNoColor *ScannerCapabilities
+
+func init() {
+	testScannerCapabilitiesNoPlaten = testScannerCapabilities.Clone()
+	testScannerCapabilitiesNoPlaten.Platen = nil
+
+	testScannerCapabilitiesNoADF = testScannerCapabilities.Clone()
+	testScannerCapabilitiesNoADF.ADFSimplex = nil
+	testScannerCapabilitiesNoADF.ADFDuplex = nil
+
+	testScannerCapabilitiesNoADFSimplex = testScannerCapabilities.Clone()
+	testScannerCapabilitiesNoADFSimplex.ADFSimplex = nil
+
+	testScannerCapabilitiesNoADFDuplex = testScannerCapabilities.Clone()
+	testScannerCapabilitiesNoADFDuplex.ADFDuplex = nil
+
+	testScannerCapabilitiesNoInput = testScannerCapabilities.Clone()
+	testScannerCapabilitiesNoInput.Platen = nil
+	testScannerCapabilitiesNoInput.ADFSimplex = nil
+	testScannerCapabilitiesNoInput.ADFDuplex = nil
+
+	testScannerCapabilitiesNoColor = testScannerCapabilities.Clone()
+	for _, inpcaps := range []**InputCapabilities{
+		&testScannerCapabilitiesNoColor.Platen,
+		&testScannerCapabilitiesNoColor.ADFSimplex,
+		&testScannerCapabilitiesNoColor.ADFDuplex,
+	} {
+		*inpcaps = (*inpcaps).Clone()
+		(*inpcaps).Profiles = slices.Clone((*inpcaps).Profiles)
+		for i := range (*inpcaps).Profiles {
+			prof := &(*inpcaps).Profiles[i]
+			prof.ColorModes.Del(ColorModeColor)
+		}
+	}
+}
+
+// TestScannerRequestValidate tests ScannerRequest.Validate function.
+func TestScannerRequestValidate(t *testing.T) {
+	type testData struct {
+		comment  string
+		scancaps *ScannerCapabilities
+		req      *ScannerRequest
+		err      error
+	}
+
+	tests := []testData{
+		// Zero request
+		{
+			comment:  "all-default request",
+			scancaps: testScannerCapabilities,
+			req:      &ScannerRequest{},
+		},
+
+		{
+			comment:  "all-default request, no input supported",
+			scancaps: testScannerCapabilitiesNoInput,
+			req:      &ScannerRequest{},
+			err: ErrParam{
+				ErrUnsupportedParam, "Input", InputUnset,
+			},
+		},
+
+		// InputPlaten
+		{
+			comment:  "InputPlaten",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				Input: InputPlaten,
+			},
+		},
+
+		{
+			comment:  "InputPlaten, unsupported",
+			scancaps: testScannerCapabilitiesNoPlaten,
+			req: &ScannerRequest{
+				Input: InputPlaten,
+			},
+			err: ErrParam{
+				ErrUnsupportedParam, "Input", InputPlaten,
+			},
+		},
+
+		// InputADF/ADFModeUnset
+		{
+			comment:  "InputADF/ADFModeUnset",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				Input: InputADF,
+			},
+		},
+
+		{
+			comment:  "InputADF/ADFModeUnset, NoADFSimplex",
+			scancaps: testScannerCapabilitiesNoADFSimplex,
+			req: &ScannerRequest{
+				Input: InputADF,
+			},
+		},
+
+		{
+			comment:  "InputADF/ADFModeUnset, NoADFDuplex",
+			scancaps: testScannerCapabilitiesNoADFDuplex,
+			req: &ScannerRequest{
+				Input: InputADF,
+			},
+		},
+
+		{
+			comment:  "InputADF/ADFModeUnset, NoADF",
+			scancaps: testScannerCapabilitiesNoADF,
+			req: &ScannerRequest{
+				Input: InputADF,
+			},
+			err: ErrParam{
+				ErrUnsupportedParam, "Input", InputADF,
+			},
+		},
+
+		// InputADF/ADFModeSimplex
+		{
+			comment:  "InputADF/ADFModeSimplex",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				Input:   InputADF,
+				ADFMode: ADFModeSimplex,
+			},
+		},
+
+		{
+			comment:  "InputADF/ADFModeSimplex, NoADF",
+			scancaps: testScannerCapabilitiesNoADF,
+			req: &ScannerRequest{
+				Input:   InputADF,
+				ADFMode: ADFModeSimplex,
+			},
+			err: ErrParam{
+				ErrUnsupportedParam, "Input", InputADF,
+			},
+		},
+
+		{
+			comment:  "InputADF/ADFModeSimplex, NoADFSimplex",
+			scancaps: testScannerCapabilitiesNoADFSimplex,
+			req: &ScannerRequest{
+				Input:   InputADF,
+				ADFMode: ADFModeSimplex,
+			},
+			err: ErrParam{
+				ErrUnsupportedParam, "ADFMode", ADFModeSimplex,
+			},
+		},
+
+		// InputADF/ADFModeDuplex
+		{
+			comment:  "InputADF/ADFModeDuplex",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				Input:   InputADF,
+				ADFMode: ADFModeDuplex,
+			},
+		},
+
+		{
+			comment:  "InputADF/ADFModeDuplex, NoADF",
+			scancaps: testScannerCapabilitiesNoADF,
+			req: &ScannerRequest{
+				Input:   InputADF,
+				ADFMode: ADFModeDuplex,
+			},
+			err: ErrParam{
+				ErrUnsupportedParam, "Input", InputADF,
+			},
+		},
+
+		{
+			comment:  "InputADF/ADFModeDuplex, NoADFDuplex",
+			scancaps: testScannerCapabilitiesNoADFDuplex,
+			req: &ScannerRequest{
+				Input:   InputADF,
+				ADFMode: ADFModeDuplex,
+			},
+			err: ErrParam{
+				ErrUnsupportedParam, "ADFMode", ADFModeDuplex,
+			},
+		},
+
+		// InputADF/invalid mode
+		{
+			comment:  "InputADF/ADFModeDuplex",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				Input:   InputADF,
+				ADFMode: adfModeMax,
+			},
+			err: ErrParam{
+				ErrInvalidParam, "ADFMode", adfModeMax,
+			},
+		},
+
+		// invalid input
+		{
+			comment:  "invalid input",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				Input: inputMax,
+			},
+			err: ErrParam{
+				ErrInvalidParam, "Input", inputMax,
+			},
+		},
+
+		// ColorMode tests
+		{
+			comment:  "ColorModeBinary",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				ColorMode: ColorModeBinary,
+			},
+		},
+
+		{
+			comment:  "ColorModeMono",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				ColorMode: ColorModeMono,
+			},
+		},
+
+		{
+			comment:  "ColorModeColor",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				ColorMode: ColorModeColor,
+			},
+		},
+
+		{
+			comment:  "invalid ColorMode",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				ColorMode: colorModeMax,
+			},
+			err: ErrParam{
+				ErrInvalidParam, "ColorMode", colorModeMax,
+			},
+		},
+
+		{
+			comment:  "unsupported ColorMode",
+			scancaps: testScannerCapabilitiesNoColor,
+			req: &ScannerRequest{
+				ColorMode: ColorModeColor,
+			},
+			err: ErrParam{
+				ErrUnsupportedParam, "ColorMode",
+				ColorModeColor,
+			},
+		},
+	}
+
+	for _, test := range tests {
+		err := test.req.Validate(test.scancaps)
+		diff := testutils.Diff(test.err, err)
+		if diff != "" {
+			t.Errorf("failed: %q:\n%s", test.comment, diff)
+		}
+	}
+}
