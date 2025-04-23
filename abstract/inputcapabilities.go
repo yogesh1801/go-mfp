@@ -33,3 +33,9 @@ type InputCapabilities struct {
 	// Supported setting profiles
 	Profiles []SettingsProfile // List of supported profiles
 }
+
+// Clone makes a shallow copy of the [InputCapabilities]
+func (inpcaps *InputCapabilities) Clone() *InputCapabilities {
+	clone := *inpcaps
+	return &clone
+}
