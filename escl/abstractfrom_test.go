@@ -154,6 +154,13 @@ func TestFromAbstractRange(t *testing.T) {
 				Min: -100, Max: 100, Normal: 0, Step: nil,
 			}),
 		},
+		{
+			in: abstract.Range{Min: -100, Max: 100, Step: 2},
+			out: optional.New(Range{
+				Min: -100, Max: 100, Normal: 0,
+				Step: optional.New(2),
+			}),
+		},
 	}
 
 	for _, test := range tests {

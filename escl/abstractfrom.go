@@ -26,13 +26,19 @@ func fromAbstractOptionalInt(v int) optional.Val[int] {
 // Range is not zero, nil otherwise
 func fromAbstractOptionalRange(absrange abstract.Range) optional.Val[Range] {
 	if !absrange.IsZero() {
-		return optional.New(
+		r := optional.New(
 			Range{
 				Min:    absrange.Min,
 				Max:    absrange.Max,
 				Normal: absrange.Normal,
 			},
 		)
+
+		if absrange.Step > 1 {
+			r.Step = optional.New(absrange.Step)
+		}
+
+		return r
 	}
 
 	return nil
