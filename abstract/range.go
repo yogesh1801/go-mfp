@@ -19,7 +19,8 @@ import "github.com/alexpevzner/mfp/util/optional"
 //
 // If Min == Max, the corresponding parameter considered unsupported
 type Range struct {
-	Min, Max, Normal int
+	Min, Max, Normal int // Min, Max and Normal values
+	Step             int // Step, ignored if <= 1
 }
 
 // IsZero reports if Range has a zero value.
@@ -28,8 +29,24 @@ func (r Range) IsZero() bool {
 }
 
 // Within reports if value is within the [Range].
+//
+// It returns:
+//   - false, if r.IsZero() is true
+//   - false, if v is less that r.Min or greater that r.Max
+//   - false, if r.Step is greater that 2 and there is not
+//     integer number of steps between r.Min and v
+//   - true otherwise
 func (r Range) Within(v int) bool {
-	return r.Min <= v && v <= r.Max
+	switch {
+	case r.IsZero():
+		return false
+	case v < r.Min || r.Max < v:
+		return false
+	case r.Step <= 1:
+		return true
+	default:
+		return (v-r.Min)%r.Step == 0
+	}
 }
 
 // validate returns ErrParam error if parameter is not within the Range.
