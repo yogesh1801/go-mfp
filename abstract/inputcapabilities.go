@@ -18,8 +18,8 @@ type InputCapabilities struct {
 	MaxWidth              Dimension // Max scan width
 	MinHeight             Dimension // Min scan height
 	MaxHeight             Dimension // Max scan height
-	MaxXOffset            Dimension // Max XOffset
-	MaxYOffset            Dimension // Max YOffset
+	MaxXOffset            Dimension // Max XOffset, 0 - unset
+	MaxYOffset            Dimension // Max YOffset, 0 - unset
 	MaxOpticalXResolution int       // DPI, 0 - unknown
 	MaxOpticalYResolution int       // DPI, 0 - unknown
 	RiskyLeftMargins      Dimension // Risky left margins, 0 - unknown
