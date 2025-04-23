@@ -131,10 +131,10 @@ func (req *ScannerRequest) Validate(scancaps *ScannerCapabilities) error {
 	switch {
 	case req.ColorMode == ColorModeUnset:
 	case req.ColorMode < 0 || req.ColorMode >= colorModeMax:
-		return ErrParam{ErrInvalidParam, "ColorMode,", req.ColorMode}
+		return ErrParam{ErrInvalidParam, "ColorMode", req.ColorMode}
 	case !colorModes.Contains(req.ColorMode):
 		return ErrParam{ErrUnsupportedParam,
-			"ColorMode,", req.ColorMode}
+			"ColorMode", req.ColorMode}
 	}
 
 	switch req.ColorMode {
