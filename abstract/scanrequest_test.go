@@ -14,6 +14,7 @@ import (
 
 	"github.com/alexpevzner/mfp/internal/testutils"
 	"github.com/alexpevzner/mfp/util/generic"
+	"github.com/alexpevzner/mfp/util/optional"
 	"github.com/alexpevzner/mfp/util/uuid"
 )
 
@@ -129,12 +130,14 @@ var testScannerCapabilities = &ScannerCapabilities{
 //   - testScannerCapabilitiesNoADFDuplex  - no ADFDuplex
 //   - testScannerCapabilitiesNoInput      - no inputs at all
 //   - testScannerCapabilitiesNoColor      - no ColorModeColor support
+//   - testScannerCapabilitiesNoHalftone   - no BinaryRenderingHalftone
 var testScannerCapabilitiesNoPlaten *ScannerCapabilities
 var testScannerCapabilitiesNoADF *ScannerCapabilities
 var testScannerCapabilitiesNoADFSimplex *ScannerCapabilities
 var testScannerCapabilitiesNoADFDuplex *ScannerCapabilities
 var testScannerCapabilitiesNoInput *ScannerCapabilities
 var testScannerCapabilitiesNoColor *ScannerCapabilities
+var testScannerCapabilitiesNoHalftone *ScannerCapabilities
 
 func init() {
 	testScannerCapabilitiesNoPlaten = testScannerCapabilities.Clone()
@@ -168,6 +171,21 @@ func init() {
 			prof.ColorModes.Del(ColorModeColor)
 		}
 	}
+
+	testScannerCapabilitiesNoHalftone = testScannerCapabilities.Clone()
+	for _, inpcaps := range []**InputCapabilities{
+		&testScannerCapabilitiesNoHalftone.Platen,
+		&testScannerCapabilitiesNoHalftone.ADFSimplex,
+		&testScannerCapabilitiesNoHalftone.ADFDuplex,
+	} {
+		*inpcaps = (*inpcaps).Clone()
+		(*inpcaps).Profiles = slices.Clone((*inpcaps).Profiles)
+		for i := range (*inpcaps).Profiles {
+			prof := &(*inpcaps).Profiles[i]
+			prof.BinaryRenderings.Del(BinaryRenderingHalftone)
+		}
+	}
+
 }
 
 // TestScannerRequestValidate tests ScannerRequest.Validate function.
@@ -390,6 +408,74 @@ func TestScannerRequestValidate(t *testing.T) {
 			err: ErrParam{
 				ErrUnsupportedParam, "ColorMode",
 				ColorModeColor,
+			},
+		},
+
+		// BinaryRendering tests
+		{
+			comment:  "BinaryRenderingUnset",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				ColorMode:       ColorModeBinary,
+				BinaryRendering: BinaryRenderingUnset,
+			},
+		},
+
+		{
+			comment:  "BinaryRenderingHalftone",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				ColorMode:       ColorModeBinary,
+				BinaryRendering: BinaryRenderingHalftone,
+			},
+		},
+
+		{
+			comment:  "BinaryRenderingHalftone, unsupported",
+			scancaps: testScannerCapabilitiesNoHalftone,
+			req: &ScannerRequest{
+				ColorMode:       ColorModeBinary,
+				BinaryRendering: BinaryRenderingHalftone,
+			},
+			err: ErrParam{
+				ErrUnsupportedParam, "BinaryRendering",
+				BinaryRenderingHalftone,
+			},
+		},
+
+		{
+			comment:  "BinaryRenderingThreshold",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				ColorMode:       ColorModeBinary,
+				BinaryRendering: BinaryRenderingThreshold,
+			},
+		},
+
+		{
+			comment:  "BinaryRenderingThreshold, out of range",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				ColorMode:       ColorModeBinary,
+				BinaryRendering: BinaryRenderingThreshold,
+				Threshold:       optional.New(200),
+			},
+			err: ErrParam{
+				ErrUnsupportedParam, "Threshold",
+				200,
+			},
+		},
+
+		{
+			comment:  "invalid BinaryRenderingUnset",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				ColorMode:       ColorModeBinary,
+				BinaryRendering: binaryRenderingMax,
+			},
+			err: ErrParam{
+				ErrInvalidParam, "BinaryRendering",
+				binaryRenderingMax,
 			},
 		},
 	}
