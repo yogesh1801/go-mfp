@@ -9,7 +9,6 @@
 package abstract
 
 import (
-	"slices"
 	"testing"
 
 	"github.com/alexpevzner/mfp/internal/testutils"
@@ -181,7 +180,7 @@ func init() {
 		&testScannerCapabilitiesNoColor.ADFDuplex,
 	} {
 		*inpcaps = (*inpcaps).Clone()
-		(*inpcaps).Profiles = slices.Clone((*inpcaps).Profiles)
+		(*inpcaps).Profiles = generic.CopySlice((*inpcaps).Profiles)
 		for i := range (*inpcaps).Profiles {
 			prof := &(*inpcaps).Profiles[i]
 			prof.ColorModes.Del(ColorModeColor)
@@ -195,7 +194,7 @@ func init() {
 		&testScannerCapabilitiesNoHalftone.ADFDuplex,
 	} {
 		*inpcaps = (*inpcaps).Clone()
-		(*inpcaps).Profiles = slices.Clone((*inpcaps).Profiles)
+		(*inpcaps).Profiles = generic.CopySlice((*inpcaps).Profiles)
 		for i := range (*inpcaps).Profiles {
 			prof := &(*inpcaps).Profiles[i]
 			prof.BinaryRenderings.Del(BinaryRenderingHalftone)

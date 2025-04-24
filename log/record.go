@@ -12,8 +12,9 @@ import (
 	"bytes"
 	"fmt"
 	"os"
-	"slices"
 	"sync"
+
+	"github.com/alexpevzner/mfp/util/generic"
 )
 
 // Record allows to build a multi-line log message, which
@@ -86,7 +87,7 @@ func (rec *Record) format(level Level, format string, v ...any) *Record {
 	defer bufFree(buf)
 
 	fmt.Fprintf(buf, format, v...)
-	return rec.text(level, 0, slices.Clone(buf.Bytes()))
+	return rec.text(level, 0, generic.CopySlice(buf.Bytes()))
 }
 
 // text writes a text message to the Record
@@ -105,7 +106,7 @@ func (rec *Record) text(level Level, indent int, text []byte) *Record {
 		for i := range lines {
 			buf.Truncate(indent)
 			buf.Write(lines[i])
-			lines[i] = bytes.Clone(buf.Bytes())
+			lines[i] = generic.CopySlice(buf.Bytes())
 		}
 	}
 

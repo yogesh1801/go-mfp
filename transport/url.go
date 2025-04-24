@@ -16,6 +16,8 @@ import (
 	"path"
 	"strconv"
 	"strings"
+
+	"github.com/alexpevzner/mfp/util/missed"
 )
 
 // Default ports, by protocol:
@@ -220,7 +222,7 @@ func ParseURL(in string) (*url.URL, error) {
 	}
 
 	if port != "" && u.Port() == port {
-		u.Host, _ = strings.CutSuffix(u.Host, ":"+port)
+		u.Host, _ = missed.StringsCutSuffix(u.Host, ":"+port)
 	}
 
 	// Normalize path
@@ -327,7 +329,7 @@ func URLStripPort(u *url.URL) {
 	port := URLPort(u)
 	if port >= 0 && port == DefaultPort(u.Scheme) {
 		suffix := ":" + strconv.Itoa(port)
-		u.Host, _ = strings.CutSuffix(u.Host, suffix)
+		u.Host, _ = missed.StringsCutSuffix(u.Host, suffix)
 	}
 }
 

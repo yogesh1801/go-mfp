@@ -310,6 +310,7 @@ func ippCodecGenerateInternal(t reflect.Type,
 		}
 
 		// Generate encoding/decoding step for underlying type.
+		zero := reflect.Zero(fldType)
 		step := ippCodecStep{
 			offset:      fld.Offset,
 			attrName:    tag.name,
@@ -327,7 +328,7 @@ func ippCodecGenerateInternal(t reflect.Type,
 				return reflect.NewAt(fldType, p).Elem().IsZero()
 			},
 			setzero: func(p unsafe.Pointer) {
-				reflect.NewAt(fldType, p).Elem().SetZero()
+				reflect.NewAt(fldType, p).Elem().Set(zero)
 			},
 		}
 
@@ -611,9 +612,10 @@ func ippDecSlice(p unsafe.Pointer, vals goipp.Values,
 
 	slice := reflect.MakeSlice(t, 0, len(vals))
 	tmp := reflect.New(t.Elem())
+	zero := reflect.Zero(t.Elem())
 
 	for i := range vals {
-		tmp.Elem().SetZero()
+		tmp.Elem().Set(zero)
 		err := decode(unsafe.Pointer(tmp.Pointer()), vals[i:i+1])
 		if err != nil {
 			return err

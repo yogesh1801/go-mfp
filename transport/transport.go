@@ -14,6 +14,8 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/alexpevzner/mfp/util/missed"
 )
 
 var defaultDiaaler net.Dialer
@@ -119,7 +121,7 @@ func (tr *Transport) dialContect(ctx context.Context,
 	addr = net.JoinHostPort(host, port)
 
 	if network == "unix" {
-		addr, _ = strings.CutSuffix(addr, ":"+port)
+		addr, _ = missed.StringsCutSuffix(addr, ":"+port)
 		addr = unescapePath(addr)
 	}
 

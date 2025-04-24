@@ -1,5 +1,6 @@
 SUBDIRS	= \
 	generic \
+	missed \
 	optional \
 	uuid \
 	xmldoc

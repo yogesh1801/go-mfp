@@ -12,8 +12,9 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"slices"
 	"testing"
+
+	"github.com/alexpevzner/mfp/util/generic"
 )
 
 // TestPeeker performs Peeker test
@@ -53,7 +54,7 @@ func TestPeeker(t *testing.T) {
 		d := make([]byte, len(test.peek))
 		p.Read(d)
 
-		if !slices.Equal(test.peek, d) {
+		if !generic.EqualSlices(test.peek, d) {
 			t.Errorf("in=%q, peek %d bytes:\n"+
 				"expected: %q\n"+
 				"present:  %q",
@@ -73,7 +74,7 @@ func TestPeeker(t *testing.T) {
 		io.Copy(&buf, p)
 
 		d = buf.Bytes()
-		if !slices.Equal(test.out, d) {
+		if !generic.EqualSlices(test.out, d) {
 			repl := "nil"
 			if test.replace != nil {
 				repl = fmt.Sprintf("%q", test.replace)

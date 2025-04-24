@@ -10,8 +10,8 @@ package discovery
 
 import (
 	"net/netip"
-	"slices"
 
+	"github.com/alexpevzner/mfp/util/generic"
 	"github.com/alexpevzner/mfp/util/uuid"
 )
 
@@ -117,7 +117,7 @@ func (dev device) Export() Device {
 	}
 
 	// Merge by classes
-	printUnits := slices.Concat(
+	printUnits := generic.ConcatSlices(
 		ippPrinters,
 		lpdPrinters,
 		appsockPrinters,
@@ -125,7 +125,7 @@ func (dev device) Export() Device {
 		usbPrinters,
 	)
 
-	scanUnits := slices.Concat(
+	scanUnits := generic.ConcatSlices(
 		ippScanners,
 		esclSanners,
 		wsdScanners,
@@ -150,7 +150,7 @@ func (dev device) Export() Device {
 	}
 
 	// Extract metadata
-	dnssdUnits := slices.Concat(
+	dnssdUnits := generic.ConcatSlices(
 		ippPrinters,
 		lpdPrinters,
 		appsockPrinters,
@@ -159,7 +159,7 @@ func (dev device) Export() Device {
 		ippFaxes,
 	)
 
-	allUnits := slices.Concat(
+	allUnits := generic.ConcatSlices(
 		ippPrinters,
 		lpdPrinters,
 		appsockPrinters,
@@ -211,7 +211,7 @@ func (dev device) Export() Device {
 		}
 	}
 
-	for _, un := range slices.Concat(printUnits, scanUnits, faxoutUnits) {
+	for _, un := range generic.ConcatSlices(printUnits, scanUnits, faxoutUnits) {
 		if out.Location == "" && un.Location != "" {
 			out.Location = un.Location
 		}

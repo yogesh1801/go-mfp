@@ -12,8 +12,8 @@ import (
 	"bytes"
 	"fmt"
 	"net/netip"
-	"slices"
 
+	"github.com/alexpevzner/mfp/util/generic"
 	"github.com/alexpevzner/mfp/util/xmldoc"
 )
 
@@ -113,7 +113,7 @@ func msgFromXML(root xmldoc.Element) (m Msg, err error) {
 // Encode encodes [Msg] into its wire representation.
 func (m Msg) Encode() []byte {
 	buf := bytes.Buffer{}
-	ns := slices.Clone(NsMap)
+	ns := generic.CopySlice(NsMap)
 	m.MarkUsedNamespace(ns)
 	m.ToXML().Encode(&buf, ns)
 	return buf.Bytes()
@@ -121,7 +121,7 @@ func (m Msg) Encode() []byte {
 
 // Format formats [Msg] for logging/
 func (m Msg) Format() string {
-	ns := slices.Clone(NsMap)
+	ns := generic.CopySlice(NsMap)
 	m.MarkUsedNamespace(ns)
 	return m.ToXML().EncodeIndentString(ns, "  ")
 }

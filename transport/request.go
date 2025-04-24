@@ -14,6 +14,8 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/alexpevzner/mfp/util/missed"
 )
 
 // NewRequest wraps the [http.NewRequestWithContext] with small API
@@ -60,7 +62,7 @@ func requestAdjustHost(rq *http.Request, u *url.URL) {
 		return
 	}
 
-	rq.Host, _ = strings.CutSuffix(u.Host, portCut)
+	rq.Host, _ = missed.StringsCutSuffix(u.Host, portCut)
 	if u.Port() == "" {
 		rq.Host += portAdd
 	}

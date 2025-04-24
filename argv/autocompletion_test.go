@@ -11,9 +11,10 @@ package argv
 import (
 	"fmt"
 	"reflect"
-	"slices"
 	"sort"
 	"testing"
+
+	"github.com/alexpevzner/mfp/util/generic"
 )
 
 // TestAutoCompletion tests Command.Complete
@@ -654,8 +655,8 @@ func testDiffCompletion(expected, received []Completion) []string {
 		return []string{}
 	}
 
-	expected = slices.Clone(expected)
-	received = slices.Clone(received)
+	expected = generic.CopySlice(expected)
+	received = generic.CopySlice(received)
 
 	sort.Slice(expected, func(i, j int) bool {
 		return expected[i].String < expected[j].String

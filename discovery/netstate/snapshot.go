@@ -10,8 +10,9 @@ package netstate
 
 import (
 	"net"
-	"slices"
 	"sort"
+
+	"github.com/alexpevzner/mfp/util/generic"
 )
 
 // snapshot represents a snapshot of current network state.
@@ -125,7 +126,7 @@ func newSnapshotFromAddrs(addrs []Addr) snapshot {
 
 // Equal tells if two snapshots are equal
 func (snap snapshot) Equal(snap2 snapshot) bool {
-	return slices.Equal(snap.addrs, snap2.addrs)
+	return generic.EqualSlices(snap.addrs, snap2.addrs)
 }
 
 // Interfaces returns slice of network interfaces in the snapshot.

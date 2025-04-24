@@ -10,7 +10,6 @@ package escl
 
 import (
 	"fmt"
-	"slices"
 	"testing"
 
 	"github.com/alexpevzner/mfp/abstract"
@@ -234,10 +233,10 @@ func TestFromAbstractIntents(t *testing.T) {
 
 	for _, test := range tests {
 		out := fromAbstractIntents(test.in)
-		expected := slices.Clone(test.out)
+		expected := generic.CopySlice(test.out)
 
-		slices.Sort(out)
-		slices.Sort(expected)
+		generic.SortSlice(out)
+		generic.SortSlice(expected)
 
 		testutils.CheckConvertionTest(t,
 			"fromAbstractIntents",
@@ -290,10 +289,10 @@ func TestFromAbstractBinaryRenderings(t *testing.T) {
 
 	for _, test := range tests {
 		out := fromAbstractBinaryRenderings(test.in)
-		expected := slices.Clone(test.out)
+		expected := generic.CopySlice(test.out)
 
-		slices.Sort(out)
-		slices.Sort(expected)
+		generic.SortSlice(out)
+		generic.SortSlice(expected)
 
 		testutils.CheckConvertionTest(t,
 			"fromAbstractBinaryRenderings",
@@ -348,10 +347,10 @@ func TestFromAbstractCCDChannels(t *testing.T) {
 
 	for _, test := range tests {
 		out := fromAbstractCCDChannels(test.in)
-		expected := slices.Clone(test.out)
+		expected := generic.CopySlice(test.out)
 
-		slices.Sort(out)
-		slices.Sort(expected)
+		generic.SortSlice(out)
+		generic.SortSlice(expected)
 
 		testutils.CheckConvertionTest(t,
 			"fromAbstractCCDChannels",
@@ -435,10 +434,10 @@ func TestFromAbstractColorModes(t *testing.T) {
 
 	for _, test := range tests {
 		out := fromAbstractColorModes(test.modes, test.depths)
-		expected := slices.Clone(test.out)
+		expected := generic.CopySlice(test.out)
 
-		slices.Sort(out)
-		slices.Sort(expected)
+		generic.SortSlice(out)
+		generic.SortSlice(expected)
 
 		testutils.CheckConvertionTest(t,
 			"fromAbstractResolutions",

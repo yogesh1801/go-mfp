@@ -10,7 +10,8 @@ package xmldoc
 
 import (
 	"os"
-	"slices"
+
+	"github.com/alexpevzner/mfp/util/generic"
 )
 
 // Element represents a single decoded XML Element
@@ -157,8 +158,8 @@ func (attr Attr) Equal(attr2 Attr) bool {
 // It is uses [os.Expand] function for strings substitution.
 func (root Element) Expand(mapping func(string) string) Element {
 	root.Text = os.Expand(root.Text, mapping)
-	root.Attrs = slices.Clone(root.Attrs)
-	root.Children = slices.Clone(root.Children)
+	root.Attrs = generic.CopySlice(root.Attrs)
+	root.Children = generic.CopySlice(root.Children)
 
 	for i := range root.Attrs {
 		attr := &root.Attrs[i]

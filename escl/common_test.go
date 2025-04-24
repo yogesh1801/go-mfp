@@ -10,10 +10,10 @@ package escl
 
 import (
 	"reflect"
-	"slices"
 	"strings"
 	"testing"
 
+	"github.com/alexpevzner/mfp/util/generic"
 	"github.com/alexpevzner/mfp/util/xmldoc"
 )
 
@@ -47,7 +47,7 @@ func (test testEnum[T]) run(t *testing.T) {
 		typeName = typeName[i+1:]
 	}
 
-	withUnknown := slices.Clone(test.dataset)
+	withUnknown := generic.CopySlice(test.dataset)
 	withUnknown = append(withUnknown, testEnumData[T]{0, "Unknown"})
 
 	// Test T.String()

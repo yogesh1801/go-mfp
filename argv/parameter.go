@@ -12,6 +12,8 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+
+	"github.com/alexpevzner/mfp/util/missed"
 )
 
 // Parameter defines a positional parameter.
@@ -131,7 +133,7 @@ func (param *Parameter) name() string {
 	if strings.HasPrefix(name, "[") && strings.HasSuffix(name, "]") {
 		name = name[1 : len(name)-1]
 	}
-	name, _ = strings.CutSuffix(name, "...")
+	name, _ = missed.StringsCutSuffix(name, "...")
 
 	return name
 }

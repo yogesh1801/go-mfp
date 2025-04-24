@@ -10,9 +10,10 @@ package netstate
 
 import (
 	"fmt"
-	"slices"
 	"sort"
 	"testing"
+
+	"github.com/alexpevzner/mfp/util/generic"
 )
 
 // TestSnapshotEqual tests snapshot.equal
@@ -67,8 +68,8 @@ func TestSnapshotEqual(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		snap1 := newSnapshotFromAddrs(slices.Clone(test.addrset1))
-		snap2 := newSnapshotFromAddrs(slices.Clone(test.addrset2))
+		snap1 := newSnapshotFromAddrs(generic.CopySlice(test.addrset1))
+		snap2 := newSnapshotFromAddrs(generic.CopySlice(test.addrset2))
 		eq := snap1.Equal(snap2)
 		if eq != test.eq {
 			t.Errorf("snapshot.equal: expected %v, present %v\n"+

@@ -9,8 +9,9 @@
 package xmldoc
 
 import (
-	"slices"
 	"strings"
+
+	"github.com/alexpevzner/mfp/util/generic"
 )
 
 // Namespace maps XML namespace URLs to short prefixes.
@@ -44,7 +45,7 @@ type Namespace []struct {
 
 // Clone creates a copy of [Namespace].
 func (ns Namespace) Clone() Namespace {
-	return slices.Clone(ns)
+	return generic.CopySlice(ns)
 }
 
 // MarkUsed marks Namespace entries that actually used by

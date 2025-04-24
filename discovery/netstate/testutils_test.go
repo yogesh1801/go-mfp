@@ -10,9 +10,10 @@ package netstate
 
 import (
 	"net"
-	"slices"
 	"sort"
 	"sync"
+
+	"github.com/alexpevzner/mfp/util/generic"
 )
 
 // testAddr creates a new address for testing
@@ -44,8 +45,8 @@ func testNetifsEqual(netifs1, netifs2 []NetIf) bool {
 	}
 
 	// Clone and sort slices
-	netifs1 = slices.Clone(netifs1)
-	netifs2 = slices.Clone(netifs2)
+	netifs1 = generic.CopySlice(netifs1)
+	netifs2 = generic.CopySlice(netifs2)
 
 	sort.Slice(netifs1, func(i, j int) bool {
 		return netifs1[i].Less(netifs1[j])
@@ -56,7 +57,7 @@ func testNetifsEqual(netifs1, netifs2 []NetIf) bool {
 	})
 
 	// Compare slices
-	return slices.Equal(netifs1, netifs2)
+	return generic.EqualSlices(netifs1, netifs2)
 }
 
 // testAddrsEqual tells if two slices of addresses are equal.
@@ -70,8 +71,8 @@ func testAddrsEqual(addrs1, addrs2 []Addr) bool {
 	}
 
 	// Clone and sort slices
-	addrs1 = slices.Clone(addrs1)
-	addrs2 = slices.Clone(addrs2)
+	addrs1 = generic.CopySlice(addrs1)
+	addrs2 = generic.CopySlice(addrs2)
 
 	sort.Slice(addrs1, func(i, j int) bool {
 		return addrs1[i].Less(addrs1[j])
@@ -82,7 +83,7 @@ func testAddrsEqual(addrs1, addrs2 []Addr) bool {
 	})
 
 	// Compare slices
-	return slices.Equal(addrs1, addrs2)
+	return generic.EqualSlices(addrs1, addrs2)
 }
 
 // testMonitor implements monitor interface, for testing
@@ -104,7 +105,7 @@ func newTestMonitor() monitor {
 // testMonitorUpdateAddrs updates network addresses, exposed by
 // the testMonitorInstanse
 func testMonitorUpdateAddrs(addrs []Addr) {
-	addrs = slices.Clone(addrs)
+	addrs = generic.CopySlice(addrs)
 	sort.Slice(addrs, func(i, j int) bool {
 		return addrs[i].Less(addrs[j])
 	})
