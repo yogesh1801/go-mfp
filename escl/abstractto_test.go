@@ -71,7 +71,7 @@ func TestScanSettingsToAbstract(t *testing.T) {
 			},
 		},
 
-		// ColorMode, Depth, BinaryRendering and Threshold
+		// ColorMode, ColorDepth, BinaryRendering and Threshold
 		{
 			comment: "BlackAndWhite1",
 			ss: ScanSettings{
@@ -133,8 +133,8 @@ func TestScanSettingsToAbstract(t *testing.T) {
 				ColorMode: optional.New(Grayscale8),
 			},
 			out: abstract.ScannerRequest{
-				ColorMode: abstract.ColorModeMono,
-				Depth:     abstract.Depth8,
+				ColorMode:  abstract.ColorModeMono,
+				ColorDepth: abstract.ColorDepth8,
 			},
 		},
 
@@ -145,8 +145,8 @@ func TestScanSettingsToAbstract(t *testing.T) {
 				ColorMode: optional.New(Grayscale16),
 			},
 			out: abstract.ScannerRequest{
-				ColorMode: abstract.ColorModeMono,
-				Depth:     abstract.Depth16,
+				ColorMode:  abstract.ColorModeMono,
+				ColorDepth: abstract.ColorDepth16,
 			},
 		},
 
@@ -157,8 +157,8 @@ func TestScanSettingsToAbstract(t *testing.T) {
 				ColorMode: optional.New(RGB24),
 			},
 			out: abstract.ScannerRequest{
-				ColorMode: abstract.ColorModeColor,
-				Depth:     abstract.Depth8,
+				ColorMode:  abstract.ColorModeColor,
+				ColorDepth: abstract.ColorDepth8,
 			},
 		},
 
@@ -169,8 +169,8 @@ func TestScanSettingsToAbstract(t *testing.T) {
 				ColorMode: optional.New(RGB48),
 			},
 			out: abstract.ScannerRequest{
-				ColorMode: abstract.ColorModeColor,
-				Depth:     abstract.Depth16,
+				ColorMode:  abstract.ColorModeColor,
+				ColorDepth: abstract.ColorDepth16,
 			},
 		},
 

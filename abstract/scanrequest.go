@@ -22,7 +22,7 @@ type ScannerRequest struct {
 	Input           Input           // Input source (ADF/Platen etc)
 	ADFMode         ADFMode         // For InputADF: Duplex/Simplex
 	ColorMode       ColorMode       // Color mode (mono/color etc)
-	Depth           Depth           // Image depth (8-bit/16-bit etc)
+	ColorDepth      ColorDepth      // Image depth (8-bit/16-bit etc)
 	BinaryRendering BinaryRendering // For 1-bit B&W (halftone/threshold
 	CCDChannel      CCDChannel      // CCD channel to use
 	DocumentFormat  string          // Requested document format
@@ -113,7 +113,7 @@ func (req *ScannerRequest) Validate(scancaps *ScannerCapabilities) error {
 	// Gather overall scanner parameters
 	var intents generic.Bitset[Intent]
 	var colorModes generic.Bitset[ColorMode]
-	var depths generic.Bitset[Depth]
+	var depths generic.Bitset[ColorDepth]
 	var binrend generic.Bitset[BinaryRendering]
 	var ccdChannels generic.Bitset[CCDChannel]
 
@@ -157,11 +157,13 @@ func (req *ScannerRequest) Validate(scancaps *ScannerCapabilities) error {
 
 	case ColorModeMono, ColorModeColor:
 		switch {
-		case req.Depth == DepthUnset:
-		case req.Depth < 0 || req.Depth >= depthMax:
-			return ErrParam{ErrInvalidParam, "Depth", req.Depth}
-		case !depths.Contains(req.Depth):
-			return ErrParam{ErrUnsupportedParam, "Depth", req.Depth}
+		case req.ColorDepth == ColorDepthUnset:
+		case req.ColorDepth < 0 || req.ColorDepth >= colorDepthMax:
+			return ErrParam{ErrInvalidParam,
+				"ColorDepth", req.ColorDepth}
+		case !depths.Contains(req.ColorDepth):
+			return ErrParam{ErrUnsupportedParam,
+				"ColorDepth", req.ColorDepth}
 		}
 	}
 
@@ -216,7 +218,7 @@ func (req *ScannerRequest) Validate(scancaps *ScannerCapabilities) error {
 		for _, inp := range inputs {
 			for _, prof := range inp.Profiles {
 				if !prof.AllowsColorMode(req.ColorMode,
-					req.Depth, req.BinaryRendering) {
+					req.ColorDepth, req.BinaryRendering) {
 					continue
 				}
 

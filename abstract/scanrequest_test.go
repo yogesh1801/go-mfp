@@ -38,7 +38,7 @@ var testColorModes = generic.MakeBitset(
 )
 
 // testDepth contains initialized abstract.Depth set
-var testDepth = generic.MakeBitset(Depth8)
+var testDepth = generic.MakeBitset(ColorDepth8)
 
 // testBinaryRenderings contains initialized BinaryRendering set
 var testBinaryRenderings = generic.MakeBitset(

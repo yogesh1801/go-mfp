@@ -37,7 +37,7 @@ func (ss ScanSettings) toAbstract() abstract.ScannerRequest {
 		}
 	}
 
-	// Translate ColorMode, Depth, BinaryRendering and Threshold
+	// Translate ColorMode, ColorDepth, BinaryRendering and Threshold
 	if ss.ColorMode != nil {
 		switch *ss.ColorMode {
 		case BlackAndWhite1:
@@ -57,16 +57,16 @@ func (ss ScanSettings) toAbstract() abstract.ScannerRequest {
 			}
 		case Grayscale8:
 			absreq.ColorMode = abstract.ColorModeMono
-			absreq.Depth = abstract.Depth8
+			absreq.ColorDepth = abstract.ColorDepth8
 		case Grayscale16:
 			absreq.ColorMode = abstract.ColorModeMono
-			absreq.Depth = abstract.Depth16
+			absreq.ColorDepth = abstract.ColorDepth16
 		case RGB24:
 			absreq.ColorMode = abstract.ColorModeColor
-			absreq.Depth = abstract.Depth8
+			absreq.ColorDepth = abstract.ColorDepth8
 		case RGB48:
 			absreq.ColorMode = abstract.ColorModeColor
-			absreq.Depth = abstract.Depth16
+			absreq.ColorDepth = abstract.ColorDepth16
 		}
 	}
 

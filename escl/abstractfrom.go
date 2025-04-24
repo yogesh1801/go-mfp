@@ -182,7 +182,7 @@ func fromAbstractCCDChannels(
 // It returns nil if resulting slice is empty.
 func fromAbstractColorModes(
 	absmodes generic.Bitset[abstract.ColorMode],
-	absdepths generic.Bitset[abstract.Depth]) []ColorMode {
+	absdepths generic.Bitset[abstract.ColorDepth]) []ColorMode {
 
 	modes := make([]ColorMode, 0, 5)
 
@@ -191,21 +191,21 @@ func fromAbstractColorModes(
 	}
 
 	if absmodes.Contains(abstract.ColorModeMono) {
-		if absdepths.Contains(abstract.Depth8) {
+		if absdepths.Contains(abstract.ColorDepth8) {
 			modes = append(modes, Grayscale8)
 		}
 
-		if absdepths.Contains(abstract.Depth16) {
+		if absdepths.Contains(abstract.ColorDepth16) {
 			modes = append(modes, Grayscale16)
 		}
 	}
 
 	if absmodes.Contains(abstract.ColorModeColor) {
-		if absdepths.Contains(abstract.Depth8) {
+		if absdepths.Contains(abstract.ColorDepth8) {
 			modes = append(modes, RGB24)
 		}
 
-		if absdepths.Contains(abstract.Depth16) {
+		if absdepths.Contains(abstract.ColorDepth16) {
 			modes = append(modes, RGB48)
 		}
 	}
@@ -509,13 +509,13 @@ func fromAbstractScanSettings(
 			ss.Threshold = absreq.Threshold
 		}
 	case abstract.ColorModeMono:
-		if absreq.Depth == abstract.Depth16 {
+		if absreq.ColorDepth == abstract.ColorDepth16 {
 			ss.ColorMode = optional.New(Grayscale16)
 		} else {
 			ss.ColorMode = optional.New(Grayscale8)
 		}
 	case abstract.ColorModeColor:
-		if absreq.Depth == abstract.Depth16 {
+		if absreq.ColorDepth == abstract.ColorDepth16 {
 			ss.ColorMode = optional.New(RGB48)
 		} else {
 			ss.ColorMode = optional.New(RGB24)

@@ -8,13 +8,13 @@
 
 package abstract
 
-// Depth specified image depth, in bits per channel.
-type Depth int
+// ColorDepth specified image depth, in bits per channel.
+type ColorDepth int
 
 // Known color modes:
 const (
-	DepthUnset Depth = 0  // Not set
-	Depth8     Depth = 8  // 8 bit (24 bit RGB)
-	Depth16    Depth = 16 // 16 bit (48 bit RGB)
-	depthMax
+	ColorDepthUnset ColorDepth = iota // Not set
+	ColorDepth8                       // 8 bit (24 bit RGB)
+	ColorDepth16                      // 16 bit (48 bit RGB)
+	colorDepthMax
 )

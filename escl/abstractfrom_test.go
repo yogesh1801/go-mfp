@@ -35,8 +35,8 @@ var testAbstractColorModes = generic.MakeBitset(
 	abstract.ColorModeColor,
 )
 
-// testAbstractDepth contains initialized abstract.Depth set
-var testAbstractDepth = generic.MakeBitset(abstract.Depth8)
+// testAbstractDepth contains initialized abstract.ColorDepth set
+var testAbstractDepth = generic.MakeBitset(abstract.ColorDepth8)
 
 // testAbstractBinaryRenderings contains initialized
 // abstract.BinaryRendering set
@@ -364,7 +364,7 @@ func TestFromAbstractColorModes(t *testing.T) {
 	type testData struct {
 		comment string
 		modes   generic.Bitset[abstract.ColorMode]
-		depths  generic.Bitset[abstract.Depth]
+		depths  generic.Bitset[abstract.ColorDepth]
 		out     []ColorMode
 	}
 
@@ -389,8 +389,8 @@ func TestFromAbstractColorModes(t *testing.T) {
 				abstract.ColorModeColor,
 			),
 			depths: generic.MakeBitset(
-				abstract.Depth8,
-				abstract.Depth16,
+				abstract.ColorDepth8,
+				abstract.ColorDepth16,
 			),
 			out: []ColorMode{BlackAndWhite1, Grayscale8, RGB24,
 				Grayscale16, RGB48},
@@ -404,7 +404,7 @@ func TestFromAbstractColorModes(t *testing.T) {
 				30,
 			),
 			depths: generic.MakeBitset(
-				abstract.Depth8,
+				abstract.ColorDepth8,
 			),
 			out: []ColorMode{BlackAndWhite1, Grayscale8, RGB24},
 		},
@@ -416,7 +416,7 @@ func TestFromAbstractColorModes(t *testing.T) {
 				abstract.ColorModeColor,
 			),
 			depths: generic.MakeBitset(
-				abstract.Depth8,
+				abstract.ColorDepth8,
 				30, // Unknown
 			),
 			out: []ColorMode{BlackAndWhite1, Grayscale8, RGB24},
@@ -427,7 +427,7 @@ func TestFromAbstractColorModes(t *testing.T) {
 				abstract.ColorMode(30),
 			),
 			depths: generic.MakeBitset(
-				abstract.Depth8,
+				abstract.ColorDepth8,
 			),
 			out: nil,
 		},
@@ -1018,8 +1018,8 @@ func TestFromAbstractScanSettings(t *testing.T) {
 			comment: "Grayscale8",
 			ver:     DefaultVersion,
 			in: &abstract.ScannerRequest{
-				ColorMode: abstract.ColorModeMono,
-				Depth:     abstract.Depth8,
+				ColorMode:  abstract.ColorModeMono,
+				ColorDepth: abstract.ColorDepth8,
 			},
 			out: ScanSettings{
 				Version:   DefaultVersion,
@@ -1043,8 +1043,8 @@ func TestFromAbstractScanSettings(t *testing.T) {
 			comment: "Grayscale16",
 			ver:     DefaultVersion,
 			in: &abstract.ScannerRequest{
-				ColorMode: abstract.ColorModeMono,
-				Depth:     abstract.Depth16,
+				ColorMode:  abstract.ColorModeMono,
+				ColorDepth: abstract.ColorDepth16,
 			},
 			out: ScanSettings{
 				Version:   DefaultVersion,
@@ -1056,8 +1056,8 @@ func TestFromAbstractScanSettings(t *testing.T) {
 			comment: "RGB24",
 			ver:     DefaultVersion,
 			in: &abstract.ScannerRequest{
-				ColorMode: abstract.ColorModeColor,
-				Depth:     abstract.Depth8,
+				ColorMode:  abstract.ColorModeColor,
+				ColorDepth: abstract.ColorDepth8,
 			},
 			out: ScanSettings{
 				Version:   DefaultVersion,
@@ -1081,8 +1081,8 @@ func TestFromAbstractScanSettings(t *testing.T) {
 			comment: "RGB24",
 			ver:     DefaultVersion,
 			in: &abstract.ScannerRequest{
-				ColorMode: abstract.ColorModeColor,
-				Depth:     abstract.Depth16,
+				ColorMode:  abstract.ColorModeColor,
+				ColorDepth: abstract.ColorDepth16,
 			},
 			out: ScanSettings{
 				Version:   DefaultVersion,

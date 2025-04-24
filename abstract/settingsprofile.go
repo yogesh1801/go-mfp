@@ -16,7 +16,7 @@ import "github.com/alexpevzner/mfp/util/generic"
 // SettingsProfile.
 type SettingsProfile struct {
 	ColorModes       generic.Bitset[ColorMode]       // Allowed color modes
-	Depths           generic.Bitset[Depth]           // Allowed depths
+	Depths           generic.Bitset[ColorDepth]      // Allowed depths
 	BinaryRenderings generic.Bitset[BinaryRendering] // For 1-bit B&W
 	CCDChannels      generic.Bitset[CCDChannel]      // Allowed CCD channel
 	Resolutions      []Resolution                    // Allowed resolutions
@@ -27,7 +27,7 @@ type SettingsProfile struct {
 // with the given combination of the [ColorMode], [Depth],
 // and [BinaryRendering] combination.
 func (prof SettingsProfile) AllowsColorMode(
-	cm ColorMode, d Depth, r BinaryRendering) bool {
+	cm ColorMode, d ColorDepth, r BinaryRendering) bool {
 	switch {
 	case cm == ColorModeUnset:
 		return true
@@ -38,7 +38,7 @@ func (prof SettingsProfile) AllowsColorMode(
 			prof.BinaryRenderings.Contains(r)
 	}
 
-	return d == DepthUnset || prof.Depths.Contains(d)
+	return d == ColorDepthUnset || prof.Depths.Contains(d)
 }
 
 // AllowsCCDChannel reports if the [SettingsProfile] compatible
