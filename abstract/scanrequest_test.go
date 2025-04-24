@@ -478,6 +478,50 @@ func TestScannerRequestValidate(t *testing.T) {
 				binaryRenderingMax,
 			},
 		},
+
+		// ColorDepth tests
+		{
+			comment:  "ColorDepthUnset",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				ColorDepth: ColorDepthUnset,
+			},
+		},
+
+		{
+			comment:  "ColorDepth8",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				ColorMode:  ColorModeColor,
+				ColorDepth: ColorDepth8,
+			},
+		},
+
+		{
+			comment:  "ColorDepth16, unsupported",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				ColorMode:  ColorModeColor,
+				ColorDepth: ColorDepth16,
+			},
+			err: ErrParam{
+				ErrUnsupportedParam, "ColorDepth",
+				ColorDepth16,
+			},
+		},
+
+		{
+			comment:  "invalid ColorDepth",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				ColorMode:  ColorModeColor,
+				ColorDepth: colorDepthMax,
+			},
+			err: ErrParam{
+				ErrInvalidParam, "ColorDepth",
+				colorDepthMax,
+			},
+		},
 	}
 
 	for _, test := range tests {
