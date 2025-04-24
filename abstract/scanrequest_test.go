@@ -80,10 +80,10 @@ var testSettingsProfiles = []SettingsProfile{
 // testPlatenInputCapabilities contains InputCapabilities for
 // the Platen source
 var testPlatenInputCapabilities = &InputCapabilities{
-	MinWidth:  DimensionFromDots(118, 300),
-	MinHeight: DimensionFromDots(118, 300),
-	MaxWidth:  DimensionFromDots(2551, 300),
-	MaxHeight: DimensionFromDots(3508, 300),
+	MinWidth:  DimensionFromDots(300, 118),
+	MinHeight: DimensionFromDots(300, 118),
+	MaxWidth:  DimensionFromDots(300, 2551),
+	MaxHeight: DimensionFromDots(300, 3508),
 	Intents:   testIntents,
 	Profiles:  testSettingsProfiles,
 }
@@ -91,10 +91,10 @@ var testPlatenInputCapabilities = &InputCapabilities{
 // testADFenInputCapabilities contains InputCapabilities for
 // the ADFen source
 var testADFenInputCapabilities = &InputCapabilities{
-	MinWidth:  DimensionFromDots(591, 300),
-	MinHeight: DimensionFromDots(591, 300),
-	MaxWidth:  DimensionFromDots(2551, 300),
-	MaxHeight: DimensionFromDots(4205, 300),
+	MinWidth:  DimensionFromDots(300, 591),
+	MinHeight: DimensionFromDots(300, 591),
+	MaxWidth:  DimensionFromDots(300, 2551),
+	MaxHeight: DimensionFromDots(300, 4205),
 	Intents:   testIntents,
 	Profiles:  testSettingsProfiles,
 }
@@ -651,6 +651,45 @@ func TestScannerRequestValidate(t *testing.T) {
 			err: ErrParam{
 				ErrInvalidParam, "Intent",
 				intentMax,
+			},
+		},
+
+		// Region tests
+		{
+			comment:  "Region: good",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				Region: Region{
+					Width:  A4Width,
+					Height: A4Height,
+				},
+			},
+		},
+
+		{
+			comment:  "invalid Region",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				Region: Region{Width: -5},
+			},
+			err: ErrParam{
+				ErrInvalidParam, "Region",
+				Region{Width: -5},
+			},
+		},
+
+		{
+			comment:  "Region: too big",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				Region: Region{
+					Width:  A3Width,
+					Height: A3Height,
+				},
+			},
+			err: ErrParam{
+				ErrUnsupportedParam, "Region",
+				Region{Width: A3Width, Height: A3Height},
 			},
 		},
 	}
