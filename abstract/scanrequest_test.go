@@ -711,7 +711,7 @@ func TestScannerRequestValidate(t *testing.T) {
 			},
 		},
 
-		// Resolution test
+		// Resolution tests
 		{
 			comment:  "Resolution: good",
 			scancaps: testScannerCapabilities,
@@ -805,6 +805,95 @@ func TestScannerRequestValidate(t *testing.T) {
 			err: ErrParam{
 				ErrUnsupportedParam, "Resolution",
 				Resolution{2400, 2400},
+			},
+		},
+
+		// Range tests
+		{
+			comment:  "Brightness: out of range",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				Brightness: optional.New(200),
+			},
+			err: ErrParam{
+				ErrUnsupportedParam, "Brightness", 200,
+			},
+		},
+
+		{
+			comment:  "Contrast: out of range",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				Contrast: optional.New(200),
+			},
+			err: ErrParam{
+				ErrUnsupportedParam, "Contrast", 200,
+			},
+		},
+
+		{
+			comment:  "Gamma: out of range",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				Gamma: optional.New(200),
+			},
+			err: ErrParam{
+				ErrUnsupportedParam, "Gamma", 200,
+			},
+		},
+
+		{
+			comment:  "Highlight: out of range",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				Highlight: optional.New(200),
+			},
+			err: ErrParam{
+				ErrUnsupportedParam, "Highlight", 200,
+			},
+		},
+
+		{
+			comment:  "NoiseRemoval: out of range",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				NoiseRemoval: optional.New(200),
+			},
+			err: ErrParam{
+				ErrUnsupportedParam, "NoiseRemoval", 200,
+			},
+		},
+
+		{
+			comment:  "Shadow: out of range",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				Shadow: optional.New(200),
+			},
+			err: ErrParam{
+				ErrUnsupportedParam, "Shadow", 200,
+			},
+		},
+
+		{
+			comment:  "Sharpen: out of range",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				Sharpen: optional.New(200),
+			},
+			err: ErrParam{
+				ErrUnsupportedParam, "Sharpen", 200,
+			},
+		},
+
+		{
+			comment:  "Compression: out of range",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				Compression: optional.New(200),
+			},
+			err: ErrParam{
+				ErrUnsupportedParam, "Compression", 200,
 			},
 		},
 	}
