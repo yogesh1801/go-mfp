@@ -220,25 +220,14 @@ func (req *ScannerRequest) Validate(scancaps *ScannerCapabilities) error {
 		}
 
 		ok := false
-	loop:
-		for _, inp := range inputs {
-			for _, prof := range inp.Profiles {
-				if !prof.AllowsColorMode(req.ColorMode,
-					req.ColorDepth, req.BinaryRendering) {
-					continue
-				}
-
-				if !prof.AllowsCCDChannel(req.CCDChannel) {
-					continue
-				}
-
-				if !prof.AllowsResolution(
-					req.Resolution) {
-					continue
-				}
-
-				ok = true
-				break loop
+		for i := 0; i < len(inputs) && !ok; i++ {
+			inp := inputs[i]
+			for j := 0; j < len(inp.Profiles) && !ok; j++ {
+				prof := inp.Profiles[j]
+				ok = prof.AllowsColorMode(req.ColorMode,
+					req.ColorDepth, req.BinaryRendering)
+				ok = ok && prof.AllowsCCDChannel(req.CCDChannel)
+				ok = ok && prof.AllowsResolution(req.Resolution)
 			}
 		}
 

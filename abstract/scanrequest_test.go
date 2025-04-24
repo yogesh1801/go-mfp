@@ -65,8 +65,7 @@ var testResolutions = []Resolution{
 	{XResolution: 600, YResolution: 600},
 }
 
-// testSettingsProfiles contains initialized []abstract.SettingsProfile
-// slice
+// testSettingsProfiles contains initialized []SettingsProfile slice
 var testSettingsProfiles = []SettingsProfile{
 	{
 		ColorModes:       testColorModes,
@@ -74,6 +73,25 @@ var testSettingsProfiles = []SettingsProfile{
 		BinaryRenderings: testBinaryRenderings,
 		CCDChannels:      testCCDChannels,
 		Resolutions:      testResolutions,
+	},
+}
+
+// testSettingsProfilesHiRes contains initialized []SettingsProfile slice
+// with extra resolutions
+var testSettingsProfilesHiRes = []SettingsProfile{
+	{
+		ColorModes:       testColorModes,
+		Depths:           testDepth,
+		BinaryRenderings: testBinaryRenderings,
+		CCDChannels:      testCCDChannels,
+		Resolutions: append(testResolutions,
+			Resolution{1200, 1200}),
+	},
+	{
+		ColorModes: generic.MakeBitset(ColorModeMono),
+		Depths:     generic.MakeBitset(ColorDepth8),
+		Resolutions: append(testResolutions,
+			Resolution{2400, 2400}),
 	},
 }
 
@@ -85,7 +103,7 @@ var testPlatenInputCapabilities = &InputCapabilities{
 	MaxWidth:  DimensionFromDots(300, 2551),
 	MaxHeight: DimensionFromDots(300, 3508),
 	Intents:   testIntents,
-	Profiles:  testSettingsProfiles,
+	Profiles:  testSettingsProfilesHiRes,
 }
 
 // testADFenInputCapabilities contains InputCapabilities for
@@ -690,6 +708,103 @@ func TestScannerRequestValidate(t *testing.T) {
 			err: ErrParam{
 				ErrUnsupportedParam, "Region",
 				Region{Width: A3Width, Height: A3Height},
+			},
+		},
+
+		// Resolution test
+		{
+			comment:  "Resolution: good",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				Resolution: Resolution{300, 300},
+			},
+		},
+
+		{
+			comment:  "Resolution: invalid",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				Resolution: Resolution{-300, -300},
+			},
+			err: ErrParam{
+				ErrInvalidParam, "Resolution",
+				Resolution{-300, -300},
+			},
+		},
+
+		{
+			comment:  "Resolution: unsupported",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				Resolution: Resolution{4800, 4800},
+			},
+			err: ErrParam{
+				ErrUnsupportedParam, "Resolution",
+				Resolution{4800, 4800},
+			},
+		},
+
+		{
+			comment:  "Resolution: 1200x1200, platen: OK",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				Input:      InputPlaten,
+				Resolution: Resolution{1200, 1200},
+			},
+		},
+
+		{
+			comment:  "Resolution: 1200x1200, ADF: unsupported",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				Input:      InputADF,
+				Resolution: Resolution{1200, 1200},
+			},
+			err: ErrParam{
+				ErrUnsupportedParam, "Resolution",
+				Resolution{1200, 1200},
+			},
+		},
+
+		{
+			comment:  "Resolution: 1200x1200, unset: OK",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				Input:      InputUnset,
+				Resolution: Resolution{1200, 1200},
+			},
+		},
+
+		{
+			comment:  "Resolution: 2400x2400, color=unset: OK",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				Input:      InputUnset,
+				Resolution: Resolution{2400, 2400},
+			},
+		},
+
+		{
+			comment:  "Resolution: 2400x2400, color=mono: OK",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				Input:      InputUnset,
+				ColorMode:  ColorModeMono,
+				Resolution: Resolution{2400, 2400},
+			},
+		},
+
+		{
+			comment:  "Resolution: 2400x2400, color=color: not OK",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				Input:      InputUnset,
+				ColorMode:  ColorModeColor,
+				Resolution: Resolution{2400, 2400},
+			},
+			err: ErrParam{
+				ErrUnsupportedParam, "Resolution",
+				Resolution{2400, 2400},
 			},
 		},
 	}
