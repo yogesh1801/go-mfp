@@ -23,8 +23,8 @@ type ScannerRequest struct {
 	ADFMode         ADFMode         // For InputADF: Duplex/Simplex
 	ColorMode       ColorMode       // Color mode (mono/color etc)
 	ColorDepth      ColorDepth      // Image depth (8-bit/16-bit etc)
-	BinaryRendering BinaryRendering // For 1-bit B&W (halftone/threshold
-	CCDChannel      CCDChannel      // CCD channel to use
+	BinaryRendering BinaryRendering // For 1-bit B&W (halftone/threshold)
+	CCDChannel      CCDChannel      // CCD channel to use (mono/gray only)
 	DocumentFormat  string          // Requested document format
 	Region          Region          // Scan region
 	Resolution      Resolution      // Scanner resolution
@@ -138,7 +138,7 @@ func (req *ScannerRequest) Validate(scancaps *ScannerCapabilities) error {
 	}
 
 	switch req.ColorMode {
-	case ColorModeBinary:
+	case ColorModeUnset, ColorModeBinary:
 		switch {
 		case req.BinaryRendering == BinaryRenderingUnset:
 		case req.BinaryRendering < 0 || req.BinaryRendering >= binaryRenderingMax:
@@ -154,8 +154,10 @@ func (req *ScannerRequest) Validate(scancaps *ScannerCapabilities) error {
 		if err != nil {
 			return err
 		}
+	}
 
-	case ColorModeMono, ColorModeColor:
+	switch req.ColorMode {
+	case ColorModeUnset, ColorModeMono, ColorModeColor:
 		switch {
 		case req.ColorDepth == ColorDepthUnset:
 		case req.ColorDepth < 0 || req.ColorDepth >= colorDepthMax:
@@ -168,13 +170,17 @@ func (req *ScannerRequest) Validate(scancaps *ScannerCapabilities) error {
 	}
 
 	// Check CCDChannel
-	switch {
-	case req.CCDChannel == CCDChannelUnset:
-	case req.CCDChannel < 0 || req.CCDChannel >= ccdChannelMax:
-		return ErrParam{ErrInvalidParam, "CCDChannel", req.CCDChannel}
-	case !ccdChannels.Contains(req.CCDChannel):
-		return ErrParam{ErrUnsupportedParam,
-			"CCDChannel", req.CCDChannel}
+	switch req.ColorMode {
+	case ColorModeUnset, ColorModeBinary, ColorModeMono:
+		switch {
+		case req.CCDChannel == CCDChannelUnset:
+		case req.CCDChannel < 0 || req.CCDChannel >= ccdChannelMax:
+			return ErrParam{ErrInvalidParam, "CCDChannel",
+				req.CCDChannel}
+		case !ccdChannels.Contains(req.CCDChannel):
+			return ErrParam{ErrUnsupportedParam,
+				"CCDChannel", req.CCDChannel}
+		}
 	}
 
 	// Check Intent

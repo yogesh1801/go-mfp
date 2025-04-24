@@ -398,7 +398,7 @@ func TestScannerRequestValidate(t *testing.T) {
 		},
 
 		{
-			comment:  "unsupported ColorMode",
+			comment:  "ColorModeColor, unsupported",
 			scancaps: testScannerCapabilitiesNoColor,
 			req: &ScannerRequest{
 				ColorMode: ColorModeColor,
@@ -429,7 +429,20 @@ func TestScannerRequestValidate(t *testing.T) {
 		},
 
 		{
-			comment:  "BinaryRenderingHalftone, unsupported",
+			comment:  "ColorModeUnset+BinaryRenderingHalftone, unsupported",
+			scancaps: testScannerCapabilitiesNoHalftone,
+			req: &ScannerRequest{
+				ColorMode:       ColorModeUnset,
+				BinaryRendering: BinaryRenderingHalftone,
+			},
+			err: ErrParam{
+				ErrUnsupportedParam, "BinaryRendering",
+				BinaryRenderingHalftone,
+			},
+		},
+
+		{
+			comment:  "ColorModeBinary+BinaryRenderingHalftone, unsupported",
 			scancaps: testScannerCapabilitiesNoHalftone,
 			req: &ScannerRequest{
 				ColorMode:       ColorModeBinary,
@@ -438,6 +451,15 @@ func TestScannerRequestValidate(t *testing.T) {
 			err: ErrParam{
 				ErrUnsupportedParam, "BinaryRendering",
 				BinaryRenderingHalftone,
+			},
+		},
+
+		{
+			comment:  "ColorModeColor+BinaryRenderingHalftone, ignored",
+			scancaps: testScannerCapabilitiesNoHalftone,
+			req: &ScannerRequest{
+				ColorMode:       ColorModeColor,
+				BinaryRendering: BinaryRenderingHalftone,
 			},
 		},
 
@@ -496,7 +518,20 @@ func TestScannerRequestValidate(t *testing.T) {
 		},
 
 		{
-			comment:  "ColorDepth16, unsupported",
+			comment:  "ColorModeUnset+ColorDepth16, unsupported",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				ColorMode:  ColorModeUnset,
+				ColorDepth: ColorDepth16,
+			},
+			err: ErrParam{
+				ErrUnsupportedParam, "ColorDepth",
+				ColorDepth16,
+			},
+		},
+
+		{
+			comment:  "ColorModeColor+ColorDepth16, unsupported",
 			scancaps: testScannerCapabilities,
 			req: &ScannerRequest{
 				ColorMode:  ColorModeColor,
@@ -505,6 +540,15 @@ func TestScannerRequestValidate(t *testing.T) {
 			err: ErrParam{
 				ErrUnsupportedParam, "ColorDepth",
 				ColorDepth16,
+			},
+		},
+
+		{
+			comment:  "ColorModeBinary+ColorDepth16, ignored",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				ColorMode:  ColorModeBinary,
+				ColorDepth: ColorDepth16,
 			},
 		},
 
@@ -531,14 +575,37 @@ func TestScannerRequestValidate(t *testing.T) {
 		},
 
 		{
-			comment:  "CCDChannelGrayCcd, unsupported",
+			comment:  "ColorModeUnset+CCDChannelGrayCcd, unsupported",
 			scancaps: testScannerCapabilities,
 			req: &ScannerRequest{
+				ColorMode:  ColorModeUnset,
 				CCDChannel: CCDChannelGrayCcd,
 			},
 			err: ErrParam{
 				ErrUnsupportedParam, "CCDChannel",
 				CCDChannelGrayCcd,
+			},
+		},
+
+		{
+			comment:  "ColorModeBinary+CCDChannelGrayCcd, unsupported",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				ColorMode:  ColorModeBinary,
+				CCDChannel: CCDChannelGrayCcd,
+			},
+			err: ErrParam{
+				ErrUnsupportedParam, "CCDChannel",
+				CCDChannelGrayCcd,
+			},
+		},
+
+		{
+			comment:  "ColorModeColor+CCDChannelGrayCcd, ignored",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				ColorMode:  ColorModeColor,
+				CCDChannel: CCDChannelGrayCcd,
 			},
 		},
 
