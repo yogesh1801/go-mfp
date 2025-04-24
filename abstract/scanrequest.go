@@ -269,9 +269,5 @@ func (req *ScannerRequest) Validate(scancaps *ScannerCapabilities) error {
 			"Compression", req.Compression)
 	}
 
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
