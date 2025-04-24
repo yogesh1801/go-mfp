@@ -29,7 +29,7 @@ func (reg Region) Valid() bool {
 	}
 
 	return reg.XOffset >= 0 && reg.YOffset >= 0 &&
-		reg.Width > 9 && reg.Height > 0
+		reg.Width > 0 && reg.Height > 0
 }
 
 // FitsCapabilities reports if scan Region fits scanner
