@@ -53,8 +53,6 @@ var testCCDChannels = generic.MakeBitset(
 	CCDChannelGreen,
 	CCDChannelBlue,
 	CCDChannelNTSC,
-	CCDChannelGrayCcd,
-	CCDChannelGrayCcdEmulated,
 )
 
 // testResolutions contains initialized []Resolution slice
@@ -520,6 +518,72 @@ func TestScannerRequestValidate(t *testing.T) {
 			err: ErrParam{
 				ErrInvalidParam, "ColorDepth",
 				colorDepthMax,
+			},
+		},
+
+		// CCDChannel tests
+		{
+			comment:  "CCDChannelNTSC",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				CCDChannel: CCDChannelNTSC,
+			},
+		},
+
+		{
+			comment:  "CCDChannelGrayCcd, unsupported",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				CCDChannel: CCDChannelGrayCcd,
+			},
+			err: ErrParam{
+				ErrUnsupportedParam, "CCDChannel",
+				CCDChannelGrayCcd,
+			},
+		},
+
+		{
+			comment:  "invalid CCDChannel",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				CCDChannel: ccdChannelMax,
+			},
+			err: ErrParam{
+				ErrInvalidParam, "CCDChannel",
+				ccdChannelMax,
+			},
+		},
+
+		// Intent tests
+		{
+			comment:  "IntentDocument",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				Intent: IntentDocument,
+			},
+		},
+
+		{
+			comment:  "IntentBusinessCard, unsupported",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				Intent: IntentBusinessCard,
+			},
+			err: ErrParam{
+				ErrUnsupportedParam, "Intent",
+				IntentBusinessCard,
+			},
+		},
+
+		{
+			comment:  "invalid Intent",
+			scancaps: testScannerCapabilities,
+			req: &ScannerRequest{
+				Intent: intentMax,
+			},
+			err: ErrParam{
+				ErrInvalidParam, "Intent",
+				intentMax,
 			},
 		},
 	}
