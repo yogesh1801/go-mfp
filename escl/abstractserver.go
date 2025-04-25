@@ -162,7 +162,13 @@ func (srv *AbstractServer) postScanJobs(
 		return
 	}
 
-	_ = ss
+	// Convert it into the abstract.ScannerRequest and validate
+	absreq := ss.toAbstract()
+	err = absreq.Validate(srv.caps)
+	if err != nil {
+		srv.httpReject(w, rq, http.StatusConflict, err)
+		return
+	}
 
 	srv.httpReject(w, rq, http.StatusNotImplemented, nil)
 }
