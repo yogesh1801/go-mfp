@@ -75,7 +75,7 @@ func NewAbstractServer(ctx context.Context,
 	}
 
 	srv.status = ScannerStatus{
-		Version: DefaultVersion,
+		Version: options.Version,
 		State:   ScannerIdle,
 	}
 
@@ -84,25 +84,6 @@ func NewAbstractServer(ctx context.Context,
 	}
 
 	return srv
-}
-
-// GetVersion returns eSCL [Version], implemented by the server.
-func (srv *AbstractServer) GetVersion() Version {
-	srv.lock.Lock()
-	defer srv.lock.Unlock()
-
-	return srv.status.Version
-}
-
-// SetVersion sets eSCL [Version], implemented by the server.
-//
-// As version affects some aspects of the server behavior, this
-// is not recommended to change the eSCL on the running server.
-// Do it at the initialization time only.
-func (srv *AbstractServer) SetVersion(ver Version) {
-	srv.lock.Lock()
-	srv.status.Version = ver
-	srv.lock.Unlock()
 }
 
 // ServeHTTP serves incoming HTTP requests.
@@ -146,10 +127,8 @@ func (srv *AbstractServer) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 func (srv *AbstractServer) getScannerCapabilities(
 	w http.ResponseWriter, rq *http.Request) {
 
-	srv.lock.Lock()
 	ver := srv.status.Version
 	xml := fromAbstractScannerCapabilities(ver, srv.caps).ToXML()
-	srv.lock.Unlock()
 
 	srv.httpSendXML(w, xml)
 }
