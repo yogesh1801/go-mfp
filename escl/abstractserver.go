@@ -31,36 +31,47 @@ const AbstractServerHistorySize = 10
 // AbstractServer implements eSCL server on a top of [abstract.Scanner].
 type AbstractServer struct {
 	ctx     context.Context               // Logging context
-	base    *url.URL                      // Base URL
-	scanner abstract.Scanner              // Underlying abstract.Scanner
+	options AbstractServerOptions         // Server options
 	caps    *abstract.ScannerCapabilities // Scanner capabilities
 	status  ScannerStatus                 // Scanner status
 	lock    sync.Mutex                    // Access lock
 }
 
+// AbstractServerOptions represents the [AbstractServerOptions]
+// creation options.
+type AbstractServerOptions struct {
+	Version Version          // eSCL version, DefaultVersion, if not set
+	Scanner abstract.Scanner // Underlying abstract.Scanner
+
+	// The BaseURL parameter is required so server knows how to
+	// interpret [url.URL.Path] of the incoming requests.
+	//
+	// For the standard eSCL server that mimics the behavior of the
+	// typical hardware eSCL scanner, the URL should be something like
+	// "http://localhost/eSCL".
+	BaseURL *url.URL
+}
+
 // NewAbstractServer returns a new [AbstractServer].
-//
-// The base URL parameter is requires so server knows how to interpret
-// [url.URL.Path] of the incoming requests.
-//
-// For the standard eSCL server that mimics the behavior of the
-// typical hardware eSCL scanner, the URL should be something like
-// "http://localhost/eSCL".
 func NewAbstractServer(ctx context.Context,
-	scanner abstract.Scanner, base *url.URL) *AbstractServer {
+	options AbstractServerOptions) *AbstractServer {
+
+	// Use DefaultVersion, if options.Version is not set
+	if options.Version == 0 {
+		options.Version = DefaultVersion
+	}
 
 	// Canonicalize the base URL
-	base = transport.URLClone(base)
-	if !strings.HasSuffix(base.Path, "/") {
-		base.Path += "/"
+	options.BaseURL = transport.URLClone(options.BaseURL)
+	if !strings.HasSuffix(options.BaseURL.Path, "/") {
+		options.BaseURL.Path += "/"
 	}
 
 	// Create the AbstractServer structure
 	srv := &AbstractServer{
 		ctx:     ctx,
-		scanner: scanner,
-		base:    base,
-		caps:    scanner.Capabilities(),
+		options: options,
+		caps:    options.Scanner.Capabilities(),
 	}
 
 	srv.status = ScannerStatus{
@@ -101,12 +112,12 @@ func (srv *AbstractServer) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	log.Debug(srv.ctx, "HTTP %s %s", rq.Method, rq.URL)
 
 	// Dispatch the request
-	if !strings.HasPrefix(rq.URL.Path, srv.base.Path) {
+	if !strings.HasPrefix(rq.URL.Path, srv.options.BaseURL.Path) {
 		srv.httpReject(w, rq, http.StatusNotFound, nil)
 		return
 	}
 
-	path := rq.URL.Path[len(srv.base.Path):]
+	path := rq.URL.Path[len(srv.options.BaseURL.Path):]
 
 	switch path {
 	case "ScannerCapabilities":
