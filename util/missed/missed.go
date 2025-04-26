@@ -10,6 +10,18 @@ package missed
 
 import "strings"
 
+// StringsCutPrefix returns s without the prefix and reports whether
+// the prefix was found in the string.
+// If s doesn't end with the suffix, StringCutPrefix returns s, false.
+//
+// Newer version of Go exports this function as [strings.CutPrefix]
+func StringsCutPrefix(s, prefix string) (string, bool) {
+	if strings.HasPrefix(s, prefix) {
+		return s[len(prefix):], true
+	}
+	return s, false
+}
+
 // StringsCutSuffix returns s without the suffix and reports whether
 // the suffix was found in the string.
 // If s doesn't end with the suffix, StringCutSuffix returns s, false.
