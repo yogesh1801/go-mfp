@@ -12,10 +12,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
 	"sync"
+	"sync/atomic"
 
 	"github.com/alexpevzner/mfp/abstract"
 	"github.com/alexpevzner/mfp/log"
@@ -51,6 +53,98 @@ type AbstractServerOptions struct {
 	// typical hardware eSCL scanner, the URL should be something like
 	// "http://localhost/eSCL".
 	BaseURL *url.URL
+}
+
+// abstractServerQuery maintains an AbstractServer query processing
+// context, allowing per-request centralized logging and hooking.
+//
+// It keeps the reference to the original [http.Request] and wraps
+// the corresponding [http.ResponseWriter], passed to the
+// AbstractServer.ServeHTTP
+type abstractServerQuery struct {
+	log                 *log.Record  // Log record for the query
+	*http.Request                    // Incoming request
+	http.ResponseWriter              // Underlying http.ResponseWriter
+	status              atomic.Int32 // HTTP status, 0 if not known yet
+}
+
+// newAbstractServerQuery returns the new abstractServerQuery
+func newAbstractServerQuery(srv *AbstractServer,
+	w http.ResponseWriter, rq *http.Request) *abstractServerQuery {
+
+	query := &abstractServerQuery{
+		log:            log.Begin(srv.ctx),
+		Request:        rq,
+		ResponseWriter: w,
+	}
+
+	return query
+}
+
+// RequestHeader returns http.Header of the request
+func (query *abstractServerQuery) RequestHeader() http.Header {
+	return query.Request.Header
+}
+
+// Finish must be called when query processing is finished
+func (query *abstractServerQuery) Finish() {
+	query.log.Commit()
+}
+
+// RequestBody returns body of the http.Request
+func (query *abstractServerQuery) RequestBody() io.ReadCloser {
+	return query.Request.Body
+}
+
+// ResponseHeader returns http.Header of the response
+func (query *abstractServerQuery) ResponseHeader() http.Header {
+	return query.ResponseWriter.Header()
+}
+
+// Write writes response body bytes.
+func (query *abstractServerQuery) Write(data []byte) (int, error) {
+	return query.ResponseWriter.Write(data)
+}
+
+// WriteHeader writes HTTP response header.
+func (query *abstractServerQuery) WriteHeader(status int) {
+	if query.status.CompareAndSwap(0, int32(status)) {
+		query.ResponseWriter.WriteHeader(status)
+		query.log.Debug("HTTP %s %s -- %d %s",
+			query.Method, query.URL,
+			status, http.StatusText(status))
+		query.log.Flush()
+	}
+}
+
+// NoCache set response headers to disable client-side response cacheing.
+func (query *abstractServerQuery) NoCache() {
+	hdr := query.ResponseHeader()
+	hdr.Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	hdr.Set("Pragma", "no-cache")
+	hdr.Set("Expires", "0")
+}
+
+// Reject completes request with a error.
+func (query *abstractServerQuery) Reject(status int, err error) {
+	query.ResponseHeader().Set("Content-Type", "text/plain; charset=utf-8")
+	query.NoCache()
+	query.WriteHeader(status)
+
+	if err == nil {
+		err = errors.New(http.StatusText(status))
+	}
+
+	s := fmt.Sprintf("%3.3d %s\n", status, err)
+	query.Write([]byte(s))
+	query.Write([]byte("\n"))
+}
+
+// SendXML sends the XML response.
+func (query *abstractServerQuery) SendXML(xml xmldoc.Element) {
+	query.ResponseHeader().Set("Content-Type", HTTPContentType)
+	query.WriteHeader(http.StatusOK)
+	xml.EncodeIndent(query, NsMap, "  ")
 }
 
 // NewAbstractServer returns a new [AbstractServer].
@@ -90,77 +184,71 @@ func NewAbstractServer(ctx context.Context,
 // ServeHTTP serves incoming HTTP requests.
 // It implements the [http.Handler] interface.
 func (srv *AbstractServer) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
-	// Log the request
-	log.Debug(srv.ctx, "HTTP %s %s", rq.Method, rq.URL)
+	// Create a abstractServerQuery
+	query := newAbstractServerQuery(srv, w, rq)
+	defer query.Finish()
 
 	// Dispatch the request
-	if !strings.HasPrefix(rq.URL.Path, srv.options.BaseURL.Path) {
-		srv.httpReject(w, rq, http.StatusNotFound, nil)
+	if !strings.HasPrefix(query.URL.Path, srv.options.BaseURL.Path) {
+		query.Reject(http.StatusNotFound, nil)
 		return
 	}
 
-	path, _ := missed.StringsCutPrefix(rq.URL.Path,
+	path, _ := missed.StringsCutPrefix(query.URL.Path,
 		srv.options.BaseURL.Path)
 
 	switch path {
 	case "ScannerCapabilities":
-		if rq.Method == "GET" {
-			srv.getScannerCapabilities(w, rq)
+		if query.Method == "GET" {
+			srv.getScannerCapabilities(query)
 			return
 		}
 
 	case "ScannerStatus":
 		if rq.Method == "GET" {
-			srv.getScannerStatus(w, rq)
+			srv.getScannerStatus(query)
 			return
 		}
 
 	case "ScanJobs":
 		if rq.Method == "POST" {
-			srv.postScanJobs(w, rq)
+			srv.postScanJobs(query)
 			return
 		}
 	}
 
-	srv.httpReject(w, rq, http.StatusNotFound, nil)
+	query.Reject(http.StatusNotFound, nil)
 }
 
 // getScannerCapabilities handles GET /{root}/ScannerCapabilities request
-func (srv *AbstractServer) getScannerCapabilities(
-	w http.ResponseWriter, rq *http.Request) {
-
+func (srv *AbstractServer) getScannerCapabilities(query *abstractServerQuery) {
 	ver := srv.status.Version
 	xml := fromAbstractScannerCapabilities(ver, srv.caps).ToXML()
-
-	srv.httpSendXML(w, xml)
+	query.SendXML(xml)
 }
 
 // getScannerStatus handles GET /{root}/ScannerStatus request
-func (srv *AbstractServer) getScannerStatus(
-	w http.ResponseWriter, rq *http.Request) {
-
+func (srv *AbstractServer) getScannerStatus(query *abstractServerQuery) {
 	srv.lock.Lock()
 	xml := srv.status.ToXML()
 	srv.lock.Unlock()
 
-	srv.httpSendXML(w, xml)
+	query.SendXML(xml)
 }
 
 // postScanJobs handles POST /{root}/ScanJobs
-func (srv *AbstractServer) postScanJobs(
-	w http.ResponseWriter, rq *http.Request) {
-
+func (srv *AbstractServer) postScanJobs(query *abstractServerQuery) {
 	// Fetch the XML request body
-	xml, err := xmldoc.Decode(NsMap, rq.Body)
+	xml, err := xmldoc.Decode(NsMap, query.RequestBody())
 	if err != nil {
-		srv.httpReject(w, rq, http.StatusBadRequest, err)
+		query.Reject(http.StatusBadRequest, err)
 		return
 	}
 
 	// Decode ScanSettings request
 	ss, err := DecodeScanSettings(xml)
 	if err != nil {
-		srv.httpReject(w, rq, http.StatusBadRequest, err)
+		query.Reject(http.StatusBadRequest, err)
 		return
 	}
 
@@ -168,43 +256,9 @@ func (srv *AbstractServer) postScanJobs(
 	absreq := ss.toAbstract()
 	err = absreq.Validate(srv.caps)
 	if err != nil {
-		srv.httpReject(w, rq, http.StatusConflict, err)
+		query.Reject(http.StatusConflict, err)
 		return
 	}
 
-	srv.httpReject(w, rq, http.StatusNotImplemented, nil)
-}
-
-// httpSendXML sends XML response
-func (srv *AbstractServer) httpSendXML(w http.ResponseWriter,
-	xml xmldoc.Element) {
-
-	w.Header().Set("Content-Type", HTTPContentType)
-	w.WriteHeader(http.StatusOK)
-	xml.EncodeIndent(w, NsMap, "  ")
-}
-
-// httpReject completes request with a error.
-func (srv *AbstractServer) httpReject(w http.ResponseWriter, rq *http.Request,
-	status int, err error) {
-
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	srv.httpNoCache(w)
-	w.WriteHeader(status)
-
-	if err == nil {
-		err = errors.New(http.StatusText(status))
-	}
-
-	s := fmt.Sprintf("%3.3d %s\n", status, err)
-	w.Write([]byte(s))
-	w.Write([]byte("\n"))
-}
-
-// httpNoCache set response headers to disable client-side.
-// response cacheing.
-func (srv *AbstractServer) httpNoCache(w http.ResponseWriter) {
-	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	w.Header().Set("Pragma", "no-cache")
-	w.Header().Set("Expires", "0")
+	query.Reject(http.StatusNotImplemented, nil)
 }
