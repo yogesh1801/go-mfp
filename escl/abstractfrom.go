@@ -312,10 +312,10 @@ func fromAbstractInputSourceCaps(
 
 	// Fill InputSourceCaps structure
 	caps := InputSourceCaps{
-		MinWidth:       abscaps.MinWidth.Dots(300),
-		MaxWidth:       abscaps.MaxWidth.Dots(300),
-		MinHeight:      abscaps.MinHeight.Dots(300),
-		MaxHeight:      abscaps.MaxHeight.Dots(300),
+		MinWidth:       abscaps.MinWidth.LowerBoundDots(300),
+		MaxWidth:       abscaps.MaxWidth.UpperBoundDots(300),
+		MinHeight:      abscaps.MinHeight.LowerBoundDots(300),
+		MaxHeight:      abscaps.MaxHeight.UpperBoundDots(300),
 		MaxScanRegions: optional.New(1),
 
 		MaxOpticalXResolution: fromAbstractOptionalInt(
@@ -334,11 +334,13 @@ func fromAbstractInputSourceCaps(
 	}
 
 	if abscaps.MaxXOffset != 0 {
-		caps.MaxXOffset = optional.New(abscaps.MaxXOffset.Dots(300))
+		caps.MaxXOffset = optional.New(
+			abscaps.MaxXOffset.UpperBoundDots(300))
 	}
 
 	if abscaps.MaxYOffset != 0 {
-		caps.MaxYOffset = optional.New(abscaps.MaxYOffset.Dots(300))
+		caps.MaxYOffset = optional.New(
+			abscaps.MaxYOffset.UpperBoundDots(300))
 	}
 
 	// Translate intents
