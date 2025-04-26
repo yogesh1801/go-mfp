@@ -96,3 +96,37 @@ func TestDimensionFromDots(t *testing.T) {
 		}
 	}
 }
+
+// TestDimensionBoundDots tests UpperBoundDots and LowerBoundDots functions
+func TestDimensionBoundDots(t *testing.T) {
+	dpis := []int{75, 100, 150, 200, 300, 400, 600, 1200, 2400, 4800, 9600}
+
+	for _, dpi := range dpis {
+		for dim := Inch; dim <= Inch*2; dim++ {
+			dots := dim.UpperBoundDots(dpi)
+			dim2 := DimensionFromDots(dpi, dots)
+
+			if dim2 > dim {
+				t.Errorf("Dimension.UpperBoundDots:\n"+
+					"dpi:       %d\n"+
+					"dim:       %d\n"+
+					"dots:      %d\n"+
+					"dots->dim: %d (%+d)\n",
+					dpi, dim, dots, dim2, dim2-dim,
+				)
+			}
+
+			dots = dim.LowerBoundDots(dpi)
+			dim2 = DimensionFromDots(dpi, dots)
+			if dim2 < dim {
+				t.Errorf("Dimension.LowerBoundDots:\n"+
+					"dpi:       %d\n"+
+					"dim:       %d\n"+
+					"dots:      %d\n"+
+					"dots->dim: %d (%+d)\n",
+					dpi, dim, dots, dim2, dim2-dim,
+				)
+			}
+		}
+	}
+}

@@ -46,6 +46,10 @@ const (
 
 // Dots converts Dimension value into number of image dots,
 // assuming specified DPI (dots per inch).
+//
+// If precise conversion is not possible due to the rounding
+// errors, Dots will round the output to the nearest integer
+// value.
 func (dim Dimension) Dots(dpi int) int {
 	tmp := uint64(dim)
 	tmp *= uint64(dpi)
@@ -55,8 +59,54 @@ func (dim Dimension) Dots(dpi int) int {
 	return int(tmp)
 }
 
+// UpperBoundDots converts Dimension value into number of image
+// dots, assuming specified DPI (dots per inch).
+//
+// If precise conversion is impossible due to rounding errors,
+// UpperBoundDots returns the nearest integer value that, when
+// converted back to the original Dimension using the same DPI,
+// will not be greater than the original value.
+func (dim Dimension) UpperBoundDots(dpi int) int {
+	dots := dim.Dots(dpi)
+
+	for DimensionFromDots(dpi, dots) <= dim {
+		dots++
+	}
+
+	for dim >= 0 && DimensionFromDots(dpi, dots) > dim {
+		dots--
+	}
+
+	return dots
+}
+
+// LowerBoundDots converts Dimension value into number of image
+// dots, assuming specified DPI (dots per inch).
+//
+// If precise conversion is impossible due to rounding errors,
+// LowerBoundDots returns the nearest integer value that, when
+// converted back to the original Dimension using the same DPI,
+// will not be smaller than the original value.
+func (dim Dimension) LowerBoundDots(dpi int) int {
+	dots := dim.Dots(dpi)
+
+	for dots > 0 && DimensionFromDots(dpi, dots) >= dim {
+		dots--
+	}
+
+	for DimensionFromDots(dpi, dots) < dim {
+		dots++
+	}
+
+	return dots
+}
+
 // DimensionFromDots decodes Dimension value from number of image dots,
 // assuming specified DPI (dots per inch).
+//
+// If precise conversion is not possible due to the rounding
+// errors, DimensionFromDots will round the output to the nearest
+// integer value.
 func DimensionFromDots(dpi, dots int) Dimension {
 	tmp := uint64(dots)
 	tmp *= uint64(Inch)
