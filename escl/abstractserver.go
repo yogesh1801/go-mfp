@@ -20,6 +20,7 @@ import (
 	"github.com/alexpevzner/mfp/abstract"
 	"github.com/alexpevzner/mfp/log"
 	"github.com/alexpevzner/mfp/transport"
+	"github.com/alexpevzner/mfp/util/missed"
 	"github.com/alexpevzner/mfp/util/optional"
 	"github.com/alexpevzner/mfp/util/xmldoc"
 )
@@ -98,7 +99,8 @@ func (srv *AbstractServer) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	path := rq.URL.Path[len(srv.options.BaseURL.Path):]
+	path, _ := missed.StringsCutPrefix(rq.URL.Path,
+		srv.options.BaseURL.Path)
 
 	switch path {
 	case "ScannerCapabilities":
