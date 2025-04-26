@@ -31,13 +31,25 @@ type Record struct {
 
 // Commit writes Record to the parent [Logger].
 func (rec *Record) Commit() *Logger {
-	rec.parent.send(rec.prefix, rec.levels, rec.lines)
+	rec.Flush()
 	return rec.parent
 }
 
 // Rollback drops the Record.
 func (rec *Record) Rollback() *Logger {
 	return rec.parent
+}
+
+// Flush writes Record to the parent [Logger] and resets its buffers.
+func (rec *Record) Flush() *Record {
+	rec.mutex.Lock()
+	lines, levels := rec.lines, rec.levels
+	rec.lines = rec.lines[:0]
+	rec.levels = rec.levels[:0]
+	rec.mutex.Unlock()
+
+	rec.parent.send(rec.prefix, levels, lines)
+	return rec
 }
 
 // Trace writes a Trace-level message to the Record.
