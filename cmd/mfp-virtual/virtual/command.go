@@ -34,9 +34,10 @@ const description = "" +
 
 // Command is the 'virtual' command description
 var Command = argv.Command{
-	Name:        "virtual",
-	Help:        "Virtual MFP simulator",
-	Description: description,
+	Name:                     "virtual",
+	Help:                     "Virtual MFP simulator",
+	Description:              description,
+	NoOptionsAfterParameters: true,
 	Options: []argv.Option{
 		argv.Option{
 			Name:    "-d",
