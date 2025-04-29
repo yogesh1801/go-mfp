@@ -95,6 +95,10 @@ func (prs *parser) parse(parent *Invocation) (*Invocation, error) {
 			err = prs.handleSubCommand(arg)
 
 		case len(paramValues) < paramsMax:
+			if prs.inv.cmd.NoOptionsAfterParameters {
+				doneOptions = true
+			}
+
 			paramValues = append(paramValues, arg)
 
 		default:

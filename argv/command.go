@@ -50,6 +50,11 @@ type Command struct {
 	// Sub-commands, if any.
 	SubCommands []Command
 
+	// If set to true, after the first parameter is found,
+	// all subsequent parameters started with the dash (-)
+	// will be interpreted as parameters, not as options
+	NoOptionsAfterParameters bool
+
 	// Handler is called when Command is being invoked.
 	// If Handler is nil, DefaultHandler will be used instead.
 	Handler func(context.Context, *Invocation) error
