@@ -88,7 +88,6 @@ func TestDimensionFromDots(t *testing.T) {
 	for _, test := range tests {
 		dim := DimensionFromDots(test.dpi, test.dots)
 		if dim != test.dim {
-			println("    ->", dim, test.dim)
 			t.Errorf("DimensionFromDots(%d,%d):\n"+
 				"expected: %d\n"+
 				"present:  %d",
