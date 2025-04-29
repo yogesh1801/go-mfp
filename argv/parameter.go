@@ -68,7 +68,7 @@ import (
 //	Only one repeated        cmd param1 param2... param3...
 //	parameter is allowed
 //
-// These rules exist so simplify unambiguous matching of actual
+// These rules exist to simplify unambiguous matching of actual
 // parameters against formal (declared) ones.
 type Parameter struct {
 	// Name is the parameter name.
