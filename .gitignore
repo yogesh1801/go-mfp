@@ -9,3 +9,4 @@ cmd/mfp-cups/mfp-cups
 cmd/mfp-discover/mfp-discover
 cmd/mfp-masq/mfp-masq
 cmd/mfp-shell/mfp-shell
+cmd/mfp-virtual/mfp-virtual

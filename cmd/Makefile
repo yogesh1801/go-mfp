@@ -3,6 +3,7 @@ SUBDIRS = \
 	mfp-discover \
 	mfp-cups \
 	mfp-masq \
-	mfp-shell
+	mfp-shell \
+	mfp-virtual
 
 include ../Rules.mak

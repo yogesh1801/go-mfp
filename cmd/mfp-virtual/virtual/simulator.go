@@ -1,0 +1,158 @@
+// MFP - Miulti-Function Printers and scanners toolkit
+// The "virtual" command
+//
+// Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
+// See LICENSE for license terms and conditions
+//
+// Virtual MFP simulator
+
+package virtual
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"net"
+	"os"
+	"os/exec"
+
+	"github.com/alexpevzner/mfp/abstract"
+	"github.com/alexpevzner/mfp/escl"
+	"github.com/alexpevzner/mfp/log"
+	"github.com/alexpevzner/mfp/transport"
+	"github.com/alexpevzner/mfp/util/generic"
+	"github.com/alexpevzner/mfp/util/uuid"
+)
+
+type scanner struct{}
+
+func (scanner) Capabilities() *abstract.ScannerCapabilities {
+	colorModes := generic.MakeBitset(
+		abstract.ColorModeBinary,
+		abstract.ColorModeMono,
+		abstract.ColorModeColor,
+	)
+
+	depths := generic.MakeBitset(
+		abstract.ColorDepth8,
+	)
+
+	renderings := generic.MakeBitset(
+		abstract.BinaryRenderingHalftone,
+		abstract.BinaryRenderingThreshold,
+	)
+
+	intents := generic.MakeBitset(
+		abstract.IntentDocument,
+		abstract.IntentTextAndGraphic,
+		abstract.IntentPhoto,
+		abstract.IntentPreview,
+	)
+
+	resolutions := []abstract.Resolution{
+		{XResolution: 75, YResolution: 75},
+		{XResolution: 150, YResolution: 150},
+		{XResolution: 300, YResolution: 300},
+		{XResolution: 600, YResolution: 600},
+	}
+
+	profile := abstract.SettingsProfile{
+		ColorModes:       colorModes,
+		Depths:           depths,
+		BinaryRenderings: renderings,
+		Resolutions:      resolutions,
+	}
+
+	inputcaps := &abstract.InputCapabilities{
+		MinWidth:   0,
+		MaxWidth:   abstract.A4Width,
+		MinHeight:  0,
+		MaxHeight:  abstract.A4Height,
+		MaxXOffset: abstract.A4Width / 2,
+		MaxYOffset: abstract.A4Height / 2,
+		Intents:    intents,
+		Profiles:   []abstract.SettingsProfile{profile},
+	}
+
+	caps := &abstract.ScannerCapabilities{
+		UUID: uuid.Must(uuid.Parse(
+			"169e8d94-9a17-4f14-ae81-52b9176ee9be")),
+		MakeAndModel:     "OpenPrinting eSCL scanner",
+		SerialNumber:     "OP-0000223321",
+		Manufacturer:     "OpenPrinting",
+		DocumentFormats:  []string{"image/jpeg", "application/pdf"},
+		ADFCapacity:      50,
+		CompressionRange: abstract.Range{Min: 2, Normal: 5, Max: 10},
+		BrightnessRange:  abstract.Range{Min: -100, Normal: 0, Max: 100},
+		ContrastRange:    abstract.Range{Min: -100, Normal: 0, Max: 100},
+		Platen:           inputcaps,
+		ADFSimplex:       inputcaps,
+		ADFDuplex:        inputcaps,
+	}
+	return caps
+}
+
+func (scanner) Scan(context.Context, abstract.ScannerRequest) (
+	abstract.Document, error) {
+	return nil, errors.New("not implemented")
+}
+
+func (scanner) Close() error {
+	return nil
+}
+
+// simulate runs scanner simulator.
+//
+// If argv is not empty, it specifies the external command that will
+// be run under the simulator.
+func simulate(ctx context.Context, port int, argv []string) error {
+	var s scanner
+
+	// Create a virtual server
+	u := transport.MustParseURL(
+		fmt.Sprintf("http://localhost:%d/eSCL", port))
+
+	options := escl.AbstractServerOptions{
+		Scanner: s,
+		BaseURL: u,
+	}
+
+	handler := escl.NewAbstractServer(ctx, options)
+	server := transport.NewServer(nil, handler)
+
+	addr := fmt.Sprintf("localhost:%d", port)
+	ln, err := net.Listen("tcp", addr)
+	if err != nil {
+		panic(err)
+	}
+
+	// Run external command if specified
+	if len(argv) != 0 {
+		cmd := exec.CommandContext(ctx, argv[0], argv[1:]...)
+
+		cmd.Stdin = os.Stdin
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+
+		env := fmt.Sprintf("SANE_AIRSCAN_DEVICE=escl:%s:%s",
+			"Virtual MFP Scanner", u)
+		cmd.Env = append(cmd.Env, env)
+
+		go func() {
+			err = cmd.Run()
+			server.Close()
+		}()
+	}
+
+	// Make sure the program terminates when ctx is canceled.
+	go func() {
+		<-ctx.Done()
+		server.Close()
+	}()
+
+	// Serve requests
+	log.Info(ctx, "starting virtual MFP ar %s", addr)
+	server.Serve(ln)
+
+	return err
+}
