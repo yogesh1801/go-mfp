@@ -32,6 +32,17 @@ type Document interface {
 	// the document.
 	Format() string
 
+	// Resolution returns the document's rendering resolution in DPI
+	// (dots per inch).
+	//
+	// Knowing the resolution is essential for correctly rendering
+	// document pages, especially if the file format does not include
+	// geometric size information (e.g., JPEG).
+	//
+	// For formats that do include size details (e.g., PDF), the
+	// embedded information will most likely be used instead.
+	Resolution() Resolution
+
 	// Next returns a next image page, represented as
 	// a byte stream.
 	//
