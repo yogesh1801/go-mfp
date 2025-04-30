@@ -14,9 +14,9 @@ import (
 	"sync"
 
 	"github.com/alexpevzner/mfp/discovery/netstate"
+	"github.com/alexpevzner/mfp/proto/wsd"
 	"github.com/alexpevzner/mfp/util/generic"
 	"github.com/alexpevzner/mfp/util/uuid"
-	"github.com/alexpevzner/mfp/wsd"
 )
 
 // links dynamically manages per-local-address UDP links.

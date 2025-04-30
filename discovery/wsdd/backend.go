@@ -14,7 +14,7 @@ import (
 
 	"github.com/alexpevzner/mfp/discovery"
 	"github.com/alexpevzner/mfp/log"
-	"github.com/alexpevzner/mfp/wsd"
+	"github.com/alexpevzner/mfp/proto/wsd"
 )
 
 // backend is the [discovery.Backend] for WSD device discovery.

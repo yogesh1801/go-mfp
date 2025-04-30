@@ -18,8 +18,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/alexpevzner/mfp/proto/wsd"
 	"github.com/alexpevzner/mfp/util/uuid"
-	"github.com/alexpevzner/mfp/wsd"
 )
 
 // mexData wraps wsd.Metadata and adds few additional fields

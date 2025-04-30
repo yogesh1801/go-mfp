@@ -18,8 +18,8 @@ import (
 	"github.com/alexpevzner/mfp/discovery"
 	"github.com/alexpevzner/mfp/internal/zone"
 	"github.com/alexpevzner/mfp/log"
+	"github.com/alexpevzner/mfp/proto/wsd"
 	"github.com/alexpevzner/mfp/util/generic"
-	"github.com/alexpevzner/mfp/wsd"
 )
 
 // units manages a table of discovered units.

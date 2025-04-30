@@ -1,7 +1,7 @@
 # WSD core protocol
 
 ```
-import "github.com/alexpevzner/mfp/wsd"
+import "github.com/alexpevzner/mfp/proto/wsd"
 ```
 
 This package provides WSD core protocol implementation, suitable to

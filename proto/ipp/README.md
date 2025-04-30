@@ -1,4 +1,4 @@
-# github.com/alexpevzner/mfp/ipp
+# github.com/alexpevzner/mfp/proto/ipp
 
 This Go library is a high-level implementation of the IPP printing
 protocol, per RFC8011.

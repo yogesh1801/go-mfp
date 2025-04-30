@@ -17,7 +17,7 @@ import (
 
 	"github.com/alexpevzner/mfp/argv"
 	"github.com/alexpevzner/mfp/cups"
-	"github.com/alexpevzner/mfp/ipp"
+	"github.com/alexpevzner/mfp/proto/ipp"
 	"github.com/alexpevzner/mfp/transport"
 )
 

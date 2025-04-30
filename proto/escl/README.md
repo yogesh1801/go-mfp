@@ -1,7 +1,7 @@
 # eSCL core protocol
 
 ```
-import "github.com/alexpevzner/mfp/escl"
+import "github.com/alexpevzner/mfp/proto/escl"
 ```
 
 This package provides eSCL core protocol implementation.

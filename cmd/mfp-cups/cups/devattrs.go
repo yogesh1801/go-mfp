@@ -12,7 +12,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/alexpevzner/mfp/ipp"
+	"github.com/alexpevzner/mfp/proto/ipp"
 )
 
 // devAttrsFormat pretty-prints [ipp.DeviceAttributes]

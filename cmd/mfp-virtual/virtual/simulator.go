@@ -17,8 +17,8 @@ import (
 	"os/exec"
 
 	"github.com/alexpevzner/mfp/abstract"
-	"github.com/alexpevzner/mfp/escl"
 	"github.com/alexpevzner/mfp/log"
+	"github.com/alexpevzner/mfp/proto/escl"
 	"github.com/alexpevzner/mfp/transport"
 	"github.com/alexpevzner/mfp/util/generic"
 	"github.com/alexpevzner/mfp/util/uuid"

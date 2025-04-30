@@ -3,12 +3,10 @@ SUBDIRS	= \
 	cmd \
 	cups \
 	discovery \
-	escl \
+	proto \
 	internal \
-	ipp \
 	log \
 	transport \
-	util \
-	wsd
+	util
 
 include Rules.mak
