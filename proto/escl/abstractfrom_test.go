@@ -663,10 +663,10 @@ func TestFromAbstractInputSourceCaps(t *testing.T) {
 				Intents:   intents,
 			},
 			out: InputSourceCaps{
-				MinWidth:         (3 * abstract.Millimeter).Dots(300),
-				MinHeight:        (5 * abstract.Millimeter).Dots(300),
-				MaxWidth:         abstract.A4Width.Dots(300),
-				MaxHeight:        abstract.A4Height.Dots(300),
+				MinWidth:         (3 * abstract.Millimeter).LowerBoundDots(300),
+				MinHeight:        (5 * abstract.Millimeter).LowerBoundDots(300),
+				MaxWidth:         abstract.A4Width.UpperBoundDots(300),
+				MaxHeight:        abstract.A4Height.UpperBoundDots(300),
 				MaxXOffset:       nil,
 				MaxYOffset:       nil,
 				MaxScanRegions:   optional.New(1),
@@ -680,10 +680,10 @@ func TestFromAbstractInputSourceCaps(t *testing.T) {
 			formats: formats,
 			in:      testAbstractInputCapabilities,
 			out: InputSourceCaps{
-				MinWidth:  (15 * abstract.Millimeter).Dots(300),
-				MinHeight: (20 * abstract.Millimeter).Dots(300),
-				MaxWidth:  abstract.A4Width.Dots(300),
-				MaxHeight: abstract.A4Height.Dots(300),
+				MinWidth:  (15 * abstract.Millimeter).LowerBoundDots(300),
+				MinHeight: (20 * abstract.Millimeter).LowerBoundDots(300),
+				MaxWidth:  abstract.A4Width.UpperBoundDots(300),
+				MaxHeight: abstract.A4Height.UpperBoundDots(300),
 				MaxXOffset: optional.New(
 					(2 * abstract.Inch).Dots(300)),
 				MaxYOffset: optional.New(
