@@ -13,17 +13,13 @@ import "io"
 // Document contains one or more image files, each of which may include
 // (depending on the format) one or more image pages.
 //
+// For example, ADF scanner may return a Document that contains multiple
+// files, one per page, and each file will contain a single page.
+// Or, depending on a scanner model and format being used, Document may
+// contain a single file with multiple pages, one per scanned physical page.
+//
 // All files in the document use the same format. The MIME type of
 // the format can be obtained using the Document.Format method.
-//
-// For example, a document might contain three JPEG image files.
-// Alternatively, it could include five multipage PDF files, each
-// containing several image pages.
-//
-// This document can be used, for instance, to represent a sequence of
-// images returned by a [Scanner]. Depending on the scanner's
-// capabilities and the selected image format, this could result in
-// either one image per file or a series of multipage files.
 //
 // The document interface is optimized for streaming images, eliminating
 // the need to maintain a full-page image buffer in memory.
@@ -43,7 +39,7 @@ type Document interface {
 	// embedded information will most likely be used instead.
 	Resolution() Resolution
 
-	// Next returns a next image page, represented as
+	// Next returns the next document file, represented as
 	// a byte stream.
 	//
 	// Next implicitly closes the page, returned by the
