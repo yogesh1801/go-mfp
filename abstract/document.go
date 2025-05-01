@@ -10,20 +10,15 @@ package abstract
 
 import "io"
 
-// Document contains one or more [DocumentFile]s, each of which may include
+// Document contains one or more image files, each of which may include
 // (depending on the format) one or more image pages.
 //
-// For example, ADF scanner may returns a Document that contains multiple
-// [DocumentFile]s, one per page, and each DocumentFile will contain a single
-// [DocumentPage].
+// All files in the document use the same format. The MIME type of
+// the format can be obtained using the Document.Format method.
 //
-// Or, depending on a scanner model and format being used, Document may
-// a single [DocumentFile], with multiple [DocumentPage]s, one per scanned
-// physical page.
-//
-// All files in the document use the same format and the same [Resolution].
-// The MIME type of the format can be obtained using the [Document.Format].
-// method.
+// For example, a document might contain three JPEG image files.
+// Alternatively, it could include five multipage PDF files, each
+// containing several image pages.
 //
 // This document can be used, for instance, to represent a sequence of
 // images returned by a [Scanner]. Depending on the scanner's
@@ -48,37 +43,16 @@ type Document interface {
 	// embedded information will most likely be used instead.
 	Resolution() Resolution
 
-	// Next returns a next [DocumentFile] from the [Document]
-	// being consumed.
-	//
-	// Next implicitly closes the file, returned by the
-	// previous call to the Next function.
-	//
-	// If there are no more pages, Next returns [io.EOF].
-	Next() (DocumentFile, error)
-
-	// Close closes the Document.
-	Close() error
-}
-
-// DocumentFile represents a single file, contained in the [Document].
-// The DocumentFile contains one or more [DocumentPage]s.
-type DocumentFile interface {
-	// Next returns the next [DocumentPage] from the [DocumentFile]
-	// Being consumed.
+	// Next returns a next image page, represented as
+	// a byte stream.
 	//
 	// Next implicitly closes the page, returned by the
 	// previous call to the Next function.
 	//
-	// If there are no more pages, Next returns (nil, [io.EOF]).
-	Next() (DocumentPage, error)
+	// If there are no more pages, Next returns [io.EOF].
+	Next() (io.Reader, error)
 
-	// Reader returns a [DocumentFile] content as the uninterpreted
-	// byte stream.
-	Reader() io.Reader
-}
-
-// DocumentPage represents a single page (image) of the [Document].
-type DocumentPage interface {
-	// TODO
+	// Close closes the Document. It implicitly closes the current
+	// image being read.
+	Close() error
 }
