@@ -18,6 +18,7 @@ const (
 	_ ErrCode = iota
 	ErrInvalidParam
 	ErrUnsupportedParam
+	ErrDocumentClosed
 )
 
 // Error returns error string. It implements the [error] interface.
@@ -27,6 +28,8 @@ func (e ErrCode) Error() string {
 		return "Invalid parameter"
 	case ErrUnsupportedParam:
 		return "Unsupported parameter"
+	case ErrDocumentClosed:
+		return "Document is closed"
 	}
 	return ""
 }
