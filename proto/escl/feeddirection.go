@@ -8,7 +8,7 @@
 
 package escl
 
-import "github.com/alexpevzner/mfp/util/xmldoc"
+import "github.com/OpenPrinting/go-mfp/util/xmldoc"
 
 // FeedDirection specifies the feed direction of the input media
 // (affects the resulting image orientation).

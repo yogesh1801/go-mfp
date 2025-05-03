@@ -14,7 +14,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/alexpevzner/mfp/argv"
+	"github.com/OpenPrinting/go-mfp/argv"
 )
 
 func TestMain(t *testing.T) {

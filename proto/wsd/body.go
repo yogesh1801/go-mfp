@@ -8,7 +8,7 @@
 
 package wsd
 
-import "github.com/alexpevzner/mfp/util/xmldoc"
+import "github.com/OpenPrinting/go-mfp/util/xmldoc"
 
 // Body represents a message body.
 //

@@ -8,7 +8,7 @@
 
 package main
 
-import "github.com/alexpevzner/mfp/cmd/mfp-discover/discover"
+import "github.com/OpenPrinting/go-mfp/cmd/mfp-discover/discover"
 
 // main function for the mfp-discover command
 func main() {

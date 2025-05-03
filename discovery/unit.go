@@ -13,7 +13,7 @@ import (
 	"net/netip"
 	"strings"
 
-	"github.com/alexpevzner/mfp/util/uuid"
+	"github.com/OpenPrinting/go-mfp/util/uuid"
 )
 
 // PrintUnit represents a print unit.

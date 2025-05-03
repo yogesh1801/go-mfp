@@ -12,8 +12,8 @@ import (
 	"fmt"
 	"net/url"
 
+	"github.com/OpenPrinting/go-mfp/transport"
 	"github.com/OpenPrinting/goipp"
-	"github.com/alexpevzner/mfp/transport"
 )
 
 // msgXlat translates URLs embedded in the IPP message attributes

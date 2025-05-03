@@ -14,8 +14,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/alexpevzner/mfp/util/optional"
-	"github.com/alexpevzner/mfp/util/xmldoc"
+	"github.com/OpenPrinting/go-mfp/util/optional"
+	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
 // testScannerStatus contains example of the initialized

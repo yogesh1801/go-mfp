@@ -12,9 +12,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/alexpevzner/mfp/argv"
-	"github.com/alexpevzner/mfp/log"
-	"github.com/alexpevzner/mfp/transport"
+	"github.com/OpenPrinting/go-mfp/argv"
+	"github.com/OpenPrinting/go-mfp/log"
+	"github.com/OpenPrinting/go-mfp/transport"
 )
 
 // Command is the 'cups' command description

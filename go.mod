@@ -1,10 +1,10 @@
-module github.com/alexpevzner/mfp
+module github.com/OpenPrinting/go-mfp
 
 go 1.19
 
 require (
+	github.com/OpenPrinting/go-avahi v0.0.0-20250503152044-43570a235ab1
 	github.com/OpenPrinting/goipp v1.2.0
-	github.com/alexpevzner/go-avahi v0.0.0-20241019204329-973270023c85
 	github.com/google/go-cmp v0.6.0
 	github.com/peterh/liner v1.2.2
 	golang.org/x/sys v0.21.0

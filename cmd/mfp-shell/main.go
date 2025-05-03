@@ -15,9 +15,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/alexpevzner/mfp/argv"
-	"github.com/alexpevzner/mfp/cmd"
-	"github.com/alexpevzner/mfp/internal/env"
+	"github.com/OpenPrinting/go-mfp/argv"
+	"github.com/OpenPrinting/go-mfp/cmd"
+	"github.com/OpenPrinting/go-mfp/internal/env"
 	"github.com/peterh/liner"
 )
 

@@ -15,7 +15,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/alexpevzner/go-avahi"
+	"github.com/OpenPrinting/go-avahi"
 )
 
 // ResolverWaitTime is the [Resolver] timeout in case resolving

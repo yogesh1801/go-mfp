@@ -11,8 +11,8 @@ package escl
 import (
 	"strconv"
 
-	"github.com/alexpevzner/mfp/util/optional"
-	"github.com/alexpevzner/mfp/util/xmldoc"
+	"github.com/OpenPrinting/go-mfp/util/optional"
+	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
 // ScanImageInfo is the scanner response, that represents the actual

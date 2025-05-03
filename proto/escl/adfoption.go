@@ -8,7 +8,7 @@
 
 package escl
 
-import "github.com/alexpevzner/mfp/util/xmldoc"
+import "github.com/OpenPrinting/go-mfp/util/xmldoc"
 
 // ADFOption specifies options, supported by the Automatic Document Feeder.
 type ADFOption int

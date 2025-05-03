@@ -8,7 +8,7 @@
 
 package abstract
 
-import "github.com/alexpevzner/mfp/util/generic"
+import "github.com/OpenPrinting/go-mfp/util/generic"
 
 // SettingsProfile defines a valid combination of scan parameters setting.
 //

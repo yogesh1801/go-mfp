@@ -13,8 +13,8 @@ import (
 	"fmt"
 	"net/netip"
 
-	"github.com/alexpevzner/mfp/util/generic"
-	"github.com/alexpevzner/mfp/util/xmldoc"
+	"github.com/OpenPrinting/go-mfp/util/generic"
+	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
 // Msg represents a WSD protocol message.

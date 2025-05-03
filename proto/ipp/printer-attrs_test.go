@@ -12,8 +12,8 @@ import (
 	_ "embed"
 	"testing"
 
+	"github.com/OpenPrinting/go-mfp/internal/testutils"
 	"github.com/OpenPrinting/goipp"
-	"github.com/alexpevzner/mfp/internal/testutils"
 )
 
 func TestKyoceraM2040dnPrinterAttributes(t *testing.T) {

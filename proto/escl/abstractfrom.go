@@ -9,9 +9,9 @@
 package escl
 
 import (
-	"github.com/alexpevzner/mfp/abstract"
-	"github.com/alexpevzner/mfp/util/generic"
-	"github.com/alexpevzner/mfp/util/optional"
+	"github.com/OpenPrinting/go-mfp/abstract"
+	"github.com/OpenPrinting/go-mfp/util/generic"
+	"github.com/OpenPrinting/go-mfp/util/optional"
 )
 
 // fromAbstractOptionalInt returns optional.New(v), if v != 0, nil otherwise

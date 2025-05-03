@@ -12,9 +12,9 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/alexpevzner/mfp/util/optional"
-	"github.com/alexpevzner/mfp/util/uuid"
-	"github.com/alexpevzner/mfp/util/xmldoc"
+	"github.com/OpenPrinting/go-mfp/util/optional"
+	"github.com/OpenPrinting/go-mfp/util/uuid"
+	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
 // ScannerCapabilities is the scanner response, that defines the scanner

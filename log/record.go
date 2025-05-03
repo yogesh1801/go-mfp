@@ -14,7 +14,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/alexpevzner/mfp/util/generic"
+	"github.com/OpenPrinting/go-mfp/util/generic"
 )
 
 // Record allows to build a multi-line log message, which

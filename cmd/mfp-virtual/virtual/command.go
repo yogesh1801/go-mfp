@@ -13,8 +13,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/alexpevzner/mfp/argv"
-	"github.com/alexpevzner/mfp/log"
+	"github.com/OpenPrinting/go-mfp/argv"
+	"github.com/OpenPrinting/go-mfp/log"
 )
 
 // DefaultTCPPort is the default TCP port for the MFP simulator

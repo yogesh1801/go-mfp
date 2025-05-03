@@ -1,7 +1,7 @@
 # Abstract definitions for printer and scanner interfaces
 
 ```
-import "github.com/alexpevzner/mfp/abstract"
+import "github.com/OpenPrinting/go-mfp/abstract"
 ```
 
 This package provides abstract (implementation-independent) definitions

@@ -12,8 +12,8 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/OpenPrinting/go-mfp/proto/ipp"
 	"github.com/OpenPrinting/goipp"
-	"github.com/alexpevzner/mfp/proto/ipp"
 )
 
 // prnAttrsRequested lists attributes that provide a general printer

@@ -14,7 +14,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/alexpevzner/mfp/log"
+	"github.com/OpenPrinting/go-mfp/log"
 )
 
 // Client implements a client side of devices discovery.

@@ -14,7 +14,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/alexpevzner/mfp/util/generic"
+	"github.com/OpenPrinting/go-mfp/util/generic"
 )
 
 // TestAutoCompletion tests Command.Complete

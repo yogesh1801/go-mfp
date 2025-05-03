@@ -9,7 +9,7 @@
 package abstract
 
 import (
-	"github.com/alexpevzner/mfp/util/uuid"
+	"github.com/OpenPrinting/go-mfp/util/uuid"
 )
 
 // ScannerCapabilities defines the scanner capabilities.

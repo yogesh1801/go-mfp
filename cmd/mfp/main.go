@@ -9,7 +9,7 @@
 package main
 
 import (
-	"github.com/alexpevzner/mfp/cmd"
+	"github.com/OpenPrinting/go-mfp/cmd"
 )
 
 // main function for the mfp command

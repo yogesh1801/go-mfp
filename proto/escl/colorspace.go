@@ -8,7 +8,7 @@
 
 package escl
 
-import "github.com/alexpevzner/mfp/util/xmldoc"
+import "github.com/OpenPrinting/go-mfp/util/xmldoc"
 
 // ColorSpace defines the color space used for scanning.
 type ColorSpace int

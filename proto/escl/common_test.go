@@ -13,8 +13,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/alexpevzner/mfp/util/generic"
-	"github.com/alexpevzner/mfp/util/xmldoc"
+	"github.com/OpenPrinting/go-mfp/util/generic"
+	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
 // testEnumType is the common interface of all enum-alike types

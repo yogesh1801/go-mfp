@@ -16,7 +16,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/alexpevzner/mfp/log"
+	"github.com/OpenPrinting/go-mfp/log"
 )
 
 // listener wraps net.Listener for a reason of fine-tuning incoming

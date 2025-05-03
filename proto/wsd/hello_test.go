@@ -13,7 +13,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/alexpevzner/mfp/util/xmldoc"
+	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
 // TestXHello tests Hello encoding and decoding

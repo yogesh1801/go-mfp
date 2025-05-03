@@ -14,8 +14,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/alexpevzner/mfp/discovery"
-	"github.com/alexpevzner/mfp/util/uuid"
+	"github.com/OpenPrinting/go-mfp/discovery"
+	"github.com/OpenPrinting/go-mfp/util/uuid"
 )
 
 // txtPrinter represents a decoded TXT record for printer

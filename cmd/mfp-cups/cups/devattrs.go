@@ -12,7 +12,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/alexpevzner/mfp/proto/ipp"
+	"github.com/OpenPrinting/go-mfp/proto/ipp"
 )
 
 // devAttrsFormat pretty-prints [ipp.DeviceAttributes]

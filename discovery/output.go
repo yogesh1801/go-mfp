@@ -12,7 +12,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/alexpevzner/mfp/util/uuid"
+	"github.com/OpenPrinting/go-mfp/util/uuid"
 )
 
 // output generates and manages the final discovery output from

@@ -12,7 +12,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/alexpevzner/mfp/util/xmldoc"
+	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
 // TestDecodeInt tests decodeInt

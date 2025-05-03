@@ -15,7 +15,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/alexpevzner/mfp/util/missed"
+	"github.com/OpenPrinting/go-mfp/util/missed"
 )
 
 var defaultDiaaler net.Dialer

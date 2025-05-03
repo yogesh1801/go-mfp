@@ -14,7 +14,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/alexpevzner/mfp/transport"
+	"github.com/OpenPrinting/go-mfp/transport"
 )
 
 // urlParse parses and validates HTTP URL.

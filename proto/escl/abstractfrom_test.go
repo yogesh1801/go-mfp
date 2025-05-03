@@ -12,11 +12,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/alexpevzner/mfp/abstract"
-	"github.com/alexpevzner/mfp/internal/testutils"
-	"github.com/alexpevzner/mfp/util/generic"
-	"github.com/alexpevzner/mfp/util/optional"
-	"github.com/alexpevzner/mfp/util/uuid"
+	"github.com/OpenPrinting/go-mfp/abstract"
+	"github.com/OpenPrinting/go-mfp/internal/testutils"
+	"github.com/OpenPrinting/go-mfp/util/generic"
+	"github.com/OpenPrinting/go-mfp/util/optional"
+	"github.com/OpenPrinting/go-mfp/util/uuid"
 )
 
 // testAbstractResolutions contains initialized []abstract.Resolution slice

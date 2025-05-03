@@ -15,11 +15,11 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/alexpevzner/mfp/discovery"
-	"github.com/alexpevzner/mfp/internal/zone"
-	"github.com/alexpevzner/mfp/log"
-	"github.com/alexpevzner/mfp/proto/wsd"
-	"github.com/alexpevzner/mfp/util/generic"
+	"github.com/OpenPrinting/go-mfp/discovery"
+	"github.com/OpenPrinting/go-mfp/internal/zone"
+	"github.com/OpenPrinting/go-mfp/log"
+	"github.com/OpenPrinting/go-mfp/proto/wsd"
+	"github.com/OpenPrinting/go-mfp/util/generic"
 )
 
 // units manages a table of discovered units.

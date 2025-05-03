@@ -13,7 +13,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/alexpevzner/mfp/util/missed"
+	"github.com/OpenPrinting/go-mfp/util/missed"
 )
 
 // Parameter defines a positional parameter.

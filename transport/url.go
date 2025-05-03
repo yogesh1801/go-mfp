@@ -17,7 +17,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/alexpevzner/mfp/util/missed"
+	"github.com/OpenPrinting/go-mfp/util/missed"
 )
 
 // Default ports, by protocol:

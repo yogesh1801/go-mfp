@@ -12,9 +12,9 @@ import (
 	"context"
 	"net/netip"
 
-	"github.com/alexpevzner/mfp/discovery"
-	"github.com/alexpevzner/mfp/log"
-	"github.com/alexpevzner/mfp/proto/wsd"
+	"github.com/OpenPrinting/go-mfp/discovery"
+	"github.com/OpenPrinting/go-mfp/log"
+	"github.com/OpenPrinting/go-mfp/proto/wsd"
 )
 
 // backend is the [discovery.Backend] for WSD device discovery.

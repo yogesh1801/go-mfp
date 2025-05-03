@@ -3,7 +3,7 @@
 ## Logging facilities
 
 ```
-import "github.com/alexpevzner/mfp/log"
+import "github.com/OpenPrinting/go-mfp/log"
 ```
 
 This package provides logging facilities.

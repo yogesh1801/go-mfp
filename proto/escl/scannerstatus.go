@@ -9,8 +9,8 @@
 package escl
 
 import (
-	"github.com/alexpevzner/mfp/util/optional"
-	"github.com/alexpevzner/mfp/util/xmldoc"
+	"github.com/OpenPrinting/go-mfp/util/optional"
+	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
 // ScannerStatus is the scanner response, that represents the current

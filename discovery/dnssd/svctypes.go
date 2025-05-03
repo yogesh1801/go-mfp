@@ -8,7 +8,7 @@
 
 package dnssd
 
-import "github.com/alexpevzner/mfp/discovery"
+import "github.com/OpenPrinting/go-mfp/discovery"
 
 // Service type names
 const (

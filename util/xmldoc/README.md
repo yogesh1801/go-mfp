@@ -1,7 +1,7 @@
 # XML mini library
 
 ```
-import "github.com/alexpevzner/mfp/util/xmldoc"
+import "github.com/OpenPrinting/go-mfp/util/xmldoc"
 ```
 
 This package provides mini library for convenient decoding

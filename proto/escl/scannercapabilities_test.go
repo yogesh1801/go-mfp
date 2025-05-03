@@ -13,9 +13,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/alexpevzner/mfp/util/optional"
-	"github.com/alexpevzner/mfp/util/uuid"
-	"github.com/alexpevzner/mfp/util/xmldoc"
+	"github.com/OpenPrinting/go-mfp/util/optional"
+	"github.com/OpenPrinting/go-mfp/util/uuid"
+	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
 // testScannerCapabilities contains example of the initialized

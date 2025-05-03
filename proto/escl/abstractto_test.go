@@ -11,9 +11,9 @@ package escl
 import (
 	"testing"
 
-	"github.com/alexpevzner/mfp/abstract"
-	"github.com/alexpevzner/mfp/internal/testutils"
-	"github.com/alexpevzner/mfp/util/optional"
+	"github.com/OpenPrinting/go-mfp/abstract"
+	"github.com/OpenPrinting/go-mfp/internal/testutils"
+	"github.com/OpenPrinting/go-mfp/util/optional"
 )
 
 // TestScanSettingsToAbstract tests ScanSettings.toAbstract method

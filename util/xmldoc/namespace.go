@@ -11,7 +11,7 @@ package xmldoc
 import (
 	"strings"
 
-	"github.com/alexpevzner/mfp/util/generic"
+	"github.com/OpenPrinting/go-mfp/util/generic"
 )
 
 // Namespace maps XML namespace URLs to short prefixes.

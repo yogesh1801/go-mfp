@@ -12,12 +12,12 @@ import (
 	"context"
 	"strings"
 
-	"github.com/alexpevzner/mfp/argv"
-	"github.com/alexpevzner/mfp/discovery"
-	"github.com/alexpevzner/mfp/discovery/dnssd"
-	"github.com/alexpevzner/mfp/discovery/wsdd"
-	"github.com/alexpevzner/mfp/internal/env"
-	"github.com/alexpevzner/mfp/log"
+	"github.com/OpenPrinting/go-mfp/argv"
+	"github.com/OpenPrinting/go-mfp/discovery"
+	"github.com/OpenPrinting/go-mfp/discovery/dnssd"
+	"github.com/OpenPrinting/go-mfp/discovery/wsdd"
+	"github.com/OpenPrinting/go-mfp/internal/env"
+	"github.com/OpenPrinting/go-mfp/log"
 )
 
 // Command is the 'cups' command description

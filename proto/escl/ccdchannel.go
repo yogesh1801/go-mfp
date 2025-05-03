@@ -8,7 +8,7 @@
 
 package escl
 
-import "github.com/alexpevzner/mfp/util/xmldoc"
+import "github.com/OpenPrinting/go-mfp/util/xmldoc"
 
 // CCDChannel specifies which CCD color channel to use for grayscale
 // and monochrome scannig.

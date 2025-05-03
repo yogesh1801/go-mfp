@@ -13,8 +13,8 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/alexpevzner/mfp/proto/ipp"
-	"github.com/alexpevzner/mfp/transport"
+	"github.com/OpenPrinting/go-mfp/proto/ipp"
+	"github.com/OpenPrinting/go-mfp/transport"
 )
 
 // Client represents the CUPS client.

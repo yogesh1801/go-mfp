@@ -12,8 +12,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/alexpevzner/mfp/util/optional"
-	"github.com/alexpevzner/mfp/util/xmldoc"
+	"github.com/OpenPrinting/go-mfp/util/optional"
+	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
 // JobInfo reports the state of a particular scan job.

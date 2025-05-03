@@ -1,7 +1,7 @@
+github.com/OpenPrinting/go-avahi v0.0.0-20250503152044-43570a235ab1 h1:uIvXdT4IesyiEwvC7PMKsBZg83JT4r5j6ClWatgbBds=
+github.com/OpenPrinting/go-avahi v0.0.0-20250503152044-43570a235ab1/go.mod h1:1vYkalHi1N1ZQ+Wt7KX7WK8fTS09iwrZnuQjwpsUMCU=
 github.com/OpenPrinting/goipp v1.2.0 h1:qeB3GyhhB7NM16quwyl51CsTEHFb9chZXAprt+00NKo=
 github.com/OpenPrinting/goipp v1.2.0/go.mod h1:ot2iw+QF7fVLaX+55JUNlF5YSDNiXVo2LRAv21iGcQI=
-github.com/alexpevzner/go-avahi v0.0.0-20241019204329-973270023c85 h1:kMbMsRsfWi/jNH1fb7IKtPFzIvIftQwUc2/byCUhWxQ=
-github.com/alexpevzner/go-avahi v0.0.0-20241019204329-973270023c85/go.mod h1:qxO35yIgVTkoq8ym9Y1L7M18VNZj3JE2PTngohQv5H0=
 github.com/google/go-cmp v0.6.0 h1:ofyhxvXcZhMsU5ulbFiLKl/XBFqE1GSq7atu8tAmTRI=
 github.com/google/go-cmp v0.6.0/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
 github.com/mattn/go-runewidth v0.0.3 h1:a+kO+98RDGEfo6asOGMmpodZq4FNtnGP54yps8BzLR4=

@@ -14,7 +14,7 @@ import (
 	"net/netip"
 	"sync/atomic"
 
-	"github.com/alexpevzner/mfp/discovery/netstate"
+	"github.com/OpenPrinting/go-mfp/discovery/netstate"
 )
 
 // uconn wraps net.UDPConn, binds it to the particular network interface

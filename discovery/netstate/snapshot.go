@@ -12,7 +12,7 @@ import (
 	"net"
 	"sort"
 
-	"github.com/alexpevzner/mfp/util/generic"
+	"github.com/OpenPrinting/go-mfp/util/generic"
 )
 
 // snapshot represents a snapshot of current network state.

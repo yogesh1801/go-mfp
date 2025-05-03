@@ -8,7 +8,7 @@
 
 package escl
 
-import "github.com/alexpevzner/mfp/util/xmldoc"
+import "github.com/OpenPrinting/go-mfp/util/xmldoc"
 
 // InputSource specifies the desired input source.
 type InputSource int

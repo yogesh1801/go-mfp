@@ -19,12 +19,12 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/alexpevzner/mfp/abstract"
-	"github.com/alexpevzner/mfp/log"
-	"github.com/alexpevzner/mfp/transport"
-	"github.com/alexpevzner/mfp/util/missed"
-	"github.com/alexpevzner/mfp/util/optional"
-	"github.com/alexpevzner/mfp/util/xmldoc"
+	"github.com/OpenPrinting/go-mfp/abstract"
+	"github.com/OpenPrinting/go-mfp/log"
+	"github.com/OpenPrinting/go-mfp/transport"
+	"github.com/OpenPrinting/go-mfp/util/missed"
+	"github.com/OpenPrinting/go-mfp/util/optional"
+	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
 // AbstractServerHistorySize specifies how many scan jobs the

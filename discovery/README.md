@@ -1,7 +1,7 @@
 # Device discovery
 
 ```
-import "github.com/alexpevzner/mfp/discovery"
+import "github.com/OpenPrinting/go-mfp/discovery"
 ```
 
 This package provides device discovery for printers and scanners.

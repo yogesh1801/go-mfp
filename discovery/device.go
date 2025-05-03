@@ -11,8 +11,8 @@ package discovery
 import (
 	"net/netip"
 
-	"github.com/alexpevzner/mfp/util/generic"
-	"github.com/alexpevzner/mfp/util/uuid"
+	"github.com/OpenPrinting/go-mfp/util/generic"
+	"github.com/OpenPrinting/go-mfp/util/uuid"
 )
 
 // Device consist of the multiple functional units. There are

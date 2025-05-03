@@ -12,7 +12,7 @@
 package wsd
 
 import (
-	"github.com/alexpevzner/mfp/util/xmldoc"
+	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
 // Dialect attribute values for ThisDevice, ThisModel and Relationship

@@ -8,7 +8,7 @@
 
 package escl
 
-import "github.com/alexpevzner/mfp/abstract"
+import "github.com/OpenPrinting/go-mfp/abstract"
 
 // toAbstract converts [ScanSettings] to [abstract.ScannerRequest]
 func (ss ScanSettings) toAbstract() abstract.ScannerRequest {

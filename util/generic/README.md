@@ -1,7 +1,7 @@
 # Useful generics
 
 ```
-import "github.com/alexpevzner/mfp/util/generic"
+import "github.com/OpenPrinting/go-mfp/util/generic"
 ```
 
 This package provides useful generic types and functions, such as

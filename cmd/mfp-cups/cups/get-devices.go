@@ -11,9 +11,9 @@ package cups
 import (
 	"context"
 
-	"github.com/alexpevzner/mfp/argv"
-	"github.com/alexpevzner/mfp/cups"
-	"github.com/alexpevzner/mfp/internal/env"
+	"github.com/OpenPrinting/go-mfp/argv"
+	"github.com/OpenPrinting/go-mfp/cups"
+	"github.com/OpenPrinting/go-mfp/internal/env"
 )
 
 // cmdGetPrinters defines the "get-printers" sub-command.

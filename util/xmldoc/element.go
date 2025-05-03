@@ -11,7 +11,7 @@ package xmldoc
 import (
 	"os"
 
-	"github.com/alexpevzner/mfp/util/generic"
+	"github.com/OpenPrinting/go-mfp/util/generic"
 )
 
 // Element represents a single decoded XML Element

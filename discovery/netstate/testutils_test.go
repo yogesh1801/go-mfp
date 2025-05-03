@@ -13,7 +13,7 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/alexpevzner/mfp/util/generic"
+	"github.com/OpenPrinting/go-mfp/util/generic"
 )
 
 // testAddr creates a new address for testing

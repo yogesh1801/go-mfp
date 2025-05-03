@@ -14,8 +14,8 @@ import (
 	"net/url"
 	"sync"
 
-	"github.com/alexpevzner/mfp/discovery/dnssd"
-	"github.com/alexpevzner/mfp/log"
+	"github.com/OpenPrinting/go-mfp/discovery/dnssd"
+	"github.com/OpenPrinting/go-mfp/log"
 )
 
 // urlResolver resolves symbolic URLs into the IP literal URLs.

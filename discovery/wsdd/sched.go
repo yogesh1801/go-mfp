@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/alexpevzner/mfp/internal/random"
+	"github.com/OpenPrinting/go-mfp/internal/random"
 )
 
 // Scheduler parameters:

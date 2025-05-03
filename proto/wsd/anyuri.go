@@ -11,8 +11,8 @@ package wsd
 import (
 	"errors"
 
-	"github.com/alexpevzner/mfp/util/uuid"
-	"github.com/alexpevzner/mfp/util/xmldoc"
+	"github.com/OpenPrinting/go-mfp/util/uuid"
+	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
 // AnyURI represents anyURI type, per XMS Schema Part 2: Datatypes, 3.2.17

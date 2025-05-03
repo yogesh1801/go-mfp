@@ -11,7 +11,7 @@ package escl
 import (
 	"strconv"
 
-	"github.com/alexpevzner/mfp/util/xmldoc"
+	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
 // ScanRegion defines the desired scan region

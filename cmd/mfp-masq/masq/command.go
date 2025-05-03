@@ -12,8 +12,8 @@ import (
 	"context"
 	"errors"
 
-	"github.com/alexpevzner/mfp/argv"
-	"github.com/alexpevzner/mfp/log"
+	"github.com/OpenPrinting/go-mfp/argv"
+	"github.com/OpenPrinting/go-mfp/log"
 )
 
 // Command is the 'masq' command description

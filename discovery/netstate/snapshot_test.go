@@ -13,7 +13,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/alexpevzner/mfp/util/generic"
+	"github.com/OpenPrinting/go-mfp/util/generic"
 )
 
 // TestSnapshotEqual tests snapshot.equal

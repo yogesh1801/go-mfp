@@ -11,7 +11,7 @@ package escl
 import (
 	"fmt"
 
-	"github.com/alexpevzner/mfp/util/xmldoc"
+	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
 // Units specifies the feed direction of the input media

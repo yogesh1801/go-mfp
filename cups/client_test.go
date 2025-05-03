@@ -12,7 +12,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/alexpevzner/mfp/transport"
+	"github.com/OpenPrinting/go-mfp/transport"
 )
 
 func TestCUPS(t *testing.T) {

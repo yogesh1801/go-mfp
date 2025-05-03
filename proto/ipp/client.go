@@ -19,9 +19,9 @@ import (
 	"strings"
 	"sync/atomic"
 
+	"github.com/OpenPrinting/go-mfp/log"
+	"github.com/OpenPrinting/go-mfp/transport"
 	"github.com/OpenPrinting/goipp"
-	"github.com/alexpevzner/mfp/log"
-	"github.com/alexpevzner/mfp/transport"
 )
 
 // Client implements Client-side IPP Printer object.

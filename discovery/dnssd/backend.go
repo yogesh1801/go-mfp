@@ -14,10 +14,10 @@ import (
 	"net/netip"
 	"sync"
 
-	"github.com/alexpevzner/go-avahi"
-	"github.com/alexpevzner/mfp/discovery"
-	"github.com/alexpevzner/mfp/internal/zone"
-	"github.com/alexpevzner/mfp/log"
+	"github.com/OpenPrinting/go-avahi"
+	"github.com/OpenPrinting/go-mfp/discovery"
+	"github.com/OpenPrinting/go-mfp/internal/zone"
+	"github.com/OpenPrinting/go-mfp/log"
 )
 
 // backend is the [discovery.Backend] for DNS-SD discovery

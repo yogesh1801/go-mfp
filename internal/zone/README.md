@@ -1,7 +1,7 @@
 # IPv6 zone suffixes handling
 
 ```
-import "github.com/alexpevzner/mfp/internal/zone"
+import "github.com/OpenPrinting/go-mfp/internal/zone"
 ```
 
 This package provides utility functions for iPv6 zone suffixes handling.

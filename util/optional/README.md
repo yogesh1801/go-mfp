@@ -1,7 +1,7 @@
 # eSCL core protocol
 
 ```
-import "github.com/alexpevzner/mfp/util/optional"
+import "github.com/OpenPrinting/go-mfp/util/optional"
 ```
 
 This package provides generic types and functions for dealing with

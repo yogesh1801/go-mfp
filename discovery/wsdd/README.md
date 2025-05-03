@@ -1,7 +1,7 @@
 # DNS-SD service discovery for printers and scanners
 
 ```
-import "github.com/alexpevzner/mfp/discovery/wsdd"
+import "github.com/OpenPrinting/go-mfp/discovery/wsdd"
 ```
 
 This package provides WSD device discovery for printers and scanners.

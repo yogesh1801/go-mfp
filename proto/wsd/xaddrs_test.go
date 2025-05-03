@@ -12,7 +12,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/alexpevzner/mfp/util/xmldoc"
+	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
 // TestXAddrs tests XAddrs encoding and decoding

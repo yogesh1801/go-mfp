@@ -8,7 +8,7 @@
 
 package main
 
-import "github.com/alexpevzner/mfp/cmd/mfp-cups/cups"
+import "github.com/OpenPrinting/go-mfp/cmd/mfp-cups/cups"
 
 // main function for the mfp-cups command
 func main() {

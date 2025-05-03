@@ -9,10 +9,10 @@
 package cmd
 
 import (
-	"github.com/alexpevzner/mfp/argv"
-	"github.com/alexpevzner/mfp/cmd/mfp-cups/cups"
-	"github.com/alexpevzner/mfp/cmd/mfp-discover/discover"
-	"github.com/alexpevzner/mfp/cmd/mfp-masq/masq"
+	"github.com/OpenPrinting/go-mfp/argv"
+	"github.com/OpenPrinting/go-mfp/cmd/mfp-cups/cups"
+	"github.com/OpenPrinting/go-mfp/cmd/mfp-discover/discover"
+	"github.com/OpenPrinting/go-mfp/cmd/mfp-masq/masq"
 )
 
 // AllCommands is the argv.Command, that includes all other commands

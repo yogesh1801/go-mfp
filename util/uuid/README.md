@@ -1,6 +1,6 @@
-# github.com/alexpevzner/mfp/uuid
+# github.com/OpenPrinting/go-mfp/uuid
 ```
-import "github.com/alexpevzner/mfp/util/uuid"
+import "github.com/OpenPrinting/go-mfp/util/uuid"
 ```
 
 This package implements an UUID mini library.

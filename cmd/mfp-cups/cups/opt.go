@@ -15,10 +15,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/alexpevzner/mfp/argv"
-	"github.com/alexpevzner/mfp/cups"
-	"github.com/alexpevzner/mfp/proto/ipp"
-	"github.com/alexpevzner/mfp/transport"
+	"github.com/OpenPrinting/go-mfp/argv"
+	"github.com/OpenPrinting/go-mfp/cups"
+	"github.com/OpenPrinting/go-mfp/proto/ipp"
+	"github.com/OpenPrinting/go-mfp/transport"
 )
 
 // optAttrs describes the --attrs option.

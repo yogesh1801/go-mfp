@@ -13,10 +13,10 @@ import (
 	"net/netip"
 	"sync"
 
-	"github.com/alexpevzner/mfp/discovery/netstate"
-	"github.com/alexpevzner/mfp/proto/wsd"
-	"github.com/alexpevzner/mfp/util/generic"
-	"github.com/alexpevzner/mfp/util/uuid"
+	"github.com/OpenPrinting/go-mfp/discovery/netstate"
+	"github.com/OpenPrinting/go-mfp/proto/wsd"
+	"github.com/OpenPrinting/go-mfp/util/generic"
+	"github.com/OpenPrinting/go-mfp/util/uuid"
 )
 
 // links dynamically manages per-local-address UDP links.

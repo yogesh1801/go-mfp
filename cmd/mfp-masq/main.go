@@ -8,7 +8,7 @@
 
 package main
 
-import "github.com/alexpevzner/mfp/cmd/mfp-masq/masq"
+import "github.com/OpenPrinting/go-mfp/cmd/mfp-masq/masq"
 
 // main function for the mfp-cups command
 func main() {

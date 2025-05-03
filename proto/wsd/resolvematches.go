@@ -9,7 +9,7 @@
 package wsd
 
 import (
-	"github.com/alexpevzner/mfp/util/xmldoc"
+	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
 // ResolveMatches represents a protocol ResolveMatches message.

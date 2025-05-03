@@ -1,6 +1,6 @@
-# github.com/alexpevzner/mfp/dest
+# github.com/OpenPrinting/go-mfp/transport
 
-Thus package contains URL parsers for destination addresses.
+This package contains a low-level transport implementation
 
 <!-- vim:ts=8:sw=4:et:textwidth=72
 -->

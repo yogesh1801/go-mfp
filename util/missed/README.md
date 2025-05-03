@@ -1,7 +1,7 @@
 # Functions, missed from the older versions of the Go stdlib
 
 ```
-import "github.com/alexpevzner/mfp/util/missed"
+import "github.com/OpenPrinting/go-mfp/util/missed"
 ```
 
 This package provides functions that are missed from the older versions

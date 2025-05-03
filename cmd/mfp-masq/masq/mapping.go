@@ -14,7 +14,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/alexpevzner/mfp/transport"
+	"github.com/OpenPrinting/go-mfp/transport"
 )
 
 // mapping defines the mapping between local port and destination URL

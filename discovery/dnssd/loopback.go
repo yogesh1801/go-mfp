@@ -11,7 +11,7 @@ package dnssd
 import (
 	"sync"
 
-	"github.com/alexpevzner/go-avahi"
+	"github.com/OpenPrinting/go-avahi"
 )
 
 var (

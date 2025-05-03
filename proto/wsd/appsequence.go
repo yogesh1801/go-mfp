@@ -12,7 +12,7 @@ import (
 	"errors"
 	"strconv"
 
-	"github.com/alexpevzner/mfp/util/xmldoc"
+	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
 // AppSequence provides a mechanism that allows a receiver

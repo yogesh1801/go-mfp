@@ -13,7 +13,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/alexpevzner/mfp/util/xmldoc"
+	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
 // TestJustification tests [Justification] conversion to and from the XML

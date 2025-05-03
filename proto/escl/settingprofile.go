@@ -9,8 +9,8 @@
 package escl
 
 import (
-	"github.com/alexpevzner/mfp/util/generic"
-	"github.com/alexpevzner/mfp/util/xmldoc"
+	"github.com/OpenPrinting/go-mfp/util/generic"
+	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
 // SettingProfile defines a valid combination of scanning parameters.

@@ -1,7 +1,7 @@
 # WSD core protocol
 
 ```
-import "github.com/alexpevzner/mfp/proto/wsd"
+import "github.com/OpenPrinting/go-mfp/proto/wsd"
 ```
 
 This package provides WSD core protocol implementation, suitable to

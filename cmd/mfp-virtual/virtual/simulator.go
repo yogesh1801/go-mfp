@@ -16,12 +16,12 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/alexpevzner/mfp/abstract"
-	"github.com/alexpevzner/mfp/log"
-	"github.com/alexpevzner/mfp/proto/escl"
-	"github.com/alexpevzner/mfp/transport"
-	"github.com/alexpevzner/mfp/util/generic"
-	"github.com/alexpevzner/mfp/util/uuid"
+	"github.com/OpenPrinting/go-mfp/abstract"
+	"github.com/OpenPrinting/go-mfp/log"
+	"github.com/OpenPrinting/go-mfp/proto/escl"
+	"github.com/OpenPrinting/go-mfp/transport"
+	"github.com/OpenPrinting/go-mfp/util/generic"
+	"github.com/OpenPrinting/go-mfp/util/uuid"
 )
 
 type scanner struct{}

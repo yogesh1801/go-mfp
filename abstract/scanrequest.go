@@ -9,8 +9,8 @@
 package abstract
 
 import (
-	"github.com/alexpevzner/mfp/util/generic"
-	"github.com/alexpevzner/mfp/util/optional"
+	"github.com/OpenPrinting/go-mfp/util/generic"
+	"github.com/OpenPrinting/go-mfp/util/optional"
 )
 
 // ScannerRequest specified scan request parameters

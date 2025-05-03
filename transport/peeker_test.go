@@ -14,7 +14,7 @@ import (
 	"io"
 	"testing"
 
-	"github.com/alexpevzner/mfp/util/generic"
+	"github.com/OpenPrinting/go-mfp/util/generic"
 )
 
 // TestPeeker performs Peeker test

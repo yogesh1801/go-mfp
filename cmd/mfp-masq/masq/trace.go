@@ -15,7 +15,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/alexpevzner/mfp/log"
+	"github.com/OpenPrinting/go-mfp/log"
 )
 
 // traceWriter writes a protocol trace

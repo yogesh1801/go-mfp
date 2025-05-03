@@ -8,7 +8,7 @@
 
 package abstract
 
-import "github.com/alexpevzner/mfp/util/optional"
+import "github.com/OpenPrinting/go-mfp/util/optional"
 
 // Range defines a range of "analog" parameter, like
 // brightness, contrast and similar.
