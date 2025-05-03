@@ -55,5 +55,91 @@ automatically at the first build attrmpt:
   * github.com/google/go-cmp - used only for testing
   * github.com/peterh/liner - line editor for the interactive shell
 
+## Source tree organization
+
+### import github.com/OpenPrinting/go-mfp/abstract"
+
+This package contains definitions for the abstract
+(protocol-independent) printer and scanner.
+
+### import github.com/OpenPrinting/go-mfp/argv"
+
+This is a general-purpose library for parsing command options.
+
+### import github.com/OpenPrinting/go-mfp/cmd"
+
+This is a root directory for all commands (executable files) build as a
+part of this project.
+
+#### import github.com/OpenPrinting/go-mfp/cmd/mfp"
+
+TODO
+
+#### import github.com/OpenPrinting/go-mfp/cmd/mfp-cups"
+
+This is the command-line CUPS client.
+
+#### import github.com/OpenPrinting/go-mfp/cmd/mfp-discover"
+
+This is the command-line device discovery tool.
+
+#### import github.com/OpenPrinting/go-mfp/cmd/mfp-masq"
+
+This is the MFP masquerading tool. It allows to re-expose existent MFP
+device under the different name or different IP address and to sniff its
+traffic (which is convenient tool for troubleshooting).
+
+#### import github.com/OpenPrinting/go-mfp/cmd/mfp-shell"
+
+This is interactive shell for all mfp-XXX commands.
+
+#### import github.com/OpenPrinting/go-mfp/cmd/mfp-virtual"
+
+This is the vurtual MFP simulator.
+
+#### import github.com/OpenPrinting/go-mfp/cups"
+
+This is the CUPS API library. It uses the IPP protocol to communicate
+with the CUPS server.
+
+#### import github.com/OpenPrinting/go-mfp/discovery"
+
+This is the smart MFP discovery library.
+
+#### import github.com/OpenPrinting/go-mfp/internal"
+
+This is the collection of internally used support libraries. These
+libraries are not exposed via the GO-MFP API.
+
+#### import github.com/OpenPrinting/go-mfp/log"
+
+This is the logging library, used across the project.
+
+### import github.com/OpenPrinting/go-mfp/proto"
+
+This is the collection of packages, that implement MFP protocols.
+
+#### import github.com/OpenPrinting/go-mfp/proto/escl"
+
+This is the eSCL protocol implementation.
+
+#### import github.com/OpenPrinting/go-mfp/proto/ipp"
+
+This is the high-level IPP protocol implementation.
+
+#### import github.com/OpenPrinting/go-mfp/proto/wsd"
+
+This is the WS-Discovery protocol implementation, querier and responder.
+
+### import github.com/OpenPrinting/go-mfp/transport"
+
+This is the low-level transport library, used for communication with
+devices.
+
+### import github.com/OpenPrinting/go-mfp/util"
+
+This is the collection of internally used support libraries. These
+libraries are exposed via the GO-MFP API. 
+
 <!-- vim:ts=8:sw=4:et:textwidth=72
 -->
