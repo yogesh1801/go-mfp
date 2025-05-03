@@ -1,5 +1,9 @@
 # GO-MFP
 
+[![godoc.org](https://godoc.org/github.com/OpenPrinting/go-mfp?status.svg)](https://godoc.org/github.com/OpenPrinting/go-mfp)
+![GitHub](https://img.shields.io/github/license/OpenPrinting/go-mfp)
+[![Go Report Card](https://goreportcard.com/badge/github.com/OpenPrinting/go-mfp)](https://goreportcard.com/report/github.com/OpenPrinting/go-mfp)
+
 **Warning:** this project is work in progress and under the intensive
 development.
 
