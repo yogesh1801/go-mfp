@@ -48,8 +48,11 @@ type autoTLSWithSyscallConn interface {
 	SyscallConn() (syscall.RawConn, error)
 }
 
-// NewAutoTLSListener accepts [net.Listener] on input and returns
-// two net.Listeners. Incoming connections are automatically and
+// NewAutoTLSListener provides automatic multiplexing between
+// incoming TLS and plain connections.
+//
+// It accepts [net.Listener] as parameter and returns two
+// net.Listeners. Incoming connections are automatically and
 // transparently multiplexed between these two listeners.
 //
 // First listener received plain (non-TLS) connections, second
