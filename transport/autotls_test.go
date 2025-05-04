@@ -65,12 +65,22 @@ func testAutoTLSHTTP(t *testing.T, tr *Transport, l net.Listener) {
 		w.Write([]byte(response))
 	}
 
-	srvr := &http.Server{
+	srvr1 := &http.Server{
 		Handler:      http.HandlerFunc(handler),
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 5 * time.Second,
 		TLSConfig: &tls.Config{
-			//Certificates: []tls.Certificate{testAutoTLSCert},
+			GetCertificate: func(*tls.ClientHelloInfo) (*tls.Certificate, error) {
+				return testAutoTLSCert, nil
+			},
+		},
+	}
+
+	srvr2 := &http.Server{
+		Handler:      http.HandlerFunc(handler),
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 5 * time.Second,
+		TLSConfig: &tls.Config{
 			GetCertificate: func(*tls.ClientHelloInfo) (*tls.Certificate, error) {
 				return testAutoTLSCert, nil
 			},
@@ -83,12 +93,12 @@ func testAutoTLSHTTP(t *testing.T, tr *Transport, l net.Listener) {
 
 	p, e := NewAutoTLSListener(l)
 	go func() {
-		srvr.Serve(p)
+		srvr1.Serve(p)
 		done.Done()
 	}()
 
 	go func() {
-		srvr.ServeTLS(e, "", "")
+		srvr2.ServeTLS(e, "", "")
 		done.Done()
 	}()
 
@@ -100,6 +110,7 @@ func testAutoTLSHTTP(t *testing.T, tr *Transport, l net.Listener) {
 			continue
 		}
 
+		clnt.CloseIdleConnections()
 		rsp, err := clnt.Do(rq)
 		if err != nil {
 			t.Errorf("GET %s: %s", u, err)
@@ -115,7 +126,8 @@ func testAutoTLSHTTP(t *testing.T, tr *Transport, l net.Listener) {
 	}
 
 	// Shutdown the server
-	srvr.Close()
+	srvr1.Close()
+	srvr2.Close()
 	done.Wait()
 }
 
