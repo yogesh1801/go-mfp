@@ -33,8 +33,8 @@ type autoTLSListener struct {
 
 // autoTLSListenerChild is the child listener for autoTLSListener.
 type autoTLSListenerChild struct {
-	*autoTLSListener
-	encrypted bool
+	*autoTLSListener      // Underlying autoTLSListener
+	encrypted        bool // True for encrypted buddy
 }
 
 // autoTLSListenerQueue is the queue of net.Conn connections.
@@ -47,6 +47,10 @@ type autoTLSListenerQueue struct {
 type autoTLSWithSyscallConn interface {
 	SyscallConn() (syscall.RawConn, error)
 }
+
+// errAutoTLSListenerClosed is the error which is returned on
+// attempt to Accept() from the closed listener.
+var errAutoTLSListenerClosed = errors.New("listener closed")
 
 // NewAutoTLSListener provides automatic multiplexing between
 // incoming TLS and plain connections.
@@ -96,7 +100,7 @@ func newAutoTLSListener(parent net.Listener) (
 // them as plain/encrypted and returns the connection of desired
 // type as soon as it becomes available.
 func (atl *autoTLSListener) accept(encrypted bool) (net.Conn, error) {
-	// Choose queue we are interested in.
+	// Choose the appropriate queue.
 	queue := &atl.plain
 	if encrypted {
 		queue = &atl.encrypted
@@ -110,11 +114,12 @@ func (atl *autoTLSListener) accept(encrypted bool) (net.Conn, error) {
 		// May be we already have a queued connection?
 		c := queue.pull()
 		if c != nil {
-			if atl.closed {
-				connAbort(c)
-				continue
-			}
 			return c, nil
+		}
+
+		// Listener is closed?
+		if atl.closed {
+			return nil, errAutoTLSListenerClosed
 		}
 
 		// Somebody already waits on parent.Accept()?
@@ -125,11 +130,11 @@ func (atl *autoTLSListener) accept(encrypted bool) (net.Conn, error) {
 
 		// We are that happy accepter.
 		atl.haveAccepter = true
+
 		atl.lock.Unlock()
-
 		err := atl.acceptWait()
-
 		atl.lock.Lock()
+
 		atl.haveAccepter = false
 
 		atl.wait.Broadcast()
@@ -144,7 +149,11 @@ func (atl *autoTLSListener) accept(encrypted bool) (net.Conn, error) {
 func (atl *autoTLSListener) close() {
 	atl.lock.Lock()
 
+	// Close the parent listener
 	atl.parent.Close()
+
+	// Mark listener as closed and abort all pending and
+	// queued connections.
 	atl.closed = true
 
 	for c := range atl.pending {
@@ -152,17 +161,30 @@ func (atl *autoTLSListener) close() {
 		delete(atl.pending, c)
 	}
 
+	atl.plain.purge()
+	atl.encrypted.purge()
+
+	// Notify possible Accept-waiters
+	atl.wait.Broadcast()
+
 	atl.lock.Unlock()
 }
 
 // acceptWait waits for the next incoming connection on a parent listener.
-// Then, on success, it calls connClassify() to push the connection into
-// one of connections queue.
+// Then, on success, if calls detectTLS() and pushes connection into
+// the appropriate (plain/encrypted) queue.
 func (atl *autoTLSListener) acceptWait() error {
+	var withTLS bool
+
+	// Accept a connection. Detect TLS on it.
 	c, err := atl.parent.Accept()
 	if err == nil {
 		// Add connection to atl.pending, so if listener will
-		// be closed from another goroutine, read will unblock.
+		// be closed from another goroutine, it will be aware of
+		// our connection and will unblock the atl.detectTLS().
+		//
+		// If listener is already closed, just drop the newly
+		// accepted connection and return.
 		atl.lock.Lock()
 
 		closed := atl.closed
@@ -172,30 +194,39 @@ func (atl *autoTLSListener) acceptWait() error {
 
 		atl.lock.Unlock()
 
-		// Detect TLS, then drop connection from pending.
-		withTLS := false
-		err := errors.New("listener closed")
-
-		if !closed {
-			withTLS, err = atl.detectTLS(c)
-		}
-
-		// Delete connection from pending and push it into
-		// the appropriate queue.
-		atl.lock.Lock()
-		delete(atl.pending, c)
-
-		switch {
-		case err != nil:
+		if closed {
 			connAbort(c)
-		case withTLS:
-			atl.encrypted.push(c)
-		default:
-			atl.plain.push(c)
+			return errAutoTLSListenerClosed
 		}
 
-		atl.lock.Unlock()
+		// Detect TLS
+		withTLS, err = atl.detectTLS(c)
 	}
+
+	// Delete connection from pending and push it into
+	// the appropriate queue.
+	//
+	// Possible errors are also handled here, under the lock.
+	atl.lock.Lock()
+
+	delete(atl.pending, c)
+	switch {
+	case atl.closed:
+		err = errAutoTLSListenerClosed
+	case err != nil:
+	case withTLS:
+		atl.encrypted.push(c)
+	default:
+		atl.plain.push(c)
+	}
+
+	atl.lock.Unlock()
+
+	// Drop the connection in a case of an error.
+	if c != nil && err != nil {
+		connAbort(c)
+	}
+
 	return err
 }
 
@@ -272,8 +303,6 @@ func (l autoTLSListenerChild) Accept() (net.Conn, error) {
 // Close closes the listener.
 func (l autoTLSListenerChild) Close() error {
 	l.close()
-	l.Accept() // This will purge queued connections
-
 	return nil
 }
 
@@ -282,7 +311,7 @@ func (l autoTLSListenerChild) Addr() net.Addr {
 	return l.parent.Addr()
 }
 
-// push pushed connection to the queue.
+// push adds connection to the queue.
 func (q *autoTLSListenerQueue) push(c net.Conn) {
 	q.connections = append(q.connections, c)
 }
@@ -296,4 +325,12 @@ func (q *autoTLSListenerQueue) pull() (c net.Conn) {
 		q.connections = q.connections[:len(q.connections)-1]
 	}
 	return
+}
+
+// purge removes and aborts all the queued connections.
+func (q *autoTLSListenerQueue) purge() {
+	for _, c := range q.connections {
+		connAbort(c)
+	}
+	q.connections = q.connections[:0]
 }
