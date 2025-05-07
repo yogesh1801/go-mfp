@@ -10,13 +10,13 @@ package virtual
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net"
 	"os"
 	"os/exec"
 
 	"github.com/OpenPrinting/go-mfp/abstract"
+	"github.com/OpenPrinting/go-mfp/internal/testutils"
 	"github.com/OpenPrinting/go-mfp/log"
 	"github.com/OpenPrinting/go-mfp/proto/escl"
 	"github.com/OpenPrinting/go-mfp/transport"
@@ -24,9 +24,7 @@ import (
 	"github.com/OpenPrinting/go-mfp/util/uuid"
 )
 
-type scanner struct{}
-
-func (scanner) Capabilities() *abstract.ScannerCapabilities {
+func scannerCapabilities() *abstract.ScannerCapabilities {
 	colorModes := generic.MakeBitset(
 		abstract.ColorModeBinary,
 		abstract.ColorModeMono,
@@ -92,21 +90,16 @@ func (scanner) Capabilities() *abstract.ScannerCapabilities {
 	return caps
 }
 
-func (scanner) Scan(context.Context, abstract.ScannerRequest) (
-	abstract.Document, error) {
-	return nil, errors.New("not implemented")
-}
-
-func (scanner) Close() error {
-	return nil
-}
-
 // simulate runs scanner simulator.
 //
 // If argv is not empty, it specifies the external command that will
 // be run under the simulator.
 func simulate(ctx context.Context, port int, argv []string) error {
-	var s scanner
+	s := &abstract.VirtualScanner{
+		ScanCaps:    scannerCapabilities(),
+		Resolution:  abstract.Resolution{300, 300},
+		PlatenImage: testutils.Images.PNG100x75,
+	}
 
 	// Create a virtual server
 	u := transport.MustParseURL(
