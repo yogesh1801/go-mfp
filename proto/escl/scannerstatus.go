@@ -26,6 +26,21 @@ type ScannerStatus struct {
 	Jobs     []JobInfo              // State of particular jobs
 }
 
+// PushJobInfo pushes [JobInfo] into the beginning of the
+// [ScannerStatus.Jobs] slice.
+//
+// If max > 0, resulting Jobs slice size will not exceed the
+// maximum, and exceeding elements will be thrown away.
+func (status *ScannerStatus) PushJobInfo(info JobInfo, max int) {
+	if max > 0 && len(status.Jobs) >= max {
+		status.Jobs = status.Jobs[0 : max-1]
+	}
+
+	status.Jobs = append(status.Jobs, JobInfo{})
+	copy(status.Jobs[1:], status.Jobs)
+	status.Jobs[0] = info
+}
+
 // DecodeScannerStatus decodes [ScannerStatus] from the XML tree.
 func DecodeScannerStatus(root xmldoc.Element) (
 	status ScannerStatus, err error) {

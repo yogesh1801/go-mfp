@@ -11,10 +11,13 @@ package escl
 import (
 	"errors"
 	"reflect"
+	"strconv"
 	"testing"
 	"time"
 
+	"github.com/OpenPrinting/go-mfp/internal/testutils"
 	"github.com/OpenPrinting/go-mfp/util/optional"
+	"github.com/OpenPrinting/go-mfp/util/uuid"
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
@@ -44,6 +47,50 @@ var testScannerStatus = ScannerStatus{
 			JobStateReasons:  []JobStateReason{JobCompletedSuccessfully},
 		},
 	},
+}
+
+// TestScannerStatusPushJobInfo tests ScannerStatus.PushJobInfo method
+func TestScannerStatusPushJobInfo(t *testing.T) {
+	var jobs [6]JobInfo
+
+	// Prepare array of JobInfo, for testing
+	for i := range jobs {
+		jobuuid := uuid.Must(uuid.Random()).URN()
+		joburi := "/eSCL/ScanJobs/" + strconv.Itoa(i)
+		jobs[i] = JobInfo{
+			JobURI:   joburi,
+			JobUUID:  optional.New(jobuuid),
+			JobState: JobProcessing,
+		}
+	}
+
+	// Push them all, unbounded
+	status := ScannerStatus{}
+	for i := len(jobs) - 1; i >= 0; i-- {
+		status.PushJobInfo(jobs[i], 0)
+	}
+
+	diff := testutils.Diff(status.Jobs, jobs[:])
+	if diff != "" {
+		t.Errorf("ScannerStatus.PushJobInfo test failed:\n%s", diff)
+	}
+
+	// Test how upper limit of pushed jobs works
+	for i := len(jobs) - 1; i >= 0; i-- {
+		status.PushJobInfo(jobs[i], 3)
+	}
+
+	diff = testutils.Diff(status.Jobs, jobs[:3])
+	if diff != "" {
+		t.Errorf("ScannerStatus.PushJobInfo test failed:\n%s", diff)
+	}
+
+	// Test corner case
+	status.PushJobInfo(jobs[0], 1)
+	diff = testutils.Diff(status.Jobs, jobs[:1])
+	if diff != "" {
+		t.Errorf("ScannerStatus.PushJobInfo test failed:\n%s", diff)
+	}
 }
 
 // TestScannerStatus tests [ScannerStatus] conversion
