@@ -15,6 +15,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"path"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -24,6 +25,7 @@ import (
 	"github.com/OpenPrinting/go-mfp/transport"
 	"github.com/OpenPrinting/go-mfp/util/missed"
 	"github.com/OpenPrinting/go-mfp/util/optional"
+	"github.com/OpenPrinting/go-mfp/util/uuid"
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
@@ -33,11 +35,12 @@ const AbstractServerHistorySize = 10
 
 // AbstractServer implements eSCL server on a top of [abstract.Scanner].
 type AbstractServer struct {
-	ctx     context.Context               // Logging context
-	options AbstractServerOptions         // Server options
-	caps    *abstract.ScannerCapabilities // Scanner capabilities
-	status  ScannerStatus                 // Scanner status
-	lock    sync.Mutex                    // Access lock
+	ctx      context.Context               // Logging context
+	options  AbstractServerOptions         // Server options
+	caps     *abstract.ScannerCapabilities // Scanner capabilities
+	status   ScannerStatus                 // Scanner status
+	document abstract.Document             // Document being server
+	lock     sync.Mutex                    // Access lock
 }
 
 // AbstractServerOptions represents the [AbstractServerOptions]
@@ -138,6 +141,20 @@ func (query *abstractServerQuery) Reject(status int, err error) {
 	s := fmt.Sprintf("%3.3d %s\n", status, err)
 	query.Write([]byte(s))
 	query.Write([]byte("\n"))
+}
+
+// Created completes request with the http.StatusCreated
+// status and Location: URL
+func (query *abstractServerQuery) Created(joburi string) {
+	scheme := "http"
+	if query.TLS != nil {
+		scheme = "https"
+	}
+
+	location := scheme + "://" + query.Host + joburi
+
+	query.ResponseHeader().Set("Location", location)
+	query.WriteHeader(http.StatusCreated)
 }
 
 // SendXML sends the XML response.
@@ -252,13 +269,47 @@ func (srv *AbstractServer) postScanJobs(query *abstractServerQuery) {
 		return
 	}
 
+	// Check if previous request already in progress
+	if srv.document != nil {
+		err := errors.New("Device is busy with the previous request")
+		query.Reject(http.StatusServiceUnavailable, err)
+		return
+	}
+
 	// Convert it into the abstract.ScannerRequest and validate
 	absreq := ss.toAbstract()
-	err = absreq.Validate(srv.caps)
+
+	// Generate a new Job UUID. Do it now, because in theory
+	// it can fail (though very unlikely), so do it before
+	// the job is created
+	uu, err := uuid.Random()
+	if err != nil {
+		query.Reject(http.StatusServiceUnavailable, err)
+		return
+	}
+
+	// Send request to the underlying abstract.Scanner
+	document, err := srv.options.Scanner.Scan(srv.ctx, absreq)
 	if err != nil {
 		query.Reject(http.StatusConflict, err)
 		return
 	}
 
-	query.Reject(http.StatusNotImplemented, nil)
+	// Update server status
+	srv.document = document
+	srv.status.State = ScannerProcessing
+
+	jobuuid := uu.URN()
+	joburi := path.Join(srv.options.BaseURL.Path, "ScanJobs", jobuuid)
+
+	info := JobInfo{
+		JobURI:   joburi,
+		JobUUID:  optional.New(jobuuid),
+		JobState: JobProcessing,
+	}
+
+	srv.status.PushJobInfo(info, AbstractServerHistorySize)
+
+	// Complete the request
+	query.Created(joburi)
 }
