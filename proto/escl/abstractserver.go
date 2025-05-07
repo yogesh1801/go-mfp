@@ -214,6 +214,7 @@ func (srv *AbstractServer) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	path, _ := missed.StringsCutPrefix(query.URL.Path,
 		srv.options.BaseURL.Path)
 
+	// Handle {root}-relative requests
 	switch path {
 	case "ScannerCapabilities":
 		if query.Method == "GET" {
@@ -231,6 +232,29 @@ func (srv *AbstractServer) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 		if rq.Method == "POST" {
 			srv.postScanJobs(query)
 			return
+		}
+	}
+
+	// Handle {JobUri}-relative requests
+	if srv.document != nil {
+		joburi := srv.status.Jobs[0].JobURI
+
+		switch rq.Method {
+		case "GET":
+			switch query.URL.Path {
+			case joburi + "/NextDocument":
+				srv.getJobUriNextDocument(query)
+				return
+			case joburi + "/ScanImageInfo":
+				srv.getJobUriScanImageInfo(query)
+				return
+			}
+
+		case "DELETE":
+			if query.URL.Path == joburi {
+				srv.deleteJobUri(query)
+				return
+			}
 		}
 	}
 
@@ -312,4 +336,19 @@ func (srv *AbstractServer) postScanJobs(query *abstractServerQuery) {
 
 	// Complete the request
 	query.Created(joburi)
+}
+
+// getJobUriNextDocument handles GET /{JobUri}/NextDocument
+func (srv *AbstractServer) getJobUriNextDocument(query *abstractServerQuery) {
+	query.Reject(http.StatusNotImplemented, nil)
+}
+
+// getJobUriScanImageInfo handles GET /{JobUri}/ScanImageInfo
+func (srv *AbstractServer) getJobUriScanImageInfo(query *abstractServerQuery) {
+	query.Reject(http.StatusNotImplemented, nil)
+}
+
+// deleteJobUri handles DELETE /{JobUri}
+func (srv *AbstractServer) deleteJobUri(query *abstractServerQuery) {
+	query.Reject(http.StatusNotImplemented, nil)
 }
