@@ -12,6 +12,8 @@ import (
 	"bytes"
 	"io"
 	"testing"
+
+	"github.com/OpenPrinting/go-mfp/internal/testutils"
 )
 
 // TestDocumentFromBytes tests documents, created by NewDocumentFromBytes
@@ -22,12 +24,10 @@ func TestDocumentFromBytes(t *testing.T) {
 		[]byte("222"),
 	}
 
-	format := "application/data"
 	res := Resolution{200, 200}
 
 	newdoc := func() Document {
-		return NewDocumentFromBytes(format, res,
-			files...)
+		return NewDocumentFromBytes(res, files...)
 	}
 
 	// Test normal usage
@@ -35,12 +35,12 @@ func TestDocumentFromBytes(t *testing.T) {
 
 	buf := &bytes.Buffer{}
 	cnt := 0
-	rd, err := doc.Next()
+	file, err := doc.Next()
 	for err == nil {
-		io.Copy(buf, rd)
+		io.Copy(buf, file)
 		cnt++
 
-		rd, err = doc.Next()
+		file, err = doc.Next()
 	}
 
 	if err != io.EOF {
@@ -56,10 +56,6 @@ func TestDocumentFromBytes(t *testing.T) {
 		t.Errorf("Returned data mismatch: %q != %q", buf, joined)
 	}
 
-	if doc.Format() != format {
-		t.Errorf("Format mismatch: %q != %q", doc.Format(), format)
-	}
-
 	if doc.Resolution() != res {
 		t.Errorf("Resolution mismatch: %v != %v",
 			doc.Resolution(), res)
@@ -67,9 +63,9 @@ func TestDocumentFromBytes(t *testing.T) {
 
 	// Test reading from closed document
 	doc = newdoc()
-	rd, _ = doc.Next()
+	file, _ = doc.Next()
 	doc.Close()
-	_, err = rd.Read(make([]byte, 5))
+	_, err = file.Read(make([]byte, 5))
 	if err != ErrDocumentClosed {
 		t.Errorf("Read from closed document:\n"+
 			"error expected: %s\n"+
@@ -86,5 +82,54 @@ func TestDocumentFromBytes(t *testing.T) {
 			"error expected: %s\n"+
 			"error present:  %s\n",
 			ErrDocumentClosed, err)
+	}
+}
+
+// TestDocumentFromBytesFileFormat tests DocumentFile format
+// for documents, created by NewDocumentFromBytes
+func TestDocumentFromBytesFileFormat(t *testing.T) {
+	type testData struct {
+		data   []byte
+		format string
+	}
+
+	tests := []testData{
+		{
+			data:   testutils.Images.BMP100x75,
+			format: DocumentFormatBMP,
+		},
+
+		{
+			data:   testutils.Images.PNG100x75,
+			format: DocumentFormatPNG,
+		},
+
+		{
+			data:   testutils.Images.JPEG100x75,
+			format: DocumentFormatJPEG,
+		},
+	}
+
+	// Create a test document
+	files := [][]byte{}
+	for _, test := range tests {
+		files = append(files, test.data)
+	}
+
+	res := Resolution{200, 200}
+	doc := NewDocumentFromBytes(res, files...)
+
+	// Verify that formats are properly recognized
+	for _, test := range tests {
+		file, err := doc.Next()
+		if err != nil {
+			panic(err) // Should not happen
+		}
+
+		format := file.Format()
+		if format != test.format {
+			t.Errorf("DocumentFile.Format: expected %q, present %q",
+				test.format, format)
+		}
 	}
 }

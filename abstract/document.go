@@ -13,7 +13,7 @@ import (
 	"sync"
 )
 
-// Document contains one or more image files, each of which may include
+// Document contains one or more [DocumentFile]s, each of which may include
 // (depending on the format) one or more image pages.
 //
 // For example, ADF scanner may return a Document that contains multiple
@@ -27,10 +27,6 @@ import (
 // The document interface is optimized for streaming images, eliminating
 // the need to maintain a full-page image buffer in memory.
 type Document interface {
-	// Format returns the MIME type of the image format used by
-	// the document.
-	Format() string
-
 	// Resolution returns the document's rendering resolution in DPI
 	// (dots per inch).
 	//
@@ -42,69 +38,98 @@ type Document interface {
 	// embedded information will most likely be used instead.
 	Resolution() Resolution
 
-	// Next returns the next document file, represented as
-	// a byte stream.
+	// Next returns the next [DocumentFile].
 	//
-	// Next implicitly closes the reader, returned by the
+	// Next implicitly closes the file, returned by the
 	// previous call to the Next function.
 	//
-	// If there are no more pages, Next returns [io.EOF].
-	Next() (io.Reader, error)
+	// If there are no more files, Next returns [io.EOF].
+	Next() (DocumentFile, error)
 
 	// Close closes the Document. It implicitly closes the current
 	// image being read.
 	Close() error
 }
 
+// DocumentFile represents a single file, contained in the document.
+//
+// Essentially, it is the [io.Reader] that returns bytes from the
+// file. In the most cases, the DocumentFile will not load all
+// image bytes into the memory, but instead will read it on demand
+// from the external source (say, network connection or a disk file).
+type DocumentFile interface {
+	// Format returns the MIME type of the image format used by
+	// the document file.
+	Format() string
+
+	// Read reads the document file content as a sequence of bytes.
+	// It implements the [io.Reader] interface.
+	Read([]byte) (int, error)
+}
+
 // documentFromBytes is the [Document], constructed by the
 // [NewDocumentFromBytes] from a sequence of byte slices.
 type documentFromBytes struct {
-	format string               // Returned by Document.Format
-	res    Resolution           // Returned by Document.Resolution
-	files  [][]byte             // Remaining "files"
-	reader *documentBytesReader // Current reader
-	closed bool                 // True if document is closed
-	lock   sync.Mutex           // Access lock
+	res    Resolution             // Returned by Document.Resolution
+	files  [][]byte               // Remaining "files"
+	file   *documentFromBytesFile // Current file
+	closed bool                   // True if document is closed
+	lock   sync.Mutex             // Access lock
 }
 
-// documentBytesReader implements io.Reader for reading from
+// documentFromBytesFile implements the [DocumentFile] for reading from
 // the documentFromBytes
-type documentBytesReader struct {
-	data []byte     // Remaining data bytes
-	lock sync.Mutex // Access lock
+type documentFromBytesFile struct {
+	format string     // Returned by DocumentFile.Format
+	data   []byte     // Remaining data bytes
+	lock   sync.Mutex // Access lock
 }
 
-// Read reads data bytes from the [documentBytesReader].
-func (rd *documentBytesReader) Read(buf []byte) (n int, err error) {
-	rd.lock.Lock()
+// newDocumentFromBytesFile returns new documentFromBytesFile
+func newDocumentFromBytesFile(data []byte) *documentFromBytesFile {
+	format := DocumentFormatDetect(data)
+	if format == "" {
+		format = DocumentFormatData
+	}
+
+	return &documentFromBytesFile{
+		format: format,
+		data:   data,
+	}
+}
+
+// Format returns the MIME type of the image format used by
+// the document file.
+func (file *documentFromBytesFile) Format() string {
+	return file.format
+}
+
+// Read reads data bytes from the [documentFromBytesFile].
+func (file *documentFromBytesFile) Read(buf []byte) (n int, err error) {
+	file.lock.Lock()
 
 	switch {
-	case rd.data == nil:
+	case file.data == nil:
 		err = ErrDocumentClosed
 
-	case len(rd.data) == 0:
+	case len(file.data) == 0:
 		err = io.EOF
 
 	default:
-		n = copy(buf, rd.data)
-		rd.data = rd.data[n:]
+		n = copy(buf, file.data)
+		file.data = file.data[n:]
 	}
 
-	rd.lock.Unlock()
+	file.lock.Unlock()
 
 	return
 }
 
-// close closes the documentBytesReader
-func (rd *documentBytesReader) close() {
-	rd.lock.Lock()
-	rd.data = nil
-	rd.lock.Unlock()
-}
-
-// Format returns Document's MIME type
-func (doc *documentFromBytes) Format() string {
-	return doc.format
+// close closes the documentFromBytesFile
+func (file *documentFromBytesFile) close() {
+	file.lock.Lock()
+	file.data = nil
+	file.lock.Unlock()
 }
 
 // Format returns Document's Resolution
@@ -113,7 +138,7 @@ func (doc *documentFromBytes) Resolution() Resolution {
 }
 
 // Next returns the next file as [io.Reader]
-func (doc *documentFromBytes) Next() (io.Reader, error) {
+func (doc *documentFromBytes) Next() (DocumentFile, error) {
 	// Lock the lock
 	doc.lock.Lock()
 	defer doc.lock.Unlock()
@@ -123,17 +148,17 @@ func (doc *documentFromBytes) Next() (io.Reader, error) {
 		return nil, ErrDocumentClosed
 	}
 
-	// Close the previously returned reader
-	if doc.reader != nil {
-		doc.reader.close()
-		doc.reader = nil
+	// Close the previously returned file
+	if doc.file != nil {
+		doc.file.close()
+		doc.file = nil
 	}
 
-	// Return new reader, if more data is available
+	// Return new file, if more data is available
 	if len(doc.files) != 0 {
-		doc.reader = &documentBytesReader{data: doc.files[0]}
+		doc.file = newDocumentFromBytesFile(doc.files[0])
 		doc.files = doc.files[1:]
-		return doc.reader, nil
+		return doc.file, nil
 	}
 
 	return nil, io.EOF
@@ -145,10 +170,10 @@ func (doc *documentFromBytes) Close() error {
 	doc.lock.Lock()
 	defer doc.lock.Unlock()
 
-	// Close current reader
-	if doc.reader != nil {
-		doc.reader.close()
-		doc.reader = nil
+	// Close current file
+	if doc.file != nil {
+		doc.file.close()
+		doc.file = nil
 	}
 
 	// Purge the document
@@ -161,11 +186,9 @@ func (doc *documentFromBytes) Close() error {
 // NewDocumentFromBytes creates a new [Document], composed from
 // the supplied byte slices. Each slice corresponds to the single
 // file, returned by the Document.Next
-func NewDocumentFromBytes(format string, res Resolution,
-	files ...[]byte) Document {
+func NewDocumentFromBytes(res Resolution, files ...[]byte) Document {
 	return &documentFromBytes{
-		format: format,
-		res:    res,
-		files:  files,
+		res:   res,
+		files: files,
 	}
 }

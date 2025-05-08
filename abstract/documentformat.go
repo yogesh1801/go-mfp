@@ -17,6 +17,7 @@ const (
 	DocumentFormatPDF  = "application/pdf"
 	DocumentFormatPNG  = "image/png"
 	DocumentFormatTIFF = "image/tiff"
+	DocumentFormatData = "application/octet-stream"
 )
 
 // DocumentFormatDetect detects document type by its few starting bytes
