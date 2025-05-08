@@ -164,6 +164,13 @@ func (query *abstractServerQuery) SendXML(xml xmldoc.Element) {
 	xml.EncodeIndent(query, NsMap, "  ")
 }
 
+// SendImage sends the scanned image
+func (query *abstractServerQuery) SendImage(file abstract.DocumentFile) {
+	query.ResponseHeader().Set("Content-Type", file.Format())
+	query.WriteHeader(http.StatusOK)
+	io.Copy(query, file)
+}
+
 // NewAbstractServer returns a new [AbstractServer].
 func NewAbstractServer(ctx context.Context,
 	options AbstractServerOptions) *AbstractServer {
@@ -215,50 +222,54 @@ func (srv *AbstractServer) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 		srv.options.BaseURL.Path)
 
 	// Handle {root}-relative requests
+	var action func(*abstractServerQuery)
+
+	srv.lock.Lock()
+
 	switch path {
 	case "ScannerCapabilities":
 		if query.Method == "GET" {
-			srv.getScannerCapabilities(query)
-			return
+			action = srv.getScannerCapabilities
 		}
 
 	case "ScannerStatus":
 		if rq.Method == "GET" {
-			srv.getScannerStatus(query)
-			return
+			action = srv.getScannerStatus
 		}
 
 	case "ScanJobs":
 		if rq.Method == "POST" {
-			srv.postScanJobs(query)
-			return
+			action = srv.postScanJobs
 		}
 	}
 
 	// Handle {JobUri}-relative requests
-	if srv.document != nil {
+	if action == nil && srv.document != nil {
 		joburi := srv.status.Jobs[0].JobURI
 
 		switch rq.Method {
 		case "GET":
 			switch query.URL.Path {
 			case joburi + "/NextDocument":
-				srv.getJobUriNextDocument(query)
-				return
+				action = srv.getJobURINextDocument
 			case joburi + "/ScanImageInfo":
-				srv.getJobUriScanImageInfo(query)
-				return
+				action = srv.getJobURIScanImageInfo
 			}
 
 		case "DELETE":
 			if query.URL.Path == joburi {
-				srv.deleteJobUri(query)
-				return
+				action = srv.deleteJobURI
 			}
 		}
 	}
 
-	query.Reject(http.StatusNotFound, nil)
+	srv.lock.Unlock()
+
+	if action != nil {
+		action(query)
+	} else {
+		query.Reject(http.StatusNotFound, nil)
+	}
 }
 
 // getScannerCapabilities handles GET /{root}/ScannerCapabilities request
@@ -279,6 +290,9 @@ func (srv *AbstractServer) getScannerStatus(query *abstractServerQuery) {
 
 // postScanJobs handles POST /{root}/ScanJobs
 func (srv *AbstractServer) postScanJobs(query *abstractServerQuery) {
+	srv.lock.Lock()
+	defer srv.lock.Unlock()
+
 	// Fetch the XML request body
 	xml, err := xmldoc.Decode(NsMap, query.RequestBody())
 	if err != nil {
@@ -338,17 +352,47 @@ func (srv *AbstractServer) postScanJobs(query *abstractServerQuery) {
 	query.Created(joburi)
 }
 
-// getJobUriNextDocument handles GET /{JobUri}/NextDocument
-func (srv *AbstractServer) getJobUriNextDocument(query *abstractServerQuery) {
+// getJobURINextDocument handles GET /{JobUri}/NextDocument
+func (srv *AbstractServer) getJobURINextDocument(query *abstractServerQuery) {
+	srv.lock.Lock()
+	file, err := srv.document.Next()
+	srv.lock.Unlock()
+
+	switch {
+	case err == io.EOF:
+		srv.finish(JobCompleted, JobCompletedSuccessfully)
+		query.Reject(http.StatusNotFound, nil)
+
+	case err != nil:
+		srv.finish(JobCanceled, AbortedBySystem)
+		query.Reject(http.StatusServiceUnavailable, err)
+
+	default:
+		query.SendImage(file)
+	}
+}
+
+// getJobURIScanImageInfo handles GET /{JobUri}/ScanImageInfo
+func (srv *AbstractServer) getJobURIScanImageInfo(query *abstractServerQuery) {
 	query.Reject(http.StatusNotImplemented, nil)
 }
 
-// getJobUriScanImageInfo handles GET /{JobUri}/ScanImageInfo
-func (srv *AbstractServer) getJobUriScanImageInfo(query *abstractServerQuery) {
-	query.Reject(http.StatusNotImplemented, nil)
+// deleteJobURI handles DELETE /{JobUri}
+func (srv *AbstractServer) deleteJobURI(query *abstractServerQuery) {
+	srv.finish(JobCanceled, JobCanceledByUser)
+	query.WriteHeader(http.StatusOK)
 }
 
-// deleteJobUri handles DELETE /{JobUri}
-func (srv *AbstractServer) deleteJobUri(query *abstractServerQuery) {
-	query.Reject(http.StatusNotImplemented, nil)
+// finish finishes the current job and updates server state
+func (srv *AbstractServer) finish(state JobState, reason JobStateReason) {
+	srv.lock.Lock()
+	defer srv.lock.Unlock()
+
+	srv.document.Close()
+	srv.document = nil
+	srv.status.State = ScannerIdle
+	srv.status.Jobs[0].JobState = state
+	if reason != UnknownJobStateReason {
+		srv.status.Jobs[0].JobStateReasons = []JobStateReason{reason}
+	}
 }
