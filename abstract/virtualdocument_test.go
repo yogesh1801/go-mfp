@@ -4,7 +4,7 @@
 // Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
 // See LICENSE for license terms and conditions
 //
-// Document tests
+// VirtualDocument tests
 
 package abstract
 
@@ -16,7 +16,7 @@ import (
 	"github.com/OpenPrinting/go-mfp/internal/testutils"
 )
 
-// TestDocumentFromBytes tests documents, created by NewDocumentFromBytes
+// TestDocumentFromBytes tests documents, created by NewVirtualDocument
 func TestDocumentFromBytes(t *testing.T) {
 	files := [][]byte{
 		[]byte("000"),
@@ -27,7 +27,7 @@ func TestDocumentFromBytes(t *testing.T) {
 	res := Resolution{200, 200}
 
 	newdoc := func() Document {
-		return NewDocumentFromBytes(res, files...)
+		return NewVirtualDocument(res, files...)
 	}
 
 	// Test normal usage
@@ -86,7 +86,7 @@ func TestDocumentFromBytes(t *testing.T) {
 }
 
 // TestDocumentFromBytesFileFormat tests DocumentFile format
-// for documents, created by NewDocumentFromBytes
+// for documents, created by NewVirtualDocument
 func TestDocumentFromBytesFileFormat(t *testing.T) {
 	type testData struct {
 		data   []byte
@@ -117,7 +117,7 @@ func TestDocumentFromBytesFileFormat(t *testing.T) {
 	}
 
 	res := Resolution{200, 200}
-	doc := NewDocumentFromBytes(res, files...)
+	doc := NewVirtualDocument(res, files...)
 
 	// Verify that formats are properly recognized
 	for _, test := range tests {

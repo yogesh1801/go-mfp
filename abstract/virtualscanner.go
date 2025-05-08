@@ -39,7 +39,7 @@ func (vscan *VirtualScanner) Scan(ctx context.Context, req ScannerRequest) (
 		images = vscan.ADFImages
 	}
 
-	doc := NewDocumentFromBytes(vscan.Resolution, images...)
+	doc := NewVirtualDocument(vscan.Resolution, images...)
 	return doc, nil
 }
 
