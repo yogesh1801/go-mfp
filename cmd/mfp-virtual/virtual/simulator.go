@@ -98,7 +98,7 @@ func simulate(ctx context.Context, port int, argv []string) error {
 	s := &abstract.VirtualScanner{
 		ScanCaps:    scannerCapabilities(),
 		Resolution:  abstract.Resolution{300, 300},
-		PlatenImage: testutils.Images.PNG100x75,
+		PlatenImage: testutils.Images.PNG5100x7016,
 	}
 
 	// Create a virtual server
