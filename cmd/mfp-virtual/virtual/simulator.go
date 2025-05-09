@@ -97,8 +97,11 @@ func scannerCapabilities() *abstract.ScannerCapabilities {
 // be run under the simulator.
 func simulate(ctx context.Context, port int, argv []string) error {
 	s := &abstract.VirtualScanner{
-		ScanCaps:    scannerCapabilities(),
-		Resolution:  abstract.Resolution{300, 300},
+		ScanCaps: scannerCapabilities(),
+		Resolution: abstract.Resolution{
+			XResolution: 300,
+			YResolution: 300,
+		},
 		PlatenImage: testutils.Images.PNG5100x7016,
 	}
 
