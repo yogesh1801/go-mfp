@@ -14,6 +14,7 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/OpenPrinting/go-mfp/abstract"
 	"github.com/OpenPrinting/go-mfp/internal/testutils"
@@ -121,14 +122,23 @@ func simulate(ctx context.Context, port int, argv []string) error {
 
 	// Run external command if specified
 	if len(argv) != 0 {
+		const envAirscanDevice = "SANE_AIRSCAN_DEVICE"
+
 		cmd := exec.CommandContext(ctx, argv[0], argv[1:]...)
 
 		cmd.Stdin = os.Stdin
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 
-		env := fmt.Sprintf("SANE_AIRSCAN_DEVICE=escl:%s:%s",
+		for _, env := range os.Environ() {
+			if !strings.HasPrefix(env, envAirscanDevice+"=") {
+				cmd.Env = append(cmd.Env, env)
+			}
+		}
+
+		env := fmt.Sprintf(envAirscanDevice+"=escl:%s:%s",
 			"Virtual MFP Scanner", u)
+
 		cmd.Env = append(cmd.Env, env)
 
 		go func() {
