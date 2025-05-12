@@ -3,6 +3,7 @@ SUBDIRS	= \
 	cmd \
 	cups \
 	discovery \
+	imgconv \
 	proto \
 	internal \
 	log \
