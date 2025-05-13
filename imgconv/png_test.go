@@ -47,8 +47,8 @@ func TestPNG(t *testing.T) {
 					x, y,
 					expected, present,
 				)
+				return
 			}
-			return
 		}
 	}
 }
