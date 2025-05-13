@@ -20,6 +20,7 @@ var Images struct {
 	JPEG100x75      []byte
 	PDF100x75       []byte
 	PNG100x75rgb8   []byte
+	PNG100x75rgb16  []byte
 	PNG100x75gray8  []byte
 	PNG100x75gray16 []byte
 	TIFF100x75      []byte
@@ -43,6 +44,9 @@ var imagePDF100x75 []byte
 //go:embed "data/UEIT-100x75rgb8.png"
 var imagePNG100x75rgb8 []byte
 
+//go:embed "data/UEIT-100x75rgb16.png"
+var imagePNG100x75rgb16 []byte
+
 //go:embed "data/UEIT-100x75gray8.png"
 var imagePNG100x75gray8 []byte
 
@@ -60,6 +64,7 @@ func init() {
 	Images.JPEG100x75 = imageJPEG100x75
 	Images.PDF100x75 = imagePDF100x75
 	Images.PNG100x75rgb8 = imagePNG100x75rgb8
+	Images.PNG100x75rgb16 = imagePNG100x75rgb16
 	Images.PNG100x75gray8 = imagePNG100x75gray8
 	Images.PNG100x75gray16 = imagePNG100x75gray16
 	Images.TIFF100x75 = imageTIFF100x75
