@@ -112,8 +112,8 @@ type pngDecoderWrapper struct {
 	pngDecoder
 }
 
-// newPNGDecoder Creates a new [Decoder] for PNG images
-func newPNGDecoder(input io.Reader) (Decoder, error) {
+// NewPNGDecoder creates a new [Decoder] for PNG images
+func NewPNGDecoder(input io.Reader) (Decoder, error) {
 	// Create decoder structure. Initialize libpng stuff
 	decoder := &pngDecoderWrapper{pngDecoder{input: input, y: -1}}
 	decoder.handle = cgo.NewHandle(decoder)

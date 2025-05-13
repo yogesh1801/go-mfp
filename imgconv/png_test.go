@@ -18,7 +18,7 @@ import (
 
 func TestPNG(t *testing.T) {
 	in := bytes.NewReader(testutils.Images.PNG100x75rgb8)
-	decoder, err := newPNGDecoder(in)
+	decoder, err := NewPNGDecoder(in)
 	if err != nil {
 		panic(err)
 	}
