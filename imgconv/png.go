@@ -149,11 +149,13 @@ func NewPNGDecoder(input io.Reader) (Decoder, error) {
 	var bytesPerPixel int
 	var wrapper Decoder
 
+	gray := (colorType & C.PNG_COLOR_MASK_COLOR) == C.PNG_COLOR_TYPE_GRAY
+
 	if colorType == C.PNG_COLOR_TYPE_PALETTE {
 		C.png_set_palette_to_rgb(decoder.png)
 	}
 
-	if colorType == C.PNG_COLOR_TYPE_GRAY && depth < 8 {
+	if gray && depth < 8 {
 		C.png_set_expand_gray_1_2_4_to_8(decoder.png)
 	}
 
@@ -161,7 +163,7 @@ func NewPNGDecoder(input io.Reader) (Decoder, error) {
 		C.png_set_strip_alpha(decoder.png)
 	}
 
-	if colorType == C.PNG_COLOR_TYPE_GRAY {
+	if gray {
 		bytesPerPixel = 1
 		wrapper = (*pngDecoderGray8)(decoder)
 

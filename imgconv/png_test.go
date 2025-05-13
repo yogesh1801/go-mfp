@@ -16,39 +16,68 @@ import (
 	"github.com/OpenPrinting/go-mfp/internal/testutils"
 )
 
-func TestPNG(t *testing.T) {
-	in := bytes.NewReader(testutils.Images.PNG100x75rgb8)
-	decoder, err := NewPNGDecoder(in)
-	if err != nil {
-		panic(err)
+func TestPNGDecode(t *testing.T) {
+	type testData struct {
+		name string // Image name, for logging
+		data []byte // Image data
 	}
 
-	image, err := png.Decode(bytes.NewReader(testutils.Images.PNG100x75rgb8))
-
-	if decoder.Bounds() != image.Bounds() {
-		t.Errorf("Bounds mismatch:\n"+
-			"expected: %v\n"+
-			"present:  %v\n",
-			image.Bounds(),
-			decoder.Bounds(),
-		)
+	tests := []testData{
+		{"PNG100x75rgb8", testutils.Images.PNG100x75rgb8},
+		{"PNG100x75gray8", testutils.Images.PNG100x75gray8},
+		{"PNG100x75gray16", testutils.Images.PNG100x75gray16},
+		{"PNG100x75rgb16", testutils.Images.PNG100x75rgb16},
 	}
 
-	bounds := decoder.Bounds()
+	for _, test := range tests {
+		in := bytes.NewReader(test.data)
+		decoder, err := NewPNGDecoder(in)
+		if err != nil {
+			t.Errorf("%s: NewPNGDecoder: %s",
+				test.name, err)
+			continue
+		}
 
-	for y := 0; y < bounds.Dy(); y++ {
-		for x := 0; x < bounds.Dx(); x++ {
-			expected := image.At(x, y)
-			present := decoder.At(x, y)
-			if !colorEqual(expected, present) {
-				t.Errorf("At(%d,%d) mismatch:\n"+
-					"expected: %v\n"+
-					"present:  %v\n",
-					x, y,
-					expected, present,
-				)
-				return
+		// Decode reference reference
+		reference, err := png.Decode(bytes.NewReader(test.data))
+		if err != nil {
+			panic(err)
+		}
+
+		// Compare image size
+		if decoder.Bounds() != reference.Bounds() {
+			t.Errorf("%s: Bounds mismatch:\n"+
+				"expected: %v\n"+
+				"present:  %v\n",
+				test.name,
+				reference.Bounds(),
+				decoder.Bounds(),
+			)
+			decoder.Close()
+			continue
+		}
+
+		width := decoder.Bounds().Dx()
+		height := decoder.Bounds().Dy()
+
+		fail := false
+		for y := 0; y < height && !fail; y++ {
+			for x := 0; x < width && !fail; x++ {
+				expected := reference.At(x, y)
+				present := decoder.At(x, y)
+				if !colorEqual(expected, present) {
+					t.Errorf("%s: At(%d,%d) mismatch:\n"+
+						"expected: %v\n"+
+						"present:  %v\n",
+						test.name,
+						x, y,
+						expected, present,
+					)
+					fail = true
+				}
 			}
 		}
+
+		decoder.Close()
 	}
 }
