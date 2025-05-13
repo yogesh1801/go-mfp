@@ -351,7 +351,7 @@ func (decoder *pngDecoderRGB24) At(x, y int) color.Color {
 	s := decoder.rowBytes[off : off+3]
 
 	if y == decoder.y {
-		return color.NRGBA{
+		return color.RGBA{
 			R: uint8(s[0]),
 			G: uint8(s[1]),
 			B: uint8(s[2]),
@@ -361,7 +361,7 @@ func (decoder *pngDecoderRGB24) At(x, y int) color.Color {
 
 	decoder.readRow(y)
 	if decoder.err == nil {
-		return color.NRGBA{
+		return color.RGBA{
 			R: uint8(s[0]),
 			G: uint8(s[1]),
 			B: uint8(s[2]),
@@ -369,7 +369,7 @@ func (decoder *pngDecoderRGB24) At(x, y int) color.Color {
 		}
 	}
 
-	return color.NRGBA{R: 255, G: 255, B: 255, A: 255}
+	return color.RGBA{R: 255, G: 255, B: 255, A: 255}
 }
 
 // pngDecoderRGB48 implements PNP [Decoder] for 16-bit RGB images
@@ -391,7 +391,7 @@ func (decoder *pngDecoderRGB48) At(x, y int) color.Color {
 		r := (uint16(s[0]) << 8) | uint16(s[1])
 		g := (uint16(s[2]) << 8) | uint16(s[3])
 		b := (uint16(s[4]) << 8) | uint16(s[5])
-		return color.NRGBA64{R: r, G: g, B: b, A: 65535}
+		return color.RGBA64{R: r, G: g, B: b, A: 65535}
 	}
 
 	decoder.readRow(y)
@@ -399,8 +399,8 @@ func (decoder *pngDecoderRGB48) At(x, y int) color.Color {
 		r := (uint16(s[0]) << 8) | uint16(s[1])
 		g := (uint16(s[2]) << 8) | uint16(s[3])
 		b := (uint16(s[4]) << 8) | uint16(s[5])
-		return color.NRGBA64{R: r, G: g, B: b, A: 65535}
+		return color.RGBA64{R: r, G: g, B: b, A: 65535}
 	}
 
-	return color.NRGBA64{R: 65535, G: 65535, B: 65535, A: 65535}
+	return color.RGBA64{R: 65535, G: 65535, B: 65535, A: 65535}
 }
