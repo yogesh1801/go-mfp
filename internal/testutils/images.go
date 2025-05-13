@@ -16,12 +16,13 @@ import (
 // Images contains samples of test images of various formats and sizes
 var Images struct {
 	// Small images in various formats
-	BMP100x75      []byte
-	JPEG100x75     []byte
-	PDF100x75      []byte
-	PNG100x75rgb8  []byte
-	PNG100x75gray8 []byte
-	TIFF100x75     []byte
+	BMP100x75       []byte
+	JPEG100x75      []byte
+	PDF100x75       []byte
+	PNG100x75rgb8   []byte
+	PNG100x75gray8  []byte
+	PNG100x75gray16 []byte
+	TIFF100x75      []byte
 
 	// This page is suitable as both A4 and Letter image sample
 	// at 600 DPI:
@@ -45,6 +46,9 @@ var imagePNG100x75rgb8 []byte
 //go:embed "data/UEIT-100x75gray8.png"
 var imagePNG100x75gray8 []byte
 
+//go:embed "data/UEIT-100x75gray16.png"
+var imagePNG100x75gray16 []byte
+
 //go:embed "data/UEIT-100x75.tiff"
 var imageTIFF100x75 []byte
 
@@ -57,6 +61,7 @@ func init() {
 	Images.PDF100x75 = imagePDF100x75
 	Images.PNG100x75rgb8 = imagePNG100x75rgb8
 	Images.PNG100x75gray8 = imagePNG100x75gray8
+	Images.PNG100x75gray16 = imagePNG100x75gray16
 	Images.TIFF100x75 = imageTIFF100x75
 	Images.PNG5100x7016 = imagePNG5100x7016
 }
