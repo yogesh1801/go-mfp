@@ -40,7 +40,7 @@ func TestPNG(t *testing.T) {
 		for x := 0; x < bounds.Dx(); x++ {
 			expected := image.At(x, y)
 			present := decoder.At(x, y)
-			if expected != present {
+			if !colorEqual(expected, present) {
 				t.Errorf("At(%d,%d) mismatch:\n"+
 					"expected: %v\n"+
 					"present:  %v\n",
