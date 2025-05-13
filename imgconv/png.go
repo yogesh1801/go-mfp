@@ -22,6 +22,7 @@ import (
 // #cgo pkg-config: libpng
 //
 // #include <png.h>
+// #include <setjmp.h>
 // #include <stdlib.h>
 //
 // void pngErrorCallback(png_struct *png_ptr, png_const_charp msg);
@@ -30,12 +31,22 @@ import (
 // void pngFreeCallback(png_struct *png_ptr, void *p);
 // void pngReadCallback(png_struct *png_ptr, png_bytep data, size_t size);
 //
+// // do_pngErrorCallback wraps pngErrorCallback.
+// // The wrapper is required, because we cannot call png_longjmp from Go.
+// static inline void
+// do_pngErrorCallback(png_struct *png, const char *message) {
+//     pngErrorCallback(png, message);
+//     png_longjmp(png, 1);
+// }
+//
+// // do_png_create_read_struct wraps png_create_read_struct_2.
+// // This is the convenience wrapper.
 // static inline png_struct*
 // do_png_create_read_struct(void *p) {
 //     png_struct *png;
 //
 //     png = png_create_read_struct_2(PNG_LIBPNG_VER_STRING,
-//         p, pngErrorCallback, pngWarningCallback,
+//         p, do_pngErrorCallback, pngWarningCallback,
 //         p, pngMallocCallback, pngFreeCallback);
 //
 //     png_set_read_fn(png, p, pngReadCallback);
@@ -43,11 +54,34 @@ import (
 //     return png;
 // }
 //
-// static inline const char*
-// empty_string() {
-//     return "";
+// // do_png_read_info wraps png_read_info.
+// // The wrapper is required to catch setjmp return as
+// // we can't do it from Go
+// static inline void
+// do_png_read_info(png_struct *png, png_info *info_ptr) {
+//     if (setjmp(png_jmpbuf(png))) {
+//         return;
+//     }
+//
+//     png_read_info(png, info_ptr);
+// }
+//
+// // do_png_read_row wraps png_read_row.
+// // The wrapper is required to catch setjmp return as
+// // we can't do it from Go
+// static inline void
+// do_png_read_row(png_struct *png, png_bytep row, png_bytep display_row) {
+//     if (setjmp(png_jmpbuf(png))) {
+//         return;
+//     }
+//
+//     png_read_row(png, row, display_row);
 // }
 import "C"
+
+// pngEmptyCString is the empty string, suitable for
+// passing as parameter to C functions.
+var pngEmptyCString = C.CString("")
 
 // pngDecoder is the common part of the PNG [Decoder].
 type pngDecoder struct {
@@ -90,7 +124,7 @@ func newPNGDecoder(input io.Reader) (Decoder, error) {
 	decoder.pngInfo = C.png_create_info_struct(decoder.png)
 
 	// Read image info
-	C.png_read_info(decoder.png, decoder.pngInfo)
+	C.do_png_read_info(decoder.png, decoder.pngInfo)
 
 	var width, height C.png_uint_32
 	var depth, colorType, interlace C.int
@@ -180,8 +214,7 @@ func (decoder *pngDecoder) readRow(y int) {
 	}
 
 	for decoder.err == nil && decoder.y != y {
-		C.png_read_row(decoder.png, &decoder.rowBytes[0], nil)
-
+		C.do_png_read_row(decoder.png, &decoder.rowBytes[0], nil)
 		if decoder.err == nil {
 			decoder.y++
 		}
@@ -242,7 +275,7 @@ func pngReadCallback(png *C.png_struct, data C.png_bytep, size C.size_t) {
 			fallthrough
 		case err != nil:
 			decoder.err = err
-			C.png_error(png, C.empty_string())
+			C.png_error(png, pngEmptyCString)
 		default:
 			buf = buf[n:]
 		}
