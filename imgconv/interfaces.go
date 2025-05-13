@@ -29,6 +29,9 @@ type Decoder interface {
 	// Error returns the latest I/O error, encountered during
 	// the Decoder operations.
 	Error() error
+
+	// Close closes the decoder
+	Close()
 }
 
 // Encoder implements streaming image encoder.
