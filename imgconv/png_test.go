@@ -17,13 +17,13 @@ import (
 )
 
 func TestPNG(t *testing.T) {
-	in := bytes.NewReader(testutils.Images.PNG100x75)
+	in := bytes.NewReader(testutils.Images.PNG100x75rgb8)
 	decoder, err := newPNGDecoder(in)
 	if err != nil {
 		panic(err)
 	}
 
-	image, err := png.Decode(bytes.NewReader(testutils.Images.PNG100x75))
+	image, err := png.Decode(bytes.NewReader(testutils.Images.PNG100x75rgb8))
 
 	if decoder.Bounds() != image.Bounds() {
 		t.Errorf("Bounds mismatch:\n"+

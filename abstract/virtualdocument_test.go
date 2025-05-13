@@ -100,7 +100,12 @@ func TestDocumentFromBytesFileFormat(t *testing.T) {
 		},
 
 		{
-			data:   testutils.Images.PNG100x75,
+			data:   testutils.Images.PNG100x75rgb8,
+			format: DocumentFormatPNG,
+		},
+
+		{
+			data:   testutils.Images.PNG100x75gray8,
 			format: DocumentFormatPNG,
 		},
 
