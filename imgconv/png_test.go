@@ -15,6 +15,7 @@ import (
 	"testing"
 
 	"github.com/OpenPrinting/go-mfp/internal/testutils"
+	"github.com/OpenPrinting/go-mfp/util/generic"
 )
 
 func TestPNGDecode(t *testing.T) {
@@ -103,6 +104,47 @@ func TestPNGDecode(t *testing.T) {
 			}
 
 			decoder.Close()
+		}
+	}
+
+	// Test handling of damaged data
+	for _, test := range tests {
+		damagedHeader := false
+		damagedData := false
+		for off := 0; off < len(test.data); off++ {
+			// Scan until we have seen both damaged header
+			// and damaged image data
+			if damagedHeader && damagedData {
+				break
+			}
+
+			// Damage data
+			data := generic.CopySlice(test.data)
+			data[off] = ^data[off]
+
+			// Create a decoder
+			in := bytes.NewReader(data)
+			decoder, err := NewPNGDecoder(in)
+			if err != nil {
+				damagedHeader = true
+				continue // Error is expected
+			}
+
+			height := decoder.Bounds().Dy()
+			for y := 0; y < height && decoder.Error() == nil; y++ {
+				decoder.At(0, y)
+			}
+
+			if decoder.Error() != nil {
+				damagedData = true
+			}
+
+			decoder.Close()
+		}
+
+		if !(damagedHeader && damagedData) {
+			t.Errorf("%s: damaged data not handled properly",
+				test.name)
 		}
 	}
 }
