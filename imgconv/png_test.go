@@ -29,7 +29,9 @@ func TestPNGDecode(t *testing.T) {
 		{"PNG100x75rgb16", testutils.Images.PNG100x75rgb16},
 	}
 
+	// Test image decoding
 	for _, test := range tests {
+		// Create a decoder
 		in := bytes.NewReader(test.data)
 		decoder, err := NewPNGDecoder(in)
 		if err != nil {
@@ -38,25 +40,13 @@ func TestPNGDecode(t *testing.T) {
 			continue
 		}
 
-		// Decode reference reference
+		// Decode reference image
 		reference, err := png.Decode(bytes.NewReader(test.data))
 		if err != nil {
 			panic(err)
 		}
 
-		// Compare image size
-		if decoder.Bounds() != reference.Bounds() {
-			t.Errorf("%s: Bounds mismatch:\n"+
-				"expected: %v\n"+
-				"present:  %v\n",
-				test.name,
-				reference.Bounds(),
-				decoder.Bounds(),
-			)
-			decoder.Close()
-			continue
-		}
-
+		// Compare images
 		diff := imageDiff(reference, decoder)
 		if diff != "" {
 			t.Errorf("%s: %s", test.name, diff)
@@ -65,5 +55,41 @@ func TestPNGDecode(t *testing.T) {
 		}
 
 		decoder.Close()
+	}
+
+	// Test handling of truncated data
+	for _, test := range tests {
+		// Decode reference image
+		reference, err := png.Decode(bytes.NewReader(test.data))
+		if err != nil {
+			panic(err)
+		}
+
+		step := 1
+		for trunc := 0; trunc < len(test.data)-1; trunc += step {
+			// Create a decoder
+			in := bytes.NewReader(test.data[:trunc])
+			decoder, err := NewPNGDecoder(in)
+			if err != nil {
+				continue // Error is expected
+			}
+
+			// Once header is decoded, increment step.
+			// Otherwise test longs for too long.
+			step = 16
+
+			// Compare images.
+			//
+			// If everything is OK, either images must
+			// match or decoder must be in error.
+			diff := imageDiff(reference, decoder)
+			if diff != "" && decoder.Error() == nil {
+				t.Errorf("%s: %s", test.name, diff)
+				decoder.Close()
+				continue
+			}
+
+			decoder.Close()
+		}
 	}
 }

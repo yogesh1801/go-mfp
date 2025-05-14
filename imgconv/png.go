@@ -29,7 +29,7 @@ import (
 // void pngWarningCallback(png_struct *png_ptr, png_const_charp msg);
 // void *pngMallocCallback(png_struct *png_ptr, size_t size);
 // void pngFreeCallback(png_struct *png_ptr, void *p);
-// void pngReadCallback(png_struct *png_ptr, png_bytep data, size_t size);
+// int  pngReadCallback(png_struct *png_ptr, png_bytep data, size_t size);
 //
 // // do_pngErrorCallback wraps pngErrorCallback.
 // // The wrapper is required, because we cannot call png_longjmp from Go.
@@ -37,6 +37,15 @@ import (
 // do_pngErrorCallback(png_struct *png, const char *message) {
 //     pngErrorCallback(png, message);
 //     png_longjmp(png, 1);
+// }
+//
+// // do_pngReadCallback wraps pngReadCallback.
+// // It calls png_error() in a case of an error, as we can't do it from Go.
+// static inline void
+// do_pngReadCallback(png_struct *png, png_bytep data, size_t size) {
+//     if (!pngReadCallback(png, data, size)) {
+//         png_error(png, "");
+//     }
 // }
 //
 // // do_png_create_read_struct wraps png_create_read_struct_2.
@@ -49,7 +58,7 @@ import (
 //         p, do_pngErrorCallback, pngWarningCallback,
 //         p, pngMallocCallback, pngFreeCallback);
 //
-//     png_set_read_fn(png, p, pngReadCallback);
+//     png_set_read_fn(png, p, do_pngReadCallback);
 //
 //     return png;
 // }
@@ -257,7 +266,7 @@ func pngFreeCallback(png *C.png_struct, p unsafe.Pointer) {
 // pngReadCallback s called by libpng to read from the input stream
 //
 //export pngReadCallback
-func pngReadCallback(png *C.png_struct, data C.png_bytep, size C.size_t) {
+func pngReadCallback(png *C.png_struct, data C.png_bytep, size C.size_t) C.int {
 	const max = math.MaxInt32
 
 	sz := max
@@ -277,11 +286,13 @@ func pngReadCallback(png *C.png_struct, data C.png_bytep, size C.size_t) {
 			fallthrough
 		case err != nil:
 			decoder.err = err
-			C.png_error(png, pngEmptyCString)
+			return 0
 		default:
 			buf = buf[n:]
 		}
 	}
+
+	return 1
 }
 
 // pngDecoderGray8 implements PNP [Decoder] for 8-bit grayscale images
