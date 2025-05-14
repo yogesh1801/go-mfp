@@ -10,6 +10,7 @@ package imgconv
 
 import (
 	"bytes"
+	"image/color"
 	"image/png"
 	"testing"
 
@@ -18,15 +19,20 @@ import (
 
 func TestPNGDecode(t *testing.T) {
 	type testData struct {
-		name string // Image name, for logging
-		data []byte // Image data
+		name  string      // Image name, for logging
+		data  []byte      // Image data
+		model color.Model // Expected color model
 	}
 
 	tests := []testData{
-		{"PNG100x75rgb8", testutils.Images.PNG100x75rgb8},
-		{"PNG100x75gray8", testutils.Images.PNG100x75gray8},
-		{"PNG100x75gray16", testutils.Images.PNG100x75gray16},
-		{"PNG100x75rgb16", testutils.Images.PNG100x75rgb16},
+		{"PNG100x75rgb8", testutils.Images.PNG100x75rgb8,
+			color.RGBAModel},
+		{"PNG100x75gray8", testutils.Images.PNG100x75gray8,
+			color.GrayModel},
+		{"PNG100x75gray16", testutils.Images.PNG100x75gray16,
+			color.Gray16Model},
+		{"PNG100x75rgb16", testutils.Images.PNG100x75rgb16,
+			color.RGBA64Model},
 	}
 
 	// Test image decoding
@@ -38,6 +44,13 @@ func TestPNGDecode(t *testing.T) {
 			t.Errorf("%s: NewPNGDecoder: %s",
 				test.name, err)
 			continue
+		}
+
+		// Check ColorModel()
+		model := decoder.ColorModel()
+		if model != test.model {
+			t.Errorf("%s: Decoder.ColorModel mismatch",
+				test.name)
 		}
 
 		// Decode reference image
