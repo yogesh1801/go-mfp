@@ -25,11 +25,11 @@ import (
 // #include <setjmp.h>
 // #include <stdlib.h>
 //
-// void pngErrorCallback(png_struct *png_ptr, png_const_charp msg);
-// void pngWarningCallback(png_struct *png_ptr, png_const_charp msg);
-// void *pngMallocCallback(png_struct *png_ptr, size_t size);
-// void pngFreeCallback(png_struct *png_ptr, void *p);
-// int  pngReadCallback(png_struct *png_ptr, png_bytep data, size_t size);
+// void pngErrorCallback(png_struct *png, png_const_charp msg);
+// void pngWarningCallback(png_struct *png, png_const_charp msg);
+// void *pngMallocCallback(png_struct *png, size_t size);
+// void pngFreeCallback(png_struct *png, void *p);
+// int  pngReadCallback(png_struct *png, png_bytep data, size_t size);
 //
 // // do_pngErrorCallback wraps pngErrorCallback.
 // // The wrapper is required, because we cannot call png_longjmp from Go.
