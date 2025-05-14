@@ -57,25 +57,11 @@ func TestPNGDecode(t *testing.T) {
 			continue
 		}
 
-		width := decoder.Bounds().Dx()
-		height := decoder.Bounds().Dy()
-
-		fail := false
-		for y := 0; y < height && !fail; y++ {
-			for x := 0; x < width && !fail; x++ {
-				expected := reference.At(x, y)
-				present := decoder.At(x, y)
-				if !colorEqual(expected, present) {
-					t.Errorf("%s: At(%d,%d) mismatch:\n"+
-						"expected: %v\n"+
-						"present:  %v\n",
-						test.name,
-						x, y,
-						expected, present,
-					)
-					fail = true
-				}
-			}
+		diff := imageDiff(reference, decoder)
+		if diff != "" {
+			t.Errorf("%s: %s", test.name, diff)
+			decoder.Close()
+			continue
 		}
 
 		decoder.Close()
