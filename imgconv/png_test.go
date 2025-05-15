@@ -10,6 +10,7 @@ package imgconv
 
 import (
 	"bytes"
+	"errors"
 	"image/color"
 	"image/png"
 	"testing"
@@ -145,6 +146,55 @@ func TestPNGDecode(t *testing.T) {
 		if !(damagedHeader && damagedData) {
 			t.Errorf("%s: damaged data not handled properly",
 				test.name)
+		}
+	}
+
+	// Test handling of I/O errors
+	expectedErr := errors.New("I/O error, for testing")
+	damagedHeader := false
+	damagedData := false
+	for _, test := range tests {
+		for off := 0; off < len(test.data); off++ {
+			// Scan until we have seen both damaged header
+			// and damaged image data
+			if damagedHeader && damagedData {
+				break
+			}
+
+			// Simulate I/O error
+			rd := newReaderWithError(test.data[:off], expectedErr)
+			data := generic.CopySlice(test.data)
+			data[off] = ^data[off]
+
+			// Create a decoder
+			decoder, err := NewPNGDecoder(rd)
+			if err != nil {
+				damagedHeader = true
+				if err != expectedErr {
+					t.Errorf("%s:\n"+
+						"error expected: %s\n"+
+						"error present:  %s\n",
+						test.name, expectedErr, err)
+				}
+				continue // Error is expected
+			}
+
+			height := decoder.Bounds().Dy()
+			for y := 0; y < height && decoder.Error() == nil; y++ {
+				decoder.At(0, y)
+			}
+
+			if err := decoder.Error(); err != nil {
+				damagedData = true
+				if err != expectedErr {
+					t.Errorf("%s:\n"+
+						"error expected: %s\n"+
+						"error present:  %s\n",
+						test.name, expectedErr, err)
+				}
+			}
+
+			decoder.Close()
 		}
 	}
 }
