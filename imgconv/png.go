@@ -236,7 +236,9 @@ func (decoder *pngDecoder) readRow(y int) {
 //
 //export pngErrorCallback
 func pngErrorCallback(png *C.png_struct, msg C.png_const_charp) {
-	decoder := (*cgo.Handle)(C.png_get_io_ptr(png)).Value().(*pngDecoderWrapper)
+	decoder := (*cgo.Handle)(C.png_get_io_ptr(png)).
+		Value().(*pngDecoderWrapper)
+
 	if decoder.err == nil {
 		decoder.err = fmt.Errorf("PNG: %s", C.GoString(msg))
 	}
@@ -274,21 +276,21 @@ func pngReadCallback(png *C.png_struct, data C.png_bytep, size C.size_t) C.int {
 		sz = int(size)
 	}
 
+	decoder := (*cgo.Handle)(C.png_get_io_ptr(png)).
+		Value().(*pngDecoderWrapper)
+
+	if decoder.err != nil {
+		return 0
+	}
+
 	buf := (*[max]byte)(unsafe.Pointer(data))[:sz:sz]
-
-	decoder := (*cgo.Handle)(C.png_get_io_ptr(png)).Value().(*pngDecoderWrapper)
-
-	for decoder.err == nil && len(buf) > 0 {
+	for len(buf) > 0 {
 		n, err := decoder.input.Read(buf)
-		switch {
-		case n == 0 && err == nil:
-			err = io.EOF
-			fallthrough
-		case err != nil:
+		if n > 0 {
+			buf = buf[n:]
+		} else if err != nil {
 			decoder.err = err
 			return 0
-		default:
-			buf = buf[n:]
 		}
 	}
 
