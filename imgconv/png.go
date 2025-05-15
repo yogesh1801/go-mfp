@@ -279,10 +279,6 @@ func pngReadCallback(png *C.png_struct, data C.png_bytep, size C.size_t) C.int {
 	decoder := (*cgo.Handle)(C.png_get_io_ptr(png)).
 		Value().(*pngDecoderWrapper)
 
-	if decoder.err != nil {
-		return 0
-	}
-
 	buf := (*[max]byte)(unsafe.Pointer(data))[:sz:sz]
 	for len(buf) > 0 {
 		n, err := decoder.input.Read(buf)
