@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"io"
 
 	"github.com/OpenPrinting/go-mfp/internal/testutils"
 )
@@ -47,4 +48,30 @@ func imageDiff(img1, img2 image.Image) string {
 	}
 
 	return ""
+}
+
+// readerWithError implements [io.Reader] interface for the byte slice.
+// When all data bytes are consumed, it returns the specified error.
+type readerWithError struct {
+	data []byte
+	err  error
+}
+
+// newReaderWithError creates a new [io.Reader] that reads from
+// the provided data slice. When all data bytes are consumed,
+// it returns the specified error instead of the [io.EOF]
+func newReaderWithError(data []byte, err error) io.Reader {
+	return &readerWithError{data, err}
+}
+
+// Read reads from the readerWithError.
+// It implements the [io.Reader] interface.
+func (r *readerWithError) Read(buf []byte) (int, error) {
+	if len(r.data) > 0 {
+		n := copy(buf, r.data)
+		r.data = r.data[n:]
+		return n, nil
+	}
+
+	return 0, r.err
 }
