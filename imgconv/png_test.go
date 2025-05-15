@@ -221,4 +221,30 @@ func TestPNGDecodeErrors(t *testing.T) {
 		}
 		t.Errorf("PNG: test for interlaced images failed (err=%s)", s)
 	}
+
+	// Test for out of order read
+	in = bytes.NewReader(testutils.Images.PNG100x75rgb8)
+	decoder, err := NewPNGDecoder(in)
+	if err != nil {
+		panic(err)
+	}
+
+	height := decoder.Bounds().Dy()
+	y := height / 2
+
+	decoder.At(0, y)
+	err = decoder.Error()
+	if err != nil {
+		panic(err)
+	}
+
+	decoder.At(0, 0)
+	err = decoder.Error()
+	if err == nil || !strings.Contains(err.Error(), "order") {
+		s := "nil"
+		if err != nil {
+			s = err.Error()
+		}
+		t.Errorf("PNG: test out of order read failed (err=%s)", s)
+	}
 }
