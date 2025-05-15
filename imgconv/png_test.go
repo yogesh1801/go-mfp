@@ -31,6 +31,8 @@ func TestPNGDecode(t *testing.T) {
 	tests := []testData{
 		{"PNG100x75rgb8", testutils.Images.PNG100x75rgb8,
 			color.RGBAModel},
+		{"PNG100x75rgb8paletted", testutils.Images.PNG100x75rgb8paletted,
+			color.RGBAModel},
 		{"PNG100x75gray1", testutils.Images.PNG100x75gray1,
 			color.GrayModel},
 		{"PNG100x75gray8", testutils.Images.PNG100x75gray8,
