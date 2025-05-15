@@ -13,12 +13,14 @@ import (
 	"errors"
 	"image/color"
 	"image/png"
+	"strings"
 	"testing"
 
 	"github.com/OpenPrinting/go-mfp/internal/testutils"
 	"github.com/OpenPrinting/go-mfp/util/generic"
 )
 
+// TestPNGDecode tests PNG decoder
 func TestPNGDecode(t *testing.T) {
 	type testData struct {
 		name  string      // Image name, for logging
@@ -155,8 +157,9 @@ func TestPNGDecode(t *testing.T) {
 	expectedErr := errors.New("I/O error, for testing")
 	damagedHeader := false
 	damagedData := false
+	fail := false
 	for _, test := range tests {
-		for off := 0; off < len(test.data); off++ {
+		for off := 0; off < len(test.data) && fail; off++ {
 			// Scan until we have seen both damaged header
 			// and damaged image data
 			if damagedHeader && damagedData {
@@ -173,7 +176,8 @@ func TestPNGDecode(t *testing.T) {
 			if err != nil {
 				damagedHeader = true
 				if err != expectedErr {
-					t.Errorf("%s:\n"+
+					fail = true
+					t.Errorf("%s:in NewPNGDecoder\n"+
 						"error expected: %s\n"+
 						"error present:  %s\n",
 						test.name, expectedErr, err)
@@ -189,7 +193,8 @@ func TestPNGDecode(t *testing.T) {
 			if err := decoder.Error(); err != nil {
 				damagedData = true
 				if err != expectedErr {
-					t.Errorf("%s:\n"+
+					fail = true
+					t.Errorf("%s: in Decoder.At\n"+
 						"error expected: %s\n"+
 						"error present:  %s\n",
 						test.name, expectedErr, err)
@@ -198,5 +203,20 @@ func TestPNGDecode(t *testing.T) {
 
 			decoder.Close()
 		}
+	}
+}
+
+// TestPNGDecodeErrors tests PNG decoder errors, not handled by other tests
+func TestPNGDecodeErrors(t *testing.T) {
+	// Interlaced images not supported
+	in := bytes.NewReader(testutils.Images.PNG100x75rgb8i)
+	_, err := NewPNGDecoder(in)
+
+	if err == nil || !strings.Contains(err.Error(), "interlaced") {
+		s := "nil"
+		if err != nil {
+			s = err.Error()
+		}
+		t.Errorf("PNG: test for interlaced images failed (err=%s)", s)
 	}
 }
