@@ -93,6 +93,11 @@ import "C"
 var pngEmptyCString = C.CString("")
 
 // pngDecoder is the common part of the PNG [Decoder].
+//
+// It is used being wrapped by specialized decoders - [pngDecoderGray8],
+// [pngDecoderGray16], [pngDecoderRGB24], or [pngDecoderRGB48] - depending
+// on the color mode of the image being decoded. Each wrapper implements the
+// appropriate Decoder.At method tailored to its specific image format.
 type pngDecoder struct {
 	handle   cgo.Handle      // Handle to self
 	png      *C.png_struct   // Underlying png_structure
