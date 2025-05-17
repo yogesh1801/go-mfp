@@ -11,7 +11,6 @@ package imgconv
 import (
 	"errors"
 	"fmt"
-	"image"
 	"image/color"
 	"io"
 	"math"
@@ -99,37 +98,21 @@ var pngEmptyCString = C.CString("")
 // on the color mode of the image being decoded. Each wrapper implements the
 // appropriate Decoder.At method tailored to its specific image format.
 type pngDecoder struct {
-	handle   cgo.Handle      // Handle to self
-	png      *C.png_struct   // Underlying png_structure
-	pngInfo  *C.png_info     // libpng png_info structure
-	err      error           // Sticky error
-	input    io.Reader       // Underlying io.Reader
-	bounds   image.Rectangle // Image bounds
-	rowBytes []C.png_byte    // Row decoding buffer
-	y        int             // Current y-coordinate
-}
-
-// pngDecoderWrapper wraps pngDecoder into the structure.
-// This type can be converted to pngDecoderGray8, pngDecoderGray16,
-// pngDecoderRGB24 and pngDecoderRGB48.
-//
-// We use this wrapper, because we want pngDecoderGray8, pngDecoderGray16
-// etc to embed the pngDecoder, not the pointer to the pngDecoder,
-// for efficiency. However, we need the pointer to wrapper before
-// the particular wrapper type is known (we need to read and decode
-// the PNG header to determine the type of wrapper).
-//
-// So we temporary wrap pngDecoder into the pngDecoderWrapper,
-// then convert it to the particular wrapper, depending on the
-// image color model.
-type pngDecoderWrapper struct {
-	pngDecoder
+	handle   cgo.Handle    // Handle to self
+	png      *C.png_struct // Underlying png_structure
+	pngInfo  *C.png_info   // libpng png_info structure
+	err      error         // Error from the libpng
+	input    io.Reader     // Underlying io.Reader
+	model    color.Model   // Image color mode
+	wid, hei int           // Image size
+	rowBytes []C.png_byte  // Row decoding buffer
+	row      Row           // Decoded row
 }
 
 // NewPNGDecoder creates a new [Decoder] for PNG images
 func NewPNGDecoder(input io.Reader) (Decoder, error) {
 	// Create decoder structure. Initialize libpng stuff
-	decoder := &pngDecoderWrapper{pngDecoder{input: input, y: -1}}
+	decoder := &pngDecoder{input: input}
 	decoder.handle = cgo.NewHandle(decoder)
 
 	decoder.png = C.do_png_create_read_struct(
@@ -157,11 +140,10 @@ func NewPNGDecoder(input io.Reader) (Decoder, error) {
 		return nil, err
 	}
 
-	decoder.bounds = image.Rect(0, 0, int(width), int(height))
+	decoder.wid, decoder.hei = int(width), int(height)
 
 	// Setup input transformations
 	var bytesPerPixel int
-	var wrapper Decoder
 
 	gray := (colorType & C.PNG_COLOR_MASK_COLOR) == C.PNG_COLOR_TYPE_GRAY
 
@@ -178,27 +160,26 @@ func NewPNGDecoder(input io.Reader) (Decoder, error) {
 	}
 
 	if gray {
+		decoder.model = color.GrayModel
 		bytesPerPixel = 1
-		wrapper = (*pngDecoderGray8)(decoder)
-
 		if depth == 16 {
+			decoder.model = color.Gray16Model
 			bytesPerPixel = 2
-			wrapper = (*pngDecoderGray16)(decoder)
 		}
 	} else {
+		decoder.model = color.RGBAModel
 		bytesPerPixel = 3
-		wrapper = (*pngDecoderRGB24)(decoder)
-
 		if depth == 16 {
+			decoder.model = color.RGBA64Model
 			bytesPerPixel = 6
-			wrapper = (*pngDecoderRGB48)(decoder)
 		}
 	}
 
 	// Allocate buffers
 	decoder.rowBytes = make([]C.png_byte, bytesPerPixel*int(width))
+	decoder.row = NewRow(decoder.model, decoder.wid)
 
-	return wrapper, nil
+	return decoder, nil
 }
 
 // Close closes the decoder.
@@ -207,33 +188,70 @@ func (decoder *pngDecoder) Close() {
 	decoder.handle.Delete()
 }
 
-// Bounds returns image bounds.
-func (decoder *pngDecoder) Bounds() image.Rectangle {
-	return decoder.bounds
+// ColorModel returns the [color.Model] of image being decoded.
+func (decoder *pngDecoder) ColorModel() color.Model {
+	return decoder.model
 }
 
-// Bounds returns Decoder's sticky error.
-func (decoder *pngDecoder) Error() error {
-	return decoder.err
+// Size returns the image size.
+func (decoder *pngDecoder) Size() (wid, hei int) {
+	return decoder.wid, decoder.hei
 }
 
-// readRow reads the next image line until y coordinate is reached
-// or error occurs
-func (decoder *pngDecoder) readRow(y int) {
-	switch {
-	case decoder.err != nil:
-		return
-	case y < decoder.y:
-		decoder.err = fmt.Errorf("PNG: read out of order, %d < %d",
-			y, decoder.y)
-		return
+// Next returns the next image [Row].
+func (decoder *pngDecoder) Next() (Row, error) {
+	// Read the next row
+	decoder.readRow()
+	if decoder.err != nil {
+		return nil, decoder.err
 	}
 
-	for decoder.err == nil && decoder.y != y {
-		C.do_png_read_row(decoder.png, &decoder.rowBytes[0], nil)
-		if decoder.err == nil {
-			decoder.y++
+	// Decode the row
+	switch row := decoder.row.(type) {
+	case RowGray8:
+		for x := 0; x < decoder.wid; x++ {
+			row[x].Y = uint8(decoder.rowBytes[x])
 		}
+
+	case RowGray16:
+		for x := 0; x < decoder.wid; x++ {
+			off := x * 2
+			row[x].Y =
+				(uint16(decoder.rowBytes[off]) << 8) |
+					uint16(decoder.rowBytes[off+1])
+		}
+
+	case RowRGBA32:
+		for x := 0; x < decoder.wid; x++ {
+			off := x * 3
+			s := decoder.rowBytes[off : off+3]
+
+			row[x] = color.RGBA{
+				R: uint8(s[0]),
+				G: uint8(s[1]),
+				B: uint8(s[2]),
+				A: 255,
+			}
+		}
+
+	case RowRGBA64:
+		for x := 0; x < decoder.wid; x++ {
+			off := x * 6
+			s := decoder.rowBytes[off : off+6]
+			r := (uint16(s[0]) << 8) | uint16(s[1])
+			g := (uint16(s[2]) << 8) | uint16(s[3])
+			b := (uint16(s[4]) << 8) | uint16(s[5])
+			row[x] = color.RGBA64{R: r, G: g, B: b, A: 65535}
+		}
+	}
+
+	return decoder.row, nil
+}
+
+// readRow reads the next image line.
+func (decoder *pngDecoder) readRow() {
+	if decoder.err == nil {
+		C.do_png_read_row(decoder.png, &decoder.rowBytes[0], nil)
 	}
 }
 
@@ -241,8 +259,7 @@ func (decoder *pngDecoder) readRow(y int) {
 //
 //export pngErrorCallback
 func pngErrorCallback(png *C.png_struct, msg C.png_const_charp) {
-	decoder := (*cgo.Handle)(C.png_get_io_ptr(png)).
-		Value().(*pngDecoderWrapper)
+	decoder := (*cgo.Handle)(C.png_get_io_ptr(png)).Value().(*pngDecoder)
 
 	if decoder.err == nil {
 		decoder.err = fmt.Errorf("PNG: %s", C.GoString(msg))
@@ -281,8 +298,7 @@ func pngReadCallback(png *C.png_struct, data C.png_bytep, size C.size_t) C.int {
 		sz = int(size)
 	}
 
-	decoder := (*cgo.Handle)(C.png_get_io_ptr(png)).
-		Value().(*pngDecoderWrapper)
+	decoder := (*cgo.Handle)(C.png_get_io_ptr(png)).Value().(*pngDecoder)
 
 	buf := (*[max]byte)(unsafe.Pointer(data))[:sz:sz]
 	for len(buf) > 0 {
@@ -296,127 +312,4 @@ func pngReadCallback(png *C.png_struct, data C.png_bytep, size C.size_t) C.int {
 	}
 
 	return 1
-}
-
-// pngDecoderGray8 implements PNP [Decoder] for 8-bit grayscale images
-type pngDecoderGray8 struct {
-	pngDecoder
-}
-
-// ColorModel returns the pngDecoderGray8's color model.
-func (*pngDecoderGray8) ColorModel() color.Model {
-	return color.GrayModel
-}
-
-// At returns the color of the pixel at (x, y).
-func (decoder *pngDecoderGray8) At(x, y int) color.Color {
-	if y == decoder.y {
-		return color.Gray{uint8(decoder.rowBytes[x])}
-	}
-
-	decoder.readRow(y)
-	if decoder.err == nil {
-		return color.Gray{uint8(decoder.rowBytes[x])}
-	}
-
-	return color.Gray{255}
-}
-
-// pngDecoderGray16 implements PNP [Decoder] for 16-bit grayscale images
-type pngDecoderGray16 struct {
-	pngDecoder
-}
-
-// ColorModel returns the pngDecoderGray16's color model.
-func (*pngDecoderGray16) ColorModel() color.Model {
-	return color.Gray16Model
-}
-
-// At returns the color of the pixel at (x, y).
-func (decoder *pngDecoderGray16) At(x, y int) color.Color {
-	off := x * 2
-	if y == decoder.y {
-		c := (uint16(decoder.rowBytes[off]) << 8) |
-			uint16(decoder.rowBytes[off+1])
-		return color.Gray16{c}
-	}
-
-	decoder.readRow(y)
-	if decoder.err == nil {
-		c := (uint16(decoder.rowBytes[off]) << 8) |
-			uint16(decoder.rowBytes[off+1])
-		return color.Gray16{c}
-	}
-
-	return color.Gray16{65535}
-}
-
-// pngDecoderRGB24 implements PNP [Decoder] for 8-bit RGB images
-type pngDecoderRGB24 struct {
-	pngDecoder
-}
-
-// ColorModel returns the pngDecoderRGB24's color model.
-func (*pngDecoderRGB24) ColorModel() color.Model {
-	return color.RGBAModel
-}
-
-// At returns the color of the pixel at (x, y).
-func (decoder *pngDecoderRGB24) At(x, y int) color.Color {
-	off := x * 3
-	s := decoder.rowBytes[off : off+3]
-
-	if y == decoder.y {
-		return color.RGBA{
-			R: uint8(s[0]),
-			G: uint8(s[1]),
-			B: uint8(s[2]),
-			A: 255,
-		}
-	}
-
-	decoder.readRow(y)
-	if decoder.err == nil {
-		return color.RGBA{
-			R: uint8(s[0]),
-			G: uint8(s[1]),
-			B: uint8(s[2]),
-			A: 255,
-		}
-	}
-
-	return color.RGBA{R: 255, G: 255, B: 255, A: 255}
-}
-
-// pngDecoderRGB48 implements PNP [Decoder] for 16-bit RGB images
-type pngDecoderRGB48 struct {
-	pngDecoder
-}
-
-// ColorModel returns the pngDecoderRGB48's color model.
-func (*pngDecoderRGB48) ColorModel() color.Model {
-	return color.RGBA64Model
-}
-
-// At returns the color of the pixel at (x, y).
-func (decoder *pngDecoderRGB48) At(x, y int) color.Color {
-	off := x * 6
-	s := decoder.rowBytes[off : off+6]
-
-	if y == decoder.y {
-		r := (uint16(s[0]) << 8) | uint16(s[1])
-		g := (uint16(s[2]) << 8) | uint16(s[3])
-		b := (uint16(s[4]) << 8) | uint16(s[5])
-		return color.RGBA64{R: r, G: g, B: b, A: 65535}
-	}
-
-	decoder.readRow(y)
-	if decoder.err == nil {
-		r := (uint16(s[0]) << 8) | uint16(s[1])
-		g := (uint16(s[2]) << 8) | uint16(s[3])
-		b := (uint16(s[4]) << 8) | uint16(s[5])
-		return color.RGBA64{R: r, G: g, B: b, A: 65535}
-	}
-
-	return color.RGBA64{R: 65535, G: 65535, B: 65535, A: 65535}
 }

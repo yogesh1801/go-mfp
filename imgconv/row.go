@@ -19,6 +19,29 @@ type Row interface {
 	At(x int) color.Color
 }
 
+// NewRow returns the new [Row] of the specified width and [color.Model].
+// The following color models are supported:
+//   - color.GrayModel
+//   - color.Gray16Model
+//   - color.RGBAModel
+//   - color.RGBA64Model
+//
+// For unknown (unsupported) model nil is returned.
+func NewRow(model color.Model, width int) (row Row) {
+	switch model {
+	case color.GrayModel:
+		row = make(RowGray8, width)
+	case color.Gray16Model:
+		row = make(RowGray16, width)
+	case color.RGBAModel:
+		row = make(RowRGBA32, width)
+	case color.RGBA64Model:
+		row = make(RowRGBA64, width)
+	}
+
+	return
+}
+
 // RowGray8 represents a row of 8-bit grayscale image.
 type RowGray8 []color.Gray
 

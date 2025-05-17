@@ -11,6 +11,7 @@ package imgconv
 import (
 	"bytes"
 	"errors"
+	"image"
 	"image/color"
 	"image/png"
 	"strings"
@@ -26,21 +27,50 @@ func TestPNGDecode(t *testing.T) {
 		name  string      // Image name, for logging
 		data  []byte      // Image data
 		model color.Model // Expected color model
+		img   image.Image // Decoded reference images
 	}
 
 	tests := []testData{
-		{"PNG100x75rgb8", testutils.Images.PNG100x75rgb8,
-			color.RGBAModel},
-		{"PNG100x75rgb8paletted", testutils.Images.PNG100x75rgb8paletted,
-			color.RGBAModel},
-		{"PNG100x75gray1", testutils.Images.PNG100x75gray1,
-			color.GrayModel},
-		{"PNG100x75gray8", testutils.Images.PNG100x75gray8,
-			color.GrayModel},
-		{"PNG100x75gray16", testutils.Images.PNG100x75gray16,
-			color.Gray16Model},
-		{"PNG100x75rgb16", testutils.Images.PNG100x75rgb16,
-			color.RGBA64Model},
+		{
+			name:  "PNG100x75rgb8",
+			data:  testutils.Images.PNG100x75rgb8,
+			model: color.RGBAModel,
+		},
+		{
+			name:  "PNG100x75rgb8paletted",
+			data:  testutils.Images.PNG100x75rgb8paletted,
+			model: color.RGBAModel,
+		},
+		{
+			name:  "PNG100x75gray1",
+			data:  testutils.Images.PNG100x75gray1,
+			model: color.GrayModel,
+		},
+		{
+			name:  "PNG100x75gray8",
+			data:  testutils.Images.PNG100x75gray8,
+			model: color.GrayModel,
+		},
+		{
+			name:  "PNG100x75gray16",
+			data:  testutils.Images.PNG100x75gray16,
+			model: color.Gray16Model,
+		},
+		{
+			name:  "PNG100x75rgb16",
+			data:  testutils.Images.PNG100x75rgb16,
+			model: color.RGBA64Model,
+		},
+	}
+
+	// Decode reference images. We need to do it only once.
+	for i := range tests {
+		test := &tests[i]
+		reference, err := png.Decode(bytes.NewReader(test.data))
+		if err != nil {
+			panic(err)
+		}
+		test.img = reference
 	}
 
 	// Test image decoding
@@ -54,6 +84,14 @@ func TestPNGDecode(t *testing.T) {
 			continue
 		}
 
+		// Decode test image
+		img, err := decodeImage(decoder)
+		if err != nil {
+			t.Errorf("%s: decodeImage: %s",
+				test.name, err)
+			continue
+		}
+
 		// Check ColorModel()
 		model := decoder.ColorModel()
 		if model != test.model {
@@ -61,14 +99,8 @@ func TestPNGDecode(t *testing.T) {
 				test.name)
 		}
 
-		// Decode reference image
-		reference, err := png.Decode(bytes.NewReader(test.data))
-		if err != nil {
-			panic(err)
-		}
-
 		// Compare images
-		diff := imageDiff(reference, decoder)
+		diff := imageDiff(test.img, img)
 		if diff != "" {
 			t.Errorf("%s: %s", test.name, diff)
 			decoder.Close()
@@ -80,12 +112,6 @@ func TestPNGDecode(t *testing.T) {
 
 	// Test handling of truncated data
 	for _, test := range tests {
-		// Decode reference image
-		reference, err := png.Decode(bytes.NewReader(test.data))
-		if err != nil {
-			panic(err)
-		}
-
 		step := 1
 		for trunc := 0; trunc < len(test.data)-1; trunc += step {
 			// Create a decoder
@@ -99,12 +125,18 @@ func TestPNGDecode(t *testing.T) {
 			// Otherwise test longs for too long.
 			step = 16
 
+			// Decode test image
+			img, err := decodeImage(decoder)
+			if err != nil {
+				decoder.Close()
+				continue // Error is expected
+			}
+
 			// Compare images.
 			//
-			// If everything is OK, either images must
-			// match or decoder must be in error.
-			diff := imageDiff(reference, decoder)
-			if diff != "" && decoder.Error() == nil {
+			// If everything is OK so far, images must match
+			diff := imageDiff(test.img, img)
+			if diff != "" {
 				t.Errorf("%s: %s", test.name, diff)
 				decoder.Close()
 				continue
@@ -137,13 +169,21 @@ func TestPNGDecode(t *testing.T) {
 				continue // Error is expected
 			}
 
-			height := decoder.Bounds().Dy()
-			for y := 0; y < height && decoder.Error() == nil; y++ {
-				decoder.At(0, y)
+			// Decode test image
+			img, err := decodeImage(decoder)
+			if err != nil {
+				damagedData = true
+				continue // Error is expected
 			}
 
-			if decoder.Error() != nil {
-				damagedData = true
+			// Compare images.
+			//
+			// If everything is OK so far, images must match
+			diff := imageDiff(test.img, img)
+			if diff != "" {
+				t.Errorf("%s: %s", test.name, diff)
+				decoder.Close()
+				continue
 			}
 
 			decoder.Close()
@@ -156,11 +196,11 @@ func TestPNGDecode(t *testing.T) {
 	}
 
 	// Test handling of I/O errors
-	expectedErr := errors.New("I/O error, for testing")
-	damagedHeader := false
-	damagedData := false
-	fail := false
 	for _, test := range tests {
+		expectedErr := errors.New("I/O error, for testing")
+		damagedHeader := false
+		damagedData := false
+		fail := false
 		for off := 0; off < len(test.data) && fail; off++ {
 			// Scan until we have seen both damaged header
 			// and damaged image data
@@ -187,20 +227,27 @@ func TestPNGDecode(t *testing.T) {
 				continue // Error is expected
 			}
 
-			height := decoder.Bounds().Dy()
-			for y := 0; y < height && decoder.Error() == nil; y++ {
-				decoder.At(0, y)
-			}
-
-			if err := decoder.Error(); err != nil {
+			img, err := decodeImage(decoder)
+			if err != nil {
 				damagedData = true
 				if err != expectedErr {
 					fail = true
-					t.Errorf("%s: in Decoder.At\n"+
+					t.Errorf("%s:in decodeImage\n"+
 						"error expected: %s\n"+
 						"error present:  %s\n",
 						test.name, expectedErr, err)
 				}
+				continue // Error is expected
+			}
+
+			// Compare images.
+			//
+			// If everything is OK so far, images must match
+			diff := imageDiff(test.img, img)
+			if diff != "" {
+				t.Errorf("%s: %s", test.name, diff)
+				decoder.Close()
+				continue
 			}
 
 			decoder.Close()
@@ -220,31 +267,5 @@ func TestPNGDecodeErrors(t *testing.T) {
 			s = err.Error()
 		}
 		t.Errorf("PNG: test for interlaced images failed (err=%s)", s)
-	}
-
-	// Test for out of order read
-	in = bytes.NewReader(testutils.Images.PNG100x75rgb8)
-	decoder, err := NewPNGDecoder(in)
-	if err != nil {
-		panic(err)
-	}
-
-	height := decoder.Bounds().Dy()
-	y := height / 2
-
-	decoder.At(0, y)
-	err = decoder.Error()
-	if err != nil {
-		panic(err)
-	}
-
-	decoder.At(0, 0)
-	err = decoder.Error()
-	if err == nil || !strings.Contains(err.Error(), "order") {
-		s := "nil"
-		if err != nil {
-			s = err.Error()
-		}
-		t.Errorf("PNG: test out of order read failed (err=%s)", s)
 	}
 }

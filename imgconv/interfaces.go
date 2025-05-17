@@ -9,7 +9,7 @@
 package imgconv
 
 import (
-	"image"
+	"image/color"
 
 	"golang.org/x/image/draw"
 )
@@ -24,11 +24,14 @@ import (
 // Decoder is suitable as a source image for the [draw.Scaler.Scale]
 // function.
 type Decoder interface {
-	image.Image
+	// ColorModel returns the [color.Model] of image being decoded.
+	ColorModel() color.Model
 
-	// Error returns the latest I/O error, encountered during
-	// the Decoder operations.
-	Error() error
+	// Size returns the image size.
+	Size() (wid, hei int)
+
+	// Next returns the next image [Row].
+	Next() (Row, error)
 
 	// Close closes the decoder
 	Close()

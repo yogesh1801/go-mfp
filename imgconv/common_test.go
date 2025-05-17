@@ -15,7 +15,45 @@ import (
 	"io"
 
 	"github.com/OpenPrinting/go-mfp/internal/testutils"
+	"golang.org/x/image/draw"
 )
+
+// decodeImage reads the entire image out of the decoder
+func decodeImage(decoder Decoder) (image.Image, error) {
+	wid, hei := decoder.Size()
+	bounds := image.Rect(0, 0, wid, hei)
+
+	var img draw.Image
+
+	switch decoder.ColorModel() {
+	case color.GrayModel:
+		img = image.NewGray(bounds)
+	case color.Gray16Model:
+		img = image.NewGray16(bounds)
+	case color.RGBAModel:
+		img = image.NewRGBA(bounds)
+	case color.RGBA64Model:
+		img = image.NewRGBA64(bounds)
+	default:
+		panic("internal error")
+	}
+
+	for y := 0; y < hei; y++ {
+		row, err := decoder.Next()
+		if err != nil {
+			return nil, err
+		}
+
+		// Use row.Width() instead of the image width, returned
+		// by Decoder.Size, so it also will be test-covered.
+		wid := row.Width()
+		for x := 0; x < wid; x++ {
+			img.Set(x, y, row.At(x))
+		}
+	}
+
+	return img, nil
+}
 
 // colorEqual reports if two colors are equal.
 // It works by converting both colors to RGB and comparing their components.
