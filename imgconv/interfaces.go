@@ -10,19 +10,11 @@ package imgconv
 
 import (
 	"image/color"
-
-	"golang.org/x/image/draw"
 )
 
 // Decoder implements streaming image decoder.
 //
-// It implements [image.Image] interface with the following
-// limitations:
-//   - image rows must be read in sequence ([image.Image.At]
-//     method must be called with non-increasing y-coordinates).
-//
-// Decoder is suitable as a source image for the [draw.Scaler.Scale]
-// function.
+// It reads image row by row from the supplied [io.Reader].
 type Decoder interface {
 	// ColorModel returns the [color.Model] of image being decoded.
 	ColorModel() color.Model
@@ -39,23 +31,10 @@ type Decoder interface {
 
 // Encoder implements streaming image encoder.
 //
-// It implements [draw.Image] interface with the following
-// limitations:
-//   - image rows must be written in sequence ([image.Image.At
-//     method must be called with non-increasing y-coordinates).
-//   - [image.Image.At] is not functional
-//
-// Encoder is bound to [io.WriteCloser], specified during Encoder
-// creation where it writes the generated image.
-//
-// Encoder is suitable as a destination image for the [draw.Scaler.Scale]
-// function.
+// It writes image row by row into the supplied [io.Writer].
 type Encoder interface {
-	draw.Image
-
-	// Error returns the latest I/O error, encountered during
-	// the Encoder operations.
-	Error() error
+	// Write writes the next image [Row].
+	Write(Row) error
 
 	// Flush writes out the buffered data.
 	Flush() error
