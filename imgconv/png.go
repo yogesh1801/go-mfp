@@ -193,8 +193,8 @@ func (decoder *pngDecoder) Size() (wid, hei int) {
 	return decoder.wid, decoder.hei
 }
 
-// Next returns the next image [Row].
-func (decoder *pngDecoder) Next() (Row, error) {
+// Read returns the next image [Row].
+func (decoder *pngDecoder) Read() (Row, error) {
 	// Read the next row
 	decoder.readRow()
 	if decoder.err != nil {

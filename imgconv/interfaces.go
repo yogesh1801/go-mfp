@@ -22,8 +22,8 @@ type Decoder interface {
 	// Size returns the image size.
 	Size() (wid, hei int)
 
-	// Next returns the next image [Row].
-	Next() (Row, error)
+	// Read returns the next image [Row].
+	Read() (Row, error)
 
 	// Close closes the decoder
 	Close()

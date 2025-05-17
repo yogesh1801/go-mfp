@@ -39,7 +39,7 @@ func decodeImage(decoder Decoder) (image.Image, error) {
 	}
 
 	for y := 0; y < hei; y++ {
-		row, err := decoder.Next()
+		row, err := decoder.Read()
 		if err != nil {
 			return nil, err
 		}
