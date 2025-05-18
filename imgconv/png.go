@@ -29,6 +29,7 @@ import (
 // void *pngMallocCallback(png_struct *png, size_t size);
 // void pngFreeCallback(png_struct *png, void *p);
 // int  pngReadCallback(png_struct *png, png_bytep data, size_t size);
+// int  pngWriteCallback(png_struct *png, png_bytep data, size_t size);
 //
 // // do_pngErrorCallback wraps pngErrorCallback.
 // // The wrapper is required, because we cannot call png_longjmp from Go.
@@ -43,6 +44,15 @@ import (
 // static inline void
 // do_pngReadCallback(png_struct *png, png_bytep data, size_t size) {
 //     if (!pngReadCallback(png, data, size)) {
+//         png_error(png, "");
+//     }
+// }
+//
+// // do_pngWriteCallback wraps pngWriteCallback.
+// // It calls png_error() in a case of an error, as we can't do it from Go.
+// static inline void
+// do_pngWriteCallback(png_struct *png, png_bytep data, size_t size) {
+//     if (!pngWriteCallback(png, data, size)) {
 //         png_error(png, "");
 //     }
 // }
@@ -62,6 +72,21 @@ import (
 //     return png;
 // }
 //
+// // do_png_create_write_struct wraps png_create_write_struct_2.
+// // This is the convenience wrapper.
+// static inline png_struct*
+// do_png_create_write_struct(void *p) {
+//     png_struct *png;
+//
+//     png = png_create_write_struct_2(PNG_LIBPNG_VER_STRING,
+//         p, do_pngErrorCallback, pngWarningCallback,
+//         p, pngMallocCallback, pngFreeCallback);
+//
+//     png_set_write_fn(png, p, do_pngWriteCallback, NULL);
+//
+//     return png;
+// }
+//
 // // do_png_read_info wraps png_read_info.
 // // The wrapper is required to catch setjmp return as
 // // we can't do it from Go
@@ -75,8 +100,7 @@ import (
 // }
 //
 // // do_png_read_row wraps png_read_row.
-// // The wrapper is required to catch setjmp return as
-// // we can't do it from Go
+// // The wrapper is required to catch setjmp return as we can't do it from Go
 // static inline void
 // do_png_read_row(png_struct *png, png_bytep row, png_bytep display_row) {
 //     if (setjmp(png_jmpbuf(png))) {
@@ -85,13 +109,24 @@ import (
 //
 //     png_read_row(png, row, display_row);
 // }
+//
+// // do_png_write_row wraps png_write_row.
+// // The wrapper is required to catch setjmp return as we can't do it from Go
+// static inline void
+// do_png_write_row(png_struct *png, png_bytep row) {
+//     if (setjmp(png_jmpbuf(png))) {
+//         return;
+//     }
+//
+//     png_write_row(png, row);
+// }
 import "C"
 
 // pngEmptyCString is the empty string, suitable for
 // passing as parameter to C functions.
 var pngEmptyCString = C.CString("")
 
-// pngDecoder implements the [Decoder] interface for reading PGP images.
+// pngDecoder implements the [Decoder] interface for reading PNG images.
 type pngDecoder struct {
 	handle   cgo.Handle    // Handle to self
 	png      *C.png_struct // Underlying png_structure
@@ -102,6 +137,7 @@ type pngDecoder struct {
 	wid, hei int           // Image size
 	rowBytes []C.png_byte  // Row decoding buffer
 	row      Row           // Decoded row
+	y        int           // Current y-coordinate
 }
 
 // NewPNGDecoder creates a new [Decoder] for PNG images
@@ -240,6 +276,12 @@ func (decoder *pngDecoder) Read() (Row, error) {
 		}
 	}
 
+	// Update current y
+	decoder.y++
+	if decoder.y == decoder.hei {
+		decoder.err = io.EOF
+	}
+
 	return decoder.row, nil
 }
 
@@ -250,14 +292,262 @@ func (decoder *pngDecoder) readRow() {
 	}
 }
 
+// pngEncoder implements the [Encoder] interface for writing PNG images
+type pngEncoder struct {
+	handle   cgo.Handle    // Handle to self
+	png      *C.png_struct // Underlying png_structure
+	pngInfo  *C.png_info   // libpng png_info structure
+	err      error         // Error from the libpng
+	output   io.Writer     // Underlying io.Writer
+	wid, hei int           // Image size
+	model    color.Model   // Color model
+	rowBytes []C.png_byte  // Row encoding buffer
+	y        int           // Current y-coordinate
+}
+
+// NewPNGEncoder creates a new [Encoder] for PNG images.
+// Supported color models are following:
+//   - color.GrayModel
+//   - color.Gray16Model
+//   - color.RGBAModel
+//   - color.RGBA64Model
+func NewPNGEncoder(output io.Writer,
+	wid, hei int, model color.Model) (Encoder, error) {
+
+	// Translate model into libpng terms
+	var colorType, depth C.int
+	var bytesPerPixel int
+
+	switch model {
+	case color.GrayModel:
+		colorType = C.PNG_COLOR_TYPE_GRAY
+		depth = 8
+		bytesPerPixel = 1
+	case color.Gray16Model:
+		colorType = C.PNG_COLOR_TYPE_GRAY
+		depth = 16
+		bytesPerPixel = 2
+	case color.RGBAModel:
+		colorType = C.PNG_COLOR_TYPE_RGB
+		depth = 8
+		bytesPerPixel = 3
+	case color.RGBA64Model:
+		colorType = C.PNG_COLOR_TYPE_RGB
+		depth = 16
+		bytesPerPixel = 6
+	default:
+		err := errors.New("PNG: unsupported color model")
+		return nil, err
+	}
+
+	// Create encoder structure. Initialize libpng stuff
+	encoder := &pngEncoder{
+		output:   output,
+		wid:      wid,
+		hei:      hei,
+		model:    model,
+		rowBytes: make([]C.png_byte, bytesPerPixel*int(wid)),
+	}
+
+	encoder.handle = cgo.NewHandle(encoder)
+
+	encoder.png = C.do_png_create_write_struct(
+		unsafe.Pointer(&encoder.handle))
+
+	encoder.pngInfo = C.png_create_info_struct(encoder.png)
+
+	// Create PNG header
+	C.png_set_IHDR(encoder.png, encoder.pngInfo,
+		C.png_uint_32(wid), C.png_uint_32(hei),
+		depth, colorType,
+		C.PNG_INTERLACE_NONE,
+		C.PNG_COMPRESSION_TYPE_DEFAULT,
+		C.PNG_FILTER_TYPE_DEFAULT)
+
+	C.png_set_sRGB(encoder.png, encoder.pngInfo,
+		C.PNG_sRGB_INTENT_PERCEPTUAL)
+
+	C.png_write_info(encoder.png, encoder.pngInfo)
+
+	if encoder.err != nil {
+		encoder.Close()
+		return nil, encoder.err
+	}
+
+	return encoder, nil
+}
+
+// Write writes the next image [Row].
+func (encoder *pngEncoder) Write(row Row) error {
+	// Check for pending error
+	if encoder.err != nil {
+		return encoder.err
+	}
+
+	// Silently ignore excessive rows
+	if encoder.y == encoder.hei {
+		return nil
+	}
+
+	// Encode the row
+	wid := row.Width()
+	if wid > encoder.wid {
+		wid = encoder.wid
+	}
+
+	var bytesPerPixel int
+
+	switch encoder.model {
+	case color.GrayModel:
+		bytesPerPixel = 1
+		encoder.encodeGray8(row, wid)
+	case color.Gray16Model:
+		bytesPerPixel = 2
+		encoder.encodeGray16(row, wid)
+	case color.RGBAModel:
+		bytesPerPixel = 3
+		encoder.encodeRGBA32(row, wid)
+	case color.RGBA64Model:
+		bytesPerPixel = 6
+		encoder.encodeRGBA64(row, wid)
+	}
+
+	// Fill the tail
+	if wid < encoder.wid {
+		end := encoder.wid * bytesPerPixel
+		for x := wid * bytesPerPixel; x < end; x++ {
+			encoder.rowBytes[x] = 0xff
+		}
+	}
+
+	// Write the row
+	C.do_png_write_row(encoder.png, &encoder.rowBytes[0])
+	if encoder.err == nil {
+		encoder.y++
+	}
+
+	return encoder.err
+}
+
+// Close flushes the buffered data and then closes the Encoder
+func (encoder *pngEncoder) Close() error {
+	// Write missed lines
+	for encoder.err == nil && encoder.y < encoder.hei {
+		encoder.Write(RowEmpty{})
+	}
+
+	// Finish PNG image
+	if encoder.err == nil {
+		C.png_write_end(encoder.png, nil)
+	}
+
+	// Release allocated resources
+	C.png_destroy_write_struct(&encoder.png, &encoder.pngInfo)
+
+	return encoder.err
+}
+
+// encodeGray8 encodes a row of the 8-bit grayscale image
+func (encoder *pngEncoder) encodeGray8(row Row, wid int) {
+	if row, ok := row.(RowGray8); ok {
+		for x := 0; x < wid; x++ {
+			encoder.rowBytes[x] = C.png_byte(row[x].Y)
+		}
+		return
+	}
+
+	for x := 0; x < wid; x++ {
+		c := color.GrayModel.Convert(row.At(x)).(color.Gray)
+		encoder.rowBytes[x] = C.png_byte(c.Y)
+	}
+}
+
+// encodeGray16 encodes a row of the 16-bit grayscale image
+func (encoder *pngEncoder) encodeGray16(row Row, wid int) {
+	if row, ok := row.(RowGray16); ok {
+		for x := 0; x < wid; x++ {
+			off := x * 2
+			encoder.rowBytes[off] = C.png_byte(row[x].Y >> 8)
+			encoder.rowBytes[off+1] = C.png_byte(row[x].Y)
+		}
+		return
+	}
+
+	for x := 0; x < wid; x++ {
+		off := x * 2
+		c := color.Gray16Model.Convert(row.At(x)).(color.Gray16)
+		encoder.rowBytes[off] = C.png_byte(c.Y >> 8)
+		encoder.rowBytes[off+1] = C.png_byte(c.Y)
+	}
+}
+
+// encodeRGBA32 encodes a row of the 32-bit RGBA image
+func (encoder *pngEncoder) encodeRGBA32(row Row, wid int) {
+	if row, ok := row.(RowRGBA32); ok {
+		for x := 0; x < wid; x++ {
+			off := x * 3
+			s := encoder.rowBytes[off : off+3]
+
+			s[0] = C.png_byte(row[x].R)
+			s[1] = C.png_byte(row[x].G)
+			s[2] = C.png_byte(row[x].B)
+		}
+		return
+	}
+
+	for x := 0; x < wid; x++ {
+		off := x * 3
+		s := encoder.rowBytes[off : off+3]
+
+		c := color.RGBAModel.Convert(row.At(x)).(color.RGBA)
+		s[0] = C.png_byte(c.R)
+		s[1] = C.png_byte(c.G)
+		s[2] = C.png_byte(c.B)
+	}
+}
+
+// encodeRGBA64 encodes a row of the 64-bit RGBA image
+func (encoder *pngEncoder) encodeRGBA64(row Row, wid int) {
+	if row, ok := row.(RowRGBA64); ok {
+		for x := 0; x < wid; x++ {
+			off := x * 6
+			s := encoder.rowBytes[off : off+6]
+
+			s[0] = C.png_byte(row[x].R >> 8)
+			s[1] = C.png_byte(row[x].R)
+			s[2] = C.png_byte(row[x].G >> 8)
+			s[3] = C.png_byte(row[x].G)
+			s[4] = C.png_byte(row[x].B >> 8)
+			s[5] = C.png_byte(row[x].B)
+		}
+		return
+	}
+
+	for x := 0; x < wid; x++ {
+		off := x * 6
+		s := encoder.rowBytes[off : off+6]
+
+		c := color.RGBAModel.Convert(row.At(x)).(color.RGBA64)
+		s[0] = C.png_byte(c.R >> 8)
+		s[1] = C.png_byte(c.R)
+		s[2] = C.png_byte(c.G >> 8)
+		s[3] = C.png_byte(c.G)
+		s[4] = C.png_byte(c.B >> 8)
+		s[5] = C.png_byte(c.B)
+	}
+}
+
 // pngErrorCallback is called by the libpng to report a error
+// This is the common callback for pngDecoder and pngEncoder
 //
 //export pngErrorCallback
 func pngErrorCallback(png *C.png_struct, msg C.png_const_charp) {
-	decoder := (*cgo.Handle)(C.png_get_io_ptr(png)).Value().(*pngDecoder)
-
-	if decoder.err == nil {
-		decoder.err = fmt.Errorf("PNG: %s", C.GoString(msg))
+	p := (*cgo.Handle)(C.png_get_io_ptr(png)).Value()
+	switch p := p.(type) {
+	case (*pngDecoder):
+		p.err = fmt.Errorf("PNG: %s", C.GoString(msg))
+	case (*pngEncoder):
+		p.err = fmt.Errorf("PNG: %s", C.GoString(msg))
 	}
 }
 
@@ -302,6 +592,33 @@ func pngReadCallback(png *C.png_struct, data C.png_bytep, size C.size_t) C.int {
 			buf = buf[n:]
 		} else if err != nil {
 			decoder.err = err
+			return 0
+		}
+	}
+
+	return 1
+}
+
+// pngWriteCallback s called by libpng to write into the output stream
+//
+//export pngWriteCallback
+func pngWriteCallback(png *C.png_struct, data C.png_bytep, size C.size_t) C.int {
+	const max = math.MaxInt32
+
+	sz := max
+	if C.size_t(sz) > size {
+		sz = int(size)
+	}
+
+	encoder := (*cgo.Handle)(C.png_get_io_ptr(png)).Value().(*pngEncoder)
+
+	buf := (*[max]byte)(unsafe.Pointer(data))[:sz:sz]
+	for len(buf) > 0 {
+		n, err := encoder.output.Write(buf)
+		if n > 0 {
+			buf = buf[n:]
+		} else if err != nil {
+			encoder.err = err
 			return 0
 		}
 	}

@@ -42,6 +42,19 @@ func NewRow(model color.Model, width int) (row Row) {
 	return
 }
 
+// RowEmpty represents an empty row
+type RowEmpty struct{}
+
+// Width returns the row width, in pixels.
+func (r RowEmpty) Width() int {
+	return 0
+}
+
+// At returns pixel at the specified position as [color.Color].
+func (r RowEmpty) At(x int) color.Color {
+	return color.White
+}
+
 // RowGray8 represents a row of 8-bit grayscale image.
 type RowGray8 []color.Gray
 

@@ -14,6 +14,7 @@ import (
 	"image"
 	"image/color"
 	"image/png"
+	"io"
 	"strings"
 	"testing"
 
@@ -267,5 +268,109 @@ func TestPNGDecodeErrors(t *testing.T) {
 			s = err.Error()
 		}
 		t.Errorf("PNG: test for interlaced images failed (err=%s)", s)
+	}
+}
+
+// TestPNGEncode tests PNG encoder
+func TestPNGEncode(t *testing.T) {
+	type testData struct {
+		name string      // Image name, for logging
+		data []byte      // Image data
+		img  image.Image // Decoded reference images
+	}
+
+	tests := []testData{
+		{
+			name: "PNG100x75rgb8",
+			data: testutils.Images.PNG100x75rgb8,
+		},
+		{
+			name: "PNG100x75rgb8paletted",
+			data: testutils.Images.PNG100x75rgb8paletted,
+		},
+		{
+			name: "PNG100x75gray1",
+			data: testutils.Images.PNG100x75gray1,
+		},
+		{
+			name: "PNG100x75gray8",
+			data: testutils.Images.PNG100x75gray8,
+		},
+		{
+			name: "PNG100x75gray16",
+			data: testutils.Images.PNG100x75gray16,
+		},
+		{
+			name: "PNG100x75rgb16",
+			data: testutils.Images.PNG100x75rgb16,
+		},
+	}
+
+	// Decode reference images. We need to do it only once.
+	for i := range tests {
+		test := &tests[i]
+		reference, err := png.Decode(bytes.NewReader(test.data))
+		if err != nil {
+			panic(err)
+		}
+		test.img = reference
+	}
+
+	buf := &bytes.Buffer{}
+	for _, test := range tests {
+		// Create image decoder
+		in := bytes.NewReader(test.data)
+		decoder, err := NewPNGDecoder(in)
+		if err != nil {
+			panic(err)
+		}
+
+		// Create image encoder
+		buf.Reset()
+		wid, hei := decoder.Size()
+		model := decoder.ColorModel()
+
+		encoder, err := NewPNGEncoder(buf, wid, hei, model)
+		if err != nil {
+			t.Errorf("%s: NewPNGEncoder: %s", test.name, err)
+			decoder.Close()
+			continue
+		}
+
+		// Recode the image, row by row
+		for err == nil {
+			var row Row
+			row, err = decoder.Read()
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				panic(err)
+			}
+
+			err = encoder.Write(row)
+			if err != nil {
+				t.Errorf("%s: Encoder.Write: %s", test.name, err)
+				decoder.Close()
+				encoder.Close()
+				continue
+			}
+		}
+
+		decoder.Close()
+		encoder.Close()
+
+		// Decode just encoded image by reference decoder
+		img, err := png.Decode(buf)
+		if err != nil {
+			t.Errorf("%s: error in encoded image: %s",
+				test.name, err)
+			continue
+		}
+
+		diff := imageDiff(test.img, img)
+		if diff != "" {
+			t.Errorf("%s: %s", test.name, diff)
+		}
 	}
 }

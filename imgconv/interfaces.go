@@ -36,10 +36,6 @@ type Encoder interface {
 	// Write writes the next image [Row].
 	Write(Row) error
 
-	// Flush writes out the buffered data.
-	Flush() error
-
-	// Close flushes the buffered data and then closes
-	// the destination [io.WriteCloser].
+	// Close flushes the buffered data and then closes the Encoder
 	Close() error
 }
