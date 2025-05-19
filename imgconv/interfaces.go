@@ -22,8 +22,15 @@ type Decoder interface {
 	// Size returns the image size.
 	Size() (wid, hei int)
 
+	// NewRow allocates a [Row] of the appropriate type and width for
+	// use with the [Decoder.Read] function.
+	NewRow() Row
+
 	// Read returns the next image [Row].
-	Read() (Row, error)
+	// The Row type must match the [Decoder]'s [color.Model].
+	//
+	// It returns the resulting row length, in pixels, or an error.
+	Read(Row) (int, error)
 
 	// Close closes the decoder
 	Close()

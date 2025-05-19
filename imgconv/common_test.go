@@ -38,8 +38,9 @@ func decodeImage(decoder Decoder) (image.Image, error) {
 		panic("internal error")
 	}
 
+	row := decoder.NewRow()
 	for y := 0; y < hei; y++ {
-		row, err := decoder.Read()
+		_, err := decoder.Read(row)
 		if err != nil {
 			return nil, err
 		}

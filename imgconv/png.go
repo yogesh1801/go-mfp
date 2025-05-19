@@ -16,6 +16,8 @@ import (
 	"math"
 	"runtime/cgo"
 	"unsafe"
+
+	"github.com/OpenPrinting/go-mfp/util/generic"
 )
 
 // #cgo pkg-config: libpng
@@ -136,7 +138,6 @@ type pngDecoder struct {
 	model    color.Model   // Image color mode
 	wid, hei int           // Image size
 	rowBytes []C.png_byte  // Row decoding buffer
-	row      Row           // Decoded row
 	y        int           // Current y-coordinate
 }
 
@@ -208,7 +209,6 @@ func NewPNGDecoder(input io.Reader) (Decoder, error) {
 
 	// Allocate buffers
 	decoder.rowBytes = make([]C.png_byte, bytesPerPixel*int(width))
-	decoder.row = NewRow(decoder.model, decoder.wid)
 
 	return decoder, nil
 }
@@ -229,31 +229,42 @@ func (decoder *pngDecoder) Size() (wid, hei int) {
 	return decoder.wid, decoder.hei
 }
 
+// NewRow allocates a [Row] of the appropriate type and width for
+// use with the [Decoder.Read] function.
+func (decoder *pngDecoder) NewRow() Row {
+	return NewRow(decoder.model, decoder.wid)
+}
+
 // Read returns the next image [Row].
-func (decoder *pngDecoder) Read() (Row, error) {
+func (decoder *pngDecoder) Read(row Row) (int, error) {
 	// Read the next row
 	decoder.readRow()
 	if decoder.err != nil {
-		return nil, decoder.err
+		return 0, decoder.err
 	}
 
 	// Decode the row
-	switch row := decoder.row.(type) {
-	case RowGray8:
-		for x := 0; x < decoder.wid; x++ {
+	wid := generic.Min(row.Width(), decoder.wid)
+
+	switch decoder.model {
+	case color.GrayModel:
+		row := row.(RowGray8)
+		for x := 0; x < wid; x++ {
 			row[x].Y = uint8(decoder.rowBytes[x])
 		}
 
-	case RowGray16:
-		for x := 0; x < decoder.wid; x++ {
+	case color.Gray16Model:
+		row := row.(RowGray16)
+		for x := 0; x < wid; x++ {
 			off := x * 2
 			row[x].Y =
 				(uint16(decoder.rowBytes[off]) << 8) |
 					uint16(decoder.rowBytes[off+1])
 		}
 
-	case RowRGBA32:
-		for x := 0; x < decoder.wid; x++ {
+	case color.RGBAModel:
+		row := row.(RowRGBA32)
+		for x := 0; x < wid; x++ {
 			off := x * 3
 			s := decoder.rowBytes[off : off+3]
 
@@ -265,8 +276,9 @@ func (decoder *pngDecoder) Read() (Row, error) {
 			}
 		}
 
-	case RowRGBA64:
-		for x := 0; x < decoder.wid; x++ {
+	case color.RGBA64Model:
+		row := row.(RowRGBA64)
+		for x := 0; x < wid; x++ {
 			off := x * 6
 			s := decoder.rowBytes[off : off+6]
 			r := (uint16(s[0]) << 8) | uint16(s[1])
@@ -282,7 +294,7 @@ func (decoder *pngDecoder) Read() (Row, error) {
 		decoder.err = io.EOF
 	}
 
-	return decoder.row, nil
+	return wid, nil
 }
 
 // readRow reads the next image line.
@@ -390,10 +402,7 @@ func (encoder *pngEncoder) Write(row Row) error {
 	}
 
 	// Encode the row
-	wid := row.Width()
-	if wid > encoder.wid {
-		wid = encoder.wid
-	}
+	wid := generic.Min(row.Width(), encoder.wid)
 
 	var bytesPerPixel int
 

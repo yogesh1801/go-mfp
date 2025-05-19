@@ -338,9 +338,9 @@ func TestPNGEncode(t *testing.T) {
 		}
 
 		// Recode the image, row by row
+		row := decoder.NewRow()
 		for err == nil {
-			var row Row
-			row, err = decoder.Read()
+			_, err = decoder.Read(row)
 			if err == io.EOF {
 				break
 			}
