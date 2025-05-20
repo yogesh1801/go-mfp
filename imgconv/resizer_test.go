@@ -60,8 +60,8 @@ func TestResizer(t *testing.T) {
 
 		{
 			//     **********      * - source
-			//     ##############  # - target
-			//     ##############
+			//     #############   # - target
+			//     #############
 			//     **********
 			data: testutils.Images.PNG100x75rgb8,
 			rect: image.Rect(0, 25, 125, 50),
@@ -69,11 +69,68 @@ func TestResizer(t *testing.T) {
 
 		{
 			//     **********      * - source
-			//     **############  # - target
-			//     **############
+			//     **###########   # - target
+			//     **###########
 			//     **********
 			data: testutils.Images.PNG100x75rgb8,
 			rect: image.Rect(25, 25, 125, 50),
+		},
+
+		{
+			//     **********      * - source
+			//  #############      # - target
+			//  #############
+			//     **********
+			data: testutils.Images.PNG100x75rgb8,
+			rect: image.Rect(-25, 25, 100, 50),
+		},
+
+		{
+			//     **********      * - source
+			//  ###########**      # - target
+			//  ###########**
+			//     **********
+			data: testutils.Images.PNG100x75rgb8,
+			rect: image.Rect(-25, 25, 75, 50),
+		},
+
+		{
+			//     **********      * - source
+			//  ################   # - target
+			//  ################
+			//     **********
+			data: testutils.Images.PNG100x75rgb8,
+			rect: image.Rect(-25, 25, 125, 50),
+		},
+
+		{
+			//       ######
+			//     **######**      * - source
+			//     **######**      # - target
+			//     **######**
+			//     **######**
+			data: testutils.Images.PNG100x75rgb8,
+			rect: image.Rect(25, -25, 75, 75),
+		},
+
+		{
+			//       ######
+			//     **######**      * - source
+			//     **######**      # - target
+			//     **######**
+			//     **********
+			data: testutils.Images.PNG100x75rgb8,
+			rect: image.Rect(25, -25, 75, 50),
+		},
+
+		{
+			//     **######**      * - source
+			//     **######**      # - target
+			//     **######**
+			//     **######**
+			//       ######
+			data: testutils.Images.PNG100x75rgb8,
+			rect: image.Rect(25, 0, 75, 100),
 		},
 	}
 

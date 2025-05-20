@@ -105,22 +105,22 @@ func (rsz *resizer) Read(row Row) (int, error) {
 		return 0, io.EOF
 
 	// Target row doesn't overlap with source. Just fill it.
-	case srcY < 0 || srcY > srcHei || rsz.skip:
+	case srcY < 0 || srcY >= srcHei || rsz.skip:
 		row.Fill(rsz.fill)
 		rsz.y++
 		return wid, nil
 
 	// Target shifted down vertically. Consume unneeded source lines.
-	case srcY > 0:
+	case rsz.rect.Min.Y > 0:
 		tmp := NewRow(rsz.ColorModel(), 0)
-		for srcY > 0 {
+		for rsz.rect.Min.Y > 0 {
 			_, err := rsz.input.Read(tmp)
 			if err != nil {
 				rsz.err = err
 				return 0, err
 			}
 
-			srcY--
+			srcY++
 			rsz.rect.Min.Y--
 			rsz.rect.Max.Y--
 		}
@@ -154,6 +154,8 @@ func (rsz *resizer) Read(row Row) (int, error) {
 		n := row.Copy(rsz.tmp.Slice(rsz.rect.Min.X, rsz.tmp.Width()))
 		row.Slice(n, wid).Fill(rsz.fill)
 	}
+
+	rsz.y++
 
 	return wid, nil
 }
