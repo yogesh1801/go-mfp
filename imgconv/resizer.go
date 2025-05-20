@@ -12,15 +12,19 @@ import (
 	"image"
 	"image/color"
 	"io"
+
+	"github.com/OpenPrinting/go-mfp/util/generic"
 )
 
 // resizer implements an image resizer.
 type resizer struct {
-	input    Decoder         // Image source
-	rect     image.Rectangle // Clipping region
-	fill     color.Color     // Filler color
-	wid, hei int             // Resized image size
-	y        int             // Current y coordinate
+	input Decoder         // Image source
+	err   error           // I/O error
+	rect  image.Rectangle // Clipping region
+	fill  color.Color     // Filler color
+	skip  bool            // Source and destination doesn't overlap
+	y     int             // y-coordinate, relative to destination
+	tmp   Row             // For horizontal shifting, nil if not needed
 }
 
 // NewResizer creates a new image resize filter on a top of the
@@ -36,19 +40,27 @@ type resizer struct {
 func NewResizer(in Decoder, rect image.Rectangle) Decoder {
 	rect = rect.Canon()
 	wid, hei := in.Size()
+	bounds := image.Rect(0, 0, wid, hei)
 
-	if rect.Min.X == 0 && rect.Min.Y == 0 &&
-		rect.Dx() == wid && rect.Dy() == hei {
+	// Bypass filter, if target rectangle is equal to source bounds
+	if rect.Eq(bounds) {
 		return in
 	}
 
+	// Create resize filter
 	model := in.ColorModel()
 	rsz := &resizer{
 		input: in,
 		rect:  rect.Canon(),
-		wid:   rect.Dx(),
-		hei:   rect.Dy(),
 		fill:  model.Convert(color.White),
+		skip:  !rect.Overlaps(bounds),
+	}
+
+	// Allocate temporary row for the horizontal shifting,
+	// if we really need it.
+	if !rsz.skip && rect.Min.X > 0 {
+		sz := generic.Max(wid, rect.Max.X)
+		rsz.tmp = NewRow(model, sz)
 	}
 
 	return rsz
@@ -75,13 +87,73 @@ func (rsz *resizer) NewRow() Row {
 //
 // It returns the resulting row length, in pixels, or an error.
 func (rsz *resizer) Read(row Row) (int, error) {
-	_, end := rsz.Size()
+	wid, hei := rsz.Size()
+	wid = generic.Min(wid, row.Width())
+	row = row.Slice(0, wid)
 
+	srcY := rsz.y + rsz.rect.Min.Y
+	srcWid, srcHei := rsz.input.Size()
+
+	// Handle special cases
 	switch {
-	case rsz.y == end:
+	// We've already got an I/O error, just return it.
+	case rsz.err != nil:
+		return 0, rsz.err
+
+	// Image consumed till the end. Return io.EOF
+	case rsz.y == hei:
 		return 0, io.EOF
-	case rsz.y < rsz.rect.Min.Y || rsz.y >= rsz.rect.Max.Y:
+
+	// Target row doesn't overlap with source. Just fill it.
+	case srcY < 0 || srcY > srcHei || rsz.skip:
 		row.Fill(rsz.fill)
+		rsz.y++
+		return wid, io.EOF
+
+	// Target shifted down vertically. Consume unneeded source lines.
+	case srcY > 0:
+		for srcY > 0 {
+			_, err := rsz.input.Read(RowEmpty{})
+			if err != nil {
+				rsz.err = err
+				return 0, err
+			}
+
+			srcY--
+			rsz.y++
+			rsz.rect.Min.Y--
+			rsz.rect.Max.Y--
+		}
+	}
+
+	// Read the next row.
+	// We do it either directly, or via intermediate buffer.
+	//
+	// Note, the need of double buffering already checked by
+	// constructor and the fact that source and destination rows
+	// do overlap already checked by the preceding lines of code.
+	if rsz.tmp == nil {
+		l := -rsz.rect.Min.X
+		r := generic.Min(srcWid, rsz.rect.Max.X) - rsz.rect.Min.X
+
+		_, err := rsz.input.Read(row.Slice(l, r))
+		if err != nil {
+			rsz.err = err
+			return 0, err
+		}
+
+		row.Slice(0, l).Fill(rsz.fill)
+		row.Slice(r, wid).Fill(rsz.fill)
+	} else {
+		_, err := rsz.input.Read(rsz.tmp)
+		if err != nil {
+			rsz.err = err
+			return 0, err
+		}
+
+		row.Slice(0, rsz.rect.Min.X).Fill(rsz.fill)
+		row.Slice(rsz.rect.Min.X, wid).Copy(rsz.tmp)
+		row.Slice(wid, row.Width()).Fill(rsz.fill)
 	}
 
 	return 0, io.EOF
