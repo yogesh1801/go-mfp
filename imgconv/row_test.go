@@ -99,3 +99,104 @@ func TestRowBasic(t *testing.T) {
 		}
 	}
 }
+
+// TestRowSliceCopy tests Row.Slice and Row.Copy
+func TestRowSliceCopy(t *testing.T) {
+	type testData struct {
+		model  color.Model
+		sample Row
+	}
+
+	tests := []testData{
+		{
+			model: color.GrayModel,
+			sample: RowGray8{
+				color.Gray{0x00},
+				color.Gray{0x20},
+				color.Gray{0x40},
+				color.Gray{0x60},
+				color.Gray{0x80},
+				color.Gray{0xa0},
+				color.Gray{0xc0},
+				color.Gray{0xe0},
+			},
+		},
+
+		{
+			model: color.Gray16Model,
+			sample: RowGray16{
+				color.Gray16{0x0000},
+				color.Gray16{0x2000},
+				color.Gray16{0x4000},
+				color.Gray16{0x6000},
+				color.Gray16{0x8000},
+				color.Gray16{0xa000},
+				color.Gray16{0xc000},
+				color.Gray16{0xe000},
+			},
+		},
+
+		{
+			model: color.RGBAModel,
+			sample: RowRGBA32{
+				color.RGBA{0x00, 0x00, 0x00, 0x00},
+				color.RGBA{0x20, 0x20, 0x20, 0x20},
+				color.RGBA{0x40, 0x40, 0x40, 0x40},
+				color.RGBA{0x60, 0x60, 0x60, 0x60},
+				color.RGBA{0x80, 0x80, 0x80, 0x80},
+				color.RGBA{0xa0, 0xa0, 0xa0, 0xa0},
+				color.RGBA{0xc0, 0xc0, 0xc0, 0xc0},
+				color.RGBA{0xe0, 0xe0, 0xe0, 0xe0},
+			},
+		},
+
+		{
+			model: color.RGBA64Model,
+			sample: RowRGBA64{
+				color.RGBA64{0x0000, 0x0000, 0x0000, 0x0000},
+				color.RGBA64{0x2000, 0x2000, 0x2000, 0x2000},
+				color.RGBA64{0x4000, 0x4000, 0x4000, 0x4000},
+				color.RGBA64{0x6000, 0x6000, 0x6000, 0x6000},
+				color.RGBA64{0x8000, 0x8000, 0x8000, 0x8000},
+				color.RGBA64{0xa000, 0xa000, 0xa000, 0xa000},
+				color.RGBA64{0xc000, 0xc000, 0xc000, 0xc000},
+				color.RGBA64{0xe000, 0xe000, 0xe000, 0xe000},
+			},
+		},
+	}
+
+	for _, test := range tests {
+		name := reflect.TypeOf(test.sample).String()
+		fullWid := reflect.ValueOf(test.sample).Len()
+		wid := fullWid - 3
+		mid := wid / 2
+
+		source := test.sample
+		expected := reflect.ValueOf(test.sample).Slice(0, wid).Interface()
+
+		// Test copying from the slice of the matched type
+		row := NewRow(test.model, wid)
+		row.Copy(source.Slice(0, mid))
+		row.Slice(mid, row.Width()).Copy(source.Slice(mid, fullWid))
+
+		diff := testutils.Diff(expected, row)
+		if diff != "" {
+			t.Errorf("%s: direct Copy test failed:\n%s",
+				name, diff)
+		}
+
+		// Test copying from the wrapped slice - it prohibits
+		// the direct copying
+		type wrap struct{ Row }
+
+		row = NewRow(test.model, wid)
+		row.Copy(wrap{source.Slice(0, mid)})
+		row.Slice(mid, row.Width()).Copy(wrap{source.Slice(mid, fullWid)})
+
+		diff = testutils.Diff(expected, row)
+		if diff != "" {
+			t.Errorf("%s: converted Copy test failed:\n%s",
+				name, diff)
+		}
+	}
+}
