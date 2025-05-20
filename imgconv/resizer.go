@@ -59,7 +59,7 @@ func NewResizer(in Decoder, rect image.Rectangle) Decoder {
 	// Allocate temporary row for the horizontal shifting,
 	// if we really need it.
 	if !rsz.skip && rect.Min.X > 0 {
-		sz := generic.Max(wid, rect.Max.X)
+		sz := generic.Min(wid, rect.Max.X)
 		rsz.tmp = NewRow(model, sz)
 	}
 
@@ -108,19 +108,19 @@ func (rsz *resizer) Read(row Row) (int, error) {
 	case srcY < 0 || srcY > srcHei || rsz.skip:
 		row.Fill(rsz.fill)
 		rsz.y++
-		return wid, io.EOF
+		return wid, nil
 
 	// Target shifted down vertically. Consume unneeded source lines.
 	case srcY > 0:
+		tmp := NewRow(rsz.ColorModel(), 0)
 		for srcY > 0 {
-			_, err := rsz.input.Read(RowEmpty{})
+			_, err := rsz.input.Read(tmp)
 			if err != nil {
 				rsz.err = err
 				return 0, err
 			}
 
 			srcY--
-			rsz.y++
 			rsz.rect.Min.Y--
 			rsz.rect.Max.Y--
 		}
@@ -151,12 +151,11 @@ func (rsz *resizer) Read(row Row) (int, error) {
 			return 0, err
 		}
 
-		row.Slice(0, rsz.rect.Min.X).Fill(rsz.fill)
-		row.Slice(rsz.rect.Min.X, wid).Copy(rsz.tmp)
-		row.Slice(wid, row.Width()).Fill(rsz.fill)
+		n := row.Copy(rsz.tmp.Slice(rsz.rect.Min.X, rsz.tmp.Width()))
+		row.Slice(n, wid).Fill(rsz.fill)
 	}
 
-	return 0, io.EOF
+	return wid, nil
 }
 
 // Close closes the decoder
