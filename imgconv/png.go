@@ -101,6 +101,24 @@ import (
 //     png_read_info(png, info_ptr);
 // }
 //
+// // do_png_get_IHDR wraps png_get_IHDR.
+// // The wrapper is required to catch setjmp return as
+// // we can't do it from Go
+// static inline png_uint_32
+// do_png_get_IHDR(png_struct *png, png_info *info_ptr,
+//                 png_uint_32 *width, png_uint_32 *height, int *bit_depth,
+//                 int *color_type, int *interlace_type, int *compression_type,
+//                 int *filter_type) {
+//
+//     if (setjmp(png_jmpbuf(png))) {
+//         return 0;
+//     }
+//
+//     return png_get_IHDR(png, info_ptr, width, height, bit_depth,
+//                  color_type, interlace_type, compression_type,
+//                  filter_type);
+// }
+//
 // // do_png_read_row wraps png_read_row.
 // // The wrapper is required to catch setjmp return as we can't do it from Go
 // static inline void
@@ -158,7 +176,7 @@ func NewPNGDecoder(input io.Reader) (Decoder, error) {
 	var width, height C.png_uint_32
 	var depth, colorType, interlace C.int
 
-	C.png_get_IHDR(decoder.png, decoder.pngInfo, &width, &height,
+	C.do_png_get_IHDR(decoder.png, decoder.pngInfo, &width, &height,
 		&depth, &colorType, &interlace, nil, nil)
 
 	if err := decoder.err; err != nil {
