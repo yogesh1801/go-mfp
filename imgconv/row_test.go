@@ -200,3 +200,37 @@ func TestRowSliceCopy(t *testing.T) {
 		}
 	}
 }
+
+// TestRowEmpty tests RowEmpty behavior
+func TestRowEmpty(t *testing.T) {
+	empty := RowEmpty{}
+
+	if wid := empty.Width(); wid != 0 {
+		t.Errorf("empty.Width(): %d != 0", wid)
+	}
+
+	if c := empty.At(0); !colorEqual(c, color.White) {
+		t.Errorf("empty.At(): %v != %v", c, color.White)
+	}
+
+	if s := empty.Slice(0, 0); s != empty {
+		t.Errorf("empty.Slice(): %v != %v", s, empty)
+	}
+
+	empty.Fill(color.White) // Must not crash
+
+	source := RowGray8{
+		color.Gray{0x00},
+		color.Gray{0x20},
+		color.Gray{0x40},
+		color.Gray{0x60},
+		color.Gray{0x80},
+		color.Gray{0xa0},
+		color.Gray{0xc0},
+		color.Gray{0xe0},
+	}
+
+	if n := empty.Copy(source); n != 0 {
+		t.Errorf("empty.Copy(): %d != 0", n)
+	}
+}
