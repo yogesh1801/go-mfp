@@ -18,13 +18,14 @@ import (
 
 // resizer implements an image resizer.
 type resizer struct {
-	input Decoder         // Image source
-	err   error           // I/O error
-	rect  image.Rectangle // Clipping region
-	fill  color.Color     // Filler color
-	skip  bool            // Source and destination doesn't overlap
-	y     int             // y-coordinate, relative to destination
-	tmp   Row             // For horizontal shifting, nil if not needed
+	input     Decoder         // Image source
+	err       error           // I/O error
+	rect      image.Rectangle // Clipping region
+	fill      color.Color     // Filler color
+	nooverlap bool            // Source and destination don't overlap
+	y         int             // y-coordinate, relative to destination
+	skip      int             // Lines to skip
+	tmp       Row             // For horizontal shifting, nil if not needed
 }
 
 // NewResizer creates a new image resize filter on a top of the
@@ -50,15 +51,16 @@ func NewResizer(in Decoder, rect image.Rectangle) Decoder {
 	// Create resize filter
 	model := in.ColorModel()
 	rsz := &resizer{
-		input: in,
-		rect:  rect.Canon(),
-		fill:  model.Convert(color.White),
-		skip:  !rect.Overlaps(bounds),
+		input:     in,
+		rect:      rect.Canon(),
+		fill:      model.Convert(color.White),
+		nooverlap: !rect.Overlaps(bounds),
+		skip:      generic.Max(0, rect.Min.Y),
 	}
 
 	// Allocate temporary row for the horizontal shifting,
 	// if we really need it.
-	if !rsz.skip && rect.Min.X > 0 {
+	if !rsz.nooverlap && rect.Min.X > 0 {
 		sz := generic.Min(wid, rect.Max.X)
 		rsz.tmp = NewRow(model, sz)
 	}
@@ -105,24 +107,22 @@ func (rsz *resizer) Read(row Row) (int, error) {
 		return 0, io.EOF
 
 	// Target row doesn't overlap with source. Just fill it.
-	case srcY < 0 || srcY >= srcHei || rsz.skip:
+	case srcY < 0 || srcY >= srcHei || rsz.nooverlap:
 		row.Fill(rsz.fill)
 		rsz.y++
 		return wid, nil
 
 	// Target shifted down vertically. Consume unneeded source lines.
-	case rsz.rect.Min.Y > 0:
+	case rsz.skip > 0:
 		tmp := NewRow(rsz.ColorModel(), 0)
-		for rsz.rect.Min.Y > 0 {
+		for rsz.skip > 0 {
 			_, err := rsz.input.Read(tmp)
 			if err != nil {
 				rsz.err = err
 				return 0, err
 			}
 
-			srcY++
-			rsz.rect.Min.Y--
-			rsz.rect.Max.Y--
+			rsz.skip--
 		}
 	}
 
