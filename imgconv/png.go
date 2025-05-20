@@ -452,6 +452,7 @@ func (encoder *pngEncoder) Close() error {
 
 	// Release allocated resources
 	C.png_destroy_write_struct(&encoder.png, &encoder.pngInfo)
+	encoder.handle.Delete()
 
 	return encoder.err
 }
