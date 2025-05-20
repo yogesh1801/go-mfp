@@ -8,7 +8,11 @@
 
 package imgconv
 
-import "image/color"
+import (
+	"image/color"
+
+	"github.com/OpenPrinting/go-mfp/util/generic"
+)
 
 // Row represents a single row of image
 type Row interface {
@@ -23,6 +27,13 @@ type Row interface {
 
 	// Fill fills Row with the pixels of the specified color
 	Fill(c color.Color)
+
+	// Copy copies content of the r2 into the receiver Row.
+	// If they have a different color model, pixels are converted.
+	// Rows may be of the different size and may overlap.
+	//
+	// It returns number of pixels copied.
+	Copy(r2 Row) int
 }
 
 // NewRow returns the new [Row] of the specified width and [color.Model].
@@ -70,6 +81,11 @@ func (r RowEmpty) Slice(low, high int) Row {
 func (r RowEmpty) Fill(c color.Color) {
 }
 
+// Copy copies content of the r2 into the receiver Row.
+func (r RowEmpty) Copy(r2 Row) int {
+	return 0
+}
+
 // RowGray8 represents a row of 8-bit grayscale image.
 type RowGray8 []color.Gray
 
@@ -103,6 +119,20 @@ func (r RowGray8) Fill(c color.Color) {
 // GrayAt returns pixel at the specified position as [color.Gray].
 func (r RowGray8) GrayAt(x int) color.Gray {
 	return r[x]
+}
+
+// Copy copies content of the r2 into the receiver Row.
+func (r RowGray8) Copy(r2 Row) int {
+	if r2, ok := r2.(RowGray8); ok {
+		return copy(r, r2)
+	}
+
+	wid := generic.Min(r.Width(), r2.Width())
+	for x := 0; x < wid; x++ {
+		r[x] = color.GrayModel.Convert(r2.At(x)).(color.Gray)
+	}
+
+	return wid
 }
 
 // RowGray16 represents a row of 16-bit grayscale image.
@@ -140,6 +170,20 @@ func (r RowGray16) Gray16At(x int) color.Gray16 {
 	return r[x]
 }
 
+// Copy copies content of the r2 into the receiver Row.
+func (r RowGray16) Copy(r2 Row) int {
+	if r2, ok := r2.(RowGray16); ok {
+		return copy(r, r2)
+	}
+
+	wid := generic.Min(r.Width(), r2.Width())
+	for x := 0; x < wid; x++ {
+		r[x] = color.Gray16Model.Convert(r2.At(x)).(color.Gray16)
+	}
+
+	return wid
+}
+
 // RowRGBA32 represents a row of 8-bit RGBA image.
 type RowRGBA32 []color.RGBA
 
@@ -175,6 +219,20 @@ func (r RowRGBA32) RGBAAt(x int) color.RGBA {
 	return r[x]
 }
 
+// Copy copies content of the r2 into the receiver Row.
+func (r RowRGBA32) Copy(r2 Row) int {
+	if r2, ok := r2.(RowRGBA32); ok {
+		return copy(r, r2)
+	}
+
+	wid := generic.Min(r.Width(), r2.Width())
+	for x := 0; x < wid; x++ {
+		r[x] = color.RGBAModel.Convert(r2.At(x)).(color.RGBA)
+	}
+
+	return wid
+}
+
 // RowRGBA64 represents a row of 16-bit RGBA image.
 type RowRGBA64 []color.RGBA64
 
@@ -208,4 +266,18 @@ func (r RowRGBA64) Fill(c color.Color) {
 // RGBA64At returns pixel at the specified position as [color.RGBA64].
 func (r RowRGBA64) RGBA64At(x int) color.RGBA64 {
 	return r[x]
+}
+
+// Copy copies content of the r2 into the receiver Row.
+func (r RowRGBA64) Copy(r2 Row) int {
+	if r2, ok := r2.(RowRGBA64); ok {
+		return copy(r, r2)
+	}
+
+	wid := generic.Min(r.Width(), r2.Width())
+	for x := 0; x < wid; x++ {
+		r[x] = color.RGBA64Model.Convert(r2.At(x)).(color.RGBA64)
+	}
+
+	return wid
 }
