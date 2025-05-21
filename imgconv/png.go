@@ -152,6 +152,18 @@ import (
 //
 //     png_write_row(png, row);
 // }
+//
+// // do_png_write_end wraps png_write_end.
+// // The wrapper is required to catch setjmp return as
+// // we can't do it from Go
+// static inline void
+// do_png_write_end(png_struct *png, png_info *info_ptr) {
+//     if (setjmp(png_jmpbuf(png))) {
+//         return;
+//     }
+//
+//     png_write_end(png, info_ptr);
+// }
 import "C"
 
 // ErrPNGUnexpectedEOF is returned when the Decoder encounters an io.EOF
@@ -477,7 +489,7 @@ func (encoder *pngEncoder) Close() error {
 
 	// Finish PNG image
 	if encoder.err == nil {
-		C.png_write_end(encoder.png, nil)
+		C.do_png_write_end(encoder.png, nil)
 	}
 
 	// Release allocated resources
