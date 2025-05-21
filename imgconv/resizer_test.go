@@ -183,6 +183,17 @@ func TestResizer(t *testing.T) {
 			data: testutils.Images.PNG100x75rgb8,
 			rect: image.Rect(25, 25, 125, 100),
 		},
+
+		{
+			//  ################
+			//  ###**********###   * - source
+			//  ###**********###   # - target
+			//  ###**********###
+			//  ###**********###
+			//  ################
+			data: testutils.Images.PNG100x75rgb8,
+			rect: image.Rect(-25, -25, 125, 100),
+		},
 	}
 
 	for _, test := range tests {
