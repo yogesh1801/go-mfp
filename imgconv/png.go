@@ -101,6 +101,18 @@ import (
 //     png_read_info(png, info_ptr);
 // }
 //
+// // do_png_write_info wraps png_write_info.
+// // The wrapper is required to catch setjmp return as
+// // we can't do it from Go
+// static inline void
+// do_png_write_info(png_struct *png, png_info *info_ptr) {
+//     if (setjmp(png_jmpbuf(png))) {
+//         return;
+//     }
+//
+//     png_write_info(png, info_ptr);
+// }
+//
 // // do_png_get_IHDR wraps png_get_IHDR.
 // // The wrapper is required to catch setjmp return as
 // // we can't do it from Go
@@ -397,7 +409,7 @@ func NewPNGEncoder(output io.Writer,
 	C.png_set_sRGB(encoder.png, encoder.pngInfo,
 		C.PNG_sRGB_INTENT_PERCEPTUAL)
 
-	C.png_write_info(encoder.png, encoder.pngInfo)
+	C.do_png_write_info(encoder.png, encoder.pngInfo)
 
 	if encoder.err != nil {
 		encoder.Close()
