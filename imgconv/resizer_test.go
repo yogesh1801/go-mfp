@@ -171,7 +171,7 @@ func TestResizer(t *testing.T) {
 			//  #######******
 			//  #######
 			data: testutils.Images.PNG100x75rgb8,
-			rect: image.Rect(25, 25, 100, 50),
+			rect: image.Rect(-25, 25, 75, 100),
 		},
 
 		{
