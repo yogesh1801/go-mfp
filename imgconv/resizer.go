@@ -24,7 +24,6 @@ type resizer struct {
 	fill      color.Color     // Filler color
 	nooverlap bool            // Source and destination don't overlap
 	y         int             // y-coordinate, relative to destination
-	skip      int             // Lines to skip
 	tmp       Row             // For horizontal shifting, nil if not needed
 }
 
@@ -55,7 +54,6 @@ func NewResizer(in Decoder, rect image.Rectangle) Decoder {
 		rect:      rect.Canon(),
 		fill:      model.Convert(color.White),
 		nooverlap: !rect.Overlaps(bounds),
-		skip:      generic.Max(0, rect.Min.Y),
 	}
 
 	// Allocate temporary row for the horizontal shifting,
@@ -113,16 +111,14 @@ func (rsz *resizer) Read(row Row) (int, error) {
 		return wid, nil
 
 	// Target shifted down vertically. Consume unneeded source lines.
-	case rsz.skip > 0:
+	case rsz.y == 0 && rsz.rect.Min.Y > 0:
 		tmp := NewRow(rsz.ColorModel(), 0)
-		for rsz.skip > 0 {
+		for i := 0; i < rsz.rect.Min.Y; i++ {
 			_, err := rsz.input.Read(tmp)
 			if err != nil {
 				rsz.err = err
 				return 0, err
 			}
-
-			rsz.skip--
 		}
 	}
 
