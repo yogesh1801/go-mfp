@@ -131,6 +131,24 @@ import (
 //                  filter_type);
 // }
 //
+// // do_png_set_IHDR wraps png_set_IHDR.
+// // The wrapper is required to catch setjmp return as
+// // we can't do it from Go
+// static inline void
+// do_png_set_IHDR(png_struct *png, png_info *info_ptr,
+//                 png_uint_32 width, png_uint_32 height, int bit_depth,
+//                 int color_type, int interlace_type, int compression_type,
+//                 int filter_type) {
+//
+//     if (setjmp(png_jmpbuf(png))) {
+//         return;
+//     }
+//
+//     png_set_IHDR(png, info_ptr, width, height, bit_depth,
+//                  color_type, interlace_type, compression_type,
+//                  filter_type);
+// }
+//
 // // do_png_read_row wraps png_read_row.
 // // The wrapper is required to catch setjmp return as we can't do it from Go
 // static inline void
@@ -411,12 +429,17 @@ func NewPNGEncoder(output io.Writer,
 	encoder.pngInfo = C.png_create_info_struct(encoder.png)
 
 	// Create PNG header
-	C.png_set_IHDR(encoder.png, encoder.pngInfo,
+	C.do_png_set_IHDR(encoder.png, encoder.pngInfo,
 		C.png_uint_32(wid), C.png_uint_32(hei),
 		depth, colorType,
 		C.PNG_INTERLACE_NONE,
 		C.PNG_COMPRESSION_TYPE_DEFAULT,
 		C.PNG_FILTER_TYPE_DEFAULT)
+
+	if encoder.err != nil {
+		encoder.Close()
+		return nil, encoder.err
+	}
 
 	C.png_set_sRGB(encoder.png, encoder.pngInfo,
 		C.PNG_sRGB_INTENT_PERCEPTUAL)
