@@ -15,6 +15,7 @@ import (
 	"io"
 
 	"github.com/OpenPrinting/go-mfp/internal/testutils"
+	"github.com/OpenPrinting/go-mfp/util/generic"
 	"golang.org/x/image/draw"
 )
 
@@ -113,4 +114,33 @@ func (r *readerWithError) Read(buf []byte) (int, error) {
 	}
 
 	return 0, r.err
+}
+
+// writerWithError wraps [io.Writer]. When the specified amount
+// of bytes are written, it returns the specified error.
+type writerWithError struct {
+	dst io.Writer // Destination io.Writer
+	lim int       // Write limit
+	err error     // Error to be returned
+}
+
+// newWriterWithError returns [io.Writer], that bypasses up to the
+// lim amount of bytes into the dst, then returns err.
+func newWriterWithError(dst io.Writer, lim int, err error) io.Writer {
+	return &writerWithError{dst: dst, lim: lim, err: err}
+}
+
+// Write implements io.Writer interface for the writerWithError.
+func (w *writerWithError) Write(data []byte) (int, error) {
+	if lim := w.lim; lim > 0 {
+		lim = generic.Min(lim, len(data))
+		data = data[:lim]
+		n, err := w.dst.Write(data)
+		if n > 0 {
+			w.lim -= n
+		}
+		return n, err
+	}
+
+	return 0, w.err
 }
