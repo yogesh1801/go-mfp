@@ -374,3 +374,57 @@ func TestPNGEncode(t *testing.T) {
 		}
 	}
 }
+
+// TestPNGEncode tests I/O errors handling by the PNG encoder
+func TestPNGEncodeErrors(t *testing.T) {
+	// Decode test image
+	decoder, err := NewPNGDecoder(
+		bytes.NewReader(testutils.Images.PNG100x75rgb8))
+	if err != nil {
+		panic(err)
+	}
+
+	wid, hei := decoder.Size()
+	rows := make([]Row, hei)
+	for y := 0; y < hei; y++ {
+		rows[y] = decoder.NewRow()
+		_, err = decoder.Read(rows[y])
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	decoder.Close()
+
+	// Test I/O errors handling in encoder
+	ioerr := errors.New("I/O error")
+	headerErr := false
+	dataErr := false
+	for lim := 0; !(headerErr && dataErr); lim++ {
+		w := newWriterWithError(io.Discard, lim, ioerr)
+		encoder, err := NewPNGEncoder(w, wid, hei, color.RGBAModel)
+		if err != nil {
+			headerErr = true
+		}
+
+		for y := 0; y < len(rows) && err == nil; y++ {
+			err = encoder.Write(rows[y])
+		}
+
+		if err != nil {
+			dataErr = true
+		}
+
+		if encoder != nil {
+			encoder.Close()
+		}
+
+		if err != ioerr {
+			t.Errorf("Encoder I/O error test:\n"+
+				"error expected: %v\n"+
+				"error present:  %v\n",
+				ioerr, err)
+			break
+		}
+	}
+}
