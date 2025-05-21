@@ -142,9 +142,9 @@ import (
 // }
 import "C"
 
-// pngEmptyCString is the empty string, suitable for
-// passing as parameter to C functions.
-var pngEmptyCString = C.CString("")
+// ErrPNGUnexpectedEOF is returned when the Decoder encounters an io.EOF
+// error while more data is still required from the input stream.
+var ErrPNGUnexpectedEOF = errors.New("PNG: unexpected EOF")
 
 // pngDecoder implements the [Decoder] interface for reading PNG images.
 type pngDecoder struct {
@@ -573,9 +573,13 @@ func pngErrorCallback(png *C.png_struct, msg C.png_const_charp) {
 	p := (*cgo.Handle)(C.png_get_io_ptr(png)).Value()
 	switch p := p.(type) {
 	case (*pngDecoder):
-		p.err = fmt.Errorf("PNG: %s", C.GoString(msg))
+		if p.err == nil {
+			p.err = fmt.Errorf("PNG: %s", C.GoString(msg))
+		}
 	case (*pngEncoder):
-		p.err = fmt.Errorf("PNG: %s", C.GoString(msg))
+		if p.err == nil {
+			p.err = fmt.Errorf("PNG: %s", C.GoString(msg))
+		}
 	}
 }
 
@@ -619,6 +623,9 @@ func pngReadCallback(png *C.png_struct, data C.png_bytep, size C.size_t) C.int {
 		if n > 0 {
 			buf = buf[n:]
 		} else if err != nil {
+			if err == io.EOF {
+				err = ErrPNGUnexpectedEOF
+			}
 			decoder.err = err
 			return 0
 		}
