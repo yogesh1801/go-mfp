@@ -184,10 +184,6 @@ import (
 // }
 import "C"
 
-// ErrPNGUnexpectedEOF is returned when the Decoder encounters an io.EOF
-// error while more data is still required from the input stream.
-var ErrPNGUnexpectedEOF = errors.New("PNG: unexpected EOF")
-
 // pngDecoder implements the [Decoder] interface for reading PNG images.
 type pngDecoder struct {
 	handle   cgo.Handle    // Handle to self
@@ -671,7 +667,7 @@ func pngReadCallback(png *C.png_struct, data C.png_bytep, size C.size_t) C.int {
 			buf = buf[n:]
 		} else if err != nil {
 			if err == io.EOF {
-				err = ErrPNGUnexpectedEOF
+				err = io.ErrUnexpectedEOF
 			}
 			decoder.err = err
 			return 0
