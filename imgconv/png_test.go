@@ -20,6 +20,7 @@ import (
 
 	"github.com/OpenPrinting/go-mfp/internal/testutils"
 	"github.com/OpenPrinting/go-mfp/util/generic"
+	"golang.org/x/image/draw"
 )
 
 // TestPNGDecode tests PNG decoder
@@ -565,6 +566,110 @@ func TestPNGDecodeEncodeTest(t *testing.T) {
 		if diff != "" {
 			t.Errorf("%s: Converted decoding/encoding:\n%s",
 				test.name, diff)
+		}
+	}
+}
+
+// TestPNGEncodeExpand tests how the PNG encoder expands
+// image with the insufficient width or height.
+func TestPNGEncodeExpand(t *testing.T) {
+	type testData struct {
+		name string
+		data []byte
+	}
+
+	tests := []testData{
+		{
+			name: "PNG100x75rgb8",
+			data: testutils.Images.PNG100x75rgb8,
+		},
+		{
+			name: "PNG100x75rgb8paletted",
+			data: testutils.Images.PNG100x75rgb8paletted,
+		},
+		{
+			name: "PNG100x75gray1",
+			data: testutils.Images.PNG100x75gray1,
+		},
+		{
+			name: "PNG100x75gray8",
+			data: testutils.Images.PNG100x75gray8,
+		},
+		{
+			name: "PNG100x75gray16",
+			data: testutils.Images.PNG100x75gray16,
+		},
+		{
+			name: "PNG100x75rgb16",
+			data: testutils.Images.PNG100x75rgb16,
+		},
+	}
+
+	for _, test := range tests {
+		// Decode the image
+		decoder, err := NewPNGDecoder(bytes.NewReader(test.data))
+		if err != nil {
+			panic(err)
+		}
+
+		wid, hei := decoder.Size()
+		model := decoder.ColorModel()
+
+		rows := mustDecodeImageRows(decoder)
+		decoder.Close()
+
+		// Halve the image
+		halfwid := wid / 2
+		halfhei := hei / 2
+
+		rows = rows[:halfhei]
+		for y := range rows {
+			rows[y] = rows[y].Slice(0, halfwid)
+		}
+
+		// Encode the image on its original size
+		buf := &bytes.Buffer{}
+		encoder, err := NewPNGEncoder(buf, wid, hei, model)
+		if err != nil {
+			panic(err)
+		}
+		mustEncodeImageRows(encoder, rows)
+		encoder.Close()
+
+		// Prepare reference image for validation
+		var expected draw.Image
+		bounds := image.Rect(0, 0, wid, hei)
+		switch model {
+		case color.GrayModel:
+			expected = image.NewGray(bounds)
+		case color.Gray16Model:
+			expected = image.NewGray16(bounds)
+		case color.RGBAModel:
+			expected = image.NewRGBA(bounds)
+		case color.RGBA64Model:
+			expected = image.NewRGBA64(bounds)
+		}
+
+		draw.Draw(expected, bounds, &image.Uniform{color.White},
+			image.ZP, draw.Over)
+
+		rect := image.Rect(0, 0, halfwid, halfhei)
+
+		source, err := png.Decode(bytes.NewReader(test.data))
+		if err != nil {
+			panic(err)
+		}
+
+		draw.Draw(expected, rect, source, image.ZP, draw.Over)
+
+		expanded, err := png.Decode(buf)
+		if err != nil {
+			panic(err)
+		}
+
+		diff := imageDiff(expected, expanded)
+		if diff != "" {
+			t.Errorf("%s: %s", test.name, diff)
 		}
 	}
 }
