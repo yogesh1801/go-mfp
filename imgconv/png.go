@@ -347,10 +347,17 @@ func (decoder *pngDecoder) Read(row Row) (int, error) {
 	// Update current y
 	decoder.y++
 	if decoder.y == decoder.hei {
-		decoder.err = io.EOF
+		decoder.setError(io.EOF)
 	}
 
 	return wid, nil
+}
+
+// setError sets the decoder.err, if it is not set yet
+func (decoder *pngDecoder) setError(err error) {
+	if decoder.err == nil {
+		decoder.err = err
+	}
 }
 
 // readRow reads the next image line.
@@ -432,15 +439,12 @@ func NewPNGEncoder(output io.Writer,
 		C.PNG_COMPRESSION_TYPE_DEFAULT,
 		C.PNG_FILTER_TYPE_DEFAULT)
 
-	if encoder.err != nil {
-		encoder.Close()
-		return nil, encoder.err
+	if encoder.err == nil {
+		C.png_set_sRGB(encoder.png, encoder.pngInfo,
+			C.PNG_sRGB_INTENT_PERCEPTUAL)
+
+		C.do_png_write_info(encoder.png, encoder.pngInfo)
 	}
-
-	C.png_set_sRGB(encoder.png, encoder.pngInfo,
-		C.PNG_sRGB_INTENT_PERCEPTUAL)
-
-	C.do_png_write_info(encoder.png, encoder.pngInfo)
 
 	if encoder.err != nil {
 		encoder.Close()
@@ -516,6 +520,13 @@ func (encoder *pngEncoder) Close() error {
 	encoder.handle.Delete()
 
 	return encoder.err
+}
+
+// setError sets the encoder.err, if it is not set yet
+func (encoder *pngEncoder) setError(err error) {
+	if encoder.err == nil {
+		encoder.err = err
+	}
 }
 
 // encodeGray8 encodes a row of the 8-bit grayscale image
@@ -614,16 +625,9 @@ func (encoder *pngEncoder) encodeRGBA64(row Row, wid int) {
 //export pngErrorCallback
 func pngErrorCallback(png *C.png_struct, msg C.png_const_charp) {
 	p := (*cgo.Handle)(C.png_get_io_ptr(png)).Value()
-	switch p := p.(type) {
-	case (*pngDecoder):
-		if p.err == nil {
-			p.err = fmt.Errorf("PNG: %s", C.GoString(msg))
-		}
-	case (*pngEncoder):
-		if p.err == nil {
-			p.err = fmt.Errorf("PNG: %s", C.GoString(msg))
-		}
-	}
+	out := p.(interface{ setError(error) })
+	err := fmt.Errorf("PNG: %s", C.GoString(msg))
+	out.setError(err)
 }
 
 // pngWarningCallback is called by the libpng to report a warning
@@ -669,7 +673,7 @@ func pngReadCallback(png *C.png_struct, data C.png_bytep, size C.size_t) C.int {
 			if err == io.EOF {
 				err = io.ErrUnexpectedEOF
 			}
-			decoder.err = err
+			decoder.setError(err)
 			return 0
 		}
 	}
@@ -696,7 +700,7 @@ func pngWriteCallback(png *C.png_struct, data C.png_bytep, size C.size_t) C.int 
 		if n > 0 {
 			buf = buf[n:]
 		} else if err != nil {
-			encoder.err = err
+			encoder.setError(err)
 			return 0
 		}
 	}
