@@ -375,7 +375,7 @@ func TestPNGEncode(t *testing.T) {
 	}
 }
 
-// TestPNGEncode tests I/O errors handling by the PNG encoder
+// TestPNGEncodeErrors tests I/O errors handling by the PNG encoder
 func TestPNGEncodeErrors(t *testing.T) {
 	// Decode test image
 	decoder, err := NewPNGDecoder(
@@ -426,5 +426,52 @@ func TestPNGEncodeErrors(t *testing.T) {
 				ioerr, err)
 			break
 		}
+	}
+}
+
+// TestPNGStickyEncodeError verifies that once I/O error occurs,
+// all subsequent write attempts will return the same error
+func TestPNGStickyEncodeError(t *testing.T) {
+	// Use large image source, so data will not be fully cached
+	// by Encoder until the end, and we will hit the error
+	decoder, err := NewPNGDecoder(
+		bytes.NewReader(testutils.Images.PNG5100x7016))
+	if err != nil {
+		panic(err)
+	}
+
+	defer decoder.Close()
+
+	ioerr := errors.New("I/O error")
+	w := newWriterWithError(io.Discard, 4096, ioerr)
+
+	wid, hei := decoder.Size()
+	encoder, err := NewPNGEncoder(w, wid, hei, decoder.ColorModel())
+	if err != nil {
+		panic(err)
+	}
+
+	defer encoder.Close()
+
+	row := decoder.NewRow()
+	var y int
+	for y = 0; y < hei && err == nil; y++ {
+		_, err = decoder.Read(row)
+		if err != nil {
+			panic(err)
+		}
+
+		err = encoder.Write(row)
+	}
+
+	for ; y < hei && err == ioerr; y++ {
+		err = encoder.Write(row)
+	}
+
+	if err != ioerr {
+		t.Errorf("Encoder sticky error test:\n"+
+			"error expected: %v\n"+
+			"error present:  %v\n",
+			ioerr, err)
 	}
 }
