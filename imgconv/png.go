@@ -598,7 +598,7 @@ func (encoder *pngEncoder) encodeRGBA64(row Row, wid int) {
 		off := x * 6
 		s := encoder.rowBytes[off : off+6]
 
-		c := color.RGBAModel.Convert(row.At(x)).(color.RGBA64)
+		c := color.RGBA64Model.Convert(row.At(x)).(color.RGBA64)
 		s[0] = C.png_byte(c.R >> 8)
 		s[1] = C.png_byte(c.R)
 		s[2] = C.png_byte(c.G >> 8)

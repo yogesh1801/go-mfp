@@ -475,3 +475,122 @@ func TestPNGStickyEncodeError(t *testing.T) {
 			ioerr, err)
 	}
 }
+
+// TestPNGDecodeEncodeTest decodes PNG sample image, then encodes
+// it and compares results.
+//
+// It does it twice: once directly and the second time wrapping the
+// image Row into the structure, which effectively prevents Row to
+// be used directly for the encoding and implies conversion of
+// pixels.
+func TestPNGDecodeEncodeTest(t *testing.T) {
+	type testData struct {
+		name string
+		data []byte
+	}
+	tests := []testData{
+		{
+			name: "PNG100x75rgb8",
+			data: testutils.Images.PNG100x75rgb8,
+		},
+		{
+			name: "PNG100x75rgb8paletted",
+			data: testutils.Images.PNG100x75rgb8paletted,
+		},
+		{
+			name: "PNG100x75gray1",
+			data: testutils.Images.PNG100x75gray1,
+		},
+		{
+			name: "PNG100x75gray8",
+			data: testutils.Images.PNG100x75gray8,
+		},
+		{
+			name: "PNG100x75gray16",
+			data: testutils.Images.PNG100x75gray16,
+		},
+		{
+			name: "PNG100x75rgb16",
+			data: testutils.Images.PNG100x75rgb16,
+		},
+	}
+
+	for _, test := range tests {
+		// Decode the image
+		decoder, err := NewPNGDecoder(bytes.NewReader(test.data))
+		if err != nil {
+			panic(err)
+		}
+
+		wid, hei := decoder.Size()
+		model := decoder.ColorModel()
+		rows := make([]Row, hei)
+
+		for y := 0; y < hei; y++ {
+			row := decoder.NewRow()
+			_, err := decoder.Read(row)
+			if err != nil {
+				panic(err)
+			}
+			rows[y] = row
+		}
+
+		decoder.Close()
+
+		// Decode initial image with the stdlin decoder, for reference
+		ref, err := png.Decode(bytes.NewReader(test.data))
+		if err != nil {
+			panic(err)
+		}
+
+		// Encode image directly, then decode with the stdlib decoder
+		buf := &bytes.Buffer{}
+		encoder, err := NewPNGEncoder(buf, wid, hei, model)
+
+		for y := 0; y < hei; y++ {
+			err := encoder.Write(rows[y])
+			if err != nil {
+				panic(err)
+			}
+		}
+
+		encoder.Close()
+
+		img, err := png.Decode(buf)
+		if err != nil {
+			panic(err)
+		}
+
+		diff := imageDiff(ref, img)
+		if diff != "" {
+			t.Errorf("%s: Direct decoding/encoding:\n%s",
+				test.name, diff)
+		}
+
+		// Encode image with pixels conversion
+		buf.Reset()
+		encoder, err = NewPNGEncoder(buf, wid, hei, model)
+
+		for y := 0; y < hei; y++ {
+			type wrap struct{ Row }
+			row := wrap{rows[y]}
+			err := encoder.Write(row)
+			if err != nil {
+				panic(err)
+			}
+		}
+
+		encoder.Close()
+
+		img, err = png.Decode(buf)
+		if err != nil {
+			panic(err)
+		}
+
+		diff = imageDiff(ref, img)
+		if diff != "" {
+			t.Errorf("%s: Converted decoding/encoding:\n%s",
+				test.name, diff)
+		}
+	}
+}
