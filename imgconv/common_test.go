@@ -20,6 +20,7 @@ import (
 )
 
 // decodeImage reads the entire image out of the decoder
+// and returns it as image.Image
 func decodeImage(decoder Decoder) (image.Image, error) {
 	wid, hei := decoder.Size()
 	bounds := image.Rect(0, 0, wid, hei)
@@ -55,6 +56,56 @@ func decodeImage(decoder Decoder) (image.Image, error) {
 	}
 
 	return img, nil
+}
+
+// decodeImage reads the entire image out of the decoder
+// and returns it as slice of rows.
+func decodeImageRows(decoder Decoder) ([]Row, error) {
+	_, hei := decoder.Size()
+	rows := make([]Row, hei)
+	for y := 0; y < hei; y++ {
+		rows[y] = decoder.NewRow()
+		_, err := decoder.Read(rows[y])
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return rows, nil
+}
+
+// mustDecodeImageRows reads the entire image out of the decoder
+// and returns it as slice of rows.
+//
+// It panics in a case of error.
+func mustDecodeImageRows(decoder Decoder) []Row {
+	rows, err := decodeImageRows(decoder)
+	if err != nil {
+		panic(err)
+	}
+	return rows
+}
+
+// encodeImageRows encodes the entire image, represented as a slice of rows.
+func encodeImageRows(encoder Encoder, rows []Row) error {
+	for y := range rows {
+		err := encoder.Write(rows[y])
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// mustEncodeImageRows encodes the entire image, represented as a slice
+// of rows.
+//
+// It panics in a case of error.
+func mustEncodeImageRows(encoder Encoder, rows []Row) {
+	err := encodeImageRows(encoder, rows)
+	if err != nil {
+		panic(err)
+	}
 }
 
 // colorEqual reports if two colors are equal.

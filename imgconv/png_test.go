@@ -385,15 +385,7 @@ func TestPNGEncodeErrors(t *testing.T) {
 	}
 
 	wid, hei := decoder.Size()
-	rows := make([]Row, hei)
-	for y := 0; y < hei; y++ {
-		rows[y] = decoder.NewRow()
-		_, err = decoder.Read(rows[y])
-		if err != nil {
-			panic(err)
-		}
-	}
-
+	rows := mustDecodeImageRows(decoder)
 	decoder.Close()
 
 	// Test I/O errors handling in encoder
@@ -407,15 +399,12 @@ func TestPNGEncodeErrors(t *testing.T) {
 			headerErr = true
 		}
 
-		for y := 0; y < len(rows) && err == nil; y++ {
-			err = encoder.Write(rows[y])
-		}
-
-		if err != nil {
-			dataErr = true
-		}
-
 		if encoder != nil {
+			err = encodeImageRows(encoder, rows)
+			if err != nil {
+				dataErr = true
+			}
+
 			encoder.Close()
 		}
 
@@ -488,6 +477,7 @@ func TestPNGDecodeEncodeTest(t *testing.T) {
 		name string
 		data []byte
 	}
+
 	tests := []testData{
 		{
 			name: "PNG100x75rgb8",
@@ -524,17 +514,7 @@ func TestPNGDecodeEncodeTest(t *testing.T) {
 
 		wid, hei := decoder.Size()
 		model := decoder.ColorModel()
-		rows := make([]Row, hei)
-
-		for y := 0; y < hei; y++ {
-			row := decoder.NewRow()
-			_, err := decoder.Read(row)
-			if err != nil {
-				panic(err)
-			}
-			rows[y] = row
-		}
-
+		rows := mustDecodeImageRows(decoder)
 		decoder.Close()
 
 		// Decode initial image with the stdlin decoder, for reference
@@ -545,15 +525,9 @@ func TestPNGDecodeEncodeTest(t *testing.T) {
 
 		// Encode image directly, then decode with the stdlib decoder
 		buf := &bytes.Buffer{}
+
 		encoder, err := NewPNGEncoder(buf, wid, hei, model)
-
-		for y := 0; y < hei; y++ {
-			err := encoder.Write(rows[y])
-			if err != nil {
-				panic(err)
-			}
-		}
-
+		mustEncodeImageRows(encoder, rows)
 		encoder.Close()
 
 		img, err := png.Decode(buf)
