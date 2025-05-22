@@ -673,3 +673,56 @@ func TestPNGEncodeExpand(t *testing.T) {
 		}
 	}
 }
+
+// TestPNGCornerCases tests those few things that are not covered
+// by other tests.
+func TestPNGCornerCases(t *testing.T) {
+	// NewPNGEncoder should not accept unknown color.Model
+	_, err := NewPNGEncoder(io.Discard, 100, 75, color.AlphaModel)
+	if err == nil {
+		t.Errorf("NewPNGEncoder accepted invalid color.Model")
+	}
+
+	// Excessive rows should not affect encoded image
+	decoder, err := NewPNGDecoder(
+		bytes.NewReader(testutils.Images.PNG100x75rgb8))
+	if err != nil {
+		panic(err)
+	}
+
+	wid, hei := decoder.Size()
+	model := decoder.ColorModel()
+
+	rows := mustDecodeImageRows(decoder)
+	decoder.Close()
+
+	buf1 := &bytes.Buffer{}
+	encoder, err := NewPNGEncoder(buf1, wid, hei, model)
+	if err != nil {
+		panic(err)
+	}
+
+	mustEncodeImageRows(encoder, rows)
+	encoder.Close()
+
+	buf2 := &bytes.Buffer{}
+	encoder, err = NewPNGEncoder(buf2, wid, hei, model)
+	if err != nil {
+		panic(err)
+	}
+
+	for i := 0; i < 10; i++ {
+		for y := range rows {
+			err := encoder.Write(rows[y])
+			if err != nil {
+				panic(err)
+			}
+		}
+	}
+
+	encoder.Close()
+
+	if !bytes.Equal(buf1.Bytes(), buf2.Bytes()) {
+		t.Errorf("Test for encoding excessive rows failed")
+	}
+}
