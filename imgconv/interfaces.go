@@ -13,25 +13,34 @@ import (
 )
 
 // Decoder implements streaming image decoder. It allows to read
-// image line by line and doesn't provide a whole image internal
+// image line by line and doesn't use the whole image internal
 // buffer, so even the large images can be processed using very
-// small memory amount.
+// small amount of memory.
 //
 // There are two kinds of decoders:
 //   - image format decoder (for example, PNG decoder). They work
 //     on a top of [io.Reader].
 //   - image filter (for example, image resizer). They work on a top
 //     of existent Decoder and  also implement the Decoder interface,
-//     which allows filters to be chained.
+//     which allows filters to be stacked.
+//
+// [Decoder.Read] may block or fail, if its source [io.Reader]
+// blocks of fails, and this condition propagates over the entire
+// decoder stack.
+//
+// Once Decoder.Read fails, all subsequent calls to Decoder.Read
+// will return the same error.
+//
+// Attempt to Read after the last line returns [io.EOF]. However,
+// if underlying io.Reader unexpectedly returns io.EOF (i.e.,
+// if image is truncated), Decoder.Read will return some other
+// error code (typically, [io.ErrUnexpectedEOF]).
 //
 // Decoder may own some resources associated with it, which will
 // not be automatically garbage-collected. So Decoder needs to
 // be explicitly closed after use (with the Decoder.Close call).
 //
-// By convention, when Decoder is closed:
-//   - image decoder will close its source io.Reader, if it
-//     implements the [io.Closer] interface.
-//   - image filter will close its underlying Decoder.
+// Closing the decoder doesn't close its underlying source.
 //
 // Decoder doesn't guarantee that its input stream ([io.Reader] or
 // underlying Decoder) will be consumed till the end or even that
@@ -64,9 +73,6 @@ type Decoder interface {
 // Encoder may own some resources associated with it, which will
 // not be automatically garbage-collected. So Encoder needs to
 // be explicitly closed after use (with the Encoder.Close call).
-//
-// By convention, Encoder.Close will close the output io.Writer,
-// if it implements the [io.Closer] interface.
 type Encoder interface {
 	// Write writes the next image [Row].
 	Write(Row) error
