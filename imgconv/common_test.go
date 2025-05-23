@@ -195,3 +195,59 @@ func (w *writerWithError) Write(data []byte) (int, error) {
 
 	return 0, w.err
 }
+
+// decoderWithError implements [Decoder] interface. It returns
+// specified amount of image lines (quite meaningless lines),
+// then returns the specified error.
+type decoderWithError struct {
+	model    color.Model // Image color model
+	wid, hei int         // Image size
+	lim      int         // Limit of successfully returned rows
+	y        int         // Current y-coordinate
+	err      error       // Error to be returned
+}
+
+func newDecoderWithError(wid, hei, lim int, err error) Decoder {
+	return &decoderWithError{
+		wid: wid,
+		hei: hei,
+		lim: lim,
+		err: err,
+	}
+}
+
+// ColorModel returns the [color.Model] of image being decoded.
+func (decoder *decoderWithError) ColorModel() color.Model {
+	return decoder.model
+}
+
+// Size returns the image size.
+func (decoder *decoderWithError) Size() (wid, hei int) {
+	return decoder.wid, decoder.hei
+}
+
+// NewRow allocates a [Row] of the appropriate type and width for
+// use with the [Decoder.Read] function.
+func (decoder *decoderWithError) NewRow() Row {
+	return NewRow(decoder.model, decoder.wid)
+}
+
+// Read returns the next image [Row].
+// The Row type must match the [Decoder]'s [color.Model].
+//
+// It returns the resulting row length, in pixels, or an error.
+func (decoder *decoderWithError) Read(row Row) (int, error) {
+	switch decoder.y {
+	case decoder.lim:
+		return 0, decoder.err
+	case decoder.hei:
+		return 0, io.EOF
+	}
+
+	row.Slice(0, decoder.wid).Fill(color.White)
+	return decoder.wid, nil
+}
+
+// Close closes the decoder.
+func (decoder *decoderWithError) Close() {
+}
