@@ -158,5 +158,4 @@ func (rsz *resizer) Read(row Row) (int, error) {
 
 // Close closes the decoder
 func (rsz *resizer) Close() {
-	rsz.input.Close()
 }
