@@ -74,6 +74,9 @@ type Decoder interface {
 // not be automatically garbage-collected. So Encoder needs to
 // be explicitly closed after use (with the Encoder.Close call).
 type Encoder interface {
+	// ColorModel returns the [color.Model] of image being encoded.
+	ColorModel() color.Model
+
 	// Size returns the image size.
 	Size() (wid, hei int)
 

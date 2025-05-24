@@ -459,6 +459,11 @@ func (encoder *pngEncoder) Size() (wid, hei int) {
 	return encoder.wid, encoder.hei
 }
 
+// ColorModel returns the [color.Model] of image being encoded.
+func (encoder *pngEncoder) ColorModel() color.Model {
+	return encoder.model
+}
+
 // Write writes the next image [Row].
 func (encoder *pngEncoder) Write(row Row) error {
 	// Check for pending error

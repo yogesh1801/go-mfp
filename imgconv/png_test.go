@@ -338,6 +338,15 @@ func TestPNGEncode(t *testing.T) {
 			continue
 		}
 
+		// Test Encoder.ColorModel method
+		newmodel := encoder.ColorModel()
+		if newmodel != model {
+			t.Errorf("%s: Encoder.Model mismatch:\n"+
+				"expected: %v\n"+
+				"present:  %v\n",
+				test.name, newmodel, model)
+		}
+
 		// Test Encoder.Size method
 		newwid, newhei := encoder.Size()
 		if newwid != wid || newhei != hei {
