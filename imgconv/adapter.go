@@ -26,7 +26,7 @@ const AdapterHistorySize = 8
 //   - only the latest [AdapterHistorySize] lines are available.
 //
 // If these conditions are not met, [image.Image.At] simply returns
-// [color.White].
+// fully transparent color converted to the underlying color model.
 //
 // Despite these limitations, DecoderImageAdapter can be used as a source
 // image for many image transformation algorithms, like image scaling.
@@ -83,7 +83,7 @@ func (adapter *DecoderImageAdapter) At(x, y int) color.Color {
 	}
 
 	// Fail. Return the default color.
-	return color.White
+	return adapter.decoder.ColorModel().Convert(color.Transparent)
 }
 
 // Read rows from the underlying decoder until y is reached or error
