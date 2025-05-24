@@ -454,6 +454,11 @@ func NewPNGEncoder(output io.Writer,
 	return encoder, nil
 }
 
+// Size returns the image size.
+func (encoder *pngEncoder) Size() (wid, hei int) {
+	return encoder.wid, encoder.hei
+}
+
 // Write writes the next image [Row].
 func (encoder *pngEncoder) Write(row Row) error {
 	// Check for pending error

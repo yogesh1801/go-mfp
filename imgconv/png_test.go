@@ -338,6 +338,15 @@ func TestPNGEncode(t *testing.T) {
 			continue
 		}
 
+		// Test Encoder.Size method
+		newwid, newhei := encoder.Size()
+		if newwid != wid || newhei != hei {
+			t.Errorf("%s: Encoder.Size mismatch:\n"+
+				"expected: %d x %d\n"+
+				"present:  %d x %d\n",
+				test.name, wid, hei, newwid, newhei)
+		}
+
 		// Recode the image, row by row
 		row := decoder.NewRow()
 		for err == nil {
