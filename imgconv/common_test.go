@@ -207,12 +207,14 @@ type decoderWithError struct {
 	err      error       // Error to be returned
 }
 
-func newDecoderWithError(wid, hei, lim int, err error) Decoder {
+func newDecoderWithError(model color.Model,
+	wid, hei, lim int, err error) Decoder {
 	return &decoderWithError{
-		wid: wid,
-		hei: hei,
-		lim: lim,
-		err: err,
+		model: model,
+		wid:   wid,
+		hei:   hei,
+		lim:   lim,
+		err:   err,
 	}
 }
 
@@ -244,7 +246,10 @@ func (decoder *decoderWithError) Read(row Row) (int, error) {
 		return 0, io.EOF
 	}
 
-	row.Slice(0, decoder.wid).Fill(color.White)
+	wid := generic.Min(decoder.wid, row.Width())
+	row.Slice(0, wid).Fill(color.White)
+	decoder.y++
+
 	return decoder.wid, nil
 }
 
