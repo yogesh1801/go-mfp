@@ -207,6 +207,7 @@ type decoderWithError struct {
 	err      error       // Error to be returned
 }
 
+// newDecoderWithError creates a new decoderWithError
 func newDecoderWithError(model color.Model,
 	wid, hei, lim int, err error) Decoder {
 	return &decoderWithError{
@@ -255,4 +256,55 @@ func (decoder *decoderWithError) Read(row Row) (int, error) {
 
 // Close closes the decoder.
 func (decoder *decoderWithError) Close() {
+}
+
+// encoderWithError implements [Encoder] interface.
+type encoderWithError struct {
+	model    color.Model // Image color model
+	wid, hei int         // Image size
+	lim      int         // Limit of successfully returned rows
+	y        int         // Current y-coordinate
+	err      error       // Error to be returned
+}
+
+// newEncoderWithError creates a new encoderWithError
+func newEncoderWithError(model color.Model,
+	wid, hei, lim int, err error) Encoder {
+	return &encoderWithError{
+		model: model,
+		wid:   wid,
+		hei:   hei,
+		lim:   lim,
+		err:   err,
+	}
+}
+
+// ColorModel returns the [color.Model] of image being decoded.
+// It consumes the specified amount of image lines, then returns
+// the specified error.
+func (encoder *encoderWithError) ColorModel() color.Model {
+	return encoder.model
+}
+
+// Size returns the image size.
+func (encoder *encoderWithError) Size() (wid, hei int) {
+	return encoder.wid, encoder.hei
+}
+
+// Write writes the next image [Row].
+func (encoder *encoderWithError) Write(Row) error {
+	switch encoder.y {
+	case encoder.lim:
+		return encoder.err
+	case encoder.hei:
+		return nil
+	}
+
+	encoder.y++
+	return nil
+}
+
+// Close closes the encoder.
+func (encoder *encoderWithError) Close() error {
+	return nil
 }

@@ -124,3 +124,123 @@ func TestDecoderImageAdapterErrors(t *testing.T) {
 		t.Errorf("decoded image mismatch:\n%s", diff)
 	}
 }
+
+// TestEncoderImageAdapter tests EncoderImageAdapter
+func TestEncoderImageAdapter(t *testing.T) {
+	type testData struct {
+		name string // Test name
+		data []byte // Image data (PNG)
+	}
+
+	tests := []testData{
+		{
+			name: "PNG100x75rgb8",
+			data: testutils.Images.PNG100x75rgb8,
+		},
+		{
+			name: "PNG100x75rgb8paletted",
+			data: testutils.Images.PNG100x75rgb8paletted,
+		},
+		{
+			name: "PNG100x75gray1",
+			data: testutils.Images.PNG100x75gray1,
+		},
+		{
+			name: "PNG100x75gray8",
+			data: testutils.Images.PNG100x75gray8,
+		},
+		{
+			name: "PNG100x75gray16",
+			data: testutils.Images.PNG100x75gray16,
+		},
+		{
+			name: "PNG100x75rgb16",
+			data: testutils.Images.PNG100x75rgb16,
+		},
+	}
+
+	for _, test := range tests {
+		// Create DecoderImageAdapter on a top of PNG decoder
+		decoder, err := NewPNGDecoder(bytes.NewReader(test.data))
+		if err != nil {
+			panic(err)
+		}
+
+		decoderAdapter := NewDecoderImageAdapter(decoder)
+
+		// Create EncoderImageAdapter on a top of PNG encoder
+		wid, hei := decoder.Size()
+		model := decoder.ColorModel()
+		buf := &bytes.Buffer{}
+		encoder, err := NewPNGEncoder(buf, wid, hei, model)
+		if err != nil {
+			panic(err)
+		}
+
+		encoderAdapter := NewEncoderImageAdapter(encoder)
+
+		// Test encoderAdapter parameters
+		if encoderAdapter.ColorModel() != model {
+			t.Errorf("%s: EncoderImageAdapter.ColorModel:\n"+
+				"expected: %v\n"+
+				"present:  %v\n",
+				test.name, model, encoderAdapter.ColorModel())
+		}
+
+		bounds := image.Rect(0, 0, wid, hei)
+		if encoderAdapter.Bounds() != bounds {
+			t.Errorf("%s: EncoderImageAdapter.ColorModel:\n"+
+				"expected: %s\n"+
+				"present:  %s\n",
+				test.name, bounds, encoderAdapter.Bounds())
+		}
+
+		// Copy image from decoder to encoder
+		draw.Draw(encoderAdapter, image.Rect(0, 0, wid, hei),
+			decoderAdapter, image.ZP, draw.Over)
+
+		encoderAdapter.Close() // Flushes last line
+		decoderAdapter.Close()
+
+		// Decode image with stdlib decoder, for reference
+		reference, err := png.Decode(bytes.NewReader(test.data))
+		if err != nil {
+			panic(err)
+		}
+
+		// Decode resulting image, for comparison
+		recoded, err := png.Decode(buf)
+		if err != nil {
+			panic(err)
+		}
+
+		diff := imageDiff(reference, recoded)
+		if diff != "" {
+			t.Errorf("%s: Encoded image mismatch:\n%s",
+				test.name, diff)
+		}
+	}
+}
+
+// TestEncoderImageAdapterErrors tests I/O errors handling by
+// the EncoderImageAdapter
+func TestEncoderImageAdapterErrors(t *testing.T) {
+	wid := 100
+	hei := 75
+	lim := hei / 2
+	model := color.RGBAModel
+	ioerr := errors.New("I/O error")
+
+	encoder := newEncoderWithError(model, wid, hei, lim, ioerr)
+	encoderAdapter := NewEncoderImageAdapter(encoder)
+
+	draw.Draw(encoderAdapter, image.Rect(0, 0, wid, hei),
+		&image.Uniform{color.White}, image.ZP, draw.Over)
+
+	if encoderAdapter.Error() != ioerr {
+		t.Errorf("EncoderImageAdapter.Error:\n"+
+			"expected: %s\n"+
+			"present:  %s\n",
+			ioerr, encoderAdapter.Error())
+	}
+}
