@@ -18,6 +18,8 @@ import (
 
 // TestRowBasic tests Row basic functionality:
 //   - NewRow
+//   - Row.At
+//   - Row.Set
 //   - Row.Width
 //   - Row.Fill
 func TestRowBasic(t *testing.T) {
@@ -87,6 +89,16 @@ func TestRowBasic(t *testing.T) {
 		diff := testutils.Diff(test.expected, row)
 		if diff != "" {
 			t.Errorf("%s: Row.Fill test failed:\n%s", name, diff)
+		}
+
+		row = NewRow(test.model, wid)
+		for x := 0; x < wid; x++ {
+			row.Set(x, filler)
+		}
+
+		diff = testutils.Diff(test.expected, row)
+		if diff != "" {
+			t.Errorf("%s: Row.Set test failed:\n%s", name, diff)
 		}
 
 		for x := 0; x < wid; x++ {
@@ -217,7 +229,8 @@ func TestRowEmpty(t *testing.T) {
 		t.Errorf("empty.Slice(): %v != %v", s, empty)
 	}
 
-	empty.Fill(color.White) // Must not crash
+	empty.Set(5, color.White) // Must not crash
+	empty.Fill(color.White)   // Must not crash
 
 	source := RowGray8{
 		color.Gray{0x00},

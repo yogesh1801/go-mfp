@@ -19,8 +19,11 @@ type Row interface {
 	// Width returns the row width, in pixels.
 	Width() int
 
-	// At returns pixel at the specified position.
+	// At returns the pixel at the specified position.
 	At(x int) color.Color
+
+	// Set sets the pixel at the specified position.
+	Set(x int, c color.Color)
 
 	// Slice returns a [low:high] sub-slice of the original Row.
 	Slice(low, high int) Row
@@ -67,9 +70,13 @@ func (r RowEmpty) Width() int {
 	return 0
 }
 
-// At returns pixel at the specified position as [color.Color].
+// At returns the pixel at the specified position as [color.Color].
 func (r RowEmpty) At(x int) color.Color {
 	return color.White
+}
+
+// Set sets the pixel at the specified position.
+func (r RowEmpty) Set(x int, c color.Color) {
 }
 
 // Slice returns a [low:high] sub-slice of the original Row.
@@ -97,6 +104,16 @@ func (r RowGray8) Width() int {
 // At returns pixel at the specified position as [color.Color].
 func (r RowGray8) At(x int) color.Color {
 	return r.GrayAt(x)
+}
+
+// Set sets the pixel at the specified position.
+func (r RowGray8) Set(x int, c color.Color) {
+	c2, ok := c.(color.Gray)
+	if !ok {
+		c2 = color.GrayModel.Convert(c).(color.Gray)
+	}
+
+	r[x] = c2
 }
 
 // Slice returns a [low:high] sub-slice of the original Row.
@@ -148,6 +165,16 @@ func (r RowGray16) At(x int) color.Color {
 	return r.Gray16At(x)
 }
 
+// Set sets the pixel at the specified position.
+func (r RowGray16) Set(x int, c color.Color) {
+	c2, ok := c.(color.Gray16)
+	if !ok {
+		c2 = color.Gray16Model.Convert(c).(color.Gray16)
+	}
+
+	r[x] = c2
+}
+
 // Slice returns a [low:high] sub-slice of the original Row.
 func (r RowGray16) Slice(low, high int) Row {
 	return r[low:high]
@@ -197,6 +224,16 @@ func (r RowRGBA32) At(x int) color.Color {
 	return r.RGBAAt(x)
 }
 
+// Set sets the pixel at the specified position.
+func (r RowRGBA32) Set(x int, c color.Color) {
+	c2, ok := c.(color.RGBA)
+	if !ok {
+		c2 = color.RGBAModel.Convert(c).(color.RGBA)
+	}
+
+	r[x] = c2
+}
+
 // Slice returns a [low:high] sub-slice of the original Row.
 func (r RowRGBA32) Slice(low, high int) Row {
 	return r[low:high]
@@ -244,6 +281,16 @@ func (r RowRGBA64) Width() int {
 // At returns pixel at the specified position as [color.Color].
 func (r RowRGBA64) At(x int) color.Color {
 	return r.RGBA64At(x)
+}
+
+// Set sets the pixel at the specified position.
+func (r RowRGBA64) Set(x int, c color.Color) {
+	c2, ok := c.(color.RGBA64)
+	if !ok {
+		c2 = color.RGBA64Model.Convert(c).(color.RGBA64)
+	}
+
+	r[x] = c2
 }
 
 // Slice returns a [low:high] sub-slice of the original Row.
