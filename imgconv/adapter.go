@@ -145,7 +145,7 @@ func NewEncoderImageAdapter(encoder Encoder) *EncoderImageAdapter {
 
 // Close closes the adapter and underlying [Encoder].
 func (adapter *EncoderImageAdapter) Close() {
-	adapter.advance(adapter.bounds.Max.Y)
+	adapter.Flush()
 	adapter.encoder.Close()
 }
 
@@ -173,22 +173,20 @@ func (adapter *EncoderImageAdapter) At(x, y int) color.Color {
 // Set sets the color of the pixel at (x, y).
 func (adapter *EncoderImageAdapter) Set(x, y int, c color.Color) {
 	// Ignore Set outside of the image bounds
-	if !(image.Point{x, y}.In(adapter.bounds)) {
-		return
-	}
+	if (image.Point{x, y}).In(adapter.bounds) {
+		// The fast path: just update the current row
+		if y == adapter.y {
+			adapter.row.Set(x, c)
+			return
+		}
 
-	// The fast path: just update the current row
-	if y == adapter.y {
-		adapter.row.Set(x, c)
-		return
-	}
+		// Advance the current y. Fill possible gaps.
+		adapter.advance(y)
 
-	// Advance the current y. Fill possible gaps.
-	adapter.advance(y)
-
-	// Update the current row, if everything is OK so far.
-	if y == adapter.y {
-		adapter.row.Set(x, c)
+		// Update the current row, if everything is OK so far.
+		if y == adapter.y {
+			adapter.row.Set(x, c)
+		}
 	}
 }
 
