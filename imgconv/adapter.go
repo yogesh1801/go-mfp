@@ -41,8 +41,8 @@ type DecoderImageAdapter struct {
 // NewDecoderImageAdapter creates a new DecoderImageAdapter on a top
 // of existent [Decoder].
 func NewDecoderImageAdapter(decoder Decoder) *DecoderImageAdapter {
-	adapter := &DecoderImageAdapter{decoder: decoder}
-	for i := 0; i < AdapterHistorySize; i++ {
+	adapter := &DecoderImageAdapter{decoder: decoder, y: -1}
+	for i := 0; i <= AdapterHistorySize; i++ {
 		adapter.rows[i] = decoder.NewRow()
 	}
 	return adapter
