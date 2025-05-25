@@ -11,11 +11,12 @@ package imgconv
 import (
 	"image"
 	"image/color"
+
+	"github.com/OpenPrinting/go-mfp/util/generic"
 )
 
 // AdapterHistorySize specifies how many latest image rows
-// [DecoderImageAdapter] or [EncoderImageAdapter] keep on
-// their history.
+// [DecoderImageAdapter] keeps on its history.
 const AdapterHistorySize = 8
 
 // DecoderImageAdapter implements [image.Image] interface on a top of Decoder.
@@ -97,6 +98,117 @@ func (adapter *DecoderImageAdapter) seek(y int) {
 			copy(adapter.rows[1:], adapter.rows[0:AdapterHistorySize])
 			adapter.rows[0] = row
 			adapter.y++
+		}
+	}
+}
+
+// EncoderImageAdapter implements [draw.Image] interface on a top of Encoder.
+//
+// In comparison to the normal draw.Image it has the following limitations:
+//   - the [draw.Image.At] method is meaningless and exists simply
+//     for compatibility.
+//   - image rows (y-coordinate when calling the [draw.Image.Set] method)
+//     needs to be filled in sequence.
+//   - only the latest image row is available for draw.Image.Set (i.e.,
+//     once some y is Set, y-1 and so becomes unavailable).
+//
+// If these conditions are not met, [draw.Image.Set] silently discards
+// the pixel.
+//
+// EncoderImageAdapter needs to be explicitly closed. Otherwise, the
+// latest image rows can be lost.
+//
+// Despite these limitations, EncoderImageAdapter can be used as a destination
+// image for many image transformation algorithms, like image scaling.
+type EncoderImageAdapter struct {
+	encoder Encoder         // Underlying encoder
+	bounds  image.Rectangle // Image bounds
+	y       int             // Latest Row's y-coordinate
+	row     Row             // The latest image row
+	err     error           // Sticky error
+}
+
+// NewEncoderImageAdapter creates a new EncoderImageAdapter on a top
+// of existent [Encoder].
+func NewEncoderImageAdapter(encoder Encoder) *EncoderImageAdapter {
+	wid, hei := encoder.Size()
+	model := encoder.ColorModel()
+
+	adapter := &EncoderImageAdapter{
+		encoder: encoder,
+		bounds:  image.Rect(0, 0, wid, hei),
+		row:     NewRow(model, wid),
+	}
+
+	return adapter
+}
+
+// Close closes the adapter and underlying [Encoder].
+func (adapter *EncoderImageAdapter) Close() {
+	adapter.advance(adapter.bounds.Max.Y)
+	adapter.encoder.Close()
+}
+
+// Error returns the Encoder's error, if any.
+func (adapter *EncoderImageAdapter) Error() error {
+	return adapter.err
+}
+
+// ColorModel returns the Image's color model.
+func (adapter *EncoderImageAdapter) ColorModel() color.Model {
+	return adapter.encoder.ColorModel()
+}
+
+// Bounds returns image bounds (always 0-based).
+func (adapter *EncoderImageAdapter) Bounds() image.Rectangle {
+	wid, hei := adapter.encoder.Size()
+	return image.Rect(0, 0, wid, hei)
+}
+
+// At returns the color of the pixel at (x, y).
+func (adapter *EncoderImageAdapter) At(x, y int) color.Color {
+	return adapter.encoder.ColorModel().Convert(color.Transparent)
+}
+
+// Set sets the color of the pixel at (x, y).
+func (adapter *EncoderImageAdapter) Set(x, y int, c color.Color) {
+	// Ignore Set outside of the image bounds
+	if !(image.Point{x, y}.In(adapter.bounds)) {
+		return
+	}
+
+	// The fast path: just update the current row
+	if y == adapter.y {
+		adapter.row.Set(x, c)
+		return
+	}
+
+	// Advance the current y. Fill possible gaps.
+	adapter.advance(y)
+
+	// Update the current row, if everything is OK so far.
+	if y == adapter.y {
+		adapter.row.Set(x, c)
+	}
+}
+
+// Flush sends out image parts not has been written yet into the
+// underlying encoder.
+func (adapter *EncoderImageAdapter) Flush() error {
+	adapter.advance(adapter.y + 1)
+	return adapter.err
+}
+
+// advance advances encoder's current y-position, until requested
+// row is reached or error occurs.
+func (adapter *EncoderImageAdapter) advance(y int) {
+	row := adapter.row
+	lim := generic.Min(y, adapter.bounds.Max.Y)
+	for adapter.y < lim && adapter.err == nil {
+		adapter.err = adapter.encoder.Write(row)
+		if adapter.err == nil {
+			adapter.y++
+			row = RowEmpty{}
 		}
 	}
 }
