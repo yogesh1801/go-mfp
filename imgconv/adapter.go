@@ -11,196 +11,218 @@ package imgconv
 import (
 	"image"
 	"image/color"
+	"io"
+	"sync"
 
 	"github.com/OpenPrinting/go-mfp/util/generic"
 )
 
 // AdapterHistorySize specifies how many latest image rows
-// [DecoderImageAdapter] keeps on its history.
+// [SourceImageAdapter] keeps on its history.
 const AdapterHistorySize = 8
 
-// DecoderImageAdapter reads image rows sequentially from the provided
+// SourceImageAdapter reads image rows sequentially from the provided
 // [Decoder], retaining the last [AdapterHistorySize] rows in its internal
 // history buffer. It implements the [image.Image] interface on top of this
 // buffer.
 //
 // Although its [image.Image.At] method can only return meaningful values for
 // the most recent rows, this is sufficient for many standard image processing
-// operations (such as scaling) when using DecoderImageAdapter as a source
+// operations (such as scaling) when using SourceImageAdapter as a source
 // image.
-type DecoderImageAdapter struct {
+type SourceImageAdapter struct {
 	decoder Decoder                     // Underlying decoder
 	rows    [AdapterHistorySize + 1]Row // Last some rows
 	y       int                         // Latest Row's y-coordinate
 	err     error                       // Sticky error
 }
 
-// NewDecoderImageAdapter creates a new DecoderImageAdapter on a top
+// NewSourceImageAdapter creates a new SourceImageAdapter on a top
 // of existent [Decoder].
-func NewDecoderImageAdapter(decoder Decoder) *DecoderImageAdapter {
-	adapter := &DecoderImageAdapter{decoder: decoder, y: -1}
+func NewSourceImageAdapter(decoder Decoder) *SourceImageAdapter {
+	source := &SourceImageAdapter{decoder: decoder, y: -1}
 	for i := 0; i <= AdapterHistorySize; i++ {
-		adapter.rows[i] = decoder.NewRow()
+		source.rows[i] = decoder.NewRow()
 	}
-	return adapter
+	return source
 }
 
-// Close closes the adapter and underlying [Decoder].
-func (adapter *DecoderImageAdapter) Close() {
-	adapter.decoder.Close()
+// Close closes the source and underlying [Decoder].
+func (source *SourceImageAdapter) Close() {
+	source.decoder.Close()
 }
 
 // Error returns the Decoder's error, if any.
-func (adapter *DecoderImageAdapter) Error() error {
-	return adapter.err
+func (source *SourceImageAdapter) Error() error {
+	return source.err
 }
 
 // ColorModel returns the Image's color model.
-func (adapter *DecoderImageAdapter) ColorModel() color.Model {
-	return adapter.decoder.ColorModel()
+func (source *SourceImageAdapter) ColorModel() color.Model {
+	return source.decoder.ColorModel()
 }
 
 // Bounds returns image bounds (always 0-based).
-func (adapter *DecoderImageAdapter) Bounds() image.Rectangle {
-	wid, hei := adapter.decoder.Size()
+func (source *SourceImageAdapter) Bounds() image.Rectangle {
+	wid, hei := source.decoder.Size()
 	return image.Rect(0, 0, wid, hei)
 }
 
 // At returns the color of the pixel at (x, y).
-func (adapter *DecoderImageAdapter) At(x, y int) color.Color {
+func (source *SourceImageAdapter) At(x, y int) color.Color {
 	// The fast path: hope pixel already in the buffer
-	off := adapter.y - y
+	off := source.y - y
 	if off >= 0 && off < AdapterHistorySize {
-		return adapter.rows[off].At(x)
+		return source.rows[off].At(x)
 	}
 
 	// Read more rows.
-	adapter.seek(y)
-	if adapter.y == y {
-		return adapter.rows[0].At(x)
+	source.seek(y)
+	if source.y == y {
+		return source.rows[0].At(x)
 	}
 
 	// Fail. Return the default color.
-	return adapter.decoder.ColorModel().Convert(color.Transparent)
+	return source.decoder.ColorModel().Convert(color.Transparent)
 }
 
 // Read rows from the underlying decoder until y is reached or error
-func (adapter *DecoderImageAdapter) seek(y int) {
-	for adapter.err == nil && adapter.y < y {
-		_, err := adapter.decoder.Read(adapter.rows[AdapterHistorySize])
+func (source *SourceImageAdapter) seek(y int) {
+	for source.err == nil && source.y < y {
+		_, err := source.decoder.Read(source.rows[AdapterHistorySize])
 		if err != nil {
-			adapter.err = err
+			source.err = err
 		} else {
-			row := adapter.rows[AdapterHistorySize]
-			copy(adapter.rows[1:], adapter.rows[0:AdapterHistorySize])
-			adapter.rows[0] = row
-			adapter.y++
+			row := source.rows[AdapterHistorySize]
+			copy(source.rows[1:], source.rows[0:AdapterHistorySize])
+			source.rows[0] = row
+			source.y++
 		}
 	}
 }
 
-// EncoderImageAdapter writes image rows sequentially to the given [Encoder],
-// retaining only the latest row in an internal buffer. It implements the
-// [draw.Image] interface, enabling pixel-by-pixel modification of this row.
+// TargetImageAdapter generates image sequentially as a series of Rows.
+// It implements the [draw.Image] interface for image construction and
+// [Decoder] interface for image Rows consumption.
 //
 // While its [draw.Image.Set] method only allows changes to pixels in the most
 // recently accessed row (previous rows are automatically flushed when the
 // y-coordinate advances), this restriction still supports many standard
-// image operations - such as scaling - when using EncoderImageAdapter as a
+// image operations - such as scaling - when using TargetImageAdapter as a
 // destination image.
 //
-// EncoderImageAdapter needs to be explicitly closed. Otherwise, the
+// TargetImageAdapter needs to be explicitly flushed. Otherwise, the
 // latest image rows can be lost.
-//
-// Despite these limitations, EncoderImageAdapter can be used as a destination
-// image for many image transformation algorithms, like image scaling.
-type EncoderImageAdapter struct {
-	encoder Encoder         // Underlying encoder
-	bounds  image.Rectangle // Image bounds
-	y       int             // Latest Row's y-coordinate
-	row     Row             // The latest image row
-	err     error           // Sticky error
+type TargetImageAdapter struct {
+	model  color.Model     // Image color model
+	bounds image.Rectangle // Image bounds
+	y      int             // Latest Row's y-coordinate
+	row    Row             // The latest image row
+	queue  chan Row        // Decoder's read queue
+	pool   sync.Pool       // Pool of empty rows
 }
 
-// NewEncoderImageAdapter creates a new EncoderImageAdapter on a top
-// of existent [Encoder].
-func NewEncoderImageAdapter(encoder Encoder) *EncoderImageAdapter {
-	wid, hei := encoder.Size()
-	model := encoder.ColorModel()
-
-	adapter := &EncoderImageAdapter{
-		encoder: encoder,
-		bounds:  image.Rect(0, 0, wid, hei),
-		row:     NewRow(model, wid),
+// NewTargetImageAdapter creates a new [TargetImageAdapter]
+func NewTargetImageAdapter(wid, hei int, mdl color.Model) *TargetImageAdapter {
+	target := &TargetImageAdapter{
+		model:  mdl,
+		bounds: image.Rect(0, 0, wid, hei),
+		queue:  make(chan Row, AdapterHistorySize),
+		pool:   sync.Pool{New: func() any { return NewRow(mdl, wid) }},
 	}
 
-	return adapter
+	target.row = target.NewRow()
+
+	return target
 }
 
-// Close closes the adapter and underlying [Encoder].
-func (adapter *EncoderImageAdapter) Close() {
-	adapter.Flush()
-	adapter.encoder.Close()
+// ColorModel returns the [color.Model] of image being produces.
+func (target *TargetImageAdapter) ColorModel() color.Model {
+	return target.model
 }
 
-// Error returns the Encoder's error, if any.
-func (adapter *EncoderImageAdapter) Error() error {
-	return adapter.err
+// Size returns the image size.
+// It implements the [Decoder] interface.
+func (target *TargetImageAdapter) Size() (wid, hei int) {
+	return target.bounds.Max.X, target.bounds.Max.Y
 }
 
-// ColorModel returns the Image's color model.
-func (adapter *EncoderImageAdapter) ColorModel() color.Model {
-	return adapter.encoder.ColorModel()
+// NewRow allocates a [Row] of the appropriate type and width for
+// use with the [Decoder.Read] function.
+//
+// It implements the [Decoder] interface.
+func (target *TargetImageAdapter) NewRow() Row {
+	return NewRow(target.model, target.bounds.Max.X)
+}
+
+// Read returns the next image [Row].
+// It implements the [Decoder] interface.
+func (target *TargetImageAdapter) Read(row Row) (int, error) {
+	next := <-target.queue
+	if next == nil {
+		return 0, io.EOF
+	}
+
+	row.Copy(next)
+	target.pool.Put(next)
+
+	return row.Width(), nil
+}
+
+// Close closes the decoder side of the TargetImageAdapter.
+// It implements the [Decoder] interface.
+func (target *TargetImageAdapter) Close() {
+	// Drain the queue, unblock Encoder
+	go func() {
+		for range target.queue {
+		}
+	}()
+
 }
 
 // Bounds returns image bounds (always 0-based).
-func (adapter *EncoderImageAdapter) Bounds() image.Rectangle {
-	wid, hei := adapter.encoder.Size()
-	return image.Rect(0, 0, wid, hei)
+// It implements the [draw.Image] interface.
+func (target *TargetImageAdapter) Bounds() image.Rectangle {
+	return target.bounds
 }
 
 // At returns the color of the pixel at (x, y).
-func (adapter *EncoderImageAdapter) At(x, y int) color.Color {
-	return adapter.encoder.ColorModel().Convert(color.Transparent)
+func (target *TargetImageAdapter) At(x, y int) color.Color {
+	return target.model.Convert(color.Transparent)
 }
 
 // Set sets the color of the pixel at (x, y).
-func (adapter *EncoderImageAdapter) Set(x, y int, c color.Color) {
+func (target *TargetImageAdapter) Set(x, y int, c color.Color) {
 	// Ignore Set outside of the image bounds
-	if (image.Point{x, y}).In(adapter.bounds) {
+	if (image.Point{x, y}).In(target.bounds) {
 		// The fast path: just update the current row
-		if y == adapter.y {
-			adapter.row.Set(x, c)
+		if y == target.y {
+			target.row.Set(x, c)
 			return
 		}
 
 		// Advance the current y. Fill possible gaps.
-		adapter.advance(y)
+		target.advance(y)
 
-		// Update the current row, if everything is OK so far.
-		if y == adapter.y {
-			adapter.row.Set(x, c)
-		}
+		// Update the current row.
+		target.row.Set(x, c)
 	}
 }
 
-// Flush sends out image parts not has been written yet into the
-// underlying encoder.
-func (adapter *EncoderImageAdapter) Flush() error {
-	adapter.advance(adapter.y + 1)
-	return adapter.err
+// Flush flushes still buffered image parts to the [Decoder] side
+// of the [TargetImageAdapter].
+func (target *TargetImageAdapter) Flush() {
+	target.advance(target.y + 1)
+	close(target.queue)
 }
 
-// advance advances encoder's current y-position, until requested
-// row is reached or error occurs.
-func (adapter *EncoderImageAdapter) advance(y int) {
-	row := adapter.row
-	lim := generic.Min(y, adapter.bounds.Max.Y)
-	for adapter.y < lim && adapter.err == nil {
-		adapter.err = adapter.encoder.Write(row)
-		if adapter.err == nil {
-			adapter.y++
-			row = RowEmpty{}
-		}
+// advance advances target's current y-position, until requested
+// row is reached.
+func (target *TargetImageAdapter) advance(y int) {
+	lim := generic.Min(y, target.bounds.Max.Y)
+	for target.y < lim {
+		target.queue <- target.row
+		target.row = target.pool.Get().(Row)
+		target.y++
 	}
 }

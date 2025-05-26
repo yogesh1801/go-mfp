@@ -28,9 +28,9 @@ import (
 // The transformation function will be executed in the separate
 // goroutine.
 //
-// The source [image.Image] and the destination [draw.Image]
-// have certain limitations. See [DecoderImageAdapter] and
-// [EncoderImageAdapter] for details.
+// The source [image.Image] and the target [draw.Image]
+// have certain limitations. See [SourceImageAdapter] and
+// [TargetImageAdapter] for details.
 //
 // These limitations allow image transformation to be performed
 // in the row-by-row streaming mode, without need to keep the
@@ -44,21 +44,20 @@ import (
 // by the underlying Decoder.
 func NewTransformer(input Decoder,
 	dstWid, dstHei int, dstModel color.Model,
-	transform func(dst draw.Image, src image.Image)) Decoder {
+	transform func(target draw.Image, source image.Image)) Decoder {
 
-	loopDecoder, loopEncoder := NewLoopback(dstWid, dstHei, dstModel)
-	src := NewDecoderImageAdapter(input)
-	dst := NewEncoderImageAdapter(loopEncoder)
+	source := NewSourceImageAdapter(input)
+	target := NewTargetImageAdapter(dstWid, dstHei, dstModel)
 
-	tr := &transformer{Decoder: loopDecoder, input: input}
+	tr := &transformer{Decoder: target, input: input}
 
 	tr.done.Add(1)
 	go func() {
-		transform(dst, src)
-		if err := src.Error(); err != nil {
+		transform(target, source)
+		if err := source.Error(); err != nil {
 			tr.err = err
 		}
-		dst.Close()
+		target.Flush()
 		tr.done.Done()
 	}()
 
