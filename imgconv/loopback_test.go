@@ -123,4 +123,19 @@ func TestLoopback(t *testing.T) {
 				errExpected, err)
 		}
 	}
+
+	decoder.Close()
+	encoder.Close()
+
+	// Encoder.Write must not be blocked, if Decoder is
+	// closed and inactive
+
+	decoder, encoder = NewLoopback(wid, hei, model)
+	decoder.Close()
+
+	for y := 0; y < hei; y++ {
+		encoder.Write(row1)
+	}
+
+	encoder.Close()
 }

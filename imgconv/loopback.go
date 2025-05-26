@@ -52,6 +52,10 @@ type loopbackEncoder struct {
 // If Encoder is closed before hei Rows were written, Decoder will
 // return all actually written Rows, then io.ErrUnexpectedEOF.
 //
+// If Decoder is closed before all Rows are consumed, Encoder.Write
+// will not be blocked. However, if Decoder is not closed and nobody
+// reads from it, Encoder.Write will block when queue becomes full.
+//
 // This is safe to call [Encoder.Write] and [Decoder.Read] simultaneously
 // from the different goroutines.
 //
@@ -114,6 +118,11 @@ func (encoder *loopbackEncoder) Write(row Row) error {
 
 // Close closes the Decoder side of loopback
 func (decoder loopbackDecoder) Close() {
+	// Drain the queue, unblock Encoder
+	go func() {
+		for range decoder.queue {
+		}
+	}()
 }
 
 // Close closes the Encoder side of loopback
