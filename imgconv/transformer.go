@@ -12,8 +12,8 @@ import (
 	"image"
 	"image/color"
 	"image/draw"
-	"io"
 	"sync"
+	"sync/atomic"
 )
 
 // NewTransformer creates a new image filter on a top of existent [Decoder].
@@ -55,7 +55,7 @@ func NewTransformer(input Decoder,
 	go func() {
 		transform(target, source)
 		if err := source.Error(); err != nil {
-			tr.err = err
+			tr.err.Store(err)
 		}
 		target.Flush()
 		tr.done.Done()
@@ -68,7 +68,7 @@ func NewTransformer(input Decoder,
 type transformer struct {
 	Decoder                // Implements transformer's Decoder interface
 	input   Decoder        // Underlying image source
-	err     error          // Sticky error
+	err     atomic.Value   // Read error from transformer.input
 	done    sync.WaitGroup // Wait for goroutine completion
 }
 
@@ -82,8 +82,9 @@ func (tr *transformer) Close() {
 // Read returns the next image [Row].
 func (tr *transformer) Read(row Row) (int, error) {
 	n, err := tr.Decoder.Read(row)
-	if err == io.ErrUnexpectedEOF {
-		err = tr.err
+	if err2 := tr.err.Load(); err2 != nil {
+		err = err2.(error)
+		n = 0
 	}
 	return n, err
 }

@@ -10,6 +10,7 @@ package imgconv
 
 import (
 	"bytes"
+	"errors"
 	"image"
 	"image/color"
 	"image/png"
@@ -78,5 +79,38 @@ func TestTransformer(t *testing.T) {
 	diff = imageDiff(expected, transformed)
 	if diff != "" {
 		t.Errorf("Transformer:\n%s", diff)
+	}
+}
+
+// TestTransformerErrors tests how transformer handles I/O errors
+func TestTransformerErrors(t *testing.T) {
+	model := color.RGBAModel
+	wid := 100
+	hei := 75
+	lim := hei / 2
+	ioerr := errors.New("I/O error")
+
+	input := newDecoderWithError(model, wid, hei, lim, ioerr)
+	bounds := image.Rect(0, 0, wid, hei)
+
+	transformer := NewTransformer(
+		input, wid, hei, model,
+		func(target draw.Image, source image.Image) {
+			draw.Draw(target, bounds, source, image.ZP, draw.Over)
+		})
+
+	defer transformer.Close()
+
+	var err error
+	row := transformer.NewRow()
+	for err == nil {
+		_, err = transformer.Read(row)
+	}
+
+	if err != ioerr {
+		t.Errorf("Transformer I/O error test:\n"+
+			"error expected: %v\n"+
+			"error present:  %v\n",
+			ioerr, err)
 	}
 }
