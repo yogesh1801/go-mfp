@@ -12,12 +12,30 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"image/png"
 	"io"
+	"os"
 
 	"github.com/OpenPrinting/go-mfp/internal/testutils"
 	"github.com/OpenPrinting/go-mfp/util/generic"
 	"golang.org/x/image/draw"
 )
+
+// saveImage saves image as a PNG file.
+func saveImage(name string, img image.Image) {
+	flags := os.O_CREATE | os.O_TRUNC | os.O_WRONLY
+	fp, err := os.OpenFile(name, flags, 0644)
+	if err != nil {
+		panic(err)
+	}
+
+	err = png.Encode(fp, img)
+	if err != nil {
+		panic(err)
+	}
+
+	fp.Close()
+}
 
 // decodeImage reads the entire image out of the decoder
 // and returns it as image.Image
