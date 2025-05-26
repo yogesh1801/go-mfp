@@ -19,18 +19,15 @@ import (
 // [DecoderImageAdapter] keeps on its history.
 const AdapterHistorySize = 8
 
-// DecoderImageAdapter implements [image.Image] interface on a top of Decoder.
+// DecoderImageAdapter reads image rows sequentially from the provided
+// [Decoder], retaining the last [AdapterHistorySize] rows in its internal
+// history buffer. It implements the [image.Image] interface on top of this
+// buffer.
 //
-// In comparison to the normal image.Image it has the following limitations:
-//   - image rows (y-coordinate when calling the [image.Image.At] method)
-//     needs to be read in sequence.
-//   - only the latest [AdapterHistorySize] lines are available.
-//
-// If these conditions are not met, [image.Image.At] simply returns
-// fully transparent color converted to the underlying color model.
-//
-// Despite these limitations, DecoderImageAdapter can be used as a source
-// image for many image transformation algorithms, like image scaling.
+// Although its [image.Image.At] method can only return meaningful values for
+// the most recent rows, this is sufficient for many standard image processing
+// operations (such as scaling) when using DecoderImageAdapter as a source
+// image.
 type DecoderImageAdapter struct {
 	decoder Decoder                     // Underlying decoder
 	rows    [AdapterHistorySize + 1]Row // Last some rows
@@ -102,18 +99,15 @@ func (adapter *DecoderImageAdapter) seek(y int) {
 	}
 }
 
-// EncoderImageAdapter implements [draw.Image] interface on a top of Encoder.
+// EncoderImageAdapter writes image rows sequentially to the given [Encoder],
+// retaining only the latest row in an internal buffer. It implements the
+// [draw.Image] interface, enabling pixel-by-pixel modification of this row.
 //
-// In comparison to the normal draw.Image it has the following limitations:
-//   - the [draw.Image.At] method is meaningless and exists simply
-//     for compatibility.
-//   - image rows (y-coordinate when calling the [draw.Image.Set] method)
-//     needs to be filled in sequence.
-//   - only the latest image row is available for draw.Image.Set (i.e.,
-//     once some y is Set, y-1 and so becomes unavailable).
-//
-// If these conditions are not met, [draw.Image.Set] silently discards
-// the pixel.
+// While its [draw.Image.Set] method only allows changes to pixels in the most
+// recently accessed row (previous rows are automatically flushed when the
+// y-coordinate advances), this restriction still supports many standard
+// image operations - such as scaling - when using EncoderImageAdapter as a
+// destination image.
 //
 // EncoderImageAdapter needs to be explicitly closed. Otherwise, the
 // latest image rows can be lost.
