@@ -17,12 +17,16 @@ import (
 	"github.com/OpenPrinting/go-mfp/util/generic"
 )
 
-// AdapterHistorySize specifies how many latest image rows
+// SourceHistorySize specifies how many latest image rows
 // [SourceImageAdapter] keeps on its history.
-const AdapterHistorySize = 8
+const SourceHistorySize = 8
+
+// TargetQueueSize specifies [Decoder] read queue size for
+// the [TargetImageAdapter]
+const TargetQueueSize = 8
 
 // SourceImageAdapter reads image rows sequentially from the provided
-// [Decoder], retaining the last [AdapterHistorySize] rows in its internal
+// [Decoder], retaining the last [SourceHistorySize] rows in its internal
 // history buffer. It implements the [image.Image] interface on top of this
 // buffer.
 //
@@ -31,17 +35,17 @@ const AdapterHistorySize = 8
 // operations (such as scaling) when using SourceImageAdapter as a source
 // image.
 type SourceImageAdapter struct {
-	decoder Decoder                     // Underlying decoder
-	rows    [AdapterHistorySize + 1]Row // Last some rows
-	y       int                         // Latest Row's y-coordinate
-	err     error                       // Sticky error
+	decoder Decoder                    // Underlying decoder
+	rows    [SourceHistorySize + 1]Row // Last some rows
+	y       int                        // Latest Row's y-coordinate
+	err     error                      // Sticky error
 }
 
 // NewSourceImageAdapter creates a new SourceImageAdapter on a top
 // of existent [Decoder].
 func NewSourceImageAdapter(decoder Decoder) *SourceImageAdapter {
 	source := &SourceImageAdapter{decoder: decoder, y: -1}
-	for i := 0; i <= AdapterHistorySize; i++ {
+	for i := 0; i <= SourceHistorySize; i++ {
 		source.rows[i] = decoder.NewRow()
 	}
 	return source
@@ -72,7 +76,7 @@ func (source *SourceImageAdapter) Bounds() image.Rectangle {
 func (source *SourceImageAdapter) At(x, y int) color.Color {
 	// The fast path: hope pixel already in the buffer
 	off := source.y - y
-	if off >= 0 && off < AdapterHistorySize {
+	if off >= 0 && off < SourceHistorySize {
 		return source.rows[off].At(x)
 	}
 
@@ -89,12 +93,12 @@ func (source *SourceImageAdapter) At(x, y int) color.Color {
 // Read rows from the underlying decoder until y is reached or error
 func (source *SourceImageAdapter) seek(y int) {
 	for source.err == nil && source.y < y {
-		_, err := source.decoder.Read(source.rows[AdapterHistorySize])
+		_, err := source.decoder.Read(source.rows[SourceHistorySize])
 		if err != nil {
 			source.err = err
 		} else {
-			row := source.rows[AdapterHistorySize]
-			copy(source.rows[1:], source.rows[0:AdapterHistorySize])
+			row := source.rows[SourceHistorySize]
+			copy(source.rows[1:], source.rows[0:SourceHistorySize])
 			source.rows[0] = row
 			source.y++
 		}
@@ -127,7 +131,7 @@ func NewTargetImageAdapter(wid, hei int, mdl color.Model) *TargetImageAdapter {
 	target := &TargetImageAdapter{
 		model:  mdl,
 		bounds: image.Rect(0, 0, wid, hei),
-		queue:  make(chan Row, AdapterHistorySize),
+		queue:  make(chan Row, TargetQueueSize),
 		pool:   sync.Pool{New: func() any { return NewRow(mdl, wid) }},
 	}
 
