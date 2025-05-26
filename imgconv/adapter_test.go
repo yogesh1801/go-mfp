@@ -14,6 +14,7 @@ import (
 	"image"
 	"image/color"
 	"image/png"
+	"io"
 	"testing"
 
 	"github.com/OpenPrinting/go-mfp/internal/testutils"
@@ -217,5 +218,34 @@ func TestTargetImageAdapter(t *testing.T) {
 			t.Errorf("%s: Encoded image mismatch:\n%s",
 				test.name, diff)
 		}
+
+		// Subsequent reads from the target must return io.EOF
+		row := target.NewRow()
+		_, err = target.Read(row)
+		if err != io.EOF {
+			t.Errorf("%s: TargetImageAdapter.Read:\n"+
+				"error expected: %v\n"+
+				"error present:  %v\n",
+				test.name, io.EOF, err)
+		}
+
+		// Cleanup after test
+		target.Close()
 	}
+}
+
+// TestTargetImageAdapterClose tests TargetImageAdapter.Close
+func TestTargetImageAdapterClose(t *testing.T) {
+	wid := 100
+	hei := 75
+	model := color.RGBAModel
+
+	target := NewTargetImageAdapter(wid, hei, model)
+	target.Close()
+
+	// Draw into the closed target must not block
+	draw.Draw(target, image.Rect(0, 0, wid, hei),
+		image.White, image.ZP, draw.Over)
+
+	target.Flush()
 }
