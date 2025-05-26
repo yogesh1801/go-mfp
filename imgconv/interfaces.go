@@ -40,7 +40,11 @@ import (
 // not be automatically garbage-collected. So Decoder needs to
 // be explicitly closed after use (with the Decoder.Close call).
 //
-// Closing the decoder doesn't close its underlying source.
+// Closing the input format decoder doesn't close the underlying
+// [io.Reader]. However, closing the image filter closes its
+// underlying input [Decoder]. So the entire filter chain can
+// be closed by closing the top-level filter, but the bottom
+// [io.Reader] still needs to be closed explicitly.
 //
 // Decoder doesn't guarantee that its input stream ([io.Reader] or
 // underlying Decoder) will be consumed till the end or even that
