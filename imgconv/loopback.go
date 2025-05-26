@@ -11,6 +11,7 @@ package imgconv
 import (
 	"image/color"
 	"io"
+	"sync"
 	"sync/atomic"
 )
 
@@ -22,6 +23,7 @@ type loopback struct {
 	wid, hei int         // Image size
 	model    color.Model // Image color model
 	queue    chan Row    // Row queue
+	pool     sync.Pool   // Pool of empty rows
 }
 
 // loopbackDecoder implements the Decoder side of the loopback
@@ -69,6 +71,7 @@ func NewLoopback(wid, hei int, model color.Model) (Decoder, Encoder) {
 		hei:   hei,
 		model: model,
 		queue: make(chan Row, loopbackQueueSize),
+		pool:  sync.Pool{New: func() any { return NewRow(model, wid) }},
 	}
 	return &loopbackDecoder{loopback: l}, &loopbackEncoder{loopback: l}
 }
@@ -103,6 +106,7 @@ func (decoder *loopbackDecoder) Read(row Row) (int, error) {
 
 	decoder.readcnt++
 	row.Copy(next)
+	decoder.pool.Put(next)
 
 	return next.Width(), nil
 }
@@ -110,7 +114,10 @@ func (decoder *loopbackDecoder) Read(row Row) (int, error) {
 // Write writes the next image [Row].
 func (encoder *loopbackEncoder) Write(row Row) error {
 	if encoder.writecnt != encoder.hei && !encoder.closed.Load() {
-		encoder.queue <- row
+		row2 := encoder.pool.Get().(Row)
+		row2.Copy(row)
+
+		encoder.queue <- row2
 		encoder.writecnt++
 	}
 	return nil
