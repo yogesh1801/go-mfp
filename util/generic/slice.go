@@ -10,15 +10,6 @@ package generic
 
 import "sort"
 
-// Ordered is a constraint that permits any ordered type, i.e.,
-// any type that supports <, <=, >= and > operations
-type Ordered interface {
-	~int | ~int8 | ~int16 | ~int32 | ~int64 |
-		~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~uintptr |
-		~float32 | ~float64 |
-		~string
-}
-
 // CopySlice returns a shallow copy of the slice
 func CopySlice[S ~[]T, T any](s S) (clone S) {
 	if s != nil {
