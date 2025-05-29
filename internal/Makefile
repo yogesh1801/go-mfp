@@ -1,3 +1,3 @@
-SUBDIRS	= env random testutils zone
+SUBDIRS	= assert env random testutils zone
 
 include ../Rules.mak
