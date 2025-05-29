@@ -8,14 +8,14 @@
 
 package assert
 
-// True panics if condition is not true.
-func True(cond bool) {
+// Must panics if condition is not true.
+func Must(cond bool) {
 	if !cond {
 		panic("internal error")
 	}
 }
 
-// True panics if error is not nil.
+// NoError panics if error is not nil.
 func NoError(err error) {
 	if err != nil {
 		panic(err)
