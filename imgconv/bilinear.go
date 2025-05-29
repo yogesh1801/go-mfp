@@ -155,7 +155,7 @@ func makeScaleCoefficients(slen, dlen int) []scaleCoeff {
 // makeScaleCoefficientsUpscale returns bi-linear coefficients
 // for image upscale.
 func makeScaleCoefficientsUpscale(slen, dlen int) []scaleCoeff {
-	assert.True(slen < dlen)
+	assert.Must(slen < dlen)
 
 	// We have (slen - 1) intervals between source pixels and
 	// (dlen - 1) intervals between destination pixels.
@@ -216,7 +216,7 @@ func makeScaleCoefficientsUpscale(slen, dlen int) []scaleCoeff {
 // makeScaleCoefficientsUpscale returns scaling coefficients
 // for image downscale.
 func makeScaleCoefficientsDownscale(slen, dlen int) []scaleCoeff {
-	assert.True(slen > dlen)
+	assert.Must(slen > dlen)
 
 	// Here we have the following picture:
 	//   <-Sn-> - range, covered by the n-th source point
@@ -240,17 +240,17 @@ func makeScaleCoefficientsDownscale(slen, dlen int) []scaleCoeff {
 	// between succeeding source points or succeeding destination
 	// point without rounding errors (notice * 2 - it allows
 	// to represent middles).
-	space := int64(slen-1) * int64(dlen-1) * 2
-	srcstep := int64(dlen-1) * 2 // space / (slen - 1)
-	dststep := int64(slen-1) * 2 // space / (dlen - 1)
+	space := uint64(slen-1) * uint64(dlen-1) * 2
+	srcstep := uint64(dlen-1) * 2 // space / (slen - 1)
+	dststep := uint64(slen-1) * 2 // space / (dlen - 1)
 
 	println("slen", slen, "dlen", dlen)
 	println("space", space, "srcstep", srcstep, "dststep", dststep)
 	println("steps:", "src", space/srcstep, "dst", space/dststep)
 
 	//coeffs := make([]scaleCoeff, 0, slen+dlen)
-	for dst := int64(0); dst <= space; dst += dststep {
-		println("=== dst", dst/dststep)
+	for dst := uint64(0); dst <= space; dst += dststep {
+		println("=== dst", dst/dststep, "(", dst, ")")
 		// Handle the special case when source and destination
 		// points matches 1:1
 		//if dst%srcstep == 0 {
@@ -262,12 +262,41 @@ func makeScaleCoefficientsDownscale(slen, dlen int) []scaleCoeff {
 		//	continue
 		//}
 
-		// Figure out preceding and succeeding source points
-		prec := generic.LowerDivisibleBy(dst-dststep/2, srcstep)
-		succ := generic.UpperDivisibleBy(dst+dststep/2, srcstep)
+		// Compute indices and [0...space] positions of the
+		// source first and last source points that contribute
+		// into the destination:
+		//
+		//   firstIdx - index of the first source point
+		//   lastIdx  - index of the last source point
+		//   firstPos - starting position of the first source point
+		//   lastPos  - ending position of the last source point
+		//
+		// Corner cases require special care.
+		firstIdx := 0
+		lastIdx := slen - 1
+		firstPos := uint64(0)
+		lastPos := space - 1
 
-		println(prec, "-", dst, "-", succ)
-		println(prec/srcstep, "-", dst, "-", succ/srcstep)
+		if dst != 0 {
+			firstPos = generic.LowerDivisibleBy(
+				dst-dststep/2+srcstep/2, srcstep)
+			firstIdx = int(firstPos / srcstep)
+			firstPos -= srcstep / 2
+		}
+
+		if dst != space {
+			lastPos = generic.UpperDivisibleBy(
+				dst+dststep/2-srcstep/2, srcstep)
+			lastIdx = int(lastPos / srcstep)
+			lastPos += srcstep/2 - 1
+		}
+
+		println(dst/srcstep, "idx:", firstIdx, "-", lastIdx)
+		println(dst/srcstep, "pos:", firstPos, "-", lastPos)
+		if false {
+			println("firstIdx", firstIdx, "firstPos", firstPos)
+			println("lastIdx", lastIdx, "lastPos", lastPos)
+		}
 	}
 
 	return nil
