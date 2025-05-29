@@ -63,93 +63,6 @@ func makeScaleCoefficients(slen, dlen int) []scaleCoeff {
 	}
 
 	return makeScaleCoefficientsDownscale(slen, dlen)
-
-	// We have (slen - 1) intervals between source pixels and
-	// (dlen - 1) intervals between destination pixels.
-	//
-	// If we bring source and destination coordinates into the
-	// [0...(slen-1) * (dlen-1)) space, we can avoid rounding
-	// errors here.
-	end := uint64(slen-1) * uint64(dlen-1)
-	srcstep := uint64(dlen - 1) // end / (slen - 1)
-	dststep := uint64(slen - 1) // end / (dlen - 1)
-
-	println("end", end, "srcstep", srcstep, "dststep", dststep)
-
-	coeffs := make([]scaleCoeff, 0, generic.Max(slen, dlen))
-	for dst := uint64(0); dst <= end; dst += dststep {
-		println("=== dst", dst/dststep)
-		// Handle the special case when source and destination
-		// points matches 1:1
-		if dst%srcstep == 0 {
-			println("1:1")
-			S := int(dst / srcstep)
-			D := int(dst / dststep)
-			sc := scaleCoeff{S: S, D: D, W: 1.0}
-			coeffs = append(coeffs, sc)
-			continue
-		}
-
-		// Compute range of preceding and succeeding source points
-		precLast := generic.LowerDivisibleBy(dst, srcstep)
-		precFirst := precLast
-		if dst != 0 {
-			precFirst = generic.UpperDivisibleBy(dst-dststep, srcstep)
-			precFirst = generic.Min(precFirst, precLast)
-		}
-
-		succFirst := generic.UpperDivisibleBy(dst, srcstep)
-		succLast := succFirst
-		if dst != end {
-			succLast = generic.LowerDivisibleBy(dst+dststep, srcstep)
-			succLast = generic.Max(succFirst, succLast)
-		}
-
-		println(precFirst, "-", precLast, dst, succFirst, "-", succLast)
-
-		// Compute weights
-		precMiddle := (float32(precFirst) + float32(precLast)) / 2
-		precDistance := float32(dst) - precMiddle
-
-		succMiddle := (float32(succFirst) + float32(succLast)) / 2
-		succDistance := succMiddle - float32(dst)
-
-		wholeDistance := succMiddle - precMiddle
-
-		println("dist", precDistance/wholeDistance, succDistance/wholeDistance)
-
-		precWeight := succDistance / wholeDistance
-		if precFirst != precLast {
-			cnt := (precLast - precFirst + srcstep) / srcstep
-			precWeight /= float32(cnt)
-		}
-
-		succWeight := precDistance / wholeDistance
-		if succFirst != succLast {
-			cnt := (succLast - succFirst + srcstep) / srcstep
-			succWeight /= float32(cnt)
-		}
-
-		println("weight", precWeight, succWeight)
-
-		// Generate coefficients
-		D := int(dst / dststep)
-		for src := precFirst; src <= precLast; src += srcstep {
-			S := int(src / srcstep)
-			sc := scaleCoeff{S: S, D: D, W: precWeight}
-			coeffs = append(coeffs, sc)
-			println(S, "->", D, precWeight)
-		}
-
-		for src := succFirst; src <= succLast; src += srcstep {
-			S := int(src / srcstep)
-			sc := scaleCoeff{S: S, D: D, W: succWeight}
-			coeffs = append(coeffs, sc)
-			println(S, "->", D, succWeight)
-		}
-	}
-
-	return coeffs
 }
 
 // makeScaleCoefficientsUpscale returns bi-linear coefficients
@@ -248,56 +161,85 @@ func makeScaleCoefficientsDownscale(slen, dlen int) []scaleCoeff {
 	println("space", space, "srcstep", srcstep, "dststep", dststep)
 	println("steps:", "src", space/srcstep, "dst", space/dststep)
 
-	//coeffs := make([]scaleCoeff, 0, slen+dlen)
+	coeffs := make([]scaleCoeff, 0, slen+dlen)
 	for dst := uint64(0); dst <= space; dst += dststep {
 		println("=== dst", dst/dststep, "(", dst, ")")
-		// Handle the special case when source and destination
-		// points matches 1:1
-		//if dst%srcstep == 0 {
-		//	println("1:1")
-		//	S := int(dst / srcstep)
-		//	D := int(dst / dststep)
-		//	sc := scaleCoeff{S: S, D: D, W: 1.0}
-		//	coeffs = append(coeffs, sc)
-		//	continue
-		//}
 
 		// Compute indices and [0...space] positions of the
 		// source first and last source points that contribute
 		// into the destination:
 		//
-		//   firstIdx - index of the first source point
-		//   lastIdx  - index of the last source point
-		//   firstPos - starting position of the first source point
-		//   lastPos  - ending position of the last source point
+		//   firstIdx   - index of the first source point
+		//   lastIdx    - index of the last source point
+		//   firstStart - starting position of the first source point
+		//   lastStart  - starting position of the last source point
 		//
 		// Corner cases require special care.
 		firstIdx := 0
 		lastIdx := slen - 1
-		firstPos := uint64(0)
-		lastPos := space - 1
+		firstStart := uint64(0)
+		lastStart := space - srcstep/2
 
 		if dst != 0 {
-			firstPos = generic.LowerDivisibleBy(
+			firstStart = generic.LowerDivisibleBy(
 				dst-dststep/2+srcstep/2, srcstep)
-			firstIdx = int(firstPos / srcstep)
-			firstPos -= srcstep / 2
+			firstIdx = int(firstStart / srcstep)
+			firstStart -= srcstep / 2
 		}
 
 		if dst != space {
-			lastPos = generic.UpperDivisibleBy(
+			lastStart = generic.UpperDivisibleBy(
 				dst+dststep/2-srcstep/2, srcstep)
-			lastIdx = int(lastPos / srcstep)
-			lastPos += srcstep/2 - 1
+			lastIdx = int(lastStart / srcstep)
+			lastStart -= srcstep / 2
 		}
 
-		println(dst/srcstep, "idx:", firstIdx, "-", lastIdx)
-		println(dst/srcstep, "pos:", firstPos, "-", lastPos)
-		if false {
-			println("firstIdx", firstIdx, "firstPos", firstPos)
-			println("lastIdx", lastIdx, "lastPos", lastPos)
+		println(dst/dststep, "firstIdx", firstIdx, "lastIdx", lastIdx)
+		println(dst/dststep, "firstStart", firstStart, "lastStart", lastStart)
+
+		// Compute overlap ranges
+		dstStart := dst
+		dstRange := dststep
+		if dst == 0 || dst == space {
+			dstRange /= 2
 		}
+
+		firstRange := srcstep / 2
+		if dst != 0 {
+			dstStart -= dststep / 2
+			firstRange = firstStart + srcstep - dstStart
+		}
+
+		lastRange := srcstep / 2
+		if dst != space {
+			lastRange = dstStart + dstRange - lastStart
+		}
+
+		println(dst/dststep, "dstStart", dstStart)
+		println(dst/dststep, "firstRange", firstRange, "lastRange", lastRange, "dstRange", dstRange)
+
+		assert.Must(dstRange ==
+			firstRange+lastRange+
+				srcstep*uint64(lastIdx-firstIdx-1))
+
+		// Compute weights
+		firstWeight := float32(firstRange) / float32(dstRange)
+		lastWeight := float32(lastRange) / float32(dstRange)
+		midWeight := float32(srcstep) / float32(dstRange)
+
+		// Generate coefficients
+		D := int(dst / dststep)
+		coeffs = append(coeffs,
+			scaleCoeff{S: firstIdx, D: D, W: firstWeight})
+
+		for S := firstIdx + 1; S < lastIdx; S++ {
+			coeffs = append(coeffs,
+				scaleCoeff{S: S, D: D, W: midWeight})
+		}
+
+		coeffs = append(coeffs,
+			scaleCoeff{S: lastIdx, D: D, W: lastWeight})
 	}
 
-	return nil
+	return coeffs
 }
