@@ -62,6 +62,27 @@ func NewRow(model color.Model, width int) (row Row) {
 	return
 }
 
+// NewRowFP returns the new [Row] with the [RowGrayFP32] or [RowRGBAFP32],
+// compatible with the [color.Model] (grayscale or RGBA).
+//
+// The following color models are supported:
+//   - color.GrayModel
+//   - color.Gray16Model
+//   - color.RGBAModel
+//   - color.RGBA64Model
+//
+// For unknown (unsupported) model nil is returned.
+func NewRowFP(model color.Model, width int) (row Row) {
+	switch model {
+	case color.GrayModel, color.Gray16Model:
+		row = make(RowGrayFP32, width)
+	case color.RGBAModel, color.RGBA64Model:
+		row = make(RowRGBAFP32, width)
+	}
+
+	return
+}
+
 // RowEmpty represents an empty row
 type RowEmpty struct{}
 
