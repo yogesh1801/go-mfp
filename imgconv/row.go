@@ -62,6 +62,20 @@ func NewRow(model color.Model, width int) (row Row) {
 	return
 }
 
+// RowFP extends the [Row] interface with the operations, required
+// for image processing.
+type RowFP interface {
+	Row
+
+	// MultiplyAccumulate performs the multiply-accumulate operation on
+	// the entire row:
+	//
+	//	r += r2 * w
+	//
+	// Rows must be of the same type and size.
+	MultiplyAccumulate(r2 Row, w float32)
+}
+
 // NewRowFP returns the new [Row] with the [RowGrayFP32] or [RowRGBAFP32],
 // compatible with the [color.Model] (grayscale or RGBA).
 //
@@ -72,7 +86,7 @@ func NewRow(model color.Model, width int) (row Row) {
 //   - color.RGBA64Model
 //
 // For unknown (unsupported) model nil is returned.
-func NewRowFP(model color.Model, width int) (row Row) {
+func NewRowFP(model color.Model, width int) (row RowFP) {
 	switch model {
 	case color.GrayModel, color.Gray16Model:
 		row = make(RowGrayFP32, width)
@@ -441,6 +455,19 @@ func (r RowGrayFP32) Copy(r2 Row) int {
 	return wid
 }
 
+// MultiplyAccumulate performs the multiply-accumulate operation on
+// the entire row:
+//
+//	r += r2 * w
+//
+// Rows must be of the same type and size.
+func (r RowGrayFP32) MultiplyAccumulate(r2 Row, w float32) {
+	src := r2.(RowGrayFP32)
+	for i := range r {
+		r[i] += src[i] * w
+	}
+}
+
 // RowRGBAFP32 represents a row of the RGBA image as a sequence of
 // the 32-bit floating point numbers in range [0...1.0].
 // The sequence is ordered as follows: R-G-B-A-R-G-B-A-...
@@ -582,4 +609,17 @@ func (r RowRGBAFP32) Copy(r2 Row) int {
 	}
 
 	return wid
+}
+
+// MultiplyAccumulate performs the multiply-accumulate operation on
+// the entire row:
+//
+//	r += r2 * w
+//
+// Rows must be of the same type and size.
+func (r RowRGBAFP32) MultiplyAccumulate(r2 Row, w float32) {
+	src := r2.(RowRGBAFP32)
+	for i := range r {
+		r[i] += src[i] * w
+	}
 }
