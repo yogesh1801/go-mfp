@@ -19,7 +19,7 @@ import (
 // into the destination:
 //
 //	for _, sc := range coeffs {
-//	   dst[sc.D] += src[S] * sc.W
+//	   dst[sc.D] += src[sc.S] * sc.W
 //	}
 type scaleCoeff struct {
 	S, D int     // Source->Destination positions
