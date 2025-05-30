@@ -398,10 +398,6 @@ func (r RowGrayFP32) Fill(c color.Color) {
 
 // Copy copies content of the r2 into the receiver Row.
 func (r RowGrayFP32) Copy(r2 Row) int {
-	if r2, ok := r2.(RowGrayFP32); ok {
-		return copy(r, r2)
-	}
-
 	wid := generic.Min(r.Width(), r2.Width())
 	switch r2 := r2.(type) {
 	case RowGrayFP32:
@@ -418,6 +414,149 @@ func (r RowGrayFP32) Copy(r2 Row) int {
 		for x := 0; x < wid; x++ {
 			c2 := color.RGBA64Model.Convert(r2.At(x)).(color.Gray16)
 			r[x] = float32(c2.Y) / 0xffff
+		}
+	}
+
+	return wid
+}
+
+// RowRGBAFP32 represents a row of the RGBA image as a sequence of
+// the 32-bit floating point numbers in range [0...1.0].
+// The sequence is ordered as follows: R-G-B-A-R-G-B-A-...
+type RowRGBAFP32 []float32
+
+// Width returns the row width, in pixels.
+func (r RowRGBAFP32) Width() int {
+	return len(r) / 4
+}
+
+// At returns pixel at the specified position as [color.Color].
+func (r RowRGBAFP32) At(x int) color.Color {
+	return r.RGBAAt(x)
+}
+
+// RGBAAt returns pixel at the specified position as [color.RGBA].
+func (r RowRGBAFP32) RGBAAt(x int) color.RGBA {
+	off := x * 4
+	s := r[off : off+4]
+
+	return color.RGBA{
+		R: uint8(generic.Min(1.0, s[0]) * 0xff),
+		G: uint8(generic.Min(1.0, s[1]) * 0xff),
+		B: uint8(generic.Min(1.0, s[2]) * 0xff),
+		A: uint8(generic.Min(1.0, s[3]) * 0xff),
+	}
+}
+
+// RGBA16At returns pixel at the specified position as [color.RGBA64].
+func (r RowRGBAFP32) RGBA16At(x int) color.RGBA64 {
+	off := x * 4
+	s := r[off : off+4]
+
+	return color.RGBA64{
+		R: uint16(generic.Min(1.0, s[0]) * 0xffff),
+		G: uint16(generic.Min(1.0, s[1]) * 0xffff),
+		B: uint16(generic.Min(1.0, s[2]) * 0xffff),
+		A: uint16(generic.Min(1.0, s[3]) * 0xffff),
+	}
+}
+
+// Set sets the pixel at the specified position.
+func (r RowRGBAFP32) Set(x int, c color.Color) {
+	off := x * 4
+	s := r[off : off+4]
+
+	switch c := c.(type) {
+	case color.RGBA:
+		s[0] = float32(c.R) / 0xff
+		s[1] = float32(c.G) / 0xff
+		s[2] = float32(c.B) / 0xff
+		s[3] = float32(c.A) / 0xff
+	case color.RGBA64:
+		s[0] = float32(c.R) / 0xffff
+		s[1] = float32(c.G) / 0xffff
+		s[2] = float32(c.B) / 0xffff
+		s[3] = float32(c.A) / 0xffff
+	}
+
+	c2 := color.RGBA64Model.Convert(c).(color.RGBA64)
+	s[0] = float32(c2.R) / 0xffff
+	s[1] = float32(c2.G) / 0xffff
+	s[2] = float32(c2.B) / 0xffff
+	s[3] = float32(c2.A) / 0xffff
+}
+
+// Slice returns a [low:high] sub-slice of the original Row.
+func (r RowRGBAFP32) Slice(low, high int) Row {
+	return r[low*4 : high*4]
+}
+
+// Fill fills Row with the pixels of the specified color
+func (r RowRGBAFP32) Fill(c color.Color) {
+	var fill [4]float32
+	switch c := c.(type) {
+	case color.RGBA:
+		fill[0] = float32(c.R) / 0xff
+		fill[1] = float32(c.G) / 0xff
+		fill[2] = float32(c.B) / 0xff
+		fill[3] = float32(c.A) / 0xff
+	case color.RGBA64:
+		fill[0] = float32(c.R) / 0xffff
+		fill[1] = float32(c.G) / 0xffff
+		fill[2] = float32(c.B) / 0xffff
+		fill[3] = float32(c.A) / 0xffff
+	default:
+		R, G, B, A := c.RGBA()
+		fill[0] = float32(R) / 0xffff
+		fill[1] = float32(G) / 0xffff
+		fill[2] = float32(B) / 0xffff
+		fill[3] = float32(A) / 0xffff
+	}
+
+	for i := 0; i < len(r); i += 4 {
+		copy(r[i:], fill[:])
+	}
+}
+
+// Copy copies content of the r2 into the receiver Row.
+func (r RowRGBAFP32) Copy(r2 Row) int {
+	if r2, ok := r2.(RowRGBAFP32); ok {
+		return copy(r, r2)
+	}
+
+	wid := generic.Min(r.Width(), r2.Width())
+	switch r2 := r2.(type) {
+	case RowRGBAFP32:
+		return copy(r, r2)
+	case RowRGBA32:
+		for x := 0; x < wid; x++ {
+			off := x * 4
+			s := r[off : off+4]
+			c := r2[x]
+			s[0] = float32(c.R) / 0xff
+			s[1] = float32(c.G) / 0xff
+			s[2] = float32(c.B) / 0xff
+			s[3] = float32(c.A) / 0xff
+		}
+	case RowRGBA64:
+		for x := 0; x < wid; x++ {
+			off := x * 4
+			s := r[off : off+4]
+			c := r2[x]
+			s[0] = float32(c.R) / 0xffff
+			s[1] = float32(c.G) / 0xffff
+			s[2] = float32(c.B) / 0xffff
+			s[3] = float32(c.A) / 0xffff
+		}
+	default:
+		for x := 0; x < wid; x++ {
+			off := x * 4
+			s := r[off : off+4]
+			c := color.RGBA64Model.Convert(r2.At(x)).(color.RGBA64)
+			s[0] = float32(c.R) / 0xffff
+			s[1] = float32(c.G) / 0xffff
+			s[2] = float32(c.B) / 0xffff
+			s[3] = float32(c.A) / 0xffff
 		}
 	}
 
