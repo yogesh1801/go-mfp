@@ -328,3 +328,98 @@ func (r RowRGBA64) Copy(r2 Row) int {
 
 	return wid
 }
+
+// RowGrayFP32 represents a row of the grayscale image as a sequence of
+// the 32-bit floating point numbers in range [0...1.0].
+type RowGrayFP32 []float32
+
+// Width returns the row width, in pixels.
+func (r RowGrayFP32) Width() int {
+	return len(r)
+}
+
+// At returns pixel at the specified position as [color.Color].
+func (r RowGrayFP32) At(x int) color.Color {
+	return r.Gray16At(x)
+}
+
+// GrayAt returns pixel at the specified position as [color.Gray].
+func (r RowGrayFP32) GrayAt(x int) color.Gray {
+	c := r[x]
+	if c > 1.0 {
+		return color.Gray{Y: 0xff}
+	}
+	return color.Gray{Y: uint8(c * 0xff)}
+}
+
+// Gray16At returns pixel at the specified position as [color.Gray16].
+func (r RowGrayFP32) Gray16At(x int) color.Gray16 {
+	c := r[x]
+	if c > 1.0 {
+		return color.Gray16{Y: 0xffff}
+	}
+	return color.Gray16{Y: uint16(c * 0xffff)}
+}
+
+// Set sets the pixel at the specified position.
+func (r RowGrayFP32) Set(x int, c color.Color) {
+	switch c := c.(type) {
+	case color.Gray:
+		r[x] = float32(c.Y) / 0xff
+	case color.Gray16:
+		r[x] = float32(c.Y) / 0xffff
+	}
+	c2 := color.Gray16Model.Convert(c).(color.Gray16)
+	r[x] = float32(c2.Y) / 0xffff
+}
+
+// Slice returns a [low:high] sub-slice of the original Row.
+func (r RowGrayFP32) Slice(low, high int) Row {
+	return r[low:high]
+}
+
+// Fill fills Row with the pixels of the specified color
+func (r RowGrayFP32) Fill(c color.Color) {
+	var fill float32
+	switch c := c.(type) {
+	case color.Gray:
+		fill = float32(c.Y) / 0xff
+	case color.Gray16:
+		fill = float32(c.Y) / 0xffff
+	default:
+		c2 := color.Gray16Model.Convert(c).(color.Gray16)
+		fill = float32(c2.Y) / 0xffff
+	}
+
+	for i := range r {
+		r[i] = fill
+	}
+}
+
+// Copy copies content of the r2 into the receiver Row.
+func (r RowGrayFP32) Copy(r2 Row) int {
+	if r2, ok := r2.(RowGrayFP32); ok {
+		return copy(r, r2)
+	}
+
+	wid := generic.Min(r.Width(), r2.Width())
+	switch r2 := r2.(type) {
+	case RowGrayFP32:
+		return copy(r, r2)
+	case RowGray8:
+		for x := 0; x < wid; x++ {
+			r[x] = float32(r2[x].Y) / 0xff
+		}
+	case RowGray16:
+		for x := 0; x < wid; x++ {
+			r[x] = float32(r2[x].Y) / 0xffff
+		}
+	default:
+		for x := 0; x < wid; x++ {
+			c2 := color.RGBA64Model.Convert(r2.At(x)).(color.Gray16)
+			r[x] = float32(c2.Y) / 0xffff
+		}
+	}
+
+	return wid
+}
