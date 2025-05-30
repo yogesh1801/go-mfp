@@ -75,8 +75,7 @@ type RowFP interface {
 	// Rows must be of the same type and size.
 	MultiplyAccumulate(r2 Row, w float32)
 
-	// scale performs row scaling by applying scaling coefficients
-	// to the source row:
+	// scale scales r2 into r, using provides scaling coefficients:
 	//
 	//	for _, sc := range coeffs {
 	//		r[sc.D] += src[S] * sc.W
