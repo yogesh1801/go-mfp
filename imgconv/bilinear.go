@@ -250,3 +250,22 @@ func makeScaleCoefficientsDownscale(slen, dlen int) []scaleCoeff {
 
 	return coeffs
 }
+
+// scaleCoefficientsHistorySize computes how much history is used by
+// the scale coefficients.
+//
+// It returns:
+//   - 0 if the coefficients never use sources in decreasing order,
+//   - 1 if they need to seek one step back from the maximum reached source index,
+//   - and so on.
+func scaleCoefficientsHistorySize(coeffs []scaleCoeff) int {
+	Smax := 0
+	hist := 9
+
+	for _, sc := range coeffs {
+		Smax = generic.Max(Smax, sc.S)
+		hist = generic.Max(hist, Smax-sc.S)
+	}
+
+	return hist
+}
