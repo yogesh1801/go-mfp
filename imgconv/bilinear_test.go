@@ -19,13 +19,15 @@ func TestMakeBLCoefficients(t *testing.T) {
 	type testData struct {
 		slen, dlen int          // Source/destination length
 		coeffs     []scaleCoeff // Expected coefficients
+		history    int          // Expected history size
 	}
 
 	tests := []testData{
 		{
-			slen:   0,
-			dlen:   0,
-			coeffs: nil,
+			slen:    0,
+			dlen:    0,
+			coeffs:  nil,
+			history: 0,
 		},
 
 		{
@@ -34,6 +36,7 @@ func TestMakeBLCoefficients(t *testing.T) {
 			coeffs: []scaleCoeff{
 				{S: 0, D: 0, W: 1.0},
 			},
+			history: 0,
 		},
 
 		{
@@ -70,6 +73,7 @@ func TestMakeBLCoefficients(t *testing.T) {
 				{S: 0, D: 3, W: 1},
 				{S: 0, D: 4, W: 1},
 			},
+			history: 0,
 		},
 
 		{
@@ -90,6 +94,7 @@ func TestMakeBLCoefficients(t *testing.T) {
 				{S: 1, D: 2, W: 2.0 / 3.0},
 				{S: 1, D: 3, W: 1.0},
 			},
+			history: 1,
 		},
 
 		{
@@ -113,6 +118,7 @@ func TestMakeBLCoefficients(t *testing.T) {
 				{S: 2, D: 3, W: 0.5},
 				{S: 2, D: 4, W: 1.0},
 			},
+			history: 0,
 		},
 
 		{
@@ -126,6 +132,7 @@ func TestMakeBLCoefficients(t *testing.T) {
 				{S: 2, D: 1, W: 2. / 3.},
 				{S: 3, D: 1, W: 1. / 3.},
 			},
+			history: 0,
 		},
 
 		{
@@ -142,6 +149,7 @@ func TestMakeBLCoefficients(t *testing.T) {
 				{S: 3, D: 2, W: 2. / 4.},
 				{S: 4, D: 2, W: 2. / 4.},
 			},
+			history: 0,
 		},
 	}
 
@@ -165,6 +173,14 @@ func TestMakeBLCoefficients(t *testing.T) {
 		diff := testutils.Diff(expected, present)
 		if diff != "" {
 			t.Errorf("%d->%d:\n%s", test.slen, test.dlen, diff)
+		}
+
+		history := scaleCoefficientsHistorySize(coeffs)
+		if history != test.history {
+			t.Errorf("%d->%d: history size mismatch:\n"+
+				"expected: %d\n"+
+				"present:  %d\n",
+				test.slen, test.dlen, test.history, history)
 		}
 	}
 }

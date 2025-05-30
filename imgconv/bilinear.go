@@ -260,7 +260,7 @@ func makeScaleCoefficientsDownscale(slen, dlen int) []scaleCoeff {
 //   - and so on.
 func scaleCoefficientsHistorySize(coeffs []scaleCoeff) int {
 	Smax := 0
-	hist := 9
+	hist := 0
 
 	for _, sc := range coeffs {
 		Smax = generic.Max(Smax, sc.S)
