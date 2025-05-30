@@ -14,7 +14,7 @@ import (
 	"github.com/OpenPrinting/go-mfp/internal/testutils"
 )
 
-// TestMakeBLCoefficients tests makeBLCoefficients function
+// TestMakeScaleCoefficients tests makeScaleCoefficients function
 func TestMakeBLCoefficients(t *testing.T) {
 	type testData struct {
 		slen, dlen int          // Source/destination length

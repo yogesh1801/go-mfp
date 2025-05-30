@@ -26,15 +26,19 @@ type scaleCoeff struct {
 	W    float32 // Source weight
 }
 
+// String returns string representation of the scaleCoeff, for debugging.
 func (sc scaleCoeff) String() string {
 	return fmt.Sprintf("%d->%d: %g", sc.S, sc.D, sc.W)
 }
 
+// makeScaleCoefficients prepares coefficients for image
+// scaling (vertical or horizontal) with changing image
+// dimensions range from [0...slen) to [0...dlen).
 func makeScaleCoefficients(slen, dlen int) []scaleCoeff {
-	// Handle special cases
 	switch {
 	case slen == 0 || dlen == 0:
 		return nil
+
 	case slen == dlen:
 		coeffs := make([]scaleCoeff, slen)
 		for x := 0; x < slen; x++ {
@@ -42,6 +46,7 @@ func makeScaleCoefficients(slen, dlen int) []scaleCoeff {
 			coeffs[x] = sc
 		}
 		return coeffs
+
 	case slen == 1:
 		coeffs := make([]scaleCoeff, dlen)
 		for x := 0; x < dlen; x++ {
@@ -49,6 +54,7 @@ func makeScaleCoefficients(slen, dlen int) []scaleCoeff {
 			coeffs[x] = sc
 		}
 		return coeffs
+
 	case dlen == 1:
 		coeffs := make([]scaleCoeff, slen)
 		W := 1.0 / float32(slen)
@@ -62,6 +68,7 @@ func makeScaleCoefficients(slen, dlen int) []scaleCoeff {
 		return makeScaleCoefficientsUpscale(slen, dlen)
 	}
 
+	// dlen < sleb
 	return makeScaleCoefficientsDownscale(slen, dlen)
 }
 
