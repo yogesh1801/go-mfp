@@ -74,6 +74,17 @@ type RowFP interface {
 	//
 	// Rows must be of the same type and size.
 	MultiplyAccumulate(r2 Row, w float32)
+
+	// scale performs row scaling by applying scaling coefficients
+	// to the source row:
+	//
+	//	for _, sc := range coeffs {
+	//		r[sc.D] += src[S] * sc.W
+	//	}
+	//
+	// r2 must be of the same type and both source and destination
+	// rows must be of the appropriate size.
+	scale(r2 Row, coeffs []scaleCoeff)
 }
 
 // NewRowFP returns the new [Row] with the [RowGrayFP32] or [RowRGBAFP32],
@@ -468,6 +479,14 @@ func (r RowGrayFP32) MultiplyAccumulate(r2 Row, w float32) {
 	}
 }
 
+// scale scales r2 into r, using provides scaling coefficients
+func (r RowGrayFP32) scale(r2 Row, coeffs []scaleCoeff) {
+	src := r2.(RowGrayFP32)
+	for _, sc := range coeffs {
+		r[sc.D] += src[sc.S] * sc.W
+	}
+}
+
 // RowRGBAFP32 represents a row of the RGBA image as a sequence of
 // the 32-bit floating point numbers in range [0...1.0].
 // The sequence is ordered as follows: R-G-B-A-R-G-B-A-...
@@ -621,5 +640,19 @@ func (r RowRGBAFP32) MultiplyAccumulate(r2 Row, w float32) {
 	src := r2.(RowRGBAFP32)
 	for i := range r {
 		r[i] += src[i] * w
+	}
+}
+
+// scale scales r2 into r, using provides scaling coefficients
+func (r RowRGBAFP32) scale(r2 Row, coeffs []scaleCoeff) {
+	src := r2.(RowGrayFP32)
+	for _, sc := range coeffs {
+		S := sc.S * 4
+		D := sc.D * 4
+
+		r[D+0] += src[S+0] * sc.W
+		r[D+1] += src[S+1] * sc.W
+		r[D+2] += src[S+2] * sc.W
+		r[D+3] += src[S+3] * sc.W
 	}
 }
