@@ -14,8 +14,10 @@ import (
 	"image/color"
 	"image/png"
 	"io"
+	"math"
 	"os"
 
+	"github.com/OpenPrinting/go-mfp/internal/assert"
 	"github.com/OpenPrinting/go-mfp/internal/testutils"
 	"github.com/OpenPrinting/go-mfp/util/generic"
 	"golang.org/x/image/draw"
@@ -157,6 +159,46 @@ func imageDiff(img1, img2 image.Image) string {
 	}
 
 	return ""
+}
+
+// imageEuclideanDistance compares two images for similarity by computing
+// the summary euclidean distance between image points, relative to
+// the max possible euclidean distance (sqtr(3)) multiplied by the
+// total number of points.
+//
+// Image sizes must be equal.
+func imageEuclideanDistance(img1, img2 image.Image) float64 {
+	assert.Must(img1.Bounds() == img1.Bounds())
+
+	wid := img1.Bounds().Dx()
+	hei := img1.Bounds().Dy()
+
+	sum := 0.0
+	for y := 0; y < hei; y++ {
+		for x := 0; x < wid; x++ {
+			c1 := img1.At(x, y)
+			c2 := img2.At(x, y)
+			r1, g1, b1, _ := c1.RGBA()
+			r2, g2, b2, _ := c2.RGBA()
+
+			r1fp := float64(r1) / 0xffff
+			g1fp := float64(g1) / 0xffff
+			b1fp := float64(b1) / 0xffff
+
+			r2fp := float64(r2) / 0xffff
+			g2fp := float64(g2) / 0xffff
+			b2fp := float64(b2) / 0xffff
+
+			d := math.Sqrt(
+				(r1fp-r2fp)*(r1fp-r2fp) +
+					(g1fp-g2fp)*(g1fp-g2fp) +
+					(b1fp-b2fp)*(b1fp-b2fp))
+			sum += d
+		}
+	}
+
+	sum /= float64(wid) * float64(hei) * math.Sqrt(3)
+	return sum
 }
 
 // readerWithError implements [io.Reader] interface for the byte slice.
