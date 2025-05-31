@@ -67,6 +67,9 @@ func NewRow(model color.Model, width int) (row Row) {
 type RowFP interface {
 	Row
 
+	// ZeroFill fills the row with all-zero values
+	ZeroFill()
+
 	// MultiplyAccumulate performs the multiply-accumulate operation on
 	// the entire row:
 	//
@@ -465,6 +468,13 @@ func (r RowGrayFP32) Copy(r2 Row) int {
 	return wid
 }
 
+// ZeroFill fills the row with all-zero values
+func (r RowGrayFP32) ZeroFill() {
+	for i := range r {
+		r[i] = 0
+	}
+}
+
 // MultiplyAccumulate performs the multiply-accumulate operation on
 // the entire row:
 //
@@ -627,6 +637,13 @@ func (r RowRGBAFP32) Copy(r2 Row) int {
 	}
 
 	return wid
+}
+
+// ZeroFill fills the row with all-zero values
+func (r RowRGBAFP32) ZeroFill() {
+	for i := range r {
+		r[i] = 0
+	}
 }
 
 // MultiplyAccumulate performs the multiply-accumulate operation on
