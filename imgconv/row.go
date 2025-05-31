@@ -104,7 +104,7 @@ func NewRowFP(model color.Model, width int) (row RowFP) {
 	case color.GrayModel, color.Gray16Model:
 		row = make(RowGrayFP32, width)
 	case color.RGBAModel, color.RGBA64Model:
-		row = make(RowRGBAFP32, width)
+		row = make(RowRGBAFP32, width*4)
 	}
 
 	return
@@ -661,7 +661,7 @@ func (r RowRGBAFP32) MultiplyAccumulate(r2 Row, w float32) {
 
 // scale scales r2 into r, using provides scaling coefficients
 func (r RowRGBAFP32) scale(r2 Row, coeffs []scaleCoeff) {
-	src := r2.(RowGrayFP32)
+	src := r2.(RowRGBAFP32)
 	for _, sc := range coeffs {
 		S := sc.S * 4
 		D := sc.D * 4
