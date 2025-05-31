@@ -87,16 +87,11 @@ func makeScaleCoefficientsUpscale(slen, dlen int) []scaleCoeff {
 	srcstep := uint64(dlen-1) * 2 // space / (slen - 1)
 	dststep := uint64(slen-1) * 2 // space / (dlen - 1)
 
-	println("space", space, "srcstep", srcstep, "dststep", dststep)
-	println("steps:", "src", space/srcstep, "dst", space/dststep)
-
 	coeffs := make([]scaleCoeff, 0, slen+dlen)
 	for dst := uint64(0); dst <= space; dst += dststep {
-		println("=== dst", dst/dststep, dst)
 		// Handle the special case when source and destination
 		// points matches 1:1
 		if dst%srcstep == 0 {
-			println("1:1")
 			S := int(dst / srcstep)
 			D := int(dst / dststep)
 			sc := scaleCoeff{S: S, D: D, W: 1.0}
@@ -108,20 +103,14 @@ func makeScaleCoefficientsUpscale(slen, dlen int) []scaleCoeff {
 		prec := generic.LowerDivisibleBy(dst, srcstep)
 		succ := generic.UpperDivisibleBy(dst, srcstep)
 
-		println(prec, "-", dst, "-", succ)
-
 		// Compute weights
 		precDistance := float32(dst - prec)
 		succDistance := float32(succ - dst)
 
 		wholeDistance := precDistance + succDistance
 
-		println("dist", precDistance/wholeDistance, succDistance/wholeDistance)
-
 		precWeight := succDistance / wholeDistance
 		succWeight := precDistance / wholeDistance
-
-		println("weight", precWeight, succWeight)
 
 		// Generate coefficients
 		D := int(dst / dststep)
@@ -164,14 +153,8 @@ func makeScaleCoefficientsDownscale(slen, dlen int) []scaleCoeff {
 	srcstep := uint64(dlen-1) * 2 // space / (slen - 1)
 	dststep := uint64(slen-1) * 2 // space / (dlen - 1)
 
-	println("slen", slen, "dlen", dlen)
-	println("space", space, "srcstep", srcstep, "dststep", dststep)
-	println("steps:", "src", space/srcstep, "dst", space/dststep)
-
 	coeffs := make([]scaleCoeff, 0, slen+dlen)
 	for dst := uint64(0); dst <= space; dst += dststep {
-		println("=== dst", dst/dststep, "(", dst, ")")
-
 		// Compute indices and [0...space] positions of the
 		// source first and last source points that contribute
 		// into the destination:
@@ -201,9 +184,6 @@ func makeScaleCoefficientsDownscale(slen, dlen int) []scaleCoeff {
 			lastStart -= srcstep / 2
 		}
 
-		println(dst/dststep, "firstIdx", firstIdx, "lastIdx", lastIdx)
-		println(dst/dststep, "firstStart", firstStart, "lastStart", lastStart)
-
 		// Compute overlap ranges
 		dstStart := dst
 		dstRange := dststep
@@ -221,9 +201,6 @@ func makeScaleCoefficientsDownscale(slen, dlen int) []scaleCoeff {
 		if dst != space {
 			lastRange = dstStart + dstRange - lastStart
 		}
-
-		println(dst/dststep, "dstStart", dstStart)
-		println(dst/dststep, "firstRange", firstRange, "lastRange", lastRange, "dstRange", dstRange)
 
 		assert.Must(dstRange ==
 			firstRange+lastRange+
