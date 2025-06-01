@@ -16,34 +16,37 @@ import (
 	"github.com/OpenPrinting/go-mfp/imgconv"
 )
 
-// Filter defines certain transformations of the [Document]s, such
-// as recoding into the different format (say, PNG->JPEG), image
-// scaling and resizing, brightness and contrast adjustment and so on.
+// Filter runs on a top of existent [Document] and performs various
+// transformations of the images, containing in the Document, such
+// as changing output format (say, PNG->JPEG), image scaling and
+// resizing, brightness and contrast adjustment and so on.
 //
-// Filter can be applied to the existent Document, returning a
-// transformed Document.
+// Filter implements the [Document] interface.
 type Filter struct {
-	format string     // MIME type of the output format
-	res    Resolution // Resolution after filtering
-	reg    Region     // Image region after filtering
+	input   Document            // Input document
+	format  string              // MIME type of the output format
+	res     Resolution          // Resolution after filtering
+	reg     Region              // Image region after filtering
+	curfile *filterDocumentFile // Current DocumentFile, nil if none
 }
 
-// NewFilter creates a new [Filter].
-func NewFilter() *Filter {
+// NewFilter creates a new [Filter] on a top of existent [Document].
+func NewFilter(input Document) *Filter {
 	return &Filter{
+		input:  input,
 		format: DocumentFormatPNG, // FIXME
 	}
 }
 
 // SetOutputFormat sets the output format (a MIME type)
-func (f *Filter) SetOutputFormat(format string) error {
-	f.format = format
+func (filter *Filter) SetOutputFormat(format string) error {
+	filter.format = format
 	return nil
 }
 
 // ChangeResolution adds resolution-change resampling filter.
-func (f *Filter) ChangeResolution(x, y int) {
-	f.res = Resolution{XResolution: x, YResolution: y}
+func (filter *Filter) ChangeResolution(x, y int) {
+	filter.res = Resolution{XResolution: x, YResolution: y}
 }
 
 // ChangeRegion adds a filter that extracts image [Region].
@@ -53,44 +56,29 @@ func (f *Filter) ChangeResolution(x, y int) {
 // Region may fall outside the document boundaries.
 //
 // It works by cropping document or adding additional space.
-func (f *Filter) ChangeRegion(reg Region) {
-	f.reg = reg
-}
-
-// Apply applies filter to the [Document]. It returns a
-// new, filtered Document.
-func (f *Filter) Apply(input Document) Document {
-	doc := &filterDocument{
-		filter: f,
-		input:  input,
-	}
-
-	return doc
-}
-
-// filterDocument represents the filtered [Document].
-type filterDocument struct {
-	filter  *Filter             // Back link to the filter
-	input   Document            // Input document
-	curfile *filterDocumentFile // Current DocumentFile, nil if none
+func (filter *Filter) ChangeRegion(reg Region) {
+	filter.reg = reg
 }
 
 // Resolution returns the document's rendering resolution in DPI
 // (dots per inch).
-func (doc *filterDocument) Resolution() Resolution {
-	return doc.filter.res
+func (filter *Filter) Resolution() Resolution {
+	if !filter.res.IsZero() {
+		return filter.res
+	}
+	return filter.input.Resolution()
 }
 
 // Next returns the next [DocumentFile].
-func (doc *filterDocument) Next() (DocumentFile, error) {
+func (filter *Filter) Next() (DocumentFile, error) {
 	// Close current DocumentFile, if any
-	if doc.curfile != nil {
-		doc.curfile.close()
-		doc.curfile = nil
+	if filter.curfile != nil {
+		filter.curfile.close()
+		filter.curfile = nil
 	}
 
 	// Obtain next DocumentFile from the underlying source Document
-	input, err := doc.input.Next()
+	input, err := filter.input.Next()
 	if err != nil {
 		return nil, err
 	}
@@ -102,8 +90,7 @@ func (doc *filterDocument) Next() (DocumentFile, error) {
 	}
 
 	// Resample to resolution
-	filter := doc.filter
-	res := doc.input.Resolution()
+	res := filter.input.Resolution()
 	if !filter.res.IsZero() && filter.res != res {
 		wid, hei := pipeline.Size()
 		newwid := wid * filter.res.XResolution / res.XResolution
@@ -131,7 +118,8 @@ func (doc *filterDocument) Next() (DocumentFile, error) {
 
 	// Create filterDocumentFile
 	file := &filterDocumentFile{
-		doc:      doc,
+		filter:   filter,
+		input:    input,
 		pipeline: pipeline,
 		row:      pipeline.NewRow(),
 		output:   &bytes.Buffer{},
@@ -152,18 +140,20 @@ func (doc *filterDocument) Next() (DocumentFile, error) {
 
 // Close closes the Document. It implicitly closes the current
 // image being read.
-func (doc *filterDocument) Close() error {
-	if doc.curfile != nil {
-		doc.curfile.close()
-		doc.curfile = nil
+func (filter *Filter) Close() error {
+	if filter.curfile != nil {
+		filter.curfile.close()
+		filter.curfile = nil
 	}
+	filter.input.Close()
 	return nil
 }
 
 // filterDocumentFile represents the [DocumentFile] of the
 // filtered [Document].
 type filterDocumentFile struct {
-	doc      *filterDocument // Back link to the filterDocument
+	filter   *Filter         // Back link to the Filter
+	input    DocumentFile    // Underlying DocumentFile
 	pipeline imgconv.Decoder // Image data decoding/filtering pipeline
 	row      imgconv.Row     // Temporary Row for encoding
 	output   *bytes.Buffer   // Output stream buffer
@@ -173,7 +163,10 @@ type filterDocumentFile struct {
 // Format returns the MIME type of the image format used by
 // the document file.
 func (file *filterDocumentFile) Format() string {
-	return file.doc.filter.format
+	if file.filter.format != "" {
+		return file.filter.format
+	}
+	return file.input.Format()
 }
 
 // Read reads the document file content as a sequence of bytes.
