@@ -11,7 +11,6 @@ package abstract
 import (
 	"bytes"
 	"image"
-	"io"
 
 	"github.com/OpenPrinting/go-mfp/imgconv"
 )
@@ -44,19 +43,19 @@ func (filter *Filter) SetOutputFormat(format string) error {
 	return nil
 }
 
-// ChangeResolution adds resolution-change resampling filter.
-func (filter *Filter) ChangeResolution(x, y int) {
-	filter.res = Resolution{XResolution: x, YResolution: y}
+// SetResolution adds resolution-change resampling filter.
+func (filter *Filter) SetResolution(res Resolution) {
+	filter.res = res
 }
 
-// ChangeRegion adds a filter that extracts image [Region].
+// SetRegion adds a filter that extracts image [Region].
 //
 // Region position is interpreted relative to the top-left
 // Document corner. Some parts of the Region or the entire
 // Region may fall outside the document boundaries.
 //
 // It works by cropping document or adding additional space.
-func (filter *Filter) ChangeRegion(reg Region) {
+func (filter *Filter) SetRegion(reg Region) {
 	filter.reg = reg
 }
 
@@ -135,7 +134,7 @@ func (filter *Filter) Next() (DocumentFile, error) {
 		return nil, err
 	}
 
-	return file, io.EOF
+	return file, nil
 }
 
 // Close closes the Document. It implicitly closes the current

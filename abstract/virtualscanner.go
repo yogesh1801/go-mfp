@@ -40,7 +40,11 @@ func (vscan *VirtualScanner) Scan(ctx context.Context, req ScannerRequest) (
 	}
 
 	doc := NewVirtualDocument(vscan.Resolution, images...)
-	return doc, nil
+
+	filter := NewFilter(doc)
+	filter.SetResolution(req.Resolution)
+
+	return filter, nil
 }
 
 // Close closes the scanner connection.
