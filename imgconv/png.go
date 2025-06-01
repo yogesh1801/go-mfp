@@ -152,7 +152,7 @@ import (
 // // do_png_read_row wraps png_read_row.
 // // The wrapper is required to catch setjmp return as we can't do it from Go
 // static inline void
-// do_png_read_row(png_struct *png, png_bytep row, png_bytep display_row) {
+// do_png_read_row(png_struct *png, void *row, png_bytep display_row) {
 //     if (setjmp(png_jmpbuf(png))) {
 //         return;
 //     }
@@ -163,7 +163,7 @@ import (
 // // do_png_write_row wraps png_write_row.
 // // The wrapper is required to catch setjmp return as we can't do it from Go
 // static inline void
-// do_png_write_row(png_struct *png, png_bytep row) {
+// do_png_write_row(png_struct *png, void *row) {
 //     if (setjmp(png_jmpbuf(png))) {
 //         return;
 //     }
@@ -193,7 +193,7 @@ type pngDecoder struct {
 	input    io.Reader     // Underlying io.Reader
 	model    color.Model   // Image color mode
 	wid, hei int           // Image size
-	rowBytes []C.png_byte  // Row decoding buffer
+	rowBytes []byte        // Row decoding buffer
 	y        int           // Current y-coordinate
 }
 
@@ -264,7 +264,7 @@ func NewPNGDecoder(input io.Reader) (Decoder, error) {
 	}
 
 	// Allocate buffers
-	decoder.rowBytes = make([]C.png_byte, bytesPerPixel*int(width))
+	decoder.rowBytes = make([]byte, bytesPerPixel*int(width))
 
 	return decoder, nil
 }
@@ -304,44 +304,16 @@ func (decoder *pngDecoder) Read(row Row) (int, error) {
 
 	switch decoder.model {
 	case color.GrayModel:
-		row := row.(RowGray8)
-		for x := 0; x < wid; x++ {
-			row[x].Y = uint8(decoder.rowBytes[x])
-		}
+		bytesGray8toRow(row, decoder.rowBytes)
 
 	case color.Gray16Model:
-		row := row.(RowGray16)
-		for x := 0; x < wid; x++ {
-			off := x * 2
-			row[x].Y =
-				(uint16(decoder.rowBytes[off]) << 8) |
-					uint16(decoder.rowBytes[off+1])
-		}
+		bytesGray16BEtoRow(row, decoder.rowBytes)
 
 	case color.RGBAModel:
-		row := row.(RowRGBA32)
-		for x := 0; x < wid; x++ {
-			off := x * 3
-			s := decoder.rowBytes[off : off+3]
-
-			row[x] = color.RGBA{
-				R: uint8(s[0]),
-				G: uint8(s[1]),
-				B: uint8(s[2]),
-				A: 255,
-			}
-		}
+		bytesRGB8toRow(row, decoder.rowBytes)
 
 	case color.RGBA64Model:
-		row := row.(RowRGBA64)
-		for x := 0; x < wid; x++ {
-			off := x * 6
-			s := decoder.rowBytes[off : off+6]
-			r := (uint16(s[0]) << 8) | uint16(s[1])
-			g := (uint16(s[2]) << 8) | uint16(s[3])
-			b := (uint16(s[4]) << 8) | uint16(s[5])
-			row[x] = color.RGBA64{R: r, G: g, B: b, A: 65535}
-		}
+		bytesRGB16BEtoRow(row, decoder.rowBytes)
 	}
 
 	// Update current y
@@ -363,7 +335,8 @@ func (decoder *pngDecoder) setError(err error) {
 // readRow reads the next image line.
 func (decoder *pngDecoder) readRow() {
 	if decoder.err == nil {
-		C.do_png_read_row(decoder.png, &decoder.rowBytes[0], nil)
+		C.do_png_read_row(decoder.png,
+			unsafe.Pointer(&decoder.rowBytes[0]), nil)
 	}
 }
 
@@ -376,7 +349,7 @@ type pngEncoder struct {
 	output   io.Writer     // Underlying io.Writer
 	wid, hei int           // Image size
 	model    color.Model   // Color model
-	rowBytes []C.png_byte  // Row encoding buffer
+	rowBytes []byte        // Row encoding buffer
 	y        int           // Current y-coordinate
 }
 
@@ -421,7 +394,7 @@ func NewPNGEncoder(output io.Writer,
 		wid:      wid,
 		hei:      hei,
 		model:    model,
-		rowBytes: make([]C.png_byte, bytesPerPixel*int(wid)),
+		rowBytes: make([]byte, bytesPerPixel*int(wid)),
 	}
 
 	encoder.handle = cgo.NewHandle(encoder)
@@ -484,16 +457,16 @@ func (encoder *pngEncoder) Write(row Row) error {
 	switch encoder.model {
 	case color.GrayModel:
 		bytesPerPixel = 1
-		encoder.encodeGray8(row, wid)
+		bytesGray8fromRow(encoder.rowBytes, row)
 	case color.Gray16Model:
 		bytesPerPixel = 2
-		encoder.encodeGray16(row, wid)
+		bytesGray16BEfromRow(encoder.rowBytes, row)
 	case color.RGBAModel:
 		bytesPerPixel = 3
-		encoder.encodeRGBA32(row, wid)
+		bytesRGB8fromRow(encoder.rowBytes, row)
 	case color.RGBA64Model:
 		bytesPerPixel = 6
-		encoder.encodeRGBA64(row, wid)
+		bytesRGB16BEfromRow(encoder.rowBytes, row)
 	}
 
 	// Fill the tail
@@ -505,7 +478,7 @@ func (encoder *pngEncoder) Write(row Row) error {
 	}
 
 	// Write the row
-	C.do_png_write_row(encoder.png, &encoder.rowBytes[0])
+	C.do_png_write_row(encoder.png, unsafe.Pointer(&encoder.rowBytes[0]))
 	if encoder.err == nil {
 		encoder.y++
 	}
@@ -536,96 +509,6 @@ func (encoder *pngEncoder) Close() error {
 func (encoder *pngEncoder) setError(err error) {
 	if encoder.err == nil {
 		encoder.err = err
-	}
-}
-
-// encodeGray8 encodes a row of the 8-bit grayscale image
-func (encoder *pngEncoder) encodeGray8(row Row, wid int) {
-	if row, ok := row.(RowGray8); ok {
-		for x := 0; x < wid; x++ {
-			encoder.rowBytes[x] = C.png_byte(row[x].Y)
-		}
-		return
-	}
-
-	for x := 0; x < wid; x++ {
-		c := color.GrayModel.Convert(row.At(x)).(color.Gray)
-		encoder.rowBytes[x] = C.png_byte(c.Y)
-	}
-}
-
-// encodeGray16 encodes a row of the 16-bit grayscale image
-func (encoder *pngEncoder) encodeGray16(row Row, wid int) {
-	if row, ok := row.(RowGray16); ok {
-		for x := 0; x < wid; x++ {
-			off := x * 2
-			encoder.rowBytes[off] = C.png_byte(row[x].Y >> 8)
-			encoder.rowBytes[off+1] = C.png_byte(row[x].Y)
-		}
-		return
-	}
-
-	for x := 0; x < wid; x++ {
-		off := x * 2
-		c := color.Gray16Model.Convert(row.At(x)).(color.Gray16)
-		encoder.rowBytes[off] = C.png_byte(c.Y >> 8)
-		encoder.rowBytes[off+1] = C.png_byte(c.Y)
-	}
-}
-
-// encodeRGBA32 encodes a row of the 32-bit RGBA image
-func (encoder *pngEncoder) encodeRGBA32(row Row, wid int) {
-	if row, ok := row.(RowRGBA32); ok {
-		for x := 0; x < wid; x++ {
-			off := x * 3
-			s := encoder.rowBytes[off : off+3]
-
-			s[0] = C.png_byte(row[x].R)
-			s[1] = C.png_byte(row[x].G)
-			s[2] = C.png_byte(row[x].B)
-		}
-		return
-	}
-
-	for x := 0; x < wid; x++ {
-		off := x * 3
-		s := encoder.rowBytes[off : off+3]
-
-		c := color.RGBAModel.Convert(row.At(x)).(color.RGBA)
-		s[0] = C.png_byte(c.R)
-		s[1] = C.png_byte(c.G)
-		s[2] = C.png_byte(c.B)
-	}
-}
-
-// encodeRGBA64 encodes a row of the 64-bit RGBA image
-func (encoder *pngEncoder) encodeRGBA64(row Row, wid int) {
-	if row, ok := row.(RowRGBA64); ok {
-		for x := 0; x < wid; x++ {
-			off := x * 6
-			s := encoder.rowBytes[off : off+6]
-
-			s[0] = C.png_byte(row[x].R >> 8)
-			s[1] = C.png_byte(row[x].R)
-			s[2] = C.png_byte(row[x].G >> 8)
-			s[3] = C.png_byte(row[x].G)
-			s[4] = C.png_byte(row[x].B >> 8)
-			s[5] = C.png_byte(row[x].B)
-		}
-		return
-	}
-
-	for x := 0; x < wid; x++ {
-		off := x * 6
-		s := encoder.rowBytes[off : off+6]
-
-		c := color.RGBA64Model.Convert(row.At(x)).(color.RGBA64)
-		s[0] = C.png_byte(c.R >> 8)
-		s[1] = C.png_byte(c.R)
-		s[2] = C.png_byte(c.G >> 8)
-		s[3] = C.png_byte(c.G)
-		s[4] = C.png_byte(c.B >> 8)
-		s[5] = C.png_byte(c.B)
 	}
 }
 
