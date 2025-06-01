@@ -120,7 +120,7 @@ func TestBytesToFromRow(t *testing.T) {
 		},
 
 		{
-			name: "RGB16",
+			name: "RGB16BE",
 			bytes: []byte{
 				0x00, 0x00,
 				0x10, 0x01,
@@ -143,12 +143,12 @@ func TestBytesToFromRow(t *testing.T) {
 					A: 0xffff,
 				},
 			},
-			to:   bytesRGB16toRow,
-			from: bytesRGB16fromRow,
+			to:   bytesRGB16BEtoRow,
+			from: bytesRGB16BEfromRow,
 		},
 
 		{
-			name: "RGB16",
+			name: "RGB16BE",
 			bytes: []byte{
 				0x00, 0x00,
 				0x10, 0x01,
@@ -167,8 +167,8 @@ func TestBytesToFromRow(t *testing.T) {
 				0x5005 / 65535.,
 				0xffff / 65535.,
 			},
-			to:   bytesRGB16toRow,
-			from: bytesRGB16fromRow,
+			to:   bytesRGB16BEtoRow,
+			from: bytesRGB16BEfromRow,
 		},
 
 		{
@@ -206,7 +206,7 @@ func TestBytesToFromRow(t *testing.T) {
 		},
 
 		{
-			name: "RGBA16",
+			name: "RGBA16BE",
 			bytes: []byte{
 				0x00, 0x00,
 				0x10, 0x01,
@@ -231,12 +231,12 @@ func TestBytesToFromRow(t *testing.T) {
 					A: 0x7007,
 				},
 			},
-			to:   bytesRGBA16toRow,
-			from: bytesRGBA16fromRow,
+			to:   bytesRGBA16BEtoRow,
+			from: bytesRGBA16BEfromRow,
 		},
 
 		{
-			name: "RGBA16",
+			name: "RGBA16BE",
 			bytes: []byte{
 				0x00, 0x00,
 				0x10, 0x01,
@@ -257,8 +257,8 @@ func TestBytesToFromRow(t *testing.T) {
 				0x6006 / 65535.,
 				0x7007 / 65535.,
 			},
-			to:   bytesRGBA16toRow,
-			from: bytesRGBA16fromRow,
+			to:   bytesRGBA16BEtoRow,
+			from: bytesRGBA16BEfromRow,
 		},
 	}
 

@@ -118,10 +118,10 @@ func bytesRGB8toRow(r Row, bytes []byte) int {
 	return wid
 }
 
-// bytesRGB16toRow converts byte slice to Row.
+// bytesRGB16BEtoRow converts byte slice to Row.
 // The byte slice assumed to contain 16-bit big endian R-G-B image line.
 // It returns the resulting Row length, in pixels.
-func bytesRGB16toRow(r Row, bytes []byte) int {
+func bytesRGB16BEtoRow(r Row, bytes []byte) int {
 	wid := generic.Min(r.Width(), len(bytes)/6)
 
 	switch r := r.(type) {
@@ -213,10 +213,10 @@ func bytesRGBA8toRow(r Row, bytes []byte) int {
 	return wid
 }
 
-// bytesRGBA16toRow converts byte slice to Row.
+// bytesRGBA16BEtoRow converts byte slice to Row.
 // The byte slice assumed to contain 16-bit big endian R-G-B-A image line.
 // It returns the resulting Row length, in pixels.
-func bytesRGBA16toRow(r Row, bytes []byte) int {
+func bytesRGBA16BEtoRow(r Row, bytes []byte) int {
 	wid := generic.Min(r.Width(), len(bytes)/8)
 
 	switch r := r.(type) {
@@ -361,10 +361,10 @@ func bytesRGB8fromRow(bytes []byte, r Row) int {
 	return wid * 3
 }
 
-// bytesRGB16fromRow converts Row to byte slice.
+// bytesRGB16BEfromRow converts Row to byte slice.
 // The byte slice assumed to contain 16-bit big endian R-G-B image line.
 // It returns the resulting Row length, in pixels.
-func bytesRGB16fromRow(bytes []byte, r Row) int {
+func bytesRGB16BEfromRow(bytes []byte, r Row) int {
 	wid := generic.Min(r.Width(), len(bytes)/6)
 
 	switch r := r.(type) {
@@ -463,10 +463,10 @@ func bytesRGBA8fromRow(bytes []byte, r Row) int {
 	return wid * 4
 }
 
-// bytesRGBA16fromRow converts Row to byte slice.
+// bytesRGBA16BEfromRow converts Row to byte slice.
 // The byte slice assumed to contain 16-bit big endian R-G-B-A image line.
 // It returns the resulting Row length, in pixels.
-func bytesRGBA16fromRow(bytes []byte, r Row) int {
+func bytesRGBA16BEfromRow(bytes []byte, r Row) int {
 	wid := generic.Min(r.Width(), len(bytes)/8)
 
 	switch r := r.(type) {
