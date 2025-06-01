@@ -508,7 +508,7 @@ func (r RowRGBAFP32) Width() int {
 
 // At returns pixel at the specified position as [color.Color].
 func (r RowRGBAFP32) At(x int) color.Color {
-	return r.RGBAAt(x)
+	return r.RGBA64At(x)
 }
 
 // RGBAAt returns pixel at the specified position as [color.RGBA].
@@ -524,8 +524,8 @@ func (r RowRGBAFP32) RGBAAt(x int) color.RGBA {
 	}
 }
 
-// RGBA16At returns pixel at the specified position as [color.RGBA64].
-func (r RowRGBAFP32) RGBA16At(x int) color.RGBA64 {
+// RGBA64At returns pixel at the specified position as [color.RGBA64].
+func (r RowRGBAFP32) RGBA64At(x int) color.RGBA64 {
 	off := x * 4
 	s := r[off : off+4]
 
