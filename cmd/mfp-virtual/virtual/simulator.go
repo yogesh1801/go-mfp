@@ -99,8 +99,8 @@ func simulate(ctx context.Context, port int, argv []string) error {
 	s := &abstract.VirtualScanner{
 		ScanCaps: scannerCapabilities(),
 		Resolution: abstract.Resolution{
-			XResolution: 300,
-			YResolution: 300,
+			XResolution: 600,
+			YResolution: 600,
 		},
 		PlatenImage: testutils.Images.PNG5100x7016,
 	}
