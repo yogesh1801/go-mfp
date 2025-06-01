@@ -61,8 +61,6 @@ type Decoder interface {
 	NewRow() Row
 
 	// Read returns the next image [Row].
-	// The Row type must match the [Decoder]'s [color.Model].
-	//
 	// It returns the resulting row length, in pixels, or an error.
 	Read(Row) (int, error)
 
