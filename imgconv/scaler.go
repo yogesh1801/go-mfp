@@ -20,8 +20,7 @@ type scaler struct {
 	wid, hei int          // Scaled image size
 	xcoeffs  []scaleCoeff // Horizontal scaling coefficients
 	ycoeffs  []scaleCoeff // Remaining vertical scaling coefficients
-	tmpin    Row          // Input buffer, for reading from scaler.input
-	tmpinFP  RowFP        // scaler.tmpin, converted to RowFP
+	tmpin    RowFP        // Input buffer, for reading from scaler.input
 	tmpout   RowFP        // Output buffer
 	history  []RowFP      // Scaled source rows: 0 - latest, 1 - previous etc
 	srcy     int          // Latest source row y-coordinate
@@ -48,8 +47,7 @@ func NewScaler(in Decoder, wid, hei int) Decoder {
 		hei:     hei,
 		xcoeffs: makeScaleCoefficients(oldwid, wid),
 		ycoeffs: makeScaleCoefficients(oldhei, hei),
-		tmpin:   in.NewRow(),
-		tmpinFP: NewRowFP(model, oldwid),
+		tmpin:   NewRowFP(model, oldwid),
 		tmpout:  NewRowFP(model, wid),
 		srcy:    -1,
 	}
@@ -116,9 +114,8 @@ func (scl *scaler) hstrow(y int) RowFP {
 			scl.hstshift()
 			scl.srcy++
 
-			scl.tmpinFP.Copy(scl.tmpin)
 			scl.history[0].ZeroFill()
-			scl.history[0].scale(scl.tmpinFP, scl.xcoeffs)
+			scl.history[0].scale(scl.tmpin, scl.xcoeffs)
 		}
 	}
 
