@@ -109,6 +109,40 @@ type (
 		// Other attributes.
 		PPDs []*PpdAttributes
 	}
+
+	// CUPSGetPPDRequest operation (0x400f) returns PPD file from
+	// the server.
+	CUPSGetPPDRequest struct {
+		ObjectRawAttrs
+		RequestHeader
+
+		// Operational attributes
+		//
+		// Use PrinterURI to specify particular print queue
+		// or PPDName to request PPD file by its name.
+		PrinterURI string `ipp:"?printer-uri,uri"`
+		PPDName    string `ipp:"?ppd-name,name"`
+	}
+
+	// CUPSGetPPDResponse is the CUPS-Get-PPD Response.
+	//
+	// If the PPD file is found, goipp.StatusOk is returned with the PPD
+	// file represented by the ResponseHeader.Body.
+	//
+	// If the PPD file cannot be served by the local server because the
+	// printer-uri attribute points to an external printer, a
+	// goipp.StatusCupsSeeOther is returned and PrinterURI contains
+	// the correct URI to use.
+	//
+	// If the PPD file does not exist, goipp.StatusErrorNotFound is
+	// returned.
+	CUPSGetPPDResponse struct {
+		ObjectRawAttrs
+		ResponseHeader
+
+		// Operational attributes
+		PrinterURI string `ipp:"?printer-uri,uri"`
+	}
 )
 
 // ----- CUPS-Get-Default methods -----
@@ -482,6 +516,82 @@ func (rsp *CUPSGetPPDsResponse) Decode(msg *goipp.Message) error {
 
 			rsp.PPDs = append(rsp.PPDs, ppd)
 		}
+	}
+
+	return nil
+}
+
+// ----- CUPS-Get-PPD methods -----
+
+// GetOp returns CUPSGetPPDRequest IPP Operation code.
+func (rq *CUPSGetPPDRequest) GetOp() goipp.Op {
+	return goipp.OpCupsGetPpd
+}
+
+// KnownAttrs returns information about all known IPP attributes
+// of the CUPSGetPPDRequest
+func (rq *CUPSGetPPDRequest) KnownAttrs() []AttrInfo {
+	return ippKnownAttrs(rq)
+}
+
+// Encode encodes CUPSGetPPDRequest into the goipp.Message.
+func (rq *CUPSGetPPDRequest) Encode() *goipp.Message {
+	groups := goipp.Groups{
+		{
+			Tag:   goipp.TagOperationGroup,
+			Attrs: ippEncodeAttrs(rq),
+		},
+	}
+
+	msg := goipp.NewMessageWithGroups(rq.Version, goipp.Code(rq.GetOp()),
+		rq.RequestID, groups)
+
+	return msg
+}
+
+// Decode decodes CUPSGetPPDRequest from goipp.Message.
+func (rq *CUPSGetPPDRequest) Decode(msg *goipp.Message) error {
+	rq.Version = msg.Version
+	rq.RequestID = msg.RequestID
+
+	err := ippDecodeAttrs(rq, msg.Operation)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// KnownAttrs returns information about all known IPP attributes
+// of the CUPSGetPPDResponse.
+func (rsp *CUPSGetPPDResponse) KnownAttrs() []AttrInfo {
+	return ippKnownAttrs(rsp)
+}
+
+// Encode encodes CUPSGetPPDResponse into goipp.Message.
+func (rsp *CUPSGetPPDResponse) Encode() *goipp.Message {
+	groups := goipp.Groups{
+		{
+			Tag:   goipp.TagOperationGroup,
+			Attrs: ippEncodeAttrs(rsp),
+		},
+	}
+
+	msg := goipp.NewMessageWithGroups(rsp.Version, goipp.Code(rsp.Status),
+		rsp.RequestID, groups)
+
+	return msg
+}
+
+// Decode decodes CUPSGetPPDResponse from goipp.Message.
+func (rsp *CUPSGetPPDResponse) Decode(msg *goipp.Message) error {
+	rsp.Version = msg.Version
+	rsp.RequestID = msg.RequestID
+	rsp.Status = goipp.Status(msg.Code)
+
+	err := ippDecodeAttrs(rsp, msg.Operation)
+	if err != nil {
+		return err
 	}
 
 	return nil
