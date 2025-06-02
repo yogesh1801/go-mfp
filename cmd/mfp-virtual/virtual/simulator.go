@@ -157,7 +157,7 @@ func simulate(ctx context.Context, port int, argv []string) error {
 	}()
 
 	// Serve requests
-	log.Info(ctx, "starting virtual MFP ar %s", addr)
+	log.Info(ctx, "starting virtual MFP at %s", addr)
 	server.Serve(ln)
 
 	return err
