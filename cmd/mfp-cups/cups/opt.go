@@ -234,6 +234,37 @@ func optUserGet(inv *argv.Invocation) string {
 	return opt
 }
 
+// optPrinterURI describes the --printer-uri option.
+// This option specifies printer by its URI
+var optPrinterURI = argv.Option{
+	Name: "--printer-uri",
+	Help: "Specify printer URI.\n" +
+		"Use mfp-cups get-printers for the list.",
+	HelpArg:  "URI",
+	Validate: transport.ValidateURL,
+}
+
+// optPrinterURIGet return --printer-uri option value.
+func optPrinterURIGet(inv *argv.Invocation) string {
+	opt, _ := inv.Get("--printer-uri")
+	return opt
+}
+
+// optPPDName describes the --ppd-name option.
+// This option specifies PPD file by its name.
+var optPPDName = argv.Option{
+	Name:     "--ppd-name",
+	Help:     "PPD file name",
+	HelpArg:  "name",
+	Validate: argv.ValidateAny,
+}
+
+// optPPDNameGet return --ppd-name option value.
+func optPPDNameGet(inv *argv.Invocation) string {
+	opt, _ := inv.Get("--ppd-name")
+	return opt
+}
+
 // optCUPSURL returns CUPS URL (-u/--cups option).
 // If option is not set, it uses default destination.
 func optCUPSURL(inv *argv.Invocation) *url.URL {
