@@ -12,9 +12,6 @@ import (
 	"github.com/OpenPrinting/goipp"
 )
 
-// The CUPS-Get-Default operation (0x4001) returns the default printer URI
-// and attributes.
-
 type (
 	// CUPSGetDefaultRequest operation (0x4001) returns the default printer URI
 	// and attributes.
