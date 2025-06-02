@@ -103,6 +103,11 @@ func simulate(ctx context.Context, port int, argv []string) error {
 			YResolution: 600,
 		},
 		PlatenImage: testutils.Images.PNG5100x7016,
+		ADFImages: [][]byte{
+			testutils.Images.PNG5100x7016,
+			testutils.Images.PNG5100x7016,
+			testutils.Images.PNG5100x7016,
+		},
 	}
 
 	// Create a virtual server
