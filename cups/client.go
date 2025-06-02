@@ -10,11 +10,14 @@ package cups
 
 import (
 	"context"
+	"fmt"
+	"io"
 	"net/url"
 	"time"
 
 	"github.com/OpenPrinting/go-mfp/proto/ipp"
 	"github.com/OpenPrinting/go-mfp/transport"
+	"github.com/OpenPrinting/goipp"
 )
 
 // Client represents the CUPS client.
@@ -126,4 +129,42 @@ func (c *Client) CUPSGetDevices(ctx context.Context,
 	}
 
 	return rsp.Printer, nil
+}
+
+// CUPSGetPPD requests PPD file by printer URI or the PPD file name.
+//
+// It returns one of the following:
+//   - non-nil body where requested PPD file can be read from
+//   - nil body and non-empty seeOtherURI string, that specify
+//     the printer URI that can serve the request
+//   - nil body, empty seeOtherURI and non-nil err in a case of error.
+//
+// If non-nil body returned, caller MUST close it after use.
+func (c *Client) CUPSGetPPD(ctx context.Context,
+	printerURI, ppdName string) (
+	body io.ReadCloser, seeOtherURI string, err error) {
+
+	rq := &ipp.CUPSGetPPDRequest{
+		RequestHeader: ipp.DefaultRequestHeader,
+		PrinterURI:    printerURI,
+		PPDName:       ppdName,
+	}
+
+	rsp := &ipp.CUPSGetPPDResponse{}
+
+	err = c.IPPClient.DoWithBody(ctx, rq, rsp)
+	if err != nil {
+		return
+	}
+
+	if rsp.Status == goipp.StatusOk {
+		return rsp.Body, "", nil
+	}
+
+	rsp.Body.Close()
+	if rsp.Status == goipp.StatusCupsSeeOther {
+		return nil, rsp.PrinterURI, nil
+	}
+
+	return nil, "", fmt.Errorf("IPP: %s", rsp.Status)
 }
