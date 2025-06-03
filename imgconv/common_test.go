@@ -39,15 +39,15 @@ func saveImage(name string, img image.Image) {
 	fp.Close()
 }
 
-// decodeImage reads the entire image out of the decoder
+// decodeImage reads the entire image out of the Reader
 // and returns it as image.Image
-func decodeImage(decoder Decoder) (image.Image, error) {
-	wid, hei := decoder.Size()
+func decodeImage(reader Reader) (image.Image, error) {
+	wid, hei := reader.Size()
 	bounds := image.Rect(0, 0, wid, hei)
 
 	var img draw.Image
 
-	switch decoder.ColorModel() {
+	switch reader.ColorModel() {
 	case color.GrayModel:
 		img = image.NewGray(bounds)
 	case color.Gray16Model:
@@ -60,15 +60,15 @@ func decodeImage(decoder Decoder) (image.Image, error) {
 		panic("internal error")
 	}
 
-	row := decoder.NewRow()
+	row := reader.NewRow()
 	for y := 0; y < hei; y++ {
-		_, err := decoder.Read(row)
+		_, err := reader.Read(row)
 		if err != nil {
 			return nil, err
 		}
 
 		// Use row.Width() instead of the image width, returned
-		// by Decoder.Size, so it also will be test-covered.
+		// by Reader.Size, so it also will be test-covered.
 		wid := row.Width()
 		for x := 0; x < wid; x++ {
 			img.Set(x, y, row.At(x))
@@ -78,14 +78,14 @@ func decodeImage(decoder Decoder) (image.Image, error) {
 	return img, nil
 }
 
-// decodeImage reads the entire image out of the decoder
+// decodeImage reads the entire image out of the Reader
 // and returns it as slice of rows.
-func decodeImageRows(decoder Decoder) ([]Row, error) {
-	_, hei := decoder.Size()
+func decodeImageRows(reader Reader) ([]Row, error) {
+	_, hei := reader.Size()
 	rows := make([]Row, hei)
 	for y := 0; y < hei; y++ {
-		rows[y] = decoder.NewRow()
-		_, err := decoder.Read(rows[y])
+		rows[y] = reader.NewRow()
+		_, err := reader.Read(rows[y])
 		if err != nil {
 			return nil, err
 		}
@@ -94,12 +94,12 @@ func decodeImageRows(decoder Decoder) ([]Row, error) {
 	return rows, nil
 }
 
-// mustDecodeImageRows reads the entire image out of the decoder
+// mustDecodeImageRows reads the entire image out of the Reader
 // and returns it as slice of rows.
 //
 // It panics in a case of error.
-func mustDecodeImageRows(decoder Decoder) []Row {
-	rows, err := decodeImageRows(decoder)
+func mustDecodeImageRows(reader Reader) []Row {
+	rows, err := decodeImageRows(reader)
 	if err != nil {
 		panic(err)
 	}
@@ -107,9 +107,9 @@ func mustDecodeImageRows(decoder Decoder) []Row {
 }
 
 // encodeImageRows encodes the entire image, represented as a slice of rows.
-func encodeImageRows(encoder Encoder, rows []Row) error {
+func encodeImageRows(writer Writer, rows []Row) error {
 	for y := range rows {
-		err := encoder.Write(rows[y])
+		err := writer.Write(rows[y])
 		if err != nil {
 			return err
 		}
@@ -121,8 +121,8 @@ func encodeImageRows(encoder Encoder, rows []Row) error {
 // of rows.
 //
 // It panics in a case of error.
-func mustEncodeImageRows(encoder Encoder, rows []Row) {
-	err := encodeImageRows(encoder, rows)
+func mustEncodeImageRows(writer Writer, rows []Row) {
+	err := encodeImageRows(writer, rows)
 	if err != nil {
 		panic(err)
 	}
@@ -201,9 +201,9 @@ func imageEuclideanDistance(img1, img2 image.Image) float64 {
 	return sum
 }
 
-// readerWithError implements [io.Reader] interface for the byte slice.
+// ioReaderWithError implements [io.Reader] interface for the byte slice.
 // When all data bytes are consumed, it returns the specified error.
-type readerWithError struct {
+type ioReaderWithError struct {
 	data []byte
 	err  error
 }
@@ -211,13 +211,13 @@ type readerWithError struct {
 // newReaderWithError creates a new [io.Reader] that reads from
 // the provided data slice. When all data bytes are consumed,
 // it returns the specified error instead of the [io.EOF]
-func newReaderWithError(data []byte, err error) io.Reader {
-	return &readerWithError{data, err}
+func newIoReaderWithError(data []byte, err error) io.Reader {
+	return &ioReaderWithError{data, err}
 }
 
-// Read reads from the readerWithError.
+// Read reads from the ioReaderWithError.
 // It implements the [io.Reader] interface.
-func (r *readerWithError) Read(buf []byte) (int, error) {
+func (r *ioReaderWithError) Read(buf []byte) (int, error) {
 	if len(r.data) > 0 {
 		n := copy(buf, r.data)
 		r.data = r.data[n:]
@@ -227,9 +227,9 @@ func (r *readerWithError) Read(buf []byte) (int, error) {
 	return 0, r.err
 }
 
-// writerWithError wraps [io.Writer]. When the specified amount
+// ioWriterWithError wraps [io.Writer]. When the specified amount
 // of bytes are written, it returns the specified error.
-type writerWithError struct {
+type ioWriterWithError struct {
 	dst io.Writer // Destination io.Writer
 	lim int       // Write limit
 	err error     // Error to be returned
@@ -237,12 +237,12 @@ type writerWithError struct {
 
 // newWriterWithError returns [io.Writer], that bypasses up to the
 // lim amount of bytes into the dst, then returns err.
-func newWriterWithError(dst io.Writer, lim int, err error) io.Writer {
-	return &writerWithError{dst: dst, lim: lim, err: err}
+func newIoWriterWithError(dst io.Writer, lim int, err error) io.Writer {
+	return &ioWriterWithError{dst: dst, lim: lim, err: err}
 }
 
-// Write implements io.Writer interface for the writerWithError.
-func (w *writerWithError) Write(data []byte) (int, error) {
+// Write implements io.Writer interface for the ioWriterWithError.
+func (w *ioWriterWithError) Write(data []byte) (int, error) {
 	if lim := w.lim; lim > 0 {
 		lim = generic.Min(lim, len(data))
 		data = data[:lim]
@@ -256,10 +256,10 @@ func (w *writerWithError) Write(data []byte) (int, error) {
 	return 0, w.err
 }
 
-// decoderWithError implements [Decoder] interface. It returns
+// readerWithError implements [Reader] interface. It returns
 // specified amount of image lines (quite meaningless lines),
 // then returns the specified error.
-type decoderWithError struct {
+type readerWithError struct {
 	model    color.Model // Image color model
 	wid, hei int         // Image size
 	lim      int         // Limit of successfully returned rows
@@ -267,10 +267,10 @@ type decoderWithError struct {
 	err      error       // Error to be returned
 }
 
-// newDecoderWithError creates a new decoderWithError
-func newDecoderWithError(model color.Model,
-	wid, hei, lim int, err error) Decoder {
-	return &decoderWithError{
+// newReaderWithError creates a new readerWithError
+func newReaderWithError(model color.Model,
+	wid, hei, lim int, err error) Reader {
+	return &readerWithError{
 		model: model,
 		wid:   wid,
 		hei:   hei,
@@ -280,46 +280,46 @@ func newDecoderWithError(model color.Model,
 }
 
 // ColorModel returns the [color.Model] of image being decoded.
-func (decoder *decoderWithError) ColorModel() color.Model {
-	return decoder.model
+func (reader *readerWithError) ColorModel() color.Model {
+	return reader.model
 }
 
 // Size returns the image size.
-func (decoder *decoderWithError) Size() (wid, hei int) {
-	return decoder.wid, decoder.hei
+func (reader *readerWithError) Size() (wid, hei int) {
+	return reader.wid, reader.hei
 }
 
 // NewRow allocates a [Row] of the appropriate type and width for
-// use with the [Decoder.Read] function.
-func (decoder *decoderWithError) NewRow() Row {
-	return NewRow(decoder.model, decoder.wid)
+// use with the [Reader.Read] function.
+func (reader *readerWithError) NewRow() Row {
+	return NewRow(reader.model, reader.wid)
 }
 
 // Read returns the next image [Row].
-// The Row type must match the [Decoder]'s [color.Model].
-//
 // It returns the resulting row length, in pixels, or an error.
-func (decoder *decoderWithError) Read(row Row) (int, error) {
-	switch decoder.y {
-	case decoder.lim:
-		return 0, decoder.err
-	case decoder.hei:
+func (reader *readerWithError) Read(row Row) (int, error) {
+	switch reader.y {
+	case reader.lim:
+		return 0, reader.err
+	case reader.hei:
 		return 0, io.EOF
 	}
 
-	wid := generic.Min(decoder.wid, row.Width())
+	wid := generic.Min(reader.wid, row.Width())
 	row.Slice(0, wid).Fill(color.White)
-	decoder.y++
+	reader.y++
 
-	return decoder.wid, nil
+	return reader.wid, nil
 }
 
-// Close closes the decoder.
-func (decoder *decoderWithError) Close() {
+// Close closes the reader.
+func (reader *readerWithError) Close() {
 }
 
-// encoderWithError implements [Encoder] interface.
-type encoderWithError struct {
+// writerWithError implements [Writer] interface. It consumes
+// specified amount of image lines then returns the specified
+// error.
+type writerWithError struct {
 	model    color.Model // Image color model
 	wid, hei int         // Image size
 	lim      int         // Limit of successfully returned rows
@@ -327,10 +327,10 @@ type encoderWithError struct {
 	err      error       // Error to be returned
 }
 
-// newEncoderWithError creates a new encoderWithError
-func newEncoderWithError(model color.Model,
-	wid, hei, lim int, err error) Encoder {
-	return &encoderWithError{
+// newWriterWithError creates a new writerWithError
+func newWriterWithError(model color.Model,
+	wid, hei, lim int, err error) Writer {
+	return &writerWithError{
 		model: model,
 		wid:   wid,
 		hei:   hei,
@@ -342,29 +342,29 @@ func newEncoderWithError(model color.Model,
 // ColorModel returns the [color.Model] of image being decoded.
 // It consumes the specified amount of image lines, then returns
 // the specified error.
-func (encoder *encoderWithError) ColorModel() color.Model {
-	return encoder.model
+func (writer *writerWithError) ColorModel() color.Model {
+	return writer.model
 }
 
 // Size returns the image size.
-func (encoder *encoderWithError) Size() (wid, hei int) {
-	return encoder.wid, encoder.hei
+func (writer *writerWithError) Size() (wid, hei int) {
+	return writer.wid, writer.hei
 }
 
 // Write writes the next image [Row].
-func (encoder *encoderWithError) Write(Row) error {
-	switch encoder.y {
-	case encoder.lim:
-		return encoder.err
-	case encoder.hei:
+func (writer *writerWithError) Write(Row) error {
+	switch writer.y {
+	case writer.lim:
+		return writer.err
+	case writer.hei:
 		return nil
 	}
 
-	encoder.y++
+	writer.y++
 	return nil
 }
 
-// Close closes the encoder.
-func (encoder *encoderWithError) Close() error {
+// Close closes the writer.
+func (writer *writerWithError) Close() error {
 	return nil
 }

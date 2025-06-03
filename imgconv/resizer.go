@@ -18,7 +18,7 @@ import (
 
 // resizer implements an image resizer.
 type resizer struct {
-	input     Decoder         // Image source
+	input     Reader          // Image source
 	err       error           // I/O error
 	rect      image.Rectangle // Clipping region
 	fill      color.Color     // Filler color
@@ -28,16 +28,16 @@ type resizer struct {
 }
 
 // NewResizer creates a new image resize filter on a top of the
-// existent [Decoder].
+// existent [Reader].
 //
 // Resizer works by either clipping or expanding image to fit
 // the specified region.
 //
-// Resizer implements the [Decoder] interface, which allows
+// Resizer implements the [Reader] interface, which allows
 // to build a chain of image filters.
 //
-// When resizer is closed, its input Decoder is also closed.
-func NewResizer(in Decoder, rect image.Rectangle) Decoder {
+// When resizer is closed, its input Reader is also closed.
+func NewResizer(in Reader, rect image.Rectangle) Reader {
 	rect = rect.Canon()
 	wid, hei := in.Size()
 	bounds := image.Rect(0, 0, wid, hei)
@@ -77,14 +77,12 @@ func (rsz *resizer) Size() (wid, hei int) {
 }
 
 // NewRow allocates a [Row] of the appropriate type and width for
-// use with the [Decoder.Read] function.
+// use with the [Reader.Read] function.
 func (rsz *resizer) NewRow() Row {
 	return NewRow(rsz.ColorModel(), rsz.rect.Dx())
 }
 
 // Read returns the next image [Row].
-// The Row type must match the [Decoder]'s [color.Model].
-//
 // It returns the resulting row length, in pixels, or an error.
 func (rsz *resizer) Read(row Row) (int, error) {
 	wid, hei := rsz.Size()
@@ -156,7 +154,7 @@ func (rsz *resizer) Read(row Row) (int, error) {
 	return wid, nil
 }
 
-// Close closes the decoder
+// Close closes the reader
 func (rsz *resizer) Close() {
 	rsz.input.Close()
 }

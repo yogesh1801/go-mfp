@@ -15,7 +15,7 @@ import (
 
 // scaler implements image scaler
 type scaler struct {
-	input    Decoder      // Image source
+	input    Reader       // Image source
 	err      error        // I/O error
 	wid, hei int          // Scaled image size
 	xcoeffs  []scaleCoeff // Horizontal scaling coefficients
@@ -27,11 +27,11 @@ type scaler struct {
 }
 
 // NewScaler creates a new image resize filter on a top of the
-// existent [Decoder].
+// existent [Reader].
 //
 // This filter scales the input image into the new dimensions,
 // defined by the wid and hei parameters.
-func NewScaler(in Decoder, wid, hei int) Decoder {
+func NewScaler(in Reader, wid, hei int) Reader {
 	oldwid, oldhei := in.Size()
 
 	// Bypass the filter, if image dimensions doesn't change
@@ -74,14 +74,12 @@ func (scl *scaler) Size() (wid, hei int) {
 }
 
 // NewRow allocates a [Row] of the appropriate type and width for
-// use with the [Decoder.Read] function.
+// use with the [Reader.Read] function.
 func (scl *scaler) NewRow() Row {
 	return NewRow(scl.ColorModel(), scl.wid)
 }
 
 // Read returns the next image [Row].
-// The Row type must match the [Decoder]'s [color.Model].
-//
 // It returns the resulting row length, in pixels, or an error.
 func (scl *scaler) Read(row Row) (int, error) {
 	if len(scl.ycoeffs) == 0 {
@@ -101,7 +99,7 @@ func (scl *scaler) Read(row Row) (int, error) {
 	return row.Copy(scl.tmpout), nil
 }
 
-// Close closes the decoder
+// Close closes the reader
 func (scl *scaler) Close() {
 	scl.input.Close()
 }

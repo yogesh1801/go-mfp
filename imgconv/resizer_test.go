@@ -245,16 +245,16 @@ func TestResizer(t *testing.T) {
 
 	for _, test := range tests {
 		// Create image conversion pipeline
-		decoder, err := NewPNGDecoder(bytes.NewReader(test.data))
+		reader, err := NewPNGReader(bytes.NewReader(test.data))
 		if err != nil {
 			panic(err)
 		}
 
-		resizer := NewResizer(decoder, test.rect)
+		resizer := NewResizer(reader, test.rect)
 		buf := &bytes.Buffer{}
 
-		encoder, err := NewPNGEncoder(buf,
-			test.rect.Dx(), test.rect.Dy(), decoder.ColorModel())
+		writer, err := NewPNGWriter(buf,
+			test.rect.Dx(), test.rect.Dy(), reader.ColorModel())
 		if err != nil {
 			panic(err)
 		}
@@ -269,7 +269,7 @@ func TestResizer(t *testing.T) {
 				panic(err)
 			}
 
-			err = encoder.Write(row)
+			err = writer.Write(row)
 			if err != nil {
 				panic(err)
 			}
@@ -285,7 +285,7 @@ func TestResizer(t *testing.T) {
 		}
 
 		resizer.Close()
-		encoder.Close()
+		writer.Close()
 
 		// Now compare converted image with expected
 		source, err := png.Decode(bytes.NewReader(test.data))
@@ -375,9 +375,9 @@ func TestResizerErrors(t *testing.T) {
 		// Create image conversion pipeline
 		ioerr := errors.New("I/O error")
 
-		decoder := newDecoderWithError(test.model,
+		reader := newReaderWithError(test.model,
 			test.wid, test.hei, test.lim, ioerr)
-		resizer := NewResizer(decoder, test.rect)
+		resizer := NewResizer(reader, test.rect)
 
 		// Rows until limResized expected to be OK
 		limResized := test.lim - test.rect.Min.Y
@@ -408,6 +408,6 @@ func TestResizerErrors(t *testing.T) {
 		}
 
 		resizer.Close()
-		decoder.Close()
+		reader.Close()
 	}
 }

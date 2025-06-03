@@ -4,7 +4,7 @@
 // Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
 // See LICENSE for license terms and conditions
 //
-// PNG Decoder and Encoder
+// PNG Reader and Writer
 
 package imgconv
 
@@ -184,8 +184,8 @@ import (
 // }
 import "C"
 
-// pngDecoder implements the [Decoder] interface for reading PNG images.
-type pngDecoder struct {
+// pngReader implements the [Reader] interface for reading PNG images.
+type pngReader struct {
 	handle   cgo.Handle    // Handle to self
 	png      *C.png_struct // Underlying png_structure
 	pngInfo  *C.png_info   // libpng png_info structure
@@ -197,38 +197,38 @@ type pngDecoder struct {
 	y        int           // Current y-coordinate
 }
 
-// NewPNGDecoder creates a new [Decoder] for PNG images
-func NewPNGDecoder(input io.Reader) (Decoder, error) {
-	// Create decoder structure. Initialize libpng stuff
-	decoder := &pngDecoder{input: input}
-	decoder.handle = cgo.NewHandle(decoder)
+// NewPNGReader creates a new [Reader] for PNG images
+func NewPNGReader(input io.Reader) (Reader, error) {
+	// Create reader structure. Initialize libpng stuff
+	reader := &pngReader{input: input}
+	reader.handle = cgo.NewHandle(reader)
 
-	decoder.png = C.do_png_create_read_struct(
-		unsafe.Pointer(&decoder.handle))
+	reader.png = C.do_png_create_read_struct(
+		unsafe.Pointer(&reader.handle))
 
-	decoder.pngInfo = C.png_create_info_struct(decoder.png)
+	reader.pngInfo = C.png_create_info_struct(reader.png)
 
 	// Read image info
-	C.do_png_read_info(decoder.png, decoder.pngInfo)
+	C.do_png_read_info(reader.png, reader.pngInfo)
 
 	var width, height C.png_uint_32
 	var depth, colorType, interlace C.int
 
-	C.do_png_get_IHDR(decoder.png, decoder.pngInfo, &width, &height,
+	C.do_png_get_IHDR(reader.png, reader.pngInfo, &width, &height,
 		&depth, &colorType, &interlace, nil, nil)
 
-	if err := decoder.err; err != nil {
-		decoder.Close()
+	if err := reader.err; err != nil {
+		reader.Close()
 		return nil, err
 	}
 
 	if interlace != C.PNG_INTERLACE_NONE {
-		decoder.Close()
+		reader.Close()
 		err := errors.New("PNG: interlaced images not supported")
 		return nil, err
 	}
 
-	decoder.wid, decoder.hei = int(width), int(height)
+	reader.wid, reader.hei = int(width), int(height)
 
 	// Setup input transformations
 	var bytesPerPixel int
@@ -236,112 +236,112 @@ func NewPNGDecoder(input io.Reader) (Decoder, error) {
 	gray := (colorType & C.PNG_COLOR_MASK_COLOR) == C.PNG_COLOR_TYPE_GRAY
 
 	if colorType == C.PNG_COLOR_TYPE_PALETTE {
-		C.png_set_palette_to_rgb(decoder.png)
+		C.png_set_palette_to_rgb(reader.png)
 	}
 
 	if gray && depth < 8 {
-		C.png_set_expand_gray_1_2_4_to_8(decoder.png)
+		C.png_set_expand_gray_1_2_4_to_8(reader.png)
 	}
 
 	if (colorType & C.PNG_COLOR_MASK_ALPHA) != 0 {
-		C.png_set_strip_alpha(decoder.png)
+		C.png_set_strip_alpha(reader.png)
 	}
 
 	if gray {
-		decoder.model = color.GrayModel
+		reader.model = color.GrayModel
 		bytesPerPixel = 1
 		if depth == 16 {
-			decoder.model = color.Gray16Model
+			reader.model = color.Gray16Model
 			bytesPerPixel = 2
 		}
 	} else {
-		decoder.model = color.RGBAModel
+		reader.model = color.RGBAModel
 		bytesPerPixel = 3
 		if depth == 16 {
-			decoder.model = color.RGBA64Model
+			reader.model = color.RGBA64Model
 			bytesPerPixel = 6
 		}
 	}
 
 	// Allocate buffers
-	decoder.rowBytes = make([]byte, bytesPerPixel*int(width))
+	reader.rowBytes = make([]byte, bytesPerPixel*int(width))
 
-	return decoder, nil
+	return reader, nil
 }
 
-// Close closes the decoder.
-func (decoder *pngDecoder) Close() {
-	C.png_destroy_read_struct(&decoder.png, &decoder.pngInfo, nil)
-	decoder.handle.Delete()
+// Close closes the reader.
+func (reader *pngReader) Close() {
+	C.png_destroy_read_struct(&reader.png, &reader.pngInfo, nil)
+	reader.handle.Delete()
 }
 
 // ColorModel returns the [color.Model] of image being decoded.
-func (decoder *pngDecoder) ColorModel() color.Model {
-	return decoder.model
+func (reader *pngReader) ColorModel() color.Model {
+	return reader.model
 }
 
 // Size returns the image size.
-func (decoder *pngDecoder) Size() (wid, hei int) {
-	return decoder.wid, decoder.hei
+func (reader *pngReader) Size() (wid, hei int) {
+	return reader.wid, reader.hei
 }
 
 // NewRow allocates a [Row] of the appropriate type and width for
-// use with the [Decoder.Read] function.
-func (decoder *pngDecoder) NewRow() Row {
-	return NewRow(decoder.model, decoder.wid)
+// use with the [Reader.Read] function.
+func (reader *pngReader) NewRow() Row {
+	return NewRow(reader.model, reader.wid)
 }
 
 // Read returns the next image [Row].
-func (decoder *pngDecoder) Read(row Row) (int, error) {
+func (reader *pngReader) Read(row Row) (int, error) {
 	// Read the next row
-	decoder.readRow()
-	if decoder.err != nil {
-		return 0, decoder.err
+	reader.readRow()
+	if reader.err != nil {
+		return 0, reader.err
 	}
 
 	// Decode the row
-	wid := generic.Min(row.Width(), decoder.wid)
+	wid := generic.Min(row.Width(), reader.wid)
 
-	switch decoder.model {
+	switch reader.model {
 	case color.GrayModel:
-		bytesGray8toRow(row, decoder.rowBytes)
+		bytesGray8toRow(row, reader.rowBytes)
 
 	case color.Gray16Model:
-		bytesGray16BEtoRow(row, decoder.rowBytes)
+		bytesGray16BEtoRow(row, reader.rowBytes)
 
 	case color.RGBAModel:
-		bytesRGB8toRow(row, decoder.rowBytes)
+		bytesRGB8toRow(row, reader.rowBytes)
 
 	case color.RGBA64Model:
-		bytesRGB16BEtoRow(row, decoder.rowBytes)
+		bytesRGB16BEtoRow(row, reader.rowBytes)
 	}
 
 	// Update current y
-	decoder.y++
-	if decoder.y == decoder.hei {
-		decoder.setError(io.EOF)
+	reader.y++
+	if reader.y == reader.hei {
+		reader.setError(io.EOF)
 	}
 
 	return wid, nil
 }
 
-// setError sets the decoder.err, if it is not set yet
-func (decoder *pngDecoder) setError(err error) {
-	if decoder.err == nil {
-		decoder.err = err
+// setError sets the reader.err, if it is not set yet
+func (reader *pngReader) setError(err error) {
+	if reader.err == nil {
+		reader.err = err
 	}
 }
 
 // readRow reads the next image line.
-func (decoder *pngDecoder) readRow() {
-	if decoder.err == nil {
-		C.do_png_read_row(decoder.png,
-			unsafe.Pointer(&decoder.rowBytes[0]), nil)
+func (reader *pngReader) readRow() {
+	if reader.err == nil {
+		C.do_png_read_row(reader.png,
+			unsafe.Pointer(&reader.rowBytes[0]), nil)
 	}
 }
 
-// pngEncoder implements the [Encoder] interface for writing PNG images
-type pngEncoder struct {
+// pngWriter implements the [Writer] interface for writing PNG images
+type pngWriter struct {
 	handle   cgo.Handle    // Handle to self
 	png      *C.png_struct // Underlying png_structure
 	pngInfo  *C.png_info   // libpng png_info structure
@@ -353,14 +353,14 @@ type pngEncoder struct {
 	y        int           // Current y-coordinate
 }
 
-// NewPNGEncoder creates a new [Encoder] for PNG images.
+// NewPNGWriter creates a new [Writer] for PNG images.
 // Supported color models are following:
 //   - color.GrayModel
 //   - color.Gray16Model
 //   - color.RGBAModel
 //   - color.RGBA64Model
-func NewPNGEncoder(output io.Writer,
-	wid, hei int, model color.Model) (Encoder, error) {
+func NewPNGWriter(output io.Writer,
+	wid, hei int, model color.Model) (Writer, error) {
 
 	// Translate model into libpng terms
 	var colorType, depth C.int
@@ -388,8 +388,8 @@ func NewPNGEncoder(output io.Writer,
 		return nil, err
 	}
 
-	// Create encoder structure. Initialize libpng stuff
-	encoder := &pngEncoder{
+	// Create writer structure. Initialize libpng stuff
+	writer := &pngWriter{
 		output:   output,
 		wid:      wid,
 		hei:      hei,
@@ -397,123 +397,123 @@ func NewPNGEncoder(output io.Writer,
 		rowBytes: make([]byte, bytesPerPixel*int(wid)),
 	}
 
-	encoder.handle = cgo.NewHandle(encoder)
+	writer.handle = cgo.NewHandle(writer)
 
-	encoder.png = C.do_png_create_write_struct(
-		unsafe.Pointer(&encoder.handle))
+	writer.png = C.do_png_create_write_struct(
+		unsafe.Pointer(&writer.handle))
 
-	encoder.pngInfo = C.png_create_info_struct(encoder.png)
+	writer.pngInfo = C.png_create_info_struct(writer.png)
 
 	// Create PNG header
-	C.do_png_set_IHDR(encoder.png, encoder.pngInfo,
+	C.do_png_set_IHDR(writer.png, writer.pngInfo,
 		C.png_uint_32(wid), C.png_uint_32(hei),
 		depth, colorType,
 		C.PNG_INTERLACE_NONE,
 		C.PNG_COMPRESSION_TYPE_DEFAULT,
 		C.PNG_FILTER_TYPE_DEFAULT)
 
-	if encoder.err == nil {
-		C.png_set_sRGB(encoder.png, encoder.pngInfo,
+	if writer.err == nil {
+		C.png_set_sRGB(writer.png, writer.pngInfo,
 			C.PNG_sRGB_INTENT_PERCEPTUAL)
 
-		C.do_png_write_info(encoder.png, encoder.pngInfo)
+		C.do_png_write_info(writer.png, writer.pngInfo)
 	}
 
-	if encoder.err != nil {
-		encoder.Close()
-		return nil, encoder.err
+	if writer.err != nil {
+		writer.Close()
+		return nil, writer.err
 	}
 
-	return encoder, nil
+	return writer, nil
 }
 
 // Size returns the image size.
-func (encoder *pngEncoder) Size() (wid, hei int) {
-	return encoder.wid, encoder.hei
+func (writer *pngWriter) Size() (wid, hei int) {
+	return writer.wid, writer.hei
 }
 
-// ColorModel returns the [color.Model] of image being encoded.
-func (encoder *pngEncoder) ColorModel() color.Model {
-	return encoder.model
+// ColorModel returns the [color.Model] of image being written.
+func (writer *pngWriter) ColorModel() color.Model {
+	return writer.model
 }
 
 // Write writes the next image [Row].
-func (encoder *pngEncoder) Write(row Row) error {
+func (writer *pngWriter) Write(row Row) error {
 	// Check for pending error
-	if encoder.err != nil {
-		return encoder.err
+	if writer.err != nil {
+		return writer.err
 	}
 
 	// Silently ignore excessive rows
-	if encoder.y == encoder.hei {
+	if writer.y == writer.hei {
 		return nil
 	}
 
 	// Encode the row
-	wid := generic.Min(row.Width(), encoder.wid)
+	wid := generic.Min(row.Width(), writer.wid)
 
 	var bytesPerPixel int
 
-	switch encoder.model {
+	switch writer.model {
 	case color.GrayModel:
 		bytesPerPixel = 1
-		bytesGray8fromRow(encoder.rowBytes, row)
+		bytesGray8fromRow(writer.rowBytes, row)
 	case color.Gray16Model:
 		bytesPerPixel = 2
-		bytesGray16BEfromRow(encoder.rowBytes, row)
+		bytesGray16BEfromRow(writer.rowBytes, row)
 	case color.RGBAModel:
 		bytesPerPixel = 3
-		bytesRGB8fromRow(encoder.rowBytes, row)
+		bytesRGB8fromRow(writer.rowBytes, row)
 	case color.RGBA64Model:
 		bytesPerPixel = 6
-		bytesRGB16BEfromRow(encoder.rowBytes, row)
+		bytesRGB16BEfromRow(writer.rowBytes, row)
 	}
 
 	// Fill the tail
-	if wid < encoder.wid {
-		end := encoder.wid * bytesPerPixel
+	if wid < writer.wid {
+		end := writer.wid * bytesPerPixel
 		for x := wid * bytesPerPixel; x < end; x++ {
-			encoder.rowBytes[x] = 0xff
+			writer.rowBytes[x] = 0xff
 		}
 	}
 
 	// Write the row
-	C.do_png_write_row(encoder.png, unsafe.Pointer(&encoder.rowBytes[0]))
-	if encoder.err == nil {
-		encoder.y++
+	C.do_png_write_row(writer.png, unsafe.Pointer(&writer.rowBytes[0]))
+	if writer.err == nil {
+		writer.y++
 	}
 
-	return encoder.err
+	return writer.err
 }
 
-// Close flushes the buffered data and then closes the Encoder
-func (encoder *pngEncoder) Close() error {
+// Close flushes the buffered data and then closes the Writer
+func (writer *pngWriter) Close() error {
 	// Write missed lines
-	for encoder.err == nil && encoder.y < encoder.hei {
-		encoder.Write(RowEmpty{})
+	for writer.err == nil && writer.y < writer.hei {
+		writer.Write(RowEmpty{})
 	}
 
 	// Finish PNG image
-	if encoder.err == nil {
-		C.do_png_write_end(encoder.png, nil)
+	if writer.err == nil {
+		C.do_png_write_end(writer.png, nil)
 	}
 
 	// Release allocated resources
-	C.png_destroy_write_struct(&encoder.png, &encoder.pngInfo)
-	encoder.handle.Delete()
+	C.png_destroy_write_struct(&writer.png, &writer.pngInfo)
+	writer.handle.Delete()
 
-	return encoder.err
+	return writer.err
 }
 
-// setError sets the encoder.err, if it is not set yet
-func (encoder *pngEncoder) setError(err error) {
-	if encoder.err == nil {
-		encoder.err = err
+// setError sets the writer.err, if it is not set yet
+func (writer *pngWriter) setError(err error) {
+	if writer.err == nil {
+		writer.err = err
 	}
 }
 
 // pngErrorCallback is called by the libpng to report a error
-// This is the common callback for pngDecoder and pngEncoder
+// This is the common callback for pngReader and pngWriter
 //
 //export pngErrorCallback
 func pngErrorCallback(png *C.png_struct, msg C.png_const_charp) {
@@ -555,18 +555,18 @@ func pngReadCallback(png *C.png_struct, data C.png_bytep, size C.size_t) C.int {
 		sz = int(size)
 	}
 
-	decoder := (*cgo.Handle)(C.png_get_io_ptr(png)).Value().(*pngDecoder)
+	reader := (*cgo.Handle)(C.png_get_io_ptr(png)).Value().(*pngReader)
 
 	buf := (*[max]byte)(unsafe.Pointer(data))[:sz:sz]
 	for len(buf) > 0 {
-		n, err := decoder.input.Read(buf)
+		n, err := reader.input.Read(buf)
 		if n > 0 {
 			buf = buf[n:]
 		} else if err != nil {
 			if err == io.EOF {
 				err = io.ErrUnexpectedEOF
 			}
-			decoder.setError(err)
+			reader.setError(err)
 			return 0
 		}
 	}
@@ -585,15 +585,15 @@ func pngWriteCallback(png *C.png_struct, data C.png_bytep, size C.size_t) C.int 
 		sz = int(size)
 	}
 
-	encoder := (*cgo.Handle)(C.png_get_io_ptr(png)).Value().(*pngEncoder)
+	writer := (*cgo.Handle)(C.png_get_io_ptr(png)).Value().(*pngWriter)
 
 	buf := (*[max]byte)(unsafe.Pointer(data))[:sz:sz]
 	for len(buf) > 0 {
-		n, err := encoder.output.Write(buf)
+		n, err := writer.output.Write(buf)
 		if n > 0 {
 			buf = buf[n:]
 		} else if err != nil {
-			encoder.setError(err)
+			writer.setError(err)
 			return 0
 		}
 	}

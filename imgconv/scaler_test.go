@@ -72,12 +72,11 @@ func TestScaler(t *testing.T) {
 				scaledWid, scaledHei)
 
 			// Scale image with scaler
-			decoder, err := NewPNGDecoder(
-				bytes.NewReader(test.data))
+			reader, err := NewPNGReader(bytes.NewReader(test.data))
 			if err != nil {
 				panic(err)
 			}
-			scaler := NewScaler(decoder, scaledWid, scaledHei)
+			scaler := NewScaler(reader, scaledWid, scaledHei)
 			scaled, err := decodeImage(scaler)
 			scaler.Close()
 
@@ -91,7 +90,7 @@ func TestScaler(t *testing.T) {
 			// Scale image with library function
 			scaledBounds := image.Rect(0, 0, scaledWid, scaledHei)
 			var expected draw.Image
-			switch decoder.ColorModel() {
+			switch reader.ColorModel() {
 			case color.GrayModel:
 				expected = image.NewGray(scaledBounds)
 			case color.Gray16Model:

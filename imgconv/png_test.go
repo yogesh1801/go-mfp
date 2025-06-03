@@ -4,7 +4,7 @@
 // Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
 // See LICENSE for license terms and conditions
 //
-// PNG Decoder and Encoder
+// PNG Reader and Writer test
 
 package imgconv
 
@@ -23,7 +23,7 @@ import (
 	"golang.org/x/image/draw"
 )
 
-// TestPNGDecode tests PNG decoder
+// TestPNGDecode tests PNG reader
 func TestPNGDecode(t *testing.T) {
 	type testData struct {
 		name  string      // Image name, for logging
@@ -77,17 +77,17 @@ func TestPNGDecode(t *testing.T) {
 
 	// Test image decoding
 	for _, test := range tests {
-		// Create a decoder
+		// Create a reader
 		in := bytes.NewReader(test.data)
-		decoder, err := NewPNGDecoder(in)
+		reader, err := NewPNGReader(in)
 		if err != nil {
-			t.Errorf("%s: NewPNGDecoder: %s",
+			t.Errorf("%s: NewPNGReader: %s",
 				test.name, err)
 			continue
 		}
 
 		// Decode test image
-		img, err := decodeImage(decoder)
+		img, err := decodeImage(reader)
 		if err != nil {
 			t.Errorf("%s: decodeImage: %s",
 				test.name, err)
@@ -95,9 +95,9 @@ func TestPNGDecode(t *testing.T) {
 		}
 
 		// Check ColorModel()
-		model := decoder.ColorModel()
+		model := reader.ColorModel()
 		if model != test.model {
-			t.Errorf("%s: Decoder.ColorModel mismatch",
+			t.Errorf("%s: Reader.ColorModel mismatch",
 				test.name)
 		}
 
@@ -105,20 +105,20 @@ func TestPNGDecode(t *testing.T) {
 		diff := imageDiff(test.img, img)
 		if diff != "" {
 			t.Errorf("%s: %s", test.name, diff)
-			decoder.Close()
+			reader.Close()
 			continue
 		}
 
-		decoder.Close()
+		reader.Close()
 	}
 
 	// Test handling of truncated data
 	for _, test := range tests {
 		step := 1
 		for trunc := 0; trunc < len(test.data)-1; trunc += step {
-			// Create a decoder
+			// Create a reader
 			in := bytes.NewReader(test.data[:trunc])
-			decoder, err := NewPNGDecoder(in)
+			reader, err := NewPNGReader(in)
 			if err != nil {
 				continue // Error is expected
 			}
@@ -128,9 +128,9 @@ func TestPNGDecode(t *testing.T) {
 			step = 16
 
 			// Decode test image
-			img, err := decodeImage(decoder)
+			img, err := decodeImage(reader)
 			if err != nil {
-				decoder.Close()
+				reader.Close()
 				continue // Error is expected
 			}
 
@@ -140,11 +140,11 @@ func TestPNGDecode(t *testing.T) {
 			diff := imageDiff(test.img, img)
 			if diff != "" {
 				t.Errorf("%s: %s", test.name, diff)
-				decoder.Close()
+				reader.Close()
 				continue
 			}
 
-			decoder.Close()
+			reader.Close()
 		}
 	}
 
@@ -163,16 +163,16 @@ func TestPNGDecode(t *testing.T) {
 			data := generic.CopySlice(test.data)
 			data[off] = ^data[off]
 
-			// Create a decoder
+			// Create a reader
 			in := bytes.NewReader(data)
-			decoder, err := NewPNGDecoder(in)
+			reader, err := NewPNGReader(in)
 			if err != nil {
 				damagedHeader = true
 				continue // Error is expected
 			}
 
 			// Decode test image
-			img, err := decodeImage(decoder)
+			img, err := decodeImage(reader)
 			if err != nil {
 				damagedData = true
 				continue // Error is expected
@@ -184,11 +184,11 @@ func TestPNGDecode(t *testing.T) {
 			diff := imageDiff(test.img, img)
 			if diff != "" {
 				t.Errorf("%s: %s", test.name, diff)
-				decoder.Close()
+				reader.Close()
 				continue
 			}
 
-			decoder.Close()
+			reader.Close()
 		}
 
 		if !(damagedHeader && damagedData) {
@@ -211,17 +211,17 @@ func TestPNGDecode(t *testing.T) {
 			}
 
 			// Simulate I/O error
-			rd := newReaderWithError(test.data[:off], expectedErr)
+			rd := newIoReaderWithError(test.data[:off], expectedErr)
 			data := generic.CopySlice(test.data)
 			data[off] = ^data[off]
 
-			// Create a decoder
-			decoder, err := NewPNGDecoder(rd)
+			// Create a reader
+			reader, err := NewPNGReader(rd)
 			if err != nil {
 				damagedHeader = true
 				if err != expectedErr {
 					fail = true
-					t.Errorf("%s:in NewPNGDecoder\n"+
+					t.Errorf("%s:in NewPNGReader\n"+
 						"error expected: %s\n"+
 						"error present:  %s\n",
 						test.name, expectedErr, err)
@@ -229,7 +229,7 @@ func TestPNGDecode(t *testing.T) {
 				continue // Error is expected
 			}
 
-			img, err := decodeImage(decoder)
+			img, err := decodeImage(reader)
 			if err != nil {
 				damagedData = true
 				if err != expectedErr {
@@ -248,20 +248,20 @@ func TestPNGDecode(t *testing.T) {
 			diff := imageDiff(test.img, img)
 			if diff != "" {
 				t.Errorf("%s: %s", test.name, diff)
-				decoder.Close()
+				reader.Close()
 				continue
 			}
 
-			decoder.Close()
+			reader.Close()
 		}
 	}
 }
 
-// TestPNGDecodeErrors tests PNG decoder errors, not handled by other tests
+// TestPNGDecodeErrors tests PNG reader errors, not handled by other tests
 func TestPNGDecodeErrors(t *testing.T) {
 	// Interlaced images not supported
 	in := bytes.NewReader(testutils.Images.PNG100x75rgb8i)
-	_, err := NewPNGDecoder(in)
+	_, err := NewPNGReader(in)
 
 	if err == nil || !strings.Contains(err.Error(), "interlaced") {
 		s := "nil"
@@ -272,7 +272,7 @@ func TestPNGDecodeErrors(t *testing.T) {
 	}
 }
 
-// TestPNGEncode tests PNG encoder
+// TestPNGEncode tests PNG writer
 func TestPNGEncode(t *testing.T) {
 	type testData struct {
 		name string      // Image name, for logging
@@ -319,47 +319,47 @@ func TestPNGEncode(t *testing.T) {
 
 	buf := &bytes.Buffer{}
 	for _, test := range tests {
-		// Create image decoder
+		// Create image reader
 		in := bytes.NewReader(test.data)
-		decoder, err := NewPNGDecoder(in)
+		reader, err := NewPNGReader(in)
 		if err != nil {
 			panic(err)
 		}
 
-		// Create image encoder
+		// Create image writer
 		buf.Reset()
-		wid, hei := decoder.Size()
-		model := decoder.ColorModel()
+		wid, hei := reader.Size()
+		model := reader.ColorModel()
 
-		encoder, err := NewPNGEncoder(buf, wid, hei, model)
+		writer, err := NewPNGWriter(buf, wid, hei, model)
 		if err != nil {
-			t.Errorf("%s: NewPNGEncoder: %s", test.name, err)
-			decoder.Close()
+			t.Errorf("%s: NewPNGWriter: %s", test.name, err)
+			reader.Close()
 			continue
 		}
 
-		// Test Encoder.ColorModel method
-		newmodel := encoder.ColorModel()
+		// Test Writer.ColorModel method
+		newmodel := writer.ColorModel()
 		if newmodel != model {
-			t.Errorf("%s: Encoder.Model mismatch:\n"+
+			t.Errorf("%s: Writer.Model mismatch:\n"+
 				"expected: %v\n"+
 				"present:  %v\n",
 				test.name, newmodel, model)
 		}
 
-		// Test Encoder.Size method
-		newwid, newhei := encoder.Size()
+		// Test Writer.Size method
+		newwid, newhei := writer.Size()
 		if newwid != wid || newhei != hei {
-			t.Errorf("%s: Encoder.Size mismatch:\n"+
+			t.Errorf("%s: Writer.Size mismatch:\n"+
 				"expected: %d x %d\n"+
 				"present:  %d x %d\n",
 				test.name, wid, hei, newwid, newhei)
 		}
 
 		// Recode the image, row by row
-		row := decoder.NewRow()
+		row := reader.NewRow()
 		for err == nil {
-			_, err = decoder.Read(row)
+			_, err = reader.Read(row)
 			if err == io.EOF {
 				break
 			}
@@ -367,19 +367,19 @@ func TestPNGEncode(t *testing.T) {
 				panic(err)
 			}
 
-			err = encoder.Write(row)
+			err = writer.Write(row)
 			if err != nil {
-				t.Errorf("%s: Encoder.Write: %s", test.name, err)
-				decoder.Close()
-				encoder.Close()
+				t.Errorf("%s: Writer.Write: %s", test.name, err)
+				reader.Close()
+				writer.Close()
 				continue
 			}
 		}
 
-		decoder.Close()
-		encoder.Close()
+		reader.Close()
+		writer.Close()
 
-		// Decode just encoded image by reference decoder
+		// Decode just encoded image by reference reader
 		img, err := png.Decode(buf)
 		if err != nil {
 			t.Errorf("%s: error in encoded image: %s",
@@ -394,41 +394,41 @@ func TestPNGEncode(t *testing.T) {
 	}
 }
 
-// TestPNGEncodeErrors tests I/O errors handling by the PNG encoder
+// TestPNGEncodeErrors tests I/O errors handling by the PNG writer
 func TestPNGEncodeErrors(t *testing.T) {
 	// Decode test image
-	decoder, err := NewPNGDecoder(
+	reader, err := NewPNGReader(
 		bytes.NewReader(testutils.Images.PNG100x75rgb8))
 	if err != nil {
 		panic(err)
 	}
 
-	wid, hei := decoder.Size()
-	rows := mustDecodeImageRows(decoder)
-	decoder.Close()
+	wid, hei := reader.Size()
+	rows := mustDecodeImageRows(reader)
+	reader.Close()
 
-	// Test I/O errors handling in encoder
+	// Test I/O errors handling in writer
 	ioerr := errors.New("I/O error")
 	headerErr := false
 	dataErr := false
 	for lim := 0; !(headerErr && dataErr); lim++ {
-		w := newWriterWithError(io.Discard, lim, ioerr)
-		encoder, err := NewPNGEncoder(w, wid, hei, color.RGBAModel)
+		w := newIoWriterWithError(io.Discard, lim, ioerr)
+		writer, err := NewPNGWriter(w, wid, hei, color.RGBAModel)
 		if err != nil {
 			headerErr = true
 		}
 
-		if encoder != nil {
-			err = encodeImageRows(encoder, rows)
+		if writer != nil {
+			err = encodeImageRows(writer, rows)
 			if err != nil {
 				dataErr = true
 			}
 
-			encoder.Close()
+			writer.Close()
 		}
 
 		if err != ioerr {
-			t.Errorf("Encoder I/O error test:\n"+
+			t.Errorf("Writer I/O error test:\n"+
 				"error expected: %v\n"+
 				"error present:  %v\n",
 				ioerr, err)
@@ -441,43 +441,43 @@ func TestPNGEncodeErrors(t *testing.T) {
 // all subsequent write attempts will return the same error
 func TestPNGStickyEncodeError(t *testing.T) {
 	// Use large image source, so data will not be fully cached
-	// by Encoder until the end, and we will hit the error
-	decoder, err := NewPNGDecoder(
+	// by Writer until the end, and we will hit the error
+	reader, err := NewPNGReader(
 		bytes.NewReader(testutils.Images.PNG5100x7016))
 	if err != nil {
 		panic(err)
 	}
 
-	defer decoder.Close()
+	defer reader.Close()
 
 	ioerr := errors.New("I/O error")
-	w := newWriterWithError(io.Discard, 4096, ioerr)
+	w := newIoWriterWithError(io.Discard, 4096, ioerr)
 
-	wid, hei := decoder.Size()
-	encoder, err := NewPNGEncoder(w, wid, hei, decoder.ColorModel())
+	wid, hei := reader.Size()
+	writer, err := NewPNGWriter(w, wid, hei, reader.ColorModel())
 	if err != nil {
 		panic(err)
 	}
 
-	defer encoder.Close()
+	defer writer.Close()
 
-	row := decoder.NewRow()
+	row := reader.NewRow()
 	var y int
 	for y = 0; y < hei && err == nil; y++ {
-		_, err = decoder.Read(row)
+		_, err = reader.Read(row)
 		if err != nil {
 			panic(err)
 		}
 
-		err = encoder.Write(row)
+		err = writer.Write(row)
 	}
 
 	for ; y < hei && err == ioerr; y++ {
-		err = encoder.Write(row)
+		err = writer.Write(row)
 	}
 
 	if err != ioerr {
-		t.Errorf("Encoder sticky error test:\n"+
+		t.Errorf("Writer sticky error test:\n"+
 			"error expected: %v\n"+
 			"error present:  %v\n",
 			ioerr, err)
@@ -526,28 +526,28 @@ func TestPNGDecodeEncodeTest(t *testing.T) {
 
 	for _, test := range tests {
 		// Decode the image
-		decoder, err := NewPNGDecoder(bytes.NewReader(test.data))
+		reader, err := NewPNGReader(bytes.NewReader(test.data))
 		if err != nil {
 			panic(err)
 		}
 
-		wid, hei := decoder.Size()
-		model := decoder.ColorModel()
-		rows := mustDecodeImageRows(decoder)
-		decoder.Close()
+		wid, hei := reader.Size()
+		model := reader.ColorModel()
+		rows := mustDecodeImageRows(reader)
+		reader.Close()
 
-		// Decode initial image with the stdlin decoder, for reference
+		// Decode initial image with the stdlin reader, for reference
 		ref, err := png.Decode(bytes.NewReader(test.data))
 		if err != nil {
 			panic(err)
 		}
 
-		// Encode image directly, then decode with the stdlib decoder
+		// Encode image directly, then decode with the stdlib reader
 		buf := &bytes.Buffer{}
 
-		encoder, err := NewPNGEncoder(buf, wid, hei, model)
-		mustEncodeImageRows(encoder, rows)
-		encoder.Close()
+		writer, err := NewPNGWriter(buf, wid, hei, model)
+		mustEncodeImageRows(writer, rows)
+		writer.Close()
 
 		img, err := png.Decode(buf)
 		if err != nil {
@@ -562,18 +562,18 @@ func TestPNGDecodeEncodeTest(t *testing.T) {
 
 		// Encode image with pixels conversion
 		buf.Reset()
-		encoder, err = NewPNGEncoder(buf, wid, hei, model)
+		writer, err = NewPNGWriter(buf, wid, hei, model)
 
 		for y := 0; y < hei; y++ {
 			type wrap struct{ Row }
 			row := wrap{rows[y]}
-			err := encoder.Write(row)
+			err := writer.Write(row)
 			if err != nil {
 				panic(err)
 			}
 		}
 
-		encoder.Close()
+		writer.Close()
 
 		img, err = png.Decode(buf)
 		if err != nil {
@@ -588,7 +588,7 @@ func TestPNGDecodeEncodeTest(t *testing.T) {
 	}
 }
 
-// TestPNGEncodeExpand tests how the PNG encoder expands
+// TestPNGEncodeExpand tests how the PNG writer expands
 // image with the insufficient width or height.
 func TestPNGEncodeExpand(t *testing.T) {
 	type testData struct {
@@ -625,16 +625,16 @@ func TestPNGEncodeExpand(t *testing.T) {
 
 	for _, test := range tests {
 		// Decode the image
-		decoder, err := NewPNGDecoder(bytes.NewReader(test.data))
+		reader, err := NewPNGReader(bytes.NewReader(test.data))
 		if err != nil {
 			panic(err)
 		}
 
-		wid, hei := decoder.Size()
-		model := decoder.ColorModel()
+		wid, hei := reader.Size()
+		model := reader.ColorModel()
 
-		rows := mustDecodeImageRows(decoder)
-		decoder.Close()
+		rows := mustDecodeImageRows(reader)
+		reader.Close()
 
 		// Halve the image
 		halfwid := wid / 2
@@ -647,12 +647,12 @@ func TestPNGEncodeExpand(t *testing.T) {
 
 		// Encode the image on its original size
 		buf := &bytes.Buffer{}
-		encoder, err := NewPNGEncoder(buf, wid, hei, model)
+		writer, err := NewPNGWriter(buf, wid, hei, model)
 		if err != nil {
 			panic(err)
 		}
-		mustEncodeImageRows(encoder, rows)
-		encoder.Close()
+		mustEncodeImageRows(writer, rows)
+		writer.Close()
 
 		// Prepare reference image for validation
 		var expected draw.Image
@@ -695,50 +695,50 @@ func TestPNGEncodeExpand(t *testing.T) {
 // TestPNGCornerCases tests those few things that are not covered
 // by other tests.
 func TestPNGCornerCases(t *testing.T) {
-	// NewPNGEncoder should not accept unknown color.Model
-	_, err := NewPNGEncoder(io.Discard, 100, 75, color.AlphaModel)
+	// NewPNGWriter should not accept unknown color.Model
+	_, err := NewPNGWriter(io.Discard, 100, 75, color.AlphaModel)
 	if err == nil {
-		t.Errorf("NewPNGEncoder accepted invalid color.Model")
+		t.Errorf("NewPNGWriter accepted invalid color.Model")
 	}
 
 	// Excessive rows should not affect encoded image
-	decoder, err := NewPNGDecoder(
+	reader, err := NewPNGReader(
 		bytes.NewReader(testutils.Images.PNG100x75rgb8))
 	if err != nil {
 		panic(err)
 	}
 
-	wid, hei := decoder.Size()
-	model := decoder.ColorModel()
+	wid, hei := reader.Size()
+	model := reader.ColorModel()
 
-	rows := mustDecodeImageRows(decoder)
-	decoder.Close()
+	rows := mustDecodeImageRows(reader)
+	reader.Close()
 
 	buf1 := &bytes.Buffer{}
-	encoder, err := NewPNGEncoder(buf1, wid, hei, model)
+	writer, err := NewPNGWriter(buf1, wid, hei, model)
 	if err != nil {
 		panic(err)
 	}
 
-	mustEncodeImageRows(encoder, rows)
-	encoder.Close()
+	mustEncodeImageRows(writer, rows)
+	writer.Close()
 
 	buf2 := &bytes.Buffer{}
-	encoder, err = NewPNGEncoder(buf2, wid, hei, model)
+	writer, err = NewPNGWriter(buf2, wid, hei, model)
 	if err != nil {
 		panic(err)
 	}
 
 	for i := 0; i < 10; i++ {
 		for y := range rows {
-			err := encoder.Write(rows[y])
+			err := writer.Write(rows[y])
 			if err != nil {
 				panic(err)
 			}
 		}
 	}
 
-	encoder.Close()
+	writer.Close()
 
 	if !bytes.Equal(buf1.Bytes(), buf2.Bytes()) {
 		t.Errorf("Test for encoding excessive rows failed")

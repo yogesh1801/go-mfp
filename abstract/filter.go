@@ -83,7 +83,7 @@ func (filter *Filter) Next() (DocumentFile, error) {
 	}
 
 	// Create filtering pipeline
-	pipeline, err := imgconv.NewPNGDecoder(input)
+	pipeline, err := imgconv.NewPNGReader(input)
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +128,7 @@ func (filter *Filter) Next() (DocumentFile, error) {
 	wid, hei := pipeline.Size()
 	model := pipeline.ColorModel()
 
-	file.encoder, err = imgconv.NewPNGEncoder(file.output, wid, hei, model)
+	file.encoder, err = imgconv.NewPNGWriter(file.output, wid, hei, model)
 	if err != nil {
 		pipeline.Close()
 		return nil, err
@@ -151,12 +151,12 @@ func (filter *Filter) Close() error {
 // filterDocumentFile represents the [DocumentFile] of the
 // filtered [Document].
 type filterDocumentFile struct {
-	filter   *Filter         // Back link to the Filter
-	input    DocumentFile    // Underlying DocumentFile
-	pipeline imgconv.Decoder // Image data decoding/filtering pipeline
-	row      imgconv.Row     // Temporary Row for encoding
-	output   *bytes.Buffer   // Output stream buffer
-	encoder  imgconv.Encoder // Image encoder
+	filter   *Filter        // Back link to the Filter
+	input    DocumentFile   // Underlying DocumentFile
+	pipeline imgconv.Reader // Image data decoding/filtering pipeline
+	row      imgconv.Row    // Temporary Row for encoding
+	output   *bytes.Buffer  // Output stream buffer
+	encoder  imgconv.Writer // Image encoder
 }
 
 // Format returns the MIME type of the image format used by
