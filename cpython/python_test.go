@@ -19,4 +19,9 @@ func TestPython(t *testing.T) {
 	assert.NoError(err)
 	py.Eval(`print("hello, world")`)
 	py.Close()
+
+	py, err = NewPython()
+	assert.NoError(err)
+	py.Eval(`print("hello, world")`)
+	py.Close()
 }
