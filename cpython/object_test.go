@@ -27,6 +27,7 @@ func TestObjectFromPython(t *testing.T) {
 		{expr: `False`, val: false},
 		{expr: `"hello"`, val: "hello"},
 		{expr: `"привет"`, val: "привет"},
+		{expr: `""`, val: ""},
 	}
 
 	py, err := NewPython()

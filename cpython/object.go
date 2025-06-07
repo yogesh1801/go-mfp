@@ -71,10 +71,13 @@ func objectFromPython(pyobj pyObject) *Object {
 	case C.PyUnicode_Type_p:
 		sz := C.py_str_len(pyobj)
 		assert.Must(sz >= 0)
-		buf := make([]rune, sz)
-		p := (*C.Py_UCS4)(unsafe.Pointer(&buf[0]))
-		C.py_str_get(pyobj, p, C.size_t(sz))
-		obj.native = string(buf)
+		obj.native = ""
+		if sz > 0 {
+			buf := make([]rune, sz)
+			p := (*C.Py_UCS4)(unsafe.Pointer(&buf[0]))
+			C.py_str_get(pyobj, p, C.size_t(sz))
+			obj.native = string(buf)
+		}
 	default:
 		if C.py_obj_is_none(pyobj) != 0 {
 			obj.native = nil
