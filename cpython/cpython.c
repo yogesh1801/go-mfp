@@ -265,7 +265,7 @@ PyObject *py_interp_eval (PyInterpreterState *interp, const char *s) {
     PyObject *dict = PyModule_GetDict_p(main_module);
 
     // Compile the statement
-    PyObject *code = Py_CompileString_p(s, "__main__", Py_single_input);
+    PyObject *code = Py_CompileString_p(s, "__main__", Py_eval_input);
     if (code == NULL) {
         goto DONE;
     }
