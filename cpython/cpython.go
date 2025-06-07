@@ -8,18 +8,18 @@
 
 package cpython
 
-// #cgo pkg-config: python3
-// #cgo LDFLAGS: -l python3
-//
-// #include "cpython.h"
-import "C"
-
 import (
 	"errors"
 	"runtime"
 	"sync"
 	"unsafe"
 )
+
+// #cgo pkg-config: python3
+// #cgo LDFLAGS: -l python3
+//
+// #include "cpython.h"
+import "C"
 
 // pyInterp is the Go name for the *C.PyInterpreterState
 type pyInterp = *C.PyInterpreterState
@@ -53,10 +53,12 @@ func pyInterpDelete(interp pyInterp) {
 }
 
 // pyInterpEval evaluates string as a Python statement.
-func pyInterpEval(interp pyInterp, s string) {
+func pyInterpEval(interp pyInterp, s string) *Object {
 	cs := C.CString(s)
-	C.py_interp_eval(interp, cs)
-	C.free(unsafe.Pointer(cs))
+	defer C.free(unsafe.Pointer(cs))
+
+	pyobj := C.py_interp_eval(interp, cs)
+	return objectFromPython(pyobj)
 }
 
 // pyInterpThread runs Python dedicated thread.

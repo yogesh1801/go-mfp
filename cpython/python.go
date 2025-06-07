@@ -31,7 +31,7 @@ func (py *Python) Close() {
 	pyInterpDelete(py.interp)
 }
 
-// Eval evaluates string as a Python statement.
-func (py *Python) Eval(s string) {
-	pyInterpEval(py.interp, s)
+// Eval evaluates string as a Python statement and returns its value.
+func (py *Python) Eval(s string) *Object {
+	return pyInterpEval(py.interp, s)
 }

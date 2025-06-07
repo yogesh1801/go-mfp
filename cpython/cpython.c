@@ -61,6 +61,33 @@ static __typeof__(PyThreadState_Get)            *PyThreadState_Get_p;
 static __typeof__(PyThreadState_New)            *PyThreadState_New_p;
 static __typeof__(PyThreadState_Swap)           *PyThreadState_Swap_p;
 
+// Python build-in (primitive) types:
+PyTypeObject *PyBool_Type_p;
+PyTypeObject *PyByteArray_Type_p;
+PyTypeObject *PyBytes_Type_p;
+PyTypeObject *PyCFunction_Type_p;
+PyTypeObject *PyComplex_Type_p;
+PyTypeObject *PyDict_Type_p;
+PyTypeObject *PyDictKeys_Type_p;
+PyTypeObject *PyFloat_Type_p;
+PyTypeObject *PyFrozenSet_Type_p;
+PyTypeObject *PyList_Type_p;
+PyTypeObject *PyLong_Type_p;
+PyTypeObject *PyMemoryView_Type_p;
+PyTypeObject *PyModule_Type_p;
+PyTypeObject *PySet_Type_p;
+PyTypeObject *PySlice_Type_p;
+PyTypeObject *PyTuple_Type_p;
+PyTypeObject *PyType_Type_p;
+PyTypeObject *PyUnicode_Type_p;
+
+/// Directly exposed libpython functions:
+int                             (*Py_IsNone_p)(PyObject *);
+int                             (*Py_IsTrue_p)(PyObject *);
+int                             (*Py_IsFalse_p)(PyObject *);
+Py_ssize_t                      (*PyUnicode_GetLength_p)(PyObject *);
+__typeof__(PyUnicode_AsUCS4)    *PyUnicode_AsUCS4_p;
+
 // py_set_error formats and sets py_error.
 static void py_set_error (const char *fmt, ...) {
     va_list ap;
@@ -106,6 +133,31 @@ static void py_load_all (void) {
     PyThreadState_Get_p = py_load("PyThreadState_Get");
     PyThreadState_New_p = py_load("PyThreadState_New");
     PyThreadState_Swap_p = py_load("PyThreadState_Swap");
+
+    PyBool_Type_p = py_load("PyBool_Type");
+    PyByteArray_Type_p = py_load("PyByteArray_Type");
+    PyBytes_Type_p = py_load("PyBytes_Type");
+    PyCFunction_Type_p = py_load("PyCFunction_Type");
+    PyComplex_Type_p = py_load("PyComplex_Type");
+    PyDict_Type_p = py_load("PyDict_Type");
+    PyDictKeys_Type_p = py_load("PyDictKeys_Type");
+    PyFloat_Type_p = py_load("PyFloat_Type");
+    PyFrozenSet_Type_p = py_load("PyFrozenSet_Type");
+    PyList_Type_p = py_load("PyList_Type");
+    PyLong_Type_p = py_load("PyLong_Type");
+    PyMemoryView_Type_p = py_load("PyMemoryView_Type");
+    PyModule_Type_p = py_load("PyModule_Type");
+    PySet_Type_p = py_load("PySet_Type");
+    PySlice_Type_p = py_load("PySlice_Type");
+    PyTuple_Type_p = py_load("PyTuple_Type");
+    PyType_Type_p = py_load("PyType_Type");
+    PyUnicode_Type_p = py_load("PyUnicode_Type");
+
+    Py_IsNone_p = py_load("Py_IsNone");
+    Py_IsTrue_p = py_load("Py_IsTrue");
+    Py_IsFalse_p = py_load("Py_IsFalse");
+    PyUnicode_GetLength_p = py_load("PyUnicode_GetLength");
+    PyUnicode_AsUCS4_p = py_load("PyUnicode_AsUCS4");
 }
 
 // py_init initializes Python stuff.
@@ -136,6 +188,7 @@ PyInterpreterState *py_new_interp (void) {
     PyEval_RestoreThread_p(py_main_thread);
 
     tstate = Py_NewInterpreter_p();
+
     interp = PyThreadState_GetInterpreter_p(tstate);
 
     py_main_thread = PyEval_SaveThread_p();
@@ -177,15 +230,15 @@ void py_interp_close (PyInterpreterState *interp) {
 }
 
 // py_interp_eval evaluates string as a Python statement.
-// It returns true on success, false in a case of any error.
-bool py_interp_eval (PyInterpreterState *interp, const char *s) {
-    bool          ok = true;
+// It returns Python value of the executed statement on
+// success, NULL in a case of any error.
+PyObject *py_interp_eval (PyInterpreterState *interp, const char *s) {
     PyThreadState *prev = py_enter(interp);
+    PyObject      *res = NULL;
 
     // Obtain the __main__ module reference and its namespace
     PyObject *main_module = PyImport_AddModule_p("__main__");
     if (main_module == NULL) {
-        ok = false;
         goto DONE;
     }
 
@@ -194,24 +247,19 @@ bool py_interp_eval (PyInterpreterState *interp, const char *s) {
     // Compile the statement
     PyObject *code = Py_CompileString_p(s, "__main__", Py_single_input);
     if (code == NULL) {
-        ok = false;
         goto DONE;
     }
 
     // Execute the statement
-    PyObject *res = PyEval_EvalCode_p(code, dict, dict);
-    if (res == NULL) {
-        ok = false;
-    }
+    res = PyEval_EvalCode_p(code, dict, dict);
 
     // Release allocated objects
     Py_DecRef_p(code);
-    Py_DecRef_p(res);
 
     // Cleanup and exit.
 DONE:
     py_leave(prev);
-    return ok;
+    return res;
 }
 
 // vim:ts=8:sw=4:et

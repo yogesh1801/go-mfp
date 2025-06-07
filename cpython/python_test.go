@@ -8,10 +8,15 @@
 
 package cpython
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/OpenPrinting/go-mfp/internal/assert"
+)
 
 func TestPython(t *testing.T) {
-	py, _ := NewPython()
+	py, err := NewPython()
+	assert.NoError(err)
 	py.Eval(`print("hello, world")`)
 	py.Close()
 }
