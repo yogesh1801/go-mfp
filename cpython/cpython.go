@@ -63,33 +63,11 @@ func pyInterpDelete(interp pyInterp) {
 	C.py_interp_close(interp)
 }
 
-// pyEnter temporary attaches the calling thread to the
-// Python interpreter.
-//
-// It must be called before any operations with the interpreter
-// are performed and must be paired with the py_leave.
-//
-// The value it returns must be passed to the corresponding
-// pyEnter call.
-func pyEnter(interp pyInterp) *C.PyThreadState {
-	runtime.LockOSThread()
-	return C.py_enter(interp)
-}
-
-// pyLeave detaches the calling thread from the Python interpreter.
-//
-// Its parameter must be the value, previously returned by the
-// corresponding pyLeave call.
-func pyLeave(prev *C.PyThreadState) {
-	C.py_leave(prev)
-	runtime.UnlockOSThread()
-}
-
 // pyInterpEval evaluates string as a Python statement.
 func pyInterpEval(interp pyInterp, s string) (*Object, error) {
 	// Lock the interpreter
-	prev := pyEnter(interp)
-	defer pyLeave(prev)
+	ref := pyRefAcquire(interp)
+	defer ref.release()
 
 	// Convert expression to the C string
 	cs := C.CString(s)
@@ -98,13 +76,13 @@ func pyInterpEval(interp pyInterp, s string) (*Object, error) {
 	// Execute the expression
 	pyobj := C.py_interp_eval(cs)
 	if pyobj == nil {
-		return nil, pyLastError()
+		return nil, ref.lastError()
 	}
 
 	// Decode result
-	native, ok := pyObjectDecode(pyobj)
+	native, ok := ref.decodeObject(pyobj)
 	if !ok {
-		err := pyLastError()
+		err := ref.lastError()
 		if err != nil {
 			return nil, err
 		}
@@ -113,9 +91,34 @@ func pyInterpEval(interp pyInterp, s string) (*Object, error) {
 	return newObjectFromPython(interp, pyobj, native, ok), nil
 }
 
-// pyLastError returns a last error, nil if none.
-// It MUST be called between pyEnter/pyLeave calls.
-func pyLastError() error {
+// pyRef represents the locked (attached to the current thread
+// and with the GIL acquired) state of the Python interpreter.
+//
+// It works as a reference to the interpreter and implements
+// all interpreter operations that require locking.
+type pyRef struct {
+	prev *C.PyThreadState // Previous current thread state
+}
+
+// pyRefAcquire temporary attaches the calling thread to the
+// Python interpreter.
+//
+// It returns the pyRef object, that must be released after
+// use with the [pyRef.release] call.
+func pyRefAcquire(interp pyInterp) pyRef {
+	runtime.LockOSThread()
+	prev := C.py_enter(interp)
+	return pyRef{prev}
+}
+
+// release detaches the calling thread from the Python interpreter.
+func (ref pyRef) release() {
+	C.py_leave(ref.prev)
+	runtime.UnlockOSThread()
+}
+
+// lastError returns a last error, nil if none.
+func (ref pyRef) lastError() error {
 	var etype, evalue, trace pyObject
 
 	// Fetch Python error information
@@ -130,14 +133,14 @@ func pyLastError() error {
 
 	// Decode the error
 	if evalue != nil {
-		msg, ok := pyObjectStr(evalue)
+		msg, ok := ref.str(evalue)
 		if ok {
 			return Error{msg}
 		}
 	}
 
 	if etype != nil {
-		msg, ok := pyObjectStr(evalue)
+		msg, ok := ref.str(evalue)
 		if ok {
 			return Error{msg}
 		}
@@ -146,33 +149,30 @@ func pyLastError() error {
 	return Error{"Unknown Python exception"}
 }
 
-// pyObjectStr returns str(pyobj), decoded as Go string.
-// It MUST be called between pyEnter/pyLeave calls.
-func pyObjectStr(pyobj pyObject) (s string, ok bool) {
+// str returns str(pyobj), decoded as Go string.
+func (ref pyRef) str(pyobj pyObject) (s string, ok bool) {
 	str := C.py_obj_str(pyobj)
 	if str != nil {
 		defer C.py_obj_unref(str)
-		s, ok = pyObjectDecodeString(str)
+		s, ok = ref.decodeString(str)
 	}
 
 	return
 }
 
-// pyObjectRepr returns repr(pyobj), decoded as Go string.
-// It MUST be called between pyEnter/pyLeave calls.
-func pyObjectRepr(pyobj pyObject) (s string, ok bool) {
+// repr returns repr(pyobj), decoded as Go string.
+func (ref pyRef) repr(pyobj pyObject) (s string, ok bool) {
 	repr := C.py_obj_repr(pyobj)
 	if repr != nil {
 		defer C.py_obj_unref(repr)
-		s, ok = pyObjectDecodeString(repr)
+		s, ok = ref.decodeString(repr)
 	}
 
 	return
 }
 
-// pyObjectDecode decodes PyObject value as Go value.
-// It MUST be called between pyEnter/pyLeave calls.
-func pyObjectDecode(pyobj pyObject) (any, bool) {
+// decodeObject decodes PyObject value as Go value.
+func (ref pyRef) decodeObject(pyobj pyObject) (any, bool) {
 	switch pyObjectType(pyobj) {
 	case C.PyBool_Type_p:
 		return C.py_obj_is_true(pyobj) != 0, true
@@ -186,7 +186,7 @@ func pyObjectDecode(pyobj pyObject) (any, bool) {
 	case C.PyFrozenSet_Type_p:
 	case C.PyList_Type_p:
 	case C.PyLong_Type_p:
-		return pyObjectDecodeInteger(pyobj)
+		return ref.decodeInteger(pyobj)
 	case C.PyMemoryView_Type_p:
 	case C.PyModule_Type_p:
 	case C.PySet_Type_p:
@@ -194,7 +194,7 @@ func pyObjectDecode(pyobj pyObject) (any, bool) {
 	case C.PyTuple_Type_p:
 	case C.PyType_Type_p:
 	case C.PyUnicode_Type_p:
-		return pyObjectDecodeString(pyobj)
+		return ref.decodeString(pyobj)
 	default:
 		if C.py_obj_is_none(pyobj) != 0 {
 			return nil, true
@@ -204,9 +204,8 @@ func pyObjectDecode(pyobj pyObject) (any, bool) {
 	return nil, false
 }
 
-// pyObjectDecodeInteger decodes Python object as int or big.Int
-// It MUST be called between pyEnter/pyLeave calls.
-func pyObjectDecodeInteger(pyobj pyObject) (any, bool) {
+// decodeInteger decodes Python object as int or big.Int
+func (ref pyRef) decodeInteger(pyobj pyObject) (any, bool) {
 	var overflow C.bool
 	var val C.long
 
@@ -219,7 +218,7 @@ func pyObjectDecodeInteger(pyobj pyObject) (any, bool) {
 		return int(val), true
 	}
 
-	s, ok := pyObjectRepr(pyobj)
+	s, ok := ref.repr(pyobj)
 	if !ok {
 		return nil, false
 	}
@@ -231,9 +230,8 @@ func pyObjectDecodeInteger(pyobj pyObject) (any, bool) {
 	return v, true
 }
 
-// pyObjectDecodeString decodes Python Unicode object as a string.
-// It MUST be called between pyEnter/pyLeave calls.
-func pyObjectDecodeString(pyobj pyObject) (string, bool) {
+// decodeString decodes Python Unicode object as a string.
+func (ref pyRef) decodeString(pyobj pyObject) (string, bool) {
 	sz := C.py_str_len(pyobj)
 	if sz < 0 {
 		return "", false
