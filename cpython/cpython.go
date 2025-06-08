@@ -24,8 +24,16 @@ import (
 // #include "cpython.h"
 import "C"
 
-// pyInterp is the Go name for the *C.PyInterpreterState
-type pyInterp = *C.PyInterpreterState
+type (
+	// pyInterp is the Go name for the *C.PyInterpreterState
+	pyInterp = *C.PyInterpreterState
+
+	// pyObject is the Go name for the *C.PyObject
+	pyObject = *C.PyObject
+
+	// pyObject is the Go name for the *C.PyObject
+	pyTypeObject = *C.PyTypeObject
+)
 
 // pyInitError holds Python initialization error, if any.
 var pyInitError error
@@ -91,15 +99,8 @@ func pyInterpEval(interp pyInterp, s string) *Object {
 	pyobj := C.py_interp_eval(cs)
 
 	// Decode result
-	obj := &Object{interp: interp, pyobj: pyobj}
-	obj.native = obj
-
 	native, ok := pyObjectDecode(pyobj)
-	if ok {
-		obj.native = native
-	}
-
-	return obj
+	return newObjectFromPython(interp, pyobj, native, ok)
 }
 
 // pyObjectDecode decodes PyObject value as Go value.

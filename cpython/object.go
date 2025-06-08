@@ -11,17 +11,27 @@ package cpython
 // #include "cpython.h"
 import "C"
 
-// pyObject is the Go name for the *C.PyObject
-type pyObject = *C.PyObject
-
-// pyObject is the Go name for the *C.PyObject
-type pyTypeObject = *C.PyTypeObject
-
 // Object represents a Python value
 type Object struct {
 	interp pyInterp // Interpreter that owns the Object
 	pyobj  pyObject // Underlying *C.PyObject
 	native any      // Native Go value (may be *Object)
+}
+
+// newObjectFromPython constructs new Object, decoded from PyObject.
+// If nativeOk is false, the Object't native value becomes reference
+// to the object itself.
+func newObjectFromPython(interp pyInterp, pyobj pyObject,
+	native any, nativeOk bool) *Object {
+
+	obj := &Object{interp: interp, pyobj: pyobj}
+	obj.native = obj
+
+	if nativeOk {
+		obj.native = native
+	}
+
+	return obj
 }
 
 // Unbox returns Object's value as Go value.
