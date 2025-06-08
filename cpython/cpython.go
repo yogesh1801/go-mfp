@@ -86,7 +86,7 @@ func pyLeave(prev *C.PyThreadState) {
 }
 
 // pyInterpEval evaluates string as a Python statement.
-func pyInterpEval(interp pyInterp, s string) *Object {
+func pyInterpEval(interp pyInterp, s string) (*Object, error) {
 	// Lock the interpreter
 	prev := pyEnter(interp)
 	defer pyLeave(prev)
@@ -97,10 +97,77 @@ func pyInterpEval(interp pyInterp, s string) *Object {
 
 	// Execute the expression
 	pyobj := C.py_interp_eval(cs)
+	if pyobj == nil {
+		return nil, pyLastError()
+	}
 
 	// Decode result
 	native, ok := pyObjectDecode(pyobj)
-	return newObjectFromPython(interp, pyobj, native, ok)
+	if !ok {
+		err := pyLastError()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return newObjectFromPython(interp, pyobj, native, ok), nil
+}
+
+// pyLastError returns a last error, nil if none.
+// It MUST be called between pyEnter/pyLeave calls.
+func pyLastError() error {
+	var etype, evalue, trace pyObject
+
+	// Fetch Python error information
+	C.py_err_fetch(&etype, &evalue, &trace)
+	if etype == nil && evalue == nil && trace == nil {
+		return nil
+	}
+
+	defer C.py_obj_unref(etype)
+	defer C.py_obj_unref(evalue)
+	defer C.py_obj_unref(trace)
+
+	// Decode the error
+	if evalue != nil {
+		msg, ok := pyObjectStr(evalue)
+		if ok {
+			return Error{msg}
+		}
+	}
+
+	if etype != nil {
+		msg, ok := pyObjectStr(evalue)
+		if ok {
+			return Error{msg}
+		}
+	}
+
+	return Error{"Unknown Python exception"}
+}
+
+// pyObjectStr returns str(pyobj), decoded as Go string.
+// It MUST be called between pyEnter/pyLeave calls.
+func pyObjectStr(pyobj pyObject) (s string, ok bool) {
+	str := C.py_obj_str(pyobj)
+	if str != nil {
+		defer C.py_obj_unref(str)
+		s, ok = pyObjectDecodeString(str)
+	}
+
+	return
+}
+
+// pyObjectRepr returns repr(pyobj), decoded as Go string.
+// It MUST be called between pyEnter/pyLeave calls.
+func pyObjectRepr(pyobj pyObject) (s string, ok bool) {
+	repr := C.py_obj_repr(pyobj)
+	if repr != nil {
+		defer C.py_obj_unref(repr)
+		s, ok = pyObjectDecodeString(repr)
+	}
+
+	return
 }
 
 // pyObjectDecode decodes PyObject value as Go value.
@@ -119,7 +186,7 @@ func pyObjectDecode(pyobj pyObject) (any, bool) {
 	case C.PyFrozenSet_Type_p:
 	case C.PyList_Type_p:
 	case C.PyLong_Type_p:
-		return pyObjectDecodeInteger(pyobj), true
+		return pyObjectDecodeInteger(pyobj)
 	case C.PyMemoryView_Type_p:
 	case C.PyModule_Type_p:
 	case C.PySet_Type_p:
@@ -127,7 +194,7 @@ func pyObjectDecode(pyobj pyObject) (any, bool) {
 	case C.PyTuple_Type_p:
 	case C.PyType_Type_p:
 	case C.PyUnicode_Type_p:
-		return pyObjectDecodeString(pyobj), true
+		return pyObjectDecodeString(pyobj)
 	default:
 		if C.py_obj_is_none(pyobj) != 0 {
 			return nil, true
@@ -139,44 +206,47 @@ func pyObjectDecode(pyobj pyObject) (any, bool) {
 
 // pyObjectDecodeInteger decodes Python object as int or big.Int
 // It MUST be called between pyEnter/pyLeave calls.
-func pyObjectDecodeInteger(pyobj pyObject) any {
+func pyObjectDecodeInteger(pyobj pyObject) (any, bool) {
 	var overflow C.bool
 	var val C.long
 
 	ok := bool(C.py_long_get(pyobj, &val, &overflow))
-	assert.Must(ok) // FIXME
-
-	if !bool(overflow) && C.long(int(val)) == val {
-		return int(val)
+	if !ok {
+		return nil, true
 	}
 
-	repr := C.py_obj_repr(pyobj)
-	assert.Must(repr != nil) // FIXME
+	if !bool(overflow) && C.long(int(val)) == val {
+		return int(val), true
+	}
 
-	s := pyObjectDecodeString(repr)
-	C.py_obj_unref(repr)
+	s, ok := pyObjectRepr(pyobj)
+	if !ok {
+		return nil, false
+	}
 
 	v := big.NewInt(0)
 	_, ok = v.SetString(s, 10)
 	assert.Must(ok) // FIXME
 
-	return v
+	return v, true
 }
 
 // pyObjectDecodeString decodes Python Unicode object as a string.
 // It MUST be called between pyEnter/pyLeave calls.
-func pyObjectDecodeString(pyobj pyObject) string {
+func pyObjectDecodeString(pyobj pyObject) (string, bool) {
 	sz := C.py_str_len(pyobj)
-	assert.Must(sz >= 0)
+	if sz < 0 {
+		return "", false
+	}
 
 	if sz > 0 {
 		buf := make([]rune, sz)
 		p := (*C.Py_UCS4)(unsafe.Pointer(&buf[0]))
 		C.py_str_get(pyobj, p, C.size_t(sz))
-		return string(buf)
+		return string(buf), true
 	}
 
-	return ""
+	return "", true
 }
 
 // pyInterpThread runs Python dedicated thread.

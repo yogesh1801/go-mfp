@@ -45,6 +45,7 @@ static PyThreadState                            *py_main_thread;
 // So these pointers keeps these resolved symbols...
 static __typeof__(Py_CompileString)             *Py_CompileString_p;
 static __typeof__(Py_DecRef)                    *Py_DecRef_p;
+static __typeof__(PyErr_Fetch)                  *PyErr_Fetch_p;
 static __typeof__(PyErr_Occurred)               *PyErr_Occurred_p;
 static __typeof__(PyEval_EvalCode)              *PyEval_EvalCode_p;
 static __typeof__(PyEval_RestoreThread)         *PyEval_RestoreThread_p;
@@ -122,6 +123,7 @@ static void *py_load (const char *name) {
 static void py_load_all (void) {
     Py_CompileString_p = py_load("Py_CompileString");
     Py_DecRef_p = py_load("Py_DecRef");
+    PyErr_Fetch_p = py_load("PyErr_Fetch");
     PyErr_Occurred_p = py_load("PyErr_Occurred");
     PyEval_EvalCode_p = py_load("PyEval_EvalCode");
     PyEval_RestoreThread_p = py_load("PyEval_RestoreThread");
@@ -310,6 +312,12 @@ PyObject *py_obj_str (PyObject *x) {
 //   - Use py_obj_repr if you want to process the string
 PyObject *py_obj_repr (PyObject *x) {
     return PyObject_Repr_p(x);
+}
+
+// py_err_fetch fetches and clears last error.a
+// If there is no pending error, all pointers will be set to NULL.
+void py_err_fetch (PyObject **etype, PyObject **evalue, PyObject **trace) {
+    PyErr_Fetch_p(etype, evalue, trace);
 }
 
 // py_long_get obtains PyObject's value as C long.

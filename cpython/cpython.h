@@ -93,6 +93,10 @@ static inline ssize_t py_str_len (PyObject *str) {
     return (ssize_t) PyUnicode_GetLength_p(str);
 }
 
+// py_err_fetch fetches and clears last error.
+// If there is no pending error, all pointers will be set to NULL.
+void py_err_fetch (PyObject **etype, PyObject **evalue, PyObject **trace);
+
 // py_long_get obtains PyObject's value as C long.
 // If value doesn't fit C long, overflow flag is set.
 //

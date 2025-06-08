@@ -19,8 +19,9 @@ import (
 // TestObjectFromPython tests objectFromPython
 func TestObjectFromPython(t *testing.T) {
 	type testData struct {
-		expr string // Python expression
-		val  any    // Expected value
+		expr     string // Python expression
+		val      any    // Expected value
+		mustfail bool   // Error expected
 	}
 
 	const valbigint = "21267647892944572736998860269687930881"
@@ -39,6 +40,7 @@ func TestObjectFromPython(t *testing.T) {
 		{expr: `0x7fffffff`, val: 0x7fffffff},
 		{expr: `-0x7fffffff`, val: -0x7fffffff},
 		{expr: valbigint, val: bigint},
+		{expr: `1/0`, mustfail: true},
 	}
 
 	py, err := NewPython()
@@ -46,9 +48,25 @@ func TestObjectFromPython(t *testing.T) {
 	defer py.Close()
 
 	for _, test := range tests {
-		obj := py.Eval(test.expr)
-		val := obj.Unbox()
+		obj, err := py.Eval(test.expr)
 
+		// Check errors vs expectations
+		if err != nil {
+			if !test.mustfail {
+				t.Errorf("%s: unexpected error: %s",
+					test.expr, err)
+			}
+			continue
+		}
+
+		if test.mustfail {
+			t.Errorf("%s: error expected but didn't occur",
+				test.expr)
+			continue
+		}
+
+		// Check returned value
+		val := obj.Unbox()
 		if !reflect.DeepEqual(val, test.val) {
 			t.Errorf("%s: object value mismatch:\n"+
 				"expected: %#v\n"+

@@ -32,6 +32,6 @@ func (py *Python) Close() {
 }
 
 // Eval evaluates string as a Python statement and returns its value.
-func (py *Python) Eval(s string) *Object {
+func (py *Python) Eval(s string) (*Object, error) {
 	return pyInterpEval(py.interp, s)
 }
