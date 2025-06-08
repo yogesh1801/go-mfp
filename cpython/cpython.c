@@ -60,6 +60,7 @@ static __typeof__(PyThreadState_GetInterpreter) *PyThreadState_GetInterpreter_p;
 static __typeof__(PyThreadState_Get)            *PyThreadState_Get_p;
 static __typeof__(PyThreadState_New)            *PyThreadState_New_p;
 static __typeof__(PyThreadState_Swap)           *PyThreadState_Swap_p;
+static __typeof__(PyUnicode_AsUCS4)             *PyUnicode_AsUCS4_p;
 
 // Python build-in (primitive) types:
 PyTypeObject *PyBool_Type_p;
@@ -86,7 +87,6 @@ int                             (*Py_IsNone_p)(PyObject *);
 int                             (*Py_IsTrue_p)(PyObject *);
 int                             (*Py_IsFalse_p)(PyObject *);
 Py_ssize_t                      (*PyUnicode_GetLength_p)(PyObject *);
-__typeof__(PyUnicode_AsUCS4)    *PyUnicode_AsUCS4_p;
 
 // py_set_error formats and sets py_error.
 static void py_set_error (const char *fmt, ...) {
@@ -152,12 +152,12 @@ static void py_load_all (void) {
     PyTuple_Type_p = py_load("PyTuple_Type");
     PyType_Type_p = py_load("PyType_Type");
     PyUnicode_Type_p = py_load("PyUnicode_Type");
+    PyUnicode_AsUCS4_p = py_load("PyUnicode_AsUCS4");
 
     Py_IsNone_p = py_load("Py_IsNone");
     Py_IsTrue_p = py_load("Py_IsTrue");
     Py_IsFalse_p = py_load("Py_IsFalse");
     PyUnicode_GetLength_p = py_load("PyUnicode_GetLength");
-    PyUnicode_AsUCS4_p = py_load("PyUnicode_AsUCS4");
 }
 
 // py_init initializes Python stuff.
