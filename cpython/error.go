@@ -1,5 +1,5 @@
 // MFP - Miulti-Function Printers and scanners toolkit
-// Abstract definition for printer and scanner interfaces
+// CPython binding.
 //
 // Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
 // See LICENSE for license terms and conditions
