@@ -58,7 +58,7 @@ func pyInterpEval(interp pyInterp, s string) *Object {
 	defer C.free(unsafe.Pointer(cs))
 
 	pyobj := C.py_interp_eval(interp, cs)
-	return objectFromPython(pyobj)
+	return objectFromPython(interp, pyobj)
 }
 
 // pyInterpThread runs Python dedicated thread.

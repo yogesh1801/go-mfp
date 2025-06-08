@@ -282,4 +282,22 @@ DONE:
     return res;
 }
 
+// py_str_get copies Unicode string data as a sequence of the Py_UCS4
+// characters.
+//
+// On success it returns buf, otherwise returns NULL.
+// The function may fail if PyObject is not Unicode of if buffer
+// is too short.
+//
+// The trailing '\0' is not copied.
+//
+// Use py_str_len to obtain the correct string length.
+Py_UCS4 *py_str_get (PyInterpreterState *interp, PyObject *str,
+                     Py_UCS4 *buf, size_t len) {
+    PyThreadState *prev = py_enter(interp);
+    Py_UCS4       *res = PyUnicode_AsUCS4_p(str, buf, len, 0);
+    py_leave(prev);
+    return res;
+}
+
 // vim:ts=8:sw=4:et

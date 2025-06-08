@@ -66,10 +66,8 @@ static inline ssize_t py_str_len (PyObject *str) {
 // The trailing '\0' is not copied.
 //
 // Use py_str_len to obtain the correct string length.
-static inline Py_UCS4 *py_str_get (PyObject *str, Py_UCS4 *buf, size_t len) {
-    extern __typeof__(PyUnicode_AsUCS4)    *PyUnicode_AsUCS4_p;
-    return PyUnicode_AsUCS4_p(str, buf, len, 0);
-}
+Py_UCS4 *py_str_get (PyInterpreterState *interp, PyObject *str,
+                     Py_UCS4 *buf, size_t len);
 
 // Python build-in (primitive) types:
 extern PyTypeObject *PyBool_Type_p;

@@ -25,6 +25,7 @@ type pyTypeObject = *C.PyTypeObject
 
 // Object represents a Python value
 type Object struct {
+	interp pyInterp // Interpreter that owns the Object
 	pyobj  pyObject // Underlying *C.PyObject
 	native any      // Native Go value (may be *Object)
 }
@@ -38,14 +39,14 @@ func (obj *Object) Unbox() any {
 }
 
 // objectFromPython decodes Object from *C.PyObject
-func objectFromPython(pyobj pyObject) *Object {
+func objectFromPython(interp pyInterp, pyobj pyObject) *Object {
 	// Translate nil to nil
 	if pyobj == nil {
 		return nil
 	}
 
 	// Construct the Object
-	obj := &Object{pyobj: pyobj}
+	obj := &Object{interp: interp, pyobj: pyobj}
 	obj.native = obj
 
 	// Decode native value, if possible.
@@ -75,7 +76,7 @@ func objectFromPython(pyobj pyObject) *Object {
 		if sz > 0 {
 			buf := make([]rune, sz)
 			p := (*C.Py_UCS4)(unsafe.Pointer(&buf[0]))
-			C.py_str_get(pyobj, p, C.size_t(sz))
+			C.py_str_get(interp, pyobj, p, C.size_t(sz))
 			obj.native = string(buf)
 		}
 	default:
