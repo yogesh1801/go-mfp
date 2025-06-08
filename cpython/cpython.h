@@ -26,10 +26,26 @@ PyInterpreterState *py_new_interp (void);
 // py_interp_close closes the Python interpreter.
 void py_interp_close (PyInterpreterState *interp);
 
+// py_enter temporary attaches the calling thread to the
+// Python interpreter.
+//
+// It must be called before any operations with the interpreter
+// are performed and must be paired with the py_leave.
+//
+// The value it returns must be passed to the corresponding
+// py_leave call.
+PyThreadState *py_enter (PyInterpreterState *interp);
+
+// py_leave detaches the calling thread from the Python interpreter.
+//
+// Its parameter must be the value, previously returned by the
+// corresponding py_enter call.
+void py_leave (PyThreadState *prev);
+
 // py_interp_eval evaluates string as a Python statement.
 // It returns Python value of the executed statement on
 // success, NULL in a case of any error.
-PyObject *py_interp_eval (PyInterpreterState *interp, const char *s);
+PyObject *py_interp_eval (const char *s);
 
 // py_obj_is_none reports if PyObject is None.
 static inline int py_obj_is_none (PyObject *x) {
@@ -50,7 +66,7 @@ static inline int py_obj_is_false (PyObject *x) {
 }
 
 // py_obj_unref decrements the PyObject's reference count.
-void py_obj_unref (PyInterpreterState *interp, PyObject *x);
+void py_obj_unref (PyObject *x);
 
 // py_obj_str returns a string representation of the PyObject.
 // This is the equivalent of the Python expression str(x).
@@ -59,7 +75,7 @@ void py_obj_unref (PyInterpreterState *interp, PyObject *x);
 // In general:
 //   - Use py_obj_str if you want to print the string
 //   - Use py_obj_repr if you want to process the string
-PyObject *py_obj_str (PyInterpreterState *interp, PyObject *x);
+PyObject *py_obj_str (PyObject *x);
 
 // py_obj_repr returns a string representation of the PyObject.
 // This is the equivalent of the Python expression repr(x).
@@ -68,7 +84,7 @@ PyObject *py_obj_str (PyInterpreterState *interp, PyObject *x);
 // In general:
 //   - Use py_obj_str if you want to print the string
 //   - Use py_obj_repr if you want to process the string
-PyObject *py_obj_repr (PyInterpreterState *interp, PyObject *x);
+PyObject *py_obj_repr (PyObject *x);
 
 // py_str_len returns length of Unicode string, in code points.
 // If PyObject is not Unicode, it returns -1.
@@ -81,8 +97,7 @@ static inline ssize_t py_str_len (PyObject *str) {
 // If value doesn't fit C long, overflow flag is set.
 //
 // It returns true on success, false on error.
-bool py_long_get (PyInterpreterState *interp, PyObject *x,
-                 long *val, bool *overflow);
+bool py_long_get (PyObject *x, long *val, bool *overflow);
 
 // py_str_get copies Unicode string data as a sequence of the Py_UCS4
 // characters.
@@ -94,8 +109,7 @@ bool py_long_get (PyInterpreterState *interp, PyObject *x,
 // The trailing '\0' is not copied.
 //
 // Use py_str_len to obtain the correct string length.
-Py_UCS4 *py_str_get (PyInterpreterState *interp, PyObject *str,
-                     Py_UCS4 *buf, size_t len);
+Py_UCS4 *py_str_get (PyObject *str, Py_UCS4 *buf, size_t len);
 
 // Python build-in (primitive) types:
 extern PyTypeObject *PyBool_Type_p;

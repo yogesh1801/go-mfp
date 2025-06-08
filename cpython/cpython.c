@@ -232,7 +232,7 @@ PyInterpreterState *py_new_interp (void) {
 //
 // The value it returns must be passed to the corresponding
 // py_leave call.
-static PyThreadState *py_enter (PyInterpreterState *interp) {
+PyThreadState *py_enter (PyInterpreterState *interp) {
     PyThreadState *prev, *t = PyThreadState_New_p(interp);
     prev = PyThreadState_Swap_p(t);
     return prev;
@@ -242,7 +242,7 @@ static PyThreadState *py_enter (PyInterpreterState *interp) {
 //
 // Its parameter must be the value, previously returned by the
 // corresponding py_enter call.
-static void py_leave (PyThreadState *prev) {
+void py_leave (PyThreadState *prev) {
     PyThreadState *t = PyThreadState_Get_p();
     PyThreadState_Clear_p(t);
     PyThreadState_Swap_p(prev);
@@ -260,14 +260,11 @@ void py_interp_close (PyInterpreterState *interp) {
 // py_interp_eval evaluates string as a Python statement.
 // It returns Python value of the executed statement on
 // success, NULL in a case of any error.
-PyObject *py_interp_eval (PyInterpreterState *interp, const char *s) {
-    PyThreadState *prev = py_enter(interp);
-    PyObject      *res = NULL;
-
+PyObject *py_interp_eval (const char *s) {
     // Obtain the __main__ module reference and its namespace
     PyObject *main_module = PyImport_AddModule_p("__main__");
     if (main_module == NULL) {
-        goto DONE;
+        return NULL;
     }
 
     PyObject *dict = PyModule_GetDict_p(main_module);
@@ -275,26 +272,22 @@ PyObject *py_interp_eval (PyInterpreterState *interp, const char *s) {
     // Compile the statement
     PyObject *code = Py_CompileString_p(s, "__main__", Py_eval_input);
     if (code == NULL) {
-        goto DONE;
+        return NULL;
     }
 
     // Execute the statement
-    res = PyEval_EvalCode_p(code, dict, dict);
+    PyObject *res = PyEval_EvalCode_p(code, dict, dict);
 
     // Release allocated objects
     Py_DecRef_p(code);
 
     // Cleanup and exit.
-DONE:
-    py_leave(prev);
     return res;
 }
 
 // py_obj_unref decrements the PyObject's reference count.
-void py_obj_unref (PyInterpreterState *interp, PyObject *x) {
-    PyThreadState *prev = py_enter(interp);
+void py_obj_unref (PyObject *x) {
     Py_DecRef_p(x);
-    py_leave(prev);
 }
 
 // py_obj_str returns a string representation of the PyObject.
@@ -304,11 +297,8 @@ void py_obj_unref (PyInterpreterState *interp, PyObject *x) {
 // In general:
 //   - Use py_obj_str if you want to print the string
 //   - Use py_obj_repr if you want to process the string
-PyObject *py_obj_str (PyInterpreterState *interp, PyObject *x) {
-    PyThreadState *prev = py_enter(interp);
-    PyObject      *res = PyObject_Str_p(x);
-    py_leave(prev);
-    return res;
+PyObject *py_obj_str (PyObject *x) {
+    return PyObject_Str_p(x);
 }
 
 // py_obj_repr returns a string representation of the PyObject.
@@ -318,20 +308,15 @@ PyObject *py_obj_str (PyInterpreterState *interp, PyObject *x) {
 // In general:
 //   - Use py_obj_str if you want to print the string
 //   - Use py_obj_repr if you want to process the string
-PyObject *py_obj_repr (PyInterpreterState *interp, PyObject *x) {
-    PyThreadState *prev = py_enter(interp);
-    PyObject      *res = PyObject_Repr_p(x);
-    py_leave(prev);
-    return res;
+PyObject *py_obj_repr (PyObject *x) {
+    return PyObject_Repr_p(x);
 }
 
 // py_long_get obtains PyObject's value as C long.
 // If value doesn't fit C long, overflow flag is set.
 //
 // It returns true on success, false on error.
-bool py_long_get (PyInterpreterState *interp, PyObject *x,
-                 long *val, bool *overflow) {
-    PyThreadState *prev = py_enter(interp);
+bool py_long_get (PyObject *x, long *val, bool *overflow) {
     int           ovf;
     bool          res = true;
 
@@ -341,8 +326,6 @@ bool py_long_get (PyInterpreterState *interp, PyObject *x,
     if (*val == -1 && PyErr_Occurred_p() != NULL) {
         res = false;
     }
-
-    py_leave(prev);
 
     return res;
 }
@@ -357,12 +340,8 @@ bool py_long_get (PyInterpreterState *interp, PyObject *x,
 // The trailing '\0' is not copied.
 //
 // Use py_str_len to obtain the correct string length.
-Py_UCS4 *py_str_get (PyInterpreterState *interp, PyObject *str,
-                     Py_UCS4 *buf, size_t len) {
-    PyThreadState *prev = py_enter(interp);
-    Py_UCS4       *res = PyUnicode_AsUCS4_p(str, buf, len, 0);
-    py_leave(prev);
-    return res;
+Py_UCS4 *py_str_get (PyObject *str, Py_UCS4 *buf, size_t len) {
+    return PyUnicode_AsUCS4_p(str, buf, len, 0);
 }
 
 // vim:ts=8:sw=4:et
