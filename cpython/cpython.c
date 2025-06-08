@@ -45,6 +45,7 @@ static PyThreadState                            *py_main_thread;
 // So these pointers keeps these resolved symbols...
 static __typeof__(Py_CompileString)             *Py_CompileString_p;
 static __typeof__(Py_DecRef)                    *Py_DecRef_p;
+static __typeof__(PyErr_Occurred)               *PyErr_Occurred_p;
 static __typeof__(PyEval_EvalCode)              *PyEval_EvalCode_p;
 static __typeof__(PyEval_RestoreThread)         *PyEval_RestoreThread_p;
 static __typeof__(PyEval_SaveThread)            *PyEval_SaveThread_p;
@@ -52,8 +53,11 @@ static __typeof__(PyImport_AddModule)           *PyImport_AddModule_p;
 static __typeof__(Py_InitializeEx)              *Py_InitializeEx_p;
 static __typeof__(PyInterpreterState_Clear)     *PyInterpreterState_Clear_p;
 static __typeof__(PyInterpreterState_Delete)    *PyInterpreterState_Delete_p;
+static __typeof__(PyLong_AsLongAndOverflow)     *PyLong_AsLongAndOverflow_p;
 static __typeof__(PyModule_GetDict)             *PyModule_GetDict_p;
 static __typeof__(Py_NewInterpreter)            *Py_NewInterpreter_p;
+static __typeof__(PyObject_Repr)                *PyObject_Repr_p;
+static __typeof__(PyObject_Str)                 *PyObject_Str_p;
 static __typeof__(PyThreadState_Clear)          *PyThreadState_Clear_p;
 static __typeof__(PyThreadState_Delete)         *PyThreadState_Delete_p;
 static __typeof__(PyThreadState_GetInterpreter) *PyThreadState_GetInterpreter_p;
@@ -118,6 +122,7 @@ static void *py_load (const char *name) {
 static void py_load_all (void) {
     Py_CompileString_p = py_load("Py_CompileString");
     Py_DecRef_p = py_load("Py_DecRef");
+    PyErr_Occurred_p = py_load("PyErr_Occurred");
     PyEval_EvalCode_p = py_load("PyEval_EvalCode");
     PyEval_RestoreThread_p = py_load("PyEval_RestoreThread");
     PyEval_SaveThread_p = py_load("PyEval_SaveThread");
@@ -125,6 +130,7 @@ static void py_load_all (void) {
     Py_InitializeEx_p = py_load("Py_InitializeEx");
     PyInterpreterState_Clear_p = py_load("PyInterpreterState_Clear");
     PyInterpreterState_Delete_p = py_load("PyInterpreterState_Delete");
+    PyLong_AsLongAndOverflow_p = py_load("PyLong_AsLongAndOverflow");
     PyModule_GetDict_p = py_load("PyModule_GetDict");
     Py_NewInterpreter_p = py_load("Py_NewInterpreter");
     PyThreadState_Clear_p = py_load("PyThreadState_Clear");
@@ -139,20 +145,22 @@ static void py_load_all (void) {
     PyBytes_Type_p = py_load("PyBytes_Type");
     PyCFunction_Type_p = py_load("PyCFunction_Type");
     PyComplex_Type_p = py_load("PyComplex_Type");
-    PyDict_Type_p = py_load("PyDict_Type");
     PyDictKeys_Type_p = py_load("PyDictKeys_Type");
+    PyDict_Type_p = py_load("PyDict_Type");
     PyFloat_Type_p = py_load("PyFloat_Type");
     PyFrozenSet_Type_p = py_load("PyFrozenSet_Type");
     PyList_Type_p = py_load("PyList_Type");
     PyLong_Type_p = py_load("PyLong_Type");
     PyMemoryView_Type_p = py_load("PyMemoryView_Type");
     PyModule_Type_p = py_load("PyModule_Type");
+    PyObject_Repr_p = py_load("PyObject_Repr");
+    PyObject_Str_p = py_load("PyObject_Str");
     PySet_Type_p = py_load("PySet_Type");
     PySlice_Type_p = py_load("PySlice_Type");
     PyTuple_Type_p = py_load("PyTuple_Type");
     PyType_Type_p = py_load("PyType_Type");
-    PyUnicode_Type_p = py_load("PyUnicode_Type");
     PyUnicode_AsUCS4_p = py_load("PyUnicode_AsUCS4");
+    PyUnicode_Type_p = py_load("PyUnicode_Type");
 
     Py_IsNone_p = py_load("Py_IsNone");
     Py_IsTrue_p = py_load("Py_IsTrue");
@@ -279,6 +287,63 @@ PyObject *py_interp_eval (PyInterpreterState *interp, const char *s) {
     // Cleanup and exit.
 DONE:
     py_leave(prev);
+    return res;
+}
+
+// py_obj_unref decrements the PyObject's reference count.
+void py_obj_unref (PyInterpreterState *interp, PyObject *x) {
+    PyThreadState *prev = py_enter(interp);
+    Py_DecRef_p(x);
+    py_leave(prev);
+}
+
+// py_obj_str returns a string representation of the PyObject.
+// This is the equivalent of the Python expression str(x).
+//
+// There is very subtle difference between py_obj_str and py_obj_repr.
+// In general:
+//   - Use py_obj_str if you want to print the string
+//   - Use py_obj_repr if you want to process the string
+PyObject *py_obj_str (PyInterpreterState *interp, PyObject *x) {
+    PyThreadState *prev = py_enter(interp);
+    PyObject      *res = PyObject_Str_p(x);
+    py_leave(prev);
+    return res;
+}
+
+// py_obj_repr returns a string representation of the PyObject.
+// This is the equivalent of the Python expression repr(x).
+//
+// There is very subtle difference between py_obj_str and py_obj_repr.
+// In general:
+//   - Use py_obj_str if you want to print the string
+//   - Use py_obj_repr if you want to process the string
+PyObject *py_obj_repr (PyInterpreterState *interp, PyObject *x) {
+    PyThreadState *prev = py_enter(interp);
+    PyObject      *res = PyObject_Repr_p(x);
+    py_leave(prev);
+    return res;
+}
+
+// py_long_get obtains PyObject's value as C long.
+// If value doesn't fit C long, overflow flag is set.
+//
+// It returns true on success, false on error.
+bool py_long_get (PyInterpreterState *interp, PyObject *x,
+                 long *val, bool *overflow) {
+    PyThreadState *prev = py_enter(interp);
+    int           ovf;
+    bool          res = true;
+
+    *val = PyLong_AsLongAndOverflow_p(x, &ovf);
+    *overflow = ovf != 0;
+
+    if (*val == -1 && PyErr_Occurred_p() != NULL) {
+        res = false;
+    }
+
+    py_leave(prev);
+
     return res;
 }
 

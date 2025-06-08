@@ -9,6 +9,8 @@
 package cpython
 
 import (
+	"math/big"
+	"reflect"
 	"testing"
 
 	"github.com/OpenPrinting/go-mfp/internal/assert"
@@ -21,6 +23,11 @@ func TestObjectFromPython(t *testing.T) {
 		val  any    // Expected value
 	}
 
+	const valbigint = "21267647892944572736998860269687930881"
+
+	bigint := big.NewInt(0)
+	bigint.SetString(valbigint, 0)
+
 	tests := []testData{
 		{expr: `None`, val: nil},
 		{expr: `True`, val: true},
@@ -28,6 +35,10 @@ func TestObjectFromPython(t *testing.T) {
 		{expr: `"hello"`, val: "hello"},
 		{expr: `"привет"`, val: "привет"},
 		{expr: `""`, val: ""},
+		{expr: `0`, val: 0},
+		{expr: `0x7fffffff`, val: 0x7fffffff},
+		{expr: `-0x7fffffff`, val: -0x7fffffff},
+		{expr: valbigint, val: bigint},
 	}
 
 	py, err := NewPython()
@@ -38,10 +49,10 @@ func TestObjectFromPython(t *testing.T) {
 		obj := py.Eval(test.expr)
 		val := obj.Unbox()
 
-		if val != test.val {
+		if !reflect.DeepEqual(val, test.val) {
 			t.Errorf("%s: object value mismatch:\n"+
-				"expected: %v\n"+
-				"present:  %v\n",
+				"expected: %#v\n"+
+				"present:  %#v\n",
 				test.expr, test.val, val)
 		}
 	}

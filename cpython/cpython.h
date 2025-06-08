@@ -49,12 +49,40 @@ static inline int py_obj_is_false (PyObject *x) {
     return Py_IsFalse_p(x);
 }
 
+// py_obj_unref decrements the PyObject's reference count.
+void py_obj_unref (PyInterpreterState *interp, PyObject *x);
+
+// py_obj_str returns a string representation of the PyObject.
+// This is the equivalent of the Python expression str(x).
+//
+// There is very subtle difference between py_obj_str and py_obj_repr.
+// In general:
+//   - Use py_obj_str if you want to print the string
+//   - Use py_obj_repr if you want to process the string
+PyObject *py_obj_str (PyInterpreterState *interp, PyObject *x);
+
+// py_obj_repr returns a string representation of the PyObject.
+// This is the equivalent of the Python expression repr(x).
+//
+// There is very subtle difference between py_obj_str and py_obj_repr.
+// In general:
+//   - Use py_obj_str if you want to print the string
+//   - Use py_obj_repr if you want to process the string
+PyObject *py_obj_repr (PyInterpreterState *interp, PyObject *x);
+
 // py_str_len returns length of Unicode string, in code points.
 // If PyObject is not Unicode, it returns -1.
 static inline ssize_t py_str_len (PyObject *str) {
     extern Py_ssize_t (*PyUnicode_GetLength_p)(PyObject *);
     return (ssize_t) PyUnicode_GetLength_p(str);
 }
+
+// py_long_get obtains PyObject's value as C long.
+// If value doesn't fit C long, overflow flag is set.
+//
+// It returns true on success, false on error.
+bool py_long_get (PyInterpreterState *interp, PyObject *x,
+                 long *val, bool *overflow);
 
 // py_str_get copies Unicode string data as a sequence of the Py_UCS4
 // characters.

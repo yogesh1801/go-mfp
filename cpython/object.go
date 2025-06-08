@@ -9,6 +9,7 @@
 package cpython
 
 import (
+	"math/big"
 	"unsafe"
 
 	"github.com/OpenPrinting/go-mfp/internal/assert"
@@ -63,6 +64,7 @@ func objectFromPython(interp pyInterp, pyobj pyObject) *Object {
 	case C.PyFrozenSet_Type_p:
 	case C.PyList_Type_p:
 	case C.PyLong_Type_p:
+		obj.native = objectDecodeInteger(interp, pyobj)
 	case C.PyMemoryView_Type_p:
 	case C.PyModule_Type_p:
 	case C.PySet_Type_p:
@@ -70,15 +72,7 @@ func objectFromPython(interp pyInterp, pyobj pyObject) *Object {
 	case C.PyTuple_Type_p:
 	case C.PyType_Type_p:
 	case C.PyUnicode_Type_p:
-		sz := C.py_str_len(pyobj)
-		assert.Must(sz >= 0)
-		obj.native = ""
-		if sz > 0 {
-			buf := make([]rune, sz)
-			p := (*C.Py_UCS4)(unsafe.Pointer(&buf[0]))
-			C.py_str_get(interp, pyobj, p, C.size_t(sz))
-			obj.native = string(buf)
-		}
+		obj.native = objectDecodeString(interp, pyobj)
 	default:
 		if C.py_obj_is_none(pyobj) != 0 {
 			obj.native = nil
@@ -86,6 +80,46 @@ func objectFromPython(interp pyInterp, pyobj pyObject) *Object {
 	}
 
 	return obj
+}
+
+// objectDecodeInteger decodes Python object as int or big.Int
+func objectDecodeInteger(interp pyInterp, pyobj pyObject) any {
+	var overflow C.bool
+	var val C.long
+
+	ok := bool(C.py_long_get(interp, pyobj, &val, &overflow))
+	assert.Must(ok) // FIXME
+
+	if !bool(overflow) && C.long(int(val)) == val {
+		return int(val)
+	}
+
+	repr := C.py_obj_repr(interp, pyobj)
+	assert.Must(repr != nil) // FIXME
+
+	s := objectDecodeString(interp, repr)
+	C.py_obj_unref(interp, repr)
+
+	v := big.NewInt(0)
+	_, ok = v.SetString(s, 10)
+	assert.Must(ok) // FIXME
+
+	return v
+}
+
+// objectDecodeString decodes Python Unicode object as a string.
+func objectDecodeString(interp pyInterp, pyobj pyObject) string {
+	sz := C.py_str_len(pyobj)
+	assert.Must(sz >= 0)
+
+	if sz > 0 {
+		buf := make([]rune, sz)
+		p := (*C.Py_UCS4)(unsafe.Pointer(&buf[0]))
+		C.py_str_get(interp, pyobj, p, C.size_t(sz))
+		return string(buf)
+	}
+
+	return ""
 }
 
 // pyObjectType returns pyTypeObject for the value object
