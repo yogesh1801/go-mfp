@@ -86,13 +86,6 @@ PyObject *py_obj_str (PyObject *x);
 //   - Use py_obj_repr if you want to process the string
 PyObject *py_obj_repr (PyObject *x);
 
-// py_str_len returns length of Unicode string, in code points.
-// If PyObject is not Unicode, it returns -1.
-static inline ssize_t py_str_len (PyObject *str) {
-    extern Py_ssize_t (*PyUnicode_GetLength_p)(PyObject *);
-    return (ssize_t) PyUnicode_GetLength_p(str);
-}
-
 // py_err_fetch fetches and clears last error.
 // If there is no pending error, all pointers will be set to NULL.
 void py_err_fetch (PyObject **etype, PyObject **evalue, PyObject **trace);
@@ -102,6 +95,13 @@ void py_err_fetch (PyObject **etype, PyObject **evalue, PyObject **trace);
 //
 // It returns true on success, false on error.
 bool py_long_get (PyObject *x, long *val, bool *overflow);
+
+// py_str_len returns length of Unicode string, in code points.
+// If PyObject is not Unicode, it returns -1.
+static inline ssize_t py_str_len (PyObject *str) {
+    extern Py_ssize_t (*PyUnicode_GetLength_p)(PyObject *);
+    return (ssize_t) PyUnicode_GetLength_p(str);
+}
 
 // py_str_get copies Unicode string data as a sequence of the Py_UCS4
 // characters.
