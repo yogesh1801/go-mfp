@@ -48,6 +48,8 @@ func TestObjectFromPython(t *testing.T) {
 		{expr: `1/0`, mustfail: true},
 		{expr: `b'\x01\x02\x03'`, val: []byte{0x1, 0x2, 0x3}},
 		{expr: `bytearray(b'\x01\x02\x03')`, val: []byte{0x1, 0x2, 0x3}},
+		{expr: `0.5`, val: 0.5},
+		{expr: `complex(1,2)`, val: complex(1, 2)},
 	}
 
 	py, err := NewPython()

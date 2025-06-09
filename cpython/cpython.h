@@ -98,6 +98,14 @@ bool py_bytes_get (PyObject *x, void **data, size_t *size);
 // It returns true on success, false on error.
 bool py_bytearray_get (PyObject *x, void **data, size_t *size);
 
+// py_complex_get obtains content of the Python complex object.
+// It returns true on success, false on error.
+bool py_complex_get (PyObject *x, double *real, double *imag);
+
+// py_float_get obtains content of the Python float object.
+// It returns true on success, false on error.
+bool py_float_get (PyObject *x, double *val);
+
 // py_long_get obtains PyObject's value as C long.
 // If value doesn't fit C long, overflow flag is set.
 //

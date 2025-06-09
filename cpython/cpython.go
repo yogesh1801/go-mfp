@@ -182,9 +182,11 @@ func (ref pyRef) decodeObject(pyobj pyObject) (any, bool) {
 		return ref.decodeBytes(pyobj)
 	case C.PyCFunction_Type_p:
 	case C.PyComplex_Type_p:
+		return ref.decodeComplex(pyobj)
 	case C.PyDict_Type_p:
 	case C.PyDictKeys_Type_p:
 	case C.PyFloat_Type_p:
+		return ref.decodeFloat(pyobj)
 	case C.PyFrozenSet_Type_p:
 	case C.PyList_Type_p:
 	case C.PyLong_Type_p:
@@ -204,6 +206,28 @@ func (ref pyRef) decodeObject(pyobj pyObject) (any, bool) {
 	}
 
 	return nil, false
+}
+
+// decodeComplex decodes Python complex number object.
+func (ref pyRef) decodeComplex(pyobj pyObject) (complex128, bool) {
+	var real, imag C.double
+
+	ok := bool(C.py_complex_get(pyobj, &real, &imag))
+	var c complex128
+	if ok {
+		c = complex(float64(real), float64(imag))
+	}
+
+	return c, ok
+}
+
+// decodeFloat decodes Python float number object.
+func (ref pyRef) decodeFloat(pyobj pyObject) (float64, bool) {
+	var val C.double
+
+	ok := bool(C.py_float_get(pyobj, &val))
+
+	return float64(val), ok
 }
 
 // decodeByteArray decodes Python byte array object as []byte slice.

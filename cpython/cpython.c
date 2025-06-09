@@ -47,12 +47,15 @@ static __typeof__(PyByteArray_AsString)         *PyByteArray_AsString_p;
 static __typeof__(PyByteArray_Size)             *PyByteArray_Size_p;
 static __typeof__(PyBytes_AsStringAndSize)      *PyBytes_AsStringAndSize_p;
 static __typeof__(Py_CompileString)             *Py_CompileString_p;
+static __typeof__(PyComplex_ImagAsDouble)       *PyComplex_ImagAsDouble_p;
+static __typeof__(PyComplex_RealAsDouble)       *PyComplex_RealAsDouble_p;
 static __typeof__(Py_DecRef)                    *Py_DecRef_p;
 static __typeof__(PyErr_Fetch)                  *PyErr_Fetch_p;
 static __typeof__(PyErr_Occurred)               *PyErr_Occurred_p;
 static __typeof__(PyEval_EvalCode)              *PyEval_EvalCode_p;
 static __typeof__(PyEval_RestoreThread)         *PyEval_RestoreThread_p;
 static __typeof__(PyEval_SaveThread)            *PyEval_SaveThread_p;
+static __typeof__(PyFloat_AsDouble)             *PyFloat_AsDouble_p;
 static __typeof__(PyImport_AddModule)           *PyImport_AddModule_p;
 static __typeof__(Py_InitializeEx)              *Py_InitializeEx_p;
 static __typeof__(PyInterpreterState_Clear)     *PyInterpreterState_Clear_p;
@@ -69,6 +72,7 @@ static __typeof__(PyThreadState_Get)            *PyThreadState_Get_p;
 static __typeof__(PyThreadState_New)            *PyThreadState_New_p;
 static __typeof__(PyThreadState_Swap)           *PyThreadState_Swap_p;
 static __typeof__(PyUnicode_AsUCS4)             *PyUnicode_AsUCS4_p;
+
 
 // Python build-in (primitive) types:
 PyTypeObject *PyBool_Type_p;
@@ -152,9 +156,12 @@ static void py_load_all (void) {
     PyBytes_AsStringAndSize_p = py_load("PyBytes_AsStringAndSize");
     PyBytes_Type_p = py_load("PyBytes_Type");
     PyCFunction_Type_p = py_load("PyCFunction_Type");
+    PyComplex_ImagAsDouble_p = py_load("PyComplex_ImagAsDouble");
+    PyComplex_RealAsDouble_p = py_load("PyComplex_RealAsDouble");
     PyComplex_Type_p = py_load("PyComplex_Type");
     PyDictKeys_Type_p = py_load("PyDictKeys_Type");
     PyDict_Type_p = py_load("PyDict_Type");
+    PyFloat_AsDouble_p = py_load("PyFloat_AsDouble");
     PyFloat_Type_p = py_load("PyFloat_Type");
     PyFrozenSet_Type_p = py_load("PyFrozenSet_Type");
     PyList_Type_p = py_load("PyList_Type");
@@ -348,6 +355,36 @@ bool py_bytearray_get (PyObject *x, void **data, size_t *size) {
     }
 
     return false;
+}
+
+// py_complex_get obtains content of the Python complex object.
+// It returns true on success, false on error.
+bool py_complex_get (PyObject *x, double *real, double *imag) {
+    double r = PyComplex_RealAsDouble_p(x);
+    double i = PyComplex_ImagAsDouble_p(x);
+
+    if ((r == -1.0 || i == -1.0) && PyErr_Occurred_p() != NULL) {
+        return false;
+    }
+
+    *real = r;
+    *imag = i;
+
+    return true;
+}
+
+// py_float_get obtains content of the Python float object.
+// It returns true on success, false on error.
+bool py_float_get (PyObject *x, double *val) {
+    double v = PyFloat_AsDouble_p(x);
+
+    if (v == -1.0 && PyErr_Occurred_p() != NULL) {
+        return false;
+    }
+
+    *val = v;
+
+    return true;
 }
 
 // py_long_get obtains PyObject's value as C long.
