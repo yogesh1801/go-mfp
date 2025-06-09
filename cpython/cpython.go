@@ -259,6 +259,7 @@ func (ref pyRef) decodeString(pyobj pyObject) (string, bool) {
 func pyInterpThread(initilized *sync.WaitGroup) {
 	// We need the dedicated thread...
 	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
 
 	// Initialize Python library
 	msg := C.py_init()
@@ -279,6 +280,16 @@ func pyInitErrorCheck(msg *C.char) {
 	if msg != nil {
 		pyInitError = errors.New(C.GoString(msg))
 	}
+}
+
+// pyInitErrorCheckTest is the test interface to the pyInitErrorCheck
+// function. We cannot call pyInitErrorCheck directly from tests, because
+// CGo is not available in the _test.go files, so we cannot construct
+// *C.char string out of there.
+func pyInitErrorCheckTest(s string) {
+	msg := C.CString(s)
+	defer C.free(unsafe.Pointer(msg))
+	pyInitErrorCheck(msg)
 }
 
 // init starts a dedicated Python thread.
