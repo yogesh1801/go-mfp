@@ -24,10 +24,13 @@ func TestObjectFromPython(t *testing.T) {
 		mustfail bool   // Error expected
 	}
 
-	const valbigint = "21267647892944572736998860269687930881"
+	const verybig = "21267647892944572736998860269687930881"
 
-	bigint := big.NewInt(0)
-	bigint.SetString(valbigint, 0)
+	bigint := func(s string) *big.Int {
+		v := big.NewInt(0)
+		v.SetString(s, 0)
+		return v
+	}
 
 	tests := []testData{
 		{expr: `None`, val: nil},
@@ -39,7 +42,9 @@ func TestObjectFromPython(t *testing.T) {
 		{expr: `0`, val: 0},
 		{expr: `0x7fffffff`, val: 0x7fffffff},
 		{expr: `-0x7fffffff`, val: -0x7fffffff},
-		{expr: valbigint, val: bigint},
+		{expr: `0xffffffff`, val: 0xffffffff},
+		{expr: `0xffffffffffffffff`, val: bigint("0xffffffffffffffff")},
+		{expr: verybig, val: bigint(verybig)},
 		{expr: `1/0`, mustfail: true},
 	}
 

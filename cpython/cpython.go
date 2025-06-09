@@ -233,18 +233,17 @@ func (ref pyRef) decodeInteger(pyobj pyObject) (any, bool) {
 // decodeString decodes Python Unicode object as a string.
 func (ref pyRef) decodeString(pyobj pyObject) (string, bool) {
 	sz := C.py_str_len(pyobj)
-	if sz < 0 {
-		return "", false
-	}
+	assert.Must(sz >= 0) // It only happens if PyObject not Unicode
 
+	s := ""
 	if sz > 0 {
 		buf := make([]rune, sz)
 		p := (*C.Py_UCS4)(unsafe.Pointer(&buf[0]))
 		C.py_str_get(pyobj, p, C.size_t(sz))
-		return string(buf), true
+		s = string(buf)
 	}
 
-	return "", true
+	return s, true
 }
 
 // pyInterpThread runs Python dedicated thread.
