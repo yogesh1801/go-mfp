@@ -90,6 +90,14 @@ PyObject *py_obj_repr (PyObject *x);
 // If there is no pending error, all pointers will be set to NULL.
 void py_err_fetch (PyObject **etype, PyObject **evalue, PyObject **trace);
 
+// py_bytes_get obtains content of the Python bytes object.
+// It returns true on success, false on error.
+bool py_bytes_get (PyObject *x, void **data, size_t *size);
+
+// py_bytearray_get obtains content of the Python bytearray object.
+// It returns true on success, false on error.
+bool py_bytearray_get (PyObject *x, void **data, size_t *size);
+
 // py_long_get obtains PyObject's value as C long.
 // If value doesn't fit C long, overflow flag is set.
 //

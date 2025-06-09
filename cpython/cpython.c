@@ -43,6 +43,9 @@ static PyThreadState                            *py_main_thread;
 // with the explicit dlsym(RTLD_DEFAULT, name) call.
 //
 // So these pointers keeps these resolved symbols...
+static __typeof__(PyByteArray_AsString)         *PyByteArray_AsString_p;
+static __typeof__(PyByteArray_Size)             *PyByteArray_Size_p;
+static __typeof__(PyBytes_AsStringAndSize)      *PyBytes_AsStringAndSize_p;
 static __typeof__(Py_CompileString)             *Py_CompileString_p;
 static __typeof__(Py_DecRef)                    *Py_DecRef_p;
 static __typeof__(PyErr_Fetch)                  *PyErr_Fetch_p;
@@ -143,7 +146,10 @@ static void py_load_all (void) {
     PyThreadState_Swap_p = py_load("PyThreadState_Swap");
 
     PyBool_Type_p = py_load("PyBool_Type");
+    PyByteArray_AsString_p = py_load("PyByteArray_AsString");
+    PyByteArray_Size_p = py_load("PyByteArray_Size");
     PyByteArray_Type_p = py_load("PyByteArray_Type");
+    PyBytes_AsStringAndSize_p = py_load("PyBytes_AsStringAndSize");
     PyBytes_Type_p = py_load("PyBytes_Type");
     PyCFunction_Type_p = py_load("PyCFunction_Type");
     PyComplex_Type_p = py_load("PyComplex_Type");
@@ -318,6 +324,30 @@ PyObject *py_obj_repr (PyObject *x) {
 // If there is no pending error, all pointers will be set to NULL.
 void py_err_fetch (PyObject **etype, PyObject **evalue, PyObject **trace) {
     PyErr_Fetch_p(etype, evalue, trace);
+}
+
+// py_bytes_get obtains content of the Python bytes object.
+// It returns true on success, false on error.
+bool py_bytes_get (PyObject *x, void **data, size_t *size) {
+    Py_ssize_t sz = 0;
+    int        rc = PyBytes_AsStringAndSize_p(x, (char**) data, &sz);
+    *size = (size_t) sz;
+    return rc == 0;
+}
+
+// py_bytearray_get obtains content of the Python bytearray object.
+// It returns true on success, false on error.
+bool py_bytearray_get (PyObject *x, void **data, size_t *size) {
+    Py_ssize_t sz = PyByteArray_Size_p(x);
+    char       *bytes = PyByteArray_AsString_p(x);
+
+    if (sz >= 0 && bytes != NULL) {
+        *data = (void*) bytes;
+        *size = (size_t) sz;
+        return true;
+    }
+
+    return false;
 }
 
 // py_long_get obtains PyObject's value as C long.

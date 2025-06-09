@@ -177,7 +177,9 @@ func (ref pyRef) decodeObject(pyobj pyObject) (any, bool) {
 	case C.PyBool_Type_p:
 		return C.py_obj_is_true(pyobj) != 0, true
 	case C.PyByteArray_Type_p:
+		return ref.decodeByteArray(pyobj)
 	case C.PyBytes_Type_p:
+		return ref.decodeBytes(pyobj)
 	case C.PyCFunction_Type_p:
 	case C.PyComplex_Type_p:
 	case C.PyDict_Type_p:
@@ -204,7 +206,42 @@ func (ref pyRef) decodeObject(pyobj pyObject) (any, bool) {
 	return nil, false
 }
 
-// decodeInteger decodes Python object as int or big.Int
+// decodeByteArray decodes Python byte array object as []byte slice.
+//
+// Python byte array is mutable object, so we return a slice,
+// backed by the Python memory.
+func (ref pyRef) decodeByteArray(pyobj pyObject) ([]byte, bool) {
+	var data unsafe.Pointer
+	var size C.size_t
+
+	ok := bool(C.py_bytearray_get(pyobj, &data, &size))
+	var bytes []byte
+	if ok {
+		bytes = unsafe.Slice((*byte)(data), size)
+	}
+
+	return bytes, ok
+}
+
+// decodeBytes decodes Python bytes object as []byte slice.
+//
+// Python bytes are immutable, so we return a copy.
+func (ref pyRef) decodeBytes(pyobj pyObject) ([]byte, bool) {
+	var data unsafe.Pointer
+	var size C.size_t
+
+	ok := bool(C.py_bytes_get(pyobj, &data, &size))
+	var bytes []byte
+	if ok {
+		src := unsafe.Slice((*byte)(data), size)
+		bytes = make([]byte, size, size)
+		copy(bytes, src)
+	}
+
+	return bytes, ok
+}
+
+// decodeInteger decodes Python integer object as int or big.Int
 func (ref pyRef) decodeInteger(pyobj pyObject) (any, bool) {
 	var overflow C.bool
 	var val C.long

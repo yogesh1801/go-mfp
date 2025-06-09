@@ -46,6 +46,8 @@ func TestObjectFromPython(t *testing.T) {
 		{expr: `0xffffffffffffffff`, val: bigint("0xffffffffffffffff")},
 		{expr: verybig, val: bigint(verybig)},
 		{expr: `1/0`, mustfail: true},
+		{expr: `b'\x01\x02\x03'`, val: []byte{0x1, 0x2, 0x3}},
+		{expr: `bytearray(b'\x01\x02\x03')`, val: []byte{0x1, 0x2, 0x3}},
 	}
 
 	py, err := NewPython()
