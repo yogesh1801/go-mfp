@@ -34,6 +34,16 @@ func newObjectFromPython(interp pyInterp, pyobj pyObject,
 	return obj
 }
 
+// Unref decrements Object's reference count.
+// Object should not be accessed after that.
+func (obj *Object) Unref() {
+	ref := pyRefAcquire(obj.interp)
+	defer ref.release()
+
+	ref.unref(obj.pyobj)
+	obj.pyobj = nil
+}
+
 // Unbox returns Object's value as Go value.
 //
 // If Object cannot be represented as a native Go value,

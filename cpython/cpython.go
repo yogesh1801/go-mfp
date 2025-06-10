@@ -149,6 +149,11 @@ func (ref pyRef) lastError() error {
 	return Error{"Unknown Python exception"}
 }
 
+// unref decrements PyObject's reference count.
+func (ref pyRef) unref(pyobj pyObject) {
+	C.py_obj_unref(pyobj)
+}
+
 // str returns str(pyobj), decoded as Go string.
 func (ref pyRef) str(pyobj pyObject) (s string, ok bool) {
 	str := C.py_obj_str(pyobj)

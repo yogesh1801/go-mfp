@@ -82,5 +82,7 @@ func TestObjectFromPython(t *testing.T) {
 				"present:  %#v\n",
 				test.expr, test.val, val)
 		}
+		obj.Unref()
+		obj.Unref()
 	}
 }
