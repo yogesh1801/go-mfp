@@ -35,8 +35,14 @@ type (
 	pyTypeObject = *C.PyTypeObject
 )
 
-// pyInitError holds Python initialization error, if any.
-var pyInitError error
+var (
+	// pyInitError holds Python initialization error, if any.
+	pyInitError error
+
+	// pyNoNativeValue is returned by ref.decodeObject
+	// when Python object is None
+	pyNone = struct{}{}
+)
 
 // pyInterpNewRequestChan is the channel where requests to create
 // new pyInterp are sent to.
@@ -82,13 +88,10 @@ func pyInterpEval(interp pyInterp, s string) (*Object, error) {
 	// Decode result
 	native, ok := ref.decodeObject(pyobj)
 	if !ok {
-		err := ref.lastError()
-		if err != nil {
-			return nil, err
-		}
+		return nil, ref.lastError()
 	}
 
-	return newObjectFromPython(interp, pyobj, native, ok), nil
+	return newObjectFromPython(interp, pyobj, native), nil
 }
 
 // pyRef represents the locked (attached to the current thread
@@ -176,7 +179,47 @@ func (ref pyRef) repr(pyobj pyObject) (s string, ok bool) {
 	return
 }
 
+// delattr deletes Object attribute with the specified name.
+func (ref pyRef) delattr(pyobj pyObject, name string) (ok bool) {
+	cname := C.CString(name)
+	defer C.free(unsafe.Pointer(cname))
+
+	ok = bool(C.py_obj_delattr(pyobj, cname))
+	return
+}
+
+// delattr returns Object attribute with the specified name.
+func (ref pyRef) getattr(pyobj pyObject, name string) (attr pyObject, ok bool) {
+	cname := C.CString(name)
+	defer C.free(unsafe.Pointer(cname))
+
+	ok = bool(C.py_obj_getattr(pyobj, cname, &attr))
+	return
+}
+
+// hasattr reports if Object has attribute with the specified name.
+func (ref pyRef) hasattr(pyobj pyObject, name string) (answer, ok bool) {
+	cname := C.CString(name)
+	defer C.free(unsafe.Pointer(cname))
+
+	var canswer C.bool
+	ok = bool(C.py_obj_hasattr(pyobj, cname, &canswer))
+	answer = bool(canswer)
+
+	return
+}
+
+// setattr sets Object has attribute with the specified name.
+func (ref pyRef) setattr(pyobj pyObject, name string, val pyObject) (ok bool) {
+	cname := C.CString(name)
+	defer C.free(unsafe.Pointer(cname))
+
+	ok = bool(C.py_obj_setattr(pyobj, cname, val))
+	return
+}
+
 // decodeObject decodes PyObject value as Go value.
+// It returns pyNone for Python None and nil if native Go value not available.
 func (ref pyRef) decodeObject(pyobj pyObject) (any, bool) {
 	switch pyObjectType(pyobj) {
 	case C.PyBool_Type_p:
@@ -206,11 +249,11 @@ func (ref pyRef) decodeObject(pyobj pyObject) (any, bool) {
 		return ref.decodeString(pyobj)
 	default:
 		if C.py_obj_is_none(pyobj) != 0 {
-			return nil, true
+			return pyNone, true
 		}
 	}
 
-	return nil, false
+	return nil, true
 }
 
 // decodeComplex decodes Python complex number object.

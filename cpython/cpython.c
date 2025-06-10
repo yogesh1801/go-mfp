@@ -63,7 +63,10 @@ static __typeof__(PyInterpreterState_Delete)    *PyInterpreterState_Delete_p;
 static __typeof__(PyLong_AsLongAndOverflow)     *PyLong_AsLongAndOverflow_p;
 static __typeof__(PyModule_GetDict)             *PyModule_GetDict_p;
 static __typeof__(Py_NewInterpreter)            *Py_NewInterpreter_p;
+static __typeof__(PyObject_GetAttrString)       *PyObject_GetAttrString_p;
+static __typeof__(PyObject_HasAttrString)       *PyObject_HasAttrString_p;
 static __typeof__(PyObject_Repr)                *PyObject_Repr_p;
+static __typeof__(PyObject_SetAttrString)       *PyObject_SetAttrString_p;
 static __typeof__(PyObject_Str)                 *PyObject_Str_p;
 static __typeof__(PyThreadState_Clear)          *PyThreadState_Clear_p;
 static __typeof__(PyThreadState_Delete)         *PyThreadState_Delete_p;
@@ -72,7 +75,6 @@ static __typeof__(PyThreadState_Get)            *PyThreadState_Get_p;
 static __typeof__(PyThreadState_New)            *PyThreadState_New_p;
 static __typeof__(PyThreadState_Swap)           *PyThreadState_Swap_p;
 static __typeof__(PyUnicode_AsUCS4)             *PyUnicode_AsUCS4_p;
-
 
 // Python build-in (primitive) types:
 PyTypeObject *PyBool_Type_p;
@@ -168,7 +170,10 @@ static void py_load_all (void) {
     PyLong_Type_p = py_load("PyLong_Type");
     PyMemoryView_Type_p = py_load("PyMemoryView_Type");
     PyModule_Type_p = py_load("PyModule_Type");
+    PyObject_GetAttrString_p = py_load("PyObject_GetAttrString");
+    PyObject_HasAttrString_p = py_load("PyObject_HasAttrString");
     PyObject_Repr_p = py_load("PyObject_Repr");
+    PyObject_SetAttrString_p = py_load("PyObject_SetAttrString");
     PyObject_Str_p = py_load("PyObject_Str");
     PySet_Type_p = py_load("PySet_Type");
     PySlice_Type_p = py_load("PySlice_Type");
@@ -325,6 +330,36 @@ PyObject *py_obj_str (PyObject *x) {
 //   - Use py_obj_repr if you want to process the string
 PyObject *py_obj_repr (PyObject *x) {
     return PyObject_Repr_p(x);
+}
+
+// py_obj_hasattr reports if PyObject has the attribute with the
+// specified name.
+//
+// It returns true on success, false on error and puts answer into
+// its third parameter.
+bool py_obj_hasattr(PyObject *x, const char *name, bool *answer) {
+    *answer = PyObject_HasAttrString_p(x, name) != 0;
+    return true;
+}
+
+// py_obj_hasattr deletes the attribute with the specified name.
+// It returns true on success, false on error.
+bool py_obj_delattr(PyObject *x, const char *name) {
+    return py_obj_setattr(x, name, NULL);
+}
+
+// py_obj_hasattr retrieves the attribute with the specified name.
+// It returns true on success, false on error.
+bool py_obj_getattr(PyObject *x, const char *name, PyObject **answer) {
+    PyObject *attr = PyObject_GetAttrString_p(x, name);
+    *answer = attr;
+    return attr != NULL;
+}
+
+// py_obj_hasattr sets the attribute with the specified name.
+// It returns true on success, false on error.
+bool py_obj_setattr(PyObject *x, const char *name, PyObject *value) {
+    return PyObject_SetAttrString_p(x, name, value) == 0;
 }
 
 // py_err_fetch fetches and clears last error.a

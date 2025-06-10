@@ -19,16 +19,16 @@ type Object struct {
 }
 
 // newObjectFromPython constructs new Object, decoded from PyObject.
-// If nativeOk is false, the Object't native value becomes reference
-// to the object itself.
-func newObjectFromPython(interp pyInterp, pyobj pyObject,
-	native any, nativeOk bool) *Object {
+// If native is nil, it means, native Go value not available for
+// the object. Python None passed as pyNone.
+func newObjectFromPython(interp pyInterp, pyobj pyObject, native any) *Object {
+	obj := &Object{interp: interp, pyobj: pyobj, native: native}
 
-	obj := &Object{interp: interp, pyobj: pyobj}
-	obj.native = obj
-
-	if nativeOk {
-		obj.native = native
+	switch native {
+	case nil:
+		obj.native = obj
+	case pyNone:
+		obj.native = nil
 	}
 
 	return obj
@@ -42,6 +42,93 @@ func (obj *Object) Unref() {
 
 	ref.unref(obj.pyobj)
 	obj.pyobj = nil
+}
+
+// DelAttr deletes Object attribute with the specified name.
+// It returns:
+//   - (true, nil) if attribute was found and deleted
+//   - (false, nil) if attribute was not found
+//   - (false, error) in a case of error
+func (obj *Object) DelAttr(name string) (bool, error) {
+	ref := pyRefAcquire(obj.interp)
+	defer ref.release()
+
+	found, ok := ref.hasattr(obj.pyobj, name)
+	if found && ok {
+		ok = ref.delattr(obj.pyobj, name)
+	}
+
+	if !ok {
+		return false, ref.lastError()
+	}
+
+	return found, nil
+}
+
+// GetAttr returns Object attribute with the specified name.
+// This is the equivalent of the Python expression obj.name
+//
+// It returns:
+//   - (*Object, nil) if attribute was found
+//   - (nil, nil) if attribute was not found
+//   - (nil, error) in a case of error
+func (obj *Object) GetAttr(name string) (*Object, error) {
+	ref := pyRefAcquire(obj.interp)
+	defer ref.release()
+
+	// Check if attribute exists
+	found, ok := ref.hasattr(obj.pyobj, name)
+	if !found && ok {
+		return nil, nil
+	}
+
+	// Try to get
+	var pyattr pyObject
+	if ok {
+		pyattr, ok = ref.getattr(obj.pyobj, name)
+	}
+
+	// Try to decode
+	var native any
+	if ok {
+		native, ok = ref.decodeObject(pyattr)
+	}
+
+	// Handle possible error
+	if !ok {
+		return nil, ref.lastError()
+	}
+
+	// Create the attribute object
+	attr := newObjectFromPython(obj.interp, pyattr, native)
+	return attr, nil
+}
+
+// HasAttr reports if Object has the attribute with the specified name.
+// This is equivalent to the Python expression hasattr(obj, name).
+func (obj *Object) HasAttr(name string) (bool, error) {
+	ref := pyRefAcquire(obj.interp)
+	defer ref.release()
+
+	has, ok := ref.hasattr(obj.pyobj, name)
+	if !ok {
+		return false, ref.lastError()
+	}
+	return has, nil
+}
+
+// SetAttr sets Object attribute with the specified name.
+// This is the equivalent of the Python statement obj.name = val
+func (obj *Object) SetAttr(name string, val *Object) error {
+	ref := pyRefAcquire(obj.interp)
+	defer ref.release()
+
+	ok := ref.setattr(obj.pyobj, name, val.pyobj)
+	if !ok {
+		return ref.lastError()
+	}
+
+	return nil
 }
 
 // Unbox returns Object's value as Go value.

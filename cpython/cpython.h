@@ -86,6 +86,25 @@ PyObject *py_obj_str (PyObject *x);
 //   - Use py_obj_repr if you want to process the string
 PyObject *py_obj_repr (PyObject *x);
 
+// py_obj_hasattr reports if PyObject has the attribute with the
+// specified name.
+//
+// It returns true on success, false on error and puts answer into
+// its third parameter.
+bool py_obj_hasattr(PyObject *x, const char *name, bool *answer);
+
+// py_obj_hasattr deletes the attribute with the specified name.
+// It returns true on success, false on error.
+bool py_obj_delattr(PyObject *x, const char *name);
+
+// py_obj_hasattr retrieves the attribute with the specified name.
+// It returns true on success, false on error.
+bool py_obj_getattr(PyObject *x, const char *name, PyObject **answer);
+
+// py_obj_hasattr sets the attribute with the specified name.
+// It returns true on success, false on error.
+bool py_obj_setattr(PyObject *x, const char *name, PyObject *value);
+
 // py_err_fetch fetches and clears last error.
 // If there is no pending error, all pointers will be set to NULL.
 void py_err_fetch (PyObject **etype, PyObject **evalue, PyObject **trace);
