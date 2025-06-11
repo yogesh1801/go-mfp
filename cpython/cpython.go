@@ -70,22 +70,38 @@ func pyInterpDelete(interp pyInterp) {
 }
 
 // pyInterpEval evaluates string as a Python statement.
-func pyInterpEval(interp pyInterp, s string) (*Object, error) {
+//
+// The name parameter indicates the Python source file name and
+// used only for diagnostic messages.
+//
+// If expr is true, input interpreted as a Python expression and
+// on success, its result returned as a *Object. Otherwise, input
+// interpreted as a multi-line Python script, and returned *Object
+// will be nil.
+func pyInterpEval(interp pyInterp, s, name string, expr bool) (*Object, error) {
 	// Lock the interpreter
 	ref := pyRefAcquire(interp)
 	defer ref.release()
 
-	// Convert expression to the C string
+	// Convert expression and filename to the C strings
 	cs := C.CString(s)
 	defer C.free(unsafe.Pointer(cs))
 
+	cname := C.CString(name)
+	defer C.free(unsafe.Pointer(cname))
+
 	// Execute the expression
-	pyobj := C.py_interp_eval(cs)
-	if pyobj == nil {
+	var pyobj pyObject
+	ok := bool(C.py_interp_eval(cs, cname, C.bool(expr), &pyobj))
+	if !ok {
 		return nil, ref.lastError()
 	}
 
 	// Decode result
+	if pyobj == nil {
+		return nil, nil
+	}
+
 	native, ok := ref.decodeObject(pyobj)
 	if !ok {
 		return nil, ref.lastError()

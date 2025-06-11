@@ -31,7 +31,14 @@ func (py *Python) Close() {
 	pyInterpDelete(py.interp)
 }
 
-// Eval evaluates string as a Python statement and returns its value.
+// Eval evaluates string as a Python expression and returns its value.
 func (py *Python) Eval(s string) (*Object, error) {
-	return pyInterpEval(py.interp, s)
+	return pyInterpEval(py.interp, s, "", true)
+}
+
+// Exec evaluates string as a Python script.
+// The filename parameter specifies the Python source file name
+// and used only for diagnostic.
+func (py *Python) Exec(s, filename string) (*Object, error) {
+	return pyInterpEval(py.interp, s, filename, false)
 }

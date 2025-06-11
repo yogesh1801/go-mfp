@@ -42,10 +42,18 @@ PyThreadState *py_enter (PyInterpreterState *interp);
 // corresponding py_enter call.
 void py_leave (PyThreadState *prev);
 
-// py_interp_eval evaluates string as a Python statement.
+// py_interp_eval evaluates string as a Python statement or expression.
 // It returns Python value of the executed statement on
 // success, NULL in a case of any error.
-PyObject *py_interp_eval (const char *s);
+//
+// The name parameter is used for diagnostics messages and
+// indicated the input file name.
+//
+// If expr is true, this function evaluates Python expression and
+// saves its result into res. Otherwise, it evaluates a multi-line
+// Python script and don't return any PyObject (sets *res to NULL)
+bool py_interp_eval (const char *s, const char *file,
+                     bool expr, PyObject **res);
 
 // py_obj_is_none reports if PyObject is None.
 static inline int py_obj_is_none (PyObject *x) {

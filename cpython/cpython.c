@@ -277,32 +277,49 @@ void py_interp_close (PyInterpreterState *interp) {
     PyInterpreterState_Delete_p(interp);
 }
 
-// py_interp_eval evaluates string as a Python statement.
+// py_interp_eval evaluates string as a Python statement or expression.
 // It returns Python value of the executed statement on
 // success, NULL in a case of any error.
-PyObject *py_interp_eval (const char *s) {
+//
+// The name parameter is used for diagnostics messages and
+// indicated the input file name.
+//
+// If expr is true, this function evaluates Python expression and
+// saves its result into res. Otherwise, it evaluates a multi-line
+// Python script and don't return any PyObject (sets *res to NULL)
+bool py_interp_eval (const char *s, const char *file,
+                     bool expr, PyObject **res) {
     // Obtain the __main__ module reference and its namespace
     PyObject *main_module = PyImport_AddModule_p("__main__");
     if (main_module == NULL) {
-        return NULL;
+        return false;
     }
 
     PyObject *dict = PyModule_GetDict_p(main_module);
 
     // Compile the statement
-    PyObject *code = Py_CompileString_p(s, "__main__", Py_eval_input);
+    int      mode = expr ? Py_eval_input : Py_file_input;
+    PyObject *code = Py_CompileString_p(s, file, mode);
     if (code == NULL) {
-        return NULL;
+        return false;
     }
 
-    // Execute the statement
-    PyObject *res = PyEval_EvalCode_p(code, dict, dict);
-
-    // Release allocated objects
+    // Execute the statement, release code object
+    PyObject *ret = PyEval_EvalCode_p(code, dict, dict);
     Py_DecRef_p(code);
 
-    // Cleanup and exit.
-    return res;
+    // Now interpret the result
+    if (ret == NULL) {
+        return false;
+    }
+
+    if (!expr) {
+        Py_DecRef_p(ret);
+        ret = NULL;
+    }
+
+    *res = ret;
+    return true;
 }
 
 // py_obj_unref decrements the PyObject's reference count.
