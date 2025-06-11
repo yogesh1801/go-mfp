@@ -8,6 +8,11 @@
 
 package cpython
 
+import (
+	"fmt"
+	"runtime"
+)
+
 // Python represents a Python interpreter.
 // There are may be many interpreters within a single process.
 // Each has its own namespace and isolated from others.
@@ -33,7 +38,15 @@ func (py *Python) Close() {
 
 // Eval evaluates string as a Python expression and returns its value.
 func (py *Python) Eval(s string) (*Object, error) {
-	return pyInterpEval(py.interp, s, "", true)
+	filename := "<Python.Eval>"
+	pc := make([]uintptr, 1)
+	if n := runtime.Callers(2, pc); n > 0 {
+		frames := runtime.CallersFrames(pc)
+		frame, _ := frames.Next()
+		filename = fmt.Sprintf("<%s:%d>", frame.File, frame.Line)
+	}
+
+	return pyInterpEval(py.interp, s, filename, true)
 }
 
 // Exec evaluates string as a Python script.
