@@ -86,3 +86,80 @@ func TestObjectFromPython(t *testing.T) {
 		obj.Unref()
 	}
 }
+
+// TestObjectAttributes tests operations with object attributes.
+func TestObjectAttributes(t *testing.T) {
+	script := `
+class Dog:
+    # Class attribute
+    species = "Canis familiaris"
+
+    def __init__(self, name, age):
+        # Instance attributes
+        self.name = name
+        self.age = age
+
+# Creating instances of the Dog class
+dog = Dog("Archi", 4)
+`
+
+	py, err := NewPython()
+	assert.NoError(err)
+	defer py.Close()
+
+	err = py.Exec(script, "")
+	assert.NoError(err)
+
+	obj, err := py.Eval("dog")
+	assert.NoError(err)
+
+	defer obj.Unref()
+
+	found, err := obj.HasAttr("name")
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+
+	if !found {
+		t.Errorf("Attribute %q expected but not found", "name")
+	}
+
+	found, err = obj.HasAttr("unknown")
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+
+	if found {
+		t.Errorf("Attribute not %q expected but found", "unknown")
+	}
+
+	attr, err := obj.GetAttr("name")
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	} else {
+		if attr.Unbox() != "Archi" {
+			t.Errorf("obj.GetAttr mismatch:\n"+
+				"expected: %s\n"+
+				"present:  %s\n", "Archi", attr.Unbox())
+		}
+		attr.Unref()
+	}
+
+	deleted, err := obj.DelAttr("name")
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+
+	if !deleted {
+		t.Errorf("obj.DelAttr: attribute %s not deleted", "name")
+	}
+
+	found, err = obj.HasAttr("name")
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+
+	if found {
+		t.Errorf("Deleted attribute %q still present", "name")
+	}
+}
