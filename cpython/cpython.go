@@ -39,7 +39,7 @@ var (
 	// pyInitError holds Python initialization error, if any.
 	pyInitError error
 
-	// pyNoNativeValue is returned by ref.decodeObject
+	// pyNoNativeValue is returned by gate.decodeObject
 	// when Python object is None
 	pyNone = struct{}{}
 )
@@ -80,8 +80,8 @@ func pyInterpDelete(interp pyInterp) {
 // will be nil.
 func pyInterpEval(interp pyInterp, s, name string, expr bool) (*Object, error) {
 	// Lock the interpreter
-	ref := pyRefAcquire(interp)
-	defer ref.release()
+	gate := pyGateAcquire(interp)
+	defer gate.release()
 
 	// Convert expression and filename to the C strings
 	cs := C.CString(s)
@@ -94,7 +94,7 @@ func pyInterpEval(interp pyInterp, s, name string, expr bool) (*Object, error) {
 	var pyobj pyObject
 	ok := bool(C.py_interp_eval(cs, cname, C.bool(expr), &pyobj))
 	if !ok {
-		return nil, ref.lastError()
+		return nil, gate.lastError()
 	}
 
 	// Decode result
@@ -102,42 +102,42 @@ func pyInterpEval(interp pyInterp, s, name string, expr bool) (*Object, error) {
 		return nil, nil
 	}
 
-	native, ok := ref.decodeObject(pyobj)
+	native, ok := gate.decodeObject(pyobj)
 	if !ok {
-		return nil, ref.lastError()
+		return nil, gate.lastError()
 	}
 
 	return newObjectFromPython(interp, pyobj, native), nil
 }
 
-// pyRef represents the locked (attached to the current thread
+// pyGate represents the locked (attached to the current thread
 // and with the GIL acquired) state of the Python interpreter.
 //
-// It works as a reference to the interpreter and implements
+// It works as a call gate into the interpreter and implements
 // all interpreter operations that require locking.
-type pyRef struct {
+type pyGate struct {
 	prev *C.PyThreadState // Previous current thread state
 }
 
-// pyRefAcquire temporary attaches the calling thread to the
+// pyGateAcquire temporary attaches the calling thread to the
 // Python interpreter.
 //
-// It returns the pyRef object, that must be released after
-// use with the [pyRef.release] call.
-func pyRefAcquire(interp pyInterp) pyRef {
+// It returns the pyGate object, that must be released after
+// use with the [pyGate.release] call.
+func pyGateAcquire(interp pyInterp) pyGate {
 	runtime.LockOSThread()
 	prev := C.py_enter(interp)
-	return pyRef{prev}
+	return pyGate{prev}
 }
 
 // release detaches the calling thread from the Python interpreter.
-func (ref pyRef) release() {
-	C.py_leave(ref.prev)
+func (gate pyGate) release() {
+	C.py_leave(gate.prev)
 	runtime.UnlockOSThread()
 }
 
 // lastError returns a last error, nil if none.
-func (ref pyRef) lastError() error {
+func (gate pyGate) lastError() error {
 	var etype, evalue, trace pyObject
 
 	// Fetch Python error information
@@ -152,14 +152,14 @@ func (ref pyRef) lastError() error {
 
 	// Decode the error
 	if evalue != nil {
-		msg, ok := ref.str(evalue)
+		msg, ok := gate.str(evalue)
 		if ok {
 			return Error{msg}
 		}
 	}
 
 	if etype != nil {
-		msg, ok := ref.str(evalue)
+		msg, ok := gate.str(evalue)
 		if ok {
 			return Error{msg}
 		}
@@ -169,34 +169,34 @@ func (ref pyRef) lastError() error {
 }
 
 // unref decrements PyObject's reference count.
-func (ref pyRef) unref(pyobj pyObject) {
+func (gate pyGate) unref(pyobj pyObject) {
 	C.py_obj_unref(pyobj)
 }
 
 // str returns str(pyobj), decoded as Go string.
-func (ref pyRef) str(pyobj pyObject) (s string, ok bool) {
+func (gate pyGate) str(pyobj pyObject) (s string, ok bool) {
 	str := C.py_obj_str(pyobj)
 	if str != nil {
 		defer C.py_obj_unref(str)
-		s, ok = ref.decodeString(str)
+		s, ok = gate.decodeString(str)
 	}
 
 	return
 }
 
 // repr returns repr(pyobj), decoded as Go string.
-func (ref pyRef) repr(pyobj pyObject) (s string, ok bool) {
+func (gate pyGate) repr(pyobj pyObject) (s string, ok bool) {
 	repr := C.py_obj_repr(pyobj)
 	if repr != nil {
 		defer C.py_obj_unref(repr)
-		s, ok = ref.decodeString(repr)
+		s, ok = gate.decodeString(repr)
 	}
 
 	return
 }
 
 // delattr deletes Object attribute with the specified name.
-func (ref pyRef) delattr(pyobj pyObject, name string) (ok bool) {
+func (gate pyGate) delattr(pyobj pyObject, name string) (ok bool) {
 	cname := C.CString(name)
 	defer C.free(unsafe.Pointer(cname))
 
@@ -205,7 +205,7 @@ func (ref pyRef) delattr(pyobj pyObject, name string) (ok bool) {
 }
 
 // delattr returns Object attribute with the specified name.
-func (ref pyRef) getattr(pyobj pyObject, name string) (attr pyObject, ok bool) {
+func (gate pyGate) getattr(pyobj pyObject, name string) (attr pyObject, ok bool) {
 	cname := C.CString(name)
 	defer C.free(unsafe.Pointer(cname))
 
@@ -214,7 +214,7 @@ func (ref pyRef) getattr(pyobj pyObject, name string) (attr pyObject, ok bool) {
 }
 
 // hasattr reports if Object has attribute with the specified name.
-func (ref pyRef) hasattr(pyobj pyObject, name string) (answer, ok bool) {
+func (gate pyGate) hasattr(pyobj pyObject, name string) (answer, ok bool) {
 	cname := C.CString(name)
 	defer C.free(unsafe.Pointer(cname))
 
@@ -226,7 +226,7 @@ func (ref pyRef) hasattr(pyobj pyObject, name string) (answer, ok bool) {
 }
 
 // setattr sets Object has attribute with the specified name.
-func (ref pyRef) setattr(pyobj pyObject, name string, val pyObject) (ok bool) {
+func (gate pyGate) setattr(pyobj pyObject, name string, val pyObject) (ok bool) {
 	cname := C.CString(name)
 	defer C.free(unsafe.Pointer(cname))
 
@@ -236,25 +236,25 @@ func (ref pyRef) setattr(pyobj pyObject, name string, val pyObject) (ok bool) {
 
 // decodeObject decodes PyObject value as Go value.
 // It returns pyNone for Python None and nil if native Go value not available.
-func (ref pyRef) decodeObject(pyobj pyObject) (any, bool) {
+func (gate pyGate) decodeObject(pyobj pyObject) (any, bool) {
 	switch pyObjectType(pyobj) {
 	case C.PyBool_Type_p:
 		return C.py_obj_is_true(pyobj) != 0, true
 	case C.PyByteArray_Type_p:
-		return ref.decodeByteArray(pyobj)
+		return gate.decodeByteArray(pyobj)
 	case C.PyBytes_Type_p:
-		return ref.decodeBytes(pyobj)
+		return gate.decodeBytes(pyobj)
 	case C.PyCFunction_Type_p:
 	case C.PyComplex_Type_p:
-		return ref.decodeComplex(pyobj)
+		return gate.decodeComplex(pyobj)
 	case C.PyDict_Type_p:
 	case C.PyDictKeys_Type_p:
 	case C.PyFloat_Type_p:
-		return ref.decodeFloat(pyobj)
+		return gate.decodeFloat(pyobj)
 	case C.PyFrozenSet_Type_p:
 	case C.PyList_Type_p:
 	case C.PyLong_Type_p:
-		return ref.decodeInteger(pyobj)
+		return gate.decodeInteger(pyobj)
 	case C.PyMemoryView_Type_p:
 	case C.PyModule_Type_p:
 	case C.PySet_Type_p:
@@ -262,7 +262,7 @@ func (ref pyRef) decodeObject(pyobj pyObject) (any, bool) {
 	case C.PyTuple_Type_p:
 	case C.PyType_Type_p:
 	case C.PyUnicode_Type_p:
-		return ref.decodeString(pyobj)
+		return gate.decodeString(pyobj)
 	default:
 		if C.py_obj_is_none(pyobj) != 0 {
 			return pyNone, true
@@ -273,7 +273,7 @@ func (ref pyRef) decodeObject(pyobj pyObject) (any, bool) {
 }
 
 // decodeComplex decodes Python complex number object.
-func (ref pyRef) decodeComplex(pyobj pyObject) (complex128, bool) {
+func (gate pyGate) decodeComplex(pyobj pyObject) (complex128, bool) {
 	var real, imag C.double
 
 	ok := bool(C.py_complex_get(pyobj, &real, &imag))
@@ -286,7 +286,7 @@ func (ref pyRef) decodeComplex(pyobj pyObject) (complex128, bool) {
 }
 
 // decodeFloat decodes Python float number object.
-func (ref pyRef) decodeFloat(pyobj pyObject) (float64, bool) {
+func (gate pyGate) decodeFloat(pyobj pyObject) (float64, bool) {
 	var val C.double
 
 	ok := bool(C.py_float_get(pyobj, &val))
@@ -298,7 +298,7 @@ func (ref pyRef) decodeFloat(pyobj pyObject) (float64, bool) {
 //
 // Python byte array is mutable object, so we return a slice,
 // backed by the Python memory.
-func (ref pyRef) decodeByteArray(pyobj pyObject) ([]byte, bool) {
+func (gate pyGate) decodeByteArray(pyobj pyObject) ([]byte, bool) {
 	var data unsafe.Pointer
 	var size C.size_t
 
@@ -314,7 +314,7 @@ func (ref pyRef) decodeByteArray(pyobj pyObject) ([]byte, bool) {
 // decodeBytes decodes Python bytes object as []byte slice.
 //
 // Python bytes are immutable, so we return a copy.
-func (ref pyRef) decodeBytes(pyobj pyObject) ([]byte, bool) {
+func (gate pyGate) decodeBytes(pyobj pyObject) ([]byte, bool) {
 	var data unsafe.Pointer
 	var size C.size_t
 
@@ -330,7 +330,7 @@ func (ref pyRef) decodeBytes(pyobj pyObject) ([]byte, bool) {
 }
 
 // decodeInteger decodes Python integer object as int or big.Int
-func (ref pyRef) decodeInteger(pyobj pyObject) (any, bool) {
+func (gate pyGate) decodeInteger(pyobj pyObject) (any, bool) {
 	var overflow C.bool
 	var val C.long
 
@@ -343,7 +343,7 @@ func (ref pyRef) decodeInteger(pyobj pyObject) (any, bool) {
 		return int(val), true
 	}
 
-	s, ok := ref.repr(pyobj)
+	s, ok := gate.repr(pyobj)
 	if !ok {
 		return nil, false
 	}
@@ -356,7 +356,7 @@ func (ref pyRef) decodeInteger(pyobj pyObject) (any, bool) {
 }
 
 // decodeString decodes Python Unicode object as a string.
-func (ref pyRef) decodeString(pyobj pyObject) (string, bool) {
+func (gate pyGate) decodeString(pyobj pyObject) (string, bool) {
 	sz := C.py_str_len(pyobj)
 	assert.Must(sz >= 0) // It only happens if PyObject not Unicode
 
