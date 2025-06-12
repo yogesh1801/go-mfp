@@ -40,7 +40,6 @@ func TestPython(t *testing.T) {
 				"hello", res.Unbox())
 		}
 
-		res.Unref()
 		py.Close()
 	}
 

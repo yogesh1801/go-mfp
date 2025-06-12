@@ -10,19 +10,23 @@ package cpython
 
 // #include "cpython.h"
 import "C"
+import "runtime"
 
-// Object represents a Python value
+// Object represents a Python value.
+//
+// Objects lifetime is managed by the Go garbage collector.
+// There is no need to explicitly release the Objects.
 type Object struct {
-	py     *Python  // Interpreter that owns the Object
-	pyobj  pyObject // Underlying *C.PyObject
-	native any      // Native Go value (may be *Object)
+	py     *Python // Interpreter that owns the Object
+	oid    objid   // Object ID of the underlying *C.PyObject
+	native any     // Native Go value (may be *Object itself)
 }
 
 // newObjectFromPython constructs new Object, decoded from PyObject.
 // If native is nil, it means, native Go value not available for
 // the object. Python None passed as pyNone.
-func newObjectFromPython(py *Python, pyobj pyObject, native any) *Object {
-	obj := &Object{py: py, pyobj: pyobj, native: native}
+func newObjectFromPython(py *Python, oid objid, native any) *Object {
+	obj := &Object{py: py, oid: oid, native: native}
 
 	switch native {
 	case nil:
@@ -31,17 +35,22 @@ func newObjectFromPython(py *Python, pyobj pyObject, native any) *Object {
 		obj.native = nil
 	}
 
+	runtime.SetFinalizer(obj, func(obj *Object) {
+		obj.finalizer()
+	})
+
 	return obj
 }
 
-// Unref decrements Object's reference count.
-// Object should not be accessed after that.
-func (obj *Object) Unref() {
-	gate := obj.py.gate()
-	defer gate.release()
+// finalizer is called when Object is garbage-collected.
+// It released *C.PyObject, associated with the Object.
+func (obj *Object) finalizer() {
+	if !obj.py.closed() {
+		gate := obj.py.gate()
+		defer gate.release()
 
-	gate.unref(obj.pyobj)
-	obj.pyobj = nil
+		obj.py.delObjID(gate, obj.oid)
+	}
 }
 
 // DelAttr deletes Object attribute with the specified name.
@@ -53,9 +62,11 @@ func (obj *Object) DelAttr(name string) (bool, error) {
 	gate := obj.py.gate()
 	defer gate.release()
 
-	found, ok := gate.hasattr(obj.pyobj, name)
+	pyobj := obj.py.lookupObjID(gate, obj.oid)
+
+	found, ok := gate.hasattr(pyobj, name)
 	if found && ok {
-		ok = gate.delattr(obj.pyobj, name)
+		ok = gate.delattr(pyobj, name)
 	}
 
 	if !ok {
@@ -77,7 +88,9 @@ func (obj *Object) GetAttr(name string) (*Object, error) {
 	defer gate.release()
 
 	// Check if attribute exists
-	found, ok := gate.hasattr(obj.pyobj, name)
+	pyobj := obj.py.lookupObjID(gate, obj.oid)
+
+	found, ok := gate.hasattr(pyobj, name)
 	if !found && ok {
 		return nil, nil
 	}
@@ -85,7 +98,7 @@ func (obj *Object) GetAttr(name string) (*Object, error) {
 	// Try to get
 	var pyattr pyObject
 	if ok {
-		pyattr, ok = gate.getattr(obj.pyobj, name)
+		pyattr, ok = gate.getattr(pyobj, name)
 	}
 
 	// Try to decode
@@ -100,7 +113,9 @@ func (obj *Object) GetAttr(name string) (*Object, error) {
 	}
 
 	// Create the attribute object
-	attr := newObjectFromPython(obj.py, pyattr, native)
+	attrid := obj.py.newObjID(gate, pyattr)
+	attr := newObjectFromPython(obj.py, attrid, native)
+
 	return attr, nil
 }
 
@@ -110,7 +125,9 @@ func (obj *Object) HasAttr(name string) (bool, error) {
 	gate := obj.py.gate()
 	defer gate.release()
 
-	has, ok := gate.hasattr(obj.pyobj, name)
+	pyobj := obj.py.lookupObjID(gate, obj.oid)
+
+	has, ok := gate.hasattr(pyobj, name)
 	if !ok {
 		return false, gate.lastError()
 	}
@@ -123,7 +140,10 @@ func (obj *Object) SetAttr(name string, val *Object) error {
 	gate := obj.py.gate()
 	defer gate.release()
 
-	ok := gate.setattr(obj.pyobj, name, val.pyobj)
+	pyobj := obj.py.lookupObjID(gate, obj.oid)
+	valobj := obj.py.lookupObjID(gate, val.oid)
+
+	ok := gate.setattr(pyobj, name, valobj)
 	if !ok {
 		return gate.lastError()
 	}

@@ -17,14 +17,18 @@ import (
 // There are may be many interpreters within a single process.
 // Each has its own namespace and isolated from others.
 type Python struct {
-	interp pyInterp
+	interp  pyInterp // Underlying *C.PyInterpreterState
+	objects *objmap  // Objects owned by the interpreter
 }
 
 // NewPython creates a new Python interpreter.
 func NewPython() (py *Python, err error) {
 	interp, err := pyNewInterp()
 	if err == nil {
-		py = &Python{interp}
+		py = &Python{
+			interp:  interp,
+			objects: newObjmap(),
+		}
 	}
 
 	return
@@ -33,7 +37,17 @@ func NewPython() (py *Python, err error) {
 // Close closes the [Python] interpreter and releases all
 // resources it holds.
 func (py *Python) Close() {
+	gate := py.gate()
+	py.objects.purge(gate)
+	gate.release()
+
 	pyInterpDelete(py.interp)
+	py.interp = nil
+}
+
+// closed reports if interpreter is closed.
+func (py *Python) closed() bool {
+	return py.interp == nil
 }
 
 // Eval evaluates string as a Python expression and returns its value.
@@ -81,11 +95,27 @@ func (py *Python) eval(s, filename string, expr bool) (*Object, error) {
 		return nil, gate.lastError()
 	}
 
-	obj := newObjectFromPython(py, pyobj, native)
+	oid := py.newObjID(gate, pyobj)
+	obj := newObjectFromPython(py, oid, native)
 	return obj, err
 }
 
 // gate is the convenience wrapper for pyGateAcquire(py.interp)
 func (py *Python) gate() pyGate {
 	return pyGateAcquire(py.interp)
+}
+
+// newObjID allocates new objiD for the *C.PyObject.
+func (py *Python) newObjID(gate pyGate, obj pyObject) objid {
+	return py.objects.put(gate, obj)
+}
+
+// delObjID deletes *C.PyObject by objid
+func (py *Python) delObjID(gate pyGate, oid objid) {
+	py.objects.del(gate, oid)
+}
+
+// lookupObjID return *C.PyObject by objid
+func (py *Python) lookupObjID(gate pyGate, oid objid) pyObject {
+	return py.objects.get(gate, oid)
 }

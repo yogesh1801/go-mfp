@@ -11,6 +11,7 @@ package cpython
 import (
 	"math/big"
 	"reflect"
+	"runtime"
 	"testing"
 
 	"github.com/OpenPrinting/go-mfp/internal/assert"
@@ -82,8 +83,6 @@ func TestObjectFromPython(t *testing.T) {
 				"present:  %#v\n",
 				test.expr, test.val, val)
 		}
-		obj.Unref()
-		obj.Unref()
 	}
 }
 
@@ -113,8 +112,6 @@ dog = Dog("Archi", 4)
 	obj, err := py.Eval("dog")
 	assert.NoError(err)
 
-	defer obj.Unref()
-
 	found, err := obj.HasAttr("name")
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
@@ -142,7 +139,6 @@ dog = Dog("Archi", 4)
 				"expected: %s\n"+
 				"present:  %s\n", "Archi", attr.Unbox())
 		}
-		attr.Unref()
 	}
 
 	deleted, err := obj.DelAttr("name")
@@ -161,5 +157,25 @@ dog = Dog("Archi", 4)
 
 	if found {
 		t.Errorf("Deleted attribute %q still present", "name")
+	}
+}
+
+// TestObjectGC tests how objects are garbage-collected
+func TestObjectGC(t *testing.T) {
+	py, err := NewPython()
+	assert.NoError(err)
+
+	_, err = py.Eval("5")
+	assert.NoError(err)
+
+	if len(py.objects.mapped) != 1 {
+		t.Errorf("TestObjectGC: looks object is not properly mapped")
+	}
+
+	runtime.GC()
+	runtime.GC()
+
+	if len(py.objects.mapped) != 0 {
+		t.Errorf("TestObjectGC: looks object GS doesn't work")
 	}
 }
