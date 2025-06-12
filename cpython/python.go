@@ -47,9 +47,10 @@ func (py *Python) Eval(s string) (*Object, error) {
 // The filename parameter specifies the Python source file name
 // and used only for diagnostic. If set to the empty string (""),
 // the reasonable default is provided.
-func (py *Python) Exec(s, filename string) (*Object, error) {
+func (py *Python) Exec(s, filename string) error {
 	filename = py.callerFileName(filename)
-	return pyInterpEval(py.interp, s, filename, false)
+	_, err := pyInterpEval(py.interp, s, filename, false)
+	return err
 }
 
 // callerFileName adjusts its filename parameter, if it is empty,

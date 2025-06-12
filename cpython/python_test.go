@@ -18,14 +18,61 @@ import (
 
 // TestPython tests basic functionality of the Python type
 func TestPython(t *testing.T) {
+	// Create the interpreter, try py.Eval. Do it several times.
+	for i := 0; i < 5; i++ {
+		py, err := NewPython()
+		if err != nil {
+			t.Errorf("NewPython: unexpected error: %s", err)
+			return
+		}
+
+		res, err := py.Eval(`"hello"`)
+		if err != nil {
+			t.Errorf("py.Eval: unexpected error: %s", err)
+			py.Close()
+			return
+		}
+
+		if res.Unbox() != "hello" {
+			t.Errorf("Returned value mismatch:\n"+
+				"expected: %v\n"+
+				"present:  %v\n",
+				"hello", res.Unbox())
+		}
+
+		res.Unref()
+		py.Close()
+	}
+
+	// Basic test for Python.Exec
 	py, err := NewPython()
 	assert.NoError(err)
-	py.Eval(`print("hello, world")`)
-	py.Close()
 
-	py, err = NewPython()
-	assert.NoError(err)
-	py.Eval(`print("hello, world")`)
+	script := "" +
+		"x = 5\n" +
+		"x *= 2\n"
+
+	err = py.Exec(script, "")
+	if err != nil {
+		t.Errorf("py.Eval: unexpected error: %s", err)
+		py.Close()
+		return
+	}
+
+	res, err := py.Eval(`x`)
+	if err != nil {
+		t.Errorf("py.Eval: unexpected error: %s", err)
+		py.Close()
+		return
+	}
+
+	if res.Unbox() != 10 {
+		t.Errorf("Returned value mismatch:\n"+
+			"expected: %v\n"+
+			"present:  %v\n",
+			"hello", res.Unbox())
+	}
+
 	py.Close()
 }
 
