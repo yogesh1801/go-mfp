@@ -38,20 +38,33 @@ func (py *Python) Close() {
 
 // Eval evaluates string as a Python expression and returns its value.
 func (py *Python) Eval(s string) (*Object, error) {
-	filename := "<Python.Eval>"
-	pc := make([]uintptr, 1)
-	if n := runtime.Callers(2, pc); n > 0 {
-		frames := runtime.CallersFrames(pc)
-		frame, _ := frames.Next()
-		filename = fmt.Sprintf("<%s:%d>", frame.File, frame.Line)
-	}
-
+	filename := py.callerFileName("")
 	return pyInterpEval(py.interp, s, filename, true)
 }
 
 // Exec evaluates string as a Python script.
+//
 // The filename parameter specifies the Python source file name
-// and used only for diagnostic.
+// and used only for diagnostic. If set to the empty string (""),
+// the reasonable default is provided.
 func (py *Python) Exec(s, filename string) (*Object, error) {
+	filename = py.callerFileName(filename)
 	return pyInterpEval(py.interp, s, filename, false)
+}
+
+// callerFileName adjusts its filename parameter, if it is empty,
+// to point to the file:line position of the caller.
+//
+// Intended to use by [Python.Eval] and [Python.Exec].
+func (py *Python) callerFileName(filename string) string {
+	if filename == "" {
+		pc := make([]uintptr, 1)
+		if n := runtime.Callers(3, pc); n > 0 {
+			frames := runtime.CallersFrames(pc)
+			frame, _ := frames.Next()
+			filename = fmt.Sprintf("%s:%d", frame.File, frame.Line)
+		}
+	}
+
+	return filename
 }
