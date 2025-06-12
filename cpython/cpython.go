@@ -69,47 +69,6 @@ func pyInterpDelete(interp pyInterp) {
 	C.py_interp_close(interp)
 }
 
-// pyInterpEval evaluates string as a Python statement.
-//
-// The name parameter indicates the Python source file name and
-// used only for diagnostic messages.
-//
-// If expr is true, input interpreted as a Python expression and
-// on success, its result returned as a *Object. Otherwise, input
-// interpreted as a multi-line Python script, and returned *Object
-// will be nil.
-func pyInterpEval(interp pyInterp, s, name string, expr bool) (*Object, error) {
-	// Lock the interpreter
-	gate := pyGateAcquire(interp)
-	defer gate.release()
-
-	// Convert expression and filename to the C strings
-	cs := C.CString(s)
-	defer C.free(unsafe.Pointer(cs))
-
-	cname := C.CString(name)
-	defer C.free(unsafe.Pointer(cname))
-
-	// Execute the expression
-	var pyobj pyObject
-	ok := bool(C.py_interp_eval(cs, cname, C.bool(expr), &pyobj))
-	if !ok {
-		return nil, gate.lastError()
-	}
-
-	// Decode result
-	if pyobj == nil {
-		return nil, nil
-	}
-
-	native, ok := gate.decodeObject(pyobj)
-	if !ok {
-		return nil, gate.lastError()
-	}
-
-	return newObjectFromPython(interp, pyobj, native), nil
-}
-
 // pyGate represents the locked (attached to the current thread
 // and with the GIL acquired) state of the Python interpreter.
 //
@@ -369,6 +328,33 @@ func (gate pyGate) decodeString(pyobj pyObject) (string, bool) {
 	}
 
 	return s, true
+}
+
+// pyInterpEval evaluates string as a Python statement.
+//
+// The name parameter indicates the Python source file name and
+// used only for diagnostic messages.
+//
+// If expr is true, input interpreted as a Python expression and
+// on success, its result returned as a *Object. Otherwise, input
+// interpreted as a multi-line Python script, and returned *Object
+// will be nil.
+func (gate pyGate) eval(s, name string, expr bool) (pyObject, error) {
+	// Convert expression and filename to the C strings
+	cs := C.CString(s)
+	defer C.free(unsafe.Pointer(cs))
+
+	cname := C.CString(name)
+	defer C.free(unsafe.Pointer(cname))
+
+	// Execute the expression
+	var pyobj pyObject
+	ok := bool(C.py_interp_eval(cs, cname, C.bool(expr), &pyobj))
+	if !ok {
+		return nil, gate.lastError()
+	}
+
+	return pyobj, nil
 }
 
 // pyInterpThread runs Python dedicated thread.

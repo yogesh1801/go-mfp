@@ -13,7 +13,7 @@ import "C"
 
 // Object represents a Python value
 type Object struct {
-	interp pyInterp // Interpreter that owns the Object
+	py     *Python  // Interpreter that owns the Object
 	pyobj  pyObject // Underlying *C.PyObject
 	native any      // Native Go value (may be *Object)
 }
@@ -21,8 +21,8 @@ type Object struct {
 // newObjectFromPython constructs new Object, decoded from PyObject.
 // If native is nil, it means, native Go value not available for
 // the object. Python None passed as pyNone.
-func newObjectFromPython(interp pyInterp, pyobj pyObject, native any) *Object {
-	obj := &Object{interp: interp, pyobj: pyobj, native: native}
+func newObjectFromPython(py *Python, pyobj pyObject, native any) *Object {
+	obj := &Object{py: py, pyobj: pyobj, native: native}
 
 	switch native {
 	case nil:
@@ -37,7 +37,7 @@ func newObjectFromPython(interp pyInterp, pyobj pyObject, native any) *Object {
 // Unref decrements Object's reference count.
 // Object should not be accessed after that.
 func (obj *Object) Unref() {
-	gate := pyGateAcquire(obj.interp)
+	gate := obj.py.gate()
 	defer gate.release()
 
 	gate.unref(obj.pyobj)
@@ -50,7 +50,7 @@ func (obj *Object) Unref() {
 //   - (false, nil) if attribute was not found
 //   - (false, error) in a case of error
 func (obj *Object) DelAttr(name string) (bool, error) {
-	gate := pyGateAcquire(obj.interp)
+	gate := obj.py.gate()
 	defer gate.release()
 
 	found, ok := gate.hasattr(obj.pyobj, name)
@@ -73,7 +73,7 @@ func (obj *Object) DelAttr(name string) (bool, error) {
 //   - (nil, nil) if attribute was not found
 //   - (nil, error) in a case of error
 func (obj *Object) GetAttr(name string) (*Object, error) {
-	gate := pyGateAcquire(obj.interp)
+	gate := obj.py.gate()
 	defer gate.release()
 
 	// Check if attribute exists
@@ -100,14 +100,14 @@ func (obj *Object) GetAttr(name string) (*Object, error) {
 	}
 
 	// Create the attribute object
-	attr := newObjectFromPython(obj.interp, pyattr, native)
+	attr := newObjectFromPython(obj.py, pyattr, native)
 	return attr, nil
 }
 
 // HasAttr reports if Object has the attribute with the specified name.
 // This is equivalent to the Python expression hasattr(obj, name).
 func (obj *Object) HasAttr(name string) (bool, error) {
-	gate := pyGateAcquire(obj.interp)
+	gate := obj.py.gate()
 	defer gate.release()
 
 	has, ok := gate.hasattr(obj.pyobj, name)
@@ -120,7 +120,7 @@ func (obj *Object) HasAttr(name string) (bool, error) {
 // SetAttr sets Object attribute with the specified name.
 // This is the equivalent of the Python statement obj.name = val
 func (obj *Object) SetAttr(name string, val *Object) error {
-	gate := pyGateAcquire(obj.interp)
+	gate := obj.py.gate()
 	defer gate.release()
 
 	ok := gate.setattr(obj.pyobj, name, val.pyobj)

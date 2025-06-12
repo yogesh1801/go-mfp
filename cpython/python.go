@@ -38,8 +38,7 @@ func (py *Python) Close() {
 
 // Eval evaluates string as a Python expression and returns its value.
 func (py *Python) Eval(s string) (*Object, error) {
-	filename := py.callerFileName("")
-	return pyInterpEval(py.interp, s, filename, true)
+	return py.eval(s, "", true)
 }
 
 // Exec evaluates string as a Python script.
@@ -48,16 +47,14 @@ func (py *Python) Eval(s string) (*Object, error) {
 // and used only for diagnostic. If set to the empty string (""),
 // the reasonable default is provided.
 func (py *Python) Exec(s, filename string) error {
-	filename = py.callerFileName(filename)
-	_, err := pyInterpEval(py.interp, s, filename, false)
+	_, err := py.eval(s, filename, false)
 	return err
 }
 
-// callerFileName adjusts its filename parameter, if it is empty,
-// to point to the file:line position of the caller.
-//
-// Intended to use by [Python.Eval] and [Python.Exec].
-func (py *Python) callerFileName(filename string) string {
+// eval is the common body for Python.Eval and Python.Exec
+func (py *Python) eval(s, filename string, expr bool) (*Object, error) {
+	// Adjust filename to point to the Go file:line position
+	// of the called, if filename is not specified
 	if filename == "" {
 		pc := make([]uintptr, 1)
 		if n := runtime.Callers(3, pc); n > 0 {
@@ -67,5 +64,28 @@ func (py *Python) callerFileName(filename string) string {
 		}
 	}
 
-	return filename
+	// Obtain pyGate
+	gate := py.gate()
+	defer gate.release()
+
+	// Call interpreter
+	pyobj, err := gate.eval(s, filename, expr)
+	if pyobj == nil {
+		return nil, err
+	}
+
+	// Decode the Object
+	native, ok := gate.decodeObject(pyobj)
+	if !ok {
+		gate.unref(pyobj)
+		return nil, gate.lastError()
+	}
+
+	obj := newObjectFromPython(py, pyobj, native)
+	return obj, err
+}
+
+// gate is the convenience wrapper for pyGateAcquire(py.interp)
+func (py *Python) gate() pyGate {
+	return pyGateAcquire(py.interp)
 }
