@@ -188,6 +188,8 @@ func TestNewObject(t *testing.T) {
 		{in: [3]int{1, 2, 3}, out: `[1, 2, 3]`},
 		{in: []byte("ABC"), out: `b'ABC'`},
 		{in: [3]byte{'A', 'B', 'C'}, out: `b'ABC'`},
+		{in: []byte{}, out: `b''`},
+		{in: [0]byte{}, out: `b''`},
 	}
 
 	for _, test := range tests {
