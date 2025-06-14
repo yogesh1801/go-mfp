@@ -16,9 +16,6 @@ import (
 	"github.com/OpenPrinting/go-mfp/internal/assert"
 )
 
-// #cgo pkg-config: python3
-// #cgo LDFLAGS: -l python3
-//
 // #include "cpython.h"
 import "C"
 
