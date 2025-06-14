@@ -9,6 +9,8 @@
 package cpython
 
 import (
+	"fmt"
+	"math"
 	"math/big"
 	"reflect"
 	"runtime"
@@ -82,6 +84,124 @@ func TestObjectFromPython(t *testing.T) {
 				"expected: %#v\n"+
 				"present:  %#v\n",
 				test.expr, test.val, val)
+		}
+	}
+}
+
+// TestNewObject tests Python.NewObject
+func TestNewObject(t *testing.T) {
+	type testData struct {
+		in  any    // Input value
+		out string // Expected output
+	}
+
+	py, err := NewPython()
+	assert.NoError(err)
+	defer py.Close()
+
+	bigint := func(s string) *big.Int {
+		v := big.NewInt(0)
+		v.SetString(s, 0)
+		return v
+	}
+
+	eval := func(s string) *Object {
+		obj, err := py.Eval(s)
+		assert.NoError(err)
+		return obj
+	}
+
+	tests := []testData{
+		// nil value
+		{in: nil, out: `None`},
+
+		// bool
+		{in: true, out: `True`},
+		{in: false, out: `False`},
+
+		// Signed int
+		{in: 0, out: `0`},
+		{in: 1, out: `1`},
+		{in: -1, out: `-1`},
+		{in: int8(0), out: `0`},
+		{in: int8(math.MaxInt8), out: fmt.Sprintf("%d", math.MaxInt8)},
+		{in: int8(math.MinInt8), out: fmt.Sprintf("%d", math.MinInt8)},
+		{in: int16(0), out: `0`},
+		{in: int16(math.MaxInt16),
+			out: fmt.Sprintf("%d", math.MaxInt16)},
+		{in: int16(math.MinInt16),
+			out: fmt.Sprintf("%d", math.MinInt16)},
+		{in: int32(0), out: `0`},
+		{in: int32(math.MaxInt32),
+			out: fmt.Sprintf("%d", math.MaxInt32)},
+		{in: int32(math.MinInt32),
+			out: fmt.Sprintf("%d", math.MinInt32)},
+		{in: int64(0), out: `0`},
+		{in: int64(math.MaxInt64),
+			out: fmt.Sprintf("%d", math.MaxInt64)},
+		{in: int64(math.MinInt64),
+			out: fmt.Sprintf("%d", math.MinInt64)},
+
+		// Unsigned int
+		{in: uint(0), out: `0`},
+		{in: uint(1), out: `1`},
+		{in: uint8(0), out: `0`},
+		{in: uint8(math.MaxUint8),
+			out: fmt.Sprintf("%d", math.MaxUint8)},
+		{in: uint16(0), out: `0`},
+		{in: uint16(math.MaxUint16),
+			out: fmt.Sprintf("%d", math.MaxUint16)},
+		{in: uint32(0), out: `0`},
+		{in: uint32(math.MaxUint32),
+			out: fmt.Sprintf("%d", math.MaxUint32)},
+		{in: uint64(0), out: `0`},
+		{in: uint64(math.MaxUint64),
+			out: fmt.Sprintf("%d", uint64(math.MaxUint64))},
+
+		// Big int
+		{in: bigint("0"), out: `0`},
+		{in: bigint("1"), out: `1`},
+		{in: bigint("-1"), out: `-1`},
+		{in: bigint("340282366920938463426481119284349108225"),
+			out: `340282366920938463426481119284349108225`},
+		{in: bigint("-340282366920938463426481119284349108225"),
+			out: `-340282366920938463426481119284349108225`},
+
+		// Float
+		{in: 0.5, out: `0.5`},
+		{in: -0.5, out: `-0.5`},
+
+		// Complex
+		{in: 0.25 + 0.25i, out: `(0.25+0.25j)`},
+		{in: -0.25 - 0.25i, out: `(-0.25-0.25j)`},
+
+		// String
+		{in: "", out: ``},
+		{in: "Hello, world!", out: `Hello, world!`},
+		{in: "Здравствуй, мир!", out: `Здравствуй, мир!`},
+
+		// Object
+		{in: eval("12345"), out: `12345`},
+	}
+
+	for _, test := range tests {
+		obj, err := py.NewObject(test.in)
+		if err != nil {
+			t.Errorf("%v: Python.NewObject: %s", test.in, err)
+			continue
+		}
+
+		s, err := obj.Str()
+		if err != nil {
+			t.Errorf("%v: Object.Str: %s", test.in, err)
+			continue
+		}
+
+		if s != test.out {
+			t.Errorf("%v: Python.NewObject:\n"+
+				"expected: %s\n"+
+				"present:  %s\n",
+				test.in, test.out, s)
 		}
 	}
 }
