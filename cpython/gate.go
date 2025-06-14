@@ -261,6 +261,17 @@ func (gate pyGate) decodeBytes(pyobj pyObject) ([]byte, bool) {
 	return bytes, ok
 }
 
+// makeBytes makes a new PyList_Bytes object.
+// It returns strong object reference on success, nil on an error.
+func (gate pyGate) makeBytes(data []byte) pyObject {
+	var p unsafe.Pointer
+	if len(data) != 0 {
+		p = unsafe.Pointer(&data[0])
+	}
+
+	return C.py_bytes_make(p, C.size_t(len(data)))
+}
+
 // makeList makes a new PyList_Type object of the given size.
 // It returns strong object reference on success, nil on an error.
 func (gate pyGate) makeList(sz int) pyObject {

@@ -130,6 +130,10 @@ PyObject *py_bool_make(bool val);
 // It returns true on success, false on error.
 bool py_bytes_get (PyObject *x, void **data, size_t *size);
 
+// py_bytes_make makes a new PyBytes_Type object.
+// It returns strong object reference on success, NULL on an error.
+PyObject *py_bytes_make(const void *data, size_t size);
+
 // py_bytearray_get obtains content of the Python bytearray object.
 // It returns true on success, false on error.
 bool py_bytearray_get (PyObject *x, void **data, size_t *size);

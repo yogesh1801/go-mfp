@@ -47,6 +47,7 @@ static __typeof__(PyBool_FromLong)              *PyBool_FromLong_p;
 static __typeof__(PyByteArray_AsString)         *PyByteArray_AsString_p;
 static __typeof__(PyByteArray_Size)             *PyByteArray_Size_p;
 static __typeof__(PyBytes_AsStringAndSize)      *PyBytes_AsStringAndSize_p;
+static __typeof__(PyBytes_FromStringAndSize)    *PyBytes_FromStringAndSize_p;
 static __typeof__(Py_CompileString)             *Py_CompileString_p;
 static __typeof__(PyComplex_FromDoubles)        *PyComplex_FromDoubles_p;
 static __typeof__(PyComplex_ImagAsDouble)       *PyComplex_ImagAsDouble_p;
@@ -169,6 +170,7 @@ static void py_load_all (void) {
     PyByteArray_Size_p = py_load("PyByteArray_Size");
     PyByteArray_Type_p = py_load("PyByteArray_Type");
     PyBytes_AsStringAndSize_p = py_load("PyBytes_AsStringAndSize");
+    PyBytes_FromStringAndSize_p = py_load("PyBytes_FromStringAndSize");
     PyBytes_Type_p = py_load("PyBytes_Type");
     PyCFunction_Type_p = py_load("PyCFunction_Type");
     PyComplex_FromDoubles_p = py_load("PyComplex_FromDoubles");
@@ -431,6 +433,12 @@ bool py_bytes_get (PyObject *x, void **data, size_t *size) {
     int        rc = PyBytes_AsStringAndSize_p(x, (char**) data, &sz);
     *size = (size_t) sz;
     return rc == 0;
+}
+
+// py_bytes_make makes a new PyBytes_Type object.
+// It returns strong object reference on success, NULL on an error.
+PyObject *py_bytes_make(const void *data, size_t size) {
+    return PyBytes_FromStringAndSize_p(data, size);
 }
 
 // py_bytearray_get obtains content of the Python bytearray object.

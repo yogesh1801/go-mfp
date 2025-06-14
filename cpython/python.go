@@ -67,15 +67,14 @@ func (py *Python) closed() bool {
 //
 //	Go                              Python
 //	==                              ======
+//
 //	nil                             None
 //
 //	bool and derivatives            PyBool_Type
 //
 //	int, int8, int16, int32,        PyLong_Type
-//	int64 and derivatives
-//
-//	uint, uint8, uint16, uint32,    PyLong_Type
-//	uint64 and devivatives
+//	int64, uint, uint8, uint16,
+//	uint32, uint64 and derivatives
 //
 //	string and derivatives          PyUnicode_Type
 //
@@ -83,7 +82,9 @@ func (py *Python) closed() bool {
 //
 //	*Object                         new reference to the same PyObject
 //
-//	[]any                           PyList_Type
+//	[]byte, [...]byte               PyBytes_Type
+//
+//	[]any, [...]any                 PyList_Type
 //
 //	[integer]any, [string]any       PyDict_Type
 func (py *Python) NewObject(val any) (*Object, error) {
@@ -152,6 +153,16 @@ func (py *Python) newPyObject(gate pyGate, val any) (pyObject, error) {
 		return gate.makeString(rv.String()), nil
 
 	case reflect.Array, reflect.Slice:
+		if rt.Elem().Kind() == reflect.Uint8 {
+			if rt.Kind() == reflect.Array && !rv.CanAddr() {
+				tmp := reflect.New(rt).Elem()
+				reflect.Copy(tmp, rv)
+				rv = tmp
+			}
+
+			data := rv.Bytes()
+			return gate.makeBytes(data), nil
+		}
 		return py.newPyList(gate, val)
 
 	case reflect.Chan:
