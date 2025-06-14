@@ -127,6 +127,11 @@ func (gate pyGate) lastError() error {
 	return Error{"Unknown Python exception"}
 }
 
+// ref increments PyObject's reference count.
+func (gate pyGate) ref(pyobj pyObject) {
+	C.py_obj_ref(pyobj)
+}
+
 // unref decrements PyObject's reference count.
 func (gate pyGate) unref(pyobj pyObject) {
 	C.py_obj_unref(pyobj)

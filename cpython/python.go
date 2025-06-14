@@ -117,7 +117,9 @@ func (py *Python) newPyObject(gate pyGate, val any) (pyObject, error) {
 	case *big.Int:
 		return gate.makeBigint(v), nil
 	case *Object:
-		return py.lookupObjID(gate, v.oid), nil
+		pyobj := py.lookupObjID(gate, v.oid)
+		gate.ref(pyobj)
+		return pyobj, nil
 	}
 
 	// Generic conversions
