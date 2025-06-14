@@ -311,6 +311,25 @@ func (gate pyGate) decodeBytes(pyobj pyObject) ([]byte, bool) {
 	return bytes, ok
 }
 
+// makeList makes a new PyList_Type object of the given size.
+// It returns strong object reference on success, nil on an error.
+func (gate pyGate) makeList(sz int) pyObject {
+	return C.py_list_make(C.size_t(sz))
+}
+
+// setListItem sets the item of the PyList_Type the specified position.
+// Internally, it creates a new strong reference to the item object.
+func (gate pyGate) setListItem(list, item pyObject, idx int) bool {
+	return bool(C.py_list_set(list, C.int(idx), item))
+}
+
+// getListItem retrieves the item of the PyList_Type the specified position.
+func (gate pyGate) getListItem(list pyObject, idx int) (pyObject, bool) {
+	var answer pyObject
+	ok := bool(C.py_list_get(list, C.int(idx), &answer))
+	return answer, ok
+}
+
 // decodeInteger decodes Python integer object as int or big.Int
 func (gate pyGate) decodeInteger(pyobj pyObject) (any, bool) {
 	var overflow C.bool

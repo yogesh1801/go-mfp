@@ -109,10 +109,12 @@ bool py_obj_hasattr(PyObject *x, const char *name, bool *answer);
 bool py_obj_delattr(PyObject *x, const char *name);
 
 // py_obj_hasattr retrieves the attribute with the specified name.
+// The returned answer, on success, contains a string reference to PyObject.
 // It returns true on success, false on error.
 bool py_obj_getattr(PyObject *x, const char *name, PyObject **answer);
 
 // py_obj_hasattr sets the attribute with the specified name.
+// Internally, it creates a new strong reference to the object.
 // It returns true on success, false on error.
 bool py_obj_setattr(PyObject *x, const char *name, PyObject *value);
 
@@ -147,6 +149,22 @@ bool py_float_get (PyObject *x, double *val);
 // py_float_make makes a new PyFloat_Type object.
 // It returns strong object reference on success, NULL on an error.
 PyObject *py_float_make(double val);
+
+// py_list_make makes a new PyList_Type object of the specified size.
+// The newly created list MUST be fully populated with the py_list_set
+// calls before it can be safely passed to Python interpreter.
+// It returns strong object reference on success, NULL on an error.
+PyObject *py_list_make(size_t len);
+
+// py_list_set retrieves value of the list item at the given position.
+// The returned answer, on success, contains a string reference to PyObject.
+// It returns true on success, false on error.
+bool py_list_get(PyObject *list, int index, PyObject **answer);
+
+// py_list_set sets value of the list item at the given position.
+// Internally, it creates a new strong reference to the object.
+// It returns true on success, false on error.
+bool py_list_set(PyObject *list, int index, PyObject *val);
 
 // py_long_get obtains PyObject's value as C long.
 // If value doesn't fit C long, overflow flag is set.

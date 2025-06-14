@@ -182,6 +182,10 @@ func TestNewObject(t *testing.T) {
 
 		// Object
 		{in: eval("12345"), out: `12345`},
+
+		// Slices and arrays
+		{in: []int{1, 2, 3}, out: `[1, 2, 3]`},
+		{in: [3]int{1, 2, 3}, out: `[1, 2, 3]`},
 	}
 
 	for _, test := range tests {
@@ -202,6 +206,8 @@ func TestNewObject(t *testing.T) {
 				"expected: %s\n"+
 				"present:  %s\n",
 				test.in, test.out, s)
+
+			fmt.Printf("%v\n", obj)
 		}
 	}
 }

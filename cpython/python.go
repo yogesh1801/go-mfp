@@ -65,8 +65,10 @@ func (py *Python) closed() bool {
 //
 // The following Go types are supported:
 //
-//	Go type				Python tupe
-//	=======                         ===========
+//	Go                              Python
+//	==                              ======
+//	nil                             None
+//
 //	bool and derivatives            PyBool_Type
 //
 //	int, int8, int16, int32,        PyLong_Type
@@ -81,7 +83,9 @@ func (py *Python) closed() bool {
 //
 //	*Object                         new reference to the same PyObject
 //
-//	nil                             becomes None at Python side
+//	[]any                           PyList_Type
+//
+//	[integer]any, [string]any       PyDict_Type
 func (py *Python) NewObject(val any) (*Object, error) {
 	gate := py.gate()
 	defer gate.release()
@@ -147,13 +151,14 @@ func (py *Python) newPyObject(gate pyGate, val any) (pyObject, error) {
 	case reflect.String:
 		return gate.makeString(rv.String()), nil
 
-	case reflect.Array:
+	case reflect.Array, reflect.Slice:
+		return py.newPyList(gate, val)
+
 	case reflect.Chan:
 	case reflect.Func:
 	case reflect.Interface:
 	case reflect.Map:
 	case reflect.Pointer:
-	case reflect.Slice:
 	case reflect.Struct:
 	case reflect.Uintptr:
 	case reflect.UnsafePointer:
@@ -161,6 +166,40 @@ func (py *Python) newPyObject(gate pyGate, val any) (pyObject, error) {
 
 	err := fmt.Errorf("%T cannot be converted to Python Object", rt)
 	return nil, err
+}
+
+// newPyList creates PyObject from array of slice of values.
+//
+// It returns either pyObject or error. If it returns (nil, nil),
+// gate.lastError needs to be consulted.
+func (py *Python) newPyList(gate pyGate, val any) (pyObject, error) {
+	rv := reflect.ValueOf(val)
+	sz := rv.Len()
+
+	list := gate.makeList(sz)
+	if list == nil {
+		return nil, nil
+	}
+
+	defer gate.unref(list)
+
+	for i := 0; i < sz; i++ {
+		item := rv.Index(i).Interface()
+		pyobj, err := py.newPyObject(gate, item)
+		if pyobj == nil {
+			return nil, err
+		}
+
+		ok := gate.setListItem(list, pyobj, i)
+		gate.unref(pyobj) // Now owned by list
+
+		if !ok {
+			return nil, nil
+		}
+	}
+
+	gate.ref(list)
+	return list, nil
 }
 
 // Eval evaluates string as a Python expression and returns its value.

@@ -63,6 +63,9 @@ static __typeof__(PyImport_AddModule)           *PyImport_AddModule_p;
 static __typeof__(Py_InitializeEx)              *Py_InitializeEx_p;
 static __typeof__(PyInterpreterState_Clear)     *PyInterpreterState_Clear_p;
 static __typeof__(PyInterpreterState_Delete)    *PyInterpreterState_Delete_p;
+static __typeof__(PyList_GetItem)               *PyList_GetItem_p;
+static __typeof__(PyList_New)                   *PyList_New_p;
+static __typeof__(PyList_SetItem)               *PyList_SetItem_p;
 static __typeof__(PyLong_AsLongAndOverflow)     *PyLong_AsLongAndOverflow_p;
 static __typeof__(PyLong_FromLongLong)          *PyLong_FromLongLong_p;
 static __typeof__(PyLong_FromString)            *PyLong_FromString_p;
@@ -178,6 +181,9 @@ static void py_load_all (void) {
     PyFloat_FromDouble_p = py_load("PyFloat_FromDouble");
     PyFloat_Type_p = py_load("PyFloat_Type");
     PyFrozenSet_Type_p = py_load("PyFrozenSet_Type");
+    PyList_GetItem_p = py_load("PyList_GetItem");
+    PyList_New_p = py_load("PyList_New");
+    PyList_SetItem_p = py_load("PyList_SetItem");
     PyList_Type_p = py_load("PyList_Type");
     PyLong_FromLongLong_p = py_load("PyLong_FromLongLong");
     PyLong_FromString_p = py_load("PyLong_FromString");
@@ -387,6 +393,7 @@ bool py_obj_delattr(PyObject *x, const char *name) {
 }
 
 // py_obj_hasattr retrieves the attribute with the specified name.
+// The returned answer, on success, contains a string reference to PyObject.
 // It returns true on success, false on error.
 bool py_obj_getattr(PyObject *x, const char *name, PyObject **answer) {
     PyObject *attr = PyObject_GetAttrString_p(x, name);
@@ -395,8 +402,13 @@ bool py_obj_getattr(PyObject *x, const char *name, PyObject **answer) {
 }
 
 // py_obj_hasattr sets the attribute with the specified name.
+// Internally, it creates a new strong reference to the object.
 // It returns true on success, false on error.
 bool py_obj_setattr(PyObject *x, const char *name, PyObject *value) {
+    if (value != NULL) {
+        Py_NewRef_p(value);
+    }
+
     return PyObject_SetAttrString_p(x, name, value) == 0;
 }
 
@@ -476,6 +488,33 @@ bool py_float_get (PyObject *x, double *val) {
 // It returns strong object reference on success, NULL on an error.
 PyObject *py_float_make(double val) {
     return PyFloat_FromDouble_p(val);
+}
+
+// py_list_make makes a new PyList_Type object of the specified size.
+// The newly created list MUST be fully populated with the py_list_set
+// calls before it can be safely passed to Python interpreter.
+// It returns strong object reference on success, NULL on an error.
+PyObject *py_list_make(size_t len) {
+    return PyList_New_p(len);
+}
+
+// py_list_set retrieves value of the list item at the given position.
+// The returned answer, on success, contains a string reference to PyObject.
+// It returns true on success, false on error.
+bool py_list_get(PyObject *list, int index, PyObject **answer) {
+    PyObject *item = PyList_GetItem_p(list, index);
+    if (item != NULL) {
+        Py_NewRef_p(item);
+    }
+    return item;
+}
+
+// py_list_set sets value of the list item at the given position.
+// Internally, it creates a new strong reference to the object.
+// It returns true on success, false on error.
+bool py_list_set(PyObject *list, int index, PyObject *val) {
+    Py_NewRef_p(val);
+    return PyList_SetItem_p(list, index, val) == 0;
 }
 
 // py_long_get obtains PyObject's value as C long.
