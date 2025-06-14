@@ -151,6 +151,38 @@ func (obj *Object) SetAttr(name string, val *Object) error {
 	return nil
 }
 
+// Str returns string representation of the Object.
+// This is the equivalent of the Python expression str(x).
+func (obj *Object) Str() (string, error) {
+	gate := obj.py.gate()
+	defer gate.release()
+
+	pyobj := obj.py.lookupObjID(gate, obj.oid)
+	s, ok := gate.str(pyobj)
+	var err error
+	if !ok {
+		err = gate.lastError()
+	}
+
+	return s, err
+}
+
+// Repr returns string representation of the Object.
+// This is the equivalent of the Python expression repr(x).
+func (obj *Object) Repr() (string, error) {
+	gate := obj.py.gate()
+	defer gate.release()
+
+	pyobj := obj.py.lookupObjID(gate, obj.oid)
+	s, ok := gate.repr(pyobj)
+	var err error
+	if !ok {
+		err = gate.lastError()
+	}
+
+	return s, err
+}
+
 // Unbox returns Object's value as Go value.
 //
 // If Object cannot be represented as a native Go value,
