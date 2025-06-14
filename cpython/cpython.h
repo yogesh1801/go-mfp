@@ -73,6 +73,9 @@ static inline int py_obj_is_false (PyObject *x) {
     return Py_IsFalse_p(x);
 }
 
+// py_obj_ref increments the PyObject's reference count.
+void py_obj_ref (PyObject *x);
+
 // py_obj_unref decrements the PyObject's reference count.
 void py_obj_unref (PyObject *x);
 
@@ -117,6 +120,10 @@ bool py_obj_setattr(PyObject *x, const char *name, PyObject *value);
 // If there is no pending error, all pointers will be set to NULL.
 void py_err_fetch (PyObject **etype, PyObject **evalue, PyObject **trace);
 
+// py_bool_make makes a new PyBool_Type object.
+// It returns strong object reference on success, NULL on an error.
+PyObject *py_bool_make(bool val);
+
 // py_bytes_get obtains content of the Python bytes object.
 // It returns true on success, false on error.
 bool py_bytes_get (PyObject *x, void **data, size_t *size);
@@ -129,15 +136,35 @@ bool py_bytearray_get (PyObject *x, void **data, size_t *size);
 // It returns true on success, false on error.
 bool py_complex_get (PyObject *x, double *real, double *imag);
 
+// py_complex_make makes a new PyComlex_Type object.
+// It returns strong object reference on success, NULL on an error.
+PyObject *py_complex_make(double real, double imag);
+
 // py_float_get obtains content of the Python float object.
 // It returns true on success, false on error.
 bool py_float_get (PyObject *x, double *val);
+
+// py_float_make makes a new PyFloat_Type object.
+// It returns strong object reference on success, NULL on an error.
+PyObject *py_float_make(double val);
 
 // py_long_get obtains PyObject's value as C long.
 // If value doesn't fit C long, overflow flag is set.
 //
 // It returns true on success, false on error.
 bool py_long_get (PyObject *x, long *val, bool *overflow);
+
+// py_long_from_int64 makes a new PyLong_Type object from int64_t value.
+// It returns strong object reference on success, NULL on an error.
+PyObject *py_long_from_int64(int64_t val);
+//
+// py_long_from_uint64 makes a new PyLong_Type object from uint64_t value.
+// It returns strong object reference on success, NULL on an error.
+PyObject *py_long_from_uint64(uint64_t val);
+
+// py_long_from_string makes a new PyLong_Type object from string value.
+// It returns strong object reference on success, NULL on an error.
+PyObject *py_long_from_string(const char *val);
 
 // py_str_len returns length of Unicode string, in code points.
 // If PyObject is not Unicode, it returns -1.
@@ -157,6 +184,10 @@ static inline ssize_t py_str_len (PyObject *str) {
 //
 // Use py_str_len to obtain the correct string length.
 Py_UCS4 *py_str_get (PyObject *str, Py_UCS4 *buf, size_t len);
+
+// py_str_make makes a new PyLong_Type object from string value.
+// It returns strong object reference on success, NULL on an error.
+PyObject *py_str_make(const char *val, size_t len);
 
 // Python build-in (primitive) types:
 extern PyTypeObject *PyBool_Type_p;

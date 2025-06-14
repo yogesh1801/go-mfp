@@ -231,6 +231,12 @@ func (gate pyGate) decodeObject(pyobj pyObject) (any, bool) {
 	return nil, true
 }
 
+// makeBool makes a new PyBool_Type object.
+// It returns strong object reference on success, nil on an error.
+func (gate pyGate) makeBool(v bool) pyObject {
+	return C.py_bool_make(C.bool(v))
+}
+
 // decodeComplex decodes Python complex number object.
 func (gate pyGate) decodeComplex(pyobj pyObject) (complex128, bool) {
 	var real, imag C.double
@@ -244,6 +250,12 @@ func (gate pyGate) decodeComplex(pyobj pyObject) (complex128, bool) {
 	return c, ok
 }
 
+// makeComplex makes a new PyComlex_Type object.
+// It returns strong object reference on success, nil on an error.
+func (gate pyGate) makeComplex(v complex128) pyObject {
+	return C.py_complex_make(C.double(real(v)), C.double(imag(v)))
+}
+
 // decodeFloat decodes Python float number object.
 func (gate pyGate) decodeFloat(pyobj pyObject) (float64, bool) {
 	var val C.double
@@ -251,6 +263,12 @@ func (gate pyGate) decodeFloat(pyobj pyObject) (float64, bool) {
 	ok := bool(C.py_float_get(pyobj, &val))
 
 	return float64(val), ok
+}
+
+// makeFloat makes a new PyFloatType object.
+// It returns strong object reference on success, nil on an error.
+func (gate pyGate) makeFloat(v float64) pyObject {
+	return C.py_float_make(C.double(v))
 }
 
 // decodeByteArray decodes Python byte array object as []byte slice.
@@ -314,6 +332,26 @@ func (gate pyGate) decodeInteger(pyobj pyObject) (any, bool) {
 	return v, true
 }
 
+// makeInt makes a new PyLong_type object from int64.
+// It returns strong object reference on success, nil on an error.
+func (gate pyGate) makeInt(v int64) pyObject {
+	return C.py_long_from_int64(C.int64_t(v))
+}
+
+// makeUint makes a new PyLong_type object from uint64.
+// It returns strong object reference on success, nil on an error.
+func (gate pyGate) makeUint(v uint64) pyObject {
+	return C.py_long_from_uint64(C.uint64_t(v))
+}
+
+// makeBigint makes a new PyLong_type object from *big.Int.
+// It returns strong object reference on success, nil on an error.
+func (gate pyGate) makeBigint(v *big.Int) pyObject {
+	cs := C.CString(v.String())
+	defer C.free(unsafe.Pointer(cs))
+	return C.py_long_from_string(cs)
+}
+
 // decodeString decodes Python Unicode object as a string.
 func (gate pyGate) decodeString(pyobj pyObject) (string, bool) {
 	sz := C.py_str_len(pyobj)
@@ -328,6 +366,14 @@ func (gate pyGate) decodeString(pyobj pyObject) (string, bool) {
 	}
 
 	return s, true
+}
+
+// makeString makes a new PyUnicoder_type object from string.
+// It returns strong object reference on success, nil on an error.
+func (gate pyGate) makeString(v string) pyObject {
+	cs := C.CString(v)
+	defer C.free(unsafe.Pointer(cs))
+	return C.py_str_make(cs, C.size_t(len(v)))
 }
 
 // pyInterpEval evaluates string as a Python statement.

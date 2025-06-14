@@ -43,10 +43,12 @@ static PyThreadState                            *py_main_thread;
 // with the explicit dlsym(RTLD_DEFAULT, name) call.
 //
 // So these pointers keeps these resolved symbols...
+static __typeof__(PyBool_FromLong)              *PyBool_FromLong_p;
 static __typeof__(PyByteArray_AsString)         *PyByteArray_AsString_p;
 static __typeof__(PyByteArray_Size)             *PyByteArray_Size_p;
 static __typeof__(PyBytes_AsStringAndSize)      *PyBytes_AsStringAndSize_p;
 static __typeof__(Py_CompileString)             *Py_CompileString_p;
+static __typeof__(PyComplex_FromDoubles)        *PyComplex_FromDoubles_p;
 static __typeof__(PyComplex_ImagAsDouble)       *PyComplex_ImagAsDouble_p;
 static __typeof__(PyComplex_RealAsDouble)       *PyComplex_RealAsDouble_p;
 static __typeof__(Py_DecRef)                    *Py_DecRef_p;
@@ -56,13 +58,18 @@ static __typeof__(PyEval_EvalCode)              *PyEval_EvalCode_p;
 static __typeof__(PyEval_RestoreThread)         *PyEval_RestoreThread_p;
 static __typeof__(PyEval_SaveThread)            *PyEval_SaveThread_p;
 static __typeof__(PyFloat_AsDouble)             *PyFloat_AsDouble_p;
+static __typeof__(PyFloat_FromDouble)           *PyFloat_FromDouble_p;
 static __typeof__(PyImport_AddModule)           *PyImport_AddModule_p;
 static __typeof__(Py_InitializeEx)              *Py_InitializeEx_p;
 static __typeof__(PyInterpreterState_Clear)     *PyInterpreterState_Clear_p;
 static __typeof__(PyInterpreterState_Delete)    *PyInterpreterState_Delete_p;
 static __typeof__(PyLong_AsLongAndOverflow)     *PyLong_AsLongAndOverflow_p;
+static __typeof__(PyLong_FromLongLong)          *PyLong_FromLongLong_p;
+static __typeof__(PyLong_FromString)            *PyLong_FromString_p;
+static __typeof__(PyLong_FromUnsignedLongLong)  *PyLong_FromUnsignedLongLong_p;
 static __typeof__(PyModule_GetDict)             *PyModule_GetDict_p;
 static __typeof__(Py_NewInterpreter)            *Py_NewInterpreter_p;
+static __typeof__(Py_NewRef)                    *Py_NewRef_p;
 static __typeof__(PyObject_GetAttrString)       *PyObject_GetAttrString_p;
 static __typeof__(PyObject_HasAttrString)       *PyObject_HasAttrString_p;
 static __typeof__(PyObject_Repr)                *PyObject_Repr_p;
@@ -75,6 +82,7 @@ static __typeof__(PyThreadState_Get)            *PyThreadState_Get_p;
 static __typeof__(PyThreadState_New)            *PyThreadState_New_p;
 static __typeof__(PyThreadState_Swap)           *PyThreadState_Swap_p;
 static __typeof__(PyUnicode_AsUCS4)             *PyUnicode_AsUCS4_p;
+static __typeof__(PyUnicode_FromStringAndSize)  *PyUnicode_FromStringAndSize_p;
 
 // Python build-in (primitive) types:
 PyTypeObject *PyBool_Type_p;
@@ -144,6 +152,7 @@ static void py_load_all (void) {
     PyLong_AsLongAndOverflow_p = py_load("PyLong_AsLongAndOverflow");
     PyModule_GetDict_p = py_load("PyModule_GetDict");
     Py_NewInterpreter_p = py_load("Py_NewInterpreter");
+    Py_NewRef_p = py_load("Py_NewRef");
     PyThreadState_Clear_p = py_load("PyThreadState_Clear");
     PyThreadState_Delete_p = py_load("PyThreadState_Delete");
     PyThreadState_GetInterpreter_p = py_load("PyThreadState_GetInterpreter");
@@ -151,6 +160,7 @@ static void py_load_all (void) {
     PyThreadState_New_p = py_load("PyThreadState_New");
     PyThreadState_Swap_p = py_load("PyThreadState_Swap");
 
+    PyBool_FromLong_p = py_load("PyBool_FromLong");
     PyBool_Type_p = py_load("PyBool_Type");
     PyByteArray_AsString_p = py_load("PyByteArray_AsString");
     PyByteArray_Size_p = py_load("PyByteArray_Size");
@@ -158,15 +168,20 @@ static void py_load_all (void) {
     PyBytes_AsStringAndSize_p = py_load("PyBytes_AsStringAndSize");
     PyBytes_Type_p = py_load("PyBytes_Type");
     PyCFunction_Type_p = py_load("PyCFunction_Type");
+    PyComplex_FromDoubles_p = py_load("PyComplex_FromDoubles");
     PyComplex_ImagAsDouble_p = py_load("PyComplex_ImagAsDouble");
     PyComplex_RealAsDouble_p = py_load("PyComplex_RealAsDouble");
     PyComplex_Type_p = py_load("PyComplex_Type");
     PyDictKeys_Type_p = py_load("PyDictKeys_Type");
     PyDict_Type_p = py_load("PyDict_Type");
     PyFloat_AsDouble_p = py_load("PyFloat_AsDouble");
+    PyFloat_FromDouble_p = py_load("PyFloat_FromDouble");
     PyFloat_Type_p = py_load("PyFloat_Type");
     PyFrozenSet_Type_p = py_load("PyFrozenSet_Type");
     PyList_Type_p = py_load("PyList_Type");
+    PyLong_FromLongLong_p = py_load("PyLong_FromLongLong");
+    PyLong_FromString_p = py_load("PyLong_FromString");
+    PyLong_FromUnsignedLongLong_p = py_load("PyLong_FromUnsignedLongLong");
     PyLong_Type_p = py_load("PyLong_Type");
     PyMemoryView_Type_p = py_load("PyMemoryView_Type");
     PyModule_Type_p = py_load("PyModule_Type");
@@ -180,6 +195,7 @@ static void py_load_all (void) {
     PyTuple_Type_p = py_load("PyTuple_Type");
     PyType_Type_p = py_load("PyType_Type");
     PyUnicode_AsUCS4_p = py_load("PyUnicode_AsUCS4");
+    PyUnicode_FromStringAndSize_p = py_load("PyUnicode_FromStringAndSize");
     PyUnicode_Type_p = py_load("PyUnicode_Type");
 
     Py_IsNone_p = py_load("Py_IsNone");
@@ -322,6 +338,11 @@ bool py_interp_eval (const char *s, const char *file,
     return true;
 }
 
+// py_obj_ref increments the PyObject's reference count.
+void py_obj_ref (PyObject *x) {
+        Py_NewRef_p(x);
+}
+
 // py_obj_unref decrements the PyObject's reference count.
 void py_obj_unref (PyObject *x) {
     Py_DecRef_p(x);
@@ -385,6 +406,12 @@ void py_err_fetch (PyObject **etype, PyObject **evalue, PyObject **trace) {
     PyErr_Fetch_p(etype, evalue, trace);
 }
 
+// py_bool_make makes a new PyBool_Type object.
+// It returns strong object reference on success, NULL on an error.
+PyObject *py_bool_make(bool val) {
+    return PyBool_FromLong_p((long) val);
+}
+
 // py_bytes_get obtains content of the Python bytes object.
 // It returns true on success, false on error.
 bool py_bytes_get (PyObject *x, void **data, size_t *size) {
@@ -425,6 +452,12 @@ bool py_complex_get (PyObject *x, double *real, double *imag) {
     return true;
 }
 
+// py_complex_make makes a new PyComlex_Type object.
+// It returns strong object reference on success, NULL on an error.
+PyObject *py_complex_make(double real, double imag) {
+    return PyComplex_FromDoubles_p(real, imag);
+}
+
 // py_float_get obtains content of the Python float object.
 // It returns true on success, false on error.
 bool py_float_get (PyObject *x, double *val) {
@@ -437,6 +470,12 @@ bool py_float_get (PyObject *x, double *val) {
     *val = v;
 
     return true;
+}
+
+// py_float_make makes a new PyFloat_Type object.
+// It returns strong object reference on success, NULL on an error.
+PyObject *py_float_make(double val) {
+    return PyFloat_FromDouble_p(val);
 }
 
 // py_long_get obtains PyObject's value as C long.
@@ -457,6 +496,24 @@ bool py_long_get (PyObject *x, long *val, bool *overflow) {
     return res;
 }
 
+// py_long_from_int64 makes a new PyLong_Type object from int64_t value.
+// It returns strong object reference on success, NULL on an error.
+PyObject *py_long_from_int64(int64_t val) {
+    return PyLong_FromLongLong_p((long long) val);
+}
+
+// py_long_from_uint64 makes a new PyLong_Type object from uint64_t value.
+// It returns strong object reference on success, NULL on an error.
+PyObject *py_long_from_uint64(uint64_t val) {
+    return PyLong_FromUnsignedLongLong_p((unsigned long long) val);
+}
+
+// py_long_from_string makes a new PyLong_Type object from string value.
+// It returns strong object reference on success, NULL on an error.
+PyObject *py_long_from_string(const char *val) {
+    return PyLong_FromString_p(val, NULL, 0);
+}
+
 // py_str_get copies Unicode string data as a sequence of the Py_UCS4
 // characters.
 //
@@ -469,6 +526,12 @@ bool py_long_get (PyObject *x, long *val, bool *overflow) {
 // Use py_str_len to obtain the correct string length.
 Py_UCS4 *py_str_get (PyObject *str, Py_UCS4 *buf, size_t len) {
     return PyUnicode_AsUCS4_p(str, buf, len, 0);
+}
+
+// py_str_make makes a new PyLong_Type object from string value.
+// It returns strong object reference on success, NULL on an error.
+PyObject *py_str_make(const char *val, size_t len) {
+    return PyUnicode_FromStringAndSize_p(val, len);
 }
 
 // vim:ts=8:sw=4:et

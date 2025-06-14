@@ -10,7 +10,11 @@ package cpython
 
 import (
 	"fmt"
+	"math/big"
+	"reflect"
 	"runtime"
+
+	"github.com/OpenPrinting/go-mfp/internal/assert"
 )
 
 // Python represents a Python interpreter.
@@ -19,6 +23,7 @@ import (
 type Python struct {
 	interp  pyInterp // Underlying *C.PyInterpreterState
 	objects *objmap  // Objects owned by the interpreter
+	none    pyObject // Cached None object
 }
 
 // NewPython creates a new Python interpreter.
@@ -29,6 +34,12 @@ func NewPython() (py *Python, err error) {
 			interp:  interp,
 			objects: newObjmap(),
 		}
+
+		gate := py.gate()
+		defer gate.release()
+
+		py.none, err = gate.eval("None", "", true)
+		assert.NoError(err)
 	}
 
 	return
@@ -48,6 +59,106 @@ func (py *Python) Close() {
 // closed reports if interpreter is closed.
 func (py *Python) closed() bool {
 	return py.interp == nil
+}
+
+// NewObject creates a new Python Object for the Go value.
+//
+// The following Go types are supported:
+//
+//	Go type				Python tupe
+//	=======                         ===========
+//	bool and derivatives            PyBool_Type
+//
+//	int, int8, int16, int32,        PyLong_Type
+//	int64 and derivatives
+//
+//	uint, uint8, uint16, uint32,    PyLong_Type
+//	uint64 and devivatives
+//
+//	string and derivatives          PyUnicode_Type
+//
+//	[*big.Int]                      PyLong_Type
+//
+//	*Object                         new reference to the same PyObject
+//
+//	nil                             becomes None at Python side
+func (py *Python) NewObject(val any) (*Object, error) {
+	gate := py.gate()
+	defer gate.release()
+
+	pyobj, err := py.newPyObject(gate, val)
+	if pyobj == nil && err == nil {
+		err = gate.lastError()
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	oid := py.newObjID(gate, pyobj)
+	obj := newObjectFromPython(py, oid, val)
+
+	return obj, nil
+}
+
+// newPyObject is the internal function behind the [Python.NewObject]
+// which does all the dirty work of conversion value into the
+// Python Object.
+//
+// It returns either pyObject or error. If it returns (nil, nil),
+// gate.lastError needs to be consulted.
+func (py *Python) newPyObject(gate pyGate, val any) (pyObject, error) {
+	// Handle special cases
+	if val == nil {
+		return py.none, nil
+	}
+
+	switch v := val.(type) {
+	case *big.Int:
+		return gate.makeBigint(v), nil
+	case *Object:
+		return py.lookupObjID(gate, v.oid), nil
+	}
+
+	// Generic conversions
+	rv := reflect.ValueOf(val)
+	rt := rv.Type()
+
+	switch rt.Kind() {
+	case reflect.Bool:
+		return gate.makeBool(rv.Bool()), nil
+
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32,
+		reflect.Int64:
+		return gate.makeInt(rv.Int()), nil
+
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32,
+		reflect.Uint64:
+		return gate.makeUint(rv.Uint()), nil
+
+	case reflect.Float32, reflect.Float64:
+		return gate.makeFloat(rv.Float()), nil
+
+	case reflect.Complex64, reflect.Complex128:
+		return gate.makeComplex(rv.Complex()), nil
+
+	case reflect.String:
+		return gate.makeString(rv.String()), nil
+
+	case reflect.Array:
+	case reflect.Chan:
+	case reflect.Func:
+	case reflect.Interface:
+	case reflect.Map:
+	case reflect.Pointer:
+	case reflect.Slice:
+	case reflect.Struct:
+	case reflect.Uintptr:
+	case reflect.UnsafePointer:
+	}
+
+	err := fmt.Errorf("%T cannot be converted to Python Object", rt)
+	return nil, err
 }
 
 // Eval evaluates string as a Python expression and returns its value.
