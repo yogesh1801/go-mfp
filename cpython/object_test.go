@@ -295,7 +295,10 @@ func TestObjectGC(t *testing.T) {
 	runtime.GC()
 	runtime.GC()
 
-	if len(py.objects.mapped) != 0 {
+	gate := py.gate()
+	defer gate.release()
+
+	if py.countObjID(gate) != 0 {
 		t.Errorf("TestObjectGC: looks object GS doesn't work")
 	}
 }

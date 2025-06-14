@@ -68,3 +68,8 @@ func (omap *objmap) purge(gate pyGate) {
 		gate.unref(obj)
 	}
 }
+
+// count returns count of currently mapped objid-s
+func (omap *objmap) count(gate pyGate) int {
+	return len(omap.mapped)
+}

@@ -223,12 +223,18 @@ func (py *Python) newObjID(gate pyGate, obj pyObject) objid {
 	return py.objects.put(gate, obj)
 }
 
-// delObjID deletes *C.PyObject by objid
+// delObjID deletes *C.PyObject by objid.
 func (py *Python) delObjID(gate pyGate, oid objid) {
 	py.objects.del(gate, oid)
 }
 
-// lookupObjID return *C.PyObject by objid
+// lookupObjID return *C.PyObject by objid.
 func (py *Python) lookupObjID(gate pyGate, oid objid) pyObject {
 	return py.objects.get(gate, oid)
+}
+
+// countObjID returns count of active objid mappings.
+// This is the testing interface
+func (py *Python) countObjID(gate pyGate) int {
+	return py.objects.count(gate)
 }
