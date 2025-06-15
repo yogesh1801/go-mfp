@@ -8,12 +8,27 @@
 
 package cpython
 
-// Error represents a Python Error
-type Error struct {
+import (
+	"fmt"
+	"reflect"
+)
+
+// ErrPython represents a Python exception.
+type ErrPython struct {
 	msg string
 }
 
-// Error returns error message. It implements error interface.
-func (e Error) Error() string {
+// Error returns error message. It implements the [error] interface.
+func (e ErrPython) Error() string {
 	return e.msg
+}
+
+// ErrTypeConversion represents Go->Python type conversion error.
+type ErrTypeConversion struct {
+	from reflect.Type // Go type that can't be converted
+}
+
+// Error returns error message. It implements the [error] interface.
+func (e ErrTypeConversion) Error() string {
+	return fmt.Sprintf("%T cannot be converted to PyObject", e.from)
 }

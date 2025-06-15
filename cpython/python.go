@@ -175,7 +175,7 @@ func (py *Python) newPyObject(gate pyGate, val any) (pyObject, error) {
 	case reflect.UnsafePointer:
 	}
 
-	err := fmt.Errorf("%T cannot be converted to Python Object", rt)
+	err := ErrTypeConversion{from: rt}
 	return nil, err
 }
 

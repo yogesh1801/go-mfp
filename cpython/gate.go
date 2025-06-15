@@ -63,18 +63,18 @@ func (gate pyGate) lastError() error {
 	if evalue != nil {
 		msg, ok := gate.str(evalue)
 		if ok {
-			return Error{msg}
+			return ErrPython{msg}
 		}
 	}
 
 	if etype != nil {
 		msg, ok := gate.str(evalue)
 		if ok {
-			return Error{msg}
+			return ErrPython{msg}
 		}
 	}
 
-	return Error{"Unknown Python exception"}
+	return ErrPython{"Unknown Python exception"}
 }
 
 // ref increments PyObject's reference count.
