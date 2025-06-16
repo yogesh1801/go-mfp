@@ -139,6 +139,18 @@ bool py_obj_getitem(PyObject *x, PyObject *key, PyObject **answer);
 // It returns true on success, false on error.
 bool py_obj_setitem(PyObject *x, PyObject *key, PyObject *value);
 
+// py_obj_call calls callable object (i.e., function, method, ...)
+// with the specified arguments.
+//
+// The args parameter must be of PyTuple_Type object and it specified
+// the function parameters. It must not be NULL.
+//
+// The kwargs must be PyDict_Type and it specifies keyword arguments.
+// It can be NULL, if keyword arguments are not used.
+//
+// It returns strong object reference on success, NULL on an error.
+PyObject *py_obj_call(PyObject *x, PyObject *args, PyObject *kwargs);
+
 // py_err_fetch fetches and clears last error.
 // If there is no pending error, all pointers will be set to NULL.
 void py_err_fetch (PyObject **etype, PyObject **evalue, PyObject **trace);
@@ -235,6 +247,22 @@ Py_UCS4 *py_str_get (PyObject *str, Py_UCS4 *buf, size_t len);
 // py_str_make makes a new PyLong_Type object from string value.
 // It returns strong object reference on success, NULL on an error.
 PyObject *py_str_make(const char *val, size_t len);
+
+// py_tuple_make makes a new PyTuple_Type object of the specified size.
+// The newly created tuple MUST be fully populated with the py_tuple_set
+// calls before it can be safely passed to Python interpreter.
+// It returns strong object reference on success, NULL on an error.
+PyObject *py_tuple_make(size_t len);
+
+// py_tuple_set retrieves value of the tuple item at the given position.
+// The returned answer, on success, contains a string reference to PyObject.
+// It returns true on success, false on error.
+bool py_tuple_get(PyObject *tuple, int index, PyObject **answer);
+
+// py_tuple_set sets value of the tuple item at the given position.
+// Internally, it creates a new strong reference to the object.
+// It returns true on success, false on error.
+bool py_tuple_set(PyObject *tuple, int index, PyObject *val);
 
 // Python build-in (primitive) types:
 extern PyTypeObject *PyBool_Type_p;

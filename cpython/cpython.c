@@ -77,6 +77,7 @@ static __typeof__(PyLong_FromUnsignedLongLong)  *PyLong_FromUnsignedLongLong_p;
 static __typeof__(PyModule_GetDict)             *PyModule_GetDict_p;
 static __typeof__(Py_NewInterpreter)            *Py_NewInterpreter_p;
 static __typeof__(Py_NewRef)                    *Py_NewRef_p;
+static __typeof__(PyObject_Call)                *PyObject_Call_p;
 static __typeof__(PyObject_DelItem)             *PyObject_DelItem_p;
 static __typeof__(PyObject_GetAttrString)       *PyObject_GetAttrString_p;
 static __typeof__(PyObject_GetItem)             *PyObject_GetItem_p;
@@ -91,6 +92,9 @@ static __typeof__(PyThreadState_GetInterpreter) *PyThreadState_GetInterpreter_p;
 static __typeof__(PyThreadState_Get)            *PyThreadState_Get_p;
 static __typeof__(PyThreadState_New)            *PyThreadState_New_p;
 static __typeof__(PyThreadState_Swap)           *PyThreadState_Swap_p;
+static __typeof__(PyTuple_GetItem)              *PyTuple_GetItem_p;
+static __typeof__(PyTuple_New)                  *PyTuple_New_p;
+static __typeof__(PyTuple_SetItem)              *PyTuple_SetItem_p;
 static __typeof__(PyUnicode_AsUCS4)             *PyUnicode_AsUCS4_p;
 static __typeof__(PyUnicode_FromStringAndSize)  *PyUnicode_FromStringAndSize_p;
 
@@ -196,6 +200,7 @@ static void py_load_all (void) {
     PyModule_GetDict_p = py_load("PyModule_GetDict");
     Py_NewInterpreter_p = py_load("Py_NewInterpreter");
     Py_NewRef_p = py_load("Py_NewRef");
+    PyObject_Call_p = py_load("PyObject_Call");
     PyObject_DelItem_p = py_load("PyObject_DelItem");
     PyObject_GetAttrString_p = py_load("PyObject_GetAttrString");
     PyObject_GetItem_p = py_load("PyObject_GetItem");
@@ -210,6 +215,9 @@ static void py_load_all (void) {
     PyThreadState_Get_p = py_load("PyThreadState_Get");
     PyThreadState_New_p = py_load("PyThreadState_New");
     PyThreadState_Swap_p = py_load("PyThreadState_Swap");
+    PyTuple_GetItem_p = py_load("PyTuple_GetItem");
+    PyTuple_New_p = py_load("PyTuple_New");
+    PyTuple_SetItem_p = py_load("PyTuple_SetItem");
     PyUnicode_AsUCS4_p = py_load("PyUnicode_AsUCS4");
     PyUnicode_FromStringAndSize_p = py_load("PyUnicode_FromStringAndSize");
 
@@ -488,6 +496,20 @@ bool py_obj_setitem(PyObject *x, PyObject *key, PyObject *value) {
     return PyObject_SetItem_p(x, key, value) == 0;
 }
 
+// py_obj_call calls callable object (i.e., function, method, ...)
+// with the specified arguments.
+//
+// The args parameter must be of PyTuple_Type object and it specified
+// the function parameters. It must not be NULL.
+//
+// The kwargs must be PyDict_Type and it specifies keyword arguments.
+// It can be NULL, if keyword arguments are not used.
+//
+// It returns strong object reference on success, NULL on an error.
+PyObject *py_obj_call(PyObject *x, PyObject *args, PyObject *kwargs) {
+    return PyObject_Call_p(x, args, kwargs);
+}
+
 // py_err_fetch fetches and clears last error.a
 // If there is no pending error, all pointers will be set to NULL.
 void py_err_fetch (PyObject **etype, PyObject **evalue, PyObject **trace) {
@@ -668,6 +690,33 @@ Py_UCS4 *py_str_get (PyObject *str, Py_UCS4 *buf, size_t len) {
 // It returns strong object reference on success, NULL on an error.
 PyObject *py_str_make(const char *val, size_t len) {
     return PyUnicode_FromStringAndSize_p(val, len);
+}
+
+// py_tuple_make makes a new PyTuple_Type object of the specified size.
+// The newly created tuple MUST be fully populated with the py_tuple_set
+// calls before it can be safely passed to Python interpreter.
+// It returns strong object reference on success, NULL on an error.
+PyObject *py_tuple_make(size_t len) {
+    return PyTuple_New_p(len);
+}
+
+// py_tuple_set retrieves value of the tuple item at the given position.
+// The returned answer, on success, contains a string reference to PyObject.
+// It returns true on success, false on error.
+bool py_tuple_get(PyObject *tuple, int index, PyObject **answer) {
+    PyObject *item = PyTuple_GetItem_p(tuple, index);
+    if (item != NULL) {
+        Py_NewRef_p(item);
+    }
+    return item;
+}
+
+// py_tuple_set sets value of the tuple item at the given position.
+// Internally, it creates a new strong reference to the object.
+// It returns true on success, false on error.
+bool py_tuple_set(PyObject *tuple, int index, PyObject *val) {
+    Py_NewRef_p(val);
+    return PyTuple_SetItem_p(tuple, index, val) == 0;
 }
 
 // vim:ts=8:sw=4:et

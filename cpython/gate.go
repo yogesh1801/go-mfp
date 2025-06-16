@@ -175,6 +175,15 @@ func (gate pyGate) hasitem(pyobj, key pyObject) (answer, ok bool) {
 	return
 }
 
+// call calls callable object as a function, with positional
+// arguments, defined by args (must be PyTuple_Type) and keyword
+// arguments, defined by kwargs (must be PyDict_Type or nil).
+//
+// It returns strong reference to result on success, nil on an error.
+func (gate pyGate) call(callable, args, kwargs pyObject) (res pyObject) {
+	return C.py_obj_call(callable, args, kwargs)
+}
+
 // setitem sets Object item with the specified key.
 //
 //	pyobj[key] = val
@@ -427,4 +436,23 @@ func (gate pyGate) eval(s, name string, expr bool) (pyObject, error) {
 	}
 
 	return pyobj, nil
+}
+
+// makeTuple makes a new PyTuple_Type object of the given size.
+// It returns strong object reference on success, nil on an error.
+func (gate pyGate) makeTuple(sz int) pyObject {
+	return C.py_tuple_make(C.size_t(sz))
+}
+
+// setTupleItem sets the item of the PyTuple_Type the specified position.
+// Internally, it creates a new strong reference to the item object.
+func (gate pyGate) setTupleItem(tuple, item pyObject, idx int) bool {
+	return bool(C.py_tuple_set(tuple, C.int(idx), item))
+}
+
+// getTupleItem retrieves the item of the PyTuple_Type the specified position.
+func (gate pyGate) getTupleItem(tuple pyObject, idx int) (pyObject, bool) {
+	var answer pyObject
+	ok := bool(C.py_tuple_get(tuple, C.int(idx), &answer))
+	return answer, ok
 }

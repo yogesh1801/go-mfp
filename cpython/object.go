@@ -331,6 +331,84 @@ func (obj *Object) SetAttr(name string, val any) error {
 	return nil
 }
 
+// Call calls Object as function.
+//
+// Arguments are automatically converted from Go to Python.
+// See [Python.NewObject] for details.
+//
+// Use [Object.CallKW] for call with keyword arguments.
+func (obj *Object) Call(args ...any) (*Object, error) {
+	return obj.CallKW(nil, args...)
+}
+
+// CallKW calls Object as function with keyword arguments defined
+// by the kw parameter and positional arguments defined by the
+// args parameter (variadic).
+//
+// Arguments are automatically converted from Go to Python.
+// See [Python.NewObject] for details.
+//
+// If keyword arguments are not used, kw may be nil.
+//
+// It returns the function's return value.
+func (obj *Object) CallKW(kw map[string]any, args ...any) (*Object, error) {
+	gate := obj.py.gate()
+	defer gate.release()
+
+	// Convert positional arguments
+	pyargs := gate.makeTuple(len(args))
+	if pyargs == nil {
+		return nil, gate.lastError()
+	}
+
+	defer gate.unref(pyargs)
+
+	for i, arg := range args {
+		pyarg, err := obj.py.newPyObject(gate, arg)
+		if err != nil {
+			return nil, err
+		}
+
+		ok := gate.setTupleItem(pyargs, pyarg, i)
+		if !ok {
+			err := gate.lastError()
+			gate.unref(pyarg)
+			return nil, err
+		}
+	}
+
+	// Convert keyword arguments
+	var pykwargs pyObject
+	if len(kw) > 0 {
+		var err error
+		pykwargs, err = obj.py.newPyObject(gate, kw)
+		if err != nil {
+			return nil, err
+		}
+
+		defer gate.unref(pykwargs)
+	}
+
+	// Perform a call
+	pyobj := obj.py.lookupObjID(gate, obj.oid)
+	pyret := gate.call(pyobj, pyargs, pykwargs)
+
+	if pyret == nil {
+		return nil, gate.lastError()
+	}
+
+	// Decode response
+	native, ok := gate.decodeObject(pyret)
+	if !ok {
+		return nil, gate.lastError()
+	}
+
+	retid := obj.py.newObjID(gate, pyret)
+	ret := newObjectFromPython(obj.py, retid, native)
+
+	return ret, nil
+}
+
 // Str returns string representation of the Object.
 // This is the equivalent of the Python expression str(x).
 func (obj *Object) Str() (string, error) {
