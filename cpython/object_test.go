@@ -436,6 +436,35 @@ func TestObjectItems(t *testing.T) {
 	}
 }
 
+// TestObjectCallable tests Object.Callable operation
+func TestObjectCallable(t *testing.T) {
+	// Create an interpreter
+	py, err := NewPython()
+	assert.NoError(err)
+	defer py.Close()
+
+	// Obtain non-callable object
+	obj, err := py.Eval("5")
+	assert.NoError(err)
+
+	callable, err := obj.Callable()
+	assert.NoError(err)
+
+	if callable {
+		t.Errorf("Object.Callable: false positive response")
+	}
+
+	// Obtain callable object
+	obj, err = py.Eval("min")
+
+	callable, err = obj.Callable()
+	assert.NoError(err)
+
+	if !callable {
+		t.Errorf("Object.Callable: false negative response")
+	}
+}
+
 // TestObjectGC tests how objects are garbage-collected
 func TestObjectGC(t *testing.T) {
 	py, err := NewPython()

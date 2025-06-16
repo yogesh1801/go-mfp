@@ -409,6 +409,15 @@ func (obj *Object) CallKW(kw map[string]any, args ...any) (*Object, error) {
 	return ret, nil
 }
 
+// Callable reports if Object is callable.
+func (obj *Object) Callable() (bool, error) {
+	gate := obj.py.gate()
+	defer gate.release()
+
+	pyobj := obj.py.lookupObjID(gate, obj.oid)
+	return gate.callable(pyobj), nil
+}
+
 // Str returns string representation of the Object.
 // This is the equivalent of the Python expression str(x).
 func (obj *Object) Str() (string, error) {

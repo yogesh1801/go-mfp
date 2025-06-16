@@ -151,6 +151,10 @@ bool py_obj_setitem(PyObject *x, PyObject *key, PyObject *value);
 // It returns strong object reference on success, NULL on an error.
 PyObject *py_obj_call(PyObject *x, PyObject *args, PyObject *kwargs);
 
+// py_obj_callable reports if object is callable.
+// This function always succeeds.
+bool py_obj_callable(PyObject *x);
+
 // py_err_fetch fetches and clears last error.
 // If there is no pending error, all pointers will be set to NULL.
 void py_err_fetch (PyObject **etype, PyObject **evalue, PyObject **trace);

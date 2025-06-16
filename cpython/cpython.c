@@ -48,6 +48,7 @@ static __typeof__(PyByteArray_AsString)         *PyByteArray_AsString_p;
 static __typeof__(PyByteArray_Size)             *PyByteArray_Size_p;
 static __typeof__(PyBytes_AsStringAndSize)      *PyBytes_AsStringAndSize_p;
 static __typeof__(PyBytes_FromStringAndSize)    *PyBytes_FromStringAndSize_p;
+static __typeof__(PyCallable_Check)             *PyCallable_Check_p;
 static __typeof__(Py_CompileString)             *Py_CompileString_p;
 static __typeof__(PyComplex_FromDoubles)        *PyComplex_FromDoubles_p;
 static __typeof__(PyComplex_ImagAsDouble)       *PyComplex_ImagAsDouble_p;
@@ -171,6 +172,7 @@ static void py_load_all (void) {
     PyByteArray_Size_p = py_load("PyByteArray_Size");
     PyBytes_AsStringAndSize_p = py_load("PyBytes_AsStringAndSize");
     PyBytes_FromStringAndSize_p = py_load("PyBytes_FromStringAndSize");
+    PyCallable_Check_p = py_load("PyCallable_Check");
     Py_CompileString_p = py_load("Py_CompileString");
     PyComplex_FromDoubles_p = py_load("PyComplex_FromDoubles");
     PyComplex_ImagAsDouble_p = py_load("PyComplex_ImagAsDouble");
@@ -508,6 +510,12 @@ bool py_obj_setitem(PyObject *x, PyObject *key, PyObject *value) {
 // It returns strong object reference on success, NULL on an error.
 PyObject *py_obj_call(PyObject *x, PyObject *args, PyObject *kwargs) {
     return PyObject_Call_p(x, args, kwargs);
+}
+
+// py_obj_callable reports if object is callable.
+// This function always succeeds.
+bool py_obj_callable(PyObject *x) {
+    return PyCallable_Check_p(x) != 0;
 }
 
 // py_err_fetch fetches and clears last error.a

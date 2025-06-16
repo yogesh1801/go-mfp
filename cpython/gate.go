@@ -184,6 +184,12 @@ func (gate pyGate) call(callable, args, kwargs pyObject) (res pyObject) {
 	return C.py_obj_call(callable, args, kwargs)
 }
 
+// callable reports if object is callable.
+// This function always succeeds.
+func (gate pyGate) callable(pyobj pyObject) bool {
+	return bool(C.py_obj_callable(pyobj))
+}
+
 // setitem sets Object item with the specified key.
 //
 //	pyobj[key] = val
