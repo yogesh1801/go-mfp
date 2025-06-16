@@ -92,10 +92,6 @@ func (py *Python) NewObject(val any) (*Object, error) {
 	defer gate.release()
 
 	pyobj, err := py.newPyObject(gate, val)
-	if pyobj == nil && err == nil {
-		err = gate.lastError()
-	}
-
 	if err != nil {
 		return nil, err
 	}
@@ -109,10 +105,20 @@ func (py *Python) NewObject(val any) (*Object, error) {
 // newPyObject is the internal function behind the [Python.NewObject]
 // which does all the dirty work of conversion value into the
 // Python Object.
+func (py *Python) newPyObject(gate pyGate, val any) (pyObject, error) {
+	pyobj, err := py.newPyObjectImpl(gate, val)
+	if pyobj == nil && err == nil {
+		err = gate.lastError()
+	}
+
+	return pyobj, err
+}
+
+// newPyObjectImpl is the actual implementation of the Python.newPyObject
 //
 // It returns either pyObject or error. If it returns (nil, nil),
 // gate.lastError needs to be consulted.
-func (py *Python) newPyObject(gate pyGate, val any) (pyObject, error) {
+func (py *Python) newPyObjectImpl(gate pyGate, val any) (pyObject, error) {
 	// Handle special cases
 	if val == nil {
 		return py.none, nil
