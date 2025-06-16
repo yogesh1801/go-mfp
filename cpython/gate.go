@@ -148,7 +148,7 @@ func (gate pyGate) setattr(pyobj pyObject, name string, val pyObject) (ok bool) 
 	return
 }
 
-// delitem deletes Object attribute with the specified key:
+// delitem deletes Object item with the specified key:
 //
 //	del(pyobj[key])
 func (gate pyGate) delitem(pyobj, key pyObject) (ok bool) {
@@ -156,7 +156,7 @@ func (gate pyGate) delitem(pyobj, key pyObject) (ok bool) {
 	return
 }
 
-// getitem returns Object attribute with the specified key.
+// getitem returns Object item with the specified key.
 //
 //	pyobj[key]
 func (gate pyGate) getitem(pyobj, key pyObject) (item pyObject, ok bool) {
@@ -164,7 +164,7 @@ func (gate pyGate) getitem(pyobj, key pyObject) (item pyObject, ok bool) {
 	return
 }
 
-// hasitem reports if Object has attribute with the specified key.
+// hasitem reports if Object has item with the specified key.
 //
 //	key in pyobj
 func (gate pyGate) hasitem(pyobj, key pyObject) (answer, ok bool) {
@@ -175,7 +175,7 @@ func (gate pyGate) hasitem(pyobj, key pyObject) (answer, ok bool) {
 	return
 }
 
-// setitem sets Object attribute with the specified key.
+// setitem sets Object item with the specified key.
 //
 //	pyobj[key] = val
 func (gate pyGate) setitem(pyobj, key, val pyObject) (ok bool) {
