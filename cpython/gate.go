@@ -118,7 +118,7 @@ func (gate pyGate) delattr(pyobj pyObject, name string) (ok bool) {
 	return
 }
 
-// delattr returns Object attribute with the specified name.
+// getattr returns Object attribute with the specified name.
 func (gate pyGate) getattr(pyobj pyObject, name string) (attr pyObject, ok bool) {
 	cname := C.CString(name)
 	defer C.free(unsafe.Pointer(cname))
@@ -139,12 +139,47 @@ func (gate pyGate) hasattr(pyobj pyObject, name string) (answer, ok bool) {
 	return
 }
 
-// setattr sets Object has attribute with the specified name.
+// setattr sets Object attribute with the specified name.
 func (gate pyGate) setattr(pyobj pyObject, name string, val pyObject) (ok bool) {
 	cname := C.CString(name)
 	defer C.free(unsafe.Pointer(cname))
 
 	ok = bool(C.py_obj_setattr(pyobj, cname, val))
+	return
+}
+
+// delitem deletes Object attribute with the specified key:
+//
+//	del(pyobj[key])
+func (gate pyGate) delitem(pyobj, key pyObject) (ok bool) {
+	ok = bool(C.py_obj_delitem(pyobj, key))
+	return
+}
+
+// getitem returns Object attribute with the specified key.
+//
+//	pyobj[key]
+func (gate pyGate) getitem(pyobj, key pyObject) (item pyObject, ok bool) {
+	ok = bool(C.py_obj_getitem(pyobj, key, &item))
+	return
+}
+
+// hasitem reports if Object has attribute with the specified key.
+//
+//	key in pyobj
+func (gate pyGate) hasitem(pyobj, key pyObject) (answer, ok bool) {
+	var canswer C.bool
+	ok = bool(C.py_obj_hasitem(pyobj, key, &canswer))
+	answer = bool(canswer)
+
+	return
+}
+
+// setitem sets Object attribute with the specified key.
+//
+//	pyobj[key] = val
+func (gate pyGate) setitem(pyobj, key, val pyObject) (ok bool) {
+	ok = bool(C.py_obj_setitem(pyobj, key, val))
 	return
 }
 

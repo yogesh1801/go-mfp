@@ -74,10 +74,13 @@ static __typeof__(PyLong_FromUnsignedLongLong)  *PyLong_FromUnsignedLongLong_p;
 static __typeof__(PyModule_GetDict)             *PyModule_GetDict_p;
 static __typeof__(Py_NewInterpreter)            *Py_NewInterpreter_p;
 static __typeof__(Py_NewRef)                    *Py_NewRef_p;
+static __typeof__(PyObject_DelItem)             *PyObject_DelItem_p;
 static __typeof__(PyObject_GetAttrString)       *PyObject_GetAttrString_p;
+static __typeof__(PyObject_GetItem)             *PyObject_GetItem_p;
 static __typeof__(PyObject_HasAttrString)       *PyObject_HasAttrString_p;
 static __typeof__(PyObject_Repr)                *PyObject_Repr_p;
 static __typeof__(PyObject_SetAttrString)       *PyObject_SetAttrString_p;
+static __typeof__(PyObject_SetItem)             *PyObject_SetItem_p;
 static __typeof__(PyObject_Str)                 *PyObject_Str_p;
 static __typeof__(PyThreadState_Clear)          *PyThreadState_Clear_p;
 static __typeof__(PyThreadState_Delete)         *PyThreadState_Delete_p;
@@ -193,10 +196,13 @@ static void py_load_all (void) {
     PyLong_Type_p = py_load("PyLong_Type");
     PyMemoryView_Type_p = py_load("PyMemoryView_Type");
     PyModule_Type_p = py_load("PyModule_Type");
+    PyObject_DelItem_p = py_load("PyObject_DelItem");
     PyObject_GetAttrString_p = py_load("PyObject_GetAttrString");
+    PyObject_GetItem_p = py_load("PyObject_GetItem");
     PyObject_HasAttrString_p = py_load("PyObject_HasAttrString");
     PyObject_Repr_p = py_load("PyObject_Repr");
     PyObject_SetAttrString_p = py_load("PyObject_SetAttrString");
+    PyObject_SetItem_p = py_load("PyObject_SetItem");
     PyObject_Str_p = py_load("PyObject_Str");
     PySet_Type_p = py_load("PySet_Type");
     PySlice_Type_p = py_load("PySlice_Type");
@@ -388,13 +394,13 @@ bool py_obj_hasattr(PyObject *x, const char *name, bool *answer) {
     return true;
 }
 
-// py_obj_hasattr deletes the attribute with the specified name.
+// py_obj_delattr deletes the attribute with the specified name.
 // It returns true on success, false on error.
 bool py_obj_delattr(PyObject *x, const char *name) {
     return py_obj_setattr(x, name, NULL);
 }
 
-// py_obj_hasattr retrieves the attribute with the specified name.
+// py_obj_getattr retrieves the attribute with the specified name.
 // The returned answer, on success, contains a string reference to PyObject.
 // It returns true on success, false on error.
 bool py_obj_getattr(PyObject *x, const char *name, PyObject **answer) {
@@ -403,15 +409,50 @@ bool py_obj_getattr(PyObject *x, const char *name, PyObject **answer) {
     return attr != NULL;
 }
 
-// py_obj_hasattr sets the attribute with the specified name.
+// py_obj_getattr sets the attribute with the specified name.
 // Internally, it creates a new strong reference to the object.
 // It returns true on success, false on error.
 bool py_obj_setattr(PyObject *x, const char *name, PyObject *value) {
-    if (value != NULL) {
-        Py_NewRef_p(value);
+    return PyObject_SetAttrString_p(x, name, value) == 0;
+}
+
+// py_obj_hasitem reports if PyObject contains the item with the
+// specified key.
+//
+// It returns true on success, false on error and puts answer into
+// its third parameter.
+bool py_obj_hasitem(PyObject *x, PyObject *key, bool *answer) {
+    PyObject *item;
+    bool     ok = py_obj_getitem(x, key, &item);
+
+    *answer = false;
+    if (item != NULL) {
+        *answer = true;
+        Py_DecRef_p(item);
     }
 
-    return PyObject_SetAttrString_p(x, name, value) == 0;
+    return ok;
+}
+
+// py_obj_delitem deletes the item with the specified key.
+// It returns true on success, false on error.
+bool py_obj_delitem(PyObject *x, PyObject *key) {
+    return PyObject_DelItem_p(x, key) == 0;
+}
+
+// py_obj_getitem retrieves the item with the specified key.
+// The returned answer, on success, contains a string reference to PyObject.
+// It returns true on success, false on error.
+bool py_obj_getitem(PyObject *x, PyObject *key, PyObject **answer) {
+    *answer = PyObject_GetItem_p(x, key);
+    return (*answer != NULL) || (PyErr_Occurred_p() == NULL);
+}
+
+// py_obj_setitem sets the item with the specified key.
+// Internally, it creates a new strong reference to the object.
+// It returns true on success, false on error.
+bool py_obj_setitem(PyObject *x, PyObject *key, PyObject *value) {
+    return PyObject_SetItem_p(x, key, value) == 0;
 }
 
 // py_err_fetch fetches and clears last error.a

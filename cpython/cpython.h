@@ -104,19 +104,40 @@ PyObject *py_obj_repr (PyObject *x);
 // its third parameter.
 bool py_obj_hasattr(PyObject *x, const char *name, bool *answer);
 
-// py_obj_hasattr deletes the attribute with the specified name.
+// py_obj_delattr deletes the attribute with the specified name.
 // It returns true on success, false on error.
 bool py_obj_delattr(PyObject *x, const char *name);
 
-// py_obj_hasattr retrieves the attribute with the specified name.
+// py_obj_getattr retrieves the attribute with the specified name.
 // The returned answer, on success, contains a string reference to PyObject.
 // It returns true on success, false on error.
 bool py_obj_getattr(PyObject *x, const char *name, PyObject **answer);
 
-// py_obj_hasattr sets the attribute with the specified name.
+// py_obj_setattr sets the attribute with the specified name.
 // Internally, it creates a new strong reference to the object.
 // It returns true on success, false on error.
 bool py_obj_setattr(PyObject *x, const char *name, PyObject *value);
+
+// py_obj_hasitem reports if PyObject contains the item with the
+// specified key.
+//
+// It returns true on success, false on error and puts answer into
+// its third parameter.
+bool py_obj_hasitem(PyObject *x, PyObject *key, bool *answer);
+
+// py_obj_delitem deletes the item with the specified key.
+// It returns true on success, false on error.
+bool py_obj_delitem(PyObject *x, PyObject *key);
+
+// py_obj_getitem retrieves the item with the specified key.
+// The returned answer, on success, contains a string reference to PyObject.
+// It returns true on success, false on error.
+bool py_obj_getitem(PyObject *x, PyObject *key, PyObject **answer);
+
+// py_obj_setitem sets the item with the specified key.
+// Internally, it creates a new strong reference to the object.
+// It returns true on success, false on error.
+bool py_obj_setitem(PyObject *x, PyObject *key, PyObject *value);
 
 // py_err_fetch fetches and clears last error.
 // If there is no pending error, all pointers will be set to NULL.

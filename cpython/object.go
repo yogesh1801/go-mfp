@@ -53,7 +53,171 @@ func (obj *Object) finalizer() {
 	}
 }
 
-// DelAttr deletes Object attribute with the specified name.
+// Del deletes Object item with the specified key:
+//
+// In Python:
+//
+//	del(obj, key)
+//
+// The Object must be container (array, dict, etc).
+// The key may be any value that [Python.NewObject] accepts.
+//
+// It returns:
+//   - (true, nil) if item was found and deleted
+//   - (false, nil) if item was not found
+//   - (false, error) in a case of error
+func (obj *Object) Del(key any) (bool, error) {
+	gate := obj.py.gate()
+	defer gate.release()
+
+	// Obtain *C.PyIbject references for all relevant objects.
+	pyobj := obj.py.lookupObjID(gate, obj.oid)
+
+	pykey, err := obj.py.newPyObject(gate, key)
+	if err != nil {
+		return false, err
+	}
+	defer gate.unref(pykey)
+
+	// Check for item existence, then delete, if found.
+	found, ok := gate.hasitem(pyobj, pykey)
+	if found && ok {
+		ok = gate.delitem(pyobj, pykey)
+	}
+
+	if !ok {
+		return false, gate.lastError()
+	}
+
+	return found, nil
+}
+
+// Get returns Object item with the specified key:
+//
+// In Python:
+//
+//	obj[key]
+//
+// The Object must be container (array, dict, etc).
+// The key may be any value that [Python.NewObject] accepts.
+//
+// It returns:
+//   - (*Object, nil) if item was found
+//   - (nil, nil) if item was not found
+//   - (nil, error) in a case of error
+func (obj *Object) Get(key any) (*Object, error) {
+	gate := obj.py.gate()
+	defer gate.release()
+
+	// Obtain *C.PyIbject references for all relevant objects.
+	pyobj := obj.py.lookupObjID(gate, obj.oid)
+
+	pykey, err := obj.py.newPyObject(gate, key)
+	if err != nil {
+		return nil, err
+	}
+	defer gate.unref(pykey)
+
+	// Check for item existence, then retrieve, if found.
+	found, ok := gate.hasitem(pyobj, pykey)
+	if !found && ok {
+		return nil, nil
+	}
+
+	var pyitem pyObject
+	if ok {
+		pyitem, ok = gate.getitem(pyobj, pykey)
+	}
+
+	// Try to decode
+	var native any
+	if ok {
+		native, ok = gate.decodeObject(pyitem)
+	}
+
+	// Handle possible error
+	if !ok {
+		return nil, gate.lastError()
+	}
+
+	// Create the item object
+	itemid := obj.py.newObjID(gate, pyitem)
+	item := newObjectFromPython(obj.py, itemid, native)
+
+	return item, nil
+}
+
+// Contains reports if Object has the item with the specified key.
+//
+// In Python:
+//
+//	key in obj
+//
+// The Object must be container (array, dict, etc).
+// The key may be any value that [Python.NewObject] accepts.
+func (obj *Object) Contains(key any) (bool, error) {
+	gate := obj.py.gate()
+	defer gate.release()
+
+	// Obtain *C.PyIbject references for all relevant objects.
+	pyobj := obj.py.lookupObjID(gate, obj.oid)
+
+	pykey, err := obj.py.newPyObject(gate, key)
+	if err != nil {
+		return false, err
+	}
+	defer gate.unref(pykey)
+
+	// Check for item existence
+	found, ok := gate.hasitem(pyobj, pykey)
+	if !ok {
+		return false, gate.lastError()
+	}
+	return found, nil
+}
+
+// Set sets Object item with the specified name.
+//
+// In Python:
+//
+//	obj.name = val
+//
+// The Object must be container (array, dict, etc).
+// The key and val may be any value that [Python.NewObject] accepts.
+func (obj *Object) Set(key, val any) error {
+	gate := obj.py.gate()
+	defer gate.release()
+
+	// Obtain *C.PyIbject references for all relevant objects.
+	pyobj := obj.py.lookupObjID(gate, obj.oid)
+
+	pykey, err := obj.py.newPyObject(gate, key)
+	if err != nil {
+		return err
+	}
+	defer gate.unref(pykey)
+
+	pyval, err := obj.py.newPyObject(gate, val)
+	if err != nil {
+		return err
+	}
+	defer gate.unref(pyval)
+
+	// Set the item
+	ok := gate.setitem(pyobj, pykey, pyval)
+	if !ok {
+		return gate.lastError()
+	}
+
+	return nil
+}
+
+// DelAttr deletes Object attribute with the specified name:
+//
+// In Python:
+//
+//	delattr(obj, name)
+//
 // It returns:
 //   - (true, nil) if attribute was found and deleted
 //   - (false, nil) if attribute was not found
@@ -76,8 +240,11 @@ func (obj *Object) DelAttr(name string) (bool, error) {
 	return found, nil
 }
 
-// GetAttr returns Object attribute with the specified name.
-// This is the equivalent of the Python expression obj.name
+// GetAttr returns Object attribute with the specified name:
+//
+// In Python:
+//
+//	obj.name
 //
 // It returns:
 //   - (*Object, nil) if attribute was found
@@ -120,7 +287,10 @@ func (obj *Object) GetAttr(name string) (*Object, error) {
 }
 
 // HasAttr reports if Object has the attribute with the specified name.
-// This is equivalent to the Python expression hasattr(obj, name).
+//
+// In Python:
+//
+//	hasattr(obj, name)
 func (obj *Object) HasAttr(name string) (bool, error) {
 	gate := obj.py.gate()
 	defer gate.release()
@@ -135,15 +305,25 @@ func (obj *Object) HasAttr(name string) (bool, error) {
 }
 
 // SetAttr sets Object attribute with the specified name.
-// This is the equivalent of the Python statement obj.name = val
-func (obj *Object) SetAttr(name string, val *Object) error {
+//
+// In Python:
+//
+//	obj.name = val
+//
+// The val may be any value that [Python.NewObject] accepts.
+func (obj *Object) SetAttr(name string, val any) error {
 	gate := obj.py.gate()
 	defer gate.release()
 
 	pyobj := obj.py.lookupObjID(gate, obj.oid)
-	valobj := obj.py.lookupObjID(gate, val.oid)
 
-	ok := gate.setattr(pyobj, name, valobj)
+	pyval, err := obj.py.newPyObject(gate, val)
+	if err != nil {
+		return err
+	}
+	defer gate.unref(pyval)
+
+	ok := gate.setattr(pyobj, name, pyval)
 	if !ok {
 		return gate.lastError()
 	}
