@@ -465,6 +465,50 @@ func TestObjectCallable(t *testing.T) {
 	}
 }
 
+// TestObjectCall tests Object.Call operation
+func TestObjectCall(t *testing.T) {
+	// Create an interpreter
+	py, err := NewPython()
+	assert.NoError(err)
+	defer py.Close()
+
+	// Obtain callable object
+	obj, err := py.Eval("min")
+	assert.NoError(err)
+
+	// Perform simple call
+	res, err := obj.Call(1, 2)
+	if err != nil {
+		t.Errorf("Object.Call (positional args): %s", err)
+		return
+	}
+
+	val := res.Unbox()
+	if val != 1 {
+		t.Errorf("Object.Call (positional args):\n"+
+			"expected: %d\n"+
+			"present:  %d\n",
+			1, val)
+
+	}
+
+	// Call with keyword arguments
+	res, err = obj.CallKW(map[string]any{"default": 5}, []int{})
+	if err != nil {
+		t.Errorf("Object.Call (keyword args): %s", err)
+		return
+	}
+
+	val = res.Unbox()
+	if val != 5 {
+		t.Errorf("Object.Call (keyword args):\n"+
+			"expected: %d\n"+
+			"present:  %d\n",
+			5, val)
+
+	}
+}
+
 // TestObjectGC tests how objects are garbage-collected
 func TestObjectGC(t *testing.T) {
 	py, err := NewPython()
