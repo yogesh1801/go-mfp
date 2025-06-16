@@ -56,6 +56,7 @@ static __typeof__(Py_DecRef)                    *Py_DecRef_p;
 static __typeof__(PyDict_New)                   *PyDict_New_p;
 static __typeof__(PyErr_Clear)                  *PyErr_Clear_p;
 static __typeof__(PyErr_Fetch)                  *PyErr_Fetch_p;
+static __typeof__(PyErr_NormalizeException)     *PyErr_NormalizeException_p;
 static __typeof__(PyErr_Occurred)               *PyErr_Occurred_p;
 static __typeof__(PyEval_EvalCode)              *PyEval_EvalCode_p;
 static __typeof__(PyEval_RestoreThread)         *PyEval_RestoreThread_p;
@@ -174,6 +175,7 @@ static void py_load_all (void) {
     PyDict_New_p = py_load("PyDict_New");
     PyErr_Clear_p = py_load("PyErr_Clear");
     PyErr_Fetch_p = py_load("PyErr_Fetch");
+    PyErr_NormalizeException_p = py_load("PyErr_NormalizeException");
     PyErr_Occurred_p = py_load("PyErr_Occurred");
     PyEval_EvalCode_p = py_load("PyEval_EvalCode");
     PyEval_RestoreThread_p = py_load("PyEval_RestoreThread");
@@ -489,7 +491,16 @@ bool py_obj_setitem(PyObject *x, PyObject *key, PyObject *value) {
 // py_err_fetch fetches and clears last error.a
 // If there is no pending error, all pointers will be set to NULL.
 void py_err_fetch (PyObject **etype, PyObject **evalue, PyObject **trace) {
-    PyErr_Fetch_p(etype, evalue, trace);
+    PyObject *exc, *val, *tb;
+
+    PyErr_Fetch_p(&exc, &val, &tb);
+    if ((exc != NULL) || (val != NULL) || (tb != NULL)) {
+        PyErr_NormalizeException_p(&exc, &val, &tb);
+    }
+
+    *etype = exc;
+    *evalue = val;
+    *trace = tb;
 }
 
 // py_bool_make makes a new PyBool_Type object.
