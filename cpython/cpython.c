@@ -94,7 +94,7 @@ static __typeof__(PyUnicode_AsUCS4)             *PyUnicode_AsUCS4_p;
 static __typeof__(PyUnicode_FromStringAndSize)  *PyUnicode_FromStringAndSize_p;
 
 // Python exceptions (some of them):
-static __typeof__(PyObject)                     **PyExc_KeyError_p;
+static __typeof__(PyObject)                     *PyExc_KeyError_p;
 
 // Python build-in (primitive) types:
 PyTypeObject *PyBool_Type_p;
@@ -146,6 +146,17 @@ static void *py_load (const char *name) {
     }
 
     return p;
+}
+
+// py_load loads and dereferences pointer from the libpython3.so.
+static void *py_load_ptr (const char *name) {
+    void **pp = py_load(name);
+
+    if (pp != NULL) {
+        return *pp;
+    }
+
+    return NULL;
 }
 
 // py_load_all loads all Python symbols.
@@ -200,7 +211,7 @@ static void py_load_all (void) {
     PyUnicode_AsUCS4_p = py_load("PyUnicode_AsUCS4");
     PyUnicode_FromStringAndSize_p = py_load("PyUnicode_FromStringAndSize");
 
-    PyExc_KeyError_p = py_load("PyExc_KeyError");
+    PyExc_KeyError_p = py_load_ptr("PyExc_KeyError");
 
     PyBool_Type_p = py_load("PyBool_Type");
     PyByteArray_Type_p = py_load("PyByteArray_Type");
@@ -460,7 +471,7 @@ bool py_obj_getitem(PyObject *x, PyObject *key, PyObject **answer) {
     }
 
     PyObject *err = PyErr_Occurred_p();
-    if (err == NULL || err == *PyExc_KeyError_p) {
+    if (err == NULL || err == PyExc_KeyError_p) {
         PyErr_Clear_p();
         return true;
     }
