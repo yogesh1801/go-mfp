@@ -15,7 +15,7 @@ PACKAGE	:= $(shell basename $(shell pwd))
 # ----- Parameters -----
 
 GO	:= go
-GOTAGS	:= $(shell which gotags 2>/dev/null)
+CTAGS	:= $(shell which ctags 2>/dev/null)
 GOLINT	:= $(shell which golint 2>/dev/null)
 
 # ----- Common targets -----
@@ -81,9 +81,9 @@ do_vet:
 
 endif
 
-ifneq	($(GOTAGS),)
+ifneq	($(CTAGS),)
 tags:
-	cd $(TOPDIR); gotags -R . > tags
+	cd $(TOPDIR); rm -f tags; $(CTAGS) -R
 endif
 
 ifneq	($(CLEAN),)
