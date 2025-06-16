@@ -53,6 +53,7 @@ static __typeof__(PyComplex_FromDoubles)        *PyComplex_FromDoubles_p;
 static __typeof__(PyComplex_ImagAsDouble)       *PyComplex_ImagAsDouble_p;
 static __typeof__(PyComplex_RealAsDouble)       *PyComplex_RealAsDouble_p;
 static __typeof__(Py_DecRef)                    *Py_DecRef_p;
+static __typeof__(PyErr_Clear)                  *PyErr_Clear_p;
 static __typeof__(PyErr_Fetch)                  *PyErr_Fetch_p;
 static __typeof__(PyErr_Occurred)               *PyErr_Occurred_p;
 static __typeof__(PyEval_EvalCode)              *PyEval_EvalCode_p;
@@ -91,14 +92,17 @@ static __typeof__(PyThreadState_Swap)           *PyThreadState_Swap_p;
 static __typeof__(PyUnicode_AsUCS4)             *PyUnicode_AsUCS4_p;
 static __typeof__(PyUnicode_FromStringAndSize)  *PyUnicode_FromStringAndSize_p;
 
+// Python exceptions (some of them):
+static __typeof__(PyObject)                     **PyExc_KeyError_p;
+
 // Python build-in (primitive) types:
 PyTypeObject *PyBool_Type_p;
 PyTypeObject *PyByteArray_Type_p;
 PyTypeObject *PyBytes_Type_p;
 PyTypeObject *PyCFunction_Type_p;
 PyTypeObject *PyComplex_Type_p;
-PyTypeObject *PyDict_Type_p;
 PyTypeObject *PyDictKeys_Type_p;
+PyTypeObject *PyDict_Type_p;
 PyTypeObject *PyFloat_Type_p;
 PyTypeObject *PyFrozenSet_Type_p;
 PyTypeObject *PyList_Type_p;
@@ -145,57 +149,38 @@ static void *py_load (const char *name) {
 
 // py_load_all loads all Python symbols.
 static void py_load_all (void) {
+    PyBool_FromLong_p = py_load("PyBool_FromLong");
+    PyByteArray_AsString_p = py_load("PyByteArray_AsString");
+    PyByteArray_Size_p = py_load("PyByteArray_Size");
+    PyBytes_AsStringAndSize_p = py_load("PyBytes_AsStringAndSize");
+    PyBytes_FromStringAndSize_p = py_load("PyBytes_FromStringAndSize");
     Py_CompileString_p = py_load("Py_CompileString");
+    PyComplex_FromDoubles_p = py_load("PyComplex_FromDoubles");
+    PyComplex_ImagAsDouble_p = py_load("PyComplex_ImagAsDouble");
+    PyComplex_RealAsDouble_p = py_load("PyComplex_RealAsDouble");
     Py_DecRef_p = py_load("Py_DecRef");
+    PyErr_Clear_p = py_load("PyErr_Clear");
     PyErr_Fetch_p = py_load("PyErr_Fetch");
     PyErr_Occurred_p = py_load("PyErr_Occurred");
     PyEval_EvalCode_p = py_load("PyEval_EvalCode");
     PyEval_RestoreThread_p = py_load("PyEval_RestoreThread");
     PyEval_SaveThread_p = py_load("PyEval_SaveThread");
+    PyFloat_AsDouble_p = py_load("PyFloat_AsDouble");
+    PyFloat_FromDouble_p = py_load("PyFloat_FromDouble");
     PyImport_AddModule_p = py_load("PyImport_AddModule");
     Py_InitializeEx_p = py_load("Py_InitializeEx");
     PyInterpreterState_Clear_p = py_load("PyInterpreterState_Clear");
     PyInterpreterState_Delete_p = py_load("PyInterpreterState_Delete");
-    PyLong_AsLongAndOverflow_p = py_load("PyLong_AsLongAndOverflow");
-    PyModule_GetDict_p = py_load("PyModule_GetDict");
-    Py_NewInterpreter_p = py_load("Py_NewInterpreter");
-    Py_NewRef_p = py_load("Py_NewRef");
-    PyThreadState_Clear_p = py_load("PyThreadState_Clear");
-    PyThreadState_Delete_p = py_load("PyThreadState_Delete");
-    PyThreadState_GetInterpreter_p = py_load("PyThreadState_GetInterpreter");
-    PyThreadState_Get_p = py_load("PyThreadState_Get");
-    PyThreadState_New_p = py_load("PyThreadState_New");
-    PyThreadState_Swap_p = py_load("PyThreadState_Swap");
-
-    PyBool_FromLong_p = py_load("PyBool_FromLong");
-    PyBool_Type_p = py_load("PyBool_Type");
-    PyByteArray_AsString_p = py_load("PyByteArray_AsString");
-    PyByteArray_Size_p = py_load("PyByteArray_Size");
-    PyByteArray_Type_p = py_load("PyByteArray_Type");
-    PyBytes_AsStringAndSize_p = py_load("PyBytes_AsStringAndSize");
-    PyBytes_FromStringAndSize_p = py_load("PyBytes_FromStringAndSize");
-    PyBytes_Type_p = py_load("PyBytes_Type");
-    PyCFunction_Type_p = py_load("PyCFunction_Type");
-    PyComplex_FromDoubles_p = py_load("PyComplex_FromDoubles");
-    PyComplex_ImagAsDouble_p = py_load("PyComplex_ImagAsDouble");
-    PyComplex_RealAsDouble_p = py_load("PyComplex_RealAsDouble");
-    PyComplex_Type_p = py_load("PyComplex_Type");
-    PyDictKeys_Type_p = py_load("PyDictKeys_Type");
-    PyDict_Type_p = py_load("PyDict_Type");
-    PyFloat_AsDouble_p = py_load("PyFloat_AsDouble");
-    PyFloat_FromDouble_p = py_load("PyFloat_FromDouble");
-    PyFloat_Type_p = py_load("PyFloat_Type");
-    PyFrozenSet_Type_p = py_load("PyFrozenSet_Type");
     PyList_GetItem_p = py_load("PyList_GetItem");
     PyList_New_p = py_load("PyList_New");
     PyList_SetItem_p = py_load("PyList_SetItem");
-    PyList_Type_p = py_load("PyList_Type");
+    PyLong_AsLongAndOverflow_p = py_load("PyLong_AsLongAndOverflow");
     PyLong_FromLongLong_p = py_load("PyLong_FromLongLong");
     PyLong_FromString_p = py_load("PyLong_FromString");
     PyLong_FromUnsignedLongLong_p = py_load("PyLong_FromUnsignedLongLong");
-    PyLong_Type_p = py_load("PyLong_Type");
-    PyMemoryView_Type_p = py_load("PyMemoryView_Type");
-    PyModule_Type_p = py_load("PyModule_Type");
+    PyModule_GetDict_p = py_load("PyModule_GetDict");
+    Py_NewInterpreter_p = py_load("Py_NewInterpreter");
+    Py_NewRef_p = py_load("Py_NewRef");
     PyObject_DelItem_p = py_load("PyObject_DelItem");
     PyObject_GetAttrString_p = py_load("PyObject_GetAttrString");
     PyObject_GetItem_p = py_load("PyObject_GetItem");
@@ -204,12 +189,34 @@ static void py_load_all (void) {
     PyObject_SetAttrString_p = py_load("PyObject_SetAttrString");
     PyObject_SetItem_p = py_load("PyObject_SetItem");
     PyObject_Str_p = py_load("PyObject_Str");
+    PyThreadState_Clear_p = py_load("PyThreadState_Clear");
+    PyThreadState_Delete_p = py_load("PyThreadState_Delete");
+    PyThreadState_GetInterpreter_p = py_load("PyThreadState_GetInterpreter");
+    PyThreadState_Get_p = py_load("PyThreadState_Get");
+    PyThreadState_New_p = py_load("PyThreadState_New");
+    PyThreadState_Swap_p = py_load("PyThreadState_Swap");
+    PyUnicode_AsUCS4_p = py_load("PyUnicode_AsUCS4");
+    PyUnicode_FromStringAndSize_p = py_load("PyUnicode_FromStringAndSize");
+
+    PyExc_KeyError_p = py_load("PyExc_KeyError");
+
+    PyBool_Type_p = py_load("PyBool_Type");
+    PyByteArray_Type_p = py_load("PyByteArray_Type");
+    PyBytes_Type_p = py_load("PyBytes_Type");
+    PyCFunction_Type_p = py_load("PyCFunction_Type");
+    PyComplex_Type_p = py_load("PyComplex_Type");
+    PyDictKeys_Type_p = py_load("PyDictKeys_Type");
+    PyDict_Type_p = py_load("PyDict_Type");
+    PyFloat_Type_p = py_load("PyFloat_Type");
+    PyFrozenSet_Type_p = py_load("PyFrozenSet_Type");
+    PyList_Type_p = py_load("PyList_Type");
+    PyLong_Type_p = py_load("PyLong_Type");
+    PyMemoryView_Type_p = py_load("PyMemoryView_Type");
+    PyModule_Type_p = py_load("PyModule_Type");
     PySet_Type_p = py_load("PySet_Type");
     PySlice_Type_p = py_load("PySlice_Type");
     PyTuple_Type_p = py_load("PyTuple_Type");
     PyType_Type_p = py_load("PyType_Type");
-    PyUnicode_AsUCS4_p = py_load("PyUnicode_AsUCS4");
-    PyUnicode_FromStringAndSize_p = py_load("PyUnicode_FromStringAndSize");
     PyUnicode_Type_p = py_load("PyUnicode_Type");
 
     Py_IsNone_p = py_load("Py_IsNone");
@@ -445,7 +452,18 @@ bool py_obj_delitem(PyObject *x, PyObject *key) {
 // It returns true on success, false on error.
 bool py_obj_getitem(PyObject *x, PyObject *key, PyObject **answer) {
     *answer = PyObject_GetItem_p(x, key);
-    return (*answer != NULL) || (PyErr_Occurred_p() == NULL);
+
+    if (*answer != NULL) {
+        return true;
+    }
+
+    PyObject *err = PyErr_Occurred_p();
+    if (err == NULL || err == *PyExc_KeyError_p) {
+        PyErr_Clear_p();
+        return true;
+    }
+
+    return false;
 }
 
 // py_obj_setitem sets the item with the specified key.

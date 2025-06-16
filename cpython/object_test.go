@@ -290,6 +290,137 @@ dog = Dog("Archi", 4)
 	}
 }
 
+// TestObjectItems tests operations with object items.
+func TestObjectItems(t *testing.T) {
+	// Create an interpreter
+	py, err := NewPython()
+	assert.NoError(err)
+	defer py.Close()
+
+	// Create test object
+	obj, err := py.Eval(`{1:"1", 2:"2", 3:"3"}`)
+	assert.NoError(err)
+	_ = obj
+
+	// Items 1, 2, 3 must exist and have proper value
+	for i := 1; i <= 3; i++ {
+		found, err := obj.Contains(i)
+		if err != nil {
+			t.Errorf("Object.Contains(%v): %s", i, err)
+			return
+		}
+
+		if !found {
+			t.Errorf("Object.Contains(%v): item not found", i)
+		}
+
+		item, err := obj.Get(i)
+		if err != nil {
+			t.Errorf("Object.Get(%v): %s", i, err)
+			return
+		}
+
+		s, err := item.Str()
+		assert.NoError(err)
+
+		if expected := fmt.Sprintf("%d", i); s != expected {
+			t.Errorf("Object.Get(%v):\n"+
+				"expected: %s\n"+
+				"present:  %s\n",
+				i, expected, s)
+		}
+	}
+
+	// Items 4, 5, 6 must not exist.
+	// Object.Get must return (nil,nil) for them.
+	for i := 4; i <= 6; i++ {
+		found, err := obj.Contains(i)
+		if err != nil {
+			t.Errorf("Object.Contains(%v): %s", i, err)
+			return
+		}
+
+		if found {
+			t.Errorf("Object.Contains(%v): item found", i)
+		}
+
+		item, err := obj.Get(i)
+		if item != nil || err != nil {
+			t.Errorf("Object.Get(%v):\n"+
+				"expected: (%v, %v)\n"+
+				"present:  (%v, %v)\n",
+				i, nil, nil, item, err)
+		}
+	}
+
+	// Add items 4, 5, 6
+	for i := 4; i <= 6; i++ {
+		val := fmt.Sprintf("%d", i)
+		err := obj.Set(i, val)
+		if err != nil {
+			t.Errorf("Object.Set(%v): %s", i, err)
+			return
+		}
+	}
+
+	// Now all objects must be present
+	for i := 1; i <= 6; i++ {
+		item, err := obj.Get(i)
+		if err != nil {
+			t.Errorf("Object.Get(%v): %s", i, err)
+			return
+		}
+
+		s, err := item.Str()
+		assert.NoError(err)
+
+		if expected := fmt.Sprintf("%d", i); s != expected {
+			t.Errorf("Object.Get(%v):\n"+
+				"expected: %s\n"+
+				"present:  %s\n",
+				i, expected, s)
+		}
+	}
+
+	// Delete items 1, 2, 3
+	for i := 1; i <= 3; i++ {
+		// For the first time item must be found
+		found, err := obj.Del(i)
+		if err != nil {
+			t.Errorf("Object.Del(%v): %s", i, err)
+			return
+		}
+
+		if !found {
+			t.Errorf("Object.Del(%v): item not found", i)
+		}
+
+		// And for the second time it must not be found
+		found, err = obj.Del(i)
+		if err != nil {
+			t.Errorf("Object.Del(%v): %s", i, err)
+			return
+		}
+
+		if found {
+			t.Errorf("Object.Del(%v): item found", i)
+		}
+	}
+
+	// Now items 1, 2, 3 must not exist.
+	for i := 1; i <= 3; i++ {
+		found, err := obj.Contains(i)
+		if err != nil {
+			t.Errorf("Object.Contains(%v): %s", i, err)
+			return
+		}
+
+		if found {
+			t.Errorf("Object.Contains(%v): item found", i)
+		}
+	}
+}
+
 // TestObjectGC tests how objects are garbage-collected
 func TestObjectGC(t *testing.T) {
 	py, err := NewPython()
