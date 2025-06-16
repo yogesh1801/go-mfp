@@ -68,7 +68,7 @@ func (gate pyGate) lastError() error {
 	}
 
 	if etype != nil {
-		msg, ok := gate.str(evalue)
+		msg, ok := gate.str(etype)
 		if ok {
 			return ErrPython{msg}
 		}
