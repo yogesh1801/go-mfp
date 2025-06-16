@@ -86,7 +86,7 @@ func (py *Python) closed() bool {
 //
 //	[]any, [...]any                 PyList_Type
 //
-//	[integer]any, [string]any       PyDict_Type
+//	[cmp.Ordered or bool]any        PyDict_Type
 func (py *Python) NewObject(val any) (*Object, error) {
 	gate := py.gate()
 	defer gate.release()
@@ -171,10 +171,12 @@ func (py *Python) newPyObjectImpl(gate pyGate, val any) (pyObject, error) {
 		}
 		return py.newPyList(gate, val)
 
+	case reflect.Map:
+		return py.newPyDict(gate, val)
+
 	case reflect.Chan:
 	case reflect.Func:
 	case reflect.Interface:
-	case reflect.Map:
 	case reflect.Pointer:
 	case reflect.Struct:
 	case reflect.Uintptr:
@@ -217,6 +219,61 @@ func (py *Python) newPyList(gate pyGate, val any) (pyObject, error) {
 
 	gate.ref(list)
 	return list, nil
+}
+
+// newPyList creates PyObject from the go map.
+//
+// It returns either pyObject or error. If it returns (nil, nil),
+// gate.lastError needs to be consulted.
+func (py *Python) newPyDict(gate pyGate, val any) (pyObject, error) {
+	rv := reflect.ValueOf(val)
+
+	// Go maps are not ordered, while Python dictionaries
+	// are ordered. So sort the map keys, to have reproducible
+	// results.
+	//
+	// If keys cannot be sorted due to their type, map cannot
+	// be converted.
+	keys := rv.MapKeys()
+	ok := reflectSort(keys)
+	if !ok {
+		err := ErrTypeConversion{from: reflect.TypeOf(val)}
+		return nil, err
+	}
+
+	// Create a PyDict_Type object
+	pydict := gate.makeDict()
+	if pydict == nil {
+		return nil, nil
+	}
+
+	// Populate the dictionary
+	for _, key := range keys {
+		pykey, err := py.newPyObject(gate, key.Interface())
+		if err != nil {
+			gate.unref(pydict)
+			return nil, err
+		}
+
+		item := rv.MapIndex(key)
+		pyitem, err := py.newPyObject(gate, item.Interface())
+		if err != nil {
+			gate.unref(pydict)
+			gate.unref(pykey)
+			return nil, err
+		}
+
+		ok = gate.setitem(pydict, pykey, pyitem)
+		gate.unref(pykey)
+		gate.unref(pyitem)
+
+		if !ok {
+			gate.unref(pydict)
+			return nil, nil
+		}
+	}
+
+	return pydict, nil
 }
 
 // Eval evaluates string as a Python expression and returns its value.

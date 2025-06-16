@@ -246,6 +246,12 @@ func (gate pyGate) makeComplex(v complex128) pyObject {
 	return C.py_complex_make(C.double(real(v)), C.double(imag(v)))
 }
 
+// makeDict makes a new PyDict_Type object.
+// It returns strong object reference on success, nil on an error.
+func (gate pyGate) makeDict() pyObject {
+	return C.py_dict_make()
+}
+
 // decodeFloat decodes Python float number object.
 func (gate pyGate) decodeFloat(pyobj pyObject) (float64, bool) {
 	var val C.double

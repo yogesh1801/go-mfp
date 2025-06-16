@@ -53,6 +53,7 @@ static __typeof__(PyComplex_FromDoubles)        *PyComplex_FromDoubles_p;
 static __typeof__(PyComplex_ImagAsDouble)       *PyComplex_ImagAsDouble_p;
 static __typeof__(PyComplex_RealAsDouble)       *PyComplex_RealAsDouble_p;
 static __typeof__(Py_DecRef)                    *Py_DecRef_p;
+static __typeof__(PyDict_New)                   *PyDict_New_p;
 static __typeof__(PyErr_Clear)                  *PyErr_Clear_p;
 static __typeof__(PyErr_Fetch)                  *PyErr_Fetch_p;
 static __typeof__(PyErr_Occurred)               *PyErr_Occurred_p;
@@ -159,6 +160,7 @@ static void py_load_all (void) {
     PyComplex_ImagAsDouble_p = py_load("PyComplex_ImagAsDouble");
     PyComplex_RealAsDouble_p = py_load("PyComplex_RealAsDouble");
     Py_DecRef_p = py_load("Py_DecRef");
+    PyDict_New_p = py_load("PyDict_New");
     PyErr_Clear_p = py_load("PyErr_Clear");
     PyErr_Fetch_p = py_load("PyErr_Fetch");
     PyErr_Occurred_p = py_load("PyErr_Occurred");
@@ -535,6 +537,12 @@ bool py_complex_get (PyObject *x, double *real, double *imag) {
 // It returns strong object reference on success, NULL on an error.
 PyObject *py_complex_make(double real, double imag) {
     return PyComplex_FromDoubles_p(real, imag);
+}
+
+// py_dict_make makes a new PyDict_Type object.
+// It returns strong object reference on success, NULL on an error.
+PyObject *py_dict_make(void) {
+    return PyDict_New_p();
 }
 
 // py_float_get obtains content of the Python float object.

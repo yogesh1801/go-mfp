@@ -167,6 +167,10 @@ bool py_complex_get (PyObject *x, double *real, double *imag);
 // It returns strong object reference on success, NULL on an error.
 PyObject *py_complex_make(double real, double imag);
 
+// py_dict_make makes a new PyDict_Type object.
+// It returns strong object reference on success, NULL on an error.
+PyObject *py_dict_make(void);
+
 // py_float_get obtains content of the Python float object.
 // It returns true on success, false on error.
 bool py_float_get (PyObject *x, double *val);

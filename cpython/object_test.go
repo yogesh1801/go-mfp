@@ -190,6 +190,21 @@ func TestNewObject(t *testing.T) {
 		{in: [3]byte{'A', 'B', 'C'}, out: `b'ABC'`},
 		{in: []byte{}, out: `b''`},
 		{in: [0]byte{}, out: `b''`},
+
+		// Maps
+		{in: map[int]int{}, out: `{}`},
+		{in: map[bool]string{true: "T", false: "F"},
+			out: `{False: 'F', True: 'T'}`},
+		{in: map[int]string{1: "1", 2: "2", 3: "3"},
+			out: `{1: '1', 2: '2', 3: '3'}`},
+		{in: map[uint]string{1: "1", 2: "2", 3: "3"},
+			out: `{1: '1', 2: '2', 3: '3'}`},
+		{in: map[float64]string{0.25: "1/4", 0.5: "1/2"},
+			out: `{0.25: '1/4', 0.5: '1/2'}`},
+		{in: map[string]int{"one": 1, "two": 2, "three": 3},
+			out: `{'one': 1, 'three': 3, 'two': 2}`},
+		{in: map[string]int{"раз": 1, "два": 2, "три": 3},
+			out: `{'два': 2, 'раз': 1, 'три': 3}`},
 	}
 
 	for _, test := range tests {
