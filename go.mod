@@ -1,8 +1,6 @@
 module github.com/OpenPrinting/go-mfp
 
-go 1.23.0
-
-toolchain go1.23.8
+go 1.19
 
 require (
 	github.com/OpenPrinting/go-avahi v0.0.0-20250503152044-43570a235ab1
