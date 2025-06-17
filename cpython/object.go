@@ -359,72 +359,53 @@ func (obj *Object) Callable() (bool, error) {
 // Str returns string representation of the Object.
 // This is the equivalent of the Python expression str(x).
 func (obj *Object) Str() (string, error) {
-	gate := obj.py.gate()
-	defer gate.release()
-
-	pyobj := obj.py.lookupObjID(gate, obj.oid)
-	return gate.str(pyobj)
+	return objDo(obj, pyGate.str)
 }
 
 // Repr returns string representation of the Object.
 // This is the equivalent of the Python expression repr(x).
 func (obj *Object) Repr() (string, error) {
-	gate := obj.py.gate()
-	defer gate.release()
-
-	pyobj := obj.py.lookupObjID(gate, obj.oid)
-	return gate.repr(pyobj)
-}
-
-// objDecode is the common adapter for pyGate.decodeXXX functions.
-func objDecode[T any](obj *Object,
-	f func(pyGate, pyObject) (T, error)) (T, error) {
-
-	gate := obj.py.gate()
-	defer gate.release()
-
-	pyobj := obj.py.lookupObjID(gate, obj.oid)
-	return f(gate, pyobj)
+	return objDo(obj, pyGate.repr)
 }
 
 // Bigint returns Object value as *[big.Int] or an error.
 func (obj *Object) Bigint() (*big.Int, error) {
-	return objDecode(obj, pyGate.decodeBigint)
+	return objDo(obj, pyGate.decodeBigint)
 }
 
 // Bool returns Object value as bool or an error.
 func (obj *Object) Bool() (bool, error) {
-	return objDecode(obj, pyGate.decodeBool)
+	return objDo(obj, pyGate.decodeBool)
 }
 
 // Bytes returns Object value as []byte slice or an error.
 func (obj *Object) Bytes() ([]byte, error) {
-	return objDecode(obj, pyGate.decodeBytes)
+	return objDo(obj, pyGate.decodeBytes)
 }
 
 // Complex returns Object value as complex128 number or an error.
 func (obj *Object) Complex() (complex128, error) {
-	return objDecode(obj, pyGate.decodeComplex)
+	return objDo(obj, pyGate.decodeComplex)
 }
 
 // Float returns Object value as float64 number or an error.
 func (obj *Object) Float() (float64, error) {
-	return objDecode(obj, pyGate.decodeFloat)
+	return objDo(obj, pyGate.decodeFloat)
 }
 
 // Int returns Object value as int64 number or an error.
 func (obj *Object) Int() (int64, error) {
-	return objDecode(obj, pyGate.decodeInt64)
+	return objDo(obj, pyGate.decodeInt64)
 }
 
 // Uint returns Object value as uint64 number or an error.
 func (obj *Object) Uint() (uint64, error) {
-	return objDecode(obj, pyGate.decodeUint64)
+	return objDo(obj, pyGate.decodeUint64)
 }
 
 // Unicode returns Object value as UNICODE string or an error.
 func (obj *Object) Unicode() (string, error) {
-	return objDecode(obj, pyGate.decodeUnicode)
+	return objDo(obj, pyGate.decodeUnicode)
 }
 
 // IsNone reports if Object is Python None.
@@ -434,4 +415,20 @@ func (obj *Object) IsNone() bool {
 
 	pyobj := obj.py.lookupObjID(gate, obj.oid)
 	return gate.isNone(pyobj)
+}
+
+// objDo is the convenience wrapper for the pyGate methods
+// with the following signature:
+//
+//	pyGate.method(pyObject) (T, error)
+//
+// It acquires the pyGate for the Python interpreter that owns
+// the Object, calls the method, releases the gate and return
+// result.
+func objDo[T any](obj *Object, f func(pyGate, pyObject) (T, error)) (T, error) {
+	gate := obj.py.gate()
+	defer gate.release()
+
+	pyobj := obj.py.lookupObjID(gate, obj.oid)
+	return f(gate, pyobj)
 }
