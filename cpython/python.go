@@ -105,19 +105,6 @@ func (py *Python) NewObject(val any) (*Object, error) {
 // which does all the dirty work of conversion value into the
 // Python Object.
 func (py *Python) newPyObject(gate pyGate, val any) (pyObject, error) {
-	pyobj, err := py.newPyObjectImpl(gate, val)
-	if pyobj == nil && err == nil {
-		err = gate.lastError()
-	}
-
-	return pyobj, err
-}
-
-// newPyObjectImpl is the actual implementation of the Python.newPyObject
-//
-// It returns either pyObject or error. If it returns (nil, nil),
-// gate.lastError needs to be consulted.
-func (py *Python) newPyObjectImpl(gate pyGate, val any) (pyObject, error) {
 	// Handle special cases
 	if val == nil {
 		return py.none, nil
@@ -125,7 +112,7 @@ func (py *Python) newPyObjectImpl(gate pyGate, val any) (pyObject, error) {
 
 	switch v := val.(type) {
 	case *big.Int:
-		return gate.makeBigint(v), nil
+		return gate.makeBigint(v)
 	case *Object:
 		pyobj := py.lookupObjID(gate, v.oid)
 		gate.ref(pyobj)
@@ -138,24 +125,24 @@ func (py *Python) newPyObjectImpl(gate pyGate, val any) (pyObject, error) {
 
 	switch rt.Kind() {
 	case reflect.Bool:
-		return gate.makeBool(rv.Bool()), nil
+		return gate.makeBool(rv.Bool())
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32,
 		reflect.Int64:
-		return gate.makeInt(rv.Int()), nil
+		return gate.makeInt(rv.Int())
 
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32,
 		reflect.Uint64:
-		return gate.makeUint(rv.Uint()), nil
+		return gate.makeUint(rv.Uint())
 
 	case reflect.Float32, reflect.Float64:
-		return gate.makeFloat(rv.Float()), nil
+		return gate.makeFloat(rv.Float())
 
 	case reflect.Complex64, reflect.Complex128:
-		return gate.makeComplex(rv.Complex()), nil
+		return gate.makeComplex(rv.Complex())
 
 	case reflect.String:
-		return gate.makeString(rv.String()), nil
+		return gate.makeString(rv.String())
 
 	case reflect.Array, reflect.Slice:
 		if rt.Elem().Kind() == reflect.Uint8 {
@@ -166,7 +153,7 @@ func (py *Python) newPyObjectImpl(gate pyGate, val any) (pyObject, error) {
 			}
 
 			data := rv.Bytes()
-			return gate.makeBytes(data), nil
+			return gate.makeBytes(data)
 		}
 		return py.newPyList(gate, val)
 
@@ -191,16 +178,13 @@ func (py *Python) newPyObjectImpl(gate pyGate, val any) (pyObject, error) {
 }
 
 // newPyList creates PyObject from array of slice of values.
-//
-// It returns either pyObject or error. If it returns (nil, nil),
-// gate.lastError needs to be consulted.
 func (py *Python) newPyList(gate pyGate, val any) (pyObject, error) {
 	rv := reflect.ValueOf(val)
 	sz := rv.Len()
 
-	list := gate.makeList(sz)
-	if list == nil {
-		return nil, nil
+	list, err := gate.makeList(sz)
+	if err != nil {
+		return nil, err
 	}
 
 	defer gate.unref(list)
@@ -212,11 +196,11 @@ func (py *Python) newPyList(gate pyGate, val any) (pyObject, error) {
 			return nil, err
 		}
 
-		ok := gate.setListItem(list, pyobj, i)
-		gate.unref(pyobj) // Now owned by list
+		err = gate.setListItem(list, pyobj, i)
+		gate.unref(pyobj) // Now owned by the list
 
-		if !ok {
-			return nil, nil
+		if err != nil {
+			return nil, err
 		}
 	}
 
@@ -225,9 +209,6 @@ func (py *Python) newPyList(gate pyGate, val any) (pyObject, error) {
 }
 
 // newPyList creates PyObject from the go map.
-//
-// It returns either pyObject or error. If it returns (nil, nil),
-// gate.lastError needs to be consulted.
 func (py *Python) newPyDict(gate pyGate, val any) (pyObject, error) {
 	rv := reflect.ValueOf(val)
 
@@ -248,9 +229,9 @@ func (py *Python) newPyDict(gate pyGate, val any) (pyObject, error) {
 	}
 
 	// Create a PyDict_Type object
-	pydict := gate.makeDict()
-	if pydict == nil {
-		return nil, nil
+	pydict, err := gate.makeDict()
+	if err != nil {
+		return nil, err
 	}
 
 	// Populate the dictionary
@@ -269,13 +250,13 @@ func (py *Python) newPyDict(gate pyGate, val any) (pyObject, error) {
 			return nil, err
 		}
 
-		ok = gate.setitem(pydict, pykey, pyitem)
+		err = gate.setitem(pydict, pykey, pyitem)
 		gate.unref(pykey)
 		gate.unref(pyitem)
 
-		if !ok {
+		if err != nil {
 			gate.unref(pydict)
-			return nil, nil
+			return nil, err
 		}
 	}
 

@@ -78,6 +78,15 @@ func (gate pyGate) lastError() error {
 	return ErrPython{"Unknown Python exception"}
 }
 
+// objOrLastError returns pyobj, if it is not nil, or gate.lastError()
+func (gate pyGate) objOrLastError(pyobj pyObject) (pyObject, error) {
+	if pyobj != nil {
+		return pyobj, nil
+	}
+
+	return nil, gate.lastError()
+}
+
 // ref increments PyObject's reference count.
 func (gate pyGate) ref(pyobj pyObject) {
 	C.py_obj_ref(pyobj)
@@ -115,8 +124,8 @@ func (gate pyGate) typename(pyobj pyObject) string {
 	name := "unknown"
 
 	t := pyObject(unsafe.Pointer(C.Py_TYPE(pyobj)))
-	n, ok := gate.getattr(t, "__name__")
-	if ok {
+	n, err := gate.getattr(t, "__name__")
+	if err == nil {
 		s, err := gate.str(n)
 		if err == nil {
 			name = s
@@ -127,77 +136,100 @@ func (gate pyGate) typename(pyobj pyObject) string {
 }
 
 // delattr deletes Object attribute with the specified name.
-func (gate pyGate) delattr(pyobj pyObject, name string) (ok bool) {
+func (gate pyGate) delattr(pyobj pyObject, name string) error {
 	cname := C.CString(name)
 	defer C.free(unsafe.Pointer(cname))
 
-	ok = bool(C.py_obj_delattr(pyobj, cname))
-	return
+	ok := bool(C.py_obj_delattr(pyobj, cname))
+	if !ok {
+		return gate.lastError()
+	}
+
+	return nil
 }
 
 // getattr returns Object attribute with the specified name.
-func (gate pyGate) getattr(pyobj pyObject, name string) (attr pyObject, ok bool) {
+func (gate pyGate) getattr(pyobj pyObject, name string) (pyObject, error) {
 	cname := C.CString(name)
 	defer C.free(unsafe.Pointer(cname))
 
-	ok = bool(C.py_obj_getattr(pyobj, cname, &attr))
-	return
+	var attr pyObject
+	if !bool(C.py_obj_getattr(pyobj, cname, &attr)) {
+		return nil, gate.lastError()
+	}
+
+	return attr, nil
 }
 
 // hasattr reports if Object has attribute with the specified name.
-func (gate pyGate) hasattr(pyobj pyObject, name string) (answer, ok bool) {
+func (gate pyGate) hasattr(pyobj pyObject, name string) (bool, error) {
 	cname := C.CString(name)
 	defer C.free(unsafe.Pointer(cname))
 
-	var canswer C.bool
-	ok = bool(C.py_obj_hasattr(pyobj, cname, &canswer))
-	answer = bool(canswer)
+	var found C.bool
+	if !bool(C.py_obj_hasattr(pyobj, cname, &found)) {
+		return false, gate.lastError()
+	}
 
-	return
+	return bool(found), nil
 }
 
 // setattr sets Object attribute with the specified name.
-func (gate pyGate) setattr(pyobj pyObject, name string, val pyObject) (ok bool) {
+func (gate pyGate) setattr(pyobj pyObject, name string, val pyObject) error {
 	cname := C.CString(name)
 	defer C.free(unsafe.Pointer(cname))
 
-	ok = bool(C.py_obj_setattr(pyobj, cname, val))
-	return
+	if !bool(C.py_obj_setattr(pyobj, cname, val)) {
+		return gate.lastError()
+	}
+
+	return nil
 }
 
 // delitem deletes Object item with the specified key:
 //
 //	del(pyobj[key])
-func (gate pyGate) delitem(pyobj, key pyObject) (ok bool) {
-	ok = bool(C.py_obj_delitem(pyobj, key))
-	return
+func (gate pyGate) delitem(pyobj, key pyObject) error {
+	if !bool(C.py_obj_delitem(pyobj, key)) {
+		return gate.lastError()
+	}
+
+	return nil
 }
 
 // getitem returns Object item with the specified key.
 //
 //	pyobj[key]
-func (gate pyGate) getitem(pyobj, key pyObject) (item pyObject, ok bool) {
-	ok = bool(C.py_obj_getitem(pyobj, key, &item))
-	return
+func (gate pyGate) getitem(pyobj, key pyObject) (pyObject, error) {
+	var item pyObject
+	if !bool(C.py_obj_getitem(pyobj, key, &item)) {
+		return nil, gate.lastError()
+	}
+
+	return item, nil
 }
 
 // hasitem reports if Object has item with the specified key.
 //
 //	key in pyobj
-func (gate pyGate) hasitem(pyobj, key pyObject) (answer, ok bool) {
-	var canswer C.bool
-	ok = bool(C.py_obj_hasitem(pyobj, key, &canswer))
-	answer = bool(canswer)
+func (gate pyGate) hasitem(pyobj, key pyObject) (bool, error) {
+	var found C.bool
+	if !bool(C.py_obj_hasitem(pyobj, key, &found)) {
+		return false, gate.lastError()
+	}
 
-	return
+	return bool(found), nil
 }
 
 // setitem sets Object item with the specified key.
 //
 //	pyobj[key] = val
-func (gate pyGate) setitem(pyobj, key, val pyObject) (ok bool) {
-	ok = bool(C.py_obj_setitem(pyobj, key, val))
-	return
+func (gate pyGate) setitem(pyobj, key, val pyObject) error {
+	if !bool(C.py_obj_setitem(pyobj, key, val)) {
+		return gate.lastError()
+	}
+
+	return nil
 }
 
 // call calls callable object as a function, with positional
@@ -205,8 +237,8 @@ func (gate pyGate) setitem(pyobj, key, val pyObject) (ok bool) {
 // arguments, defined by kwargs (must be PyDict_Type or nil).
 //
 // It returns strong reference to result on success, nil on an error.
-func (gate pyGate) call(callable, args, kwargs pyObject) (res pyObject) {
-	return C.py_obj_call(callable, args, kwargs)
+func (gate pyGate) call(callable, args, kwargs pyObject) (pyObject, error) {
+	return gate.objOrLastError(C.py_obj_call(callable, args, kwargs))
 }
 
 // callable reports if object is callable.
@@ -391,103 +423,115 @@ func (gate pyGate) decodeUnicode(pyobj pyObject) (string, error) {
 
 // makeBigint makes a new PyLong_type object from *big.Int.
 // It returns strong object reference on success, nil on an error.
-func (gate pyGate) makeBigint(v *big.Int) pyObject {
+func (gate pyGate) makeBigint(v *big.Int) (pyObject, error) {
 	cs := C.CString(v.String())
 	defer C.free(unsafe.Pointer(cs))
-	return C.py_long_from_string(cs)
+
+	return gate.objOrLastError(C.py_long_from_string(cs))
 }
 
 // makeBool makes a new PyBool_Type object.
 // It returns strong object reference on success, nil on an error.
-func (gate pyGate) makeBool(v bool) pyObject {
-	return C.py_bool_make(C.bool(v))
+func (gate pyGate) makeBool(v bool) (pyObject, error) {
+	return gate.objOrLastError(C.py_bool_make(C.bool(v)))
 }
 
 // makeBytes makes a new PyList_Bytes object.
 // It returns strong object reference on success, nil on an error.
-func (gate pyGate) makeBytes(data []byte) pyObject {
+func (gate pyGate) makeBytes(data []byte) (pyObject, error) {
 	var p unsafe.Pointer
 	if len(data) != 0 {
 		p = unsafe.Pointer(&data[0])
 	}
 
-	return C.py_bytes_make(p, C.size_t(len(data)))
+	return gate.objOrLastError(C.py_bytes_make(p, C.size_t(len(data))))
 }
 
 // makeComplex makes a new PyComlex_Type object.
 // It returns strong object reference on success, nil on an error.
-func (gate pyGate) makeComplex(v complex128) pyObject {
-	return C.py_complex_make(C.double(real(v)), C.double(imag(v)))
+func (gate pyGate) makeComplex(v complex128) (pyObject, error) {
+	pyobj := C.py_complex_make(C.double(real(v)), C.double(imag(v)))
+	return gate.objOrLastError(pyobj)
 }
 
 // makeDict makes a new PyDict_Type object.
 // It returns strong object reference on success, nil on an error.
-func (gate pyGate) makeDict() pyObject {
-	return C.py_dict_make()
+func (gate pyGate) makeDict() (pyObject, error) {
+	return gate.objOrLastError(C.py_dict_make())
 }
 
 // makeFloat makes a new PyFloatType object.
 // It returns strong object reference on success, nil on an error.
-func (gate pyGate) makeFloat(v float64) pyObject {
-	return C.py_float_make(C.double(v))
+func (gate pyGate) makeFloat(v float64) (pyObject, error) {
+	return gate.objOrLastError(C.py_float_make(C.double(v)))
 }
 
 // makeInt makes a new PyLong_type object from int64.
 // It returns strong object reference on success, nil on an error.
-func (gate pyGate) makeInt(v int64) pyObject {
-	return C.py_long_from_int64(C.int64_t(v))
+func (gate pyGate) makeInt(v int64) (pyObject, error) {
+	return gate.objOrLastError(C.py_long_from_int64(C.int64_t(v)))
 }
 
 // makeList makes a new PyList_Type object of the given size.
 // It returns strong object reference on success, nil on an error.
-func (gate pyGate) makeList(sz int) pyObject {
-	return C.py_list_make(C.size_t(sz))
+func (gate pyGate) makeList(sz int) (pyObject, error) {
+	return gate.objOrLastError(C.py_list_make(C.size_t(sz)))
 }
 
 // makeString makes a new PyUnicoder_type object from string.
 // It returns strong object reference on success, nil on an error.
-func (gate pyGate) makeString(v string) pyObject {
+func (gate pyGate) makeString(v string) (pyObject, error) {
 	cs := C.CString(v)
 	defer C.free(unsafe.Pointer(cs))
-	return C.py_str_make(cs, C.size_t(len(v)))
+	return gate.objOrLastError(C.py_str_make(cs, C.size_t(len(v))))
 }
 
 // makeTuple makes a new PyTuple_Type object of the given size.
 // It returns strong object reference on success, nil on an error.
-func (gate pyGate) makeTuple(sz int) pyObject {
-	return C.py_tuple_make(C.size_t(sz))
+func (gate pyGate) makeTuple(sz int) (pyObject, error) {
+	return gate.objOrLastError(C.py_tuple_make(C.size_t(sz)))
 }
 
 // makeUint makes a new PyLong_type object from uint64.
 // It returns strong object reference on success, nil on an error.
-func (gate pyGate) makeUint(v uint64) pyObject {
-	return C.py_long_from_uint64(C.uint64_t(v))
+func (gate pyGate) makeUint(v uint64) (pyObject, error) {
+	return gate.objOrLastError(C.py_long_from_uint64(C.uint64_t(v)))
 }
 
 // getListItem retrieves the item of the PyList_Type the specified position.
-func (gate pyGate) getListItem(list pyObject, idx int) (pyObject, bool) {
+func (gate pyGate) getListItem(list pyObject, idx int) (pyObject, error) {
 	var answer pyObject
-	ok := bool(C.py_list_get(list, C.int(idx), &answer))
-	return answer, ok
+	if !bool(C.py_list_get(list, C.int(idx), &answer)) {
+		return nil, gate.lastError()
+	}
+	return answer, nil
 }
 
 // setListItem sets the item of the PyList_Type the specified position.
 // Internally, it creates a new strong reference to the item object.
-func (gate pyGate) setListItem(list, item pyObject, idx int) bool {
-	return bool(C.py_list_set(list, C.int(idx), item))
+func (gate pyGate) setListItem(list, item pyObject, idx int) error {
+	if !bool(C.py_list_set(list, C.int(idx), item)) {
+		return gate.lastError()
+	}
+	return nil
 }
 
 // setTupleItem sets the item of the PyTuple_Type the specified position.
 // Internally, it creates a new strong reference to the item object.
-func (gate pyGate) setTupleItem(tuple, item pyObject, idx int) bool {
-	return bool(C.py_tuple_set(tuple, C.int(idx), item))
+func (gate pyGate) setTupleItem(tuple, item pyObject, idx int) error {
+	if !bool(C.py_tuple_set(tuple, C.int(idx), item)) {
+		return gate.lastError()
+	}
+	return nil
 }
 
 // getTupleItem retrieves the item of the PyTuple_Type the specified position.
-func (gate pyGate) getTupleItem(tuple pyObject, idx int) (pyObject, bool) {
+func (gate pyGate) getTupleItem(tuple pyObject, idx int) (pyObject, error) {
 	var answer pyObject
-	ok := bool(C.py_tuple_get(tuple, C.int(idx), &answer))
-	return answer, ok
+	if !bool(C.py_tuple_get(tuple, C.int(idx), &answer)) {
+		return nil, gate.lastError()
+	}
+	return answer, nil
 }
 
 // pyInterpEval evaluates string as a Python statement.

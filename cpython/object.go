@@ -23,9 +23,14 @@ type Object struct {
 }
 
 // newObjectFromPython constructs new Object, decoded from PyObject.
-// If native is nil, it means, native Go value not available for
-// the object. Python None passed as pyNone.
+//
+// If pyObject is nil, returned *Object is nil as well. This is
+// convenient for functions like dictionary retrieval.
 func newObjectFromPython(py *Python, gate pyGate, pyobj pyObject) *Object {
+	if pyobj == nil {
+		return nil
+	}
+
 	obj := &Object{
 		py:  py,
 		oid: py.newObjID(gate, pyobj),
@@ -76,16 +81,12 @@ func (obj *Object) Del(key any) (bool, error) {
 	defer gate.unref(pykey)
 
 	// Check for item existence, then delete, if found.
-	found, ok := gate.hasitem(pyobj, pykey)
-	if found && ok {
-		ok = gate.delitem(pyobj, pykey)
+	found, err := gate.hasitem(pyobj, pykey)
+	if found {
+		err = gate.delitem(pyobj, pykey)
 	}
 
-	if !ok {
-		return false, gate.lastError()
-	}
-
-	return found, nil
+	return found, err
 }
 
 // Get returns Object item with the specified key:
@@ -115,25 +116,18 @@ func (obj *Object) Get(key any) (*Object, error) {
 	defer gate.unref(pykey)
 
 	// Check for item existence, then retrieve, if found.
-	found, ok := gate.hasitem(pyobj, pykey)
-	if !found && ok {
-		return nil, nil
-	}
-
+	found, err := gate.hasitem(pyobj, pykey)
 	var pyitem pyObject
-	if ok {
-		pyitem, ok = gate.getitem(pyobj, pykey)
+	if found {
+		pyitem, err = gate.getitem(pyobj, pykey)
 	}
 
-	// Handle possible error
-	if !ok {
-		return nil, gate.lastError()
+	if err != nil {
+		return nil, err
 	}
 
 	// Create the item object
-	item := newObjectFromPython(obj.py, gate, pyitem)
-
-	return item, nil
+	return newObjectFromPython(obj.py, gate, pyitem), nil
 }
 
 // Contains reports if Object has the item with the specified key.
@@ -158,11 +152,7 @@ func (obj *Object) Contains(key any) (bool, error) {
 	defer gate.unref(pykey)
 
 	// Check for item existence
-	found, ok := gate.hasitem(pyobj, pykey)
-	if !ok {
-		return false, gate.lastError()
-	}
-	return found, nil
+	return gate.hasitem(pyobj, pykey)
 }
 
 // Set sets Object item with the specified name.
@@ -193,12 +183,7 @@ func (obj *Object) Set(key, val any) error {
 	defer gate.unref(pyval)
 
 	// Set the item
-	ok := gate.setitem(pyobj, pykey, pyval)
-	if !ok {
-		return gate.lastError()
-	}
-
-	return nil
+	return gate.setitem(pyobj, pykey, pyval)
 }
 
 // DelAttr deletes Object attribute with the specified name:
@@ -215,18 +200,14 @@ func (obj *Object) DelAttr(name string) (bool, error) {
 	gate := obj.py.gate()
 	defer gate.release()
 
+	// Check for attribute existence, then delete
 	pyobj := obj.py.lookupObjID(gate, obj.oid)
-
-	found, ok := gate.hasattr(pyobj, name)
-	if found && ok {
-		ok = gate.delattr(pyobj, name)
+	found, err := gate.hasattr(pyobj, name)
+	if found {
+		err = gate.delattr(pyobj, name)
 	}
 
-	if !ok {
-		return false, gate.lastError()
-	}
-
-	return found, nil
+	return found, err
 }
 
 // GetAttr returns Object attribute with the specified name:
@@ -245,27 +226,19 @@ func (obj *Object) GetAttr(name string) (*Object, error) {
 
 	// Check if attribute exists
 	pyobj := obj.py.lookupObjID(gate, obj.oid)
-
-	found, ok := gate.hasattr(pyobj, name)
-	if !found && ok {
-		return nil, nil
+	found, err := gate.hasattr(pyobj, name)
+	if !found {
+		return nil, err
 	}
 
 	// Try to get
-	var pyattr pyObject
-	if ok {
-		pyattr, ok = gate.getattr(pyobj, name)
-	}
-
-	// Handle possible error
-	if !ok {
-		return nil, gate.lastError()
+	pyattr, err := gate.getattr(pyobj, name)
+	if err != nil {
+		return nil, err
 	}
 
 	// Create the attribute object
-	attr := newObjectFromPython(obj.py, gate, pyattr)
-
-	return attr, nil
+	return newObjectFromPython(obj.py, gate, pyattr), nil
 }
 
 // HasAttr reports if Object has the attribute with the specified name.
@@ -278,12 +251,7 @@ func (obj *Object) HasAttr(name string) (bool, error) {
 	defer gate.release()
 
 	pyobj := obj.py.lookupObjID(gate, obj.oid)
-
-	has, ok := gate.hasattr(pyobj, name)
-	if !ok {
-		return false, gate.lastError()
-	}
-	return has, nil
+	return gate.hasattr(pyobj, name)
 }
 
 // SetAttr sets Object attribute with the specified name.
@@ -297,6 +265,7 @@ func (obj *Object) SetAttr(name string, val any) error {
 	gate := obj.py.gate()
 	defer gate.release()
 
+	// Obtain *C.PyIbject references for all relevant objects.
 	pyobj := obj.py.lookupObjID(gate, obj.oid)
 
 	pyval, err := obj.py.newPyObject(gate, val)
@@ -305,12 +274,8 @@ func (obj *Object) SetAttr(name string, val any) error {
 	}
 	defer gate.unref(pyval)
 
-	ok := gate.setattr(pyobj, name, pyval)
-	if !ok {
-		return gate.lastError()
-	}
-
-	return nil
+	// Set the attribute
+	return gate.setattr(pyobj, name, pyval)
 }
 
 // Call calls Object as function.
@@ -338,9 +303,9 @@ func (obj *Object) CallKW(kw map[string]any, args ...any) (*Object, error) {
 	defer gate.release()
 
 	// Convert positional arguments
-	pyargs := gate.makeTuple(len(args))
-	if pyargs == nil {
-		return nil, gate.lastError()
+	pyargs, err := gate.makeTuple(len(args))
+	if err != nil {
+		return nil, err
 	}
 
 	defer gate.unref(pyargs)
@@ -351,9 +316,8 @@ func (obj *Object) CallKW(kw map[string]any, args ...any) (*Object, error) {
 			return nil, err
 		}
 
-		ok := gate.setTupleItem(pyargs, pyarg, i)
-		if !ok {
-			err := gate.lastError()
+		err = gate.setTupleItem(pyargs, pyarg, i)
+		if err != nil {
 			gate.unref(pyarg)
 			return nil, err
 		}
@@ -373,15 +337,14 @@ func (obj *Object) CallKW(kw map[string]any, args ...any) (*Object, error) {
 
 	// Perform a call
 	pyobj := obj.py.lookupObjID(gate, obj.oid)
-	pyret := gate.call(pyobj, pyargs, pykwargs)
 
-	if pyret == nil {
-		return nil, gate.lastError()
+	pyret, err := gate.call(pyobj, pyargs, pykwargs)
+	if err != nil {
+		return nil, err
 	}
 
-	ret := newObjectFromPython(obj.py, gate, pyret)
-
-	return ret, nil
+	// Create response Object
+	return newObjectFromPython(obj.py, gate, pyret), nil
 }
 
 // Callable reports if Object is callable.
