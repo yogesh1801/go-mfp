@@ -26,6 +26,7 @@ func (oid *objid) inc() objid {
 type objmap struct {
 	next   objid
 	mapped map[objid]pyObject
+	maplen atomic.Int32
 }
 
 // newObjmap creates a new objmap
@@ -40,6 +41,7 @@ func (omap *objmap) put(gate pyGate, obj pyObject) objid {
 	oid := omap.next.inc()
 	assert.Must(omap.mapped[oid] == nil)
 	omap.mapped[oid] = obj
+	omap.maplen.Store(int32(len(omap.mapped)))
 	return oid
 }
 
@@ -52,6 +54,7 @@ func (omap *objmap) get(gate pyGate, oid objid) pyObject {
 func (omap *objmap) del(gate pyGate, oid objid) {
 	obj := omap.mapped[oid]
 	delete(omap.mapped, oid)
+	omap.maplen.Store(int32(len(omap.mapped)))
 	gate.unref(obj)
 }
 
@@ -64,12 +67,15 @@ func (omap *objmap) purge(gate pyGate) {
 		delete(omap.mapped, oid)
 	}
 
+	omap.maplen.Store(int32(len(omap.mapped)))
+
 	for _, obj := range objects {
 		gate.unref(obj)
 	}
 }
 
 // count returns count of currently mapped objid-s
-func (omap *objmap) count(gate pyGate) int {
-	return len(omap.mapped)
+// This is the testing interface.
+func (omap *objmap) count() int {
+	return int(omap.maplen.Load())
 }

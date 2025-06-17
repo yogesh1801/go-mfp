@@ -24,6 +24,7 @@ type Python struct {
 	interp  pyInterp // Underlying *C.PyInterpreterState
 	objects *objmap  // Objects owned by the interpreter
 	none    pyObject // Cached None object
+	globals *Object  // Global dictionary
 }
 
 // NewPython creates a new Python interpreter.
@@ -39,6 +40,9 @@ func NewPython() (py *Python, err error) {
 		defer gate.release()
 
 		py.none, err = gate.eval("None", "", true)
+		assert.NoError(err)
+
+		py.globals, err = py.Eval("globals()")
 		assert.NoError(err)
 	}
 
@@ -59,6 +63,55 @@ func (py *Python) Close() {
 // closed reports if interpreter is closed.
 func (py *Python) closed() bool {
 	return py.interp == nil
+}
+
+// GetGlobal returns item from the interpreter's global dictionary.
+//
+// In Python:
+//
+//	globals()[name]
+//
+// It returns:
+//   - (*Object, nil) if item was found
+//   - (nil, nil) if item was not found
+//   - (nil, error) in a case of error
+func (py *Python) GetGlobal(name string) (*Object, error) {
+	return py.globals.Get(name)
+}
+
+// SetGlobal sets item in the interpreter's global dictionary.
+//
+// In Python:
+//
+//	globals()[name] = val
+//
+// The val may be any value that [Python.NewObject] accepts.
+func (py *Python) SetGlobal(name string, val any) error {
+	return py.globals.Set(name, val)
+}
+
+// DelGlobal deletes item the interpreter's global dictionary.
+//
+// In Python:
+//
+//	del(globals(), name)
+//
+// It returns:
+//   - (true, nil) if item was found and deleted
+//   - (false, nil) if item was not found
+//   - (false, error) in a case of error
+func (py *Python) DelGlobal(name string) (bool, error) {
+	return py.globals.Del(name)
+}
+
+// ContainsGlobal reports if the interpreter's global dictionary
+// contains the named item.
+//
+// In Python:
+//
+//	name in globals()
+func (py *Python) ContainsGlobal(name string) (bool, error) {
+	return py.globals.Contains(name)
 }
 
 // NewObject creates a new Python Object for the Go value.
@@ -327,6 +380,6 @@ func (py *Python) lookupObjID(gate pyGate, oid objid) pyObject {
 
 // countObjID returns count of active objid mappings.
 // This is the testing interface
-func (py *Python) countObjID(gate pyGate) int {
-	return py.objects.count(gate)
+func (py *Python) countObjID() int {
+	return py.objects.count()
 }

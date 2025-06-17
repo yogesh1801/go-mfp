@@ -560,20 +560,19 @@ func TestObjectGC(t *testing.T) {
 	py, err := NewPython()
 	assert.NoError(err)
 
+	base := py.countObjID()
+
 	_, err = py.Eval("5")
 	assert.NoError(err)
 
-	if len(py.objects.mapped) != 1 {
+	if len(py.objects.mapped) != base+1 {
 		t.Errorf("TestObjectGC: looks object is not properly mapped")
 	}
 
 	runtime.GC()
 	runtime.GC()
 
-	gate := py.gate()
-	defer gate.release()
-
-	if py.countObjID(gate) != 0 {
+	if py.countObjID() != base {
 		t.Errorf("TestObjectGC: looks object GS doesn't work")
 	}
 }

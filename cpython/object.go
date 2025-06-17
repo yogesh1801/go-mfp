@@ -159,7 +159,7 @@ func (obj *Object) Contains(key any) (bool, error) {
 //
 // In Python:
 //
-//	obj.name = val
+//	obj[name] = val
 //
 // The Object must be container (array, dict, etc).
 // The key and val may be any value that [Python.NewObject] accepts.
