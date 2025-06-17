@@ -175,6 +175,14 @@ func (gate pyGate) hasitem(pyobj, key pyObject) (answer, ok bool) {
 	return
 }
 
+// setitem sets Object item with the specified key.
+//
+//	pyobj[key] = val
+func (gate pyGate) setitem(pyobj, key, val pyObject) (ok bool) {
+	ok = bool(C.py_obj_setitem(pyobj, key, val))
+	return
+}
+
 // call calls callable object as a function, with positional
 // arguments, defined by args (must be PyTuple_Type) and keyword
 // arguments, defined by kwargs (must be PyDict_Type or nil).
@@ -188,14 +196,6 @@ func (gate pyGate) call(callable, args, kwargs pyObject) (res pyObject) {
 // This function always succeeds.
 func (gate pyGate) callable(pyobj pyObject) bool {
 	return bool(C.py_obj_callable(pyobj))
-}
-
-// setitem sets Object item with the specified key.
-//
-//	pyobj[key] = val
-func (gate pyGate) setitem(pyobj, key, val pyObject) (ok bool) {
-	ok = bool(C.py_obj_setitem(pyobj, key, val))
-	return
 }
 
 // decodeObject decodes PyObject value as Go value.
@@ -236,12 +236,6 @@ func (gate pyGate) decodeObject(pyobj pyObject) (any, bool) {
 	return nil, true
 }
 
-// makeBool makes a new PyBool_Type object.
-// It returns strong object reference on success, nil on an error.
-func (gate pyGate) makeBool(v bool) pyObject {
-	return C.py_bool_make(C.bool(v))
-}
-
 // decodeComplex decodes Python complex number object.
 func (gate pyGate) decodeComplex(pyobj pyObject) (complex128, bool) {
 	var real, imag C.double
@@ -255,18 +249,6 @@ func (gate pyGate) decodeComplex(pyobj pyObject) (complex128, bool) {
 	return c, ok
 }
 
-// makeComplex makes a new PyComlex_Type object.
-// It returns strong object reference on success, nil on an error.
-func (gate pyGate) makeComplex(v complex128) pyObject {
-	return C.py_complex_make(C.double(real(v)), C.double(imag(v)))
-}
-
-// makeDict makes a new PyDict_Type object.
-// It returns strong object reference on success, nil on an error.
-func (gate pyGate) makeDict() pyObject {
-	return C.py_dict_make()
-}
-
 // decodeFloat decodes Python float number object.
 func (gate pyGate) decodeFloat(pyobj pyObject) (float64, bool) {
 	var val C.double
@@ -274,12 +256,6 @@ func (gate pyGate) decodeFloat(pyobj pyObject) (float64, bool) {
 	ok := bool(C.py_float_get(pyobj, &val))
 
 	return float64(val), ok
-}
-
-// makeFloat makes a new PyFloatType object.
-// It returns strong object reference on success, nil on an error.
-func (gate pyGate) makeFloat(v float64) pyObject {
-	return C.py_float_make(C.double(v))
 }
 
 // decodeByteArray decodes Python byte array object as []byte slice.
@@ -317,36 +293,6 @@ func (gate pyGate) decodeBytes(pyobj pyObject) ([]byte, bool) {
 	return bytes, ok
 }
 
-// makeBytes makes a new PyList_Bytes object.
-// It returns strong object reference on success, nil on an error.
-func (gate pyGate) makeBytes(data []byte) pyObject {
-	var p unsafe.Pointer
-	if len(data) != 0 {
-		p = unsafe.Pointer(&data[0])
-	}
-
-	return C.py_bytes_make(p, C.size_t(len(data)))
-}
-
-// makeList makes a new PyList_Type object of the given size.
-// It returns strong object reference on success, nil on an error.
-func (gate pyGate) makeList(sz int) pyObject {
-	return C.py_list_make(C.size_t(sz))
-}
-
-// setListItem sets the item of the PyList_Type the specified position.
-// Internally, it creates a new strong reference to the item object.
-func (gate pyGate) setListItem(list, item pyObject, idx int) bool {
-	return bool(C.py_list_set(list, C.int(idx), item))
-}
-
-// getListItem retrieves the item of the PyList_Type the specified position.
-func (gate pyGate) getListItem(list pyObject, idx int) (pyObject, bool) {
-	var answer pyObject
-	ok := bool(C.py_list_get(list, C.int(idx), &answer))
-	return answer, ok
-}
-
 // decodeInteger decodes Python integer object as int or big.Int
 func (gate pyGate) decodeInteger(pyobj pyObject) (any, bool) {
 	var overflow C.bool
@@ -373,26 +319,6 @@ func (gate pyGate) decodeInteger(pyobj pyObject) (any, bool) {
 	return v, true
 }
 
-// makeInt makes a new PyLong_type object from int64.
-// It returns strong object reference on success, nil on an error.
-func (gate pyGate) makeInt(v int64) pyObject {
-	return C.py_long_from_int64(C.int64_t(v))
-}
-
-// makeUint makes a new PyLong_type object from uint64.
-// It returns strong object reference on success, nil on an error.
-func (gate pyGate) makeUint(v uint64) pyObject {
-	return C.py_long_from_uint64(C.uint64_t(v))
-}
-
-// makeBigint makes a new PyLong_type object from *big.Int.
-// It returns strong object reference on success, nil on an error.
-func (gate pyGate) makeBigint(v *big.Int) pyObject {
-	cs := C.CString(v.String())
-	defer C.free(unsafe.Pointer(cs))
-	return C.py_long_from_string(cs)
-}
-
 // decodeString decodes Python Unicode object as a string.
 func (gate pyGate) decodeString(pyobj pyObject) (string, bool) {
 	sz := C.py_str_len(pyobj)
@@ -409,12 +335,105 @@ func (gate pyGate) decodeString(pyobj pyObject) (string, bool) {
 	return s, true
 }
 
+// makeBigint makes a new PyLong_type object from *big.Int.
+// It returns strong object reference on success, nil on an error.
+func (gate pyGate) makeBigint(v *big.Int) pyObject {
+	cs := C.CString(v.String())
+	defer C.free(unsafe.Pointer(cs))
+	return C.py_long_from_string(cs)
+}
+
+// makeBool makes a new PyBool_Type object.
+// It returns strong object reference on success, nil on an error.
+func (gate pyGate) makeBool(v bool) pyObject {
+	return C.py_bool_make(C.bool(v))
+}
+
+// makeBytes makes a new PyList_Bytes object.
+// It returns strong object reference on success, nil on an error.
+func (gate pyGate) makeBytes(data []byte) pyObject {
+	var p unsafe.Pointer
+	if len(data) != 0 {
+		p = unsafe.Pointer(&data[0])
+	}
+
+	return C.py_bytes_make(p, C.size_t(len(data)))
+}
+
+// makeComplex makes a new PyComlex_Type object.
+// It returns strong object reference on success, nil on an error.
+func (gate pyGate) makeComplex(v complex128) pyObject {
+	return C.py_complex_make(C.double(real(v)), C.double(imag(v)))
+}
+
+// makeDict makes a new PyDict_Type object.
+// It returns strong object reference on success, nil on an error.
+func (gate pyGate) makeDict() pyObject {
+	return C.py_dict_make()
+}
+
+// makeFloat makes a new PyFloatType object.
+// It returns strong object reference on success, nil on an error.
+func (gate pyGate) makeFloat(v float64) pyObject {
+	return C.py_float_make(C.double(v))
+}
+
+// makeInt makes a new PyLong_type object from int64.
+// It returns strong object reference on success, nil on an error.
+func (gate pyGate) makeInt(v int64) pyObject {
+	return C.py_long_from_int64(C.int64_t(v))
+}
+
+// makeList makes a new PyList_Type object of the given size.
+// It returns strong object reference on success, nil on an error.
+func (gate pyGate) makeList(sz int) pyObject {
+	return C.py_list_make(C.size_t(sz))
+}
+
 // makeString makes a new PyUnicoder_type object from string.
 // It returns strong object reference on success, nil on an error.
 func (gate pyGate) makeString(v string) pyObject {
 	cs := C.CString(v)
 	defer C.free(unsafe.Pointer(cs))
 	return C.py_str_make(cs, C.size_t(len(v)))
+}
+
+// makeTuple makes a new PyTuple_Type object of the given size.
+// It returns strong object reference on success, nil on an error.
+func (gate pyGate) makeTuple(sz int) pyObject {
+	return C.py_tuple_make(C.size_t(sz))
+}
+
+// makeUint makes a new PyLong_type object from uint64.
+// It returns strong object reference on success, nil on an error.
+func (gate pyGate) makeUint(v uint64) pyObject {
+	return C.py_long_from_uint64(C.uint64_t(v))
+}
+
+// getListItem retrieves the item of the PyList_Type the specified position.
+func (gate pyGate) getListItem(list pyObject, idx int) (pyObject, bool) {
+	var answer pyObject
+	ok := bool(C.py_list_get(list, C.int(idx), &answer))
+	return answer, ok
+}
+
+// setListItem sets the item of the PyList_Type the specified position.
+// Internally, it creates a new strong reference to the item object.
+func (gate pyGate) setListItem(list, item pyObject, idx int) bool {
+	return bool(C.py_list_set(list, C.int(idx), item))
+}
+
+// setTupleItem sets the item of the PyTuple_Type the specified position.
+// Internally, it creates a new strong reference to the item object.
+func (gate pyGate) setTupleItem(tuple, item pyObject, idx int) bool {
+	return bool(C.py_tuple_set(tuple, C.int(idx), item))
+}
+
+// getTupleItem retrieves the item of the PyTuple_Type the specified position.
+func (gate pyGate) getTupleItem(tuple pyObject, idx int) (pyObject, bool) {
+	var answer pyObject
+	ok := bool(C.py_tuple_get(tuple, C.int(idx), &answer))
+	return answer, ok
 }
 
 // pyInterpEval evaluates string as a Python statement.
@@ -442,23 +461,4 @@ func (gate pyGate) eval(s, name string, expr bool) (pyObject, error) {
 	}
 
 	return pyobj, nil
-}
-
-// makeTuple makes a new PyTuple_Type object of the given size.
-// It returns strong object reference on success, nil on an error.
-func (gate pyGate) makeTuple(sz int) pyObject {
-	return C.py_tuple_make(C.size_t(sz))
-}
-
-// setTupleItem sets the item of the PyTuple_Type the specified position.
-// Internally, it creates a new strong reference to the item object.
-func (gate pyGate) setTupleItem(tuple, item pyObject, idx int) bool {
-	return bool(C.py_tuple_set(tuple, C.int(idx), item))
-}
-
-// getTupleItem retrieves the item of the PyTuple_Type the specified position.
-func (gate pyGate) getTupleItem(tuple pyObject, idx int) (pyObject, bool) {
-	var answer pyObject
-	ok := bool(C.py_tuple_get(tuple, C.int(idx), &answer))
-	return answer, ok
 }
