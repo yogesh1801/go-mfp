@@ -96,8 +96,7 @@ func (py *Python) NewObject(val any) (*Object, error) {
 		return nil, err
 	}
 
-	oid := py.newObjID(gate, pyobj)
-	obj := newObjectFromPython(py, oid, val)
+	obj := newObjectFromPython(py, gate, pyobj, val)
 
 	return obj, nil
 }
@@ -321,8 +320,7 @@ func (py *Python) eval(s, filename string, expr bool) (*Object, error) {
 		return nil, gate.lastError()
 	}
 
-	oid := py.newObjID(gate, pyobj)
-	obj := newObjectFromPython(py, oid, native)
+	obj := newObjectFromPython(py, gate, pyobj, native)
 	return obj, err
 }
 

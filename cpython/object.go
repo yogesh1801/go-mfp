@@ -25,7 +25,11 @@ type Object struct {
 // newObjectFromPython constructs new Object, decoded from PyObject.
 // If native is nil, it means, native Go value not available for
 // the object. Python None passed as pyNone.
-func newObjectFromPython(py *Python, oid objid, native any) *Object {
+func newObjectFromPython(py *Python, gate pyGate,
+	pyobj pyObject, native any) *Object {
+
+	// Obtain Object ID
+	oid := py.newObjID(gate, pyobj)
 	obj := &Object{py: py, oid: oid, native: native}
 
 	switch native {
@@ -141,8 +145,7 @@ func (obj *Object) Get(key any) (*Object, error) {
 	}
 
 	// Create the item object
-	itemid := obj.py.newObjID(gate, pyitem)
-	item := newObjectFromPython(obj.py, itemid, native)
+	item := newObjectFromPython(obj.py, gate, pyitem, native)
 
 	return item, nil
 }
@@ -280,8 +283,7 @@ func (obj *Object) GetAttr(name string) (*Object, error) {
 	}
 
 	// Create the attribute object
-	attrid := obj.py.newObjID(gate, pyattr)
-	attr := newObjectFromPython(obj.py, attrid, native)
+	attr := newObjectFromPython(obj.py, gate, pyattr, native)
 
 	return attr, nil
 }
@@ -403,8 +405,7 @@ func (obj *Object) CallKW(kw map[string]any, args ...any) (*Object, error) {
 		return nil, gate.lastError()
 	}
 
-	retid := obj.py.newObjID(gate, pyret)
-	ret := newObjectFromPython(obj.py, retid, native)
+	ret := newObjectFromPython(obj.py, gate, pyret, native)
 
 	return ret, nil
 }
