@@ -296,9 +296,9 @@ func (gate pyGate) decodeBytes(pyobj pyObject) ([]byte, bool) {
 // decodeInteger decodes Python integer object as int or big.Int
 func (gate pyGate) decodeInteger(pyobj pyObject) (any, bool) {
 	var overflow C.bool
-	var val C.long
+	var val C.int64_t
 
-	ok := bool(C.py_long_get(pyobj, &val, &overflow))
+	ok := bool(C.py_long_get_int64(pyobj, &val, &overflow))
 	if !ok {
 		return nil, true
 	}

@@ -211,11 +211,17 @@ bool py_list_get(PyObject *list, int index, PyObject **answer);
 // It returns true on success, false on error.
 bool py_list_set(PyObject *list, int index, PyObject *val);
 
-// py_long_get obtains PyObject's value as C long.
+// py_long_get obtains PyObject's value as int64_t.
 // If value doesn't fit C long, overflow flag is set.
 //
 // It returns true on success, false on error.
-bool py_long_get (PyObject *x, long *val, bool *overflow);
+bool py_long_get_int64 (PyObject *x, int64_t *val, bool *overflow);
+
+// py_long_get obtains PyObject's value as uint64_t.
+// If value doesn't fit C long, overflow flag is set.
+//
+// It returns true on success, false on error.
+bool py_long_get_uint64 (PyObject *x, uint64_t *val, bool *overflow);
 
 // py_long_from_int64 makes a new PyLong_Type object from int64_t value.
 // It returns strong object reference on success, NULL on an error.

@@ -71,7 +71,8 @@ static __typeof__(PyInterpreterState_Delete)    *PyInterpreterState_Delete_p;
 static __typeof__(PyList_GetItem)               *PyList_GetItem_p;
 static __typeof__(PyList_New)                   *PyList_New_p;
 static __typeof__(PyList_SetItem)               *PyList_SetItem_p;
-static __typeof__(PyLong_AsLongAndOverflow)     *PyLong_AsLongAndOverflow_p;
+static __typeof__(PyLong_AsLongLong)            *PyLong_AsLongLong_p;
+static __typeof__(PyLong_AsUnsignedLongLong)    *PyLong_AsUnsignedLongLong_p;
 static __typeof__(PyLong_FromLongLong)          *PyLong_FromLongLong_p;
 static __typeof__(PyLong_FromString)            *PyLong_FromString_p;
 static __typeof__(PyLong_FromUnsignedLongLong)  *PyLong_FromUnsignedLongLong_p;
@@ -100,7 +101,8 @@ static __typeof__(PyUnicode_AsUCS4)             *PyUnicode_AsUCS4_p;
 static __typeof__(PyUnicode_FromStringAndSize)  *PyUnicode_FromStringAndSize_p;
 
 // Python exceptions (some of them):
-static __typeof__(PyObject)                     *PyExc_KeyError_p;
+static PyObject *PyExc_KeyError_p;
+static PyObject *PyExc_OverflowError_p;
 
 // Python build-in (primitive) types:
 PyTypeObject *PyBool_Type_p;
@@ -195,7 +197,8 @@ static void py_load_all (void) {
     PyList_GetItem_p = py_load("PyList_GetItem");
     PyList_New_p = py_load("PyList_New");
     PyList_SetItem_p = py_load("PyList_SetItem");
-    PyLong_AsLongAndOverflow_p = py_load("PyLong_AsLongAndOverflow");
+    PyLong_AsLongLong_p = py_load("PyLong_AsLongLong");
+    PyLong_AsUnsignedLongLong_p = py_load("PyLong_AsUnsignedLongLong");
     PyLong_FromLongLong_p = py_load("PyLong_FromLongLong");
     PyLong_FromString_p = py_load("PyLong_FromString");
     PyLong_FromUnsignedLongLong_p = py_load("PyLong_FromUnsignedLongLong");
@@ -224,6 +227,7 @@ static void py_load_all (void) {
     PyUnicode_FromStringAndSize_p = py_load("PyUnicode_FromStringAndSize");
 
     PyExc_KeyError_p = py_load_ptr("PyExc_KeyError");
+    PyExc_OverflowError_p = py_load_ptr("PyExc_OverflowError");
 
     PyBool_Type_p = py_load("PyBool_Type");
     PyByteArray_Type_p = py_load("PyByteArray_Type");
@@ -644,22 +648,60 @@ bool py_list_set(PyObject *list, int index, PyObject *val) {
     return PyList_SetItem_p(list, index, val) == 0;
 }
 
-// py_long_get obtains PyObject's value as C long.
+// py_long_get obtains PyObject's value as int64_t.
 // If value doesn't fit C long, overflow flag is set.
 //
 // It returns true on success, false on error.
-bool py_long_get (PyObject *x, long *val, bool *overflow) {
-    int           ovf;
-    bool          res = true;
+bool py_long_get_int64 (PyObject *x, int64_t *val, bool *overflow) {
+    long long tmp;
+    bool      ok = true, ovf = false;
 
-    *val = PyLong_AsLongAndOverflow_p(x, &ovf);
-    *overflow = ovf != 0;
-
-    if (*val == -1 && PyErr_Occurred_p() != NULL) {
-        res = false;
+    tmp = (int64_t) PyLong_AsLongLong_p(x);
+    if (tmp == -1) {
+        PyObject *err = PyErr_Occurred_p();
+        if (err == PyExc_OverflowError_p) {
+            ovf = true;
+        } else {
+            ok = false;
+        }
     }
 
-    return res;
+    if (!(INT64_MIN <= tmp && tmp <= INT64_MAX)) {
+        ovf = true;
+    }
+
+    *val = (int64_t) tmp;
+    *overflow = ovf;
+
+    return ok;
+}
+
+// py_long_get obtains PyObject's value as uint64_t.
+// If value doesn't fit C long, overflow flag is set.
+//
+// It returns true on success, false on error.
+bool py_long_get_uint64 (PyObject *x, uint64_t *val, bool *overflow) {
+    unsigned long long  tmp;
+    bool                ok = true, ovf = false;
+
+    tmp = (int64_t) PyLong_AsUnsignedLongLong_p(x);
+    if (tmp == (unsigned long long) -1) {
+        PyObject *err = PyErr_Occurred_p();
+        if (err == PyExc_OverflowError_p) {
+            ovf = true;
+        } else {
+            ok = false;
+        }
+    }
+
+    if (!(tmp <= UINT64_MAX)) {
+        ovf = true;
+    }
+
+    *val = (int64_t) tmp;
+    *overflow = ovf;
+
+    return ok;
 }
 
 // py_long_from_int64 makes a new PyLong_Type object from int64_t value.
