@@ -54,6 +54,16 @@ func (obj *Object) finalizer() {
 	}
 }
 
+// Len returns Object length, in items. It works with container
+// objects (lists, tuples, dict, ...).
+//
+// In Python:
+//
+//	len(obj)
+func (obj *Object) Len() (int, error) {
+	return objDo(obj, pyGate.length)
+}
+
 // Del deletes Object item with the specified key:
 //
 // In Python:

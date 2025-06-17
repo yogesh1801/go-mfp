@@ -135,6 +135,16 @@ func (gate pyGate) typename(pyobj pyObject) string {
 	return name
 }
 
+// length returns length of container object (list, tuple, dict, ...)
+// in items.
+func (gate pyGate) length(pyobj pyObject) (int, error) {
+	l := int(C.py_obj_length(pyobj))
+	if l < 0 {
+		return 0, gate.lastError()
+	}
+	return l, nil
+}
+
 // delattr deletes Object attribute with the specified name.
 func (gate pyGate) delattr(pyobj pyObject, name string) error {
 	cname := C.CString(name)

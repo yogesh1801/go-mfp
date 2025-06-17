@@ -84,6 +84,7 @@ static __typeof__(PyObject_DelItem)             *PyObject_DelItem_p;
 static __typeof__(PyObject_GetAttrString)       *PyObject_GetAttrString_p;
 static __typeof__(PyObject_GetItem)             *PyObject_GetItem_p;
 static __typeof__(PyObject_HasAttrString)       *PyObject_HasAttrString_p;
+static __typeof__(*PyObject_Length)             *PyObject_Length_p;
 static __typeof__(PyObject_Repr)                *PyObject_Repr_p;
 static __typeof__(PyObject_SetAttrString)       *PyObject_SetAttrString_p;
 static __typeof__(PyObject_SetItem)             *PyObject_SetItem_p;
@@ -212,6 +213,7 @@ static void py_load_all (void) {
     PyObject_GetAttrString_p = py_load("PyObject_GetAttrString");
     PyObject_GetItem_p = py_load("PyObject_GetItem");
     PyObject_HasAttrString_p = py_load("PyObject_HasAttrString");
+    PyObject_Length_p = py_load("PyObject_Length");
     PyObject_Repr_p = py_load("PyObject_Repr");
     PyObject_SetAttrString_p = py_load("PyObject_SetAttrString");
     PyObject_SetItem_p = py_load("PyObject_SetItem");
@@ -454,6 +456,13 @@ PyObject *py_obj_str (PyObject *x) {
 //   - Use py_obj_repr if you want to process the string
 PyObject *py_obj_repr (PyObject *x) {
     return PyObject_Repr_p(x);
+}
+
+// py_obj_length returns PyObject, in items. It works with any
+// container objects (lists, tuples, dictionaries, ...).
+// Returns -1 on a error.
+ssize_t py_obj_length (PyObject *x) {
+    return PyObject_Length_p(x);
 }
 
 // py_obj_hasattr reports if PyObject has the attribute with the

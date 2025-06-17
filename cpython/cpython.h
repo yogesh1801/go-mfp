@@ -115,6 +115,11 @@ PyObject *py_obj_str (PyObject *x);
 //   - Use py_obj_repr if you want to process the string
 PyObject *py_obj_repr (PyObject *x);
 
+// py_obj_length returns PyObject, in items. It works with any
+// container objects (lists, tuples, dictionaries, ...).
+// Returns -1 on a error.
+ssize_t py_obj_length (PyObject *x);
+
 // py_obj_hasattr reports if PyObject has the attribute with the
 // specified name.
 //

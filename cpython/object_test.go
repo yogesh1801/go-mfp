@@ -474,6 +474,52 @@ func TestObjectItems(t *testing.T) {
 	}
 }
 
+// TestObjectLen tests Object.Len operation
+func TestObjectLen(t *testing.T) {
+	type testData struct {
+		expr string // Python expression
+		l    int    // Expected length
+		err  bool   // Error expected
+	}
+
+	tests := []testData{
+		{expr: `[1,2,3]`, l: 3},
+		{expr: `(1,2,3)`, l: 3},
+		{expr: `{1:"1", 2:"2", 3:"3"}`, l: 3},
+		{expr: `[]`, l: 0},
+		{expr: `()`, l: 0},
+		{expr: `{}`, l: 0},
+		{expr: `5`, l: 0, err: true},
+		{expr: `"hello"`, l: 5},
+		{expr: `"привет"`, l: 6},
+	}
+
+	// Create an interpreter
+	py, err := NewPython()
+	assert.NoError(err)
+	defer py.Close()
+
+	for _, test := range tests {
+		obj, err := py.Eval(test.expr)
+		assert.NoError(err)
+
+		l, err := obj.Len()
+		switch {
+		case err == nil && test.err:
+			t.Errorf("Object.Len(%s): error not occurred",
+				test.expr)
+		case err != nil && !test.err:
+			t.Errorf("Object.Len(%s): %s",
+				test.expr, err)
+		case l != test.l:
+			t.Errorf("Object.Len(%s):\n"+
+				"expected: %d\n"+
+				"present:  %d\n",
+				test.expr, test.l, l)
+		}
+	}
+}
+
 // TestObjectCallable tests Object.Callable operation
 func TestObjectCallable(t *testing.T) {
 	// Create an interpreter
