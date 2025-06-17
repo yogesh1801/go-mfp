@@ -33,11 +33,17 @@ func TestPython(t *testing.T) {
 			return
 		}
 
-		if res.Unbox() != "hello" {
+		s, err := res.Unicode()
+		if err != nil {
+			t.Errorf("Returned value decoding: %s", err)
+			return
+		}
+
+		if s != "hello" {
 			t.Errorf("Returned value mismatch:\n"+
 				"expected: %v\n"+
 				"present:  %v\n",
-				"hello", res.Unbox())
+				"hello", s)
 		}
 
 		py.Close()
@@ -46,6 +52,7 @@ func TestPython(t *testing.T) {
 	// Basic test for Python.Exec
 	py, err := NewPython()
 	assert.NoError(err)
+	defer py.Close()
 
 	script := "" +
 		"x = 5\n" +
@@ -54,25 +61,27 @@ func TestPython(t *testing.T) {
 	err = py.Exec(script, "")
 	if err != nil {
 		t.Errorf("py.Eval: unexpected error: %s", err)
-		py.Close()
 		return
 	}
 
 	res, err := py.Eval(`x`)
 	if err != nil {
 		t.Errorf("py.Eval: unexpected error: %s", err)
-		py.Close()
 		return
 	}
 
-	if res.Unbox() != 10 {
+	v, err := res.Int()
+	if err != nil {
+		t.Errorf("py.Eval: decode error: %s", err)
+		return
+	}
+
+	if v != 10 {
 		t.Errorf("Returned value mismatch:\n"+
 			"expected: %v\n"+
 			"present:  %v\n",
-			"hello", res.Unbox())
+			"hello", v)
 	}
-
-	py.Close()
 }
 
 // TestPythonInitError tests how Python initialization errors are handled.

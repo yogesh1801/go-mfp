@@ -10,7 +10,6 @@ package cpython
 
 import (
 	"fmt"
-	"reflect"
 )
 
 // ErrPython represents a Python exception.
@@ -23,12 +22,22 @@ func (e ErrPython) Error() string {
 	return e.msg
 }
 
-// ErrTypeConversion represents Go->Python type conversion error.
+// ErrTypeConversion represents Go<->Python type conversion error.
 type ErrTypeConversion struct {
-	from reflect.Type // Go type that can't be converted
+	from, to string // from/to types that can't be converted
 }
 
 // Error returns error message. It implements the [error] interface.
 func (e ErrTypeConversion) Error() string {
-	return fmt.Sprintf("%T cannot be converted to PyObject", e.from)
+	return fmt.Sprintf("can't convert %s to %s", e.from, e.to)
+}
+
+// ErrOverflow represents the integer overflow error.
+type ErrOverflow struct {
+	val string
+}
+
+// Error returns error message. It implements the [error] interface.
+func (e ErrOverflow) Error() string {
+	return fmt.Sprintf("integer overflow: %s", e.val)
 }

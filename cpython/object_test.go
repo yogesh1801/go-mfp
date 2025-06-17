@@ -22,9 +22,10 @@ import (
 // TestObjectFromPython tests objectFromPython
 func TestObjectFromPython(t *testing.T) {
 	type testData struct {
-		expr     string // Python expression
-		val      any    // Expected value
-		mustfail bool   // Error expected
+		expr     string                     // Python expression
+		val      any                        // Expected value
+		unbox    func(*Object) (any, error) // Value unboxing function
+		mustfail bool                       // Error expected
 	}
 
 	const verybig = "21267647892944572736998860269687930881"
@@ -35,24 +36,53 @@ func TestObjectFromPython(t *testing.T) {
 		return v
 	}
 
+	unboxNone := func(obj *Object) (any, error) { return obj.IsNone(), nil }
+	unboxBigint := func(obj *Object) (any, error) { return obj.Bigint() }
+	unboxBool := func(obj *Object) (any, error) { return obj.Bool() }
+	unboxBytes := func(obj *Object) (any, error) { return obj.Bytes() }
+	unboxComplex := func(obj *Object) (any, error) { return obj.Complex() }
+	unboxFloat := func(obj *Object) (any, error) { return obj.Float() }
+	unboxInt := func(obj *Object) (any, error) { return obj.Int() }
+	unboxUint := func(obj *Object) (any, error) { return obj.Uint() }
+	unboxUnicode := func(obj *Object) (any, error) { return obj.Unicode() }
+
 	tests := []testData{
-		{expr: `None`, val: nil},
-		{expr: `True`, val: true},
-		{expr: `False`, val: false},
-		{expr: `"hello"`, val: "hello"},
-		{expr: `"привет"`, val: "привет"},
-		{expr: `""`, val: ""},
-		{expr: `0`, val: 0},
-		{expr: `0x7fffffff`, val: 0x7fffffff},
-		{expr: `-0x7fffffff`, val: -0x7fffffff},
-		{expr: `0xffffffff`, val: 0xffffffff},
-		{expr: `0xffffffffffffffff`, val: bigint("0xffffffffffffffff")},
-		{expr: verybig, val: bigint(verybig)},
-		{expr: `1/0`, mustfail: true},
-		{expr: `b'\x01\x02\x03'`, val: []byte{0x1, 0x2, 0x3}},
-		{expr: `bytearray(b'\x01\x02\x03')`, val: []byte{0x1, 0x2, 0x3}},
-		{expr: `0.5`, val: 0.5},
-		{expr: `complex(1,2)`, val: complex(1, 2)},
+		{expr: `None`, val: true, unbox: unboxNone},
+		{expr: `True`, val: true, unbox: unboxBool},
+		{expr: `0`, unbox: unboxBool, mustfail: true},
+		{expr: `False`, val: false, unbox: unboxBool},
+		{expr: `"hello"`, val: "hello", unbox: unboxUnicode},
+		{expr: `"привет"`, val: "привет", unbox: unboxUnicode},
+		{expr: `0`, val: "привет", unbox: unboxUnicode, mustfail: true},
+		{expr: `""`, val: "", unbox: unboxUnicode},
+		{expr: `0`, val: int64(0), unbox: unboxInt},
+		{expr: `0`, val: uint64(0), unbox: unboxUint},
+		{expr: `0x7fffffff`, val: int64(0x7fffffff), unbox: unboxInt},
+		{expr: `0x7fffffff`, val: uint64(0x7fffffff), unbox: unboxUint},
+		{expr: `-0x7fffffff`, val: int64(-0x7fffffff), unbox: unboxInt},
+		{expr: `-0x7fffffff`, unbox: unboxUint, mustfail: true},
+		{expr: `0xffffffff`, val: int64(0xffffffff), unbox: unboxInt},
+		{expr: `0xffffffff`, val: uint64(0xffffffff), unbox: unboxUint},
+		{expr: verybig, unbox: unboxInt, mustfail: true},
+		{expr: verybig, unbox: unboxUint, mustfail: true},
+		{expr: `0`, val: bigint("0"), unbox: unboxBigint},
+		{expr: `1`, val: bigint("1"), unbox: unboxBigint},
+		{expr: `-1`, val: bigint("-1"), unbox: unboxBigint},
+		{expr: `0xffffffffffffffff`, val: bigint("0xffffffffffffffff"),
+			unbox: unboxBigint},
+		{expr: verybig, val: bigint(verybig), unbox: unboxBigint},
+		{expr: `None`, unbox: unboxInt, mustfail: true},
+		{expr: `None`, unbox: unboxUint, mustfail: true},
+		{expr: `None`, unbox: unboxBigint, mustfail: true},
+		{expr: `b'\x01\x02\x03'`, val: []byte{0x1, 0x2, 0x3},
+			unbox: unboxBytes},
+		{expr: `bytearray(b'\x01\x02\x03')`, val: []byte{0x1, 0x2, 0x3},
+			unbox: unboxBytes},
+		{expr: `None`, unbox: unboxBytes, mustfail: true},
+		{expr: `0.5`, val: 0.5, unbox: unboxFloat},
+		{expr: `None`, unbox: unboxFloat, mustfail: true},
+		{expr: `complex(1,2)`, val: complex(1, 2), unbox: unboxComplex},
+		{expr: `None`, unbox: unboxComplex, mustfail: true},
 	}
 
 	py, err := NewPython()
@@ -64,8 +94,16 @@ func TestObjectFromPython(t *testing.T) {
 
 		// Check errors vs expectations
 		if err != nil {
+			t.Errorf("%s: unexpected error: %s",
+				test.expr, err)
+			continue
+		}
+
+		// Check returned value
+		val, err := test.unbox(obj)
+		if err != nil {
 			if !test.mustfail {
-				t.Errorf("%s: unexpected error: %s",
+				t.Errorf("%s: object value error: %s",
 					test.expr, err)
 			}
 			continue
@@ -77,8 +115,6 @@ func TestObjectFromPython(t *testing.T) {
 			continue
 		}
 
-		// Check returned value
-		val := obj.Unbox()
 		if !reflect.DeepEqual(val, test.val) {
 			t.Errorf("%s: object value mismatch:\n"+
 				"expected: %#v\n"+
@@ -279,10 +315,12 @@ dog = Dog("Archi", 4)
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	} else {
-		if attr.Unbox() != "Archi" {
+		s, err := attr.Unicode()
+		assert.NoError(err)
+		if s != "Archi" {
 			t.Errorf("obj.GetAttr mismatch:\n"+
 				"expected: %s\n"+
-				"present:  %s\n", "Archi", attr.Unbox())
+				"present:  %s\n", "Archi", s)
 		}
 	}
 
@@ -483,13 +521,17 @@ func TestObjectCall(t *testing.T) {
 		return
 	}
 
-	val := res.Unbox()
+	val, err := res.Int()
+	if err != nil {
+		t.Errorf("Object.Call (positional args): %s", err)
+		return
+	}
 	if val != 1 {
 		t.Errorf("Object.Call (positional args):\n"+
 			"expected: %d\n"+
 			"present:  %d\n",
 			1, val)
-
+		return
 	}
 
 	// Call with keyword arguments
@@ -499,13 +541,17 @@ func TestObjectCall(t *testing.T) {
 		return
 	}
 
-	val = res.Unbox()
+	val, err = res.Int()
+	if err != nil {
+		t.Errorf("Object.Call (keyword args): %s", err)
+		return
+	}
 	if val != 5 {
 		t.Errorf("Object.Call (keyword args):\n"+
 			"expected: %d\n"+
 			"present:  %d\n",
 			5, val)
-
+		return
 	}
 }
 

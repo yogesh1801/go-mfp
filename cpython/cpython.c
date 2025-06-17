@@ -97,6 +97,8 @@ static __typeof__(PyThreadState_Swap)           *PyThreadState_Swap_p;
 static __typeof__(PyTuple_GetItem)              *PyTuple_GetItem_p;
 static __typeof__(PyTuple_New)                  *PyTuple_New_p;
 static __typeof__(PyTuple_SetItem)              *PyTuple_SetItem_p;
+static __typeof__(*PyType_GetFlags)             *PyType_GetFlags_p;
+static __typeof__(PyType_IsSubtype)             *PyType_IsSubtype_p;
 static __typeof__(PyUnicode_AsUCS4)             *PyUnicode_AsUCS4_p;
 static __typeof__(PyUnicode_FromStringAndSize)  *PyUnicode_FromStringAndSize_p;
 
@@ -223,6 +225,8 @@ static void py_load_all (void) {
     PyTuple_GetItem_p = py_load("PyTuple_GetItem");
     PyTuple_New_p = py_load("PyTuple_New");
     PyTuple_SetItem_p = py_load("PyTuple_SetItem");
+    PyType_GetFlags_p = py_load("PyType_GetFlags");
+    PyType_IsSubtype_p = py_load("PyType_IsSubtype");
     PyUnicode_AsUCS4_p = py_load("PyUnicode_AsUCS4");
     PyUnicode_FromStringAndSize_p = py_load("PyUnicode_FromStringAndSize");
 
@@ -248,9 +252,9 @@ static void py_load_all (void) {
     PyType_Type_p = py_load("PyType_Type");
     PyUnicode_Type_p = py_load("PyUnicode_Type");
 
+    Py_IsFalse_p = py_load("Py_IsFalse");
     Py_IsNone_p = py_load("Py_IsNone");
     Py_IsTrue_p = py_load("Py_IsTrue");
-    Py_IsFalse_p = py_load("Py_IsFalse");
     PyUnicode_GetLength_p = py_load("PyUnicode_GetLength");
 }
 
@@ -386,6 +390,38 @@ bool py_interp_eval (const char *s, const char *file,
 
     *res = ret;
     return true;
+}
+
+// py_obj_is_byte_array reports if PyObject is PyByteArray_Type or its subclass.
+bool py_obj_is_byte_array (PyObject *x) {
+    return PyType_IsSubtype_p(Py_TYPE(x), PyByteArray_Type_p) != 0;
+}
+
+// py_obj_is_bytes reports if PyObject is PyBytes_Type or its subclass.
+bool py_obj_is_bytes (PyObject *x) {
+    return PyType_IsSubtype_p(Py_TYPE(x), PyBytes_Type_p) != 0;
+}
+
+// py_obj_is_complex reports if PyObject is PyComplex_Type or its subclass.
+bool py_obj_is_complex (PyObject *x) {
+    return PyType_IsSubtype_p(Py_TYPE(x), PyComplex_Type_p) != 0;
+}
+
+// py_obj_is_float reports if PyObject is PyFloat_Type or its subclass.
+bool py_obj_is_float (PyObject *x) {
+    return PyType_IsSubtype_p(Py_TYPE(x), PyFloat_Type_p) != 0;
+}
+
+// py_obj_is_long reports if PyObject is PyLong_Type or its subclass.
+bool py_obj_is_long (PyObject *x) {
+    unsigned long flags = PyType_GetFlags_p(Py_TYPE(x));
+    return (flags & Py_TPFLAGS_LONG_SUBCLASS) != 0;
+}
+
+// py_obj_is_unicode reports if PyObject is PyUnicode_Type or its subclass.
+bool py_obj_is_unicode (PyObject *x) {
+    unsigned long flags = PyType_GetFlags_p(Py_TYPE(x));
+    return (flags & Py_TPFLAGS_UNICODE_SUBCLASS) != 0;
 }
 
 // py_obj_ref increments the PyObject's reference count.

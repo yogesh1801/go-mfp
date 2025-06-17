@@ -41,6 +41,7 @@ func pyGateAcquire(interp pyInterp) pyGate {
 
 // release detaches the calling thread from the Python interpreter.
 func (gate pyGate) release() {
+	gate.lastError() // Reset pending error condition, if any
 	C.py_leave(gate.prev)
 	runtime.UnlockOSThread()
 }
@@ -61,15 +62,15 @@ func (gate pyGate) lastError() error {
 
 	// Decode the error
 	if evalue != nil {
-		msg, ok := gate.str(evalue)
-		if ok {
+		msg, err := gate.str(evalue)
+		if err == nil {
 			return ErrPython{msg}
 		}
 	}
 
 	if etype != nil {
-		msg, ok := gate.str(etype)
-		if ok {
+		msg, err := gate.str(etype)
+		if err == nil {
 			return ErrPython{msg}
 		}
 	}
@@ -88,25 +89,41 @@ func (gate pyGate) unref(pyobj pyObject) {
 }
 
 // str returns str(pyobj), decoded as Go string.
-func (gate pyGate) str(pyobj pyObject) (s string, ok bool) {
+func (gate pyGate) str(pyobj pyObject) (s string, err error) {
 	str := C.py_obj_str(pyobj)
 	if str != nil {
 		defer C.py_obj_unref(str)
-		s, ok = gate.decodeString(str)
+		s, err = gate.decodeUnicode(str)
 	}
 
 	return
 }
 
 // repr returns repr(pyobj), decoded as Go string.
-func (gate pyGate) repr(pyobj pyObject) (s string, ok bool) {
+func (gate pyGate) repr(pyobj pyObject) (s string, err error) {
 	repr := C.py_obj_repr(pyobj)
 	if repr != nil {
 		defer C.py_obj_unref(repr)
-		s, ok = gate.decodeString(repr)
+		s, err = gate.decodeUnicode(repr)
 	}
 
 	return
+}
+
+// typename returns name of the PyObject's type
+func (gate pyGate) typename(pyobj pyObject) string {
+	name := "unknown"
+
+	t := pyObject(unsafe.Pointer(C.Py_TYPE(pyobj)))
+	n, ok := gate.getattr(t, "__name__")
+	if ok {
+		s, err := gate.str(n)
+		if err == nil {
+			name = s
+		}
+	}
+
+	return name
 }
 
 // delattr deletes Object attribute with the specified name.
@@ -198,129 +215,166 @@ func (gate pyGate) callable(pyobj pyObject) bool {
 	return bool(C.py_obj_callable(pyobj))
 }
 
-// decodeObject decodes PyObject value as Go value.
-// It returns pyNone for Python None and nil if native Go value not available.
-func (gate pyGate) decodeObject(pyobj pyObject) (any, bool) {
-	switch pyObjectType(pyobj) {
-	case C.PyBool_Type_p:
-		return C.py_obj_is_true(pyobj) != 0, true
-	case C.PyByteArray_Type_p:
-		return gate.decodeByteArray(pyobj)
-	case C.PyBytes_Type_p:
-		return gate.decodeBytes(pyobj)
-	case C.PyCFunction_Type_p:
-	case C.PyComplex_Type_p:
-		return gate.decodeComplex(pyobj)
-	case C.PyDict_Type_p:
-	case C.PyDictKeys_Type_p:
-	case C.PyFloat_Type_p:
-		return gate.decodeFloat(pyobj)
-	case C.PyFrozenSet_Type_p:
-	case C.PyList_Type_p:
-	case C.PyLong_Type_p:
-		return gate.decodeInteger(pyobj)
-	case C.PyMemoryView_Type_p:
-	case C.PyModule_Type_p:
-	case C.PySet_Type_p:
-	case C.PySlice_Type_p:
-	case C.PyTuple_Type_p:
-	case C.PyType_Type_p:
-	case C.PyUnicode_Type_p:
-		return gate.decodeString(pyobj)
-	default:
-		if C.py_obj_is_none(pyobj) != 0 {
-			return pyNone, true
-		}
-	}
-
-	return nil, true
+// isNone reports if PyObject is None
+func (gate pyGate) isNone(pyobj pyObject) bool {
+	return bool(C.py_obj_is_none(pyobj))
 }
 
-// decodeComplex decodes Python complex number object.
-func (gate pyGate) decodeComplex(pyobj pyObject) (complex128, bool) {
-	var real, imag C.double
-
-	ok := bool(C.py_complex_get(pyobj, &real, &imag))
-	var c complex128
-	if ok {
-		c = complex(float64(real), float64(imag))
+// decodeError returns [ErrTypeConversion] for Python->Go conversion.
+func (gate pyGate) decodeError(pyobj pyObject, to string) error {
+	return ErrTypeConversion{
+		from: gate.typename(pyobj),
+		to:   to,
 	}
-
-	return c, ok
 }
 
-// decodeFloat decodes Python float number object.
-func (gate pyGate) decodeFloat(pyobj pyObject) (float64, bool) {
-	var val C.double
-
-	ok := bool(C.py_float_get(pyobj, &val))
-
-	return float64(val), ok
-}
-
-// decodeByteArray decodes Python byte array object as []byte slice.
-//
-// Python byte array is mutable object, so we return a slice,
-// backed by the Python memory.
-func (gate pyGate) decodeByteArray(pyobj pyObject) ([]byte, bool) {
-	var data unsafe.Pointer
-	var size C.size_t
-
-	ok := bool(C.py_bytearray_get(pyobj, &data, &size))
-	var bytes []byte
-	if ok {
-		bytes = unsafe.Slice((*byte)(data), size)
+// decodeBigint decodes PyLong_Type object as *big.Int
+func (gate pyGate) decodeBigint(pyobj pyObject) (*big.Int, error) {
+	if !bool(C.py_obj_is_long(pyobj)) {
+		return nil, gate.decodeError(pyobj, "*big.Int,")
 	}
 
-	return bytes, ok
-}
-
-// decodeBytes decodes Python bytes object as []byte slice.
-//
-// Python bytes are immutable, so we return a copy.
-func (gate pyGate) decodeBytes(pyobj pyObject) ([]byte, bool) {
-	var data unsafe.Pointer
-	var size C.size_t
-
-	ok := bool(C.py_bytes_get(pyobj, &data, &size))
-	var bytes []byte
-	if ok {
-		src := unsafe.Slice((*byte)(data), size)
-		bytes = make([]byte, size, size)
-		copy(bytes, src)
-	}
-
-	return bytes, ok
-}
-
-// decodeInteger decodes Python integer object as int or big.Int
-func (gate pyGate) decodeInteger(pyobj pyObject) (any, bool) {
-	var overflow C.bool
-	var val C.int64_t
-
-	ok := bool(C.py_long_get_int64(pyobj, &val, &overflow))
-	if !ok {
-		return nil, true
-	}
-
-	if !bool(overflow) && C.long(int(val)) == val {
-		return int(val), true
-	}
-
-	s, ok := gate.repr(pyobj)
-	if !ok {
-		return nil, false
+	s, err := gate.repr(pyobj)
+	if err != nil {
+		return nil, err
 	}
 
 	v := big.NewInt(0)
-	_, ok = v.SetString(s, 10)
+	_, ok := v.SetString(s, 10)
 	assert.Must(ok) // FIXME
 
-	return v, true
+	return v, nil
 }
 
-// decodeString decodes Python Unicode object as a string.
-func (gate pyGate) decodeString(pyobj pyObject) (string, bool) {
+// decodeBool decodes PyObject into bool
+func (gate pyGate) decodeBool(pyobj pyObject) (bool, error) {
+	switch {
+	case bool(C.py_obj_is_true(pyobj)):
+		return true, nil
+	case bool(C.py_obj_is_false(pyobj)):
+		return false, nil
+	}
+
+	return false, gate.decodeError(pyobj, "bool")
+}
+
+// decodeBytes decodes PyBytes_Type or PyByteArray_Type object as []byte slice.
+func (gate pyGate) decodeBytes(pyobj pyObject) ([]byte, error) {
+	if bool(C.py_obj_is_bytes(pyobj)) {
+		// PyBytes_Type are immutable, so we return a copy.
+		var data unsafe.Pointer
+		var size C.size_t
+
+		ok := bool(C.py_bytes_get(pyobj, &data, &size))
+		if !ok {
+			return nil, gate.lastError()
+		}
+
+		bytes := make([]byte, size, size)
+		src := unsafe.Slice((*byte)(data), size)
+		copy(bytes, src)
+
+		return bytes, nil
+	}
+
+	if bool(C.py_obj_is_byte_array(pyobj)) {
+		// Python byte array is mutable object, so we return a slice,
+		// backed by the Python memory.
+		var data unsafe.Pointer
+		var size C.size_t
+
+		ok := bool(C.py_bytearray_get(pyobj, &data, &size))
+		if !ok {
+			return nil, gate.lastError()
+		}
+
+		bytes := unsafe.Slice((*byte)(data), size)
+		return bytes, nil
+	}
+
+	return nil, gate.decodeError(pyobj, "[]byte")
+}
+
+// decodeComplex decodes PyComplex_Type object as complex128.
+func (gate pyGate) decodeComplex(pyobj pyObject) (complex128, error) {
+	if !bool(C.py_obj_is_complex(pyobj)) {
+		return 0, gate.decodeError(pyobj, "complex128")
+	}
+
+	var real, imag C.double
+
+	ok := bool(C.py_complex_get(pyobj, &real, &imag))
+	if !ok {
+		return 0, gate.lastError()
+	}
+
+	return complex(float64(real), float64(imag)), nil
+}
+
+// decodeFloat decodes PyFloat_Type object as float64.
+func (gate pyGate) decodeFloat(pyobj pyObject) (float64, error) {
+	if !bool(C.py_obj_is_float(pyobj)) {
+		return 0, gate.decodeError(pyobj, "float64")
+	}
+
+	var val C.double
+
+	ok := bool(C.py_float_get(pyobj, &val))
+	if !ok {
+		return 0, gate.lastError()
+	}
+
+	return float64(val), nil
+}
+
+// decodeInt64 decodes PyLong_Type object as int64
+func (gate pyGate) decodeInt64(pyobj pyObject) (int64, error) {
+	if !bool(C.py_obj_is_long(pyobj)) {
+		return 0, gate.decodeError(pyobj, "int64")
+	}
+
+	var val C.int64_t
+	var ovf C.bool
+
+	ok := bool(C.py_long_get_int64(pyobj, &val, &ovf))
+	switch {
+	case !ok:
+		return 0, gate.lastError()
+	case bool(ovf):
+		s, _ := gate.repr(pyobj)
+		return 0, ErrOverflow{s}
+	}
+
+	return int64(val), nil
+}
+
+// decodeInt64 decodes PyLong_Type object as uint64
+func (gate pyGate) decodeUint64(pyobj pyObject) (uint64, error) {
+	if !bool(C.py_obj_is_long(pyobj)) {
+		return 0, gate.decodeError(pyobj, "uint64")
+	}
+
+	var val C.uint64_t
+	var ovf C.bool
+
+	ok := bool(C.py_long_get_uint64(pyobj, &val, &ovf))
+	switch {
+	case !ok:
+		return 0, gate.lastError()
+	case bool(ovf):
+		s, _ := gate.repr(pyobj)
+		return 0, ErrOverflow{s}
+	}
+
+	return uint64(val), nil
+}
+
+// decodeUnicode decodes PyUnicode_Type object as a string.
+func (gate pyGate) decodeUnicode(pyobj pyObject) (string, error) {
+	if !bool(C.py_obj_is_unicode(pyobj)) {
+		return "", gate.decodeError(pyobj, "string")
+	}
+
 	sz := C.py_str_len(pyobj)
 	assert.Must(sz >= 0) // It only happens if PyObject not Unicode
 
@@ -332,7 +386,7 @@ func (gate pyGate) decodeString(pyobj pyObject) (string, bool) {
 		s = string(buf)
 	}
 
-	return s, true
+	return s, nil
 }
 
 // makeBigint makes a new PyLong_type object from *big.Int.

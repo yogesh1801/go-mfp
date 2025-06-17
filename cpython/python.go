@@ -96,7 +96,7 @@ func (py *Python) NewObject(val any) (*Object, error) {
 		return nil, err
 	}
 
-	obj := newObjectFromPython(py, gate, pyobj, val)
+	obj := newObjectFromPython(py, gate, pyobj)
 
 	return obj, nil
 }
@@ -182,7 +182,11 @@ func (py *Python) newPyObjectImpl(gate pyGate, val any) (pyObject, error) {
 	case reflect.UnsafePointer:
 	}
 
-	err := ErrTypeConversion{from: rt}
+	err := ErrTypeConversion{
+		from: rt.String(),
+		to:   "Python object",
+	}
+
 	return nil, err
 }
 
@@ -236,7 +240,10 @@ func (py *Python) newPyDict(gate pyGate, val any) (pyObject, error) {
 	keys := rv.MapKeys()
 	ok := reflectSort(keys)
 	if !ok {
-		err := ErrTypeConversion{from: reflect.TypeOf(val)}
+		err := ErrTypeConversion{
+			from: reflect.TypeOf(val).String(),
+			to:   "Python dict",
+		}
 		return nil, err
 	}
 
@@ -313,14 +320,7 @@ func (py *Python) eval(s, filename string, expr bool) (*Object, error) {
 		return nil, err
 	}
 
-	// Decode the Object
-	native, ok := gate.decodeObject(pyobj)
-	if !ok {
-		gate.unref(pyobj)
-		return nil, gate.lastError()
-	}
-
-	obj := newObjectFromPython(py, gate, pyobj, native)
+	obj := newObjectFromPython(py, gate, pyobj)
 	return obj, err
 }
 

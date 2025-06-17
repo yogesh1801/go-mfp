@@ -56,22 +56,40 @@ bool py_interp_eval (const char *s, const char *file,
                      bool expr, PyObject **res);
 
 // py_obj_is_none reports if PyObject is None.
-static inline int py_obj_is_none (PyObject *x) {
+static inline bool py_obj_is_none (PyObject *x) {
     extern int (*Py_IsNone_p)(PyObject *);
-    return Py_IsNone_p(x);
+    return Py_IsNone_p(x) != 0;
 }
 
 // py_obj_is_true reports if PyObject is True.
-static inline int py_obj_is_true (PyObject *x) {
+static inline bool py_obj_is_true (PyObject *x) {
     extern int (*Py_IsTrue_p)(PyObject *);
-    return Py_IsTrue_p(x);
+    return Py_IsTrue_p(x) != 0;
 }
 
 // py_obj_is_true reports if PyObject is False.
-static inline int py_obj_is_false (PyObject *x) {
+static inline bool py_obj_is_false (PyObject *x) {
     extern int (*Py_IsFalse_p)(PyObject *);
-    return Py_IsFalse_p(x);
+    return Py_IsFalse_p(x) != 0;
 }
+
+// py_obj_is_byte_array reports if PyObject is PyByteArray_Type or its subclass.
+bool py_obj_is_byte_array (PyObject *x);
+
+// py_obj_is_bytes reports if PyObject is PyBytes_Type or its subclass.
+bool py_obj_is_bytes (PyObject *x);
+
+// py_obj_is_complex reports if PyObject is PyComplex_Type or its subclass.
+bool py_obj_is_complex (PyObject *x);
+
+// py_obj_is_float reports if PyObject is PyFloat_Type or its subclass.
+bool py_obj_is_float (PyObject *x);
+
+// py_obj_is_long reports if PyObject is PyLong_Type or its subclass.
+bool py_obj_is_long (PyObject *x);
+
+// py_obj_is_unicode reports if PyObject is PyUnicode_Type or its subclass.
+bool py_obj_is_unicode (PyObject *x);
 
 // py_obj_ref increments the PyObject's reference count.
 void py_obj_ref (PyObject *x);

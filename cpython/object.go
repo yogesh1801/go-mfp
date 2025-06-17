@@ -8,35 +8,27 @@
 
 package cpython
 
-// #include "cpython.h"
-import "C"
-import "runtime"
+import (
+	"math/big"
+	"runtime"
+)
 
 // Object represents a Python value.
 //
 // Objects lifetime is managed by the Go garbage collector.
 // There is no need to explicitly release the Objects.
 type Object struct {
-	py     *Python // Interpreter that owns the Object
-	oid    objid   // Object ID of the underlying *C.PyObject
-	native any     // Native Go value (may be *Object itself)
+	py  *Python // Interpreter that owns the Object
+	oid objid   // Object ID of the underlying *C.PyObject
 }
 
 // newObjectFromPython constructs new Object, decoded from PyObject.
 // If native is nil, it means, native Go value not available for
 // the object. Python None passed as pyNone.
-func newObjectFromPython(py *Python, gate pyGate,
-	pyobj pyObject, native any) *Object {
-
-	// Obtain Object ID
-	oid := py.newObjID(gate, pyobj)
-	obj := &Object{py: py, oid: oid, native: native}
-
-	switch native {
-	case nil:
-		obj.native = obj
-	case pyNone:
-		obj.native = nil
+func newObjectFromPython(py *Python, gate pyGate, pyobj pyObject) *Object {
+	obj := &Object{
+		py:  py,
+		oid: py.newObjID(gate, pyobj),
 	}
 
 	runtime.SetFinalizer(obj, func(obj *Object) {
@@ -133,19 +125,13 @@ func (obj *Object) Get(key any) (*Object, error) {
 		pyitem, ok = gate.getitem(pyobj, pykey)
 	}
 
-	// Try to decode
-	var native any
-	if ok {
-		native, ok = gate.decodeObject(pyitem)
-	}
-
 	// Handle possible error
 	if !ok {
 		return nil, gate.lastError()
 	}
 
 	// Create the item object
-	item := newObjectFromPython(obj.py, gate, pyitem, native)
+	item := newObjectFromPython(obj.py, gate, pyitem)
 
 	return item, nil
 }
@@ -271,19 +257,13 @@ func (obj *Object) GetAttr(name string) (*Object, error) {
 		pyattr, ok = gate.getattr(pyobj, name)
 	}
 
-	// Try to decode
-	var native any
-	if ok {
-		native, ok = gate.decodeObject(pyattr)
-	}
-
 	// Handle possible error
 	if !ok {
 		return nil, gate.lastError()
 	}
 
 	// Create the attribute object
-	attr := newObjectFromPython(obj.py, gate, pyattr, native)
+	attr := newObjectFromPython(obj.py, gate, pyattr)
 
 	return attr, nil
 }
@@ -399,13 +379,7 @@ func (obj *Object) CallKW(kw map[string]any, args ...any) (*Object, error) {
 		return nil, gate.lastError()
 	}
 
-	// Decode response
-	native, ok := gate.decodeObject(pyret)
-	if !ok {
-		return nil, gate.lastError()
-	}
-
-	ret := newObjectFromPython(obj.py, gate, pyret, native)
+	ret := newObjectFromPython(obj.py, gate, pyret)
 
 	return ret, nil
 }
@@ -426,13 +400,7 @@ func (obj *Object) Str() (string, error) {
 	defer gate.release()
 
 	pyobj := obj.py.lookupObjID(gate, obj.oid)
-	s, ok := gate.str(pyobj)
-	var err error
-	if !ok {
-		err = gate.lastError()
-	}
-
-	return s, err
+	return gate.str(pyobj)
 }
 
 // Repr returns string representation of the Object.
@@ -442,24 +410,65 @@ func (obj *Object) Repr() (string, error) {
 	defer gate.release()
 
 	pyobj := obj.py.lookupObjID(gate, obj.oid)
-	s, ok := gate.repr(pyobj)
-	var err error
-	if !ok {
-		err = gate.lastError()
-	}
-
-	return s, err
+	return gate.repr(pyobj)
 }
 
-// Unbox returns Object's value as Go value.
-//
-// If Object cannot be represented as a native Go value,
-// the Object itself is returned.
-func (obj *Object) Unbox() any {
-	return obj.native
+// objDecode is the common adapter for pyGate.decodeXXX functions.
+func objDecode[T any](obj *Object,
+	f func(pyGate, pyObject) (T, error)) (T, error) {
+
+	gate := obj.py.gate()
+	defer gate.release()
+
+	pyobj := obj.py.lookupObjID(gate, obj.oid)
+	return f(gate, pyobj)
 }
 
-// pyObjectType returns pyTypeObject for the value object
-func pyObjectType(ob pyObject) pyTypeObject {
-	return C.Py_TYPE(ob)
+// Bigint returns Object value as *[big.Int] or an error.
+func (obj *Object) Bigint() (*big.Int, error) {
+	return objDecode(obj, pyGate.decodeBigint)
+}
+
+// Bool returns Object value as bool or an error.
+func (obj *Object) Bool() (bool, error) {
+	return objDecode(obj, pyGate.decodeBool)
+}
+
+// Bytes returns Object value as []byte slice or an error.
+func (obj *Object) Bytes() ([]byte, error) {
+	return objDecode(obj, pyGate.decodeBytes)
+}
+
+// Complex returns Object value as complex128 number or an error.
+func (obj *Object) Complex() (complex128, error) {
+	return objDecode(obj, pyGate.decodeComplex)
+}
+
+// Float returns Object value as float64 number or an error.
+func (obj *Object) Float() (float64, error) {
+	return objDecode(obj, pyGate.decodeFloat)
+}
+
+// Int returns Object value as int64 number or an error.
+func (obj *Object) Int() (int64, error) {
+	return objDecode(obj, pyGate.decodeInt64)
+}
+
+// Uint returns Object value as uint64 number or an error.
+func (obj *Object) Uint() (uint64, error) {
+	return objDecode(obj, pyGate.decodeUint64)
+}
+
+// Unicode returns Object value as UNICODE string or an error.
+func (obj *Object) Unicode() (string, error) {
+	return objDecode(obj, pyGate.decodeUnicode)
+}
+
+// IsNone reports if Object is Python None.
+func (obj *Object) IsNone() bool {
+	gate := obj.py.gate()
+	defer gate.release()
+
+	pyobj := obj.py.lookupObjID(gate, obj.oid)
+	return gate.isNone(pyobj)
 }

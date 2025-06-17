@@ -28,17 +28,13 @@ type (
 	// pyObject is the Go name for the *C.PyObject
 	pyObject = *C.PyObject
 
-	// pyObject is the Go name for the *C.PyObject
+	// pyObject is the Go name for the *C.PyTypeObject
 	pyTypeObject = *C.PyTypeObject
 )
 
 var (
 	// pyInitError holds Python initialization error, if any.
 	pyInitError error
-
-	// pyNoNativeValue is returned by gate.decodeObject
-	// when Python object is None
-	pyNone = struct{}{}
 )
 
 // pyInterpNewRequestChan is the channel where requests to create
