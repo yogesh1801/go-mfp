@@ -357,15 +357,6 @@ func (obj *Object) CallKW(kw map[string]any, args ...any) (*Object, error) {
 	return newObjectFromPython(obj.py, gate, pyret), nil
 }
 
-// Callable reports if Object is callable.
-func (obj *Object) Callable() (bool, error) {
-	gate := obj.py.gate()
-	defer gate.release()
-
-	pyobj := obj.py.lookupObjID(gate, obj.oid)
-	return gate.callable(pyobj), nil
-}
-
 // Str returns string representation of the Object.
 // This is the equivalent of the Python expression str(x).
 func (obj *Object) Str() (string, error) {
@@ -445,6 +436,15 @@ func (obj *Object) Uint() (uint64, error) {
 // Unicode returns Object value as UNICODE string or an error.
 func (obj *Object) Unicode() (string, error) {
 	return objDo(obj, pyGate.decodeUnicode)
+}
+
+// IsCallable reports if Object is callable.
+func (obj *Object) IsCallable() bool {
+	gate := obj.py.gate()
+	defer gate.release()
+
+	pyobj := obj.py.lookupObjID(gate, obj.oid)
+	return gate.callable(pyobj)
 }
 
 // IsMap reports if Object is map (i.e., dict, ...),

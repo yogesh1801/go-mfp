@@ -677,9 +677,7 @@ func TestObjectCallable(t *testing.T) {
 	obj, err := py.Eval("5")
 	assert.NoError(err)
 
-	callable, err := obj.Callable()
-	assert.NoError(err)
-
+	callable := obj.IsCallable()
 	if callable {
 		t.Errorf("Object.Callable: false positive response")
 	}
@@ -687,9 +685,7 @@ func TestObjectCallable(t *testing.T) {
 	// Obtain callable object
 	obj, err = py.Eval("min")
 
-	callable, err = obj.Callable()
-	assert.NoError(err)
-
+	callable = obj.IsCallable()
 	if !callable {
 		t.Errorf("Object.Callable: false negative response")
 	}
