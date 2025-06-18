@@ -295,16 +295,16 @@ PyInterpreterState *py_new_interp (void) {
 
     // This stuff is very tricky.
     //
-    // We first PyEval_RestoreThread(py_main_thread), to obtain
+    // We first use PyEval_RestoreThread(py_main_thread), to obtain
     // the global interpreter lock.
     //
     // Then Py_NewInterpreter() creates a new PyThreadState for
-    // us and attaching it to the newly created sub-interpreter.
+    // us and attaches it to the newly created sub-interpreter.
     //
     // We don't need this thread state and don't want to leak
     // its memory.
     //
-    // So we PyThreadState_Swap back to the py_main_thread,
+    // So we use PyThreadState_Swap back to the py_main_thread,
     // destroy the newly created PyThreadState.
     //
     // Finally we need to PyEval_SaveThread() to release the
