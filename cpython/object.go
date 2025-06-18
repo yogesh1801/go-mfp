@@ -408,43 +408,33 @@ func (obj *Object) Int() (int64, error) {
 	return objDo(obj, pyGate.decodeInt64)
 }
 
+// Keys returns Object mapping keys as the []*Object slice.
+// The Object must support mapping.
+func (obj *Object) Keys() ([]*Object, error) {
+	gate := obj.py.gate()
+	defer gate.release()
+
+	// Obtain keys as a list (or tuple)
+	pyobj := obj.py.lookupObjID(gate, obj.oid)
+	pykeys, err := gate.keys(pyobj)
+	if err != nil {
+		return nil, err
+	}
+
+	defer gate.unref(pykeys)
+
+	// Convert into []*Object slice
+	return objSlice(obj.py, gate, pykeys)
+}
+
 // Slice returns Object value as []*Object slice or an error.
 // It works with sequence objects (lists, tuples, ...).
 func (obj *Object) Slice() ([]*Object, error) {
 	gate := obj.py.gate()
 	defer gate.release()
 
-	// Check that object is sequence
 	pyobj := obj.py.lookupObjID(gate, obj.oid)
-	if !gate.isSeq(pyobj) {
-		return nil, gate.decodeError(pyobj, "[]*Object")
-	}
-
-	// Obtain length
-	length, err := gate.length(pyobj)
-	if err != nil {
-		return nil, err
-	}
-
-	// Obtain items
-	pyobjects := make([]pyObject, length)
-	for i := range pyobjects {
-		pyobjects[i], err = gate.getSeqItem(pyobj, i)
-		if err != nil {
-			for j := 0; j < i; j++ {
-				gate.unref(pyobjects[j])
-			}
-			return nil, err
-		}
-	}
-
-	// Convert into []*Object
-	objects := make([]*Object, length)
-	for i := range pyobjects {
-		objects[i] = newObjectFromPython(obj.py, gate, pyobjects[i])
-	}
-
-	return objects, nil
+	return objSlice(obj.py, gate, pyobj)
 }
 
 // Uint returns Object value as uint64 number or an error.
@@ -457,7 +447,7 @@ func (obj *Object) Unicode() (string, error) {
 	return objDo(obj, pyGate.decodeUnicode)
 }
 
-// IsMap reports if Object is map (i.e., dict, namedtuple, ...),
+// IsMap reports if Object is map (i.e., dict, ...),
 func (obj *Object) IsMap() bool {
 	return objDoNoError(obj, pyGate.isMap)
 }
@@ -502,4 +492,39 @@ func objDoNoError[T any](obj *Object, f func(pyGate, pyObject) T) T {
 
 	pyobj := obj.py.lookupObjID(gate, obj.oid)
 	return f(gate, pyobj)
+}
+
+// objSlice is the helper function that extracts contained objects from the
+// sequence object and converts extracted objects into the []*Object slice.
+func objSlice(py *Python, gate pyGate, pyobj pyObject) ([]*Object, error) {
+	// Check that object is sequence
+	if !gate.isSeq(pyobj) {
+		return nil, gate.decodeError(pyobj, "[]*Object")
+	}
+
+	// Obtain length
+	length, err := gate.length(pyobj)
+	if err != nil {
+		return nil, err
+	}
+
+	// Obtain items
+	pyobjects := make([]pyObject, length)
+	for i := range pyobjects {
+		pyobjects[i], err = gate.getSeqItem(pyobj, i)
+		if err != nil {
+			for j := 0; j < i; j++ {
+				gate.unref(pyobjects[j])
+			}
+			return nil, err
+		}
+	}
+
+	// Convert into []*Object
+	objects := make([]*Object, length)
+	for i := range pyobjects {
+		objects[i] = newObjectFromPython(py, gate, pyobjects[i])
+	}
+
+	return objects, nil
 }

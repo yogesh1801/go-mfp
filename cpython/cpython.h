@@ -126,6 +126,13 @@ PyObject *py_obj_repr (PyObject *x);
 // Returns -1 on a error.
 ssize_t py_obj_length (PyObject *x);
 
+// py_obj_keys returns PyObject mapping keys. It works for objects
+// that supports mapping (see py_obj_is_map), i.e., dict etc.
+//
+// On success it returns PyList_Type or PyTuple_Type object that
+// contains the keys. On error it returns NULL.
+PyObject *py_obj_keys (PyObject *x);
+
 // py_obj_hasattr reports if PyObject has the attribute with the
 // specified name.
 //

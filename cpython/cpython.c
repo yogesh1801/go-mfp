@@ -77,6 +77,7 @@ static __typeof__(PyLong_FromLongLong)          *PyLong_FromLongLong_p;
 static __typeof__(PyLong_FromString)            *PyLong_FromString_p;
 static __typeof__(PyLong_FromUnsignedLongLong)  *PyLong_FromUnsignedLongLong_p;
 static __typeof__(PyMapping_Check)              *PyMapping_Check_p;
+static __typeof__(PyMapping_Keys)               *PyMapping_Keys_p;
 static __typeof__(PyModule_GetDict)             *PyModule_GetDict_p;
 static __typeof__(Py_NewInterpreter)            *Py_NewInterpreter_p;
 static __typeof__(Py_NewRef)                    *Py_NewRef_p;
@@ -209,6 +210,7 @@ static void py_load_all (void) {
     PyLong_FromString_p = py_load("PyLong_FromString");
     PyLong_FromUnsignedLongLong_p = py_load("PyLong_FromUnsignedLongLong");
     PyMapping_Check_p = py_load("PyMapping_Check");
+    PyMapping_Keys_p = py_load("PyMapping_Keys");
     PyModule_GetDict_p = py_load("PyModule_GetDict");
     Py_NewInterpreter_p = py_load("Py_NewInterpreter");
     Py_NewRef_p = py_load("Py_NewRef");
@@ -479,6 +481,15 @@ PyObject *py_obj_repr (PyObject *x) {
 // Returns -1 on a error.
 ssize_t py_obj_length (PyObject *x) {
     return PyObject_Length_p(x);
+}
+
+// py_obj_keys returns PyObject mapping keys. It works for objects
+// that supports mapping (see py_obj_is_map), i.e., dict etc.
+//
+// On success it returns PyList_Type or PyTuple_Type object that
+// contains the keys. On error it returns NULL.
+PyObject *py_obj_keys (PyObject *x) {
+    return PyMapping_Keys_p(x);
 }
 
 // py_obj_hasattr reports if PyObject has the attribute with the

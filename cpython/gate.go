@@ -145,6 +145,12 @@ func (gate pyGate) length(pyobj pyObject) (int, error) {
 	return l, nil
 }
 
+// keys returns keys of the object that support mapping (dict, ...)
+// as a sequence object.
+func (gate pyGate) keys(pyobj pyObject) (pyObject, error) {
+	return gate.objOrLastError(C.py_obj_keys(pyobj))
+}
+
 // delattr deletes Object attribute with the specified name.
 func (gate pyGate) delattr(pyobj pyObject, name string) error {
 	cname := C.CString(name)
