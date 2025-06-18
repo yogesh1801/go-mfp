@@ -408,6 +408,45 @@ func (obj *Object) Int() (int64, error) {
 	return objDo(obj, pyGate.decodeInt64)
 }
 
+// Slice returns Object value as []*Object slice or an error.
+// It works with sequence objects (lists, tuples, ...).
+func (obj *Object) Slice() ([]*Object, error) {
+	gate := obj.py.gate()
+	defer gate.release()
+
+	// Check that object is sequence
+	pyobj := obj.py.lookupObjID(gate, obj.oid)
+	if !gate.isSeq(pyobj) {
+		return nil, gate.decodeError(pyobj, "[]*Object")
+	}
+
+	// Obtain length
+	length, err := gate.length(pyobj)
+	if err != nil {
+		return nil, err
+	}
+
+	// Obtain items
+	pyobjects := make([]pyObject, length)
+	for i := range pyobjects {
+		pyobjects[i], err = gate.getSeqItem(pyobj, i)
+		if err != nil {
+			for j := 0; j < i; j++ {
+				gate.unref(pyobjects[j])
+			}
+			return nil, err
+		}
+	}
+
+	// Convert into []*Object
+	objects := make([]*Object, length)
+	for i := range pyobjects {
+		objects[i] = newObjectFromPython(obj.py, gate, pyobjects[i])
+	}
+
+	return objects, nil
+}
+
 // Uint returns Object value as uint64 number or an error.
 func (obj *Object) Uint() (uint64, error) {
 	return objDo(obj, pyGate.decodeUint64)
@@ -418,13 +457,19 @@ func (obj *Object) Unicode() (string, error) {
 	return objDo(obj, pyGate.decodeUnicode)
 }
 
+// IsMap reports if Object is map (i.e., dict, namedtuple, ...),
+func (obj *Object) IsMap() bool {
+	return objDoNoError(obj, pyGate.isMap)
+}
+
 // IsNone reports if Object is Python None.
 func (obj *Object) IsNone() bool {
-	gate := obj.py.gate()
-	defer gate.release()
+	return objDoNoError(obj, pyGate.isNone)
+}
 
-	pyobj := obj.py.lookupObjID(gate, obj.oid)
-	return gate.isNone(pyobj)
+// IsSeq reports if Object is sequnce (i.e., list, tuple, ...).
+func (obj *Object) IsSeq() bool {
+	return objDoNoError(obj, pyGate.isSeq)
 }
 
 // objDo is the convenience wrapper for the pyGate methods
@@ -436,6 +481,22 @@ func (obj *Object) IsNone() bool {
 // the Object, calls the method, releases the gate and return
 // result.
 func objDo[T any](obj *Object, f func(pyGate, pyObject) (T, error)) (T, error) {
+	gate := obj.py.gate()
+	defer gate.release()
+
+	pyobj := obj.py.lookupObjID(gate, obj.oid)
+	return f(gate, pyobj)
+}
+
+// objDo is the convenience wrapper for the pyGate methods
+// with the following signature:
+//
+//	pyGate.method(pyObject) T
+//
+// It acquires the pyGate for the Python interpreter that owns
+// the Object, calls the method, releases the gate and return
+// result.
+func objDoNoError[T any](obj *Object, f func(pyGate, pyObject) T) T {
 	gate := obj.py.gate()
 	defer gate.release()
 

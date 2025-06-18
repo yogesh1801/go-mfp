@@ -76,6 +76,7 @@ static __typeof__(PyLong_AsUnsignedLongLong)    *PyLong_AsUnsignedLongLong_p;
 static __typeof__(PyLong_FromLongLong)          *PyLong_FromLongLong_p;
 static __typeof__(PyLong_FromString)            *PyLong_FromString_p;
 static __typeof__(PyLong_FromUnsignedLongLong)  *PyLong_FromUnsignedLongLong_p;
+static __typeof__(PyMapping_Check)              *PyMapping_Check_p;
 static __typeof__(PyModule_GetDict)             *PyModule_GetDict_p;
 static __typeof__(Py_NewInterpreter)            *Py_NewInterpreter_p;
 static __typeof__(Py_NewRef)                    *Py_NewRef_p;
@@ -89,6 +90,8 @@ static __typeof__(PyObject_Repr)                *PyObject_Repr_p;
 static __typeof__(PyObject_SetAttrString)       *PyObject_SetAttrString_p;
 static __typeof__(PyObject_SetItem)             *PyObject_SetItem_p;
 static __typeof__(PyObject_Str)                 *PyObject_Str_p;
+static __typeof__(PySequence_Check)             *PySequence_Check_p;
+static __typeof__(PySequence_GetItem)           *PySequence_GetItem_p;
 static __typeof__(PyThreadState_Clear)          *PyThreadState_Clear_p;
 static __typeof__(PyThreadState_Delete)         *PyThreadState_Delete_p;
 static __typeof__(PyThreadState_GetInterpreter) *PyThreadState_GetInterpreter_p;
@@ -205,6 +208,7 @@ static void py_load_all (void) {
     PyLong_FromLongLong_p = py_load("PyLong_FromLongLong");
     PyLong_FromString_p = py_load("PyLong_FromString");
     PyLong_FromUnsignedLongLong_p = py_load("PyLong_FromUnsignedLongLong");
+    PyMapping_Check_p = py_load("PyMapping_Check");
     PyModule_GetDict_p = py_load("PyModule_GetDict");
     Py_NewInterpreter_p = py_load("Py_NewInterpreter");
     Py_NewRef_p = py_load("Py_NewRef");
@@ -218,6 +222,8 @@ static void py_load_all (void) {
     PyObject_SetAttrString_p = py_load("PyObject_SetAttrString");
     PyObject_SetItem_p = py_load("PyObject_SetItem");
     PyObject_Str_p = py_load("PyObject_Str");
+    PySequence_Check_p = py_load("PySequence_Check");
+    PySequence_GetItem_p = py_load("PySequence_GetItem");
     PyThreadState_Clear_p = py_load("PyThreadState_Clear");
     PyThreadState_Delete_p = py_load("PyThreadState_Delete");
     PyThreadState_GetInterpreter_p = py_load("PyThreadState_GetInterpreter");
@@ -418,6 +424,16 @@ bool py_obj_is_float (PyObject *x) {
 bool py_obj_is_long (PyObject *x) {
     unsigned long flags = PyType_GetFlags_p(Py_TYPE(x));
     return (flags & Py_TPFLAGS_LONG_SUBCLASS) != 0;
+}
+
+// py_obj_is_map reports if PyObject is a map (dict, namedtyple, ...).
+bool py_obj_is_map (PyObject *x) {
+    return PyMapping_Check_p(x)  > 0;
+}
+
+// py_obj_is_seq reports if PyObject is a sequence (list, tuple, ...).
+bool py_obj_is_seq (PyObject *x) {
+    return PySequence_Check_p(x)  > 0;
 }
 
 // py_obj_is_unicode reports if PyObject is PyUnicode_Type or its subclass.
@@ -764,6 +780,16 @@ PyObject *py_long_from_uint64(uint64_t val) {
 // It returns strong object reference on success, NULL on an error.
 PyObject *py_long_from_string(const char *val) {
     return PyLong_FromString_p(val, NULL, 0);
+}
+
+// py_seq_set retrieves value of the sequence item at the given position.
+// It returns strong object reference on success, NULL on an error.
+PyObject *py_seq_get(PyObject *tuple, int index) {
+    PyObject *item = PySequence_GetItem_p(tuple, index);
+    if (item != NULL) {
+        Py_NewRef_p(item);
+    }
+    return item;
 }
 
 // py_str_get copies Unicode string data as a sequence of the Py_UCS4

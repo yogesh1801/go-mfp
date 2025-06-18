@@ -257,9 +257,19 @@ func (gate pyGate) callable(pyobj pyObject) bool {
 	return bool(C.py_obj_callable(pyobj))
 }
 
+// isMap reports if PyObject is map.
+func (gate pyGate) isMap(pyobj pyObject) bool {
+	return bool(C.py_obj_is_map(pyobj))
+}
+
 // isNone reports if PyObject is None
 func (gate pyGate) isNone(pyobj pyObject) bool {
 	return bool(C.py_obj_is_none(pyobj))
+}
+
+// isSeq reports if PyObject is sequence.
+func (gate pyGate) isSeq(pyobj pyObject) bool {
+	return bool(C.py_obj_is_seq(pyobj))
 }
 
 // decodeError returns [ErrTypeConversion] for Python->Go conversion.
@@ -523,6 +533,18 @@ func (gate pyGate) setListItem(list, item pyObject, idx int) error {
 	return nil
 }
 
+// getSeqItem retrieves the item of the sequence the specified position.
+func (gate pyGate) getSeqItem(tuple pyObject, idx int) (pyObject, error) {
+	item := C.py_seq_get(tuple, C.int(idx))
+	return gate.objOrLastError(item)
+}
+
+// getTupleItem retrieves the item of the PyTuple_Type the specified position.
+func (gate pyGate) getTupleItem(tuple pyObject, idx int) (pyObject, error) {
+	item := C.py_tuple_get(tuple, C.int(idx))
+	return gate.objOrLastError(item)
+}
+
 // setTupleItem sets the item of the PyTuple_Type the specified position.
 // Internally, it creates a new strong reference to the item object.
 func (gate pyGate) setTupleItem(tuple, item pyObject, idx int) error {
@@ -530,12 +552,6 @@ func (gate pyGate) setTupleItem(tuple, item pyObject, idx int) error {
 		return gate.lastError()
 	}
 	return nil
-}
-
-// getTupleItem retrieves the item of the PyTuple_Type the specified position.
-func (gate pyGate) getTupleItem(tuple pyObject, idx int) (pyObject, error) {
-	item := C.py_tuple_get(tuple, C.int(idx))
-	return gate.objOrLastError(item)
 }
 
 // pyInterpEval evaluates string as a Python statement.

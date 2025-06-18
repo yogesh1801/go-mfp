@@ -88,6 +88,12 @@ bool py_obj_is_float (PyObject *x);
 // py_obj_is_long reports if PyObject is PyLong_Type or its subclass.
 bool py_obj_is_long (PyObject *x);
 
+// py_obj_is_map reports if PyObject is a map (dict, namedtyple, ...).
+bool py_obj_is_map (PyObject *x);
+
+// py_obj_is_seq reports if PyObject is a sequence (list, tuple, ...).
+bool py_obj_is_seq (PyObject *x);
+
 // py_obj_is_unicode reports if PyObject is PyUnicode_Type or its subclass.
 bool py_obj_is_unicode (PyObject *x);
 
@@ -256,6 +262,10 @@ PyObject *py_long_from_uint64(uint64_t val);
 // py_long_from_string makes a new PyLong_Type object from string value.
 // It returns strong object reference on success, NULL on an error.
 PyObject *py_long_from_string(const char *val);
+
+// py_seq_set retrieves value of the sequence item at the given position.
+// It returns strong object reference on success, NULL on an error.
+PyObject *py_seq_get(PyObject *tuple, int index);
 
 // py_str_len returns length of Unicode string, in code points.
 // If PyObject is not Unicode, it returns -1.

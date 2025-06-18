@@ -17,6 +17,7 @@ import (
 	"testing"
 
 	"github.com/OpenPrinting/go-mfp/internal/assert"
+	"github.com/OpenPrinting/go-mfp/internal/testutils"
 )
 
 // TestObjectFromPython tests objectFromPython
@@ -499,6 +500,7 @@ func TestObjectLen(t *testing.T) {
 	assert.NoError(err)
 	defer py.Close()
 
+	// Run tests
 	for _, test := range tests {
 		obj, err := py.Eval(test.expr)
 		assert.NoError(err)
@@ -516,6 +518,78 @@ func TestObjectLen(t *testing.T) {
 				"expected: %d\n"+
 				"present:  %d\n",
 				test.expr, test.l, l)
+		}
+	}
+}
+
+// TestObjectSlice tests Object.Slice operation
+func TestObjectSlice(t *testing.T) {
+	type testData struct {
+		expr     string   // Python expression
+		expected []string // Expected output
+		mustfail bool     // Must not succeed
+	}
+
+	tests := []testData{
+		{
+			expr:     "()",
+			expected: []string{},
+		},
+
+		{
+			expr:     "(1,2,3)",
+			expected: []string{"1", "2", "3"},
+		},
+
+		{
+			expr:     "[]",
+			expected: []string{},
+		},
+
+		{
+			expr:     "[1,2,3]",
+			expected: []string{"1", "2", "3"},
+		},
+
+		{
+			expr:     "5",
+			mustfail: true,
+		},
+	}
+
+	// Create an interpreter
+	py, err := NewPython()
+	assert.NoError(err)
+	defer py.Close()
+
+	// Run tests
+	for _, test := range tests {
+		obj, err := py.Eval(test.expr)
+		assert.NoError(err)
+
+		slice, err := obj.Slice()
+		if err != nil {
+			if !test.mustfail {
+				t.Errorf("%s: Object.Slice: %s",
+					test.expr, err)
+			}
+			continue
+		}
+
+		if test.mustfail {
+			t.Errorf("%s: Object.Slice: expected error didn't occur",
+				test.expr)
+		}
+
+		result := make([]string, len(slice))
+		for i := range slice {
+			result[i], err = slice[i].Str()
+			assert.NoError(err)
+		}
+
+		diff := testutils.Diff(test.expected, result)
+		if diff != "" {
+			t.Errorf("%s: Object.Slice:\n%s", test.expr, diff)
 		}
 	}
 }
