@@ -225,9 +225,8 @@ PyObject *py_float_make(double val);
 PyObject *py_list_make(size_t len);
 
 // py_list_set retrieves value of the list item at the given position.
-// The returned answer, on success, contains a string reference to PyObject.
-// It returns true on success, false on error.
-bool py_list_get(PyObject *list, int index, PyObject **answer);
+// It returns strong object reference on success, NULL on an error.
+PyObject *py_list_get(PyObject *list, int index);
 
 // py_list_set sets value of the list item at the given position.
 // Internally, it creates a new strong reference to the object.
@@ -288,9 +287,8 @@ PyObject *py_str_make(const char *val, size_t len);
 PyObject *py_tuple_make(size_t len);
 
 // py_tuple_set retrieves value of the tuple item at the given position.
-// The returned answer, on success, contains a string reference to PyObject.
-// It returns true on success, false on error.
-bool py_tuple_get(PyObject *tuple, int index, PyObject **answer);
+// It returns strong object reference on success, NULL on an error.
+PyObject *py_tuple_get(PyObject *tuple, int index);
 
 // py_tuple_set sets value of the tuple item at the given position.
 // Internally, it creates a new strong reference to the object.

@@ -510,11 +510,8 @@ func (gate pyGate) makeUint(v uint64) (pyObject, error) {
 
 // getListItem retrieves the item of the PyList_Type the specified position.
 func (gate pyGate) getListItem(list pyObject, idx int) (pyObject, error) {
-	var answer pyObject
-	if !bool(C.py_list_get(list, C.int(idx), &answer)) {
-		return nil, gate.lastError()
-	}
-	return answer, nil
+	item := C.py_list_get(list, C.int(idx))
+	return gate.objOrLastError(item)
 }
 
 // setListItem sets the item of the PyList_Type the specified position.
@@ -537,11 +534,8 @@ func (gate pyGate) setTupleItem(tuple, item pyObject, idx int) error {
 
 // getTupleItem retrieves the item of the PyTuple_Type the specified position.
 func (gate pyGate) getTupleItem(tuple pyObject, idx int) (pyObject, error) {
-	var answer pyObject
-	if !bool(C.py_tuple_get(tuple, C.int(idx), &answer)) {
-		return nil, gate.lastError()
-	}
-	return answer, nil
+	item := C.py_tuple_get(tuple, C.int(idx))
+	return gate.objOrLastError(item)
 }
 
 // pyInterpEval evaluates string as a Python statement.
