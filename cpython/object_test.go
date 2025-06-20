@@ -242,6 +242,8 @@ func TestNewObject(t *testing.T) {
 			out: `{'one': 1, 'three': 3, 'two': 2}`},
 		{in: map[string]int{"раз": 1, "два": 2, "три": 3},
 			out: `{'два': 2, 'раз': 1, 'три': 3}`},
+		{in: map[int]int(nil), out: `{}`},
+		{in: map[any]any(nil), out: `{}`},
 	}
 
 	for _, test := range tests {
