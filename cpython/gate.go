@@ -11,6 +11,7 @@ package cpython
 import (
 	"math/big"
 	"runtime"
+	"strings"
 	"unsafe"
 
 	"github.com/OpenPrinting/go-mfp/internal/assert"
@@ -61,21 +62,30 @@ func (gate pyGate) lastError() error {
 	defer C.py_obj_unref(trace)
 
 	// Decode the error
-	if evalue != nil {
-		msg, err := gate.str(evalue)
-		if err == nil {
-			return ErrPython{msg}
-		}
-	}
+	var msg string
 
 	if etype != nil {
-		msg, err := gate.str(etype)
-		if err == nil {
-			return ErrPython{msg}
+		nm, _ := gate.getattr(etype, "__name__")
+		if nm != nil {
+			s, _ := gate.str(nm)
+			if s != "" {
+				msg = s + ":"
+			}
 		}
 	}
 
-	return ErrPython{"Unknown Python exception"}
+	if evalue != nil {
+		s, _ := gate.str(evalue)
+		if s != "" {
+			msg = strings.Join([]string{msg, s}, " ")
+		}
+	}
+
+	if msg == "" {
+		msg = "Unknown Python exception"
+	}
+
+	return ErrPython{msg}
 }
 
 // objOrLastError returns pyobj, if it is not nil, or gate.lastError()
