@@ -402,6 +402,11 @@ bool py_interp_eval (const char *s, const char *file,
     return true;
 }
 
+// py_obj_is_bool reports if PyObject is PyBool_Type
+bool py_obj_is_bool (PyObject *x) {
+    return Py_TYPE(x) == PyBool_Type_p;
+}
+
 // py_obj_is_byte_array reports if PyObject is PyByteArray_Type or its subclass.
 bool py_obj_is_byte_array (PyObject *x) {
     return PyType_IsSubtype_p(Py_TYPE(x), PyByteArray_Type_p) != 0;
@@ -424,6 +429,12 @@ bool py_obj_is_float (PyObject *x) {
 
 // py_obj_is_long reports if PyObject is PyLong_Type or its subclass.
 bool py_obj_is_long (PyObject *x) {
+    if (py_obj_is_bool(x)) {
+        // Python PyBool_Type is subclass of PyLong_Type which we
+        // want to hide here.
+        return false;
+    }
+
     unsigned long flags = PyType_GetFlags_p(Py_TYPE(x));
     return (flags & Py_TPFLAGS_LONG_SUBCLASS) != 0;
 }

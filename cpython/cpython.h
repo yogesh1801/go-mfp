@@ -73,6 +73,9 @@ static inline bool py_obj_is_false (PyObject *x) {
     return Py_IsFalse_p(x) != 0;
 }
 
+// py_obj_is_bool reports if PyObject is PyBool_Type
+bool py_obj_is_bool (PyObject *x);
+
 // py_obj_is_byte_array reports if PyObject is PyByteArray_Type or its subclass.
 bool py_obj_is_byte_array (PyObject *x);
 

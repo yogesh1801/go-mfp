@@ -273,9 +273,39 @@ func (gate pyGate) callable(pyobj pyObject) bool {
 	return bool(C.py_obj_callable(pyobj))
 }
 
+// isBool reports if PyObject is bool.
+func (gate pyGate) isBool(pyobj pyObject) bool {
+	return bool(C.py_obj_is_bool(pyobj))
+}
+
+// isByteArray reports if PyObject is bytearray.
+func (gate pyGate) isByteArray(pyobj pyObject) bool {
+	return bool(C.py_obj_is_byte_array(pyobj))
+}
+
+// isBytes reports if PyObject is bytes.
+func (gate pyGate) isBytes(pyobj pyObject) bool {
+	return bool(C.py_obj_is_bytes(pyobj))
+}
+
+// isComplex reports if PyObject is complex number.
+func (gate pyGate) isComplex(pyobj pyObject) bool {
+	return bool(C.py_obj_is_complex(pyobj))
+}
+
 // isDict reports if PyObject is dict or similar.
 func (gate pyGate) isDict(pyobj pyObject) bool {
 	return bool(C.py_obj_is_map(pyobj))
+}
+
+// isFloat reports if PyObject is floating point number.
+func (gate pyGate) isFloat(pyobj pyObject) bool {
+	return bool(C.py_obj_is_float(pyobj))
+}
+
+// isLong reports if PyObject is long integer.
+func (gate pyGate) isLong(pyobj pyObject) bool {
+	return bool(C.py_obj_is_long(pyobj))
 }
 
 // isNone reports if PyObject is None
@@ -286,6 +316,11 @@ func (gate pyGate) isNone(pyobj pyObject) bool {
 // isSeq reports if PyObject is sequence.
 func (gate pyGate) isSeq(pyobj pyObject) bool {
 	return bool(C.py_obj_is_seq(pyobj))
+}
+
+// isUnicode reports if PyObject is unicode string.
+func (gate pyGate) isUnicode(pyobj pyObject) bool {
+	return bool(C.py_obj_is_unicode(pyobj))
 }
 
 // decodeError returns [ErrTypeConversion] for Python->Go conversion.

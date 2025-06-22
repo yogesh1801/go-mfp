@@ -445,11 +445,36 @@ func (obj *Object) Unicode() (string, error) {
 
 // IsCallable reports if Object is callable.
 func (obj *Object) IsCallable() bool {
-	gate := obj.py.gate()
-	defer gate.release()
+	return objDoNoError(obj, pyGate.callable)
+}
 
-	pyobj := obj.py.lookupObjID(gate, obj.oid)
-	return gate.callable(pyobj)
+// IsBool reports if Object is boolean.
+func (obj *Object) IsBool() bool {
+	return objDoNoError(obj, pyGate.isBool)
+}
+
+// IsByteArray reports if Object is bytearray.
+// Python bytearray objects are writable sequences of bytes.
+// See also [Object.IsBytes].
+func (obj *Object) IsByteArray() bool {
+	return objDoNoError(obj, pyGate.isByteArray)
+}
+
+// IsBytes reports if Object is bytearray.
+// Python bytearray objects are immutable sequences of bytes.
+// See also [Object.IsByteArray].
+func (obj *Object) IsBytes() bool {
+	return objDoNoError(obj, pyGate.isBytes)
+}
+
+// IsComplex reports if Object is the complex number.
+func (obj *Object) IsComplex() bool {
+	return objDoNoError(obj, pyGate.isComplex)
+}
+
+// IsFloat reports if Object is the floating point number.
+func (obj *Object) IsFloat() bool {
+	return objDoNoError(obj, pyGate.isFloat)
 }
 
 // IsDict reports if Object is dict or similar.
@@ -457,14 +482,24 @@ func (obj *Object) IsDict() bool {
 	return objDoNoError(obj, pyGate.isDict)
 }
 
+// IsLong reports if Object is the integer number.
+func (obj *Object) IsLong() bool {
+	return objDoNoError(obj, pyGate.isLong)
+}
+
 // IsNone reports if Object is Python None.
 func (obj *Object) IsNone() bool {
 	return objDoNoError(obj, pyGate.isNone)
 }
 
-// IsSeq reports if Object is sequnce (i.e., list, tuple, ...).
+// IsSeq reports if Object is sequence (i.e., list, tuple, ...).
 func (obj *Object) IsSeq() bool {
 	return objDoNoError(obj, pyGate.isSeq)
+}
+
+// IsUnicode reports if Object is the Unicode string
+func (obj *Object) IsUnicode() bool {
+	return objDoNoError(obj, pyGate.isUnicode)
 }
 
 // objDo is the convenience wrapper for the pyGate methods

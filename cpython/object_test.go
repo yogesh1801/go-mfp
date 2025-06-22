@@ -128,17 +128,34 @@ func TestObjectFromPython(t *testing.T) {
 // TestObjectFromPython tests Object.IsDict and Objet.IsSeq functions
 func TestObjectIsMapSeq(t *testing.T) {
 	type testData struct {
-		v      any
-		isdict bool
-		isseq  bool
+		expr        string
+		isbool      bool
+		isbytearray bool
+		isbytes     bool
+		iscallable  bool
+		iscomplex   bool
+		isdict      bool
+		isfloat     bool
+		islong      bool
+		isnone      bool
+		isseq       bool
+		isunicode   bool
 	}
 
 	tests := []testData{
-		{v: 5, isdict: false, isseq: false},
-		{v: "5", isdict: false, isseq: false},
-		{v: []int{}, isdict: false, isseq: true},
-		{v: []byte{}, isdict: false, isseq: false},
-		{v: map[any]any{}, isdict: true, isseq: false},
+		{expr: "True", isbool: true},
+		{expr: "False", isbool: true},
+		{expr: `bytearray(b'\x01\x02\x03')`, isbytearray: true},
+		{expr: `bytes(b'\x01\x02\x03')`, isbytes: true},
+		{expr: `min`, iscallable: true},
+		{expr: `0.5 + 0.25j`, iscomplex: true},
+		{expr: `{}`, isdict: true},
+		{expr: `0.5`, isfloat: true},
+		{expr: `5`, islong: true},
+		{expr: `None`, isnone: true},
+		{expr: `[]`, isseq: true},
+		{expr: `()`, isseq: true},
+		{expr: `"hello"`, isunicode: true},
 	}
 
 	py, err := NewPython()
@@ -146,25 +163,97 @@ func TestObjectIsMapSeq(t *testing.T) {
 	defer py.Close()
 
 	for _, test := range tests {
-		obj, err := py.NewObject(test.v)
+		obj, err := py.Eval(test.expr)
 		assert.NoError(err)
 
-		isdict := obj.IsDict()
-		isseq := obj.IsSeq()
+		isbool := obj.IsBool()
+		if isbool != test.isbool {
+			t.Errorf("%#v: Object.IsBool:\n"+
+				"expected: %v\n"+
+				"present:  %v\n",
+				test.expr, test.isbool, isbool)
+		}
 
+		isbytearray := obj.IsByteArray()
+		if isbytearray != test.isbytearray {
+			t.Errorf("%#v: Object.IsByteArray(:\n"+
+				"expected: %v\n"+
+				"present:  %v\n",
+				test.expr, test.isbytearray, isbytearray)
+		}
+
+		isbytes := obj.IsBytes()
+		if isbytes != test.isbytes {
+			t.Errorf("%#v: Object.IsBytes:\n"+
+				"expected: %v\n"+
+				"present:  %v\n",
+				test.expr, test.isbytes, isbytes)
+		}
+
+		iscallable := obj.IsCallable()
+		if iscallable != test.iscallable {
+			t.Errorf("%#v: Object.IsCallable:\n"+
+				"expected: %v\n"+
+				"present:  %v\n",
+				test.expr, test.iscallable, iscallable)
+		}
+
+		iscomplex := obj.IsComplex()
+		if iscomplex != test.iscomplex {
+			t.Errorf("%#v: Object.IsComplex:\n"+
+				"expected: %v\n"+
+				"present:  %v\n",
+				test.expr, test.iscomplex, iscomplex)
+		}
+
+		isdict := obj.IsDict()
 		if isdict != test.isdict {
 			t.Errorf("%#v: Object.IsDict:\n"+
 				"expected: %v\n"+
 				"present:  %v\n",
-				test.v, test.isdict, isdict)
+				test.expr, test.isdict, isdict)
 		}
 
+		isfloat := obj.IsFloat()
+		if isfloat != test.isfloat {
+			t.Errorf("%#v: Object.IsFloat:\n"+
+				"expected: %v\n"+
+				"present:  %v\n",
+				test.expr, test.isfloat, isfloat)
+		}
+
+		islong := obj.IsLong()
+		if islong != test.islong {
+			t.Errorf("%#v: Object.IsLong:\n"+
+				"expected: %v\n"+
+				"present:  %v\n",
+				test.expr, test.islong, islong)
+		}
+
+		isnone := obj.IsNone()
+		if isnone != test.isnone {
+			t.Errorf("%#v: Object.IsNone:\n"+
+				"expected: %v\n"+
+				"present:  %v\n",
+				test.expr, test.isnone, isnone)
+		}
+
+		isseq := obj.IsSeq()
 		if isseq != test.isseq {
 			t.Errorf("%#v: Object.IsSeq:\n"+
 				"expected: %v\n"+
 				"present:  %v\n",
-				test.v, test.isseq, isseq)
+				test.expr, test.isseq, isseq)
 		}
+
+		isunicode := obj.IsUnicode()
+		if isunicode != test.isunicode {
+			t.Errorf("%#v: Object.IsuNicode:\n"+
+				"expected: %v\n"+
+				"present:  %v\n",
+				test.expr, test.isunicode, isunicode)
+		}
+
 	}
 }
 
