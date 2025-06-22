@@ -273,8 +273,8 @@ func (gate pyGate) callable(pyobj pyObject) bool {
 	return bool(C.py_obj_callable(pyobj))
 }
 
-// isMap reports if PyObject is map.
-func (gate pyGate) isMap(pyobj pyObject) bool {
+// isDict reports if PyObject is dict or similar.
+func (gate pyGate) isDict(pyobj pyObject) bool {
 	return bool(C.py_obj_is_map(pyobj))
 }
 

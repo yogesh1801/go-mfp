@@ -125,20 +125,20 @@ func TestObjectFromPython(t *testing.T) {
 	}
 }
 
-// TestObjectFromPython tests Object.IsMap and Objet.IsSeq functions
+// TestObjectFromPython tests Object.IsDict and Objet.IsSeq functions
 func TestObjectIsMapSeq(t *testing.T) {
 	type testData struct {
-		v     any
-		ismap bool
-		isseq bool
+		v      any
+		isdict bool
+		isseq  bool
 	}
 
 	tests := []testData{
-		{v: 5, ismap: false, isseq: false},
-		{v: "5", ismap: false, isseq: false},
-		{v: []int{}, ismap: false, isseq: true},
-		{v: []byte{}, ismap: false, isseq: false},
-		{v: map[any]any{}, ismap: true, isseq: false},
+		{v: 5, isdict: false, isseq: false},
+		{v: "5", isdict: false, isseq: false},
+		{v: []int{}, isdict: false, isseq: true},
+		{v: []byte{}, isdict: false, isseq: false},
+		{v: map[any]any{}, isdict: true, isseq: false},
 	}
 
 	py, err := NewPython()
@@ -149,14 +149,14 @@ func TestObjectIsMapSeq(t *testing.T) {
 		obj, err := py.NewObject(test.v)
 		assert.NoError(err)
 
-		ismap := obj.IsMap()
+		isdict := obj.IsDict()
 		isseq := obj.IsSeq()
 
-		if ismap != test.ismap {
-			t.Errorf("%#v: Object.IsMap:\n"+
+		if isdict != test.isdict {
+			t.Errorf("%#v: Object.IsDict:\n"+
 				"expected: %v\n"+
 				"present:  %v\n",
-				test.v, test.ismap, ismap)
+				test.v, test.isdict, isdict)
 		}
 
 		if isseq != test.isseq {

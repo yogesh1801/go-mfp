@@ -452,9 +452,9 @@ func (obj *Object) IsCallable() bool {
 	return gate.callable(pyobj)
 }
 
-// IsMap reports if Object is map (i.e., dict, ...),
-func (obj *Object) IsMap() bool {
-	return objDoNoError(obj, pyGate.isMap)
+// IsDict reports if Object is dict or similar.
+func (obj *Object) IsDict() bool {
+	return objDoNoError(obj, pyGate.isDict)
 }
 
 // IsNone reports if Object is Python None.
