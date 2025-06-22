@@ -14,6 +14,8 @@
 
 #include <Python.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 // py_init initializes Python stuff.
 // It returns NULL on success or an error message in a case of errors.
