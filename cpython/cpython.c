@@ -430,12 +430,15 @@ bool py_obj_is_long (PyObject *x) {
 
 // py_obj_is_map reports if PyObject is a map (dict, namedtyple, ...).
 bool py_obj_is_map (PyObject *x) {
-    return PyMapping_Check_p(x)  > 0;
+    unsigned long flags = PyType_GetFlags_p(Py_TYPE(x));
+    return (flags & Py_TPFLAGS_DICT_SUBCLASS) != 0;
 }
 
 // py_obj_is_seq reports if PyObject is a sequence (list, tuple, ...).
 bool py_obj_is_seq (PyObject *x) {
-    return PySequence_Check_p(x)  > 0;
+    unsigned long flags = PyType_GetFlags_p(Py_TYPE(x));
+    unsigned long mask = Py_TPFLAGS_LIST_SUBCLASS | Py_TPFLAGS_TUPLE_SUBCLASS;
+    return (flags & mask) != 0;
 }
 
 // py_obj_is_unicode reports if PyObject is PyUnicode_Type or its subclass.

@@ -125,6 +125,49 @@ func TestObjectFromPython(t *testing.T) {
 	}
 }
 
+// TestObjectFromPython tests Object.IsMap and Objet.IsSeq functions
+func TestObjectIsMapSeq(t *testing.T) {
+	type testData struct {
+		v     any
+		ismap bool
+		isseq bool
+	}
+
+	tests := []testData{
+		{v: 5, ismap: false, isseq: false},
+		{v: "5", ismap: false, isseq: false},
+		{v: []int{}, ismap: false, isseq: true},
+		{v: []byte{}, ismap: false, isseq: false},
+		{v: map[any]any{}, ismap: true, isseq: false},
+	}
+
+	py, err := NewPython()
+	assert.NoError(err)
+	defer py.Close()
+
+	for _, test := range tests {
+		obj, err := py.NewObject(test.v)
+		assert.NoError(err)
+
+		ismap := obj.IsMap()
+		isseq := obj.IsSeq()
+
+		if ismap != test.ismap {
+			t.Errorf("%#v: Object.IsMap:\n"+
+				"expected: %v\n"+
+				"present:  %v\n",
+				test.v, test.ismap, ismap)
+		}
+
+		if isseq != test.isseq {
+			t.Errorf("%#v: Object.IsSeq:\n"+
+				"expected: %v\n"+
+				"present:  %v\n",
+				test.v, test.isseq, isseq)
+		}
+	}
+}
+
 // TestNewObject tests Python.NewObject
 func TestNewObject(t *testing.T) {
 	type testData struct {
