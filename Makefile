@@ -1,6 +1,7 @@
 SUBDIRS	= \
 	abstract \
 	cmd \
+	cpython \
 	cups \
 	discovery \
 	imgconv \
