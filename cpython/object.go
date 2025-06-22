@@ -54,6 +54,11 @@ func (obj *Object) finalizer() {
 	}
 }
 
+// Py returns the [Python] interpreter Object belongs to.
+func (obj *Object) Py() *Python {
+	return obj.py
+}
+
 // Len returns Object length, in items. It works with container
 // objects (lists, tuples, dict, ...).
 //
