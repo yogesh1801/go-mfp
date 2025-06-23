@@ -203,6 +203,38 @@ func (model *Model) pyExportValue(v reflect.Value) (*cpython.Object, error) {
 	return model.py.NewObject(data)
 }
 
+// pyImportStruct the Python object into the Go struucture, that expected
+// to be the protocol object.
+//
+// p MUST be pointer to struct or pointer to pointer to struct.
+func (model *Model) pyImportStruct(p any) error {
+	// Validate argument
+	v := reflect.ValueOf(p)
+	s := fmt.Sprintf("%s: invalid type", v.Type())
+
+	assert.MustMsg(v.Kind() == reflect.Pointer, s)
+	v = v.Elem()
+	if v.Elem().Kind() == reflect.Pointer {
+		v = v.Elem()
+	}
+	assert.MustMsg(v.Kind() == reflect.Struct, s)
+
+	// Create a new instance of the target structure
+	v = reflect.New(v.Type()).Elem()
+
+	// FIXME -- TODO
+
+	// Save output
+	out := reflect.ValueOf(p).Elem()
+	if out.Type().Kind() == reflect.Pointer {
+		out.Set(v)
+	} else {
+		out.Set(v.Elem())
+	}
+
+	return nil
+}
+
 // pyFormat writes Python object into the io.Writer.
 func (model *Model) pyFormat(obj *cpython.Object, w io.Writer) error {
 	f := newFormatter(w)
