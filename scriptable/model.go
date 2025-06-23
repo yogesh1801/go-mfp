@@ -95,7 +95,7 @@ func (model *Model) GetESCLScanCaps() *escl.ScannerCapabilities {
 	return model.esclScanCaps
 }
 
-// structToPython converts the protocol object, represented as Go
+// pyExportStruct converts the protocol object, represented as Go
 // structure, into the Python object.
 //
 // s MUST be struct or pointer to struct.
