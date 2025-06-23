@@ -38,4 +38,8 @@ func TestKyoceraESCLScannerCapabilities(t *testing.T) {
 
 	err = model.pyFormat(obj, os.Stdout)
 	assert.NoError(err)
+
+	var scancaps2 escl.ScannerCapabilities
+	err = model.pyImportStruct(&scancaps2)
+	assert.NoError(err)
 }

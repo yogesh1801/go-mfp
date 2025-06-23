@@ -209,27 +209,29 @@ func (model *Model) pyExportValue(v reflect.Value) (*cpython.Object, error) {
 // p MUST be pointer to struct or pointer to pointer to struct.
 func (model *Model) pyImportStruct(p any) error {
 	// Validate argument
-	v := reflect.ValueOf(p)
-	s := fmt.Sprintf("%s: invalid type", v.Type())
+	t := reflect.TypeOf(p)
 
-	assert.MustMsg(v.Kind() == reflect.Pointer, s)
-	v = v.Elem()
-	if v.Elem().Kind() == reflect.Pointer {
-		v = v.Elem()
+	msg := fmt.Sprintf("%s: invalid type", t)
+	assert.MustMsg(t.Kind() == reflect.Pointer, msg)
+	assert.MustMsg(p != nil, "nil pointer dereference")
+
+	t = t.Elem()
+	if t.Kind() == reflect.Pointer {
+		t = t.Elem()
 	}
-	assert.MustMsg(v.Kind() == reflect.Struct, s)
+	assert.MustMsg(t.Kind() == reflect.Struct, msg)
 
 	// Create a new instance of the target structure
-	v = reflect.New(v.Type()).Elem()
+	v := reflect.New(t).Elem()
 
 	// FIXME -- TODO
 
 	// Save output
 	out := reflect.ValueOf(p).Elem()
 	if out.Type().Kind() == reflect.Pointer {
-		out.Set(v)
+		out.Set(v.Addr())
 	} else {
-		out.Set(v.Elem())
+		out.Set(v)
 	}
 
 	return nil
