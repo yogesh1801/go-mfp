@@ -8,16 +8,22 @@
 
 package assert
 
+import "fmt"
+
 // Must panics if condition is not true.
 func Must(cond bool) {
-	if !cond {
-		panic("internal error")
-	}
+	MustMsg(cond, "internal error")
 }
 
 // NoError panics if error is not nil.
 func NoError(err error) {
-	if err != nil {
-		panic(err)
+	MustMsg(err == nil, "%s", err)
+}
+
+// MustMsg panics if condition is not true.
+// If it panics, format and optional args define its final message.
+func MustMsg(cond bool, format string, args ...any) {
+	if !cond {
+		panic(fmt.Sprintf(format, args...))
 	}
 }
