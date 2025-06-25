@@ -20,7 +20,7 @@ type ContentType int
 
 // Known intents
 const (
-	ContentTypeUnknown ContentType = iota // Unknown ContentType
+	UnknownContentType ContentType = iota // Unknown ContentType
 	ContentTypePhoto
 	ContentTypeText
 	ContentTypeTextAndPhoto
@@ -84,5 +84,5 @@ func DecodeContentType(s string) ContentType {
 		return ContentTypeAuto
 	}
 
-	return ContentTypeUnknown
+	return UnknownContentType
 }
