@@ -75,7 +75,7 @@ func (f *formatter) formatDict(dict *cpython.Object, indent int) {
 	vals := make([]*cpython.Object, len(keyobjs))
 
 	for i := range keyobjs {
-		keys[i], f.err = keyobjs[i].Str()
+		keys[i], f.err = keyobjs[i].Repr()
 		if f.err == nil {
 			vals[i], f.err = dict.Get(keyobjs[i])
 		}
@@ -91,7 +91,7 @@ func (f *formatter) formatDict(dict *cpython.Object, indent int) {
 		key, val := keys[i], vals[i]
 
 		f.indent(indent + 1)
-		f.printf("'%s': ", keywordNormalize(key))
+		f.printf("%s: ", key)
 
 		f.formatValue(val, indent+1)
 		if f.err != nil {

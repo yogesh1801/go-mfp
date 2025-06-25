@@ -140,7 +140,7 @@ func (model *Model) pyExportStruct(s any) (*cpython.Object, error) {
 		// Convert into the Python Object and add to the dict,
 		item, err := model.pyExportValue(f)
 		if err == nil {
-			err = dict.Set(fld.Name, item)
+			err = dict.Set(keywordNormalize(fld.Name), item)
 		}
 
 		if err != nil {
@@ -151,8 +151,8 @@ func (model *Model) pyExportStruct(s any) (*cpython.Object, error) {
 	return dict, nil
 }
 
-// pyExportArray exports array or slice as the Python object.
-func (model *Model) pyExportArray(v reflect.Value) (*cpython.Object, error) {
+// pyExportSlice exports slice of values as the Python object.
+func (model *Model) pyExportSlice(v reflect.Value) (*cpython.Object, error) {
 	list := make([]*cpython.Object, v.Len())
 	var err error
 	for i := 0; i < v.Len() && err == nil; i++ {
@@ -167,7 +167,7 @@ func (model *Model) pyExportArray(v reflect.Value) (*cpython.Object, error) {
 	return model.py.NewObject(list)
 }
 
-// pyExportArray exports the value as the Python object.
+// pyExportValue exports a value as the Python object.
 func (model *Model) pyExportValue(v reflect.Value) (*cpython.Object, error) {
 	// Handle known types
 	data := v.Interface()
@@ -195,8 +195,8 @@ func (model *Model) pyExportValue(v reflect.Value) (*cpython.Object, error) {
 	case reflect.Struct:
 		return model.pyExportStruct(data)
 
-	case reflect.Array, reflect.Slice:
-		return model.pyExportArray(v)
+	case reflect.Slice:
+		return model.pyExportSlice(v)
 	}
 
 	// Let Python handle default case
@@ -207,7 +207,7 @@ func (model *Model) pyExportValue(v reflect.Value) (*cpython.Object, error) {
 // to be the protocol object.
 //
 // p MUST be pointer to struct or pointer to pointer to struct.
-func (model *Model) pyImportStruct(p any) error {
+func (model *Model) pyImportStruct(p any, obj *cpython.Object) error {
 	// Validate argument
 	t := reflect.TypeOf(p)
 
@@ -224,7 +224,25 @@ func (model *Model) pyImportStruct(p any) error {
 	// Create a new instance of the target structure
 	v := reflect.New(t).Elem()
 
-	// FIXME -- TODO
+	// Import, field by field
+	for _, fld := range reflect.VisibleFields(t) {
+		// Lookup python dictionary
+		kw := keywordNormalize(fld.Name)
+		item, err := obj.Get(kw)
+		if err != nil {
+			return err
+		}
+
+		// Decode the item, if found
+		if item != nil {
+			fldval := v.FieldByIndex(fld.Index)
+			println(fld.Name, fldval.Type().String())
+			err := model.pyImportValue(fldval, item)
+			if err != nil {
+				return err
+			}
+		}
+	}
 
 	// Save output
 	out := reflect.ValueOf(p).Elem()
@@ -232,6 +250,196 @@ func (model *Model) pyImportStruct(p any) error {
 		out.Set(v.Addr())
 	} else {
 		out.Set(v)
+	}
+
+	return nil
+}
+
+// pyImportSlice imports slice of values from the Python object.
+func (model *Model) pyImportSlice(v reflect.Value, obj *cpython.Object) error {
+	// Obtain Python object items
+	slice, err := obj.Slice()
+	if err != nil {
+		return err
+	}
+
+	// Allocate output memory
+	v.Set(reflect.MakeSlice(v.Type(), len(slice), len(slice)))
+
+	// Decode item by item
+	for i, item := range slice {
+		err = model.pyImportValue(v.Index(i), item)
+	}
+
+	return nil
+}
+
+// pyImportValue imports a value from the Python object.
+func (model *Model) pyImportValue(v reflect.Value, obj *cpython.Object) error {
+	// If we are decoding pointer to value, create a new
+	// value instance and shift to it.
+	if v.Kind() == reflect.Pointer {
+		v2 := reflect.New(v.Type().Elem())
+		v.Set(v2)
+		v = v2.Elem()
+	}
+
+	// Handle known types
+	switch v.Interface().(type) {
+	case escl.ADFOption:
+		opt, err := esclDecodeADFOption(obj)
+		if err == nil {
+			v.Set(reflect.ValueOf(opt))
+		}
+		return err
+
+	case escl.ADFState:
+		st, err := esclDecodeADFState(obj)
+		if err == nil {
+			v.Set(reflect.ValueOf(st))
+		}
+		return err
+
+	case escl.BinaryRendering:
+		rnd, err := esclDecodeBinaryRendering(obj)
+		if err == nil {
+			v.Set(reflect.ValueOf(rnd))
+		}
+		return err
+
+	case escl.CCDChannel:
+		ccd, err := esclDecodeCCDChannel(obj)
+		if err == nil {
+			v.Set(reflect.ValueOf(ccd))
+		}
+		return err
+
+	case escl.ColorMode:
+		cm, err := esclDecodeColorMode(obj)
+		if err == nil {
+			v.Set(reflect.ValueOf(cm))
+		}
+		return err
+
+	case escl.ColorSpace:
+		sps, err := esclDecodeColorMode(obj)
+		if err == nil {
+			v.Set(reflect.ValueOf(sps))
+		}
+		return err
+
+	case escl.ContentType:
+		ct, err := esclDecodeContentType(obj)
+		if err == nil {
+			v.Set(reflect.ValueOf(ct))
+		}
+		return err
+
+	case escl.DiscreteResolution:
+		r, err := esclDecodeDiscreteResolution(obj)
+		if err == nil {
+			v.Set(reflect.ValueOf(r))
+		}
+		return err
+
+	case escl.FeedDirection:
+		feed, err := esclDecodeFeedDirection(obj)
+		if err == nil {
+			v.Set(reflect.ValueOf(feed))
+		}
+		return err
+
+	case escl.ImagePosition:
+		pos, err := esclDecodeImagePosition(obj)
+		if err == nil {
+			v.Set(reflect.ValueOf(pos))
+		}
+		return err
+
+	case escl.InputSource:
+		src, err := esclDecodeInputSource(obj)
+		if err == nil {
+			v.Set(reflect.ValueOf(src))
+		}
+		return err
+
+	case escl.Intent:
+		intent, err := esclDecodeIntent(obj)
+		if err == nil {
+			v.Set(reflect.ValueOf(intent))
+		}
+		return err
+
+	case escl.JobState:
+		st, err := esclDecodeJobState(obj)
+		if err == nil {
+			v.Set(reflect.ValueOf(st))
+		}
+		return err
+
+	case escl.JobStateReason:
+		rsn, err := esclDecodeJobStateReason(obj)
+		if err == nil {
+			v.Set(reflect.ValueOf(rsn))
+		}
+		return err
+
+	case escl.Units:
+		un, err := esclDecodeUnits(obj)
+		if err == nil {
+			v.Set(reflect.ValueOf(un))
+		}
+		return err
+
+	case escl.Range:
+		r, err := esclDecodeRange(obj)
+		if err == nil {
+			v.Set(reflect.ValueOf(r))
+		}
+		return err
+
+	case escl.Version:
+		ver, err := esclDecodeVersion(obj)
+		if err == nil {
+			v.Set(reflect.ValueOf(ver))
+		}
+		return err
+
+	case uuid.UUID:
+		s, err := obj.Str()
+		if err != nil {
+			return err
+		}
+
+		u, err := uuid.Parse(s)
+		if err == nil {
+			v.Set(reflect.ValueOf(u))
+		}
+
+		return err
+	}
+
+	// Switch by reflect.Kind
+	switch v.Kind() {
+	case reflect.Struct:
+		return model.pyImportStruct(v.Addr().Interface(), obj)
+
+	case reflect.Slice:
+		return model.pyImportSlice(v, obj)
+
+	case reflect.Int:
+		i, err := obj.Int()
+		if err == nil {
+			v.Set(reflect.ValueOf(int(i)))
+		}
+		return err
+
+	case reflect.String:
+		s, err := obj.Str()
+		if err == nil {
+			v.Set(reflect.ValueOf(s))
+		}
+		return err
 	}
 
 	return nil
