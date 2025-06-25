@@ -443,6 +443,15 @@ func (obj *Object) Unicode() (string, error) {
 	return objDo(obj, pyGate.decodeUnicode)
 }
 
+// TypeName returns name of the Object's Python type
+func (obj *Object) TypeName() string {
+	gate := obj.py.gate()
+	defer gate.release()
+
+	pyobj := obj.py.lookupObjID(gate, obj.oid)
+	return gate.typename(pyobj)
+}
+
 // IsCallable reports if Object is callable.
 func (obj *Object) IsCallable() bool {
 	return objDoNoError(obj, pyGate.callable)
