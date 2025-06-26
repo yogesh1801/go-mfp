@@ -236,7 +236,6 @@ func (model *Model) pyImportStruct(p any, obj *cpython.Object) error {
 		// Decode the item, if found
 		if item != nil {
 			fldval := v.FieldByIndex(fld.Index)
-			println(fld.Name, fldval.Type().String())
 			err := model.pyImportValue(fldval, item)
 			if err != nil {
 				return err

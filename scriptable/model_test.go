@@ -10,7 +10,6 @@ package scriptable
 
 import (
 	"bytes"
-	"os"
 	"testing"
 
 	"github.com/OpenPrinting/go-mfp/internal/assert"
@@ -36,10 +35,17 @@ func TestKyoceraESCLScannerCapabilities(t *testing.T) {
 	err = model.py.Exec("from pprint import pprint", "")
 	assert.NoError(err)
 
-	err = model.pyFormat(obj, os.Stdout)
-	assert.NoError(err)
+	//err = model.pyFormat(obj, os.Stdout)
+	//assert.NoError(err)
 
 	var scancaps2 escl.ScannerCapabilities
-	err = model.pyImportStruct(&scancaps2)
+	err = model.pyImportStruct(&scancaps2, obj)
 	assert.NoError(err)
+
+	xml = scancaps.ToXML()
+	xml2 := scancaps2.ToXML()
+
+	if !xml.Similar(xml2) {
+		t.Errorf("eSCL test failed")
+	}
 }
