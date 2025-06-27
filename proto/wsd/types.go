@@ -15,13 +15,17 @@ import (
 )
 
 // Types represents set of device types, for discovery
-type Types int
+type Types []Type
 
-// Known types
+// Type represents a device type.
+type Type int
+
+// Known types:
 const (
-	TypeDevice Types = 1 << iota
-	TypePrinter
-	TypeScanner
+	UnknownType Type = 1 << iota
+	Device
+	PrinterServiceType
+	ScannerServiceType
 )
 
 // DecodeTypes decodes [Types] from the XML tree
@@ -40,11 +44,11 @@ func DecodeTypes(root xmldoc.Element) (types Types, err error) {
 
 		switch n {
 		case "Device":
-			types |= TypeDevice
+			types = append(types, Device)
 		case "PrintDeviceType":
-			types |= TypePrinter
+			types = append(types, PrinterServiceType)
 		case "ScanDeviceType":
-			types |= TypeScanner
+			types = append(types, ScannerServiceType)
 		}
 	}
 
@@ -70,13 +74,23 @@ func DecodeMetadataTypes(root xmldoc.Element) (types Types, err error) {
 
 		switch n {
 		case "PrinterServiceType":
-			types |= TypePrinter
+			types = append(types, PrinterServiceType)
 		case "ScannerServiceType":
-			types |= TypeScanner
+			types = append(types, ScannerServiceType)
 		}
 	}
 
 	return
+}
+
+// Contains reports if type is member of types.
+func (types Types) Contains(t Type) bool {
+	for _, contained := range types {
+		if t == contained {
+			return true
+		}
+	}
+	return false
 }
 
 // String returns text representation for [Types].
@@ -86,18 +100,10 @@ func DecodeMetadataTypes(root xmldoc.Element) (types Types, err error) {
 //
 // Use for Metadata, you need to use the [Types.MetadataString] function.
 func (types Types) String() string {
-	names := make([]string, 0, 3)
+	names := make([]string, len(types))
 
-	if types&TypeDevice != 0 {
-		names = append(names, "devprof:Device")
-	}
-
-	if types&TypePrinter != 0 {
-		names = append(names, "print:PrintDeviceType")
-	}
-
-	if types&TypeScanner != 0 {
-		names = append(names, "scan:ScanDeviceType")
+	for i := range types {
+		names[i] = types[i].String()
 	}
 
 	return strings.Join(names, " ")
@@ -111,12 +117,14 @@ func (types Types) String() string {
 func (types Types) MetadataString() string {
 	names := make([]string, 0, 3)
 
-	if types&TypePrinter != 0 {
-		names = append(names, "print:PrinterServiceType")
-	}
+	for _, t := range types {
+		switch t {
+		case PrinterServiceType:
+			names = append(names, "print:PrinterServiceType")
 
-	if types&TypeScanner != 0 {
-		names = append(names, "scan:ScannerServiceType")
+		case ScannerServiceType:
+			names = append(names, "scan:ScannerServiceType")
+		}
 	}
 
 	return strings.Join(names, " ")
@@ -159,13 +167,28 @@ func (types Types) MarkUsedNamespace(ns xmldoc.Namespace) {
 	// So it is better to leave Namespace.MarkUsedPrefix to handle
 	// all these nuances rather that to duplicate its work, trading
 	// simplicity for efficiency.
-	if types&TypeDevice != 0 {
-		ns.MarkUsedPrefix("devprof")
+	for _, t := range types {
+		switch t {
+		case Device:
+			ns.MarkUsedPrefix("devprof")
+		case PrinterServiceType:
+			ns.MarkUsedPrefix("print")
+		case ScannerServiceType:
+			ns.MarkUsedPrefix("scan")
+		}
 	}
-	if types&TypePrinter != 0 {
-		ns.MarkUsedPrefix("print")
+}
+
+// String returns text representation for [Type].
+func (t Type) String() string {
+	switch t {
+	case Device:
+		return "devprof:Device"
+	case PrinterServiceType:
+		return "print:PrintDeviceType"
+	case ScannerServiceType:
+		return "scan:ScanDeviceType"
 	}
-	if types&TypeScanner != 0 {
-		ns.MarkUsedPrefix("scan")
-	}
+
+	return "Unknown"
 }

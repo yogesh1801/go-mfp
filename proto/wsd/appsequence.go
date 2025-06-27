@@ -12,6 +12,7 @@ import (
 	"errors"
 	"strconv"
 
+	"github.com/OpenPrinting/go-mfp/util/optional"
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
@@ -21,17 +22,10 @@ import (
 // It is included into the announcement and response messages
 // ([Hello], [Bye], [ProbeMatches], and [ResolveMatches]).
 type AppSequence struct {
-	InstanceID    uint64 // MUST increment on each reboot
-	MessageNumber uint64 // MUST increment on each message
-	SequenceID    AnyURI // Optional: sequence within instance
-	Skip          bool   // Skip when sending
+	InstanceID    uint64               // MUST increment on each reboot
+	MessageNumber uint64               // MUST increment on each message
+	SequenceID    optional.Val[AnyURI] // Sequence within instance
 }
-
-// AppSequenceMissed represents a missed AppSequence.
-//
-// It is skipped on encoding and returned on decoding, when optional
-// AppSequence is skipped on input.
-var AppSequenceMissed = AppSequence{Skip: true}
 
 // DecodeAppSequence decodes AppSequence from the XML tree
 func DecodeAppSequence(root xmldoc.Element) (seq AppSequence, err error) {
@@ -55,7 +49,11 @@ func DecodeAppSequence(root xmldoc.Element) (seq AppSequence, err error) {
 	}
 
 	if err == nil && sequenceID.Found {
-		seq.SequenceID, err = DecodeAnyURIAttr(sequenceID.Attr)
+		var id AnyURI
+		id, err = DecodeAnyURIAttr(sequenceID.Attr)
+		if err == nil {
+			seq.SequenceID = optional.New(id)
+		}
 	}
 
 	return
@@ -77,10 +75,10 @@ func (seq AppSequence) ToXML() xmldoc.Element {
 		},
 	}
 
-	if seq.SequenceID != "" {
+	if seq.SequenceID != nil {
 		elm.Attrs = append(elm.Attrs, xmldoc.Attr{
 			Name:  "SequenceId",
-			Value: string(seq.SequenceID),
+			Value: string(*seq.SequenceID),
 		})
 	}
 

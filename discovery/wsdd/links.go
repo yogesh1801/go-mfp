@@ -16,6 +16,7 @@ import (
 	"github.com/OpenPrinting/go-mfp/discovery/netstate"
 	"github.com/OpenPrinting/go-mfp/proto/wsd"
 	"github.com/OpenPrinting/go-mfp/util/generic"
+	"github.com/OpenPrinting/go-mfp/util/optional"
 	"github.com/OpenPrinting/go-mfp/util/uuid"
 )
 
@@ -310,10 +311,10 @@ func (l *link) updateProbeMsg() {
 		Header: wsd.Header{
 			Action:    wsd.ActProbe,
 			MessageID: msgid,
-			To:        wsd.ToDiscovery,
+			To:        optional.New(wsd.ToDiscovery),
 		},
 		Body: wsd.Probe{
-			Types: wsd.TypeDevice,
+			Types: []wsd.Type{wsd.Device},
 		},
 	}
 	l.probeMsg = msg.Encode()

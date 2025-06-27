@@ -12,6 +12,7 @@
 package wsd
 
 import (
+	"github.com/OpenPrinting/go-mfp/util/optional"
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
@@ -45,12 +46,12 @@ type ThisDeviceMetadata struct {
 
 // ThisModelMetadata contains information about the model.
 type ThisModelMetadata struct {
-	Manufacturer    LocalizedStringList // Manufacturer name
-	ManufacturerURL string              // Manufacturer URL
-	ModelName       LocalizedStringList // Model name
-	ModelNumber     string              // Model number
-	ModelURL        string              // Model URL
-	PresentationURL string              // HTML page for this model
+	Manufacturer    LocalizedStringList  // Manufacturer name
+	ManufacturerURL optional.Val[string] // Manufacturer URL
+	ModelName       LocalizedStringList  // Model name
+	ModelNumber     string               // Model number
+	ModelURL        optional.Val[string] // Model URL
+	PresentationURL optional.Val[string] // HTML page for this model
 }
 
 // Relationship defines relationship between host (i.e., the device)
@@ -156,11 +157,11 @@ func (meta Metadata) MarkUsedNamespace(ns xmldoc.Namespace) {
 	var types Types
 
 	if meta.Relationship.Host != nil {
-		types |= meta.Relationship.Host.Types
+		types = append(types, meta.Relationship.Host.Types...)
 	}
 
 	for _, hosted := range meta.Relationship.Hosted {
-		types |= hosted.Types
+		types = append(types, hosted.Types...)
 	}
 
 	types.MarkUsedNamespace(ns)
@@ -311,17 +312,19 @@ func DecodeThisModelMetadata(root xmldoc.Element) (
 	}
 
 	if manufacturerURL.Found {
-		thismdl.ManufacturerURL = manufacturerURL.Elem.Text
+		thismdl.ManufacturerURL = optional.New(
+			manufacturerURL.Elem.Text)
 	}
 
 	thismdl.ModelNumber = modelNumber.Elem.Text
 
 	if modelURL.Found {
-		thismdl.ModelURL = modelURL.Elem.Text
+		thismdl.ModelURL = optional.New(modelURL.Elem.Text)
 	}
 
 	if presentationURL.Found {
-		thismdl.PresentationURL = presentationURL.Elem.Text
+		thismdl.PresentationURL = optional.New(
+			presentationURL.Elem.Text)
 	}
 
 	return
@@ -338,11 +341,11 @@ func (thismdl ThisModelMetadata) ToXML() xmldoc.Element {
 			mfg.ToXML(NsDevprof+":Manufacturer"))
 	}
 
-	if thismdl.ManufacturerURL != "" {
+	if thismdl.ManufacturerURL != nil {
 		data.Children = append(data.Children,
 			xmldoc.Element{
 				Name: NsDevprof + ":ManufacturerUrl",
-				Text: thismdl.ManufacturerURL,
+				Text: *thismdl.ManufacturerURL,
 			})
 	}
 
@@ -357,19 +360,19 @@ func (thismdl ThisModelMetadata) ToXML() xmldoc.Element {
 			Text: thismdl.ModelNumber,
 		})
 
-	if thismdl.ModelURL != "" {
+	if thismdl.ModelURL != nil {
 		data.Children = append(data.Children,
 			xmldoc.Element{
 				Name: NsDevprof + ":ModelUrl",
-				Text: thismdl.ModelURL,
+				Text: *thismdl.ModelURL,
 			})
 	}
 
-	if thismdl.PresentationURL != "" {
+	if thismdl.PresentationURL != nil {
 		data.Children = append(data.Children,
 			xmldoc.Element{
 				Name: NsDevprof + ":PresentationUrl",
-				Text: thismdl.PresentationURL,
+				Text: *thismdl.PresentationURL,
 			})
 	}
 
@@ -507,7 +510,7 @@ func (svcmeta ServiceMetadata) ToXML(name string) xmldoc.Element {
 			ep.ToXML(NsAddressing+":EndpointReference"))
 	}
 
-	if svcmeta.Types != 0 {
+	if svcmeta.Types != nil {
 		elm.Children = append(elm.Children,
 			svcmeta.Types.MetadataToXML())
 	}

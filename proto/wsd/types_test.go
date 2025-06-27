@@ -26,7 +26,7 @@ func TestTypes(t *testing.T) {
 
 	tests := []testData{
 		{
-			types: TypeDevice,
+			types: []Type{Device},
 			xml: xmldoc.Element{
 				Name: NsDiscovery + ":Types",
 				Text: "devprof:Device",
@@ -35,7 +35,7 @@ func TestTypes(t *testing.T) {
 		},
 
 		{
-			types: TypePrinter,
+			types: []Type{PrinterServiceType},
 			xml: xmldoc.Element{
 				Name: NsDiscovery + ":Types",
 				Text: "print:PrintDeviceType",
@@ -44,7 +44,7 @@ func TestTypes(t *testing.T) {
 		},
 
 		{
-			types: TypeScanner,
+			types: []Type{ScannerServiceType},
 			xml: xmldoc.Element{
 				Name: NsDiscovery + ":Types",
 				Text: "scan:ScanDeviceType",
@@ -53,7 +53,8 @@ func TestTypes(t *testing.T) {
 		},
 
 		{
-			types: TypeDevice | TypePrinter | TypeScanner,
+			types: []Type{Device,
+				PrinterServiceType, ScannerServiceType},
 			xml: xmldoc.Element{
 				Name: NsDiscovery + ":Types",
 				Text: "devprof:Device print:PrintDeviceType scan:ScanDeviceType",

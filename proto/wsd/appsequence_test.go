@@ -12,6 +12,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/OpenPrinting/go-mfp/util/optional"
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
@@ -21,6 +22,8 @@ func TestAppSequence(t *testing.T) {
 		seq AppSequence
 		xml xmldoc.Element
 	}
+
+	const urn AnyURI = "urn:uuid:2a443ed7-5ee5-498d-a302-73ff91ea9ea0"
 
 	tests := []testData{
 		{
@@ -38,7 +41,7 @@ func TestAppSequence(t *testing.T) {
 			seq: AppSequence{
 				InstanceID:    987654321,
 				MessageNumber: 321,
-				SequenceID:    "urn:uuid:2a443ed7-5ee5-498d-a302-73ff91ea9ea0",
+				SequenceID:    optional.New(urn),
 			},
 			xml: xmldoc.WithAttrs(NsDiscovery+":"+"AppSequence",
 				xmldoc.Attr{Name: "InstanceId", Value: "987654321"},

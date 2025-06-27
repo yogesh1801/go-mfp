@@ -20,6 +20,7 @@ import (
 	"github.com/OpenPrinting/go-mfp/log"
 	"github.com/OpenPrinting/go-mfp/proto/wsd"
 	"github.com/OpenPrinting/go-mfp/util/generic"
+	"github.com/OpenPrinting/go-mfp/util/optional"
 )
 
 // units manages a table of discovered units.
@@ -134,13 +135,13 @@ func (ut *units) handleAnnounces(msg wsd.Msg) {
 
 			// Dispatch XAddrs
 			if len(xaddrs) != 0 {
-				if ann.Types&wsd.TypePrinter != 0 {
+				if ann.Types.Contains(wsd.PrinterServiceType) {
 					un := ut.getUnit(printUnitID, true)
 					un.handleXaddrs(ifidx, target,
 						xaddrs, ver)
 				}
 
-				if ann.Types&wsd.TypeScanner != 0 {
+				if ann.Types.Contains(wsd.ScannerServiceType) {
 					un := ut.getUnit(scanUnitID, true)
 					un.handleXaddrs(ifidx, target,
 						xaddrs, ver)
@@ -260,7 +261,9 @@ func (un *unit) handleMetadata(metadata []mexData) {
 			un.id.SvcType, meta.from)
 		logmsg.Debug("  Manufacturer: %q", mfg)
 		logmsg.Debug("  Model:        %q", mdl)
-		logmsg.Debug("  Admin URL:    %q", adm)
+		if adm != nil {
+			logmsg.Debug("  Admin URL:    %q", *adm)
+		}
 
 		if len(endpoints) > 0 {
 			logmsg.Debug("  Endpoints:")
@@ -293,12 +296,12 @@ func (un *unit) handleMetadata(metadata []mexData) {
 
 // extractMetadataEndpoints extract and returns service endpoint URLs
 func (un *unit) extractMetadataEndpoints(meta mexData) []string {
-	types := un.wsdTypes()
+	t := un.wsdType()
 
 	var endpoints []string
 
 	for _, hosted := range meta.Relationship.Hosted {
-		if hosted.Types&types == 0 {
+		if !hosted.Types.Contains(t) {
 			continue
 		}
 
@@ -310,20 +313,20 @@ func (un *unit) extractMetadataEndpoints(meta mexData) []string {
 	return endpoints
 }
 
-// wsdTypes returns WSD service types for the unit
-func (un *unit) wsdTypes() wsd.Types {
+// wsdType returns WSD service type for the unit
+func (un *unit) wsdType() wsd.Type {
 	switch un.id.SvcType {
 	case discovery.ServicePrinter:
-		return wsd.TypePrinter
+		return wsd.PrinterServiceType
 	case discovery.ServiceScanner:
-		return wsd.TypeScanner
+		return wsd.ScannerServiceType
 	}
-	return 0
+	return wsd.UnknownType
 }
 
 // sendParameters sends EventPrinterParameters or EventScannerParameters
 // to the discovery system.
-func (un *unit) sendParameters(mfg, mdl, adm string) {
+func (un *unit) sendParameters(mfg, mdl string, adm optional.Val[string]) {
 	if un.paramsSent.Swap(true) {
 		return
 	}
@@ -337,15 +340,22 @@ func (un *unit) sendParameters(mfg, mdl, adm string) {
 
 	switch un.id.SvcType {
 	case discovery.ServicePrinter:
+		var adminURL string
+		if adm != nil {
+			adminURL = *adm
+		}
+
 		evnt = &discovery.EventPrinterParameters{
 			ID:              un.id,
 			MakeModel:       mkmodel,
+			AdminURL:        adminURL,
 			PPDManufacturer: mfg,
 			PPDModel:        mdl,
 			Printer: discovery.PrinterParameters{
 				PSProduct: "(" + mdl + ")",
 			},
 		}
+
 	case discovery.ServiceScanner:
 		evnt = &discovery.EventScannerParameters{
 			ID:        un.id,

@@ -82,7 +82,7 @@ func (ann Announce) ToXML(name string) xmldoc.Element {
 		},
 	}
 
-	if ann.Types != 0 {
+	if ann.Types != nil {
 		elm.Children = append(elm.Children, ann.Types.ToXML())
 	}
 

@@ -10,6 +10,6 @@ package wsd
 
 // Well-known destinations:
 const (
-	ToDiscovery = "urn:schemas-xmlsoap-org:ws:2005:04:discovery"
-	ToAnonymous = "http://schemas.xmlsoap.org/ws/2004/08/addressing/role/anonymous"
+	ToDiscovery AnyURI = "urn:schemas-xmlsoap-org:ws:2005:04:discovery"
+	ToAnonymous AnyURI = "http://schemas.xmlsoap.org/ws/2004/08/addressing/role/anonymous"
 )

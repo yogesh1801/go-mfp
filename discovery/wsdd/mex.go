@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/OpenPrinting/go-mfp/proto/wsd"
+	"github.com/OpenPrinting/go-mfp/util/optional"
 	"github.com/OpenPrinting/go-mfp/util/uuid"
 )
 
@@ -187,7 +188,7 @@ func (mg *mexGetter) fetchHTTP(ctx context.Context,
 		Header: wsd.Header{
 			Action:    wsd.ActGet,
 			MessageID: msgid,
-			To:        target,
+			To:        optional.New(target),
 		},
 		Body: wsd.Get{},
 	}

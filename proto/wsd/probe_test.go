@@ -27,7 +27,7 @@ func TestProbe(t *testing.T) {
 	tests := []testData{
 		{
 			probe: Probe{
-				Types: TypeDevice,
+				Types: []Type{Device},
 			},
 
 			xml: xmldoc.Element{

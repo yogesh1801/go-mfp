@@ -9,17 +9,18 @@
 package wsd
 
 import (
+	"github.com/OpenPrinting/go-mfp/util/optional"
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
 // Header represents a common WSD message header.
 type Header struct {
-	Action      Action            // Required: Message action
-	MessageID   AnyURI            // Required: message identifier
-	To          AnyURI            // Required: message destination
-	ReplyTo     EndpointReference // Optional: address to reply to
-	RelatesTo   AnyURI            // Optional: ID of related message
-	AppSequence *AppSequence      // Optional: Message sequence
+	Action      Action                          // Message action
+	MessageID   AnyURI                          // Message identifier
+	To          optional.Val[AnyURI]            // Message destination
+	ReplyTo     optional.Val[EndpointReference] // Address to reply to
+	RelatesTo   optional.Val[AnyURI]            // ID of related message
+	AppSequence optional.Val[AppSequence]       // Message sequence
 }
 
 // DecodeHeader decodes message header [Header] from the XML tree
@@ -47,20 +48,34 @@ func DecodeHeader(root xmldoc.Element) (hdr Header, err error) {
 		hdr.MessageID, err = DecodeAnyURI(messageID.Elem)
 	}
 	if err == nil && to.Found {
-		hdr.To, err = DecodeAnyURI(to.Elem)
+		var tmp AnyURI
+		tmp, err = DecodeAnyURI(to.Elem)
+		if err == nil {
+			hdr.To = optional.New(tmp)
+		}
 	}
+
 	if err == nil && replyTo.Found {
-		hdr.ReplyTo, err = DecodeEndpointReference(replyTo.Elem)
+		var tmp EndpointReference
+		tmp, err = DecodeEndpointReference(replyTo.Elem)
+		if err == nil {
+			hdr.ReplyTo = optional.New(tmp)
+		}
 	}
+
 	if err == nil && relatesTo.Found {
-		hdr.RelatesTo, err = DecodeAnyURI(relatesTo.Elem)
+		var tmp AnyURI
+		tmp, err = DecodeAnyURI(relatesTo.Elem)
+		if err == nil {
+			hdr.RelatesTo = optional.New(tmp)
+		}
 	}
 
 	if err == nil && appSequence.Found {
 		var seq AppSequence
 		seq, err = DecodeAppSequence(appSequence.Elem)
 		if err == nil {
-			hdr.AppSequence = &seq
+			hdr.AppSequence = optional.New(seq)
 		}
 	}
 
@@ -83,29 +98,29 @@ func (hdr Header) ToXML() xmldoc.Element {
 		},
 	}
 
-	if hdr.To != "" {
+	if hdr.To != nil {
 		elm.Children = append(elm.Children,
 			xmldoc.Element{
 				Name: NsAddressing + ":" + "To",
-				Text: string(hdr.To),
+				Text: string(*hdr.To),
 			})
 	}
 
-	if hdr.ReplyTo.Address != "" {
+	if hdr.ReplyTo != nil {
 		elm.Children = append(elm.Children,
-			hdr.ReplyTo.ToXML(NsAddressing+":ReplyTo"))
+			(*hdr.ReplyTo).ToXML(NsAddressing+":ReplyTo"))
 	}
 
-	if hdr.RelatesTo != "" {
+	if hdr.RelatesTo != nil {
 		elm.Children = append(elm.Children,
 			xmldoc.Element{
 				Name: NsAddressing + ":" + "RelatesTo",
-				Text: string(hdr.RelatesTo),
+				Text: string(*hdr.RelatesTo),
 			})
 	}
 
 	if hdr.AppSequence != nil {
-		elm.Children = append(elm.Children, hdr.AppSequence.ToXML())
+		elm.Children = append(elm.Children, (*hdr.AppSequence).ToXML())
 	}
 
 	return elm

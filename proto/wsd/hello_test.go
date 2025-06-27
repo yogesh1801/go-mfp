@@ -48,7 +48,8 @@ func TestHello(t *testing.T) {
 				EndpointReference: EndpointReference{
 					Address: "urn:uuid:1fccdddc-380e-41df-8d38-b5df20bc47ef",
 				},
-				Types: TypeDevice | TypePrinter | TypeScanner,
+				Types: []Type{Device,
+					PrinterServiceType, ScannerServiceType},
 				XAddrs: XAddrs{
 					"http://127.0.0.1/",
 					"https://[::1]/",
