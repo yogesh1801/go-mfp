@@ -33,7 +33,6 @@ import (
 // address ranges (taking the mask into account) overlap. You can use
 // [Addr.Overlaps] to test whether any two addresses overlap.
 //
-
 // Strictly speaking, ranges covered by two overlapping addresses either
 // equal, if masks are the same, or nest, if mask of the "inner" address
 // is narrower that mask of the "outer" address.
