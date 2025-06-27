@@ -8,8 +8,7 @@
 
 package abstract
 
-// ColorMode specifies combination of the color mode (color/grayscale/1-bit
-// black and white) with the bit depth.
+// ColorMode specifies the color space capabilities of printer or scanner.
 type ColorMode int
 
 // Known color modes:
