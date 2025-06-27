@@ -183,7 +183,7 @@ func cmdDiscoverHandler(ctx context.Context, inv *argv.Invocation) error {
 					pager.Printf("    Sources:    %s",
 						p.Sources)
 				}
-				if !p.Colors.Empty() {
+				if !p.Colors.IsEmpty() {
 					var modes []string
 					if p.Colors.Contains(
 						abstract.ColorModeColor) {

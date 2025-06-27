@@ -280,10 +280,10 @@ func txtOption(value string) (discovery.Option, error) {
 }
 
 // txtColors decodes discovery.ColorMode bits
-func txtColors(value string) (generic.Set[abstract.ColorMode], error) {
+func txtColors(value string) (generic.Bitset[abstract.ColorMode], error) {
 	keywords, _ := txtKeywords(value)
 
-	var colors generic.Set[abstract.ColorMode]
+	var colors generic.Bitset[abstract.ColorMode]
 	for _, kw := range keywords {
 		switch txToLower(kw) {
 		case "color":

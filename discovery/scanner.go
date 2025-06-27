@@ -16,8 +16,8 @@ import (
 // ScannerParameters represents the discoverable information about the printer.
 type ScannerParameters struct {
 	// Scanner capabilities
-	Duplex  Option                          // Duplex mode supported
-	Sources ScanSource                      // Supported sources
-	Colors  generic.Set[abstract.ColorMode] // Supported color modes
-	PDL     []string                        // Supported MIME types
+	Duplex  Option                             // Duplex mode supported
+	Sources ScanSource                         // Supported sources
+	Colors  generic.Bitset[abstract.ColorMode] // Supported color modes
+	PDL     []string                           // Supported MIME types
 }
