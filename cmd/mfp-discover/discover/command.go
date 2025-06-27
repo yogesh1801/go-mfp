@@ -12,6 +12,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/OpenPrinting/go-mfp/abstract"
 	"github.com/OpenPrinting/go-mfp/argv"
 	"github.com/OpenPrinting/go-mfp/discovery"
 	"github.com/OpenPrinting/go-mfp/discovery/dnssd"
@@ -182,9 +183,22 @@ func cmdDiscoverHandler(ctx context.Context, inv *argv.Invocation) error {
 					pager.Printf("    Sources:    %s",
 						p.Sources)
 				}
-				if p.Colors != 0 {
+				if !p.Colors.Empty() {
+					var modes []string
+					if p.Colors.Contains(
+						abstract.ColorModeColor) {
+						modes = append(modes, "color")
+					}
+					if p.Colors.Contains(
+						abstract.ColorModeMono) {
+						modes = append(modes, "mono")
+					}
+					if p.Colors.Contains(
+						abstract.ColorModeBinary) {
+						modes = append(modes, "bin")
+					}
 					pager.Printf("    ColorModes: %s",
-						p.Colors)
+						strings.Join(modes, ","))
 				}
 				if len(p.PDL) != 0 {
 					pager.Printf("    PDL:        %s",
