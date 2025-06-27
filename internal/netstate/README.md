@@ -1,7 +1,7 @@
 # Network state monitoring
 
 ```
-import "github.com/OpenPrinting/go-mfp/discovery/netstate"
+import "github.com/OpenPrinting/go-mfp/internal/netstate"
 ```
 
 This package provides mechanisms for monitoring changes in network

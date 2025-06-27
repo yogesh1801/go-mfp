@@ -13,7 +13,7 @@ import (
 	"net/netip"
 	"sync"
 
-	"github.com/OpenPrinting/go-mfp/discovery/netstate"
+	"github.com/OpenPrinting/go-mfp/internal/netstate"
 	"github.com/OpenPrinting/go-mfp/proto/wsd"
 	"github.com/OpenPrinting/go-mfp/util/generic"
 	"github.com/OpenPrinting/go-mfp/util/optional"

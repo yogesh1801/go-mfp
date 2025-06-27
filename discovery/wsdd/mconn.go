@@ -15,7 +15,7 @@ import (
 	"sync/atomic"
 	"syscall"
 
-	"github.com/OpenPrinting/go-mfp/discovery/netstate"
+	"github.com/OpenPrinting/go-mfp/internal/netstate"
 )
 
 // mconn wraps net.UDPConn and prepares it to be used for
