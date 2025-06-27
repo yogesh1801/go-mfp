@@ -13,31 +13,33 @@ import (
 	"net/netip"
 )
 
-// Addr represents a single IP address with mask, assigned to the network
+// Addr represents a single IP address with a mask, assigned to a network
 // interface.
 //
 // Unlike [net.IP] or [net.IPAddr], Addr is a comparable value type
-// (it supports == and can be a map key) and is immutable.
+// (it supports == and can be used as a map key) and is immutable.
 //
-// Interface may have multiple addresses which may belong to the same
-// or different IP networks. Belonging addresses to IP networks divides
-// addresses into groups. One and only one address of each group will
-// be marked as Primary.
+// An interface may have multiple addresses that can belong to the same
+// or different IP networks. Addresses are grouped by their IP network
+// membership. Within each group, exactly one address is marked as Primary.
 //
-// In another words, if all interface addresses will belong to the different
-// IP networks, all of them will be marked as Primary. If some of the
-// interface addresses belong to the same IP network, only one of these
-// addresses will be chosen as Primary.
+// In other words:
+//   - If all interface addresses belong to different IP networks, they will
+//     all be marked as Primary.
+//   - If multiple interface addresses belong to the same IP network, only one
+//     of them will be chosen as Primary.
 //
-// Addresses considered belonging to the same IP network, if ranges, taking
-// address Mask into account, overlap. [Addr.Overlaps] can be used to
-// test any two addresses for overlapping. Strictly speaking, ranges
-// covered by two overlapping addresses either equal, if masks are the
-// same, or nest, if mask of the "inner" address is narrower that mask of
-// the "outer" address.
+// Two addresses are considered to belong to the same IP network if their
+// address ranges (taking the mask into account) overlap. You can use
+// [Addr.Overlaps] to test whether any two addresses overlap.
 //
-// For overlapping addresses, [Addr.Narrower] reports whether of addresses
-// is narrower.
+
+// Strictly speaking, ranges covered by two overlapping addresses either
+// equal, if masks are the same, or nest, if mask of the "inner" address
+// is narrower that mask of the "outer" address.
+//
+// Use [Addr.Narrower] to determine which of two overlapping addresses
+// has the narrower mas
 type Addr struct {
 	netip.Prefix       // IP address with mask
 	nif          NetIf // Interface that owns the address
