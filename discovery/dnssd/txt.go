@@ -14,7 +14,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/OpenPrinting/go-mfp/abstract"
 	"github.com/OpenPrinting/go-mfp/discovery"
+	"github.com/OpenPrinting/go-mfp/util/generic"
 	"github.com/OpenPrinting/go-mfp/util/uuid"
 )
 
@@ -278,20 +280,18 @@ func txtOption(value string) (discovery.Option, error) {
 }
 
 // txtColors decodes discovery.ColorMode bits
-func txtColors(value string) (discovery.ColorMode, error) {
+func txtColors(value string) (generic.Set[abstract.ColorMode], error) {
 	keywords, _ := txtKeywords(value)
 
-	var colors discovery.ColorMode
+	var colors generic.Set[abstract.ColorMode]
 	for _, kw := range keywords {
 		switch txToLower(kw) {
 		case "color":
-			colors |= discovery.ColorRGB
+			colors.Add(abstract.ColorModeColor)
 		case "grayscale":
-			colors |= discovery.ColorGrayscale
+			colors.Add(abstract.ColorModeMono)
 		case "binary":
-			colors |= discovery.ColorBW
-		default:
-			colors |= discovery.ColorOther
+			colors.Add(abstract.ColorModeBinary)
 		}
 	}
 
