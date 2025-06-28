@@ -8,7 +8,11 @@
 
 package transport
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/OpenPrinting/go-mfp/log"
+)
 
 // Client wraps [http.Client]
 type Client struct {
@@ -33,4 +37,22 @@ func NewClient(tr *Transport) *Client {
 	}
 
 	return clnt
+}
+
+// Do sends an HTTP request and returns an HTTP response.
+func (c *Client) Do(rq *http.Request) (*http.Response, error) {
+	// Execute the request
+	rsp, err := c.Client.Do(rq)
+
+	// Write log message
+	var status string
+	if err != nil {
+		status = err.Error()
+	} else {
+		status = rsp.Status
+	}
+
+	log.Debug(rq.Context(), "HTTP %s %s - %s", rq.Method, rq.URL, status)
+
+	return rsp, err
 }

@@ -138,12 +138,8 @@ func (c *Client) DoWithBody(ctx context.Context,
 	// Call server
 	httpRsp, err := c.HTTPClient.Do(httpRq)
 	if err != nil {
-		log.Debug(ctx, "HTTP %s", err)
 		return err
 	}
-
-	log.Debug(ctx, "HTTP %s %s - %s",
-		httpRq.Method, httpRq.URL, httpRsp.Status)
 
 	if httpRsp.StatusCode != http.StatusOK {
 		err = fmt.Errorf("HTTP: %s", httpRsp.Status)
