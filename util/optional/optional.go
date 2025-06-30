@@ -18,3 +18,12 @@ type Val[T any] *T
 func New[T any](v T) *T {
 	return &v
 }
+
+// Get returns [Val]'s value. If Val is nil, T's zero value is returned.
+func Get[T any](opt Val[T]) T {
+	var v T
+	if opt != nil {
+		v = *opt
+	}
+	return v
+}
