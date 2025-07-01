@@ -100,3 +100,8 @@ func (set Bitset[T]) Contains(elem T) bool {
 func (set Bitset[T]) Count() int {
 	return bits.OnesCount32(uint32(set))
 }
+
+// Clear purges the set.
+func (set *Bitset[T]) Clear() {
+	*set = 0
+}
