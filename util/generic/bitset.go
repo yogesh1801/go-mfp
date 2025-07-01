@@ -95,3 +95,8 @@ func (set Bitset[T]) Contains(elem T) bool {
 	mask := uint32(1) << elem
 	return uint32(set)&mask != 0
 }
+
+// Count returns count of elements in the set.
+func (set Bitset[T]) Count() int {
+	return bits.OnesCount32(uint32(set))
+}
