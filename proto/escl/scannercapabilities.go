@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/OpenPrinting/go-mfp/util/generic"
 	"github.com/OpenPrinting/go-mfp/util/optional"
 	"github.com/OpenPrinting/go-mfp/util/uuid"
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
@@ -295,6 +296,53 @@ func DecodeScannerCapabilities(root xmldoc.Element) (
 	}
 
 	return
+}
+
+// DocumentFormats returns the supported document formats.
+func (scancaps ScannerCapabilities) DocumentFormats() []string {
+	// Gather all SettingProfiles around the entire ScannerCapabilities
+	profs := scancaps.SettingProfiles
+
+	if scancaps.Platen != nil && scancaps.Platen.PlatenInputCaps != nil {
+		profs = append(profs,
+			scancaps.Platen.PlatenInputCaps.SettingProfiles...)
+	}
+
+	if scancaps.Camera != nil && scancaps.Camera.CameraInputCaps != nil {
+		profs = append(profs,
+			scancaps.Camera.CameraInputCaps.SettingProfiles...)
+	}
+
+	if scancaps.ADF != nil && scancaps.ADF.ADFSimplexInputCaps != nil {
+		profs = append(profs,
+			scancaps.ADF.ADFSimplexInputCaps.SettingProfiles...)
+	}
+
+	if scancaps.ADF != nil && scancaps.ADF.ADFDuplexInputCaps != nil {
+		profs = append(profs,
+			scancaps.ADF.ADFDuplexInputCaps.SettingProfiles...)
+	}
+
+	// Extract document formats
+	seen := generic.NewSet[string]()
+	formats := make([]string, 0, 4)
+	for _, prof := range profs {
+		for _, fmt := range prof.DocumentFormatsExt {
+			if !seen.Contains(fmt) {
+				seen.Add(fmt)
+				formats = append(formats, fmt)
+			}
+		}
+
+		for _, fmt := range prof.DocumentFormats {
+			if !seen.Contains(fmt) {
+				seen.Add(fmt)
+				formats = append(formats, fmt)
+			}
+		}
+	}
+
+	return formats
 }
 
 // ToXML generates XML tree for the [ScannerCapabilities].
