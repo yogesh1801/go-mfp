@@ -285,9 +285,10 @@ func fromAbstractSettingsProfiles(
 				ap.CCDChannels),
 			BinaryRenderings: fromAbstractBinaryRenderings(
 				ap.BinaryRenderings),
-			SupportedResolutions: fromAbstractResolutions(
-				ap.Resolutions,
-				ap.ResolutionRange),
+			SupportedResolutions: []SupportedResolutions{
+				fromAbstractResolutions(
+					ap.Resolutions,
+					ap.ResolutionRange)},
 		}
 
 		if version >= MakeVersion(2, 1) {

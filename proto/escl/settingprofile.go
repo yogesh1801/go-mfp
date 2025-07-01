@@ -17,14 +17,14 @@ import (
 //
 // eSCL Technical Specification, 8.1.2.
 type SettingProfile struct {
-	ColorModes           []ColorMode          // Supported color modes
-	ContentTypes         []ContentType        // Supported content types
-	DocumentFormats      []string             // MIME types of supported formats
-	DocumentFormatsExt   []string             // eSCL 2.1+
-	SupportedResolutions SupportedResolutions // Supported resolutions
-	ColorSpaces          []ColorSpace         // Supported color spaces
-	CCDChannels          []CCDChannel         // Supported CCD channels
-	BinaryRenderings     []BinaryRendering    // Supported bin renderings
+	ColorModes           []ColorMode            // Supported color modes
+	ContentTypes         []ContentType          // Supported content types
+	DocumentFormats      []string               // MIME types of supported formats
+	DocumentFormatsExt   []string               // eSCL 2.1+
+	SupportedResolutions []SupportedResolutions // Supported resolutions
+	ColorSpaces          []ColorSpace           // Supported color spaces
+	CCDChannels          []CCDChannel           // Supported CCD channels
+	BinaryRenderings     []BinaryRendering      // Supported bin renderings
 }
 
 // decodeSettingProfile decodes [SettingProfile] from the XML tree.
@@ -37,16 +37,27 @@ func decodeSettingProfile(root xmldoc.Element) (
 	colormodes := xmldoc.Lookup{Name: NsScan + ":ColorModes"}
 	contenttypes := xmldoc.Lookup{Name: NsScan + ":ContentTypes"}
 	formats := xmldoc.Lookup{Name: NsScan + ":DocumentFormats"}
-	resolutions := xmldoc.Lookup{Name: NsScan + ":SupportedResolutions",
-		Required: true}
 	clrSpaces := xmldoc.Lookup{Name: NsScan + ":ColorSpaces"}
 	ccdChannels := xmldoc.Lookup{Name: NsScan + ":CcdChannels"}
 	binrend := xmldoc.Lookup{Name: NsScan + ":BinaryRenderings"}
 
 	missed := root.Lookup(&colormodes, &contenttypes, &formats,
-		&resolutions, &clrSpaces, &ccdChannels, &binrend)
+		&clrSpaces, &ccdChannels, &binrend)
 	if missed != nil {
 		err = xmldoc.XMLErrMissed(missed.Name)
+		return
+	}
+
+	// There may be multiple resolutions elements under the same name...
+	var resolutions []xmldoc.Element
+	for _, elem := range root.Children {
+		if elem.Name == NsScan+":SupportedResolutions" {
+			resolutions = append(resolutions, elem)
+		}
+	}
+
+	if len(resolutions) < 1 {
+		err = xmldoc.XMLErrMissed(NsScan + ":SupportedResolutions")
 		return
 	}
 
@@ -97,10 +108,15 @@ func decodeSettingProfile(root xmldoc.Element) (
 		}
 	}
 
-	prof.SupportedResolutions, err = decodeSupportedResolutions(
-		resolutions.Elem)
-	if err != nil {
-		return
+	for _, elem := range resolutions {
+		var res SupportedResolutions
+		res, err = decodeSupportedResolutions(elem)
+		if err != nil {
+			return
+		}
+
+		prof.SupportedResolutions =
+			append(prof.SupportedResolutions, res)
 	}
 
 	if clrSpaces.Found {
@@ -216,8 +232,10 @@ func (prof SettingProfile) toXML(name string) xmldoc.Element {
 		elm.Children = append(elm.Children, chld)
 	}
 
-	chld = prof.SupportedResolutions.toXML(NsScan + ":SupportedResolutions")
-	elm.Children = append(elm.Children, chld)
+	for _, res := range prof.SupportedResolutions {
+		chld = res.toXML(NsScan + ":SupportedResolutions")
+		elm.Children = append(elm.Children, chld)
+	}
 
 	if prof.ColorSpaces != nil {
 		chld = xmldoc.Element{Name: NsScan + ":ColorSpaces"}

@@ -70,7 +70,7 @@ func TestKyoceraECOSYSM2040dnScannerCapabilities(t *testing.T) {
 							"image/jpeg",
 							"application/pdf",
 						},
-						SupportedResolutions: SupportedResolutions{
+						SupportedResolutions: []SupportedResolutions{{
 							DiscreteResolutions: DiscreteResolutions{
 								DiscreteResolution{
 									XResolution: 200,
@@ -96,7 +96,7 @@ func TestKyoceraECOSYSM2040dnScannerCapabilities(t *testing.T) {
 									XResolution: 600,
 									YResolution: 600,
 								},
-							},
+							}},
 						},
 					},
 				},
@@ -129,7 +129,7 @@ func TestKyoceraECOSYSM2040dnScannerCapabilities(t *testing.T) {
 							"image/jpeg",
 							"application/pdf",
 						},
-						SupportedResolutions: SupportedResolutions{
+						SupportedResolutions: []SupportedResolutions{{
 							DiscreteResolutions: DiscreteResolutions{
 								DiscreteResolution{
 									XResolution: 200,
@@ -156,7 +156,7 @@ func TestKyoceraECOSYSM2040dnScannerCapabilities(t *testing.T) {
 									YResolution: 600,
 								},
 							},
-						},
+						}},
 					},
 				},
 			},
@@ -182,7 +182,7 @@ func TestKyoceraECOSYSM2040dnScannerCapabilities(t *testing.T) {
 							"image/jpeg",
 							"application/pdf",
 						},
-						SupportedResolutions: SupportedResolutions{
+						SupportedResolutions: []SupportedResolutions{{
 							DiscreteResolutions: DiscreteResolutions{
 								DiscreteResolution{
 									XResolution: 200,
@@ -209,7 +209,7 @@ func TestKyoceraECOSYSM2040dnScannerCapabilities(t *testing.T) {
 									YResolution: 600,
 								},
 							},
-						},
+						}},
 					},
 				},
 				FeedDirections: []FeedDirection{
@@ -378,7 +378,7 @@ func TestHPLaserJetM426fdnScannerCapabilities(t *testing.T) {
 							"image/jpeg",
 							"application/pdf",
 						},
-						SupportedResolutions: SupportedResolutions{
+						SupportedResolutions: []SupportedResolutions{{
 							DiscreteResolutions: DiscreteResolutions{
 								DiscreteResolution{
 									XResolution: 75,
@@ -401,7 +401,7 @@ func TestHPLaserJetM426fdnScannerCapabilities(t *testing.T) {
 									YResolution: 1200,
 								},
 							},
-						},
+						}},
 						ColorSpaces: []ColorSpace{SRGB},
 					},
 				},
@@ -441,7 +441,7 @@ func TestHPLaserJetM426fdnScannerCapabilities(t *testing.T) {
 							"image/jpeg",
 							"application/pdf",
 						},
-						SupportedResolutions: SupportedResolutions{
+						SupportedResolutions: []SupportedResolutions{{
 							DiscreteResolutions: DiscreteResolutions{
 								DiscreteResolution{
 									XResolution: 75,
@@ -456,7 +456,7 @@ func TestHPLaserJetM426fdnScannerCapabilities(t *testing.T) {
 									YResolution: 300,
 								},
 							},
-						},
+						}},
 						ColorSpaces: []ColorSpace{SRGB},
 					},
 				},
@@ -494,7 +494,7 @@ func TestHPLaserJetM426fdnScannerCapabilities(t *testing.T) {
 							"image/jpeg",
 							"application/pdf",
 						},
-						SupportedResolutions: SupportedResolutions{
+						SupportedResolutions: []SupportedResolutions{{
 							DiscreteResolutions: DiscreteResolutions{
 								DiscreteResolution{
 									XResolution: 75,
@@ -509,7 +509,7 @@ func TestHPLaserJetM426fdnScannerCapabilities(t *testing.T) {
 									YResolution: 300,
 								},
 							},
-						},
+						}},
 						ColorSpaces: []ColorSpace{SRGB},
 					},
 				},

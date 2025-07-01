@@ -590,9 +590,11 @@ func TestFromAbstractSettingsProfiles(t *testing.T) {
 						testAbstractCCDChannels),
 					BinaryRenderings: fromAbstractBinaryRenderings(
 						testAbstractBinaryRenderings),
-					SupportedResolutions: fromAbstractResolutions(
-						testAbstractResolutions,
-						abstract.ResolutionRange{}),
+					SupportedResolutions: []SupportedResolutions{
+						fromAbstractResolutions(
+							testAbstractResolutions,
+							abstract.ResolutionRange{}),
+					},
 				},
 			},
 		},
@@ -614,9 +616,11 @@ func TestFromAbstractSettingsProfiles(t *testing.T) {
 						testAbstractCCDChannels),
 					BinaryRenderings: fromAbstractBinaryRenderings(
 						testAbstractBinaryRenderings),
-					SupportedResolutions: fromAbstractResolutions(
-						testAbstractResolutions,
-						abstract.ResolutionRange{}),
+					SupportedResolutions: []SupportedResolutions{
+						fromAbstractResolutions(
+							testAbstractResolutions,
+							abstract.ResolutionRange{}),
+					},
 				},
 			},
 		},
