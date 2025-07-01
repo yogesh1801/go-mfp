@@ -31,7 +31,9 @@ var testSettingProfile = SettingProfile{
 	DocumentFormatsExt: []string{
 		"image/jpeg", "application/pdf",
 	},
-	SupportedResolutions: testSupportedResolutions,
+	SupportedResolutions: []SupportedResolutions{
+		testSupportedResolutions,
+	},
 	ColorSpaces: []ColorSpace{
 		SRGB,
 	},
@@ -94,7 +96,9 @@ func TestSettingProfile(t *testing.T) {
 		// Missed optional elements
 		{
 			prof: SettingProfile{
-				SupportedResolutions: testSupportedResolutions,
+				SupportedResolutions: []SupportedResolutions{
+					testSupportedResolutions,
+				},
 			},
 			xml: xmldoc.WithChildren(NsScan+":SettingProfile",
 				testSupportedResolutions.toXML(NsScan+":SupportedResolutions"),
@@ -110,7 +114,9 @@ func TestSettingProfile(t *testing.T) {
 				DocumentFormatsExt: []string{
 					"application/pdf",
 				},
-				SupportedResolutions: testSupportedResolutions,
+				SupportedResolutions: []SupportedResolutions{
+					testSupportedResolutions,
+				},
 			},
 			xml: xmldoc.WithChildren(NsScan+":SettingProfile",
 				xmldoc.WithChildren(NsScan+":DocumentFormats",
