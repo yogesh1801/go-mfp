@@ -9,11 +9,16 @@
 package escl
 
 import (
+	"bytes"
 	"testing"
 
 	"github.com/OpenPrinting/go-mfp/abstract"
+	"github.com/OpenPrinting/go-mfp/internal/assert"
 	"github.com/OpenPrinting/go-mfp/internal/testutils"
+	"github.com/OpenPrinting/go-mfp/util/generic"
 	"github.com/OpenPrinting/go-mfp/util/optional"
+	"github.com/OpenPrinting/go-mfp/util/uuid"
+	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
 // TestScanSettingsToAbstract tests ScanSettings.toAbstract method
@@ -417,5 +422,138 @@ func TestScanSettingsToAbstract(t *testing.T) {
 		testutils.CheckConvertionTest(t,
 			"ScanSettings.toAbstract",
 			test.comment, test.out, out)
+	}
+}
+
+// TestScannerCapabilitiesToAbstract tests ScannerCapabilities.ToAbstract
+func TestScannerCapabilitiesToAbstract(t *testing.T) {
+	rd := bytes.NewReader(testutils.Kyocera.
+		ECOSYS.M2040dn.ESCL.ScannerCapabilities)
+	xml, err := xmldoc.Decode(NsMap, rd)
+	assert.NoError(err)
+
+	scancaps, err := DecodeScannerCapabilities(xml)
+	assert.NoError(err)
+
+	abscaps := scancaps.ToAbstract()
+	expected := abstract.ScannerCapabilities{
+		UUID:              uuid.MustParse("4509a320-00a0-008f-00b6-002507510eca"),
+		MakeAndModel:      "Kyocera ECOSYS M2040dn",
+		SerialNumber:      "VCF9192281",
+		Manufacturer:      "",
+		AdminURI:          "https://KM7B6A91.local/airprint",
+		IconURI:           "https://KM7B6A91.local/printer-icon/machine_128.png",
+		DocumentFormats:   []string{"image/jpeg", "application/pdf"},
+		CompressionRange:  abstract.Range{Min: 1, Max: 5, Normal: 1, Step: 1},
+		ADFCapacity:       75,
+		BrightnessRange:   abstract.Range{},
+		ContrastRange:     abstract.Range{},
+		GammaRange:        abstract.Range{},
+		HighlightRange:    abstract.Range{},
+		NoiseRemovalRange: abstract.Range{},
+		ShadowRange:       abstract.Range{},
+		SharpenRange:      abstract.Range{Min: -3, Max: 3, Normal: 0, Step: 1},
+		ThresholdRange:    abstract.Range{},
+		Platen: &abstract.InputCapabilities{
+			MinWidth:  999,
+			MaxWidth:  21598,
+			MinHeight: 999,
+			MaxHeight: 29701,
+			Intents: generic.MakeBitset(
+				abstract.IntentDocument,
+				abstract.IntentTextAndGraphic,
+				abstract.IntentPhoto,
+				abstract.IntentPreview,
+			),
+			Profiles: []abstract.SettingsProfile{
+				{
+					ColorModes: generic.MakeBitset(
+						abstract.ColorModeBinary,
+						abstract.ColorModeMono,
+						abstract.ColorModeColor,
+					),
+					Depths: generic.MakeBitset(
+						abstract.ColorDepth8,
+					),
+					Resolutions: []abstract.Resolution{
+						{XResolution: 200, YResolution: 100},
+						{XResolution: 200, YResolution: 200},
+						{XResolution: 200, YResolution: 400},
+						{XResolution: 300, YResolution: 300},
+						{XResolution: 400, YResolution: 400},
+						{XResolution: 600, YResolution: 600},
+					},
+				},
+			},
+		},
+		ADFSimplex: &abstract.InputCapabilities{
+			MinWidth:  5004,
+			MaxWidth:  21598,
+			MinHeight: 5004,
+			MaxHeight: 35602,
+			Intents: generic.MakeBitset(
+				abstract.IntentDocument,
+				abstract.IntentTextAndGraphic,
+				abstract.IntentPhoto,
+				abstract.IntentPreview,
+			),
+			Profiles: []abstract.SettingsProfile{
+				{
+					ColorModes: generic.MakeBitset(
+						abstract.ColorModeBinary,
+						abstract.ColorModeMono,
+						abstract.ColorModeColor,
+					),
+					Depths: generic.MakeBitset(
+						abstract.ColorDepth8,
+					),
+					Resolutions: []abstract.Resolution{
+						{XResolution: 200, YResolution: 100},
+						{XResolution: 200, YResolution: 200},
+						{XResolution: 200, YResolution: 400},
+						{XResolution: 300, YResolution: 300},
+						{XResolution: 400, YResolution: 400},
+						{XResolution: 600, YResolution: 600},
+					},
+				},
+			},
+		},
+		ADFDuplex: &abstract.InputCapabilities{
+			MinWidth:  5004,
+			MaxWidth:  21598,
+			MinHeight: 5004,
+			MaxHeight: 35602,
+			Intents: generic.MakeBitset(
+				abstract.IntentDocument,
+				abstract.IntentTextAndGraphic,
+				abstract.IntentPhoto,
+				abstract.IntentPreview,
+			),
+			Profiles: []abstract.SettingsProfile{
+				{
+					ColorModes: generic.MakeBitset(
+						abstract.ColorModeBinary,
+						abstract.ColorModeMono,
+						abstract.ColorModeColor,
+					),
+					Depths: generic.MakeBitset(
+						abstract.ColorDepth8,
+					),
+					Resolutions: []abstract.Resolution{
+						{XResolution: 200, YResolution: 100},
+						{XResolution: 200, YResolution: 200},
+						{XResolution: 200, YResolution: 400},
+						{XResolution: 300, YResolution: 300},
+						{XResolution: 400, YResolution: 400},
+						{XResolution: 600, YResolution: 600},
+					},
+				},
+			},
+		},
+	}
+
+	diff := testutils.Diff(abscaps, expected)
+	if diff != "" {
+		t.Errorf("ScannerCapabilities.toAbstract:\n%s", diff)
 	}
 }

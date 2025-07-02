@@ -37,8 +37,22 @@ func (scancaps ScannerCapabilities) ToAbstract() abstract.ScannerCapabilities {
 		ThresholdRange:    optional.Get(scancaps.ThresholdSupport).toAbstract(),
 	}
 
+	if scancaps.Platen != nil {
+		abscaps.Platen = (*scancaps.Platen.PlatenInputCaps).toAbstract()
+	}
+
 	if scancaps.ADF != nil {
 		abscaps.ADFCapacity = optional.Get(scancaps.ADF.FeederCapacity)
+
+		if scancaps.ADF.ADFSimplexInputCaps != nil {
+			abscaps.ADFSimplex =
+				(*scancaps.ADF.ADFSimplexInputCaps).toAbstract()
+		}
+
+		if scancaps.ADF.ADFDuplexInputCaps != nil {
+			abscaps.ADFDuplex =
+				(*scancaps.ADF.ADFDuplexInputCaps).toAbstract()
+		}
 	}
 
 	return abscaps
@@ -145,9 +159,9 @@ func (ss ScanSettings) ToAbstract() abstract.ScannerRequest {
 	return absreq
 }
 
-// toAbstract converts [InputSourceCaps] to [anstract.InputCapabilities].
-func (caps InputSourceCaps) toAbstract() abstract.InputCapabilities {
-	abscaps := abstract.InputCapabilities{
+// toAbstract converts [InputSourceCaps] to *[anstract.InputCapabilities].
+func (caps InputSourceCaps) toAbstract() *abstract.InputCapabilities {
+	abscaps := &abstract.InputCapabilities{
 		MinWidth:  abstract.DimensionFromDots(300, caps.MinWidth),
 		MaxWidth:  abstract.DimensionFromDots(300, caps.MaxWidth),
 		MinHeight: abstract.DimensionFromDots(300, caps.MinHeight),
@@ -259,8 +273,8 @@ func (prof SettingProfile) toAbstract() []abstract.SettingsProfile {
 
 		// Translate resolutions
 		for _, res := range supported.DiscreteResolutions {
-			absprofs[i].Resolutions = append(absprof.Resolutions,
-				res.toAbstract())
+			absprofs[i].Resolutions = append(
+				absprofs[i].Resolutions, res.toAbstract())
 		}
 
 		if supported.ResolutionRange != nil {
