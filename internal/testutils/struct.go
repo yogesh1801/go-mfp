@@ -12,12 +12,18 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/kr/pretty"
 )
 
 // Diff returns a pretty-printing report of the difference between
 // two values. If values are equal, it returns empty string.
 func Diff(x, y any) string {
 	return cmp.Diff(x, y)
+}
+
+// Format formats (pretty-prints) an arbitrary Go value.
+func Format(v any) string {
+	return pretty.Sprint(v)
 }
 
 // CheckConvertionTest checks results of the data conversion test
