@@ -207,6 +207,11 @@ func SHA1(space UUID, name string) UUID {
 	return uuid
 }
 
+// MustParse calls [Parse] and panics in a case of any error.
+func MustParse(s string) UUID {
+	return Must(Parse(s))
+}
+
 // Must returns UUID if err is nil and panics otherwise.
 func Must(uuid UUID, err error) UUID {
 	if err != nil {
@@ -232,6 +237,11 @@ func (uuid UUID) String() string {
 		uuid[4], uuid[5], uuid[6], uuid[7],
 		uuid[8], uuid[9], uuid[10], uuid[11],
 		uuid[12], uuid[13], uuid[14], uuid[15])
+}
+
+// GoString returns the Go source representation for UUID
+func (uuid UUID) GoString() string {
+	return fmt.Sprintf("uuid.MustParse(%q)", uuid.String())
 }
 
 // URN returns the URN form of UUID, per [RFC 2141]:

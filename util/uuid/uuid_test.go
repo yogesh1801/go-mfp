@@ -140,27 +140,33 @@ func TestFormat(t *testing.T) {
 
 	tests := []testData{
 		{
-			uuid:   Must(Parse("c69fe12a149146c3908348035aa4d749")),
+			uuid:   MustParse("c69fe12a149146c3908348035aa4d749"),
 			format: "string",
 			out:    "c69fe12a-1491-46c3-9083-48035aa4d749",
 		},
 
 		{
-			uuid:   Must(Parse("c69fe12a149146c3908348035aa4d749")),
+			uuid:   MustParse("c69fe12a149146c3908348035aa4d749"),
 			format: "URN",
 			out:    "urn:uuid:c69fe12a-1491-46c3-9083-48035aa4d749",
 		},
 
 		{
-			uuid:   Must(Parse("c69fe12a149146c3908348035aa4d749")),
+			uuid:   MustParse("c69fe12a149146c3908348035aa4d749"),
 			format: "Microsoft",
 			out:    "{c69fe12a-1491-46c3-9083-48035aa4d749}",
 		},
 
 		{
-			uuid:   Must(Parse("c69fe12a149146c3908348035aa4d749")),
+			uuid:   MustParse("c69fe12a149146c3908348035aa4d749"),
 			format: "narshaltext",
 			out:    "c69fe12a-1491-46c3-9083-48035aa4d749",
+		},
+
+		{
+			uuid:   MustParse("c69fe12a149146c3908348035aa4d749"),
+			format: "go",
+			out:    `uuid.MustParse("c69fe12a-1491-46c3-9083-48035aa4d749")`,
 		},
 	}
 
@@ -176,6 +182,8 @@ func TestFormat(t *testing.T) {
 		case "narshaltext":
 			text, _ := test.uuid.MarshalText()
 			out = string(text)
+		case "go":
+			out = test.uuid.GoString()
 		default:
 			panic(fmt.Sprintf(
 				"unhandled formatter %q", test.format))
@@ -205,7 +213,7 @@ func TestRandomFrom(t *testing.T) {
 				0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
 				0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
 			},
-			uuid: Must(Parse("000102030405460788090a0b0c0d0e0f")),
+			uuid: MustParse("000102030405460788090a0b0c0d0e0f"),
 		},
 
 		// All zeroes input
@@ -214,7 +222,7 @@ func TestRandomFrom(t *testing.T) {
 				0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 				0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 			},
-			uuid: Must(Parse("00000000000040008000000000000000")),
+			uuid: MustParse("00000000000040008000000000000000"),
 		},
 
 		// All ones input
@@ -223,7 +231,7 @@ func TestRandomFrom(t *testing.T) {
 				0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
 				0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
 			},
-			uuid: Must(Parse("ffffffffffff4fffbfffffffffffffff")),
+			uuid: MustParse("ffffffffffff4fffbfffffffffffffff"),
 		},
 
 		// Truncated input
@@ -271,84 +279,84 @@ func TestVerVar(t *testing.T) {
 	tests := []testData{
 		// Version 0, Variant 0b_100_00000,
 		{
-			uuid: Must(Parse("000000000000-00-00-80-00000000000000")),
+			uuid: MustParse("000000000000-00-00-80-00000000000000"),
 			ver:  0,
 			vrnt: VariantRFC4122,
 		},
 
 		// Version 1, Variant 0b_100_00000,
 		{
-			uuid: Must(Parse("000000000000-10-00-80-00000000000000")),
+			uuid: MustParse("000000000000-10-00-80-00000000000000"),
 			ver:  1,
 			vrnt: VariantRFC4122,
 		},
 
 		// Version 2, Variant 0b_100_00000,
 		{
-			uuid: Must(Parse("000000000000-20-00-80-00000000000000")),
+			uuid: MustParse("000000000000-20-00-80-00000000000000"),
 			ver:  2,
 			vrnt: VariantRFC4122,
 		},
 
 		// Version 4, Variant 0b_100_00000,
 		{
-			uuid: Must(Parse("000000000000-40-00-80-00000000000000")),
+			uuid: MustParse("000000000000-40-00-80-00000000000000"),
 			ver:  4,
 			vrnt: VariantRFC4122,
 		},
 
 		// Version 0, Variant 0b_000_00000,
 		{
-			uuid: Must(Parse("000000000000-80-00-00-00000000000000")),
+			uuid: MustParse("000000000000-80-00-00-00000000000000"),
 			ver:  8,
 			vrnt: VariantNCS,
 		},
 
 		// Version 0, Variant 0b_001_00000,
 		{
-			uuid: Must(Parse("000000000000-00-00-20-00000000000000")),
+			uuid: MustParse("000000000000-00-00-20-00000000000000"),
 			ver:  0,
 			vrnt: VariantNCS,
 		},
 
 		// Version 0, Variant 0b_010_00000,
 		{
-			uuid: Must(Parse("000000000000-00-00-40-00000000000000")),
+			uuid: MustParse("000000000000-00-00-40-00000000000000"),
 			ver:  0,
 			vrnt: VariantNCS,
 		},
 
 		// Version 0, Variant 0b_011_00000,
 		{
-			uuid: Must(Parse("000000000000-00-00-60-00000000000000")),
+			uuid: MustParse("000000000000-00-00-60-00000000000000"),
 			ver:  0,
 			vrnt: VariantNCS,
 		},
 
 		// Version 0, Variant 0b_100_00000,
 		{
-			uuid: Must(Parse("000000000000-00-00-80-00000000000000")),
+			uuid: MustParse("000000000000-00-00-80-00000000000000"),
 			ver:  0,
 			vrnt: VariantRFC4122,
 		},
 
 		// Version 0, Variant 0b_101_00000,
 		{
-			uuid: Must(Parse("000000000000-00-00-a0-00000000000000")),
+			uuid: MustParse("000000000000-00-00-a0-00000000000000"),
 			ver:  0,
 			vrnt: VariantRFC4122,
 		},
 
 		// Version 0, Variant 0b_110_00000,
 		{
-			uuid: Must(Parse("000000000000-00-00-c0-00000000000000")),
+			uuid: MustParse("000000000000-00-00-c0-00000000000000"),
 			ver:  0,
 			vrnt: VariantMicrosoft,
 		},
 
 		// Version 0, Variant 0b_111_00000,
 		{
-			uuid: Must(Parse("000000000000-00-00-e0-00000000000000")),
+			uuid: MustParse("000000000000-00-00-e0-00000000000000"),
 			ver:  0,
 			vrnt: VariantFuture,
 		},
@@ -395,7 +403,7 @@ func TestNameBased(t *testing.T) {
 		{
 			space: NameSpaceDNS,
 			name:  "www.example.com",
-			uuid:  Must(Parse("5df418813aed351588a72f4a814cf09e")),
+			uuid:  MustParse("5df418813aed351588a72f4a814cf09e"),
 			gen:   MD5,
 		},
 
@@ -403,7 +411,7 @@ func TestNameBased(t *testing.T) {
 		{
 			space: NameSpaceDNS,
 			name:  "www.example.com",
-			uuid:  Must(Parse("2ed6657de927568b95e12665a8aea6a2")),
+			uuid:  MustParse("2ed6657de927568b95e12665a8aea6a2"),
 			gen:   SHA1,
 		},
 	}
