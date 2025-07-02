@@ -412,7 +412,7 @@ func TestScanSettingsToAbstract(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		out := test.ss.toAbstract()
+		out := test.ss.ToAbstract()
 
 		testutils.CheckConvertionTest(t,
 			"ScanSettings.toAbstract",

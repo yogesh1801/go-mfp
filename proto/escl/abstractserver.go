@@ -315,7 +315,7 @@ func (srv *AbstractServer) postScanJobs(query *abstractServerQuery) {
 	}
 
 	// Convert it into the abstract.ScannerRequest and validate
-	absreq := ss.toAbstract()
+	absreq := ss.ToAbstract()
 
 	// Generate a new Job UUID. Do it now, because in theory
 	// it can fail (though very unlikely), so do it before

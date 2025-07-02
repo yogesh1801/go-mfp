@@ -14,8 +14,8 @@ import (
 	"github.com/OpenPrinting/go-mfp/util/optional"
 )
 
-// toAbstract converts [ScannerCapabilities] to [abstract.ScannerCapabilities].
-func (scancaps ScannerCapabilities) toAbstract() abstract.ScannerCapabilities {
+// ToAbstract converts [ScannerCapabilities] to [abstract.ScannerCapabilities].
+func (scancaps ScannerCapabilities) ToAbstract() abstract.ScannerCapabilities {
 	abscaps := abstract.ScannerCapabilities{
 		UUID:         optional.Get(scancaps.UUID),
 		MakeAndModel: optional.Get(scancaps.MakeAndModel),
@@ -44,8 +44,8 @@ func (scancaps ScannerCapabilities) toAbstract() abstract.ScannerCapabilities {
 	return abscaps
 }
 
-// toAbstract converts [ScanSettings] to [abstract.ScannerRequest]
-func (ss ScanSettings) toAbstract() abstract.ScannerRequest {
+// ToAbstract converts [ScanSettings] to [abstract.ScannerRequest]
+func (ss ScanSettings) ToAbstract() abstract.ScannerRequest {
 	absreq := abstract.ScannerRequest{
 		Brightness:   ss.Brightness,
 		Contrast:     ss.Contrast,
