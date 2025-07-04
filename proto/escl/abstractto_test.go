@@ -436,7 +436,7 @@ func TestScannerCapabilitiesToAbstract(t *testing.T) {
 	assert.NoError(err)
 
 	abscaps := scancaps.ToAbstract()
-	expected := abstract.ScannerCapabilities{
+	expected := &abstract.ScannerCapabilities{
 		UUID:              uuid.MustParse("4509a320-00a0-008f-00b6-002507510eca"),
 		MakeAndModel:      "Kyocera ECOSYS M2040dn",
 		SerialNumber:      "VCF9192281",
