@@ -219,7 +219,7 @@ func (cmd *Command) Run(ctx context.Context, argv []string) error {
 }
 
 // RunWithParent is like [Command.Run], but allows to specify
-// the parent [Invocation]. t is used internally for implementing
+// the parent [Invocation]. It is used internally for implementing
 // sub-commands.
 func (cmd *Command) RunWithParent(ctx context.Context,
 	parent *Invocation, argv []string) error {
