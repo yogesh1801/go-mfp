@@ -20,4 +20,8 @@ const (
 
 	// Stabilization time after discovery of new data.
 	StabilizationTime = 1 * time.Second
+
+	// Fast and not so reliable discovery for interactive purposes,
+	// like discovery-based command-line auto completion.
+	FastDiscoveryTime = 2500 * time.Millisecond
 )

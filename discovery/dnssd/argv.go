@@ -11,6 +11,7 @@ package dnssd
 import (
 	"context"
 	"strings"
+	"time"
 
 	"github.com/OpenPrinting/go-mfp/argv"
 	"github.com/OpenPrinting/go-mfp/discovery"
@@ -34,7 +35,8 @@ func ArgvCompleter(prefix string) []argv.Completion {
 	clnt.AddBackend(backend)
 
 	// Perform device discovery and gather results
-	devices, err := clnt.GetDevices(ctx, discovery.ModeNormal)
+	time.Sleep(discovery.FastDiscoveryTime)
+	devices, err := clnt.GetDevices(ctx, discovery.ModeSnapshot)
 	if err != nil {
 		return nil
 	}
