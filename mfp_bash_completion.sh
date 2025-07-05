@@ -18,4 +18,5 @@ __mfp_complete()
 complete -o nospace -F __mfp_complete mfp-cups
 complete -o nospace -F __mfp_complete mfp-discover
 complete -o nospace -F __mfp_complete mfp-masq
+complete -o nospace -F __mfp_complete mfp-model
 complete -o nospace -F __mfp_complete mfp-virtual
