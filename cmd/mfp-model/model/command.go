@@ -13,6 +13,7 @@ import (
 	"errors"
 
 	"github.com/OpenPrinting/go-mfp/argv"
+	"github.com/OpenPrinting/go-mfp/discovery/dnssd"
 	"github.com/OpenPrinting/go-mfp/log"
 	"github.com/OpenPrinting/go-mfp/transport"
 )
@@ -38,6 +39,7 @@ var Command = argv.Command{
 			Help:     "DNS-SD name of the device",
 			HelpArg:  "name",
 			Validate: argv.ValidateAny,
+			Complete: dnssd.ArgvCompleter,
 		},
 		argv.Option{
 			Name:     "-E",
