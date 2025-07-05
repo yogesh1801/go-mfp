@@ -405,9 +405,13 @@ func (prs *parser) complete() (compl []Completion) {
 				}
 
 			case prs.done():
-				if novalue {
-					// Argument doesn't contain option
-					// value, so complete the name.
+				if novalue && opt == nil {
+					// We have not reached the option
+					// value and option name is not
+					// known.
+					//
+					// Looks like we have a truncated
+					// option name. Try to complete.
 					return prs.completeOptionName(arg)
 				}
 
