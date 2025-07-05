@@ -365,6 +365,21 @@ func (prs *parser) complete() (compl []Completion) {
 
 		switch {
 		case !doneOptions && arg == "--":
+			// Handle the special case: last argument is "--"
+			// and command have some long options. We don't know at
+			// this point what is the meaning of the "--": beginning
+			// of the long option or end of the option list.
+			//
+			// So if we have some long options, offer them here,
+			// otherwise consider "--" as the end of the options
+			// list.
+			if prs.done() {
+				compl := prs.completeOptionName(arg)
+				if len(compl) > 0 {
+					return compl
+				}
+			}
+
 			doneOptions = true
 
 		case !doneOptions && strings.HasPrefix(arg, "-"):

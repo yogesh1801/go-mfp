@@ -611,9 +611,25 @@ func TestAutoCompletion(t *testing.T) {
 			out: []Completion{},
 		},
 
+		// Test 28: '--' at the end and there are long options
+		{
+			argv: []string{"-c", "--"},
+			cmd: Command{
+				Name: "test",
+				Options: []Option{
+					{Name: "-c"},
+					{Name: "--long-1"},
+					{Name: "--long-2"},
+				},
+			},
+			out: []Completion{
+				{"--long-", CompletionNoSpace},
+			},
+		},
+
 		// ----- Real-life examples -----
 
-		// Test 28: nested sub-commands
+		// Test 29: nested sub-commands
 		{
 			argv: []string{"cups", "ge"},
 			cmd: Command{
