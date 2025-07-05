@@ -215,6 +215,18 @@ func (cmd *Command) ParseWithParent(parent *Invocation,
 
 // Run parses the command, then calls its handler.
 func (cmd *Command) Run(ctx context.Context, argv []string) error {
+	if len(argv) > 0 && argv[0] == "--bash-completion" {
+		compl := cmd.Complete(argv[1:])
+		for _, c := range compl {
+			s := c.String
+			if (c.Flags & CompletionNoSpace) == 0 {
+				s += " "
+			}
+			fmt.Fprintf(os.Stdout, "%s\n", s)
+		}
+		os.Exit(0)
+	}
+
 	return cmd.RunWithParent(ctx, nil, argv)
 }
 
