@@ -15,6 +15,7 @@ import (
 	"os"
 	"os/signal"
 	"strings"
+	"unicode"
 )
 
 // Command defines a command.
@@ -218,7 +219,15 @@ func (cmd *Command) Run(ctx context.Context, argv []string) error {
 	if len(argv) > 0 && argv[0] == "--bash-completion" {
 		compl := cmd.Complete(argv[1:])
 		for _, c := range compl {
-			s := c.String
+			s := ""
+			for _, c := range c.String {
+				const escaped = `~!'"$\` + "`"
+				if strings.ContainsRune(escaped, c) ||
+					unicode.IsSpace(c) {
+					s += "\\"
+				}
+				s += string(c)
+			}
 			if (c.Flags & CompletionNoSpace) == 0 {
 				s += " "
 			}
