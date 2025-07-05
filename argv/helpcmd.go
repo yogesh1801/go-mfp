@@ -30,9 +30,8 @@ var (
 	// to indicate that the Command implements commonly used "help"
 	// sub-command.
 	HelpCommand = Command{
-		Name:    "help",
-		Aliases: []string{"?"},
-		Help:    "print help page",
+		Name: "help",
+		Help: "print help page",
 		Parameters: []Parameter{
 			{
 				Name: "[command]",
