@@ -121,7 +121,7 @@ Commands are:
   disconnect        disconnect from the server
   send-files-to-server
                     send-files-to-server uploads the files
-  help, ?           print help page
+  help              print help page
 `
 
 var testCommandWithSubCommandsHelpConnect = `
