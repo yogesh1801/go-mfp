@@ -48,6 +48,11 @@ func (s Set[T]) Empty() bool {
 	return len(s.members) == 0
 }
 
+// Count returns count of elements in the set.
+func (s Set[T]) Count() int {
+	return len(s.members)
+}
+
 // Contains reports if member already in the set
 func (s Set[T]) Contains(member T) bool {
 	_, found := s.members[member]
