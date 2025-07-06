@@ -7,6 +7,6 @@ coverage.out
 cmd/mfp/mfp
 cmd/mfp-cups/mfp-cups
 cmd/mfp-discover/mfp-discover
-cmd/mfp-masq/mfp-masq
 cmd/mfp-model/mfp-model
+cmd/mfp-proxy/mfp-proxy
 cmd/mfp-virtual/mfp-virtual

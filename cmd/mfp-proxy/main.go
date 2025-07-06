@@ -8,9 +8,9 @@
 
 package main
 
-import "github.com/OpenPrinting/go-mfp/cmd/mfp-masq/masq"
+import "github.com/OpenPrinting/go-mfp/cmd/mfp-proxy/proxy"
 
 // main function for the mfp-cups command
 func main() {
-	masq.Command.Main(nil)
+	proxy.Command.Main(nil)
 }

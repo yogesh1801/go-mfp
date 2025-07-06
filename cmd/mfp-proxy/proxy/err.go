@@ -1,18 +1,16 @@
 // MFP - Miulti-Function Printers and scanners toolkit
-// The "masq" command
+// The "proxy" command
 //
 // Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
 // See LICENSE for license terms and conditions
 //
-// Package documentation
+// Common errors
 
-package masq
+package proxy
 
-// proto identifies proxy protocol
-type proto int
+import "errors"
 
-const (
-	protoIPP proto = iota
-	protoESCL
-	protoWSD
+var (
+	// ErrShutdown indicates that proxy shutdown is in progress
+	ErrShutdown = errors.New("Proxy shutdown")
 )

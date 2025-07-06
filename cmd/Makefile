@@ -1,9 +1,9 @@
 SUBDIRS = \
 	mfp \
-	mfp-discover \
 	mfp-cups \
-	mfp-masq \
+	mfp-discover \
 	mfp-model \
+	mfp-proxy \
 	mfp-virtual
 
 include ../Rules.mak

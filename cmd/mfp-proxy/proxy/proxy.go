@@ -1,12 +1,12 @@
 // MFP - Miulti-Function Printers and scanners toolkit
-// The "masq" command
+// The "proxy" command
 //
 // Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
 // See LICENSE for license terms and conditions
 //
 // Package documentation
 
-package masq
+package proxy
 
 import (
 	"bytes"

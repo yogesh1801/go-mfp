@@ -83,7 +83,7 @@ This is the command-line CUPS client.
 
 This is the command-line device discovery tool.
 
-#### import github.com/OpenPrinting/go-mfp/cmd/mfp-masq"
+#### import github.com/OpenPrinting/go-mfp/cmd/mfp-proxy"
 
 This is the MFP masquerading tool. It allows to re-expose existent MFP
 device under the different name or different IP address and to sniff its
