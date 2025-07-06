@@ -53,6 +53,7 @@ var Command = argv.Command{
 		},
 		argv.Option{
 			Name:     "-t",
+			Aliases:  []string{"--trace"},
 			Help:     "write trace to file.log and file.tar",
 			HelpArg:  "file",
 			Validate: argv.ValidateAny,
