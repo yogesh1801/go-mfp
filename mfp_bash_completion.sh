@@ -5,9 +5,18 @@
 # put this file in the /etc/bash_completion.d/ or source it from your
 # $HOME/.bashrc
 
+__mfp_complete_log()
+{
+    # Uncomment for logging
+    #echo "$@" >> __mfp_complete.log
+    return
+}
+
 __mfp_complete()
 {
-	local	cmd args words cword cur cur_raw reply r prefix
+	local	cmd args words cword cur cur_raw reply r r2 prefix
+
+	__mfp_complete_log =====
 
 	# Shell passes us command line split into words in the
 	# COMP_WORDS array, but its idea about word separator
@@ -30,16 +39,26 @@ __mfp_complete()
 
 	if [ "${cur}" != "${cur_raw}" ]; then
 		prefix="${cur}"
+		prefix="${cur%"${cur_raw}"}"
+
+		if [ "${cur_raw}" == "=" ]; then
+			prefix="${prefix}${cur_raw}"
+		fi
 	fi
 
 	cmd="$1"
 	args=("${words[@]:1:$cword}")
 	IFS=$'\n' read -r -d '' -a reply < <("$cmd" --bash-completion "${args[@]}" && printf '\0')
 
+	__mfp_complete_log "cur: $cur, cur_raw: $cur_raw, prefix: $prefix"
+
 	# Build COMPREPLY, removing prefix
 	COMPREPLY=()
 	for r in "${reply[@]}"; do
-		COMPREPLY+=("${r#"${prefix}"}")
+		r2="${r#"${prefix}"}"
+		COMPREPLY+=("${r2}")
+
+		__mfp_complete_log strip: "$r->$r2" "(prefix: ${prefix})"
 	done
 }
 
