@@ -53,11 +53,11 @@ func (fscompl *fscompleter) complete(arg string) (compl []Completion) {
 
 	for _, ent := range entries {
 		name := ent.Name()
-		lasIsDir = ent.IsDir()
 
 		if strings.HasPrefix(name, file) {
 			candidate := fscompl.mergePath(dir, name)
 			compl = append(compl, Completion{candidate, 0})
+			lasIsDir = ent.IsDir()
 		}
 	}
 
