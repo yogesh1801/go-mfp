@@ -10,6 +10,7 @@ package argv
 
 import (
 	"io/fs"
+	"os"
 	"strings"
 )
 
@@ -50,6 +51,13 @@ func CompleteStrings(s []string) Completer {
 		return compl
 	}
 }
+
+// CompletePath is the [Completer] that completes file system paths.
+func CompletePath(s string) []Completion {
+	return completePath(s)
+}
+
+var completePath = CompleteFs(os.DirFS("/"), os.Getwd)
 
 // CompleteFs returns a [Completer], that performs file name auto-completion
 // on a top of a virtual (or real) filesystem, represented as fs.FS,
