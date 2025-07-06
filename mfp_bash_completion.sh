@@ -10,9 +10,9 @@ __mfp_complete()
 	local	cmd args
 
 	cmd="$1"
-	args=${COMP_WORDS[@]:1:$COMP_CWORD}
+	args=("${COMP_WORDS[@]:1:$COMP_CWORD}")
 	COMPREPLY=()
-	IFS=$'\n' read -r -d '' -a COMPREPLY < <("$cmd" --bash-completion ${args[@]} && printf '\0')
+	IFS=$'\n' read -r -d '' -a COMPREPLY < <("$cmd" --bash-completion "${args[@]}" && printf '\0')
 }
 
 complete -o nospace -F __mfp_complete mfp-cups
