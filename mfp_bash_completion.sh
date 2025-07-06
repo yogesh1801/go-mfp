@@ -26,7 +26,7 @@ __mfp_complete()
 	# separator, which breaks the host:port parameters and
 	# HTTP URLs.
 	#
-	# _comp_get_words from the bash-completion package re-splits
+	# _get_comp_words_by_ref from the bash-completion package re-splits
 	# the command line allowing some characters to be excluded
 	# from the word separators list with the -n option. Nut now
 	# we have another problem: shell automatically removes current
@@ -34,7 +34,7 @@ __mfp_complete()
 	# current word might have been extended with the additional
 	# prefix which shell doesn't know about and hence cannot
 	# remove, so we have to help it.
-	_comp_get_words -n "=:" words cword cur
+	_get_comp_words_by_ref -n "=:" words cword cur
 	cur_raw="${COMP_WORDS[COMP_CWORD]}"
 
 	if [ "${cur}" != "${cur_raw}" ]; then
