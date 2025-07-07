@@ -62,7 +62,7 @@ var Command = argv.Command{
 	Parameters: []argv.Parameter{
 		{
 			Name: "[command]",
-			Help: "command tu run under the simulator",
+			Help: "command to run under the simulator",
 		},
 		{
 			Name: "[args...]",
