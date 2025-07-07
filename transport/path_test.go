@@ -24,6 +24,8 @@ func TestCleanURLPath(t *testing.T) {
 		{in: "//./", out: "/"},
 		{in: "foo", out: "/foo"},
 		{in: "foo/", out: "/foo/"},
+		{in: "foo//", out: "/foo/"},
+		{in: "////foo//", out: "/foo/"},
 	}
 
 	for _, test := range tests {
