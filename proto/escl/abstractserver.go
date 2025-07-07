@@ -14,7 +14,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"path"
 	"strings"
 	"sync"
@@ -49,13 +48,13 @@ type AbstractServerOptions struct {
 	Version Version          // eSCL version, DefaultVersion, if not set
 	Scanner abstract.Scanner // Underlying abstract.Scanner
 
-	// The BaseURL parameter is required so server knows how to
+	// The BasePath parameter is required so server knows how to
 	// interpret [url.URL.Path] of the incoming requests.
 	//
 	// For the standard eSCL server that mimics the behavior of the
 	// typical hardware eSCL scanner, the URL should be something like
-	// "http://localhost/eSCL".
-	BaseURL *url.URL
+	// "/eSCL".
+	BasePath string
 }
 
 // abstractServerQuery maintains an AbstractServer query processing
@@ -180,11 +179,8 @@ func NewAbstractServer(ctx context.Context,
 		options.Version = DefaultVersion
 	}
 
-	// Canonicalize the base URL
-	options.BaseURL = transport.URLClone(options.BaseURL)
-	if !strings.HasSuffix(options.BaseURL.Path, "/") {
-		options.BaseURL.Path += "/"
-	}
+	// Canonicalize the base path
+	options.BasePath = transport.CleanURLPath(options.BasePath + "/")
 
 	// Create the AbstractServer structure
 	srv := &AbstractServer{
@@ -213,13 +209,13 @@ func (srv *AbstractServer) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	defer query.Finish()
 
 	// Dispatch the request
-	if !strings.HasPrefix(query.URL.Path, srv.options.BaseURL.Path) {
+	if !strings.HasPrefix(query.URL.Path, srv.options.BasePath) {
 		query.Reject(http.StatusNotFound, nil)
 		return
 	}
 
 	path, _ := missed.StringsCutPrefix(query.URL.Path,
-		srv.options.BaseURL.Path)
+		srv.options.BasePath)
 
 	// Handle {root}-relative requests
 	var action func(*abstractServerQuery)
@@ -338,7 +334,7 @@ func (srv *AbstractServer) postScanJobs(query *abstractServerQuery) {
 	srv.status.State = ScannerProcessing
 
 	jobuuid := uu.URN()
-	joburi := path.Join(srv.options.BaseURL.Path, "ScanJobs", jobuuid)
+	joburi := path.Join(srv.options.BasePath, "ScanJobs", jobuuid)
 
 	info := JobInfo{
 		JobURI:   joburi,

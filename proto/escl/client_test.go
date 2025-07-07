@@ -54,9 +54,9 @@ func TestClient(t *testing.T) {
 
 	base := transport.MustParseURL("http://localhost/eSCL")
 	options := AbstractServerOptions{
-		Version: caps.Version,
-		Scanner: s,
-		BaseURL: base,
+		Version:  caps.Version,
+		Scanner:  s,
+		BasePath: base.Path,
 	}
 
 	handler := NewAbstractServer(context.TODO(), options)

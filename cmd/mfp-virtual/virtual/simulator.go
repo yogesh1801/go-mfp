@@ -109,12 +109,9 @@ func simulate(ctx context.Context, port int, argv []string) error {
 	}
 
 	// Create a virtual server
-	u := transport.MustParseURL(
-		fmt.Sprintf("http://localhost:%d/eSCL", port))
-
 	options := escl.AbstractServerOptions{
-		Scanner: s,
-		BaseURL: u,
+		Scanner:  s,
+		BasePath: "/eSCL",
 	}
 
 	handler := escl.NewAbstractServer(ctx, options)
