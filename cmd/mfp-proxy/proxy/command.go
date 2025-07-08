@@ -13,13 +13,32 @@ import (
 	"errors"
 
 	"github.com/OpenPrinting/go-mfp/argv"
+	"github.com/OpenPrinting/go-mfp/internal/env"
 	"github.com/OpenPrinting/go-mfp/log"
 )
 
+// description is printed as a command description text
+const description = "" +
+	"This command runs the IPP/eSCL/WSD proxy\n" +
+	"The proxy can be useful for two purposes:\n" +
+	"  - to sniff the protocol traffic between the IPP/eSCL/WSD\n" +
+	"    client and server\n" +
+	"  - to logically bring the device into the different IP address\n" +
+	"    or port\n" +
+	"\n" +
+	"If optional command is specified, the CUPS_SERVER and the\n" +
+	"SANE_AIRSCAN_DEVICE environment variables will be set properly\n" +
+	"and the command will be executed, The simulator will exit when\n" +
+	"the command finished.\n" +
+	"\n" +
+	"Without that the simulator will run until termination signal\n" +
+	"is received.\n"
+
 // Command is the 'proxy' command description
 var Command = argv.Command{
-	Name: "proxy",
-	Help: "IPP/eSCL/WSD masquerading proxy",
+	Name:        "proxy",
+	Help:        "IPP/eSCL/WSD masquerading proxy",
+	Description: description,
 	Options: []argv.Option{
 		argv.Option{
 			Name: "--escl",
@@ -71,6 +90,16 @@ var Command = argv.Command{
 		},
 		argv.HelpOption,
 	},
+	Parameters: []argv.Parameter{
+		{
+			Name: "[command]",
+			Help: "command to run under the simulator",
+		},
+		{
+			Name: "[args...]",
+			Help: "the command's arguments",
+		},
+	},
 	Handler: cmdProxyHandler,
 }
 
@@ -106,17 +135,23 @@ func cmdProxyHandler(ctx context.Context, inv *argv.Invocation) error {
 	// Start proxies
 	var mappings []mapping
 	var proxies []*proxy
+	var ippPort, esclPort int
 
 	for _, param := range inv.Values("--escl") {
-		mappings = append(mappings, mustParseMapping(protoESCL, param))
+		m := mustParseMapping(protoESCL, param)
+		esclPort = m.localPort
+		mappings = append(mappings, m)
 	}
 
 	for _, param := range inv.Values("--ipp") {
-		mappings = append(mappings, mustParseMapping(protoIPP, param))
+		m := mustParseMapping(protoIPP, param)
+		ippPort = m.localPort
+		mappings = append(mappings, m)
 	}
 
 	for _, param := range inv.Values("--wsd") {
-		mappings = append(mappings, mustParseMapping(protoWSD, param))
+		m := mustParseMapping(protoWSD, param)
+		mappings = append(mappings, m)
 	}
 
 	for _, m := range mappings {
@@ -133,14 +168,28 @@ func cmdProxyHandler(ctx context.Context, inv *argv.Invocation) error {
 		return errors.New("no proxies configured")
 	}
 
+	// Shutdown all proxies at exit
+	defer func() {
+		for _, p := range proxies {
+			p.Shutdown()
+		}
+	}()
+
+	// Run external program if requested
+	if command, ok := inv.Get("command"); ok {
+		runner := env.Runner{
+			CUPSPort: ippPort,
+			ESCLPort: esclPort,
+			ESCLName: "Virtual MFP Scanner",
+		}
+
+		argv := inv.Values("args")
+		return runner.Run(ctx, command, argv...)
+	}
+
 	// Wait for termination signal
 	<-ctx.Done()
 	log.Info(ctx, "Exiting...")
-
-	// Shutdown all proxies
-	for _, p := range proxies {
-		p.Shutdown()
-	}
 
 	return nil
 }
