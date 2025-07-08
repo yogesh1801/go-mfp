@@ -41,8 +41,9 @@ var Command = argv.Command{
 	Description: description,
 	Options: []argv.Option{
 		argv.Option{
-			Name: "--escl",
-			Help: "Add eSCL proxy (--escl local-port=target-url)",
+			Name:      "--escl",
+			Help:      "Add eSCL proxy (--escl local-port=target-url)",
+			Singleton: true,
 			Validate: func(s string) error {
 				_, err := parseMapping(protoESCL, s)
 				if err == nil {
@@ -52,16 +53,18 @@ var Command = argv.Command{
 			},
 		},
 		argv.Option{
-			Name: "--ipp",
-			Help: "Add IPP proxy (--ipp local-port=target-url)",
+			Name:      "--ipp",
+			Help:      "Add IPP proxy (--ipp local-port=target-url)",
+			Singleton: true,
 			Validate: func(s string) error {
 				_, err := parseMapping(protoIPP, s)
 				return err
 			},
 		},
 		argv.Option{
-			Name: "--wsd",
-			Help: "Add WSD proxy (--wsd local-port=target-url)",
+			Name:      "--wsd",
+			Help:      "Add WSD proxy (--wsd local-port=target-url)",
+			Singleton: true,
 			Validate: func(s string) error {
 				_, err := parseMapping(protoWSD, s)
 				if err == nil {
