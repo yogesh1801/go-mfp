@@ -479,6 +479,34 @@ func TestParser(t *testing.T) {
 			subcmd:  "sub-2",
 			subargv: []string{},
 		},
+
+		// Test 24: handling of Option.Singleton flag
+		{
+			argv: []string{"-a", "-a"},
+			cmd: Command{
+				Name: "test",
+				Options: []Option{
+					{Name: "-a", Singleton: true},
+				},
+			},
+			err: `option "-a" cannot be repeated`,
+		},
+
+		// Test 24: handling of Option.Singleton flag with aliases
+		{
+			argv: []string{"-a", "--long"},
+			cmd: Command{
+				Name: "test",
+				Options: []Option{
+					{
+						Name:      "-a",
+						Aliases:   []string{"--long"},
+						Singleton: true,
+					},
+				},
+			},
+			err: `option "-a" cannot be repeated`,
+		},
 	}
 
 	for i, test := range tests {

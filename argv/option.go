@@ -79,6 +79,10 @@ type Option struct {
 	// that MUST be used together with this option.
 	Requires []string
 
+	// Singleton flag, if set, doesn't allow option to be used
+	// more that once.
+	Singleton bool
+
 	// Validate callback called to validate parameter.
 	//
 	// Use nil to indicate that this option has no value.

@@ -713,6 +713,8 @@ func (prs *parser) appendOptVal(opt *Option, name, value string,
 		}
 
 		prs.options[opt] = optval
+	} else if opt.Singleton {
+		return fmt.Errorf("option %q cannot be repeated", opt.Name)
 	}
 
 	optval.values = append(optval.values, value)
