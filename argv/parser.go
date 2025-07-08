@@ -472,6 +472,9 @@ func (prs *parser) complete() (compl []Completion) {
 
 	case prs.inv.cmd.hasSubCommands():
 		compl = prs.completeSubCommandName("")
+
+	case prs.inv.cmd.hasOptions():
+		compl = prs.completeOptionName("")
 	}
 
 	return
