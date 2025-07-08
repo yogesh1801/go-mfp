@@ -322,7 +322,6 @@ func (prs *parser) buildByName() {
 		values = append(values, paramval.value)
 
 		prs.inv.byName[name] = values
-		//prs.inv.byName[paramval.param.Name] = values
 	}
 }
 
