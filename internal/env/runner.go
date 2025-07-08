@@ -63,7 +63,7 @@ func (r *Runner) Run(ctx context.Context,
 
 	// Set CUPS_SERVER and SANE_AIRSCAN_DEVICE
 	if r.CUPSPort != 0 {
-		env := fmt.Sprintf(envCUPS+"localhostL%d", r.CUPSPort)
+		env := fmt.Sprintf(envCUPS+"localhost:%d", r.CUPSPort)
 		cmd.Env = append(cmd.Env, env)
 	}
 
