@@ -52,12 +52,13 @@ func CompleteStrings(s []string) Completer {
 	}
 }
 
-// CompletePath is the [Completer] that completes file system paths.
-func CompletePath(s string) []Completion {
-	return completePath(s)
+// CompleteOSPath is the [Completer] that completes the operating
+// system file paths.
+func CompleteOSPath(s string) []Completion {
+	return completeOSPath(s)
 }
 
-var completePath = CompleteFs(os.DirFS("/"), os.Getwd)
+var completeOSPath = CompleteFs(os.DirFS("/"), os.Getwd)
 
 // CompleteFs returns a [Completer], that performs file name auto-completion
 // on a top of a virtual (or real) filesystem, represented as fs.FS,
