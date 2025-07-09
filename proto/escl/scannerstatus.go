@@ -43,9 +43,11 @@ func (status *ScannerStatus) PushJobInfo(info JobInfo, max int) {
 
 // DecodeScannerStatus decodes [ScannerStatus] from the XML tree.
 func DecodeScannerStatus(root xmldoc.Element) (
-	status ScannerStatus, err error) {
+	ret *ScannerStatus, err error) {
 
 	defer func() { err = xmldoc.XMLErrWrap(root, err) }()
+
+	var status ScannerStatus
 
 	// Lookup relevant XML elements
 	ver := xmldoc.Lookup{Name: NsPWG + ":Version", Required: true}
@@ -94,11 +96,12 @@ func DecodeScannerStatus(root xmldoc.Element) (
 		}
 	}
 
+	ret = &status
 	return
 }
 
 // ToXML generates XML tree for the [ScannerStatus].
-func (status ScannerStatus) ToXML() xmldoc.Element {
+func (status *ScannerStatus) ToXML() xmldoc.Element {
 	elm := xmldoc.Element{
 		Name: NsScan + ":ScannerStatus",
 		Children: []xmldoc.Element{

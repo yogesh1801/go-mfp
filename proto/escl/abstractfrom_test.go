@@ -731,7 +731,7 @@ func TestFromAbstractScannerCapabilities(t *testing.T) {
 	type testData struct {
 		comment string
 		in      *abstract.ScannerCapabilities
-		out     ScannerCapabilities
+		out     *ScannerCapabilities
 	}
 
 	formats := []string{"image/jpeg", "application/pdf"}
@@ -763,7 +763,7 @@ func TestFromAbstractScannerCapabilities(t *testing.T) {
 			in: &abstract.ScannerCapabilities{
 				UUID: testAbstractUUID,
 			},
-			out: ScannerCapabilities{
+			out: &ScannerCapabilities{
 				Version: DefaultVersion,
 				UUID:    optional.New(testAbstractUUID),
 			},
@@ -776,7 +776,7 @@ func TestFromAbstractScannerCapabilities(t *testing.T) {
 				DocumentFormats: formats,
 				Platen:          testAbstractInputCapabilities,
 			},
-			out: ScannerCapabilities{
+			out: &ScannerCapabilities{
 				Version: DefaultVersion,
 				UUID:    optional.New(testAbstractUUID),
 				Platen:  optional.New(platen),
@@ -792,7 +792,7 @@ func TestFromAbstractScannerCapabilities(t *testing.T) {
 				Platen:          testAbstractInputCapabilities,
 				ADFSimplex:      testAbstractInputCapabilities,
 			},
-			out: ScannerCapabilities{
+			out: &ScannerCapabilities{
 				Version: DefaultVersion,
 				UUID:    optional.New(testAbstractUUID),
 				Platen:  optional.New(platen),
@@ -810,7 +810,7 @@ func TestFromAbstractScannerCapabilities(t *testing.T) {
 				ADFSimplex:      testAbstractInputCapabilities,
 				ADFDuplex:       testAbstractInputCapabilities,
 			},
-			out: ScannerCapabilities{
+			out: &ScannerCapabilities{
 				Version: DefaultVersion,
 				UUID:    optional.New(testAbstractUUID),
 				Platen:  optional.New(platen),
@@ -821,7 +821,7 @@ func TestFromAbstractScannerCapabilities(t *testing.T) {
 		{
 			comment: "Full-data test",
 			in:      testAbstractScannerCapabilities,
-			out: ScannerCapabilities{
+			out: &ScannerCapabilities{
 				Version:      DefaultVersion,
 				UUID:         optional.New(testAbstractUUID),
 				MakeAndModel: optional.New("Abstract Scanner"),
@@ -869,7 +869,7 @@ func TestFromAbstractScanSettings(t *testing.T) {
 		comment string
 		ver     Version
 		in      *abstract.ScannerRequest
-		out     ScanSettings
+		out     *ScanSettings
 	}
 
 	tests := []testData{
@@ -878,7 +878,7 @@ func TestFromAbstractScanSettings(t *testing.T) {
 			comment: "Empty request",
 			ver:     DefaultVersion,
 			in:      &abstract.ScannerRequest{},
-			out: ScanSettings{
+			out: &ScanSettings{
 				Version: DefaultVersion,
 			},
 		},
@@ -890,7 +890,7 @@ func TestFromAbstractScanSettings(t *testing.T) {
 			in: &abstract.ScannerRequest{
 				Intent: abstract.IntentDocument,
 			},
-			out: ScanSettings{
+			out: &ScanSettings{
 				Version: DefaultVersion,
 				Intent:  optional.New(Document),
 			},
@@ -902,7 +902,7 @@ func TestFromAbstractScanSettings(t *testing.T) {
 			in: &abstract.ScannerRequest{
 				Intent: abstract.Intent(-1),
 			},
-			out: ScanSettings{
+			out: &ScanSettings{
 				Version: DefaultVersion,
 				Intent:  nil, // Must default to nil
 			},
@@ -915,7 +915,7 @@ func TestFromAbstractScanSettings(t *testing.T) {
 			in: &abstract.ScannerRequest{
 				Input: abstract.InputPlaten,
 			},
-			out: ScanSettings{
+			out: &ScanSettings{
 				Version:     DefaultVersion,
 				InputSource: optional.New(InputPlaten),
 			},
@@ -927,7 +927,7 @@ func TestFromAbstractScanSettings(t *testing.T) {
 			in: &abstract.ScannerRequest{
 				Input: abstract.InputADF,
 			},
-			out: ScanSettings{
+			out: &ScanSettings{
 				Version:     DefaultVersion,
 				InputSource: optional.New(InputFeeder),
 			},
@@ -940,7 +940,7 @@ func TestFromAbstractScanSettings(t *testing.T) {
 				Input:   abstract.InputADF,
 				ADFMode: abstract.ADFModeSimplex,
 			},
-			out: ScanSettings{
+			out: &ScanSettings{
 				Version:     DefaultVersion,
 				InputSource: optional.New(InputFeeder),
 			},
@@ -953,7 +953,7 @@ func TestFromAbstractScanSettings(t *testing.T) {
 				Input:   abstract.InputADF,
 				ADFMode: abstract.ADFModeDuplex,
 			},
-			out: ScanSettings{
+			out: &ScanSettings{
 				Version:     DefaultVersion,
 				InputSource: optional.New(InputFeeder),
 				Duplex:      optional.New(true),
@@ -967,7 +967,7 @@ func TestFromAbstractScanSettings(t *testing.T) {
 			in: &abstract.ScannerRequest{
 				ColorMode: abstract.ColorModeBinary,
 			},
-			out: ScanSettings{
+			out: &ScanSettings{
 				Version:   DefaultVersion,
 				ColorMode: optional.New(BlackAndWhite1),
 			},
@@ -980,7 +980,7 @@ func TestFromAbstractScanSettings(t *testing.T) {
 				ColorMode:       abstract.ColorModeBinary,
 				BinaryRendering: abstract.BinaryRenderingHalftone,
 			},
-			out: ScanSettings{
+			out: &ScanSettings{
 				Version:         DefaultVersion,
 				ColorMode:       optional.New(BlackAndWhite1),
 				BinaryRendering: optional.New(Halftone),
@@ -994,7 +994,7 @@ func TestFromAbstractScanSettings(t *testing.T) {
 				ColorMode:       abstract.ColorModeBinary,
 				BinaryRendering: abstract.BinaryRenderingThreshold,
 			},
-			out: ScanSettings{
+			out: &ScanSettings{
 				Version:         DefaultVersion,
 				ColorMode:       optional.New(BlackAndWhite1),
 				BinaryRendering: optional.New(Threshold),
@@ -1009,7 +1009,7 @@ func TestFromAbstractScanSettings(t *testing.T) {
 				BinaryRendering: abstract.BinaryRenderingThreshold,
 				Threshold:       optional.New(50),
 			},
-			out: ScanSettings{
+			out: &ScanSettings{
 				Version:         DefaultVersion,
 				ColorMode:       optional.New(BlackAndWhite1),
 				BinaryRendering: optional.New(Threshold),
@@ -1024,7 +1024,7 @@ func TestFromAbstractScanSettings(t *testing.T) {
 				ColorMode:  abstract.ColorModeMono,
 				ColorDepth: abstract.ColorDepth8,
 			},
-			out: ScanSettings{
+			out: &ScanSettings{
 				Version:   DefaultVersion,
 				ColorMode: optional.New(Grayscale8),
 			},
@@ -1036,7 +1036,7 @@ func TestFromAbstractScanSettings(t *testing.T) {
 			in: &abstract.ScannerRequest{
 				ColorMode: abstract.ColorModeMono,
 			},
-			out: ScanSettings{
+			out: &ScanSettings{
 				Version:   DefaultVersion,
 				ColorMode: optional.New(Grayscale8),
 			},
@@ -1049,7 +1049,7 @@ func TestFromAbstractScanSettings(t *testing.T) {
 				ColorMode:  abstract.ColorModeMono,
 				ColorDepth: abstract.ColorDepth16,
 			},
-			out: ScanSettings{
+			out: &ScanSettings{
 				Version:   DefaultVersion,
 				ColorMode: optional.New(Grayscale16),
 			},
@@ -1062,7 +1062,7 @@ func TestFromAbstractScanSettings(t *testing.T) {
 				ColorMode:  abstract.ColorModeColor,
 				ColorDepth: abstract.ColorDepth8,
 			},
-			out: ScanSettings{
+			out: &ScanSettings{
 				Version:   DefaultVersion,
 				ColorMode: optional.New(RGB24),
 			},
@@ -1074,7 +1074,7 @@ func TestFromAbstractScanSettings(t *testing.T) {
 			in: &abstract.ScannerRequest{
 				ColorMode: abstract.ColorModeColor,
 			},
-			out: ScanSettings{
+			out: &ScanSettings{
 				Version:   DefaultVersion,
 				ColorMode: optional.New(RGB24),
 			},
@@ -1087,7 +1087,7 @@ func TestFromAbstractScanSettings(t *testing.T) {
 				ColorMode:  abstract.ColorModeColor,
 				ColorDepth: abstract.ColorDepth16,
 			},
-			out: ScanSettings{
+			out: &ScanSettings{
 				Version:   DefaultVersion,
 				ColorMode: optional.New(RGB48),
 			},
@@ -1100,7 +1100,7 @@ func TestFromAbstractScanSettings(t *testing.T) {
 			in: &abstract.ScannerRequest{
 				DocumentFormat: "image/jpeg",
 			},
-			out: ScanSettings{
+			out: &ScanSettings{
 				Version:           MakeVersion(2, 0),
 				DocumentFormat:    optional.New("image/jpeg"),
 				DocumentFormatExt: nil, // eSCL < 2.1
@@ -1113,7 +1113,7 @@ func TestFromAbstractScanSettings(t *testing.T) {
 			in: &abstract.ScannerRequest{
 				DocumentFormat: "image/jpeg",
 			},
-			out: ScanSettings{
+			out: &ScanSettings{
 				Version:           DefaultVersion,
 				DocumentFormat:    optional.New("image/jpeg"),
 				DocumentFormatExt: optional.New("image/jpeg"),
@@ -1132,7 +1132,7 @@ func TestFromAbstractScanSettings(t *testing.T) {
 					Height:  abstract.Inch * 11,
 				},
 			},
-			out: ScanSettings{
+			out: &ScanSettings{
 				Version: DefaultVersion,
 				ScanRegions: []ScanRegion{
 					{
@@ -1156,7 +1156,7 @@ func TestFromAbstractScanSettings(t *testing.T) {
 					YResolution: 300,
 				},
 			},
-			out: ScanSettings{
+			out: &ScanSettings{
 				Version:     DefaultVersion,
 				XResolution: optional.New(600),
 				YResolution: optional.New(300),
@@ -1170,7 +1170,7 @@ func TestFromAbstractScanSettings(t *testing.T) {
 			in: &abstract.ScannerRequest{
 				CCDChannel: abstract.CCDChannelNTSC,
 			},
-			out: ScanSettings{
+			out: &ScanSettings{
 				Version:    DefaultVersion,
 				CCDChannel: optional.New(NTSC),
 			},
@@ -1190,7 +1190,7 @@ func TestFromAbstractScanSettings(t *testing.T) {
 				Sharpen:      optional.New(10),
 				Compression:  optional.New(5),
 			},
-			out: ScanSettings{
+			out: &ScanSettings{
 				Version:           DefaultVersion,
 				Brightness:        optional.New(100),
 				Contrast:          optional.New(80),

@@ -46,7 +46,7 @@ func NewClient(u *url.URL, tr *transport.Transport) *Client {
 // GetScannerCapabilities requests the [ScannerCapabilities] from
 // the eSCL scanner.
 func (c *Client) GetScannerCapabilities(ctx context.Context) (
-	caps ScannerCapabilities, details *HTTPDetails, err error) {
+	caps *ScannerCapabilities, details *HTTPDetails, err error) {
 
 	xml, details, err := c.getXML(ctx, "ScannerCapabilities")
 	if err == nil {
@@ -58,7 +58,7 @@ func (c *Client) GetScannerCapabilities(ctx context.Context) (
 
 // GetScannerStatus requests the [ScannerStatus] from the eSCL scanner.
 func (c *Client) GetScannerStatus(ctx context.Context) (
-	status ScannerStatus, details *HTTPDetails, err error) {
+	status *ScannerStatus, details *HTTPDetails, err error) {
 
 	xml, details, err := c.getXML(ctx, "ScannerStatus")
 	if err == nil {

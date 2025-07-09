@@ -19,7 +19,7 @@ import (
 
 // testScanImageInfo contains example of the initialized
 // ScanImageInfo structure
-var testScanImageInfo = ScanImageInfo{
+var testScanImageInfo = &ScanImageInfo{
 	JobURI:             "/eSCL/ScanJobs/urn:uuid:4509a320-00a0-008f-00b6-00559a327d32",
 	JobUUID:            optional.New("urn:uuid:4509a320-00a0-008f-00b6-00559a327d32"),
 	ActualWidth:        2551,
@@ -32,7 +32,7 @@ var testScanImageInfo = ScanImageInfo{
 // to and from the XML
 func TestScanImageInfo(t *testing.T) {
 	type testData struct {
-		info ScanImageInfo
+		info *ScanImageInfo
 		xml  xmldoc.Element
 	}
 
@@ -59,7 +59,7 @@ func TestScanImageInfo(t *testing.T) {
 
 		{
 			// Missed optional elements
-			info: ScanImageInfo{
+			info: &ScanImageInfo{
 				JobURI:             "/eSCL/ScanJobs/urn:uuid:4509a320-00a0-008f-00b6-00559a327d32",
 				ActualWidth:        2551,
 				ActualHeight:       3508,

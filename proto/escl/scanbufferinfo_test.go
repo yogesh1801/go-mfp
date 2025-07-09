@@ -18,8 +18,8 @@ import (
 
 // testScanBufferInfo contains example of the initialized
 // ScanBufferInfo structure
-var testScanBufferInfo = ScanBufferInfo{
-	ScanSettings: testScanSettings,
+var testScanBufferInfo = &ScanBufferInfo{
+	ScanSettings: *testScanSettings,
 	ImageWidth:   2551,
 	ImageHeight:  3508,
 	BytesPerLine: 7653, // 2551 * 3
@@ -29,7 +29,7 @@ var testScanBufferInfo = ScanBufferInfo{
 // to and from the XML
 func TestScanBufferInfo(t *testing.T) {
 	type testData struct {
-		info ScanBufferInfo
+		info *ScanBufferInfo
 		xml  xmldoc.Element
 	}
 

@@ -66,9 +66,11 @@ type ScanSettings struct {
 
 // DecodeScanSettings decodes [ScanSettings] from the XML tree.
 func DecodeScanSettings(root xmldoc.Element) (
-	ss ScanSettings, err error) {
+	ret *ScanSettings, err error) {
 
 	defer func() { err = xmldoc.XMLErrWrap(root, err) }()
+
+	var ss ScanSettings
 
 	// Lookup relevant XML elements
 	ver := xmldoc.Lookup{Name: NsPWG + ":Version", Required: true}
@@ -332,11 +334,12 @@ func DecodeScanSettings(root xmldoc.Element) (
 		}
 	}
 
+	ret = &ss
 	return
 }
 
 // ToXML generates XML tree for the [ScanSettings].
-func (ss ScanSettings) ToXML() xmldoc.Element {
+func (ss *ScanSettings) ToXML() xmldoc.Element {
 	elm := xmldoc.Element{
 		Name: NsScan + ":ScanSettings",
 		Children: []xmldoc.Element{

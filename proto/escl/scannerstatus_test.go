@@ -23,7 +23,7 @@ import (
 
 // testScannerStatus contains example of the initialized
 // ScannerStatus structure
-var testScannerStatus = ScannerStatus{
+var testScannerStatus = &ScannerStatus{
 	Version:  MakeVersion(2, 0),
 	State:    ScannerProcessing,
 	ADFState: optional.New(ScannerAdfProcessing),
@@ -97,7 +97,7 @@ func TestScannerStatusPushJobInfo(t *testing.T) {
 // to and from the XML
 func TestScannerStatus(t *testing.T) {
 	type testData struct {
-		status ScannerStatus
+		status *ScannerStatus
 		xml    xmldoc.Element
 	}
 

@@ -28,9 +28,11 @@ type ScanBufferInfo struct {
 
 // DecodeScanBufferInfo decodes [ScanBufferInfo] from the XML tree.
 func DecodeScanBufferInfo(root xmldoc.Element) (
-	info ScanBufferInfo, err error) {
+	ret *ScanBufferInfo, err error) {
 
 	defer func() { err = xmldoc.XMLErrWrap(root, err) }()
+
+	var info ScanBufferInfo
 
 	// Lookup relevant XML elements
 	ss := xmldoc.Lookup{Name: NsScan + ":ScanSettings", Required: true}
@@ -45,8 +47,9 @@ func DecodeScanBufferInfo(root xmldoc.Element) (
 	}
 
 	// Decode elements
-	info.ScanSettings, err = DecodeScanSettings(ss.Elem)
+	settings, err := DecodeScanSettings(ss.Elem)
 	if err == nil {
+		info.ScanSettings = *settings
 		info.ImageWidth, err = decodeNonNegativeInt(wid.Elem)
 	}
 	if err == nil {
@@ -56,11 +59,12 @@ func DecodeScanBufferInfo(root xmldoc.Element) (
 		info.BytesPerLine, err = decodeNonNegativeInt(bpl.Elem)
 	}
 
+	ret = &info
 	return
 }
 
 // ToXML generates XML tree for the [ScanBufferInfo].
-func (info ScanBufferInfo) ToXML() xmldoc.Element {
+func (info *ScanBufferInfo) ToXML() xmldoc.Element {
 	elm := xmldoc.Element{
 		Name: NsScan + ":ScanBufferInfo",
 		Children: []xmldoc.Element{

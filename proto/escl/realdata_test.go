@@ -39,7 +39,7 @@ func TestKyoceraECOSYSM2040dnScannerCapabilities(t *testing.T) {
 	}
 
 	// Verify ScannerCapabilities
-	expected := ScannerCapabilities{
+	expected := &ScannerCapabilities{
 		Version:      MakeVersion(2, 62),
 		MakeAndModel: optional.New("Kyocera ECOSYS M2040dn"),
 		SerialNumber: optional.New("VCF9192281"),
@@ -265,7 +265,7 @@ func TestKyoceraECOSYSM2040dnScannerStatus(t *testing.T) {
 	}
 
 	// Verify ScannerStatus
-	expected := ScannerStatus{
+	expected := &ScannerStatus{
 		Version:  MakeVersion(2, 62),
 		State:    ScannerProcessing,
 		ADFState: optional.New(ScannerAdfProcessing),
@@ -340,7 +340,7 @@ func TestHPLaserJetM426fdnScannerCapabilities(t *testing.T) {
 	}
 
 	// Verify ScannerCapabilities
-	expected := ScannerCapabilities{
+	expected := &ScannerCapabilities{
 		Version:      MakeVersion(2, 5),
 		MakeAndModel: optional.New("HP LaserJet MFP M426fdn"),
 		SerialNumber: optional.New("PHBLL6F5GB"),
@@ -556,7 +556,7 @@ func TestHPLaserJetM426fdnScannerStatus(t *testing.T) {
 	}
 
 	// Verify ScannerStatus
-	expected := ScannerStatus{
+	expected := &ScannerStatus{
 		Version:  MakeVersion(2, 5),
 		State:    ScannerIdle,
 		ADFState: optional.New(ScannerAdfEmpty),

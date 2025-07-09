@@ -59,9 +59,11 @@ type ScannerCapabilities struct {
 // DecodeScannerCapabilities decodes [ScannerCapabilities] from the
 // XML tree.
 func DecodeScannerCapabilities(root xmldoc.Element) (
-	scancaps ScannerCapabilities, err error) {
+	ret *ScannerCapabilities, err error) {
 
 	defer func() { err = xmldoc.XMLErrWrap(root, err) }()
+
+	var scancaps ScannerCapabilities
 
 	// Lookup relevant XML elements
 	ver := xmldoc.Lookup{Name: NsPWG + ":Version", Required: true}
@@ -295,11 +297,12 @@ func DecodeScannerCapabilities(root xmldoc.Element) (
 		scancaps.BlankPageDetectionAndRemoval = optional.New(flg)
 	}
 
+	ret = &scancaps
 	return
 }
 
 // DocumentFormats returns the supported document formats.
-func (scancaps ScannerCapabilities) DocumentFormats() []string {
+func (scancaps *ScannerCapabilities) DocumentFormats() []string {
 	// Gather all SettingProfiles around the entire ScannerCapabilities
 	profs := scancaps.SettingProfiles
 
@@ -346,7 +349,7 @@ func (scancaps ScannerCapabilities) DocumentFormats() []string {
 }
 
 // ToXML generates XML tree for the [ScannerCapabilities].
-func (scancaps ScannerCapabilities) ToXML() xmldoc.Element {
+func (scancaps *ScannerCapabilities) ToXML() xmldoc.Element {
 	elm := xmldoc.Element{
 		Name: NsScan + ":ScannerCapabilities",
 		Children: []xmldoc.Element{

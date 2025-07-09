@@ -19,7 +19,7 @@ import (
 
 // testScanSettings contains example of the initialized
 // ScanSettings structure
-var testScanSettings = ScanSettings{
+var testScanSettings = &ScanSettings{
 	Version:                      MakeVersion(2, 0),
 	Intent:                       optional.New(Document),
 	ScanRegions:                  []ScanRegion{testScanRegion},
@@ -52,7 +52,7 @@ var testScanSettings = ScanSettings{
 // to and from the XML
 func TestScanSettings(t *testing.T) {
 	type testData struct {
-		ss  ScanSettings
+		ss  *ScanSettings
 		xml xmldoc.Element
 	}
 

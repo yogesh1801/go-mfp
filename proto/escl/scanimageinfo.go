@@ -32,8 +32,10 @@ type ScanImageInfo struct {
 }
 
 // DecodeScanImageInfo decodes [ScanImageInfo] from the XML tree.
-func DecodeScanImageInfo(root xmldoc.Element) (info ScanImageInfo, err error) {
+func DecodeScanImageInfo(root xmldoc.Element) (ret *ScanImageInfo, err error) {
 	defer func() { err = xmldoc.XMLErrWrap(root, err) }()
+
+	var info ScanImageInfo
 
 	// Lookup relevant XML elements
 	jobURI := xmldoc.Lookup{Name: NsPWG + ":JobUri", Required: true}
@@ -71,11 +73,12 @@ func DecodeScanImageInfo(root xmldoc.Element) (info ScanImageInfo, err error) {
 			blank.Elem, decodeBool)
 	}
 
+	ret = &info
 	return
 }
 
 // ToXML generates XML tree for the [ScanImageInfo].
-func (info ScanImageInfo) ToXML() xmldoc.Element {
+func (info *ScanImageInfo) ToXML() xmldoc.Element {
 	elm := xmldoc.Element{
 		Name: NsScan + ":ScanImageInfo",
 		Children: []xmldoc.Element{

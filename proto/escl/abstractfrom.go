@@ -355,14 +355,14 @@ func fromAbstractInputSourceCaps(
 }
 
 // fromAbstractScannerCapabilities translates [abstract.ScannerCapabilities]
-// into the [ScannerCapabilities].
+// into the *[ScannerCapabilities].
 //
 // The version parameters affects how some fields are converted.
 func fromAbstractScannerCapabilities(
 	version Version,
-	abscaps *abstract.ScannerCapabilities) ScannerCapabilities {
+	abscaps *abstract.ScannerCapabilities) *ScannerCapabilities {
 
-	scancaps := ScannerCapabilities{
+	scancaps := &ScannerCapabilities{
 		Version: version,
 		UUID:    optional.New(abscaps.UUID),
 	}
@@ -442,9 +442,9 @@ func fromAbstractScannerCapabilities(
 // The version parameters affects how some fields are converted.
 func fromAbstractScanSettings(
 	version Version,
-	absreq *abstract.ScannerRequest) ScanSettings {
+	absreq *abstract.ScannerRequest) *ScanSettings {
 
-	ss := ScanSettings{
+	ss := &ScanSettings{
 		Version:           version,
 		Brightness:        absreq.Brightness,
 		Contrast:          absreq.Contrast,

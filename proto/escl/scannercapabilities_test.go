@@ -20,7 +20,7 @@ import (
 
 // testScannerCapabilities contains example of the initialized
 // ScannerCapabilities structure
-var testScannerCapabilities = ScannerCapabilities{
+var testScannerCapabilities = &ScannerCapabilities{
 	Version:      MakeVersion(2, 0),
 	MakeAndModel: optional.New("Example scanner"),
 	SerialNumber: optional.New("00-123456"),
@@ -50,7 +50,7 @@ var testScannerCapabilities = ScannerCapabilities{
 // to and from the XML
 func TestScannerCapabilities(t *testing.T) {
 	type testData struct {
-		scancaps ScannerCapabilities
+		scancaps *ScannerCapabilities
 		xml      xmldoc.Element
 	}
 
@@ -108,7 +108,7 @@ func TestScannerCapabilities(t *testing.T) {
 		// Tests to see that Platen/Camera/ADF capabilites
 		// are not messed up
 		{
-			scancaps: ScannerCapabilities{
+			scancaps: &ScannerCapabilities{
 				Version: MakeVersion(2, 0),
 				Platen:  optional.New(testPlaten),
 			},
@@ -120,7 +120,7 @@ func TestScannerCapabilities(t *testing.T) {
 		},
 
 		{
-			scancaps: ScannerCapabilities{
+			scancaps: &ScannerCapabilities{
 				Version: MakeVersion(2, 0),
 				Camera:  optional.New(testCamera),
 			},
@@ -132,7 +132,7 @@ func TestScannerCapabilities(t *testing.T) {
 		},
 
 		{
-			scancaps: ScannerCapabilities{
+			scancaps: &ScannerCapabilities{
 				Version: MakeVersion(2, 0),
 				ADF:     optional.New(testADF),
 			},
