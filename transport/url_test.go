@@ -296,6 +296,33 @@ func TestParseAddr(t *testing.T) {
 			in:  "http://127.0.0.1:80/ipp/print",
 			out: "http://127.0.0.1/ipp/print",
 		},
+
+		// Host name
+		{
+			in:  "localhost",
+			out: "http://localhost/",
+		},
+
+		{
+			in:  "example.com",
+			out: "http://example.com/",
+		},
+
+		// Host name with port
+		{
+			in:  "localhost:123",
+			out: "http://localhost:123/",
+		},
+
+		{
+			in:  "example.com:123",
+			out: "http://example.com:123/",
+		},
+
+		{
+			in:  "example.com:123456",
+			err: `invalid address or URL`,
+		},
 	}
 
 	for _, test := range tests {

@@ -18,6 +18,7 @@ import (
 	"strings"
 
 	"github.com/OpenPrinting/go-mfp/util/missed"
+	"golang.org/x/net/idna"
 )
 
 // Default ports, by protocol:
@@ -82,7 +83,7 @@ func ParseAddr(addr, template string) (*url.URL, error) {
 	}
 
 	// Try IP addr, IP addr with port, UNIX path. Rebuild
-	// URL string, if anything of above does match.
+	// URL string, if something of above does match.
 	if host := parseIPAddr(addr); host != "" {
 		addr = scheme + "://" + host + port + path
 	} else if host := parseIPAddrPort(addr); host != "" {
@@ -116,6 +117,7 @@ func ParseAddr(addr, template string) (*url.URL, error) {
 //   - IPv4 dotted decimal ("192.0.2.1")
 //   - IPv6 ("2001:db8::1")
 //   - IPv6 in square brackets ("[2001:db8::1]")
+//   - domain name ("example.com")
 //
 // The returned string is "" on a error, or suitable as the URL.Host on success
 func parseIPAddr(addr string) string {
@@ -126,6 +128,10 @@ func parseIPAddr(addr string) string {
 
 	ip, err := netip.ParseAddr(addr)
 	if err != nil {
+		ascii, err := idna.Lookup.ToASCII(addr)
+		if err == nil {
+			return ascii
+		}
 		return ""
 	}
 
@@ -142,15 +148,35 @@ func parseIPAddr(addr string) string {
 //
 //   - IPv4 dotted decimal ("192.0.2.1:80")
 //   - IPv6 ("[2001:db8::1]:80")
+//   - domain with literal port ("example.com:80")
 //
 // The returned string is "" on a error, or suitable as the URL.Host on success
 func parseIPAddrPort(addr string) string {
+	// Try netip.ParseAddrPort, it handles literal addresses
 	ip, err := netip.ParseAddrPort(addr)
+	if err == nil {
+		return ip.String()
+	}
+
+	// Try to split into host and port and parse separately
+	i := strings.LastIndexByte(addr, ':')
+	if i <= 0 || i == len(addr)-1 {
+		return ""
+	}
+
+	host, port := addr[:i], addr[i+1:]
+
+	host = parseIPAddr(host)
+	if host == "" {
+		return ""
+	}
+
+	portnum, err := strconv.ParseInt(port, 10, 16)
 	if err != nil {
 		return ""
 	}
 
-	return ip.String()
+	return fmt.Sprintf("%s:%d", host, portnum)
 }
 
 // ParseURL is the URL parser. In comparison to the [url.Parse] from the
