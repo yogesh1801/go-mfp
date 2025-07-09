@@ -63,6 +63,15 @@ var Command = argv.Command{
 			Validate: transport.ValidateURL,
 		},
 		argv.Option{
+			Name:     "-m",
+			Aliases:  []string{"--model"},
+			Help:     "write model to file",
+			HelpArg:  "file",
+			Required: true,
+			Validate: argv.ValidateAny,
+			Complete: argv.CompleteOSPath,
+		},
+		argv.Option{
 			Name:    "-d",
 			Aliases: []string{"--debug"},
 			Help:    "Enable debug output",
