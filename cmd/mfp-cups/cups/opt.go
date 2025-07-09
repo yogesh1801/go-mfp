@@ -60,8 +60,8 @@ func optAttrsComplete(arg string) (compl []argv.Completion) {
 	for _, info := range infos {
 		if strings.HasPrefix(info.Name, attrName) {
 			c := argv.Completion{
-				String: prefix + info.Name + ",",
-				Flags:  argv.CompletionNoSpace,
+				String:  prefix + info.Name + ",",
+				NoSpace: true,
 			}
 			compl = append(compl, c)
 		}
@@ -190,8 +190,8 @@ func optSchemesComplete(arg string) (compl []argv.Completion) {
 	for _, candidate := range candidates {
 		if strings.HasPrefix(candidate, scheme) {
 			c := argv.Completion{
-				String: prefix + candidate + ",",
-				Flags:  argv.CompletionNoSpace,
+				String:  prefix + candidate + ",",
+				NoSpace: true,
 			}
 			compl = append(compl, c)
 		}

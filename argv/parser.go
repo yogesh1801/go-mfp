@@ -488,10 +488,10 @@ func (prs *parser) completeOptionName(arg string) (compl []Completion) {
 
 		for _, name := range opt.names() {
 			if strings.HasPrefix(name, arg) {
-				c := Completion{name, 0}
+				c := Completion{name, false}
 				if opt.withValue() && prs.isLongOption(name) {
 					c.String += "="
-					c.Flags = CompletionNoSpace
+					c.NoSpace = true
 				}
 				compl = append(compl, c)
 			}
@@ -542,7 +542,7 @@ func (prs *parser) completeSubCommandName(arg string) (compl []Completion) {
 
 		for _, name := range names {
 			if strings.HasPrefix(name, arg) {
-				compl = append(compl, Completion{name, 0})
+				compl = append(compl, Completion{name, false})
 			}
 		}
 	}
@@ -584,7 +584,7 @@ func (prs *parser) completePostProcess(arg string,
 		// candidates has common prefix, so just return it as a single
 		// suggestion, so completion will go to that point.
 		if len(prefix) > len(arg) {
-			compl = []Completion{{prefix, CompletionNoSpace}}
+			compl = []Completion{{prefix, true}}
 		}
 	}
 

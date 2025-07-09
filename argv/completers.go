@@ -45,7 +45,7 @@ func CompleteStrings(s []string) Completer {
 		for _, member := range set {
 			if len(in) < len(member) &&
 				strings.HasPrefix(member, in) {
-				compl = append(compl, Completion{member, 0})
+				compl = append(compl, Completion{member, false})
 			}
 		}
 		return compl

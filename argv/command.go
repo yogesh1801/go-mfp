@@ -228,7 +228,7 @@ func (cmd *Command) Run(ctx context.Context, argv []string) error {
 				}
 				s += string(c)
 			}
-			if (c.Flags & CompletionNoSpace) == 0 {
+			if !c.NoSpace {
 				s += " "
 			}
 			fmt.Fprintf(os.Stdout, "%s\n", s)

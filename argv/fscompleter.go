@@ -56,14 +56,14 @@ func (fscompl *fscompleter) complete(arg string) (compl []Completion) {
 
 		if strings.HasPrefix(name, file) {
 			candidate := fscompl.mergePath(dir, name)
-			compl = append(compl, Completion{candidate, 0})
+			compl = append(compl, Completion{candidate, false})
 			lasIsDir = ent.IsDir()
 		}
 	}
 
 	if len(compl) == 1 && lasIsDir {
 		compl[0].String += string(filepath.Separator)
-		compl[0].Flags = CompletionNoSpace
+		compl[0].NoSpace = true
 	}
 
 	return compl

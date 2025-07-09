@@ -41,11 +41,11 @@ func TestAutoCompletion(t *testing.T) {
 				},
 			},
 			out: []Completion{
-				{"-h", 0},
-				{"--long-1", 0},
-				{"--long-2", 0},
-				{"--other", 0},
-				{"--long-3", 0},
+				{"-h", false},
+				{"--long-1", false},
+				{"--long-2", false},
+				{"--other", false},
+				{"--long-3", false},
 			},
 		},
 
@@ -61,7 +61,7 @@ func TestAutoCompletion(t *testing.T) {
 				},
 			},
 			out: []Completion{
-				{"--long-", CompletionNoSpace},
+				{"--long-", true},
 			},
 		},
 
@@ -86,8 +86,8 @@ func TestAutoCompletion(t *testing.T) {
 				},
 			},
 			out: []Completion{
-				{"Robert", 0},
-				{"Roger", 0},
+				{"Robert", false},
+				{"Roger", false},
 			},
 		},
 
@@ -110,8 +110,8 @@ func TestAutoCompletion(t *testing.T) {
 				},
 			},
 			out: []Completion{
-				{"-xRobert", 0},
-				{"-xRoger", 0},
+				{"-xRobert", false},
+				{"-xRoger", false},
 			},
 		},
 
@@ -134,7 +134,7 @@ func TestAutoCompletion(t *testing.T) {
 				},
 			},
 			out: []Completion{
-				{"Ro", CompletionNoSpace},
+				{"Ro", true},
 			},
 		},
 
@@ -194,7 +194,7 @@ func TestAutoCompletion(t *testing.T) {
 				},
 			},
 			out: []Completion{
-				{"Ro", CompletionNoSpace},
+				{"Ro", true},
 			},
 		},
 
@@ -217,8 +217,8 @@ func TestAutoCompletion(t *testing.T) {
 				},
 			},
 			out: []Completion{
-				{"Robert", 0},
-				{"Roger", 0},
+				{"Robert", false},
+				{"Roger", false},
 			},
 		},
 
@@ -251,8 +251,8 @@ func TestAutoCompletion(t *testing.T) {
 				},
 			},
 			out: []Completion{
-				{"Robert", 0},
-				{"Roger", 0},
+				{"Robert", false},
+				{"Roger", false},
 			},
 		},
 
@@ -275,8 +275,8 @@ func TestAutoCompletion(t *testing.T) {
 				},
 			},
 			out: []Completion{
-				{"--long=Robert", 0},
-				{"--long=Roger", 0},
+				{"--long=Robert", false},
+				{"--long=Roger", false},
 			},
 		},
 
@@ -299,7 +299,7 @@ func TestAutoCompletion(t *testing.T) {
 				},
 			},
 			out: []Completion{
-				{"Ro", CompletionNoSpace},
+				{"Ro", true},
 			},
 		},
 
@@ -359,7 +359,7 @@ func TestAutoCompletion(t *testing.T) {
 				},
 			},
 			out: []Completion{
-				{"Ro", CompletionNoSpace},
+				{"Ro", true},
 			},
 		},
 
@@ -400,8 +400,8 @@ func TestAutoCompletion(t *testing.T) {
 				},
 			},
 			out: []Completion{
-				{"Robert", 0},
-				{"Roger", 0},
+				{"Robert", false},
+				{"Roger", false},
 			},
 		},
 
@@ -415,7 +415,7 @@ func TestAutoCompletion(t *testing.T) {
 				},
 			},
 			out: []Completion{
-				{"Roger", 0},
+				{"Roger", false},
 			},
 		},
 
@@ -430,7 +430,7 @@ func TestAutoCompletion(t *testing.T) {
 				},
 			},
 			out: []Completion{
-				{"Ro", CompletionNoSpace},
+				{"Ro", true},
 			},
 		},
 
@@ -448,8 +448,8 @@ func TestAutoCompletion(t *testing.T) {
 				},
 			},
 			out: []Completion{
-				{"Robert", 0},
-				{"Roger", 0},
+				{"Robert", false},
+				{"Roger", false},
 			},
 		},
 
@@ -486,8 +486,8 @@ func TestAutoCompletion(t *testing.T) {
 				},
 			},
 			out: []Completion{
-				{"Robert", 0},
-				{"Roger", 0},
+				{"Robert", false},
+				{"Roger", false},
 			},
 		},
 
@@ -512,8 +512,8 @@ func TestAutoCompletion(t *testing.T) {
 				},
 			},
 			out: []Completion{
-				{"Robert", 0},
-				{"Roger", 0},
+				{"Robert", false},
+				{"Roger", false},
 			},
 		},
 
@@ -538,7 +538,7 @@ func TestAutoCompletion(t *testing.T) {
 				},
 			},
 			out: []Completion{
-				{"Ro", CompletionNoSpace},
+				{"Ro", true},
 			},
 		},
 
@@ -583,8 +583,8 @@ func TestAutoCompletion(t *testing.T) {
 				},
 			},
 			out: []Completion{
-				{"Robert", 0},
-				{"Roger", 0},
+				{"Robert", false},
+				{"Roger", false},
 			},
 		},
 
@@ -623,7 +623,7 @@ func TestAutoCompletion(t *testing.T) {
 				},
 			},
 			out: []Completion{
-				{"--long-", CompletionNoSpace},
+				{"--long-", true},
 			},
 		},
 
@@ -646,7 +646,7 @@ func TestAutoCompletion(t *testing.T) {
 				},
 			},
 			out: []Completion{
-				{"get-default", 0},
+				{"get-default", false},
 			},
 		},
 	}
@@ -684,8 +684,8 @@ func testDiffCompletion(expected, received []Completion) []string {
 	out := []string{}
 
 	if !reflect.DeepEqual(expected, received) {
-		out = append(out, fmt.Sprintf("<<< %q", expected))
-		out = append(out, fmt.Sprintf(">>> %q", received))
+		out = append(out, fmt.Sprintf("<<< %#v", expected))
+		out = append(out, fmt.Sprintf(">>> %#v", received))
 	}
 
 	return out

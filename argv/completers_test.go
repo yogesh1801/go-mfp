@@ -35,8 +35,8 @@ func TestCompleteStrings(t *testing.T) {
 			strings: []string{"foo-1", "foo-2"},
 			arg:     "foo",
 			out: []Completion{
-				{"foo-1", 0},
-				{"foo-2", 0},
+				{"foo-1", false},
+				{"foo-2", false},
 			},
 		},
 
@@ -44,8 +44,8 @@ func TestCompleteStrings(t *testing.T) {
 			strings: []string{"foo-1", "foo-2"},
 			arg:     "",
 			out: []Completion{
-				{"foo-1", 0},
-				{"foo-2", 0},
+				{"foo-1", false},
+				{"foo-2", false},
 			},
 		},
 	}
@@ -85,40 +85,40 @@ func TestCompleteFs(t *testing.T) {
 		{
 			in: "/",
 			out: []Completion{
-				{"/etc", 0},
-				{"/test", 0},
-				{"/usr", 0},
+				{"/etc", false},
+				{"/test", false},
+				{"/usr", false},
 			},
 		},
 
 		{
 			in: "./",
 			out: []Completion{
-				{"./etc", 0},
-				{"./test", 0},
-				{"./usr", 0},
+				{"./etc", false},
+				{"./test", false},
+				{"./usr", false},
 			},
 		},
 
 		{
 			in: "/usr/bin/ls",
 			out: []Completion{
-				{"/usr/bin/ls", 0},
+				{"/usr/bin/ls", false},
 			},
 		},
 
 		{
 			in: "/usr/bin",
 			out: []Completion{
-				{"/usr/bin/", CompletionNoSpace},
+				{"/usr/bin/", true},
 			},
 		},
 
 		{
 			in: "test/subdir",
 			out: []Completion{
-				{"test/subdir", 0},
-				{"test/subdirfile", 0},
+				{"test/subdir", false},
+				{"test/subdirfile", false},
 			},
 		},
 
@@ -129,8 +129,8 @@ func TestCompleteFs(t *testing.T) {
 			},
 			in: "",
 			out: []Completion{
-				{"ls", 0},
-				{"ps", 0},
+				{"ls", false},
+				{"ps", false},
 			},
 		},
 
@@ -140,8 +140,8 @@ func TestCompleteFs(t *testing.T) {
 			},
 			in: "",
 			out: []Completion{
-				{"ls", 0},
-				{"ps", 0},
+				{"ls", false},
+				{"ps", false},
 			},
 		},
 
@@ -167,49 +167,6 @@ func TestCompleteFs(t *testing.T) {
 		if !reflect.DeepEqual(out, test.out) {
 			t.Errorf("%q:\nexpected: %#v\nreceived: %#v\n",
 				test.in, test.out, out)
-		}
-	}
-}
-
-// TestCompleterFlags tests (CompletionrFlags) String()
-func TestCompleterFlagsString(t *testing.T) {
-	type testData struct {
-		in  CompletionFlags // Input value
-		out string          // Expected output
-	}
-
-	tests := []testData{
-		{
-			in:  0,
-			out: "0",
-		},
-
-		{
-			in:  1 << 0,
-			out: "CompletionNoSpace",
-		},
-
-		{
-			in:  1 << 2,
-			out: "0x2",
-		},
-
-		{
-			in:  1 << 4,
-			out: "0x4",
-		},
-
-		{
-			in:  12345,
-			out: "CompletionNoSpace,0x3,0x4,0x5,0xc,0xd",
-		},
-	}
-
-	for _, test := range tests {
-		out := test.in.String()
-		if out != test.out {
-			t.Errorf("%x:\nexpected: %s\nreceived: %s",
-				uint(test.in), test.out, out)
 		}
 	}
 }
