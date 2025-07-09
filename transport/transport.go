@@ -10,6 +10,7 @@ package transport
 
 import (
 	"context"
+	"crypto/tls"
 	"net"
 	"net/http"
 	"net/url"
@@ -33,7 +34,8 @@ type Transport struct {
 // is only used as a configuration template.
 func NewTransport(template *http.Transport) *Transport {
 	if template == nil {
-		template = http.DefaultTransport.(*http.Transport)
+		template = http.DefaultTransport.(*http.Transport).Clone()
+		template.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	}
 
 	tr := &Transport{
