@@ -507,6 +507,40 @@ func TestParser(t *testing.T) {
 			},
 			err: `option "-a" cannot be repeated`,
 		},
+
+		// Test 25: handling of Option.Required flag
+		{
+			argv: []string{"-a"},
+			cmd: Command{
+				Name: "test",
+				Options: []Option{
+					{Name: "-a"},
+					{Name: "-b", Required: true},
+				},
+			},
+			err: `missed option "-b"`,
+		},
+
+		// Test 25: handling of Option.Required flag with aliases
+		{
+			argv: []string{"-a", "--bee"},
+			cmd: Command{
+				Name: "test",
+				Options: []Option{
+					{Name: "-a"},
+					{
+						Name:     "-b",
+						Aliases:  []string{"--bee"},
+						Required: true,
+					},
+				},
+			},
+			out: map[string][]string{
+				"-a":    {""},
+				"-b":    {""},
+				"--bee": {""},
+			},
+		},
 	}
 
 	for i, test := range tests {

@@ -79,6 +79,9 @@ type Option struct {
 	// that MUST be used together with this option.
 	Requires []string
 
+	// Required flag, if set, marks option as required.
+	Required bool
+
 	// Singleton flag, if set, doesn't allow option to be used
 	// more that once.
 	Singleton bool

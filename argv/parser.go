@@ -334,6 +334,17 @@ func (prs *parser) validateThings() error {
 	}
 
 	// Check for missed required options
+	for i := range prs.inv.cmd.Options {
+		opt := &prs.inv.cmd.Options[i]
+		if opt.Required {
+			_, found := prs.inv.byName[opt.Name]
+			if !found {
+				return fmt.Errorf("missed option %q",
+					opt.Name)
+			}
+		}
+	}
+
 	for required, byWhom := range prs.optRequired {
 		if _, found := prs.inv.byName[required]; !found {
 			return fmt.Errorf("missed option %q, required by %q",
