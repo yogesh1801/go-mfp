@@ -36,7 +36,7 @@ import (
 //
 // Parent elements: ScannerDescription
 type ScannerInfo struct {
-	Info string
+	Text string
 	Lang optional.Val[string]
 }
 
@@ -44,7 +44,7 @@ type ScannerInfo struct {
 // the text content and optional xml:lang attribute from the XML element. The
 // xml:lang attribute is treated as a single string value.
 func decodeScannerInfo(root xmldoc.Element) (si ScannerInfo, err error) {
-	si.Info = root.Text
+	si.Text = root.Text
 	if attr, found := root.AttrByName("xml:lang"); found {
 		si.Lang = optional.New(attr.Value)
 	}
@@ -56,7 +56,7 @@ func decodeScannerInfo(root xmldoc.Element) (si ScannerInfo, err error) {
 // if language information is available. The xml:lang attribute is set as a
 // single string value.
 func (si ScannerInfo) toXML(name string) xmldoc.Element {
-	elm := xmldoc.Element{Name: name, Text: si.Info}
+	elm := xmldoc.Element{Name: name, Text: si.Text}
 	lang := optional.Get(si.Lang)
 	if lang != "" {
 		elm.Attrs = []xmldoc.Attr{{

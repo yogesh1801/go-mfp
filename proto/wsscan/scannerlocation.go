@@ -36,8 +36,8 @@ import (
 //
 // Parent elements: ScannerDescription
 type ScannerLocation struct {
-	Location string
-	Lang     optional.Val[string]
+	Text string
+	Lang optional.Val[string]
 }
 
 // decodeScannerLocation decodes a [ScannerLocation] from an XML element. It
@@ -49,7 +49,7 @@ func decodeScannerLocation(
 	sl ScannerLocation,
 	err error,
 ) {
-	sl.Location = root.Text
+	sl.Text = root.Text
 	if attr, found := root.AttrByName("xml:lang"); found {
 		sl.Lang = optional.New(attr.Value)
 	}
@@ -63,7 +63,7 @@ func decodeScannerLocation(
 func (sl ScannerLocation) toXML(
 	name string,
 ) xmldoc.Element {
-	elm := xmldoc.Element{Name: name, Text: sl.Location}
+	elm := xmldoc.Element{Name: name, Text: sl.Text}
 	lang := optional.Get(sl.Lang)
 	if lang != "" {
 		elm.Attrs = []xmldoc.Attr{{

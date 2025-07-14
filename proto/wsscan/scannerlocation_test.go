@@ -19,11 +19,11 @@ import (
 func TestScannerLocation(t *testing.T) {
 	dataset := []ScannerLocation{
 		{
-			Location: "LA Campus - Building 1",
-			Lang:     optional.New("en-AU, en-CA, en-GB, en-US"),
+			Text: "LA Campus - Building 1",
+			Lang: optional.New("en-AU, en-CA, en-GB, en-US"),
 		},
-		{Location: "Office Floor 3", Lang: optional.New("en-US")},
-		{Location: "Reception Area"},
+		{Text: "Office Floor 3", Lang: optional.New("en-US")},
+		{Text: "Reception Area"},
 	}
 
 	for _, sl := range dataset {
@@ -34,10 +34,10 @@ func TestScannerLocation(t *testing.T) {
 				elm.Name,
 			)
 		}
-		if elm.Text != sl.Location {
+		if elm.Text != sl.Text {
 			t.Errorf(
 				"expected element text '%s', got '%s'",
-				sl.Location, elm.Text,
+				sl.Text, elm.Text,
 			)
 		}
 

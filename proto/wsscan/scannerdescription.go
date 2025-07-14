@@ -42,9 +42,7 @@ type ScannerDescription struct {
 // It extracts child elements ScannerName, ScannerInfo, and ScannerLocation
 // from the XML element. ScannerName is required, while ScannerInfo and
 // ScannerLocation are optional.
-func decodeScannerDescription(
-	root xmldoc.Element,
-) (
+func decodeScannerDescription(root xmldoc.Element) (
 	sd ScannerDescription,
 	err error,
 ) {
