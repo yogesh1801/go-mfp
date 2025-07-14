@@ -18,7 +18,10 @@ import (
 
 func TestScannerLocation(t *testing.T) {
 	dataset := []ScannerLocation{
-		{Location: "LA Campus - Building 1", Lang: optional.New("en-AU, en-CA, en-GB, en-US")},
+		{
+			Location: "LA Campus - Building 1",
+			Lang:     optional.New("en-AU, en-CA, en-GB, en-US"),
+		},
 		{Location: "Office Floor 3", Lang: optional.New("en-US")},
 		{Location: "Reception Area"},
 	}
@@ -26,10 +29,16 @@ func TestScannerLocation(t *testing.T) {
 	for _, sl := range dataset {
 		elm := sl.toXML("wscn:ScannerLocation")
 		if elm.Name != "wscn:ScannerLocation" {
-			t.Errorf("expected element name 'wscn:ScannerLocation', got '%s'", elm.Name)
+			t.Errorf(
+				"expected element name 'wscn:ScannerLocation', got '%s'",
+				elm.Name,
+			)
 		}
 		if elm.Text != sl.Location {
-			t.Errorf("expected element text '%s', got '%s'", sl.Location, elm.Text)
+			t.Errorf(
+				"expected element text '%s', got '%s'",
+				sl.Location, elm.Text,
+			)
 		}
 
 		sl2, err := decodeScannerLocation(elm)

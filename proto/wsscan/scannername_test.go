@@ -18,7 +18,10 @@ import (
 
 func TestScannerName(t *testing.T) {
 	dataset := []ScannerName{
-		{Name: "Accounting Scanner in Copy Room 2", Lang: optional.New("en-AU, en-CA, en-GB, en-US")},
+		{
+			Name: "Accounting Scanner in Copy Room 2",
+			Lang: optional.New("en-AU, en-CA, en-GB, en-US"),
+		},
 		{Name: "Main Office Scanner", Lang: optional.New("en-US")},
 		{Name: "Reception Scanner"},
 	}
@@ -26,10 +29,16 @@ func TestScannerName(t *testing.T) {
 	for _, sn := range dataset {
 		elm := sn.toXML("wscn:ScannerName")
 		if elm.Name != "wscn:ScannerName" {
-			t.Errorf("expected element name 'wscn:ScannerName', got '%s'", elm.Name)
+			t.Errorf(
+				"expected element name 'wscn:ScannerName', got '%s'",
+				elm.Name,
+			)
 		}
 		if elm.Text != sn.Name {
-			t.Errorf("expected element text '%s', got '%s'", sn.Name, elm.Text)
+			t.Errorf(
+				"expected element text '%s', got '%s'",
+				sn.Name, elm.Text,
+			)
 		}
 
 		sn2, err := decodeScannerName(elm)
