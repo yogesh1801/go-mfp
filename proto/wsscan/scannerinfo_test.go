@@ -26,10 +26,16 @@ func TestScannerInfo(t *testing.T) {
 	for _, si := range dataset {
 		elm := si.toXML("wscn:ScannerInfo")
 		if elm.Name != "wscn:ScannerInfo" {
-			t.Errorf("expected element name 'wscn:ScannerInfo', got '%s'", elm.Name)
+			t.Errorf(
+				"expected element name 'wscn:ScannerInfo', got '%s'",
+				elm.Name,
+			)
 		}
 		if elm.Text != si.Info {
-			t.Errorf("expected element text '%s', got '%s'", si.Info, elm.Text)
+			t.Errorf(
+				"expected element text '%s', got '%s'",
+				si.Info, elm.Text,
+			)
 		}
 
 		si2, err := decodeScannerInfo(elm)

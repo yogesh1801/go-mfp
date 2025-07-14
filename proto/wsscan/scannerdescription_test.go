@@ -21,7 +21,9 @@ func TestScannerDescription(t *testing.T) {
 	sd := ScannerDescription{
 		ScannerName: ScannerName{
 			Name: "Accounting Scanner in Copy Room 2",
-			Lang: optional.New("en-AU, en-CA, en-GB, en-US"),
+			Lang: optional.New(
+				"en-AU, en-CA, en-GB, en-US",
+			),
 		},
 		ScannerInfo: optional.New(ScannerInfo{
 			Info: "High-speed document scanner for accounting department",
@@ -35,12 +37,18 @@ func TestScannerDescription(t *testing.T) {
 
 	elm := sd.toXML(NsWSCN + ":ScannerDescription")
 	if elm.Name != NsWSCN+":ScannerDescription" {
-		t.Errorf("expected element name '%s:ScannerDescription', got '%s'", NsWSCN, elm.Name)
+		t.Errorf(
+			"expected element name '%s:ScannerDescription', got '%s'",
+			NsWSCN, elm.Name,
+		)
 	}
 
 	// Check that all child elements are present
 	if len(elm.Children) != 3 {
-		t.Errorf("expected 3 child elements, got %d", len(elm.Children))
+		t.Errorf(
+			"expected 3 child elements, got %d",
+			len(elm.Children),
+		)
 	}
 
 	// Test round-trip
@@ -59,7 +67,10 @@ func TestScannerDescription(t *testing.T) {
 
 	elm2 := sdMinimal.toXML(NsWSCN + ":ScannerDescription")
 	if len(elm2.Children) != 1 {
-		t.Errorf("expected 1 child element, got %d", len(elm2.Children))
+		t.Errorf(
+			"expected 1 child element, got %d",
+			len(elm2.Children),
+		)
 	}
 
 	sd3, err := decodeScannerDescription(elm2)
