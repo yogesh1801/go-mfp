@@ -20,18 +20,18 @@ func TestScannerDescription(t *testing.T) {
 	// Test with all child elements
 	sd := ScannerDescription{
 		ScannerName: ScannerName{
-			Name: "Accounting Scanner in Copy Room 2",
+			Text: "Accounting Scanner in Copy Room 2",
 			Lang: optional.New(
 				"en-AU, en-CA, en-GB, en-US",
 			),
 		},
 		ScannerInfo: optional.New(ScannerInfo{
-			Info: "High-speed document scanner for accounting department",
+			Text: "High-speed document scanner for accounting department",
 			Lang: optional.New("en-US"),
 		}),
 		ScannerLocation: optional.New(ScannerLocation{
-			Location: "LA Campus - Building 1",
-			Lang:     optional.New("en-AU, en-CA, en-GB, en-US"),
+			Text: "LA Campus - Building 1",
+			Lang: optional.New("en-AU, en-CA, en-GB, en-US"),
 		}),
 	}
 
@@ -61,7 +61,7 @@ func TestScannerDescription(t *testing.T) {
 	// Test with only required ScannerName
 	sdMinimal := ScannerDescription{
 		ScannerName: ScannerName{
-			Name: "Basic Scanner",
+			Text: "Basic Scanner",
 		},
 	}
 

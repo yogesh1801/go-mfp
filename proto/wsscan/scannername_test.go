@@ -19,11 +19,11 @@ import (
 func TestScannerName(t *testing.T) {
 	dataset := []ScannerName{
 		{
-			Name: "Accounting Scanner in Copy Room 2",
+			Text: "Accounting Scanner in Copy Room 2",
 			Lang: optional.New("en-AU, en-CA, en-GB, en-US"),
 		},
-		{Name: "Main Office Scanner", Lang: optional.New("en-US")},
-		{Name: "Reception Scanner"},
+		{Text: "Main Office Scanner", Lang: optional.New("en-US")},
+		{Text: "Reception Scanner"},
 	}
 
 	for _, sn := range dataset {
@@ -34,10 +34,10 @@ func TestScannerName(t *testing.T) {
 				elm.Name,
 			)
 		}
-		if elm.Text != sn.Name {
+		if elm.Text != sn.Text {
 			t.Errorf(
 				"expected element text '%s', got '%s'",
-				sn.Name, elm.Text,
+				sn.Text, elm.Text,
 			)
 		}
 
