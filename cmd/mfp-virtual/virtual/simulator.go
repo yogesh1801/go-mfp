@@ -120,7 +120,7 @@ func simulate(ctx context.Context, port int, argv []string) error {
 	addr := fmt.Sprintf("localhost:%d", port)
 	ln, err := net.Listen("tcp", addr)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	// Run external command if specified
