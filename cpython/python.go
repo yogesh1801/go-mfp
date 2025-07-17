@@ -38,8 +38,8 @@ func NewPython() (py *Python, err error) {
 			objects: newObjmap(),
 		}
 
+		// Load None, True and False singletons
 		gate := py.gate()
-		defer gate.release()
 
 		py.pyNone, err = gate.eval("None", "", true)
 		assert.NoError(err)
@@ -50,6 +50,10 @@ func NewPython() (py *Python, err error) {
 		py.pyFalse, err = gate.eval("False", "", true)
 		assert.NoError(err)
 
+		gate.release()
+
+		// Load global dictionary.
+		// It is more convenient to use it as the Object
 		py.globals, err = py.Eval("globals()")
 		assert.NoError(err)
 	}
