@@ -1,12 +1,12 @@
 // MFP - Miulti-Function Printers and scanners toolkit
-// Print and scam servers with added scriptability.
+// Printer and scanner modeling.
 //
 // Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
 // See LICENSE for license terms and conditions
 //
 // List of keywords
 
-package scriptable
+package modeling
 
 import "strings"
 
