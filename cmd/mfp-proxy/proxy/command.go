@@ -36,9 +36,10 @@ const description = "" +
 
 // Command is the 'proxy' command description
 var Command = argv.Command{
-	Name:        "proxy",
-	Help:        "IPP/eSCL/WSD masquerading proxy",
-	Description: description,
+	Name:                     "proxy",
+	Help:                     "IPP/eSCL/WSD masquerading proxy",
+	Description:              description,
+	NoOptionsAfterParameters: true,
 	Options: []argv.Option{
 		argv.Option{
 			Name:      "--escl",
