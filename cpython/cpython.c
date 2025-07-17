@@ -360,8 +360,9 @@ PyInterpreterState *py_new_interp (void) {
 // The value it returns must be passed to the corresponding
 // py_leave call.
 PyThreadState *py_enter (PyInterpreterState *interp) {
-    PyThreadState *prev, *t = PyThreadState_New_p(interp);
-    prev = PyThreadState_Swap_p(t);
+    PyThreadState *prev = PyThreadState_Swap_p(NULL);
+    PyThreadState *t = PyThreadState_New_p(interp);
+    PyEval_RestoreThread_p(t);
     return prev;
 }
 
@@ -372,8 +373,9 @@ PyThreadState *py_enter (PyInterpreterState *interp) {
 void py_leave (PyThreadState *prev) {
     PyThreadState *t = PyThreadState_Get_p();
     PyThreadState_Clear_p(t);
-    PyThreadState_Swap_p(prev);
+    PyEval_SaveThread_p();
     PyThreadState_Delete_p(t);
+    PyThreadState_Swap_p(prev);
 }
 
 // py_interp_close closes the Python interpreter.
@@ -396,6 +398,7 @@ void py_interp_close (PyInterpreterState *interp) {
 // Python script and don't return any PyObject (sets *res to NULL)
 bool py_interp_eval (const char *s, const char *file,
                      bool expr, PyObject **res) {
+
     // Obtain the __main__ module reference and its namespace
     PyObject *main_module = PyImport_AddModule_p("__main__");
     if (main_module == NULL) {
