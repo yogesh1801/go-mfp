@@ -65,6 +65,7 @@ static __typeof__(PyEval_SaveThread)            *PyEval_SaveThread_p;
 static __typeof__(PyFloat_AsDouble)             *PyFloat_AsDouble_p;
 static __typeof__(PyFloat_FromDouble)           *PyFloat_FromDouble_p;
 static __typeof__(PyImport_AddModule)           *PyImport_AddModule_p;
+static __typeof__(Py_IncRef)                    *Py_IncRef_p;
 static __typeof__(Py_InitializeEx)              *Py_InitializeEx_p;
 static __typeof__(PyInterpreterState_Clear)     *PyInterpreterState_Clear_p;
 static __typeof__(PyInterpreterState_Delete)    *PyInterpreterState_Delete_p;
@@ -80,7 +81,6 @@ static __typeof__(PyMapping_Check)              *PyMapping_Check_p;
 static __typeof__(PyMapping_Keys)               *PyMapping_Keys_p;
 static __typeof__(PyModule_GetDict)             *PyModule_GetDict_p;
 static __typeof__(Py_NewInterpreter)            *Py_NewInterpreter_p;
-static __typeof__(Py_NewRef)                    *Py_NewRef_p;
 static __typeof__(PyObject_Call)                *PyObject_Call_p;
 static __typeof__(PyObject_DelItem)             *PyObject_DelItem_p;
 static __typeof__(PyObject_GetAttrString)       *PyObject_GetAttrString_p;
@@ -91,6 +91,7 @@ static __typeof__(PyObject_Repr)                *PyObject_Repr_p;
 static __typeof__(PyObject_SetAttrString)       *PyObject_SetAttrString_p;
 static __typeof__(PyObject_SetItem)             *PyObject_SetItem_p;
 static __typeof__(PyObject_Str)                 *PyObject_Str_p;
+static __typeof__(PyObject_Type)                *PyObject_Type_p;
 static __typeof__(PySequence_Check)             *PySequence_Check_p;
 static __typeof__(PySequence_GetItem)           *PySequence_GetItem_p;
 static __typeof__(PyThreadState_Clear)          *PyThreadState_Clear_p;
@@ -106,7 +107,9 @@ static __typeof__(PyType_IsSubtype)             *PyType_IsSubtype_p;
 static __typeof__(PyUnicode_AsUCS4)             *PyUnicode_AsUCS4_p;
 static __typeof__(PyUnicode_FromStringAndSize)  *PyUnicode_FromStringAndSize_p;
 
-static __typeof__(PyInterpreterState_Get)       *PyInterpreterState_Get_p;
+// PyInterpreterState_Get is not officially exposed on Python 3.8,
+// so it needs the special care.
+static PyInterpreterState *(*PyInterpreterState_Get_p) (void);
 
 // Python exceptions (some of them):
 static PyObject *PyExc_KeyError_p;
@@ -133,9 +136,6 @@ PyTypeObject *PyType_Type_p;
 PyTypeObject *PyUnicode_Type_p;
 
 /// Directly exposed libpython functions:
-int                             (*Py_IsNone_p)(PyObject *);
-int                             (*Py_IsTrue_p)(PyObject *);
-int                             (*Py_IsFalse_p)(PyObject *);
 Py_ssize_t                      (*PyUnicode_GetLength_p)(PyObject *);
 
 // py_set_error formats and sets py_error.
@@ -156,6 +156,25 @@ static void *py_load (const char *name) {
 
     if (py_error == NULL) {
         p = dlsym(RTLD_DEFAULT, name);
+        if (p == NULL) {
+            py_set_error("%s", dlerror());
+        }
+    }
+
+    return p;
+}
+
+// py_load2 loads Python symbol by name, trying two variants
+// of the name
+static void *py_load2 (const char *name1, const char *name2) {
+    void *p = NULL;
+
+    if (py_error == NULL) {
+        p = dlsym(RTLD_DEFAULT, name1);
+        if (p == NULL) {
+            p = dlsym(RTLD_DEFAULT, name2);
+        }
+
         if (p == NULL) {
             py_set_error("%s", dlerror());
         }
@@ -199,6 +218,7 @@ static void py_load_all (void) {
     PyFloat_AsDouble_p = py_load("PyFloat_AsDouble");
     PyFloat_FromDouble_p = py_load("PyFloat_FromDouble");
     PyImport_AddModule_p = py_load("PyImport_AddModule");
+    Py_IncRef_p = py_load("Py_IncRef");
     Py_InitializeEx_p = py_load("Py_InitializeEx");
     PyInterpreterState_Clear_p = py_load("PyInterpreterState_Clear");
     PyInterpreterState_Delete_p = py_load("PyInterpreterState_Delete");
@@ -214,7 +234,6 @@ static void py_load_all (void) {
     PyMapping_Keys_p = py_load("PyMapping_Keys");
     PyModule_GetDict_p = py_load("PyModule_GetDict");
     Py_NewInterpreter_p = py_load("Py_NewInterpreter");
-    Py_NewRef_p = py_load("Py_NewRef");
     PyObject_Call_p = py_load("PyObject_Call");
     PyObject_DelItem_p = py_load("PyObject_DelItem");
     PyObject_GetAttrString_p = py_load("PyObject_GetAttrString");
@@ -225,6 +244,7 @@ static void py_load_all (void) {
     PyObject_SetAttrString_p = py_load("PyObject_SetAttrString");
     PyObject_SetItem_p = py_load("PyObject_SetItem");
     PyObject_Str_p = py_load("PyObject_Str");
+    PyObject_Type_p = py_load("PyObject_Type");
     PySequence_Check_p = py_load("PySequence_Check");
     PySequence_GetItem_p = py_load("PySequence_GetItem");
     PyThreadState_Clear_p = py_load("PyThreadState_Clear");
@@ -240,7 +260,15 @@ static void py_load_all (void) {
     PyUnicode_AsUCS4_p = py_load("PyUnicode_AsUCS4");
     PyUnicode_FromStringAndSize_p = py_load("PyUnicode_FromStringAndSize");
 
-    PyInterpreterState_Get_p = py_load("PyInterpreterState_Get");
+    // Python 3.8 "unoficcially" exposes this symbol as
+    // _PyInterpreterState_Get.
+    //
+    // Python 3.9 and up exposes it as PyInterpreterState_Get, and
+    // now it's a part of the stable API.
+    //
+    // So this trickery is safe.
+    PyInterpreterState_Get_p = py_load2(
+        "_PyInterpreterState_Get", "PyInterpreterState_Get");
 
     PyExc_KeyError_p = py_load_ptr("PyExc_KeyError");
     PyExc_OverflowError_p = py_load_ptr("PyExc_OverflowError");
@@ -264,9 +292,6 @@ static void py_load_all (void) {
     PyType_Type_p = py_load("PyType_Type");
     PyUnicode_Type_p = py_load("PyUnicode_Type");
 
-    Py_IsFalse_p = py_load("Py_IsFalse");
-    Py_IsNone_p = py_load("Py_IsNone");
-    Py_IsTrue_p = py_load("Py_IsTrue");
     PyUnicode_GetLength_p = py_load("PyUnicode_GetLength");
 }
 
@@ -462,12 +487,24 @@ bool py_obj_is_unicode (PyObject *x) {
 
 // py_obj_ref increments the PyObject's reference count.
 void py_obj_ref (PyObject *x) {
-        Py_NewRef_p(x);
+        Py_IncRef_p(x);
 }
 
 // py_obj_unref decrements the PyObject's reference count.
 void py_obj_unref (PyObject *x) {
     Py_DecRef_p(x);
+}
+
+// py_obj_type returns PyObject's type.
+PyTypeObject *py_obj_type (PyObject *x) {
+    // Python 3.8 doesn't expose Py_TYPE() as a part of its stable API,
+    // so we have to use the PyObject_Type() function.
+    //
+    // Note, PyObject_Type() returns the strong reference to the type
+    // object while we need the borrowed reference, hence Py_DecRef_p()
+    PyObject *t = PyObject_Type_p(x);
+    Py_DecRef_p(t);
+    return (PyTypeObject*) t;
 }
 
 // py_obj_str returns a string representation of the PyObject.
@@ -722,7 +759,7 @@ PyObject *py_list_make(size_t len) {
 PyObject *py_list_get(PyObject *list, int index) {
     PyObject *item = PyList_GetItem_p(list, index);
     if (item != NULL) {
-        Py_NewRef_p(item);
+        Py_IncRef_p(item);
     }
     return item;
 }
@@ -731,7 +768,7 @@ PyObject *py_list_get(PyObject *list, int index) {
 // Internally, it creates a new strong reference to the object.
 // It returns true on success, false on error.
 bool py_list_set(PyObject *list, int index, PyObject *val) {
-    Py_NewRef_p(val);
+    Py_IncRef_p(val);
     return PyList_SetItem_p(list, index, val) == 0;
 }
 
@@ -814,7 +851,7 @@ PyObject *py_long_from_string(const char *val) {
 PyObject *py_seq_get(PyObject *tuple, int index) {
     PyObject *item = PySequence_GetItem_p(tuple, index);
     if (item != NULL) {
-        Py_NewRef_p(item);
+        Py_IncRef_p(item);
     }
     return item;
 }
@@ -852,7 +889,7 @@ PyObject *py_tuple_make(size_t len) {
 PyObject *py_tuple_get(PyObject *tuple, int index) {
     PyObject *item = PyTuple_GetItem_p(tuple, index);
     if (item != NULL) {
-        Py_NewRef_p(item);
+        Py_IncRef_p(item);
     }
     return item;
 }
@@ -861,7 +898,7 @@ PyObject *py_tuple_get(PyObject *tuple, int index) {
 // Internally, it creates a new strong reference to the object.
 // It returns true on success, false on error.
 bool py_tuple_set(PyObject *tuple, int index, PyObject *val) {
-    Py_NewRef_p(val);
+    Py_IncRef_p(val);
     return PyTuple_SetItem_p(tuple, index, val) == 0;
 }
 

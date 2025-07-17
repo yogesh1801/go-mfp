@@ -381,7 +381,18 @@ func (obj *Object) Bigint() (*big.Int, error) {
 
 // Bool returns Object value as bool or an error.
 func (obj *Object) Bool() (bool, error) {
-	return objDo(obj, pyGate.decodeBool)
+	gate := obj.py.gate()
+	defer gate.release()
+
+	pyobj := obj.py.lookupObjID(gate, obj.oid)
+	switch pyobj {
+	case obj.py.pyTrue:
+		return true, nil
+	case obj.py.pyFalse:
+		return false, nil
+	}
+
+	return false, gate.decodeError(pyobj, "bool")
 }
 
 // Bytes returns Object value as []byte slice or an error.
@@ -498,7 +509,11 @@ func (obj *Object) IsLong() bool {
 
 // IsNone reports if Object is Python None.
 func (obj *Object) IsNone() bool {
-	return objDoNoError(obj, pyGate.isNone)
+	gate := obj.py.gate()
+	defer gate.release()
+
+	pyobj := obj.py.lookupObjID(gate, obj.oid)
+	return pyobj == obj.py.pyNone
 }
 
 // IsSeq reports if Object is sequence (i.e., list, tuple, ...).

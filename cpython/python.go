@@ -23,7 +23,9 @@ import (
 type Python struct {
 	interp  pyInterp // Underlying *C.PyInterpreterState
 	objects *objmap  // Objects owned by the interpreter
-	none    pyObject // Cached None object
+	pyNone  pyObject // Cached None object
+	pyTrue  pyObject // Cached True object
+	pyFalse pyObject // Cached False object
 	globals *Object  // Global dictionary
 }
 
@@ -39,7 +41,13 @@ func NewPython() (py *Python, err error) {
 		gate := py.gate()
 		defer gate.release()
 
-		py.none, err = gate.eval("None", "", true)
+		py.pyNone, err = gate.eval("None", "", true)
+		assert.NoError(err)
+
+		py.pyTrue, err = gate.eval("True", "", true)
+		assert.NoError(err)
+
+		py.pyFalse, err = gate.eval("False", "", true)
 		assert.NoError(err)
 
 		py.globals, err = py.Eval("globals()")
@@ -160,7 +168,7 @@ func (py *Python) NewObject(val any) (*Object, error) {
 func (py *Python) newPyObject(gate pyGate, val any) (pyObject, error) {
 	// Handle special cases
 	if val == nil {
-		return py.none, nil
+		return py.pyNone, nil
 	}
 
 	switch v := val.(type) {

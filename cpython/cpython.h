@@ -57,24 +57,6 @@ void py_leave (PyThreadState *prev);
 bool py_interp_eval (const char *s, const char *file,
                      bool expr, PyObject **res);
 
-// py_obj_is_none reports if PyObject is None.
-static inline bool py_obj_is_none (PyObject *x) {
-    extern int (*Py_IsNone_p)(PyObject *);
-    return Py_IsNone_p(x) != 0;
-}
-
-// py_obj_is_true reports if PyObject is True.
-static inline bool py_obj_is_true (PyObject *x) {
-    extern int (*Py_IsTrue_p)(PyObject *);
-    return Py_IsTrue_p(x) != 0;
-}
-
-// py_obj_is_true reports if PyObject is False.
-static inline bool py_obj_is_false (PyObject *x) {
-    extern int (*Py_IsFalse_p)(PyObject *);
-    return Py_IsFalse_p(x) != 0;
-}
-
 // py_obj_is_bool reports if PyObject is PyBool_Type
 bool py_obj_is_bool (PyObject *x);
 
@@ -107,6 +89,9 @@ void py_obj_ref (PyObject *x);
 
 // py_obj_unref decrements the PyObject's reference count.
 void py_obj_unref (PyObject *x);
+
+// py_obj_type returns PyObject's type.
+PyTypeObject *py_obj_type (PyObject *x);
 
 // py_obj_str returns a string representation of the PyObject.
 // This is the equivalent of the Python expression str(x).

@@ -133,7 +133,7 @@ func (gate pyGate) repr(pyobj pyObject) (s string, err error) {
 func (gate pyGate) typename(pyobj pyObject) string {
 	name := "unknown"
 
-	t := pyObject(unsafe.Pointer(C.Py_TYPE(pyobj)))
+	t := pyObject(unsafe.Pointer(C.py_obj_type(pyobj)))
 	n, err := gate.getattr(t, "__name__")
 	if err == nil {
 		s, err := gate.str(n)
@@ -308,11 +308,6 @@ func (gate pyGate) isLong(pyobj pyObject) bool {
 	return bool(C.py_obj_is_long(pyobj))
 }
 
-// isNone reports if PyObject is None
-func (gate pyGate) isNone(pyobj pyObject) bool {
-	return bool(C.py_obj_is_none(pyobj))
-}
-
 // isSeq reports if PyObject is sequence.
 func (gate pyGate) isSeq(pyobj pyObject) bool {
 	return bool(C.py_obj_is_seq(pyobj))
@@ -347,18 +342,6 @@ func (gate pyGate) decodeBigint(pyobj pyObject) (*big.Int, error) {
 	assert.Must(ok) // FIXME
 
 	return v, nil
-}
-
-// decodeBool decodes PyObject into bool
-func (gate pyGate) decodeBool(pyobj pyObject) (bool, error) {
-	switch {
-	case bool(C.py_obj_is_true(pyobj)):
-		return true, nil
-	case bool(C.py_obj_is_false(pyobj)):
-		return false, nil
-	}
-
-	return false, gate.decodeError(pyobj, "bool")
 }
 
 // decodeBytes decodes PyBytes_Type or PyByteArray_Type object as []byte slice.
