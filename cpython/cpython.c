@@ -95,7 +95,6 @@ static __typeof__(PySequence_Check)             *PySequence_Check_p;
 static __typeof__(PySequence_GetItem)           *PySequence_GetItem_p;
 static __typeof__(PyThreadState_Clear)          *PyThreadState_Clear_p;
 static __typeof__(PyThreadState_Delete)         *PyThreadState_Delete_p;
-static __typeof__(PyThreadState_GetInterpreter) *PyThreadState_GetInterpreter_p;
 static __typeof__(PyThreadState_Get)            *PyThreadState_Get_p;
 static __typeof__(PyThreadState_New)            *PyThreadState_New_p;
 static __typeof__(PyThreadState_Swap)           *PyThreadState_Swap_p;
@@ -106,6 +105,8 @@ static __typeof__(*PyType_GetFlags)             *PyType_GetFlags_p;
 static __typeof__(PyType_IsSubtype)             *PyType_IsSubtype_p;
 static __typeof__(PyUnicode_AsUCS4)             *PyUnicode_AsUCS4_p;
 static __typeof__(PyUnicode_FromStringAndSize)  *PyUnicode_FromStringAndSize_p;
+
+static __typeof__(PyInterpreterState_Get)       *PyInterpreterState_Get_p;
 
 // Python exceptions (some of them):
 static PyObject *PyExc_KeyError_p;
@@ -228,7 +229,6 @@ static void py_load_all (void) {
     PySequence_GetItem_p = py_load("PySequence_GetItem");
     PyThreadState_Clear_p = py_load("PyThreadState_Clear");
     PyThreadState_Delete_p = py_load("PyThreadState_Delete");
-    PyThreadState_GetInterpreter_p = py_load("PyThreadState_GetInterpreter");
     PyThreadState_Get_p = py_load("PyThreadState_Get");
     PyThreadState_New_p = py_load("PyThreadState_New");
     PyThreadState_Swap_p = py_load("PyThreadState_Swap");
@@ -239,6 +239,8 @@ static void py_load_all (void) {
     PyType_IsSubtype_p = py_load("PyType_IsSubtype");
     PyUnicode_AsUCS4_p = py_load("PyUnicode_AsUCS4");
     PyUnicode_FromStringAndSize_p = py_load("PyUnicode_FromStringAndSize");
+
+    PyInterpreterState_Get_p = py_load("PyInterpreterState_Get");
 
     PyExc_KeyError_p = py_load_ptr("PyExc_KeyError");
     PyExc_OverflowError_p = py_load_ptr("PyExc_OverflowError");
@@ -312,7 +314,7 @@ PyInterpreterState *py_new_interp (void) {
     PyEval_RestoreThread_p(py_main_thread);
 
     tstate = Py_NewInterpreter_p();
-    interp = PyThreadState_GetInterpreter_p(tstate);
+    interp = PyInterpreterState_Get_p();
     PyThreadState_Clear_p(tstate);
 
     PyThreadState_Swap_p(py_main_thread);
