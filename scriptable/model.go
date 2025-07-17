@@ -96,7 +96,7 @@ func (model *Model) GetESCLScanCaps() *escl.ScannerCapabilities {
 }
 
 // pyExportStruct converts the protocol object, represented as Go
-// structure, into the Python object.
+// structure or pointer to structure, into the Python object.
 //
 // s MUST be struct or pointer to struct.
 func (model *Model) pyExportStruct(s any) (*cpython.Object, error) {
@@ -108,7 +108,7 @@ func (model *Model) pyExportStruct(s any) (*cpython.Object, error) {
 
 	// Normalize input parameter and obtain the reflect.Value for it.
 	v := reflect.ValueOf(s)
-	if v.Kind() == reflect.Pointer && v.Elem().Kind() == reflect.Pointer {
+	if v.Kind() == reflect.Pointer && v.Elem().Kind() == reflect.Struct {
 		v = v.Elem()
 	}
 	assert.Must((v.Kind() == reflect.Struct))

@@ -43,7 +43,7 @@ func TestKyoceraESCLScannerCapabilities(t *testing.T) {
 	err = model.pyImportStruct(&scancaps2, obj)
 	assert.NoError(err)
 
-	if !reflect.DeepEqual(scancaps, scancaps2) {
+	if !reflect.DeepEqual(*scancaps, scancaps2) {
 		t.Errorf("eSCL test failed")
 	}
 }
