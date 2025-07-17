@@ -52,7 +52,7 @@ func (f *formatter) formatValue(obj *cpython.Object, indent int) {
 	default:
 		var s string
 		s, f.err = obj.Repr()
-		f.printf("%s", s)
+		f.Printf("%s", s)
 	}
 }
 
@@ -67,7 +67,7 @@ func (f *formatter) formatDict(dict *cpython.Object, indent int) {
 	}
 
 	if len(keyobjs) == 0 {
-		f.printf("{}\n")
+		f.Printf("{}\n")
 	}
 
 	// Retrieve key strings and item objects
@@ -86,12 +86,12 @@ func (f *formatter) formatDict(dict *cpython.Object, indent int) {
 	}
 
 	// Format the dictionary
-	f.printf("{\n")
+	f.Printf("{\n")
 	for i := range keys {
 		key, val := keys[i], vals[i]
 
 		f.indent(indent + 1)
-		f.printf("%s: ", key)
+		f.Printf("%s: ", key)
 
 		f.formatValue(val, indent+1)
 		if f.err != nil {
@@ -121,7 +121,7 @@ func (f *formatter) formatArray(obj *cpython.Object, indent int) {
 	}
 
 	if length == 0 {
-		f.printf("[]\n")
+		f.Printf("[]\n")
 	}
 
 	// Retrieve all object in the array
@@ -172,7 +172,7 @@ func (f *formatter) formatArray(obj *cpython.Object, indent int) {
 		f.indent(indent)
 	}
 
-	f.write("}")
+	f.write("]")
 }
 
 // write writes the string.
@@ -190,7 +190,7 @@ func (f *formatter) indent(indent int) {
 }
 
 // printf writes the formatted string.
-func (f *formatter) printf(format string, args ...any) {
+func (f *formatter) Printf(format string, args ...any) {
 	if f.err == nil {
 		_, f.err = fmt.Fprintf(f.w, format, args...)
 	}

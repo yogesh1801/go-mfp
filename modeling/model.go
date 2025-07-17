@@ -11,6 +11,7 @@ package modeling
 import (
 	"fmt"
 	"io"
+	"os"
 	"reflect"
 
 	"github.com/OpenPrinting/go-mfp/cpython"
@@ -93,6 +94,41 @@ func (model *Model) SetESCLScanCaps(caps *escl.ScannerCapabilities) {
 // GetESCLScanCaps returns the [escl.ScannerCapabilities].
 func (model *Model) GetESCLScanCaps() *escl.ScannerCapabilities {
 	return model.esclScanCaps
+}
+
+// Write writes model into the [io.Writer]
+func (model *Model) Write(w io.Writer) error {
+	f := newFormatter(w)
+
+	if model.esclScanCaps != nil {
+		obj, err := model.pyExportStruct(model.esclScanCaps)
+		if err != nil {
+			return err
+		}
+
+		f.Printf("# eSCL scanner parameters:\n")
+		err = f.Format(obj)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Save writes model into the disk file.
+func (model *Model) Save(file string) error {
+	// Open the file
+	flags := os.O_WRONLY | os.O_CREATE | os.O_TRUNC
+	fp, err := os.OpenFile(file, flags, 0644)
+	if err != nil {
+		return err
+	}
+
+	defer fp.Close()
+
+	// Write model data
+	return model.Write(fp)
 }
 
 // pyExportStruct converts the protocol object, represented as Go
