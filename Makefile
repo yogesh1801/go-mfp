@@ -5,9 +5,10 @@ SUBDIRS	= \
 	cups \
 	discovery \
 	imgconv \
-	proto \
 	internal \
 	log \
+	modeling \
+	proto \
 	transport \
 	util
 
