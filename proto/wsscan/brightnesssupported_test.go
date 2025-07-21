@@ -4,7 +4,7 @@
 // Copyright (C) 2024 and up by Yogesh Singla (yogeshsingla481@gmail.com)
 // See LICENSE for license terms and conditions
 //
-// Test for auto exposure supported
+// Test for brightness supported
 
 package wsscan
 
@@ -14,8 +14,8 @@ import (
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
-// Test for AutoExposureSupported
-func TestAutoExposureSupported(t *testing.T) {
+// Test for BrightnessSupported
+func TestBrightnessSupported(t *testing.T) {
 	cases := []struct {
 		xmlValue      string
 		expectedBool  bool
@@ -32,14 +32,14 @@ func TestAutoExposureSupported(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		aes := AutoExposureSupported(c.xmlValue)
-		if aes.IsValid() != c.expectedValid {
+		bs := BrightnessSupported(c.xmlValue)
+		if bs.IsValid() != c.expectedValid {
 			t.Errorf(
 				"IsValid: input %q, expected %v, got %v",
-				c.xmlValue, c.expectedValid, aes.IsValid(),
+				c.xmlValue, c.expectedValid, bs.IsValid(),
 			)
 		}
-		b, err := aes.Bool()
+		b, err := bs.Bool()
 		if c.expectedValid {
 			if err != nil {
 				t.Errorf(
@@ -68,31 +68,31 @@ func TestAutoExposureSupported(t *testing.T) {
 		"1", "0", "true", "false", " TRUE ", " False ",
 	}
 	for _, val := range validCases {
-		aes := AutoExposureSupported(val)
-		elm := aes.toXML("wscn:AutoExposureSupported")
-		aes2, err := decodeAutoExposureSupported(elm)
+		bs := BrightnessSupported(val)
+		elm := bs.toXML("wscn:BrightnessSupported")
+		bs2, err := decodeBrightnessSupported(elm)
 		if err != nil {
 			t.Errorf(
-				"decodeAutoExposureSupported: input %q, unexpected error: %v",
+				"decodeBrightnessSupported: input %q, unexpected error: %v",
 				val, err,
 			)
 		}
-		if !aes2.IsValid() {
+		if !bs2.IsValid() {
 			t.Errorf(
-				"decodeAutoExposureSupported: input %q, result not valid",
+				"decodeBrightnessSupported: input %q, result not valid",
 				val,
 			)
 		}
 	}
 
-	// Test decodeAutoExposureSupported with invalid value
+	// Test decodeBrightnessSupported with invalid value
 	elm := xmldoc.Element{
-		Name: "wscn:AutoExposureSupported", Text: "maybe",
+		Name: "wscn:BrightnessSupported", Text: "maybe",
 	}
-	_, err := decodeAutoExposureSupported(elm)
+	_, err := decodeBrightnessSupported(elm)
 	if err == nil {
 		t.Errorf(
-			"decodeAutoExposureSupported: " +
+			"decodeBrightnessSupported: " +
 				"expected error for invalid value, got nil",
 		)
 	}
