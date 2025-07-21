@@ -4,7 +4,7 @@
 // Copyright (C) 2024 and up by Yogesh Singla (yogeshsingla481@gmail.com)
 // See LICENSE for license terms and conditions
 //
-// Test for auto exposure supported
+// Test for document size auto detect supported
 
 package wsscan
 
@@ -14,8 +14,8 @@ import (
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
-// Test for AutoExposureSupported
-func TestAutoExposureSupported(t *testing.T) {
+// Test for DocumentSizeAutoDetectSupported
+func TestDocumentSizeAutoDetectSupported(t *testing.T) {
 	cases := []struct {
 		xmlValue      string
 		expectedBool  bool
@@ -32,14 +32,14 @@ func TestAutoExposureSupported(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		aes := AutoExposureSupported(c.xmlValue)
-		if aes.IsValid() != c.expectedValid {
+		dsads := DocumentSizeAutoDetectSupported(c.xmlValue)
+		if dsads.IsValid() != c.expectedValid {
 			t.Errorf(
 				"IsValid: input %q, expected %v, got %v",
-				c.xmlValue, c.expectedValid, aes.IsValid(),
+				c.xmlValue, c.expectedValid, dsads.IsValid(),
 			)
 		}
-		b, err := aes.Bool()
+		b, err := dsads.Bool()
 		if c.expectedValid {
 			if err != nil {
 				t.Errorf(
@@ -68,31 +68,31 @@ func TestAutoExposureSupported(t *testing.T) {
 		"1", "0", "true", "false", " TRUE ", " False ",
 	}
 	for _, val := range validCases {
-		aes := AutoExposureSupported(val)
-		elm := aes.toXML("wscn:AutoExposureSupported")
-		aes2, err := decodeAutoExposureSupported(elm)
+		dsads := DocumentSizeAutoDetectSupported(val)
+		elm := dsads.toXML("wscn:DocumentSizeAutoDetectSupported")
+		dsads2, err := decodeDocumentSizeAutoDetectSupported(elm)
 		if err != nil {
 			t.Errorf(
-				"decodeAutoExposureSupported: input %q, unexpected error: %v",
+				"decodeDocumentSizeAutoDetectSupported: input %q, unexpected error: %v",
 				val, err,
 			)
 		}
-		if !aes2.IsValid() {
+		if !dsads2.IsValid() {
 			t.Errorf(
-				"decodeAutoExposureSupported: input %q, result not valid",
+				"decodeDocumentSizeAutoDetectSupported: input %q, result not valid",
 				val,
 			)
 		}
 	}
 
-	// Test decodeAutoExposureSupported with invalid value
+	// Test decodeDocumentSizeAutoDetectSupported with invalid value
 	elm := xmldoc.Element{
-		Name: "wscn:AutoExposureSupported", Text: "maybe",
+		Name: "wscn:DocumentSizeAutoDetectSupported", Text: "maybe",
 	}
-	_, err := decodeAutoExposureSupported(elm)
+	_, err := decodeDocumentSizeAutoDetectSupported(elm)
 	if err == nil {
 		t.Errorf(
-			"decodeAutoExposureSupported: " +
+			"decodeDocumentSizeAutoDetectSupported: " +
 				"expected error for invalid value, got nil",
 		)
 	}

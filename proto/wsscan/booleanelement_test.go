@@ -4,6 +4,7 @@ import (
 	"testing"
 )
 
+// Test for BooleanElement
 func TestBooleanElement_IsValid(t *testing.T) {
 	cases := []struct {
 		input    BooleanElement
