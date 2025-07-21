@@ -16,6 +16,7 @@ import (
 	"github.com/OpenPrinting/go-mfp/util/optional"
 )
 
+// TestScannerLocation tests ScannerLocation
 func TestScannerLocation(t *testing.T) {
 	dataset := []ScannerLocation{
 		{

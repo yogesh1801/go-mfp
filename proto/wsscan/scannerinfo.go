@@ -13,13 +13,15 @@ import (
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
-// ScannerInfo holds administratively assigned descriptive information about the
-// scanner. The optional ScannerInfo element contains any administratively
-// assigned descriptive information about the scanner. The configuration of the
-// ScannerInfo element's value is implementation-specific; for example, you can
-// configure this value through the scanner's local console or the device's web
-// server. A scan device can return multiple versions of this element to enable
-// support for multiple localized languages by using the xml:lang attribute.
+// ScannerInfo holds administratively assigned descriptive information
+// about the scanner. The optional ScannerInfo element contains any
+// administratively assigned descriptive information about the scanner.
+// The configuration of the ScannerInfo element's value is
+// implementation-specific; for example, you can configure this value
+// through the scanner's local console or the device's web server. A
+// scan device can return multiple versions of this element to enable
+// support for multiple localized languages by using the xml:lang
+// attribute.
 //
 // XML Usage:
 //

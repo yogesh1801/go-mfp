@@ -16,6 +16,7 @@ import (
 	"github.com/OpenPrinting/go-mfp/util/optional"
 )
 
+// TestScannerInfo tests ScannerInfo
 func TestScannerInfo(t *testing.T) {
 	dataset := []ScannerInfo{
 		{Text: "some info", Lang: optional.New("en-AU, en-GB")},

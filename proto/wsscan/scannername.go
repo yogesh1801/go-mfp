@@ -13,17 +13,19 @@ import (
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
-// ScannerName holds the administratively assigned user-friendly name of the
-// scanner. The required ScannerName element specifies the administratively
-// assigned user-friendly name of the scanner. The configuration of the
-// ScannerName element's value is implementation-specific; for example, you can
-// configure this value through the scanner's local console or the device's web
-// server. If a device has only one hosted service, its friendly name and
-// ScannerName element should have the same value. If the device contains
-// several hosted services, ScannerName should identify the scanner.
+// ScannerName holds the administratively assigned user-friendly name of
+// the scanner. The required ScannerName element specifies the
+// administratively assigned user-friendly name of the scanner. The
+// configuration of the ScannerName element's value is
+// implementation-specific; for example, you can configure this value
+// through the scanner's local console or the device's web server. If a
+// device has only one hosted service, its friendly name and ScannerName
+// element should have the same value. If the device contains several
+// hosted services, ScannerName should identify the scanner.
 //
-// A scan device can return multiple versions of this element to enable support
-// for multiple localized languages by using the xml:lang attribute.
+// A scan device can return multiple versions of this element to enable
+// support for multiple localized languages by using the xml:lang
+// attribute.
 //
 // XML Usage:
 //
