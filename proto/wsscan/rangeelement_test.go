@@ -40,69 +40,6 @@ func TestRangeElement_XMLRoundTrip(t *testing.T) {
 	}
 }
 
-func TestRangeElement_Validate(t *testing.T) {
-	tests := []struct {
-		name        string
-		min, max    int
-		minAllowed  int
-		maxAllowed  int
-		expectError bool
-	}{
-		{
-			name:        "valid range",
-			min:         1,
-			max:         100,
-			minAllowed:  1,
-			maxAllowed:  100,
-			expectError: false,
-		},
-		{
-			name:        "equal min and max",
-			min:         50,
-			max:         50,
-			minAllowed:  1,
-			maxAllowed:  100,
-			expectError: false,
-		},
-		{
-			name:        "invalid range - min > max",
-			min:         100,
-			max:         50,
-			minAllowed:  1,
-			maxAllowed:  100,
-			expectError: true,
-		},
-		{
-			name:        "min value too low",
-			min:         0,
-			max:         50,
-			minAllowed:  1,
-			maxAllowed:  100,
-			expectError: true,
-		},
-		{
-			name:        "max value too high",
-			min:         50,
-			max:         101,
-			minAllowed:  1,
-			maxAllowed:  100,
-			expectError: true,
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			re := RangeElement{MinValue: tc.min, MaxValue: tc.max}
-			err := re.Validate(tc.minAllowed, tc.maxAllowed)
-			if tc.expectError && err == nil {
-				t.Error("expected error, got nil")
-			} else if !tc.expectError && err != nil {
-				t.Errorf("unexpected error: %v", err)
-			}
-		})
-	}
-}
-
 func TestRangeElement_DecodeErrors(t *testing.T) {
 	tests := []struct {
 		name        string

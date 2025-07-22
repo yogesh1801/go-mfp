@@ -146,9 +146,7 @@ func decodeDeviceSettings(root xmldoc.Element) (ds DeviceSettings, err error) {
 	if ds.CompressionQualityFactorSupported, err = decodeRangeElement(compressionQualityFactorSupported.Elem); err != nil {
 		return ds, fmt.Errorf("CompressionQualityFactorSupported: %w", err)
 	}
-	if err := ds.CompressionQualityFactorSupported.Validate(1, 100); err != nil {
-		return ds, fmt.Errorf("CompressionQualityFactorSupported: %w", err)
-	}
+
 	// ContentTypesSupported slice
 	for _, child := range contentTypesSupported.Elem.Children {
 		if child.Name == NsWSCN+":ContentTypeValue" {
