@@ -15,12 +15,13 @@ import (
 // RotationValue defines the supported rotation value for a scan device.
 type RotationValue int
 
+// RotationValue represents possible rotation angles in degrees.
 const (
-	UnknownRotationValue RotationValue = iota
-	Rotation0
-	Rotation90
-	Rotation180
-	Rotation270
+	UnknownRotationValue RotationValue = iota // rotation unknown or not specified
+	Rotation0                                 // no rotation
+	Rotation90                                // 90 degrees
+	Rotation180                               // 180 degrees
+	Rotation270                               // 270 degrees
 )
 
 // decodeRotationValue decodes [RotationValue] from the XML tree.
