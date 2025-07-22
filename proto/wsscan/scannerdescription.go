@@ -33,9 +33,9 @@ import (
 //   - ScannerLocation (optional): Administratively assigned location info
 //   - ScannerName (required): Administratively assigned user-friendly name
 type ScannerDescription struct {
-	ScannerInfo     optional.Val[ScannerInfo]
-	ScannerLocation optional.Val[ScannerLocation]
-	ScannerName     ScannerName
+	ScannerInfo     optional.Val[TextWithLangElement]
+	ScannerLocation optional.Val[TextWithLangElement]
+	ScannerName     TextWithLangElement
 }
 
 // decodeScannerDescription decodes a [ScannerDescription] from an XML element.
@@ -63,27 +63,21 @@ func decodeScannerDescription(root xmldoc.Element) (
 	}
 
 	// Decode ScannerName (required)
-	sn, err := decodeScannerName(scannerName.Elem)
-	if err != nil {
-		return sd, err
-	}
+	var sn TextWithLangElement
+	sn.Decode(scannerName.Elem)
 	sd.ScannerName = sn
 
 	// Decode ScannerInfo (optional)
 	if scannerInfo.Found {
-		si, err := decodeScannerInfo(scannerInfo.Elem)
-		if err != nil {
-			return sd, err
-		}
+		var si TextWithLangElement
+		si.Decode(scannerInfo.Elem)
 		sd.ScannerInfo = optional.New(si)
 	}
 
 	// Decode ScannerLocation (optional)
 	if scannerLocation.Found {
-		sl, err := decodeScannerLocation(scannerLocation.Elem)
-		if err != nil {
-			return sd, err
-		}
+		var sl TextWithLangElement
+		sl.Decode(scannerLocation.Elem)
 		sd.ScannerLocation = optional.New(sl)
 	}
 
@@ -100,7 +94,7 @@ func (sd ScannerDescription) toXML(name string) xmldoc.Element {
 	// Add ScannerName (required)
 	elm.Children = append(
 		elm.Children,
-		sd.ScannerName.toXML(NsWSCN+":ScannerName"),
+		sd.ScannerName.ToXML(NsWSCN+":ScannerName"),
 	)
 
 	// Add ScannerInfo (optional)
@@ -108,7 +102,7 @@ func (sd ScannerDescription) toXML(name string) xmldoc.Element {
 		info := optional.Get(sd.ScannerInfo)
 		elm.Children = append(
 			elm.Children,
-			info.toXML(NsWSCN+":ScannerInfo"),
+			info.ToXML(NsWSCN+":ScannerInfo"),
 		)
 	}
 
@@ -117,7 +111,7 @@ func (sd ScannerDescription) toXML(name string) xmldoc.Element {
 		location := optional.Get(sd.ScannerLocation)
 		elm.Children = append(
 			elm.Children,
-			location.toXML(NsWSCN+":ScannerLocation"),
+			location.ToXML(NsWSCN+":ScannerLocation"),
 		)
 	}
 

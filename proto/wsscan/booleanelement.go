@@ -19,7 +19,7 @@ import (
 // Allowed values: "0", "1", "false", "true" (case-insensitive, whitespace ignored).
 type BooleanElement string
 
-// Validate returns true if the value is a valid BooleanElement value.
+// Validate checks that the value is a valid BooleanElement value.
 func (b BooleanElement) Validate() error {
 	switch strings.ToLower(strings.TrimSpace(string(b))) {
 	case "0", "1", "false", "true":
