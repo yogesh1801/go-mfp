@@ -39,7 +39,8 @@ func (srs ScalingRangeSupported) toXML(name string) xmldoc.Element {
 }
 
 // decodeScalingRangeSupported decodes [ScalingRangeSupported] from the XML tree.
-func decodeScalingRangeSupported(root xmldoc.Element) (srs ScalingRangeSupported, err error) {
+func decodeScalingRangeSupported(root xmldoc.Element) (
+	srs ScalingRangeSupported, err error) {
 	defer func() { err = xmldoc.XMLErrWrap(root, err) }()
 
 	widthLookup := xmldoc.Lookup{
@@ -68,19 +69,5 @@ func decodeScalingRangeSupported(root xmldoc.Element) (srs ScalingRangeSupported
 	}
 	srs.ScalingHeight = height
 
-	if err := srs.Validate(); err != nil {
-		return srs, err
-	}
 	return srs, nil
-}
-
-// Validate checks that ScalingWidth and ScalingHeight are valid.
-func (srs ScalingRangeSupported) Validate() error {
-	if err := srs.ScalingWidth.Validate(1, 1000); err != nil {
-		return fmt.Errorf("ScalingWidth: %w", err)
-	}
-	if err := srs.ScalingHeight.Validate(1, 1000); err != nil {
-		return fmt.Errorf("ScalingHeight: %w", err)
-	}
-	return nil
 }

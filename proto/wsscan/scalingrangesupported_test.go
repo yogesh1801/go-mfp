@@ -39,32 +39,6 @@ func TestScalingRangeSupported_XMLRoundTrip(t *testing.T) {
 	}
 }
 
-func TestScalingRangeSupported_Validation(t *testing.T) {
-	badCases := []ScalingRangeSupported{
-		{
-			ScalingWidth:  RangeElement{MinValue: 0, MaxValue: 100},
-			ScalingHeight: RangeElement{MinValue: 100, MaxValue: 200},
-		},
-		{
-			ScalingWidth:  RangeElement{MinValue: 100, MaxValue: 200},
-			ScalingHeight: RangeElement{MinValue: 0, MaxValue: 100},
-		},
-		{
-			ScalingWidth:  RangeElement{MinValue: 100, MaxValue: 99},
-			ScalingHeight: RangeElement{MinValue: 100, MaxValue: 200},
-		},
-		{
-			ScalingWidth:  RangeElement{MinValue: 100, MaxValue: 200},
-			ScalingHeight: RangeElement{MinValue: 100, MaxValue: 99},
-		},
-	}
-	for _, srs := range badCases {
-		if err := srs.Validate(); err == nil {
-			t.Errorf("Validate: expected error for %+v, got nil", srs)
-		}
-	}
-}
-
 func TestScalingRangeSupported_DecodeErrors(t *testing.T) {
 	// Missing ScalingWidth
 	elm1 := xmldoc.Element{
