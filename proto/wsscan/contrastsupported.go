@@ -9,9 +9,6 @@
 package wsscan
 
 import (
-	"errors"
-	"strings"
-
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
@@ -31,19 +28,13 @@ func (cs ContrastSupported) Bool() (bool, error) {
 
 // toXML converts a ContrastSupported to an XML element.
 func (cs ContrastSupported) toXML(name string) xmldoc.Element {
-	return xmldoc.Element{Name: name, Text: string(cs)}
+	return BooleanElement(cs).toXML(name)
 }
 
 // decodeContrastSupported decodes a ContrastSupported
 // from an XML element.
 func decodeContrastSupported(root xmldoc.Element) (
 	ContrastSupported, error) {
-	val := ContrastSupported(strings.TrimSpace(root.Text))
-	if !val.IsValid() {
-		return "", errors.New(
-			"invalid value for ContrastSupported: " +
-				"must be 0, 1, false, or true",
-		)
-	}
-	return val, nil
+	val, err := decodeBooleanElement(root)
+	return ContrastSupported(val), err
 }

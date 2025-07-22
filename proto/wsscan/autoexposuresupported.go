@@ -9,9 +9,6 @@
 package wsscan
 
 import (
-	"errors"
-	"strings"
-
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
@@ -31,19 +28,14 @@ func (aes AutoExposureSupported) Bool() (bool, error) {
 
 // toXML converts an AutoExposureSupported to an XML element.
 func (aes AutoExposureSupported) toXML(name string) xmldoc.Element {
-	return xmldoc.Element{Name: name, Text: string(aes)}
+	return BooleanElement(aes).toXML(name)
 }
 
 // decodeAutoExposureSupported decodes an AutoExposureSupported
 // from an XML element.
-func decodeAutoExposureSupported(root xmldoc.Element) (
-	AutoExposureSupported, error) {
-	val := AutoExposureSupported(strings.TrimSpace(root.Text))
-	if !val.IsValid() {
-		return "", errors.New(
-			"invalid value for AutoExposureSupported: " +
-				"must be 0, 1, false, or true",
-		)
-	}
-	return val, nil
+func decodeAutoExposureSupported(
+	root xmldoc.Element,
+) (AutoExposureSupported, error) {
+	val, err := decodeBooleanElement(root)
+	return AutoExposureSupported(val), err
 }

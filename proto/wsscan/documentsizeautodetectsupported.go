@@ -9,17 +9,15 @@
 package wsscan
 
 import (
-	"errors"
-	"strings"
-
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
-// DocumentSizeAutoDetectSupported is a BooleanElement representing whether the scan
-// device can detect the size of the original media.
+// DocumentSizeAutoDetectSupported is a BooleanElement representing whether
+// the scan device can detect the size of the original media.
 type DocumentSizeAutoDetectSupported BooleanElement
 
-// IsValid returns true if the value is a valid DocumentSizeAutoDetectSupported value.
+// IsValid returns true if the value is a valid
+// DocumentSizeAutoDetectSupported value.
 func (dsads DocumentSizeAutoDetectSupported) IsValid() bool {
 	return BooleanElement(dsads).IsValid()
 }
@@ -31,19 +29,14 @@ func (dsads DocumentSizeAutoDetectSupported) Bool() (bool, error) {
 
 // toXML converts a DocumentSizeAutoDetectSupported to an XML element.
 func (dsads DocumentSizeAutoDetectSupported) toXML(name string) xmldoc.Element {
-	return xmldoc.Element{Name: name, Text: string(dsads)}
+	return BooleanElement(dsads).toXML(name)
 }
 
-// decodeDocumentSizeAutoDetectSupported decodes a DocumentSizeAutoDetectSupported
-// from an XML element.
-func decodeDocumentSizeAutoDetectSupported(root xmldoc.Element) (
-	DocumentSizeAutoDetectSupported, error) {
-	val := DocumentSizeAutoDetectSupported(strings.TrimSpace(root.Text))
-	if !val.IsValid() {
-		return "", errors.New(
-			"invalid value for DocumentSizeAutoDetectSupported: " +
-				"must be 0, 1, false, or true",
-		)
-	}
-	return val, nil
+// decodeDocumentSizeAutoDetectSupported decodes a
+// DocumentSizeAutoDetectSupported from an XML element.
+func decodeDocumentSizeAutoDetectSupported(
+	root xmldoc.Element,
+) (DocumentSizeAutoDetectSupported, error) {
+	val, err := decodeBooleanElement(root)
+	return DocumentSizeAutoDetectSupported(val), err
 }
