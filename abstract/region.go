@@ -37,8 +37,8 @@ func (reg Region) Valid() bool {
 func (reg Region) FitsCapabilities(caps *InputCapabilities) bool {
 	return caps.MinWidth <= reg.Width && reg.Width <= caps.MaxWidth &&
 		caps.MinHeight <= reg.Height && reg.Height <= caps.MaxHeight &&
-		reg.XOffset <= caps.MaxXOffset &&
-		reg.YOffset <= caps.MaxYOffset &&
+		(caps.MaxXOffset == 0 || reg.XOffset <= caps.MaxXOffset) &&
+		(caps.MaxYOffset == 0 || reg.YOffset <= caps.MaxYOffset) &&
 		reg.XOffset+reg.Width <= caps.MaxWidth &&
 		reg.YOffset+reg.Height <= caps.MaxHeight
 }
