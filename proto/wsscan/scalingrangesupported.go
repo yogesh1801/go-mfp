@@ -17,8 +17,8 @@ import (
 // ScalingRangeSupported represents the <wscn:ScalingRangeSupported> element,
 // containing ScalingWidth and ScalingHeight.
 type ScalingRangeSupported struct {
-	ScalingWidth  ScalingWidth
-	ScalingHeight ScalingHeight
+	ScalingWidth  RangeElement
+	ScalingHeight RangeElement
 }
 
 // toXML generates XML tree for the [ScalingRangeSupported].
@@ -26,8 +26,14 @@ func (srs ScalingRangeSupported) toXML(name string) xmldoc.Element {
 	return xmldoc.Element{
 		Name: name,
 		Children: []xmldoc.Element{
-			srs.ScalingWidth.toXML(NsWSCN + ":ScalingWidth"),
-			srs.ScalingHeight.toXML(NsWSCN + ":ScalingHeight"),
+			{
+				Name:     NsWSCN + ":ScalingWidth",
+				Children: srs.ScalingWidth.toXML(),
+			},
+			{
+				Name:     NsWSCN + ":ScalingHeight",
+				Children: srs.ScalingHeight.toXML(),
+			},
 		},
 	}
 }
@@ -50,13 +56,13 @@ func decodeScalingRangeSupported(root xmldoc.Element) (srs ScalingRangeSupported
 		return srs, xmldoc.XMLErrMissed(missed.Name)
 	}
 
-	width, err := decodeScalingWidth(widthLookup.Elem)
+	width, err := decodeRangeElement(widthLookup.Elem)
 	if err != nil {
 		return srs, fmt.Errorf("invalid ScalingWidth: %w", err)
 	}
 	srs.ScalingWidth = width
 
-	height, err := decodeScalingHeight(heightLookup.Elem)
+	height, err := decodeRangeElement(heightLookup.Elem)
 	if err != nil {
 		return srs, fmt.Errorf("invalid ScalingHeight: %w", err)
 	}
@@ -70,10 +76,10 @@ func decodeScalingRangeSupported(root xmldoc.Element) (srs ScalingRangeSupported
 
 // Validate checks that ScalingWidth and ScalingHeight are valid.
 func (srs ScalingRangeSupported) Validate() error {
-	if err := srs.ScalingWidth.Validate(); err != nil {
+	if err := srs.ScalingWidth.Validate(1, 1000); err != nil {
 		return fmt.Errorf("ScalingWidth: %w", err)
 	}
-	if err := srs.ScalingHeight.Validate(); err != nil {
+	if err := srs.ScalingHeight.Validate(1, 1000); err != nil {
 		return fmt.Errorf("ScalingHeight: %w", err)
 	}
 	return nil
