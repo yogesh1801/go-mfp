@@ -16,6 +16,7 @@ import (
 type RotationValue int
 
 // RotationValue represents possible rotation angles in degrees.
+// Rotation is applied in the clockwise direction.
 const (
 	UnknownRotationValue RotationValue = iota // rotation unknown or not specified
 	Rotation0                                 // no rotation

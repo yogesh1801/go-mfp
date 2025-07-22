@@ -5,7 +5,7 @@ import (
 )
 
 // Test for BooleanElement
-func TestBooleanElement_IsValid(t *testing.T) {
+func TestBooleanElement_Validate(t *testing.T) {
 	cases := []struct {
 		input    BooleanElement
 		expected bool
@@ -22,8 +22,15 @@ func TestBooleanElement_IsValid(t *testing.T) {
 		{"", false},
 	}
 	for _, c := range cases {
-		if got := c.input.IsValid(); got != c.expected {
-			t.Errorf("IsValid(%q) = %v; want %v", c.input, got, c.expected)
+		err := c.input.Validate()
+		if c.expected {
+			if err != nil {
+				t.Errorf("Validate(%q) = %v; want nil", c.input, err)
+			}
+		} else {
+			if err == nil {
+				t.Errorf("Validate(%q) = nil; want error", c.input)
+			}
 		}
 	}
 }
@@ -46,15 +53,11 @@ func TestBooleanElement_Bool(t *testing.T) {
 		{"", false, true},
 	}
 	for _, c := range cases {
-		got, err := c.input.Bool()
+		got := c.input.Bool()
 		if c.expectError {
-			if err == nil {
+			if err := c.input.Validate(); err == nil {
 				t.Errorf("Bool(%q) expected error, got nil", c.input)
 			}
-			continue
-		}
-		if err != nil {
-			t.Errorf("Bool(%q) unexpected error: %v", c.input, err)
 			continue
 		}
 		if got != c.expected {

@@ -20,8 +20,8 @@ var testColorEntry = testEnum[ColorEntry]{
 		{Grayscale16, "Grayscale16"},
 		{RGB24, "RGB24"},
 		{RGB48, "RGB48"},
-		{RGBa32, "RGBa32"},
-		{RGBa64, "RGBa64"},
+		{RGBA32, "RGBa32"},
+		{RGBA64, "RGBa64"},
 	},
 }
 
