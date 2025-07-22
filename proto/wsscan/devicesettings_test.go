@@ -23,15 +23,15 @@ func createValidDeviceSettings() DeviceSettings {
 	return DeviceSettings{
 		AutoExposureSupported:             autoExp,
 		BrightnessSupported:               brightness,
-		CompressionQualityFactorSupported: CompressionQualityFactorSupported{RangeElement: RangeElement{MinValue: 1, MaxValue: 100}},
-		ContentTypesSupported:             ContentTypesSupported{Values: []ContentTypeValue{Auto}},
+		CompressionQualityFactorSupported: RangeElement{MinValue: 1, MaxValue: 100},
+		ContentTypesSupported:             []ContentTypeValue{Auto},
 		ContrastSupported:                 contrast,
 		DocumentSizeAutoDetectSupported:   docSize,
-		FormatsSupported:                  FormatsSupported{Values: []FormatValue{PNG}},
-		RotationsSupported:                RotationsSupported{Values: []RotationValue{Rotation0}},
+		FormatsSupported:                  []FormatValue{PNG},
+		RotationsSupported:                []RotationValue{Rotation0},
 		ScalingRangeSupported: ScalingRangeSupported{
-			ScalingWidth:  ScalingWidth{RangeElement: RangeElement{MinValue: 1, MaxValue: 1000}},
-			ScalingHeight: ScalingHeight{RangeElement: RangeElement{MinValue: 1, MaxValue: 1000}},
+			ScalingWidth:  RangeElement{MinValue: 1, MaxValue: 1000},
+			ScalingHeight: RangeElement{MinValue: 1, MaxValue: 1000},
 		},
 	}
 }
@@ -120,7 +120,7 @@ func TestDeviceSettings_DecodeErrors(t *testing.T) {
 			name: "missing ContentTypesSupported values",
 			setup: func() xmldoc.Element {
 				ds := createValidDeviceSettings()
-				ds.ContentTypesSupported.Values = nil
+				ds.ContentTypesSupported = nil
 				return ds.toXML(NsWSCN + ":DeviceSettings")
 			},
 			errContains: "at least one ContentTypeValue is required",
@@ -129,7 +129,7 @@ func TestDeviceSettings_DecodeErrors(t *testing.T) {
 			name: "missing FormatsSupported values",
 			setup: func() xmldoc.Element {
 				ds := createValidDeviceSettings()
-				ds.FormatsSupported.Values = nil
+				ds.FormatsSupported = nil
 				return ds.toXML(NsWSCN + ":DeviceSettings")
 			},
 			errContains: "at least one FormatValue is required",
@@ -138,7 +138,7 @@ func TestDeviceSettings_DecodeErrors(t *testing.T) {
 			name: "missing RotationsSupported values",
 			setup: func() xmldoc.Element {
 				ds := createValidDeviceSettings()
-				ds.RotationsSupported.Values = nil
+				ds.RotationsSupported = nil
 				return ds.toXML(NsWSCN + ":DeviceSettings")
 			},
 			errContains: "at least one RotationValue is required",

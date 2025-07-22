@@ -24,8 +24,8 @@ func TestScalingRangeSupported_XMLRoundTrip(t *testing.T) {
 	}
 	for _, c := range cases {
 		srs := ScalingRangeSupported{
-			ScalingWidth:  ScalingWidth{RangeElement: RangeElement{MinValue: c.wmin, MaxValue: c.wmax}},
-			ScalingHeight: ScalingHeight{RangeElement: RangeElement{MinValue: c.hmin, MaxValue: c.hmax}},
+			ScalingWidth:  RangeElement{MinValue: c.wmin, MaxValue: c.wmax},
+			ScalingHeight: RangeElement{MinValue: c.hmin, MaxValue: c.hmax},
 		}
 		elm := srs.toXML(NsWSCN + ":ScalingRangeSupported")
 		parsed, err := decodeScalingRangeSupported(elm)
@@ -42,20 +42,20 @@ func TestScalingRangeSupported_XMLRoundTrip(t *testing.T) {
 func TestScalingRangeSupported_Validation(t *testing.T) {
 	badCases := []ScalingRangeSupported{
 		{
-			ScalingWidth:  ScalingWidth{RangeElement: RangeElement{MinValue: 0, MaxValue: 100}},
-			ScalingHeight: ScalingHeight{RangeElement: RangeElement{MinValue: 100, MaxValue: 200}},
+			ScalingWidth:  RangeElement{MinValue: 0, MaxValue: 100},
+			ScalingHeight: RangeElement{MinValue: 100, MaxValue: 200},
 		},
 		{
-			ScalingWidth:  ScalingWidth{RangeElement: RangeElement{MinValue: 100, MaxValue: 200}},
-			ScalingHeight: ScalingHeight{RangeElement: RangeElement{MinValue: 0, MaxValue: 100}},
+			ScalingWidth:  RangeElement{MinValue: 100, MaxValue: 200},
+			ScalingHeight: RangeElement{MinValue: 0, MaxValue: 100},
 		},
 		{
-			ScalingWidth:  ScalingWidth{RangeElement: RangeElement{MinValue: 100, MaxValue: 99}},
-			ScalingHeight: ScalingHeight{RangeElement: RangeElement{MinValue: 100, MaxValue: 200}},
+			ScalingWidth:  RangeElement{MinValue: 100, MaxValue: 99},
+			ScalingHeight: RangeElement{MinValue: 100, MaxValue: 200},
 		},
 		{
-			ScalingWidth:  ScalingWidth{RangeElement: RangeElement{MinValue: 100, MaxValue: 200}},
-			ScalingHeight: ScalingHeight{RangeElement: RangeElement{MinValue: 100, MaxValue: 99}},
+			ScalingWidth:  RangeElement{MinValue: 100, MaxValue: 200},
+			ScalingHeight: RangeElement{MinValue: 100, MaxValue: 99},
 		},
 	}
 	for _, srs := range badCases {

@@ -22,7 +22,7 @@ func TestScannerDescription(t *testing.T) {
 		ScannerName: ScannerName{
 			Text: "Accounting Scanner in Copy Room 2",
 			Lang: optional.New(
-				"en-AU, en-CA, en-GB, en-US",
+				"en-CA, en-US",
 			),
 		},
 		ScannerInfo: optional.New(ScannerInfo{

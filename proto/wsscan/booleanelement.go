@@ -26,7 +26,7 @@ func (b BooleanElement) Validate() error {
 		return nil
 	default:
 		return errors.New(
-			"invalid value for BooleanElement: must be 0, 1, false, or true",
+			"BooleanElement: must be 0, 1, false, or true",
 		)
 	}
 }
