@@ -23,7 +23,7 @@ func TestCompressionQualityFactorSupported_XMLRoundTrip(t *testing.T) {
 		{100, 100},
 	}
 	for _, c := range cases {
-		cqfs := CompressionQualityFactorSupported{MinValue: MinValue(c.min), MaxValue: MaxValue(c.max)}
+		cqfs := CompressionQualityFactorSupported{RangeElement: RangeElement{MinValue: c.min, MaxValue: c.max}}
 		elm := cqfs.toXML(NsWSCN + ":CompressionQualityFactorSupported")
 		parsed, err := decodeCompressionQualityFactorSupported(elm)
 		if err != nil {
@@ -39,11 +39,11 @@ func TestCompressionQualityFactorSupported_XMLRoundTrip(t *testing.T) {
 
 func TestCompressionQualityFactorSupported_Validation(t *testing.T) {
 	badCases := []CompressionQualityFactorSupported{
-		{MinValue: 0, MaxValue: 100},   // MinValue < 1
-		{MinValue: 1, MaxValue: 0},     // MaxValue < 1
-		{MinValue: 101, MaxValue: 101}, // MinValue > 100
-		{MinValue: 100, MaxValue: 101}, // MaxValue > 100
-		{MinValue: 50, MaxValue: 49},   // MinValue > MaxValue
+		{RangeElement: RangeElement{MinValue: 0, MaxValue: 100}},   // MinValue < 1
+		{RangeElement: RangeElement{MinValue: 1, MaxValue: 0}},     // MaxValue < 1
+		{RangeElement: RangeElement{MinValue: 101, MaxValue: 101}}, // MinValue > 100
+		{RangeElement: RangeElement{MinValue: 100, MaxValue: 101}}, // MaxValue > 100
+		{RangeElement: RangeElement{MinValue: 50, MaxValue: 49}},   // MinValue > MaxValue
 	}
 	for _, cqfs := range badCases {
 		if err := cqfs.Validate(); err == nil {

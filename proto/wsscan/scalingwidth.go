@@ -9,26 +9,20 @@
 package wsscan
 
 import (
-	"fmt"
-
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
 // ScalingWidth represents the <wscn:ScalingWidth> element,
-// containing MinValue and MaxValue.
+// containing a range of supported scaling width values.
 type ScalingWidth struct {
-	MinValue MinValue
-	MaxValue MaxValue
+	RangeElement
 }
 
 // toXML generates XML tree for the [ScalingWidth].
 func (sw ScalingWidth) toXML(name string) xmldoc.Element {
 	return xmldoc.Element{
-		Name: name,
-		Children: []xmldoc.Element{
-			sw.MinValue.toXML(NsWSCN + ":MinValue"),
-			sw.MaxValue.toXML(NsWSCN + ":MaxValue"),
-		},
+		Name:     name,
+		Children: sw.RangeElement.toXML(),
 	}
 }
 
@@ -36,48 +30,19 @@ func (sw ScalingWidth) toXML(name string) xmldoc.Element {
 func decodeScalingWidth(root xmldoc.Element) (sw ScalingWidth, err error) {
 	defer func() { err = xmldoc.XMLErrWrap(root, err) }()
 
-	minLookup := xmldoc.Lookup{
-		Name:     NsWSCN + ":MinValue",
-		Required: true,
-	}
-	maxLookup := xmldoc.Lookup{
-		Name:     NsWSCN + ":MaxValue",
-		Required: true,
-	}
-
-	missed := root.Lookup(&minLookup, &maxLookup)
-	if missed != nil {
-		return sw, xmldoc.XMLErrMissed(missed.Name)
-	}
-
-	min, err := decodeMinValue(minLookup.Elem)
+	sw.RangeElement, err = decodeRangeElement(root)
 	if err != nil {
-		return sw, fmt.Errorf("invalid MinValue: %w", err)
-	}
-	sw.MinValue = min
-
-	max, err := decodeMaxValue(maxLookup.Elem)
-	if err != nil {
-		return sw, fmt.Errorf("invalid MaxValue: %w", err)
-	}
-	sw.MaxValue = max
-
-	if err := sw.Validate(); err != nil {
 		return sw, err
 	}
+
+	if err = sw.Validate(); err != nil {
+		return sw, err
+	}
+
 	return sw, nil
 }
 
 // Validate checks that MinValue and MaxValue are within [1, 1000] and MinValue <= MaxValue.
 func (sw ScalingWidth) Validate() error {
-	if sw.MinValue < 1 || sw.MinValue > 1000 {
-		return fmt.Errorf("MinValue must be between 1 and 1000")
-	}
-	if sw.MaxValue < 1 || sw.MaxValue > 1000 {
-		return fmt.Errorf("MaxValue must be between 1 and 1000")
-	}
-	if int(sw.MinValue) > int(sw.MaxValue) {
-		return fmt.Errorf("MinValue must be less than or equal to MaxValue")
-	}
-	return nil
+	return sw.RangeElement.Validate(1, 1000)
 }

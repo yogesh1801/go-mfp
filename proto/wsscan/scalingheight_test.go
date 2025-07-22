@@ -23,7 +23,7 @@ func TestScalingHeight_XMLRoundTrip(t *testing.T) {
 		{100, 100}, // min == max
 	}
 	for _, c := range cases {
-		sh := ScalingHeight{MinValue: MinValue(c.min), MaxValue: MaxValue(c.max)}
+		sh := ScalingHeight{RangeElement: RangeElement{MinValue: c.min, MaxValue: c.max}}
 		elm := sh.toXML(NsWSCN + ":ScalingHeight")
 		parsed, err := decodeScalingHeight(elm)
 		if err != nil {
@@ -38,10 +38,10 @@ func TestScalingHeight_XMLRoundTrip(t *testing.T) {
 
 func TestScalingHeight_Validation(t *testing.T) {
 	badCases := []ScalingHeight{
-		{MinValue: 0, MaxValue: 100},     // MinValue < 1
-		{MinValue: 1, MaxValue: 0},       // MaxValue < 1
-		{MinValue: 1001, MaxValue: 1002}, // MinValue > 1000
-		{MinValue: 100, MaxValue: 99},    // MinValue > MaxValue
+		{RangeElement: RangeElement{MinValue: 0, MaxValue: 100}},     // MinValue < 1
+		{RangeElement: RangeElement{MinValue: 1, MaxValue: 0}},       // MaxValue < 1
+		{RangeElement: RangeElement{MinValue: 1001, MaxValue: 1002}}, // MinValue > 1000
+		{RangeElement: RangeElement{MinValue: 100, MaxValue: 99}},    // MinValue > MaxValue
 	}
 	for _, sh := range badCases {
 		if err := sh.Validate(); err == nil {

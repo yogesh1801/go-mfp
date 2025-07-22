@@ -25,8 +25,8 @@ const (
 	Grayscale16                  // 16 bpp, single channel
 	RGB24                        // 24 bpp, 3 channels (8 bits each)
 	RGB48                        // 48 bpp, 3 channels (16 bits each)
-	RGBa32                       // 32 bpp, 4 channels (8 bits each)
-	RGBa64                       // 64 bpp, 4 channels (16 bits each)
+	RGBA32                       // 32 bpp, 4 channels (8 bits each)
+	RGBA64                       // 64 bpp, 4 channels (16 bits each)
 )
 
 // decodeColorEntry decodes [ColorEntry] from the XML tree.
@@ -57,9 +57,9 @@ func (ce ColorEntry) String() string {
 		return "RGB24"
 	case RGB48:
 		return "RGB48"
-	case RGBa32:
+	case RGBA32:
 		return "RGBa32"
-	case RGBa64:
+	case RGBA64:
 		return "RGBa64"
 	}
 
@@ -82,9 +82,9 @@ func DecodeColorEntry(s string) ColorEntry {
 	case "RGB48":
 		return RGB48
 	case "RGBa32":
-		return RGBa32
+		return RGBA32
 	case "RGBa64":
-		return RGBa64
+		return RGBA64
 	}
 
 	return UnknownColorEntry

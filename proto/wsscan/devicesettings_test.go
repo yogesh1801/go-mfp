@@ -8,43 +8,158 @@ package wsscan
 
 import (
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
-// Test for DeviceSettings
-func TestDeviceSettings_XMLRoundTrip(t *testing.T) {
-	ds := DeviceSettings{
-		AutoExposureSupported:             "true",
-		BrightnessSupported:               "true",
-		CompressionQualityFactorSupported: CompressionQualityFactorSupported{1, 100},
+func createValidDeviceSettings() DeviceSettings {
+	autoExp := BooleanElement("true")
+	brightness := BooleanElement("true")
+	contrast := BooleanElement("true")
+	docSize := BooleanElement("true")
+
+	return DeviceSettings{
+		AutoExposureSupported:             autoExp,
+		BrightnessSupported:               brightness,
+		CompressionQualityFactorSupported: CompressionQualityFactorSupported{RangeElement: RangeElement{MinValue: 1, MaxValue: 100}},
 		ContentTypesSupported:             ContentTypesSupported{Values: []ContentTypeValue{Auto}},
-		ContrastSupported:                 "true",
-		DocumentSizeAutoDetectSupported:   "true",
+		ContrastSupported:                 contrast,
+		DocumentSizeAutoDetectSupported:   docSize,
 		FormatsSupported:                  FormatsSupported{Values: []FormatValue{PNG}},
 		RotationsSupported:                RotationsSupported{Values: []RotationValue{Rotation0}},
 		ScalingRangeSupported: ScalingRangeSupported{
-			ScalingWidth:  ScalingWidth{1, 1000},
-			ScalingHeight: ScalingHeight{1, 1000},
+			ScalingWidth:  ScalingWidth{RangeElement: RangeElement{MinValue: 1, MaxValue: 1000}},
+			ScalingHeight: ScalingHeight{RangeElement: RangeElement{MinValue: 1, MaxValue: 1000}},
 		},
 	}
+}
+
+// Test for DeviceSettings XML round-trip
+func TestDeviceSettings_XMLRoundTrip(t *testing.T) {
+	ds := createValidDeviceSettings()
 	elm := ds.toXML(NsWSCN + ":DeviceSettings")
 	parsed, err := decodeDeviceSettings(elm)
 	if err != nil {
-		t.Errorf("decodeDeviceSettings: input %+v, unexpected error: %v",
-			ds, err)
+		t.Fatalf("decodeDeviceSettings: input %+v, unexpected error: %v", ds, err)
 	}
-	if !reflect.DeepEqual(parsed, ds) {
-		t.Errorf("XML round-trip: expected %+v, got %+v", ds, parsed)
+
+	// Compare individual fields since BooleanElements are not comparable with DeepEqual
+	if parsed.AutoExposureSupported != ds.AutoExposureSupported {
+		t.Errorf("AutoExposureSupported: expected %v, got %v",
+			ds.AutoExposureSupported, parsed.AutoExposureSupported)
+	}
+	if parsed.BrightnessSupported != ds.BrightnessSupported {
+		t.Errorf("BrightnessSupported: expected %v, got %v",
+			ds.BrightnessSupported, parsed.BrightnessSupported)
+	}
+	if !reflect.DeepEqual(parsed.CompressionQualityFactorSupported, ds.CompressionQualityFactorSupported) {
+		t.Errorf("CompressionQualityFactorSupported: expected %v, got %v",
+			ds.CompressionQualityFactorSupported, parsed.CompressionQualityFactorSupported)
+	}
+	if !reflect.DeepEqual(parsed.ContentTypesSupported, ds.ContentTypesSupported) {
+		t.Errorf("ContentTypesSupported: expected %v, got %v",
+			ds.ContentTypesSupported, parsed.ContentTypesSupported)
+	}
+	if parsed.ContrastSupported != ds.ContrastSupported {
+		t.Errorf("ContrastSupported: expected %v, got %v",
+			ds.ContrastSupported, parsed.ContrastSupported)
+	}
+	if parsed.DocumentSizeAutoDetectSupported != ds.DocumentSizeAutoDetectSupported {
+		t.Errorf("DocumentSizeAutoDetectSupported: expected %v, got %v",
+			ds.DocumentSizeAutoDetectSupported, parsed.DocumentSizeAutoDetectSupported)
+	}
+	if !reflect.DeepEqual(parsed.FormatsSupported, ds.FormatsSupported) {
+		t.Errorf("FormatsSupported: expected %v, got %v",
+			ds.FormatsSupported, parsed.FormatsSupported)
+	}
+	if !reflect.DeepEqual(parsed.RotationsSupported, ds.RotationsSupported) {
+		t.Errorf("RotationsSupported: expected %v, got %v",
+			ds.RotationsSupported, parsed.RotationsSupported)
+	}
+	if !reflect.DeepEqual(parsed.ScalingRangeSupported, ds.ScalingRangeSupported) {
+		t.Errorf("ScalingRangeSupported: expected %v, got %v",
+			ds.ScalingRangeSupported, parsed.ScalingRangeSupported)
 	}
 }
 
 func TestDeviceSettings_DecodeErrors(t *testing.T) {
-	// Missing AutoExposureSupported
-	elm := xmldoc.Element{Name: NsWSCN + ":DeviceSettings"}
-	if _, err := decodeDeviceSettings(elm); err == nil {
-		t.Error("decodeDeviceSettings: " +
-			"expected error for missing AutoExposureSupported, got nil")
+	tests := []struct {
+		name        string
+		setup       func() xmldoc.Element
+		errContains string
+	}{
+		{
+			name: "missing AutoExposureSupported",
+			setup: func() xmldoc.Element {
+				ds := createValidDeviceSettings()
+				elm := ds.toXML(NsWSCN + ":DeviceSettings")
+				// Remove AutoExposureSupported
+				var children []xmldoc.Element
+				for _, child := range elm.Children {
+					if child.Name != NsWSCN+":AutoExposureSupported" {
+						children = append(children, child)
+					}
+				}
+				elm.Children = children
+				return elm
+			},
+			errContains: "AutoExposureSupported",
+		},
+		{
+			name: "invalid AutoExposureSupported value",
+			setup: func() xmldoc.Element {
+				ds := createValidDeviceSettings()
+				ds.AutoExposureSupported = BooleanElement("maybe")
+				return ds.toXML(NsWSCN + ":DeviceSettings")
+			},
+			errContains: "AutoExposureSupported",
+		},
+		{
+			name: "missing ContentTypesSupported values",
+			setup: func() xmldoc.Element {
+				ds := createValidDeviceSettings()
+				ds.ContentTypesSupported.Values = nil
+				return ds.toXML(NsWSCN + ":DeviceSettings")
+			},
+			errContains: "at least one ContentTypeValue is required",
+		},
+		{
+			name: "missing FormatsSupported values",
+			setup: func() xmldoc.Element {
+				ds := createValidDeviceSettings()
+				ds.FormatsSupported.Values = nil
+				return ds.toXML(NsWSCN + ":DeviceSettings")
+			},
+			errContains: "at least one FormatValue is required",
+		},
+		{
+			name: "missing RotationsSupported values",
+			setup: func() xmldoc.Element {
+				ds := createValidDeviceSettings()
+				ds.RotationsSupported.Values = nil
+				return ds.toXML(NsWSCN + ":DeviceSettings")
+			},
+			errContains: "at least one RotationValue is required",
+		},
 	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			elm := tc.setup()
+			_, err := decodeDeviceSettings(elm)
+			if err == nil {
+				t.Fatal("expected error, got nil")
+			}
+			if !containsSubstring(err.Error(), tc.errContains) {
+				t.Errorf("expected error to contain %q, got %q",
+					tc.errContains, err)
+			}
+		})
+	}
+}
+
+func containsSubstring(s, substr string) bool {
+	return strings.Contains(s, substr)
 }

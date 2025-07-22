@@ -19,40 +19,35 @@ import (
 // Allowed values: "0", "1", "false", "true" (case-insensitive, whitespace ignored).
 type BooleanElement string
 
-// IsValid returns true if the value is a valid BooleanElement value.
-func (b BooleanElement) IsValid() bool {
+// Validate returns true if the value is a valid BooleanElement value.
+func (b BooleanElement) Validate() error {
 	switch strings.ToLower(strings.TrimSpace(string(b))) {
 	case "0", "1", "false", "true":
-		return true
+		return nil
 	default:
-		return false
+		return errors.New(
+			"invalid value for BooleanElement: must be 0, 1, false, or true",
+		)
 	}
 }
 
 // Bool returns the boolean value of BooleanElement.
-// Returns true for "1" or "true", false for "0" or "false".
-func (b BooleanElement) Bool() (bool, error) {
+// Returns true for "1" or "true", false for "0" or "false" defaulting to false.
+func (b BooleanElement) Bool() bool {
 	switch strings.ToLower(strings.TrimSpace(string(b))) {
 	case "1", "true":
-		return true, nil
+		return true
 	case "0", "false":
-		return false, nil
+		return false
 	default:
-		return false, errors.New(
-			"invalid value for BooleanElement: must be 0, 1, false, or true",
-		)
+		return false
 	}
 }
 
 // decodeBooleanElement decodes a BooleanElement from an XML element.
 func decodeBooleanElement(root xmldoc.Element) (BooleanElement, error) {
 	val := BooleanElement(strings.TrimSpace(root.Text))
-	if !val.IsValid() {
-		return "", errors.New(
-			"invalid value for BooleanElement: must be 0, 1, false, or true",
-		)
-	}
-	return val, nil
+	return val, val.Validate()
 }
 
 // toXML converts a BooleanElement to an XML element.

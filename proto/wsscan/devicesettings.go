@@ -17,12 +17,12 @@ import (
 // DeviceSettings represents the <wscn:DeviceSettings> element,
 // describing the basic capabilities of the scan device.
 type DeviceSettings struct {
-	AutoExposureSupported             AutoExposureSupported
-	BrightnessSupported               BrightnessSupported
+	AutoExposureSupported             BooleanElement
+	BrightnessSupported               BooleanElement
 	CompressionQualityFactorSupported CompressionQualityFactorSupported
 	ContentTypesSupported             ContentTypesSupported
-	ContrastSupported                 ContrastSupported
-	DocumentSizeAutoDetectSupported   DocumentSizeAutoDetectSupported
+	ContrastSupported                 BooleanElement
+	DocumentSizeAutoDetectSupported   BooleanElement
 	FormatsSupported                  FormatsSupported
 	RotationsSupported                RotationsSupported
 	ScalingRangeSupported             ScalingRangeSupported
@@ -59,23 +59,45 @@ func (ds DeviceSettings) toXML(name string) xmldoc.Element {
 func decodeDeviceSettings(root xmldoc.Element) (ds DeviceSettings, err error) {
 	defer func() { err = xmldoc.XMLErrWrap(root, err) }()
 
-	autoExposureSupported := xmldoc.Lookup{Name: NsWSCN +
-		":AutoExposureSupported", Required: true}
-	brightnessSupported := xmldoc.Lookup{Name: NsWSCN +
-		":BrightnessSupported", Required: true}
-	compressionQualityFactorSupported := xmldoc.Lookup{Name: NsWSCN + ":CompressionQualityFactorSupported", Required: true}
-	contentTypesSupported := xmldoc.Lookup{Name: NsWSCN +
-		":ContentTypesSupported", Required: true}
-	contrastSupported := xmldoc.Lookup{Name: NsWSCN +
-		":ContrastSupported", Required: true}
-	documentSizeAutoDetectSupported := xmldoc.Lookup{Name: NsWSCN + ":DocumentSizeAutoDetectSupported", Required: true}
-	formatsSupported := xmldoc.Lookup{Name: NsWSCN +
-		":FormatsSupported", Required: true}
-	rotationsSupported := xmldoc.Lookup{Name: NsWSCN +
-		":RotationsSupported", Required: true}
-	scalingRangeSupported := xmldoc.Lookup{Name: NsWSCN +
-		":ScalingRangeSupported", Required: true}
+	// Lookup all required XML elements
+	autoExposureSupported := xmldoc.Lookup{
+		Name:     NsWSCN + ":AutoExposureSupported",
+		Required: true,
+	}
+	brightnessSupported := xmldoc.Lookup{
+		Name:     NsWSCN + ":BrightnessSupported",
+		Required: true,
+	}
+	compressionQualityFactorSupported := xmldoc.Lookup{
+		Name:     NsWSCN + ":CompressionQualityFactorSupported",
+		Required: true,
+	}
+	contentTypesSupported := xmldoc.Lookup{
+		Name:     NsWSCN + ":ContentTypesSupported",
+		Required: true,
+	}
+	contrastSupported := xmldoc.Lookup{
+		Name:     NsWSCN + ":ContrastSupported",
+		Required: true,
+	}
+	documentSizeAutoDetectSupported := xmldoc.Lookup{
+		Name:     NsWSCN + ":DocumentSizeAutoDetectSupported",
+		Required: true,
+	}
+	formatsSupported := xmldoc.Lookup{
+		Name:     NsWSCN + ":FormatsSupported",
+		Required: true,
+	}
+	rotationsSupported := xmldoc.Lookup{
+		Name:     NsWSCN + ":RotationsSupported",
+		Required: true,
+	}
+	scalingRangeSupported := xmldoc.Lookup{
+		Name:     NsWSCN + ":ScalingRangeSupported",
+		Required: true,
+	}
 
+	// Perform all lookups at once
 	missed := root.Lookup(
 		&autoExposureSupported,
 		&brightnessSupported,
@@ -87,81 +109,65 @@ func decodeDeviceSettings(root xmldoc.Element) (ds DeviceSettings, err error) {
 		&rotationsSupported,
 		&scalingRangeSupported,
 	)
+
 	if missed != nil {
 		return ds, xmldoc.XMLErrMissed(missed.Name)
 	}
 
-	ds.AutoExposureSupported, err = decodeAutoExposureSupported(autoExposureSupported.Elem)
-	if err != nil {
-		return
-	}
-	ds.BrightnessSupported, err = decodeBrightnessSupported(brightnessSupported.Elem)
-	if err != nil {
-		return
-	}
-	ds.CompressionQualityFactorSupported, err = decodeCompressionQualityFactorSupported(compressionQualityFactorSupported.Elem)
-	if err != nil {
-		return
-	}
-	ds.ContentTypesSupported, err = decodeContentTypesSupported(contentTypesSupported.Elem)
-	if err != nil {
-		return
-	}
-	ds.ContrastSupported, err = decodeContrastSupported(contrastSupported.Elem)
-	if err != nil {
-		return
-	}
-	ds.DocumentSizeAutoDetectSupported, err = decodeDocumentSizeAutoDetectSupported(documentSizeAutoDetectSupported.Elem)
-	if err != nil {
-		return
-	}
-	ds.FormatsSupported, err = decodeFormatsSupported(formatsSupported.Elem)
-	if err != nil {
-		return
-	}
-	ds.RotationsSupported, err = decodeRotationsSupported(rotationsSupported.Elem)
-	if err != nil {
-		return
-	}
-	ds.ScalingRangeSupported, err = decodeScalingRangeSupported(scalingRangeSupported.Elem)
-	if err != nil {
-		return
+	// Decode all required elements
+	if ds.AutoExposureSupported, err = decodeBooleanElement(
+		autoExposureSupported.Elem,
+	); err != nil {
+		return ds, fmt.Errorf("AutoExposureSupported: %w", err)
 	}
 
-	if err = ds.Validate(); err != nil {
-		return
+	if ds.BrightnessSupported, err = decodeBooleanElement(
+		brightnessSupported.Elem,
+	); err != nil {
+		return ds, fmt.Errorf("BrightnessSupported: %w", err)
 	}
-	return
-}
 
-// Validate checks that all child elements are valid.
-func (ds DeviceSettings) Validate() error {
-	if _, err := ds.AutoExposureSupported.Bool(); err != nil {
-		return fmt.Errorf("AutoExposureSupported: %w", err)
+	if ds.CompressionQualityFactorSupported, err = decodeCompressionQualityFactorSupported(
+		compressionQualityFactorSupported.Elem,
+	); err != nil {
+		return ds, fmt.Errorf("CompressionQualityFactorSupported: %w", err)
 	}
-	if _, err := ds.BrightnessSupported.Bool(); err != nil {
-		return fmt.Errorf("BrightnessSupported: %w", err)
+
+	if ds.ContentTypesSupported, err = decodeContentTypesSupported(
+		contentTypesSupported.Elem,
+	); err != nil {
+		return ds, fmt.Errorf("ContentTypesSupported: %w", err)
 	}
-	if err := ds.CompressionQualityFactorSupported.Validate(); err != nil {
-		return fmt.Errorf("CompressionQualityFactorSupported: %w", err)
+
+	if ds.ContrastSupported, err = decodeBooleanElement(
+		contrastSupported.Elem,
+	); err != nil {
+		return ds, fmt.Errorf("ContrastSupported: %w", err)
 	}
-	if len(ds.ContentTypesSupported.Values) == 0 {
-		return fmt.Errorf("ContentTypesSupported requires at least one value")
+
+	if ds.DocumentSizeAutoDetectSupported, err = decodeBooleanElement(
+		documentSizeAutoDetectSupported.Elem,
+	); err != nil {
+		return ds, fmt.Errorf("DocumentSizeAutoDetectSupported: %w", err)
 	}
-	if _, err := ds.ContrastSupported.Bool(); err != nil {
-		return fmt.Errorf("ContrastSupported: %w", err)
+
+	if ds.FormatsSupported, err = decodeFormatsSupported(
+		formatsSupported.Elem,
+	); err != nil {
+		return ds, fmt.Errorf("FormatsSupported: %w", err)
 	}
-	if _, err := ds.DocumentSizeAutoDetectSupported.Bool(); err != nil {
-		return fmt.Errorf("DocumentSizeAutoDetectSupported: %w", err)
+
+	if ds.RotationsSupported, err = decodeRotationsSupported(
+		rotationsSupported.Elem,
+	); err != nil {
+		return ds, fmt.Errorf("RotationsSupported: %w", err)
 	}
-	if len(ds.FormatsSupported.Values) == 0 {
-		return fmt.Errorf("FormatsSupported requires at least one value")
+
+	if ds.ScalingRangeSupported, err = decodeScalingRangeSupported(
+		scalingRangeSupported.Elem,
+	); err != nil {
+		return ds, fmt.Errorf("ScalingRangeSupported: %w", err)
 	}
-	if len(ds.RotationsSupported.Values) == 0 {
-		return fmt.Errorf("RotationsSupported requires at least one value")
-	}
-	if err := ds.ScalingRangeSupported.Validate(); err != nil {
-		return fmt.Errorf("ScalingRangeSupported: %w", err)
-	}
-	return nil
+
+	return ds, nil
 }
