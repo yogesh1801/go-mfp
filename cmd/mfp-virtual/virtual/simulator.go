@@ -10,6 +10,7 @@ package virtual
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 
@@ -17,6 +18,7 @@ import (
 	"github.com/OpenPrinting/go-mfp/internal/env"
 	"github.com/OpenPrinting/go-mfp/internal/testutils"
 	"github.com/OpenPrinting/go-mfp/log"
+	"github.com/OpenPrinting/go-mfp/modeling"
 	"github.com/OpenPrinting/go-mfp/proto/escl"
 	"github.com/OpenPrinting/go-mfp/transport"
 	"github.com/OpenPrinting/go-mfp/util/generic"
@@ -93,7 +95,9 @@ func scannerCapabilities() *abstract.ScannerCapabilities {
 //
 // If argv is not empty, it specifies the external command that will
 // be run under the simulator.
-func simulate(ctx context.Context, port int, argv []string) error {
+func simulate(ctx context.Context, model *modeling.Model,
+	port int, argv []string) error {
+
 	s := &abstract.VirtualScanner{
 		ScanCaps: scannerCapabilities(),
 		Resolution: abstract.Resolution{
@@ -106,6 +110,16 @@ func simulate(ctx context.Context, port int, argv []string) error {
 			testutils.Images.PNG5100x7016,
 			testutils.Images.PNG5100x7016,
 		},
+	}
+
+	if model != nil {
+		esclcaps := model.GetESCLScanCaps()
+		if s.ScanCaps == nil {
+			err := errors.New("Model doesn't define eSCL scanner capabilities")
+			return err
+		}
+
+		s.ScanCaps = esclcaps.ToAbstract()
 	}
 
 	// Create a virtual server

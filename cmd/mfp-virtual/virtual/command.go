@@ -15,6 +15,7 @@ import (
 
 	"github.com/OpenPrinting/go-mfp/argv"
 	"github.com/OpenPrinting/go-mfp/log"
+	"github.com/OpenPrinting/go-mfp/modeling"
 )
 
 // DefaultTCPPort is the default TCP port for the MFP simulator
@@ -39,6 +40,15 @@ var Command = argv.Command{
 	Description:              description,
 	NoOptionsAfterParameters: true,
 	Options: []argv.Option{
+		argv.Option{
+			Name:      "-m",
+			Aliases:   []string{"--model"},
+			Help:      "read model from file",
+			HelpArg:   "file",
+			Singleton: true,
+			Validate:  argv.ValidateAny,
+			Complete:  argv.CompleteOSPath,
+		},
 		argv.Option{
 			Name:    "-d",
 			Aliases: []string{"--debug"},
@@ -89,9 +99,29 @@ func cmdVirtualHandler(ctx context.Context, inv *argv.Invocation) error {
 	logger := log.NewLogger(level, log.Console)
 	ctx = log.NewContext(ctx, logger)
 
+	var err error
+
+	var model *modeling.Model
+	if modelfile, ok := inv.Get("-m"); ok {
+		model, err = modeling.NewModel()
+		if err != nil {
+			return err
+		}
+
+		defer model.Close()
+
+		err = model.Load(modelfile)
+		if err != nil {
+			return err
+		}
+	}
+
 	port := DefaultTCPPort
 	if portname, ok := inv.Get("-p"); ok {
-		port, _ = strconv.Atoi(portname)
+		port, err = strconv.Atoi(portname)
+		if err != nil {
+			return err
+		}
 	}
 
 	argv := []string{}
@@ -100,5 +130,5 @@ func cmdVirtualHandler(ctx context.Context, inv *argv.Invocation) error {
 		argv = append(argv, inv.Values("args")...)
 	}
 
-	return simulate(ctx, port, argv)
+	return simulate(ctx, model, port, argv)
 }
