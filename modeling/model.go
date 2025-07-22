@@ -37,6 +37,7 @@ type Model struct {
 }
 
 // NewModel creates a new Model with empty printer/scanner parameters.
+// Use [Model.Close] to release resources owned by the Model.
 func NewModel() (*Model, error) {
 	// Create Python interpreter
 	py, err := cpython.NewPython()
@@ -76,6 +77,25 @@ func NewModel() (*Model, error) {
 	return model, nil
 }
 
+// Close closes the Model and releases all resources associated
+// with it.
+func (model *Model) Close() {
+	model.py.Close()
+	model.py = nil
+}
+
+// Reset resets the Modal into its initial state.
+func (model *Model) Reset() error {
+	model2, err := NewModel()
+	if err != nil {
+		return err
+	}
+
+	model.py.Close()
+	*model = *model2
+	return nil
+}
+
 // SetIPPPrinterAttrs sets the [escl.ScannerCapabilities].
 func (model *Model) SetIPPPrinterAttrs(attrs *ipp.PrinterAttributes) {
 	model.ippPrinterAttrs = attrs
@@ -107,10 +127,44 @@ func (model *Model) Write(w io.Writer) error {
 		}
 
 		f.Printf("# eSCL scanner parameters:\n")
+		f.Printf("escl.caps = ")
 		err = f.Format(obj)
 		if err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+// Read reads model from the [io.Reader]
+// The filename parameter required for the diagnostics messages.
+func (model *Model) Read(filename string, r io.Reader) error {
+	data, err := io.ReadAll(r)
+	if err != nil {
+		return err
+	}
+
+	err = model.py.Exec(string(data), filename)
+	if err != nil {
+		return err
+	}
+
+	obj, err := model.py.Eval("escl.caps")
+	if err != nil {
+		err = fmt.Errorf("escl.caps: %s", err)
+		return err
+	}
+
+	if !obj.IsNone() {
+		var caps *escl.ScannerCapabilities
+		err = model.pyImportStruct(&caps, obj)
+		if err != nil {
+			err = fmt.Errorf("escl.caps: %s", err)
+			return err
+		}
+
+		model.esclScanCaps = caps
 	}
 
 	return nil
@@ -125,10 +179,27 @@ func (model *Model) Save(file string) error {
 		return err
 	}
 
+	// Write model data
+	err = model.Write(fp)
+	err2 := fp.Close()
+
+	if err == nil {
+		err = err2
+	}
+
+	return err
+}
+
+// Load reads model from the disk file.
+func (model *Model) Load(file string) error {
+	fp, err := os.Open(file)
+	if err != nil {
+		return err
+	}
+
 	defer fp.Close()
 
-	// Write model data
-	return model.Write(fp)
+	return model.Read(file, fp)
 }
 
 // pyExportStruct converts the protocol object, represented as Go
@@ -244,6 +315,7 @@ func (model *Model) pyExportValue(v reflect.Value) (*cpython.Object, error) {
 //
 // p MUST be pointer to struct or pointer to pointer to struct.
 func (model *Model) pyImportStruct(p any, obj *cpython.Object) error {
+
 	// Validate argument
 	t := reflect.TypeOf(p)
 
@@ -266,6 +338,7 @@ func (model *Model) pyImportStruct(p any, obj *cpython.Object) error {
 		kw := keywordNormalize(fld.Name)
 		item, err := obj.Get(kw)
 		if err != nil {
+			err = fmt.Errorf("%s: %s", fld.Name, err)
 			return err
 		}
 

@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from uuid import UUID
 
+# Range represents range of integers
 @dataclass
 class Range:
     Min: int
@@ -8,6 +9,7 @@ class Range:
     Normal: int
     Step: int = None
 
+# Resolution represents printing or scanning resolution
 @dataclass
 class Resolution:
     X: int
@@ -22,3 +24,11 @@ class Resolution:
             return 'Resolution({})'.format(self.X)
 
         return 'Resolution(X={}, Y={})'.format(self.X, self.Y)
+
+# __eSCL is the non-exported type, used to represent eSCL scanner
+# configuration
+@dataclass
+class __eSCL:
+    caps: dict = None
+
+escl = __eSCL()
