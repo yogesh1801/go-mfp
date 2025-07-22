@@ -9,9 +9,6 @@
 package wsscan
 
 import (
-	"errors"
-	"strings"
-
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
@@ -31,19 +28,13 @@ func (bs BrightnessSupported) Bool() (bool, error) {
 
 // toXML converts a BrightnessSupported to an XML element.
 func (bs BrightnessSupported) toXML(name string) xmldoc.Element {
-	return xmldoc.Element{Name: name, Text: string(bs)}
+	return BooleanElement(bs).toXML(name)
 }
 
 // decodeBrightnessSupported decodes a BrightnessSupported
 // from an XML element.
 func decodeBrightnessSupported(root xmldoc.Element) (
 	BrightnessSupported, error) {
-	val := BrightnessSupported(strings.TrimSpace(root.Text))
-	if !val.IsValid() {
-		return "", errors.New(
-			"invalid value for BrightnessSupported: " +
-				"must be 0, 1, false, or true",
-		)
-	}
-	return val, nil
+	val, err := decodeBooleanElement(root)
+	return BrightnessSupported(val), err
 }

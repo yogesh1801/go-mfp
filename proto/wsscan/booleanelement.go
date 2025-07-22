@@ -11,6 +11,8 @@ package wsscan
 import (
 	"errors"
 	"strings"
+
+	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
 // BooleanElement is a string type representing a boolean XML value.
@@ -40,4 +42,20 @@ func (b BooleanElement) Bool() (bool, error) {
 			"invalid value for BooleanElement: must be 0, 1, false, or true",
 		)
 	}
+}
+
+// decodeBooleanElement decodes a BooleanElement from an XML element.
+func decodeBooleanElement(root xmldoc.Element) (BooleanElement, error) {
+	val := BooleanElement(strings.TrimSpace(root.Text))
+	if !val.IsValid() {
+		return "", errors.New(
+			"invalid value for BooleanElement: must be 0, 1, false, or true",
+		)
+	}
+	return val, nil
+}
+
+// toXML converts a BooleanElement to an XML element.
+func (b BooleanElement) toXML(name string) xmldoc.Element {
+	return xmldoc.Element{Name: name, Text: string(b)}
 }
