@@ -25,11 +25,15 @@ import (
 // optRequires["--opt1"] -> "--opt2" means, that previously
 // processed option "-opt2" has declared option "--opt1" as
 // required.
+//
+// optSeen["--opt1"] -> "--opt2" means that option "--opt1"
+// already seen, using "--opt2" among all its possible aliases.
 type parser struct {
 	inv          *Invocation               // Invocation being parsed
 	nextarg      int                       // Index of the next argument
 	optConflicts map[string]string         // Conflicting options
 	optRequired  map[string]string         // Required options
+	optSeen      map[string]string         // Option names seen so far
 	options      map[*Option]*parserOptVal // Actually parsed options
 	parameters   []parserParamVal          // Parameters by number
 }
@@ -64,6 +68,7 @@ func newParser(cmd *Command, argv []string) *parser {
 		},
 		optConflicts: make(map[string]string),
 		optRequired:  make(map[string]string),
+		optSeen:      make(map[string]string),
 		options:      make(map[*Option]*parserOptVal),
 	}
 }
@@ -718,6 +723,13 @@ func (prs *parser) appendOptVal(opt *Option, name, value string,
 			name, conflict)
 	}
 
+	for _, conflict := range opt.Conflicts {
+		if seen := prs.optSeen[conflict]; seen != "" {
+			return fmt.Errorf("option %q conflicts with %q",
+				name, seen)
+		}
+	}
+
 	// Save the option
 	optval := prs.options[opt]
 	if optval == nil {
@@ -737,7 +749,7 @@ func (prs *parser) appendOptVal(opt *Option, name, value string,
 		prs.inv.immediate = opt.Immediate
 	}
 
-	// Update optConflicts and optRequired
+	// Update optConflicts, optRequired and optSeen
 	for _, conflict := range opt.Conflicts {
 		if _, found := prs.optConflicts[conflict]; !found {
 			prs.optConflicts[conflict] = name
@@ -747,6 +759,12 @@ func (prs *parser) appendOptVal(opt *Option, name, value string,
 	for _, required := range opt.Requires {
 		if _, found := prs.optRequired[required]; !found {
 			prs.optRequired[required] = name
+		}
+	}
+
+	if prs.optSeen[name] == "" {
+		for _, alias := range opt.names() {
+			prs.optSeen[alias] = name
 		}
 	}
 
