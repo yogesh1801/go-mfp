@@ -43,7 +43,7 @@ func NewTransport(template *http.Transport) *Transport {
 		templateDialContext: template.DialContext,
 	}
 
-	tr.DialContext = tr.dialContect
+	tr.DialContext = tr.dialContext
 
 	return tr
 }
@@ -65,7 +65,7 @@ func (tr *Transport) RoundTrip(rq *http.Request) (*http.Response, error) {
 	//     embedded into the Host
 	//   - for "unix", path also embedded into the Host
 	//
-	// Then dialContect() can decode this information from the
+	// Then dialContext() can decode this information from the
 	// supplied address and use appropriately.
 	host := newURL.Hostname()
 	port := newURL.Port()
@@ -112,9 +112,9 @@ func (tr *Transport) RoundTrip(rq *http.Request) (*http.Response, error) {
 	return tr.Transport.RoundTrip(rq)
 }
 
-// dialContect implements DialContext callback for underlying
+// dialContext implements DialContext callback for underlying
 // http.Transport.
-func (tr *Transport) dialContect(ctx context.Context,
+func (tr *Transport) dialContext(ctx context.Context,
 	network, addr string) (net.Conn, error) {
 
 	host, port, _ := net.SplitHostPort(addr)
