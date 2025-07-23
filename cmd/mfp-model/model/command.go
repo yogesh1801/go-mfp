@@ -26,7 +26,7 @@ const DefaultTCPPort = 50000
 
 // description is printed as a command description text
 const description = "" +
-	"This command generates models for the MFP simulator\n" +
+	"This command generates and validates models for the MFP simulator\n" +
 	""
 
 // Command is the 'model' command description
@@ -93,6 +93,15 @@ var Command = argv.Command{
 			Complete:  argv.CompleteOSPath,
 		},
 		argv.Option{
+			Name:      "-V",
+			Aliases:   []string{"--validate"},
+			Help:      "validate existent model",
+			Singleton: true,
+			Conflicts: []string{
+				"--dnssd", "--escl", "--ipp", "--wsd",
+			},
+		},
+		argv.Option{
 			Name:    "-d",
 			Aliases: []string{"--debug"},
 			Help:    "Enable debug output",
@@ -128,12 +137,27 @@ func cmdModelHandler(ctx context.Context, inv *argv.Invocation) error {
 
 	// Check options
 	optDHSSD, haveDNSSD := inv.Get("--dnssd")
+	_, validate := inv.Get("--validate")
 	escl := inv.Values("--escl")
 	ipp := inv.Values("--ipp")
 	wsd := inv.Values("--wsd")
 
-	if !haveDNSSD && ipp == nil && escl == nil && wsd == nil {
-		err := errors.New("at least one option required: --dnssd, --escl, --ipp or --wsd")
+	if !haveDNSSD && !validate && ipp == nil && escl == nil && wsd == nil {
+		err := errors.New("at least one option required: --dnssd, --escl, --ipp, --wsd or --validate")
+		return err
+	}
+
+	// Handle the --validate option
+	if validate {
+		model, err := modeling.NewModel()
+		if err != nil {
+			return err
+		}
+
+		file, _ := inv.Get("-m")
+		err = model.Load(file)
+		model.Close()
+
 		return err
 	}
 
