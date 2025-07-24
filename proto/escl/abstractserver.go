@@ -36,6 +36,7 @@ type AbstractServer struct {
 	caps     *abstract.ScannerCapabilities // Scanner capabilities
 	status   ScannerStatus                 // Scanner status
 	document abstract.Document             // Document being server
+	joburi   string                        // Current JobURI, "" if none
 	lock     sync.Mutex                    // Access lock
 }
 
@@ -44,6 +45,7 @@ type AbstractServer struct {
 type AbstractServerOptions struct {
 	Version Version          // eSCL version, DefaultVersion, if not set
 	Scanner abstract.Scanner // Underlying abstract.Scanner
+	Hooks   ServerHooks      // eSCL server hooks
 
 	// The BasePath parameter is required so server knows how to
 	// interpret [url.URL.Path] of the incoming requests.
@@ -92,58 +94,59 @@ func (srv *AbstractServer) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	query := transport.NewServerQuery(srv.ctx, w, rq)
 	defer query.Finish()
 
+	// Call the OnHTTPRequest hook
+	if srv.options.Hooks.OnHTTPRequest != nil {
+		srv.options.Hooks.OnHTTPRequest(query)
+		if query.IsStatusSet() {
+			return
+		}
+	}
+
 	// Dispatch the request
 	if !strings.HasPrefix(query.RequestURL().Path, srv.options.BasePath) {
 		query.Reject(http.StatusNotFound, nil)
 		return
 	}
 
-	path, _ := missed.StringsCutPrefix(query.RequestURL().Path,
-		srv.options.BasePath)
+	path := query.RequestURL().Path
+	subpath, _ := missed.StringsCutPrefix(path, srv.options.BasePath)
+	method := query.RequestMethod()
 
-	// Handle {root}-relative requests
+	// Dispatch the request
 	var action func(*transport.ServerQuery)
 
-	srv.lock.Lock()
+	const NextDocument = "/NextDocument"
+	const ScanImageInfo = "/ScanImageInfo"
 
-	switch path {
-	case "ScannerCapabilities":
-		if query.RequestMethod() == "GET" {
-			action = srv.getScannerCapabilities
-		}
+	switch {
+	// Handle {root}-relative requests
+	case method == "GET" && subpath == "ScannerCapabilities":
+		action = srv.getScannerCapabilities
 
-	case "ScannerStatus":
-		if query.RequestMethod() == "GET" {
-			action = srv.getScannerStatus
-		}
+	case method == "GET" && subpath == "ScannerStatus":
+		action = srv.getScannerStatus
 
-	case "ScanJobs":
-		if query.RequestMethod() == "POST" {
-			action = srv.postScanJobs
-		}
-	}
+	case method == "POST" && subpath == "ScanJobs":
+		action = srv.postScanJobs
 
 	// Handle {JobUri}-relative requests
-	if action == nil && srv.document != nil {
-		joburi := srv.status.Jobs[0].JobURI
+	case method == "GET" && strings.HasSuffix(path, NextDocument):
+		joburi := path[:len(path)-len(NextDocument)]
+		action = func(*transport.ServerQuery) {
+			srv.getJobURINextDocument(query, joburi)
+		}
 
-		switch query.RequestMethod() {
-		case "GET":
-			switch query.RequestURL().Path {
-			case joburi + "/NextDocument":
-				action = srv.getJobURINextDocument
-			case joburi + "/ScanImageInfo":
-				action = srv.getJobURIScanImageInfo
-			}
+	case method == "GET" && strings.HasSuffix(path, ScanImageInfo):
+		joburi := path[:len(path)-len(ScanImageInfo)]
+		action = func(*transport.ServerQuery) {
+			srv.getJobURIScanImageInfo(query, joburi)
+		}
 
-		case "DELETE":
-			if query.RequestURL().Path == joburi {
-				action = srv.deleteJobURI
-			}
+	case method == "DELETE":
+		action = func(*transport.ServerQuery) {
+			srv.deleteJobURI(query, path)
 		}
 	}
-
-	srv.lock.Unlock()
 
 	if action != nil {
 		action(query)
@@ -154,18 +157,61 @@ func (srv *AbstractServer) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 
 // getScannerCapabilities handles GET /{root}/ScannerCapabilities request
 func (srv *AbstractServer) getScannerCapabilities(query *transport.ServerQuery) {
+	// Call OnScannerCapabilitiesRequest hook
+	if srv.options.Hooks.OnScannerCapabilitiesRequest != nil {
+		srv.options.Hooks.OnScannerCapabilitiesRequest(query)
+		if query.IsStatusSet() {
+			return
+		}
+	}
+
+	// Generate eSCL ScannerCapabilities
 	ver := srv.status.Version
-	xml := fromAbstractScannerCapabilities(ver, srv.caps).ToXML()
-	query.SendXML(http.StatusOK, NsMap, xml)
+	caps := fromAbstractScannerCapabilities(ver, srv.caps)
+
+	// Call OnScannerCapabilitiesResponse hook
+	if srv.options.Hooks.OnScannerCapabilitiesResponse != nil {
+		caps2 := srv.options.Hooks.OnScannerCapabilitiesResponse(
+			query, caps)
+		if query.IsStatusSet() {
+			return
+		}
+
+		if caps2 != nil {
+			caps = caps2
+		}
+	}
+
+	// Generate and send XML response
+	srv.sendXML(query, HookScannerCapabilities, caps)
 }
 
 // getScannerStatus handles GET /{root}/ScannerStatus request
 func (srv *AbstractServer) getScannerStatus(query *transport.ServerQuery) {
+	if srv.options.Hooks.OnScannerStatusRequest != nil {
+		srv.options.Hooks.OnScannerStatusRequest(query)
+		if query.IsStatusSet() {
+			return
+		}
+	}
+
 	srv.lock.Lock()
-	xml := srv.status.ToXML()
+	status := srv.status
 	srv.lock.Unlock()
 
-	query.SendXML(http.StatusOK, NsMap, xml)
+	if srv.options.Hooks.OnScannerStatusResponse != nil {
+		status2 := srv.options.Hooks.OnScannerStatusResponse(
+			query, &status)
+		if query.IsStatusSet() {
+			return
+		}
+
+		if status2 != nil {
+			status = *status2
+		}
+	}
+
+	srv.sendXML(query, HookScannerStatus, &status)
 }
 
 // postScanJobs handles POST /{root}/ScanJobs
@@ -180,11 +226,36 @@ func (srv *AbstractServer) postScanJobs(query *transport.ServerQuery) {
 		return
 	}
 
+	// Call OnXMLRequest hook
+	if srv.options.Hooks.OnXMLRequest != nil {
+		xml2 := srv.options.Hooks.OnXMLRequest(
+			query, HookScanJobs, xml)
+		if query.IsStatusSet() {
+			return
+		}
+
+		if !xml2.IsZero() {
+			xml = xml2
+		}
+	}
+
 	// Decode ScanSettings request
 	ss, err := DecodeScanSettings(xml)
 	if err != nil {
 		query.Reject(http.StatusBadRequest, err)
 		return
+	}
+
+	// Call OnScanJobsRequest hook
+	if srv.options.Hooks.OnScanJobsRequest != nil {
+		ss2 := srv.options.Hooks.OnScanJobsRequest(query, ss)
+		if query.IsStatusSet() {
+			return
+		}
+
+		if ss2 != nil {
+			ss = ss2
+		}
 	}
 
 	// Check if previous request already in progress
@@ -226,39 +297,123 @@ func (srv *AbstractServer) postScanJobs(query *transport.ServerQuery) {
 		JobState: JobProcessing,
 	}
 
+	srv.joburi = joburi
 	srv.status.PushJobInfo(info, AbstractServerHistorySize)
+
+	// Call OnScanJobsResponse hook
+	if srv.options.Hooks.OnScanJobsResponse != nil {
+		joburi2 := srv.options.Hooks.OnScanJobsResponse(query, ss, info)
+		if query.IsStatusSet() {
+			return
+		}
+
+		if joburi2 != "" {
+			joburi = joburi2
+		}
+	}
 
 	// Complete the request
 	query.Created(joburi)
 }
 
 // getJobURINextDocument handles GET /{JobUri}/NextDocument
-func (srv *AbstractServer) getJobURINextDocument(query *transport.ServerQuery) {
+func (srv *AbstractServer) getJobURINextDocument(
+	query *transport.ServerQuery, joburi string) {
+
+	// Call OnNextDocumentRequest hook
+	if srv.options.Hooks.OnNextDocumentRequest != nil {
+		joburi2 := srv.options.Hooks.OnNextDocumentRequest(
+			query, joburi)
+		if query.IsStatusSet() {
+			return
+		}
+
+		if joburi2 != "" {
+			joburi = joburi2
+		}
+	}
+
+	// Fetch the next document file
 	srv.lock.Lock()
-	file, err := srv.document.Next()
+
+	var file abstract.DocumentFile
+	var err error
+	var info JobInfo
+
+	if srv.document != nil && srv.joburi == joburi {
+		file, err = srv.document.Next()
+		info = srv.status.Jobs[0]
+	}
+
 	srv.lock.Unlock()
 
+	// Handle possible error conditions
 	switch {
+	case err == nil && file == nil:
+		query.Reject(http.StatusNotFound, nil)
+		return
+
 	case err == io.EOF:
 		srv.finish(JobCompleted, JobCompletedSuccessfully)
 		query.Reject(http.StatusNotFound, nil)
+		return
 
 	case err != nil:
 		srv.finish(JobCanceled, AbortedBySystem)
 		query.Reject(http.StatusServiceUnavailable, err)
-
-	default:
-		query.SendData(http.StatusOK, file.Format(), file)
+		return
 	}
+
+	// Call OnNextDocumentResponse hook
+	if srv.options.Hooks.OnNextDocumentResponse != nil {
+		file2 := srv.options.Hooks.OnNextDocumentResponse(
+			query, info, file)
+		if query.IsStatusSet() {
+			return
+		}
+
+		if file2 != nil {
+			file = file2
+		}
+	}
+
+	// Send the response
+	query.SendData(http.StatusOK, file.Format(), file)
 }
 
 // getJobURIScanImageInfo handles GET /{JobUri}/ScanImageInfo
-func (srv *AbstractServer) getJobURIScanImageInfo(query *transport.ServerQuery) {
+func (srv *AbstractServer) getJobURIScanImageInfo(
+	query *transport.ServerQuery, joburi string) {
 	query.Reject(http.StatusNotImplemented, nil)
 }
 
 // deleteJobURI handles DELETE /{JobUri}
-func (srv *AbstractServer) deleteJobURI(query *transport.ServerQuery) {
+func (srv *AbstractServer) deleteJobURI(
+	query *transport.ServerQuery, joburi string) {
+
+	// Call OnDeleteRequest hook
+	if srv.options.Hooks.OnDeleteRequest != nil {
+		joburi2 := srv.options.Hooks.OnDeleteRequest(query, joburi)
+		if query.IsStatusSet() {
+			return
+		}
+
+		if joburi2 != "" {
+			joburi = joburi2
+		}
+	}
+
+	// Check the joburi
+	srv.lock.Lock()
+	jobOK := srv.document != nil && srv.joburi == joburi
+	srv.lock.Unlock()
+
+	if !jobOK {
+		query.Reject(http.StatusNotFound, nil)
+		return
+	}
+
+	// Finish the job
 	srv.finish(JobCanceled, JobCanceledByUser)
 	query.WriteHeader(http.StatusOK)
 }
@@ -270,9 +425,30 @@ func (srv *AbstractServer) finish(state JobState, reason JobStateReason) {
 
 	srv.document.Close()
 	srv.document = nil
+	srv.joburi = ""
 	srv.status.State = ScannerIdle
 	srv.status.Jobs[0].JobState = state
 	if reason != UnknownJobStateReason {
 		srv.status.Jobs[0].JobStateReasons = []JobStateReason{reason}
 	}
+}
+
+// sendXML generates and sends the XML response to the query.
+func (srv *AbstractServer) sendXML(query *transport.ServerQuery,
+	action HookAction, rsp interface{ ToXML() xmldoc.Element }) {
+
+	xml := rsp.ToXML()
+	if srv.options.Hooks.OnXMLResponse != nil {
+		xml2 := srv.options.Hooks.OnXMLResponse(query, action, xml)
+
+		if query.IsStatusSet() {
+			return
+		}
+
+		if !xml2.IsZero() {
+			xml = xml2
+		}
+	}
+
+	query.SendXML(http.StatusOK, NsMap, xml)
 }
