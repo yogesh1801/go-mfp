@@ -154,13 +154,13 @@ func (query *ServerQuery) Reject(status int, err error) {
 
 // Created completes request with the http.StatusCreated
 // status and Location: URL
-func (query *ServerQuery) Created(joburi string) {
+func (query *ServerQuery) Created(location string) {
 	scheme := "http"
 	if query.rq.TLS != nil {
 		scheme = "https"
 	}
 
-	location := scheme + "://" + query.rq.Host + joburi
+	location = scheme + "://" + query.rq.Host + location
 
 	query.ResponseHeader().Set("Location", location)
 	query.WriteHeader(http.StatusCreated)
