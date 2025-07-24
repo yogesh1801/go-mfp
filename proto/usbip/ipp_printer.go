@@ -469,8 +469,8 @@ func main() {
 
 	defer ippDevice.disconnectFromServer()
 
-	container := &USBContainer{}
-	container.AddUSBDevice(ippDevice)
+	srv := &Server{}
+	srv.AddUSBDevice(ippDevice)
 
 	// Get listen settings from config
 	listenIP := ippDevice.config.ListenIP
@@ -486,5 +486,5 @@ func main() {
 	fmt.Printf("Listening on %s:%d\n", listenIP, listenPort)
 	fmt.Println("Press Ctrl+C to stop")
 
-	container.Run(listenIP, listenPort)
+	srv.Run(listenIP, listenPort)
 }
