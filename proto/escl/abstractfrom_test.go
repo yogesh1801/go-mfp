@@ -853,7 +853,7 @@ func TestFromAbstractScannerCapabilities(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		out := fromAbstractScannerCapabilities(
+		out := FromAbstractScannerCapabilities(
 			DefaultVersion, test.in)
 
 		testutils.CheckConvertionTest(t,

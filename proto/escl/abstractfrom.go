@@ -354,11 +354,11 @@ func fromAbstractInputSourceCaps(
 	return caps
 }
 
-// fromAbstractScannerCapabilities translates [abstract.ScannerCapabilities]
+// FromAbstractScannerCapabilities translates [abstract.ScannerCapabilities]
 // into the *[ScannerCapabilities].
 //
 // The version parameters affects how some fields are converted.
-func fromAbstractScannerCapabilities(
+func FromAbstractScannerCapabilities(
 	version Version,
 	abscaps *abstract.ScannerCapabilities) *ScannerCapabilities {
 

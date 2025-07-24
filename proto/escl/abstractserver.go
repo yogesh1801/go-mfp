@@ -167,7 +167,7 @@ func (srv *AbstractServer) getScannerCapabilities(query *transport.ServerQuery) 
 
 	// Generate eSCL ScannerCapabilities
 	ver := srv.status.Version
-	caps := fromAbstractScannerCapabilities(ver, srv.caps)
+	caps := FromAbstractScannerCapabilities(ver, srv.caps)
 
 	// Call OnScannerCapabilitiesResponse hook
 	if srv.options.Hooks.OnScannerCapabilitiesResponse != nil {

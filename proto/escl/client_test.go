@@ -75,7 +75,7 @@ func TestClient(t *testing.T) {
 		return
 	}
 
-	capsExpected := fromAbstractScannerCapabilities(caps.Version, s.ScanCaps)
+	capsExpected := FromAbstractScannerCapabilities(caps.Version, s.ScanCaps)
 	diff := testutils.Diff(caps2, capsExpected)
 	if diff != "" {
 		t.Errorf("Client.GetScannerCapabilities:\n%s", diff)
