@@ -16,8 +16,8 @@ import (
 	"strings"
 )
 
-// Version is the protocol version
-const Version = 0x0111
+// ProtocolVersion is the protocol version
+const ProtocolVersion = 0x0111
 
 // OpCode represents the operation code
 type OpCode uint16

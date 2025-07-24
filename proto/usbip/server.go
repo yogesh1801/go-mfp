@@ -36,7 +36,7 @@ func (srv *Server) HandleAttach() *OPREPImport {
 	copy(busID[:], "1-1")
 
 	return &OPREPImport{
-		Base:                USBIPHeader{Version: Version, Command: OpRepImport, Status: 0},
+		Base:                USBIPHeader{Version: ProtocolVersion, Command: OpRepImport, Status: 0},
 		UsbPath:             usbPath,
 		BusID:               busID,
 		Busnum:              1,
@@ -67,7 +67,7 @@ func (srv *Server) HandleDeviceList() *OPREPDevList {
 	copy(busID[:], "1-1")
 
 	list := &OPREPDevList{
-		Base:                USBIPHeader{Version: Version, Command: OpRepDevlist, Status: 0},
+		Base:                USBIPHeader{Version: ProtocolVersion, Command: OpRepDevlist, Status: 0},
 		NExportedDevice:     1,
 		UsbPath:             usbPath,
 		BusID:               busID,
