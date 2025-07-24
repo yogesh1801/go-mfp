@@ -16,6 +16,7 @@ import (
 	"github.com/OpenPrinting/go-mfp/argv"
 	"github.com/OpenPrinting/go-mfp/log"
 	"github.com/OpenPrinting/go-mfp/modeling"
+	"github.com/OpenPrinting/go-mfp/proto/escl"
 )
 
 // DefaultTCPPort is the default TCP port for the MFP simulator
@@ -101,21 +102,28 @@ func cmdVirtualHandler(ctx context.Context, inv *argv.Invocation) error {
 
 	var err error
 
-	var model *modeling.Model
+	// Create MFP model
+	model, err := modeling.NewModel()
+	if err != nil {
+		return err
+	}
+
+	defer model.Close()
+
+	// Load model file, or use defaults
 	if modelfile, ok := inv.Get("-m"); ok {
-		model, err = modeling.NewModel()
-		if err != nil {
-			return err
-		}
-
-		defer model.Close()
-
 		err = model.Load(modelfile)
 		if err != nil {
 			return err
 		}
+	} else {
+		caps := defaultsScannerCapabilities()
+		esclcaps := escl.FromAbstractScannerCapabilities(
+			escl.DefaultVersion, caps)
+		model.SetESCLScanCaps(esclcaps)
 	}
 
+	// Obtain remaining parameters
 	port := DefaultTCPPort
 	if portname, ok := inv.Get("-p"); ok {
 		port, err = strconv.Atoi(portname)
@@ -130,5 +138,6 @@ func cmdVirtualHandler(ctx context.Context, inv *argv.Invocation) error {
 		argv = append(argv, inv.Values("args")...)
 	}
 
+	// Run the simulator
 	return simulate(ctx, model, port, argv)
 }

@@ -19,77 +19,8 @@ import (
 	"github.com/OpenPrinting/go-mfp/internal/testutils"
 	"github.com/OpenPrinting/go-mfp/log"
 	"github.com/OpenPrinting/go-mfp/modeling"
-	"github.com/OpenPrinting/go-mfp/proto/escl"
 	"github.com/OpenPrinting/go-mfp/transport"
-	"github.com/OpenPrinting/go-mfp/util/generic"
-	"github.com/OpenPrinting/go-mfp/util/uuid"
 )
-
-func scannerCapabilities() *abstract.ScannerCapabilities {
-	colorModes := generic.MakeBitset(
-		abstract.ColorModeBinary,
-		abstract.ColorModeMono,
-		abstract.ColorModeColor,
-	)
-
-	depths := generic.MakeBitset(
-		abstract.ColorDepth8,
-	)
-
-	renderings := generic.MakeBitset(
-		abstract.BinaryRenderingHalftone,
-		abstract.BinaryRenderingThreshold,
-	)
-
-	intents := generic.MakeBitset(
-		abstract.IntentDocument,
-		abstract.IntentTextAndGraphic,
-		abstract.IntentPhoto,
-		abstract.IntentPreview,
-	)
-
-	resolutions := []abstract.Resolution{
-		{XResolution: 75, YResolution: 75},
-		{XResolution: 150, YResolution: 150},
-		{XResolution: 300, YResolution: 300},
-		{XResolution: 600, YResolution: 600},
-	}
-
-	profile := abstract.SettingsProfile{
-		ColorModes:       colorModes,
-		Depths:           depths,
-		BinaryRenderings: renderings,
-		Resolutions:      resolutions,
-	}
-
-	inputcaps := &abstract.InputCapabilities{
-		MinWidth:   0,
-		MaxWidth:   abstract.A4Width,
-		MinHeight:  0,
-		MaxHeight:  abstract.A4Height,
-		MaxXOffset: abstract.A4Width / 2,
-		MaxYOffset: abstract.A4Height / 2,
-		Intents:    intents,
-		Profiles:   []abstract.SettingsProfile{profile},
-	}
-
-	caps := &abstract.ScannerCapabilities{
-		UUID: uuid.Must(uuid.Parse(
-			"169e8d94-9a17-4f14-ae81-52b9176ee9be")),
-		MakeAndModel:     "OpenPrinting eSCL scanner",
-		SerialNumber:     "OP-0000223321",
-		Manufacturer:     "OpenPrinting",
-		DocumentFormats:  []string{"image/jpeg", "application/pdf"},
-		ADFCapacity:      50,
-		CompressionRange: abstract.Range{Min: 2, Normal: 5, Max: 10},
-		BrightnessRange:  abstract.Range{Min: -100, Normal: 0, Max: 100},
-		ContrastRange:    abstract.Range{Min: -100, Normal: 0, Max: 100},
-		Platen:           inputcaps,
-		ADFSimplex:       inputcaps,
-		ADFDuplex:        inputcaps,
-	}
-	return caps
-}
 
 // simulate runs scanner simulator.
 //
@@ -98,8 +29,14 @@ func scannerCapabilities() *abstract.ScannerCapabilities {
 func simulate(ctx context.Context, model *modeling.Model,
 	port int, argv []string) error {
 
+	esclcaps := model.GetESCLScanCaps()
+	if esclcaps == nil {
+		err := errors.New("Model doesn't define eSCL scanner capabilities")
+		return err
+	}
+
 	s := &abstract.VirtualScanner{
-		ScanCaps: scannerCapabilities(),
+		ScanCaps: esclcaps.ToAbstract(),
 		Resolution: abstract.Resolution{
 			XResolution: 600,
 			YResolution: 600,
@@ -112,23 +49,8 @@ func simulate(ctx context.Context, model *modeling.Model,
 		},
 	}
 
-	if model != nil {
-		esclcaps := model.GetESCLScanCaps()
-		if s.ScanCaps == nil {
-			err := errors.New("Model doesn't define eSCL scanner capabilities")
-			return err
-		}
-
-		s.ScanCaps = esclcaps.ToAbstract()
-	}
-
 	// Create a virtual server
-	options := escl.AbstractServerOptions{
-		Scanner:  s,
-		BasePath: "/eSCL",
-	}
-
-	handler := escl.NewAbstractServer(ctx, options)
+	handler := model.NewESCLServer(ctx, s)
 	server := transport.NewServer(nil, handler)
 
 	addr := fmt.Sprintf("localhost:%d", port)
