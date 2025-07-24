@@ -266,7 +266,6 @@ func (d *IPPOverUSBDevice) GetDeviceDescriptor() DeviceDescriptor {
 
 // GetConfigurations returns all USB configurations supported by the device.
 func (d *IPPOverUSBDevice) GetConfigurations() []DeviceConfiguration {
-
 	return d.configurations
 }
 

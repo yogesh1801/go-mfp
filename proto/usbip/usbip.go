@@ -16,17 +16,32 @@ import (
 	"strings"
 )
 
+// Version is the protocol version
+const Version = 0x0111
+
+// OpCode represents the operation code
+type OpCode uint16
+
 const (
-	// USBIPDirOut indicates OUT direction in USB/IP
-	USBIPDirOut = 0
-	// USBIPDirIn indicates IN direction in USB/IP
-	USBIPDirIn = 1
+	OpReqDevlist OpCode = 0x8005 // OP_REQ_DEVLIST request
+	OpRepDevlist OpCode = 0x0005 // OP_REP_DEVLIST reply
+	OpReqImport  OpCode = 0x8003 // OP_REQ_IMPORT request
+	OpRepImport  OpCode = 0x0003 // OP_REP_IMPORT reply
+)
+
+// Direction indicates the transfer direction
+type Direction uint32
+
+// Direction values
+const (
+	DirectionOut Direction = 0 // Client->device
+	DirectionIn  Direction = 1 // Device->client
 )
 
 // USBIPHeader represents the common USB/IP protocol header used in communication.
 type USBIPHeader struct {
-	Version uint16
-	Command uint16
+	Version uint16 // The protocol version
+	Command OpCode // Operation code
 	Status  uint32
 }
 
@@ -87,8 +102,7 @@ type OPREPDevList struct {
 	BDeviceProtocol     uint8
 	BConfigurationValue uint8
 	BNumConfigurations  uint8
-	BNumInterfaces      uint8
-	Interfaces          USBInterface
+	Interfaces          []USBInterface
 }
 
 // Pack serializes the OPREPDevList into a byte slice using big-endian encoding.
@@ -109,8 +123,11 @@ func (o *OPREPDevList) Pack() []byte {
 	binary.Write(buf, binary.BigEndian, o.BDeviceProtocol)
 	binary.Write(buf, binary.BigEndian, o.BConfigurationValue)
 	binary.Write(buf, binary.BigEndian, o.BNumConfigurations)
-	binary.Write(buf, binary.BigEndian, o.BNumInterfaces)
-	buf.Write(o.Interfaces.Pack())
+	binary.Write(buf, binary.BigEndian, uint8(len(o.Interfaces)))
+	for _, iff := range o.Interfaces {
+		buf.Write(iff.Pack())
+	}
+
 	return buf.Bytes()
 }
 
@@ -200,7 +217,7 @@ type USBIPCMDSubmit struct {
 	Command              uint32
 	Seqnum               uint32
 	Devid                uint32
-	Direction            uint32
+	Direction            Direction
 	Ep                   uint32
 	TransferFlags        uint32
 	TransferBufferLength uint32
@@ -229,7 +246,6 @@ func (u *USBIPCMDSubmit) Unpack(data []byte) {
 
 // Size returns the fixed size (in bytes) of a USBIPCMDSubmit structure.
 func (u *USBIPCMDSubmit) Size() int {
-
 	return 48
 }
 
@@ -420,7 +436,7 @@ func (e *EndpointDescriptor) Pack() []byte {
 type USBRequest struct {
 	Seqnum               uint32
 	Devid                uint32
-	Direction            uint32
+	Direction            Direction
 	Ep                   uint32
 	Flags                uint32
 	TransferBufferLength uint32
@@ -607,7 +623,7 @@ func (c *USBContainer) HandleAttach() *OPREPImport {
 	copy(busID[:], "1-1")
 
 	return &OPREPImport{
-		Base:                USBIPHeader{Version: 0x0111, Command: 3, Status: 0},
+		Base:                USBIPHeader{Version: Version, Command: OpRepImport, Status: 0},
 		UsbPath:             usbPath,
 		BusID:               busID,
 		Busnum:              1,
@@ -637,8 +653,8 @@ func (c *USBContainer) HandleDeviceList() *OPREPDevList {
 	var busID [32]byte
 	copy(busID[:], "1-1")
 
-	return &OPREPDevList{
-		Base:                USBIPHeader{Version: 0x0111, Command: 5, Status: 0},
+	list := &OPREPDevList{
+		Base:                USBIPHeader{Version: Version, Command: OpRepDevlist, Status: 0},
 		NExportedDevice:     1,
 		UsbPath:             usbPath,
 		BusID:               busID,
@@ -653,14 +669,17 @@ func (c *USBContainer) HandleDeviceList() *OPREPDevList {
 		BDeviceProtocol:     deviceDescriptor.BDeviceProtocol,
 		BConfigurationValue: configurations[0].BConfigurationValue,
 		BNumConfigurations:  deviceDescriptor.BNumConfigurations,
-		BNumInterfaces:      configurations[0].BNumInterfaces,
-		Interfaces: USBInterface{
-			BInterfaceClass:    configurations[0].Interfaces[0][0].BInterfaceClass,
-			BInterfaceSubClass: configurations[0].Interfaces[0][0].BInterfaceSubClass,
-			BInterfaceProtocol: configurations[0].Interfaces[0][0].BInterfaceProtocol,
-			Align:              0,
+		Interfaces: []USBInterface{
+			{
+				BInterfaceClass:    configurations[0].Interfaces[0][0].BInterfaceClass,
+				BInterfaceSubClass: configurations[0].Interfaces[0][0].BInterfaceSubClass,
+				BInterfaceProtocol: configurations[0].Interfaces[0][0].BInterfaceProtocol,
+				Align:              0,
+			},
 		},
 	}
+
+	return list
 }
 
 // Run starts the USB/IP server and handles incoming connections.
@@ -678,87 +697,106 @@ func (c *USBContainer) Run(ip string, port int) {
 	}
 	defer listener.Close()
 
-	attached := false
-	req := USBIPHeader{}
-
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
 			continue
 		}
 		fmt.Printf("Connection address: %s\n", conn.RemoteAddr().String())
+		go c.serve(conn)
+	}
+}
 
-		for {
-			if !attached {
-				data := make([]byte, 8)
-				n, err := conn.Read(data)
-				if err != nil || n == 0 {
-					break
-				}
-				req.Unpack(data)
-				fmt.Println("Header Packet")
-				fmt.Printf("command: %x\n", req.Command)
+// serve manages a client connection.
+func (c *USBContainer) serve(conn net.Conn) {
+	req := USBIPHeader{}
 
-				if req.Command == 0x8005 { // OP_REQ_DEVLIST
-					fmt.Println("list of devices")
-					conn.Write(c.HandleDeviceList().Pack())
-				} else if req.Command == 0x8003 { // OP_REQ_IMPORT
-					fmt.Println("attach device")
-					busIDData := make([]byte, 32)
-					conn.Read(busIDData) // receive bus id
-					conn.Write(c.HandleAttach().Pack())
-					attached = true
-				}
-			} else {
-				fmt.Println("----------------")
-				fmt.Println("handles requests")
-				cmd := USBIPCMDSubmit{}
-				cmdHeaderData := make([]byte, cmd.Size())
-				n, err := conn.Read(cmdHeaderData)
-				if err != nil || n == 0 {
-					break
-				}
-				cmd.Unpack(cmdHeaderData)
-
-				var transferBuffer []byte
-				if cmd.Direction == USBIPDirOut && cmd.TransferBufferLength > 0 {
-					transferBuffer = make([]byte, cmd.TransferBufferLength)
-					conn.Read(transferBuffer)
-				}
-
-				fmt.Printf("usbip cmd %x\n", cmd.Command)
-				fmt.Printf("usbip seqnum %x\n", cmd.Seqnum)
-				fmt.Printf("usbip devid %x\n", cmd.Devid)
-				fmt.Printf("usbip direction %x\n", cmd.Direction)
-				fmt.Printf("usbip ep %x\n", cmd.Ep)
-				fmt.Printf("usbip flags %x\n", cmd.TransferFlags)
-				fmt.Printf("usbip transfer buffer length %x\n", cmd.TransferBufferLength)
-				fmt.Printf("usbip start %x\n", cmd.StartFrame)
-				fmt.Printf("usbip number of packets %x\n", cmd.NumberOfPackets)
-				fmt.Printf("usbip interval %x\n", cmd.Interval)
-				fmt.Printf("usbip setup %s\n", BytesToString(cmd.Setup[:]))
-				fmt.Printf("usbip transfer buffer %s\n", BytesToString(transferBuffer))
-
-				usbReq := USBRequest{
-					Seqnum:               cmd.Seqnum,
-					Devid:                cmd.Devid,
-					Direction:            cmd.Direction,
-					Ep:                   cmd.Ep,
-					Flags:                cmd.TransferFlags,
-					TransferBufferLength: cmd.TransferBufferLength,
-					NumberOfPackets:      cmd.NumberOfPackets,
-					Interval:             cmd.Interval,
-					Setup:                cmd.Setup,
-					TransferBuffer:       transferBuffer,
-				}
-
-				c.USBDevices[0].SetConnection(conn)
-				if baseDevice, ok := c.USBDevices[0].(interface{ HandleUSBRequest(USBDevice, USBRequest) }); ok {
-					baseDevice.HandleUSBRequest(c.USBDevices[0], usbReq)
-				}
-			}
-		}
+	defer func() {
 		fmt.Println("Close connection")
 		conn.Close()
+	}()
+
+	var buf [64]byte // Enough for both USBIPHeader and USBIPCMDSubmit
+	var busid [32]byte
+
+	// Handle OpReqDevlist or OpReqImport commands
+	err := connReadAll(conn, buf[:8])
+	if err != nil {
+		return
+	}
+	req.Unpack(buf[:8])
+	fmt.Println("Header Packet")
+	fmt.Printf("command: %x\n", req.Command)
+
+	switch req.Command {
+	case OpReqDevlist:
+		fmt.Println("list of devices")
+		connWriteAll(conn, c.HandleDeviceList().Pack())
+		return
+
+	case OpReqImport:
+		fmt.Println("attach device")
+		err = connReadAll(conn, busid[:])
+		if err != nil {
+			return
+		}
+
+		err = connWriteAll(conn, c.HandleAttach().Pack())
+		if err != nil {
+			return
+		}
+	}
+
+	// Now handle USB I/O requests
+	for {
+		fmt.Println("----------------")
+		fmt.Println("handles requests")
+		cmd := USBIPCMDSubmit{}
+		cmdHeaderData := buf[:cmd.Size()]
+		err := connReadAll(conn, cmdHeaderData)
+		if err != nil {
+			break
+		}
+		cmd.Unpack(cmdHeaderData)
+
+		var transferBuffer []byte
+		if cmd.Direction == DirectionOut && cmd.TransferBufferLength > 0 {
+			transferBuffer = make([]byte, cmd.TransferBufferLength)
+			err = connReadAll(conn, transferBuffer)
+			if err != nil {
+				return
+			}
+		}
+
+		fmt.Printf("usbip cmd %x\n", cmd.Command)
+		fmt.Printf("usbip seqnum %x\n", cmd.Seqnum)
+		fmt.Printf("usbip devid %x\n", cmd.Devid)
+		fmt.Printf("usbip direction %x\n", cmd.Direction)
+		fmt.Printf("usbip ep %x\n", cmd.Ep)
+		fmt.Printf("usbip flags %x\n", cmd.TransferFlags)
+		fmt.Printf("usbip transfer buffer length %x\n", cmd.TransferBufferLength)
+		fmt.Printf("usbip start %x\n", cmd.StartFrame)
+		fmt.Printf("usbip number of packets %x\n", cmd.NumberOfPackets)
+		fmt.Printf("usbip interval %x\n", cmd.Interval)
+		fmt.Printf("usbip setup %s\n", BytesToString(cmd.Setup[:]))
+		fmt.Printf("usbip transfer buffer %s\n", BytesToString(transferBuffer))
+
+		usbReq := USBRequest{
+			Seqnum:               cmd.Seqnum,
+			Devid:                cmd.Devid,
+			Direction:            cmd.Direction,
+			Ep:                   cmd.Ep,
+			Flags:                cmd.TransferFlags,
+			TransferBufferLength: cmd.TransferBufferLength,
+			NumberOfPackets:      cmd.NumberOfPackets,
+			Interval:             cmd.Interval,
+			Setup:                cmd.Setup,
+			TransferBuffer:       transferBuffer,
+		}
+
+		c.USBDevices[0].SetConnection(conn)
+		if baseDevice, ok := c.USBDevices[0].(interface{ HandleUSBRequest(USBDevice, USBRequest) }); ok {
+			baseDevice.HandleUSBRequest(c.USBDevices[0], usbReq)
+		}
 	}
 }
