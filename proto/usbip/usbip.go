@@ -446,8 +446,8 @@ type USBRequest struct {
 	TransferBuffer       []byte
 }
 
-// Device defines an interface for emulated USB devices.
-type Device interface {
+// USBDevice defines an interface for emulated USB devices.
+type USBDevice interface {
 	GetConfigurations() []DeviceConfiguration
 	GetDeviceDescriptor() DeviceDescriptor
 	HandleData(usbReq USBRequest)
@@ -467,7 +467,7 @@ func (b *BaseUSBDevice) SetConnection(conn net.Conn) {
 }
 
 // GenerateRawConfiguration flattens and serializes the configuration descriptors.
-func (b *BaseUSBDevice) GenerateRawConfiguration(device Device) {
+func (b *BaseUSBDevice) GenerateRawConfiguration(device USBDevice) {
 	var allConfigurations []byte
 	for _, configuration := range device.GetConfigurations() {
 		allConfigurations = append(allConfigurations, configuration.Pack()...)
@@ -510,7 +510,7 @@ func (b *BaseUSBDevice) SendUSBRet(usbReq USBRequest, usbRes []byte, usbLen int,
 }
 
 // HandleGetDescriptor processes a GET_DESCRIPTOR request from the host.
-func (b *BaseUSBDevice) HandleGetDescriptor(device Device, controlReq StandardDeviceRequest, usbReq USBRequest) bool {
+func (b *BaseUSBDevice) HandleGetDescriptor(device USBDevice, controlReq StandardDeviceRequest, usbReq USBRequest) bool {
 	descriptorType := uint8(controlReq.WValue >> 8)
 	descriptorIndex := uint8(controlReq.WValue & 0xff)
 	fmt.Printf("handle_get_descriptor %d %d\n", descriptorType, descriptorIndex)
@@ -531,14 +531,14 @@ func (b *BaseUSBDevice) HandleGetDescriptor(device Device, controlReq StandardDe
 }
 
 // HandleSetConfiguration processes a SET_CONFIGURATION request from the host.
-func (b *BaseUSBDevice) HandleSetConfiguration(device Device, controlReq StandardDeviceRequest, usbReq USBRequest) bool {
+func (b *BaseUSBDevice) HandleSetConfiguration(device USBDevice, controlReq StandardDeviceRequest, usbReq USBRequest) bool {
 	fmt.Printf("handle_set_configuration %d\n", controlReq.WValue)
 	b.SendUSBRet(usbReq, []byte{}, 0, 0)
 	return true
 }
 
 // HandleUSBControl handles a standard USB control transfer on endpoint 0.
-func (b *BaseUSBDevice) HandleUSBControl(device Device, usbReq USBRequest) {
+func (b *BaseUSBDevice) HandleUSBControl(device USBDevice, usbReq USBRequest) {
 	controlReq := StandardDeviceRequest{}
 	controlReq.Unpack(usbReq.Setup[:])
 	handled := false
@@ -580,7 +580,7 @@ func (b *BaseUSBDevice) HandleUSBControl(device Device, usbReq USBRequest) {
 }
 
 // HandleUSBRequest routes a USB request to the appropriate handler.
-func (b *BaseUSBDevice) HandleUSBRequest(device Device, usbReq USBRequest) {
+func (b *BaseUSBDevice) HandleUSBRequest(device USBDevice, usbReq USBRequest) {
 	if usbReq.Ep == 0 { // Endpoint 0 is always the control endpoint
 		b.HandleUSBControl(device, usbReq)
 	} else {

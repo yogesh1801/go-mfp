@@ -15,11 +15,11 @@ import (
 
 // Server implements the USBIP server.
 type Server struct {
-	USBDevices []Device
+	USBDevices []USBDevice
 }
 
-// AddUSBDevice adds a Device to the container.
-func (srv *Server) AddUSBDevice(device Device) {
+// AddUSBDevice adds a USBDevice to the container.
+func (srv *Server) AddUSBDevice(device USBDevice) {
 	srv.USBDevices = append(srv.USBDevices, device)
 }
 
@@ -208,7 +208,7 @@ func (srv *Server) serve(conn net.Conn) {
 		}
 
 		srv.USBDevices[0].SetConnection(conn)
-		if baseDevice, ok := srv.USBDevices[0].(interface{ HandleUSBRequest(Device, USBRequest) }); ok {
+		if baseDevice, ok := srv.USBDevices[0].(interface{ HandleUSBRequest(USBDevice, USBRequest) }); ok {
 			baseDevice.HandleUSBRequest(srv.USBDevices[0], usbReq)
 		}
 	}
