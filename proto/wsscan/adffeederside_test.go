@@ -15,24 +15,24 @@ import (
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
-func TestADFFeederSideElement_RoundTrip(t *testing.T) {
-	orig := ADFFeederSideElement{
+func TestADFFeederSide_RoundTrip(t *testing.T) {
+	orig := ADFFeederSide{
 		ADFColor: []ColorEntry{BlackAndWhite1, RGB24},
-		ADFMaximumSize: HeightAndWidthElement{
-			Heights: []TextWithOverrideAndDefault{{Text: "297"}},
-			Widths:  []TextWithOverrideAndDefault{{Text: "210"}},
+		ADFMaximumSize: Dimension{
+			Width:  210,
+			Height: 297,
 		},
-		ADFMinimumSize: HeightAndWidthElement{
-			Heights: []TextWithOverrideAndDefault{{Text: "100"}},
-			Widths:  []TextWithOverrideAndDefault{{Text: "50"}},
+		ADFMinimumSize: Dimension{
+			Width:  50,
+			Height: 100,
 		},
-		ADFOpticalResolution: HeightAndWidthElement{
-			Heights: []TextWithOverrideAndDefault{{Text: "600"}},
-			Widths:  []TextWithOverrideAndDefault{{Text: "600"}},
+		ADFOpticalResolution: Dimension{
+			Width:  600,
+			Height: 600,
 		},
-		ADFResolutions: HeightAndWidthElement{
-			Heights: []TextWithOverrideAndDefault{{Text: "300"}, {Text: "600"}},
-			Widths:  []TextWithOverrideAndDefault{{Text: "300"}, {Text: "600"}},
+		ADFResolutions: Dimension{
+			Width:  300,
+			Height: 300,
 		},
 	}
 	elm := orig.toXML("wscn:ADFBack")
@@ -40,16 +40,16 @@ func TestADFFeederSideElement_RoundTrip(t *testing.T) {
 		t.Errorf("expected element name 'wscn:ADFBack', got '%s'", elm.Name)
 	}
 
-	parsed, err := decodeADFFeederSideElement(elm)
+	parsed, err := decodeADFFeederSide(elm)
 	if err != nil {
-		t.Fatalf("decodeADFFeederSideElement returned error: %v", err)
+		t.Fatalf("decodeADFFeederSide returned error: %v", err)
 	}
 	if !reflect.DeepEqual(orig, parsed) {
 		t.Errorf("expected %+v, got %+v", orig, parsed)
 	}
 }
 
-func TestADFFeederSideElement_MissingRequired(t *testing.T) {
+func TestADFFeederSide_MissingRequired(t *testing.T) {
 	elm := xmldoc.Element{
 		Name: "wscn:ADFBack",
 		Children: []xmldoc.Element{
@@ -62,13 +62,13 @@ func TestADFFeederSideElement_MissingRequired(t *testing.T) {
 			},
 		},
 	}
-	_, err := decodeADFFeederSideElement(elm)
+	_, err := decodeADFFeederSide(elm)
 	if err == nil {
 		t.Errorf("expected error for missing required elements, got nil")
 	}
 }
 
-func TestADFFeederSideElement_InvalidColorEntry(t *testing.T) {
+func TestADFFeederSide_InvalidColorEntry(t *testing.T) {
 	elm := xmldoc.Element{
 		Name: "wscn:ADFBack",
 		Children: []xmldoc.Element{
@@ -108,7 +108,7 @@ func TestADFFeederSideElement_InvalidColorEntry(t *testing.T) {
 			},
 		},
 	}
-	_, err := decodeADFFeederSideElement(elm)
+	_, err := decodeADFFeederSide(elm)
 	if err == nil {
 		t.Errorf("expected error for invalid color entry, got nil")
 	}
