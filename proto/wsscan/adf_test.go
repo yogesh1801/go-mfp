@@ -17,42 +17,42 @@ import (
 )
 
 func TestADF_RoundTrip(t *testing.T) {
-	adfBack := ADFFeederSideElement{
+	adfBack := ADFFeederSide{
 		ADFColor: []ColorEntry{BlackAndWhite1},
-		ADFMaximumSize: HeightAndWidthElement{
-			Heights: []TextWithOverrideAndDefault{{Text: "297"}},
-			Widths:  []TextWithOverrideAndDefault{{Text: "210"}},
+		ADFMaximumSize: Dimension{
+			Width:  210,
+			Height: 297,
 		},
-		ADFMinimumSize: HeightAndWidthElement{
-			Heights: []TextWithOverrideAndDefault{{Text: "100"}},
-			Widths:  []TextWithOverrideAndDefault{{Text: "50"}},
+		ADFMinimumSize: Dimension{
+			Width:  50,
+			Height: 100,
 		},
-		ADFOpticalResolution: HeightAndWidthElement{
-			Heights: []TextWithOverrideAndDefault{{Text: "600"}},
-			Widths:  []TextWithOverrideAndDefault{{Text: "600"}},
+		ADFOpticalResolution: Dimension{
+			Width:  600,
+			Height: 600,
 		},
-		ADFResolutions: HeightAndWidthElement{
-			Heights: []TextWithOverrideAndDefault{{Text: "300"}},
-			Widths:  []TextWithOverrideAndDefault{{Text: "300"}},
+		ADFResolutions: Dimension{
+			Width:  300,
+			Height: 300,
 		},
 	}
-	adfFront := ADFFeederSideElement{
+	adfFront := ADFFeederSide{
 		ADFColor: []ColorEntry{RGB24},
-		ADFMaximumSize: HeightAndWidthElement{
-			Heights: []TextWithOverrideAndDefault{{Text: "297"}},
-			Widths:  []TextWithOverrideAndDefault{{Text: "210"}},
+		ADFMaximumSize: Dimension{
+			Width:  210,
+			Height: 297,
 		},
-		ADFMinimumSize: HeightAndWidthElement{
-			Heights: []TextWithOverrideAndDefault{{Text: "100"}},
-			Widths:  []TextWithOverrideAndDefault{{Text: "50"}},
+		ADFMinimumSize: Dimension{
+			Width:  50,
+			Height: 100,
 		},
-		ADFOpticalResolution: HeightAndWidthElement{
-			Heights: []TextWithOverrideAndDefault{{Text: "600"}},
-			Widths:  []TextWithOverrideAndDefault{{Text: "600"}},
+		ADFOpticalResolution: Dimension{
+			Width:  600,
+			Height: 600,
 		},
-		ADFResolutions: HeightAndWidthElement{
-			Heights: []TextWithOverrideAndDefault{{Text: "300"}},
-			Widths:  []TextWithOverrideAndDefault{{Text: "300"}},
+		ADFResolutions: Dimension{
+			Width:  300,
+			Height: 300,
 		},
 	}
 	orig := ADF{

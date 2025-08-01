@@ -18,8 +18,8 @@ import (
 // ADF describes the capabilities of the automatic document feeder (ADF)
 // attached to the scanner. It is a optional element.
 type ADF struct {
-	ADFBack           optional.Val[ADFFeederSideElement]
-	ADFFront          optional.Val[ADFFeederSideElement]
+	ADFBack           optional.Val[ADFFeederSide]
+	ADFFront          optional.Val[ADFFeederSide]
 	ADFSupportsDuplex BooleanElement
 }
 
@@ -63,14 +63,14 @@ func decodeADF(root xmldoc.Element) (ADF, error) {
 	}
 
 	if adfBack.Found {
-		back, err := decodeADFFeederSideElement(adfBack.Elem)
+		back, err := decodeADFFeederSide(adfBack.Elem)
 		if err != nil {
 			return a, fmt.Errorf("ADFBack: %w", err)
 		}
 		a.ADFBack = optional.New(back)
 	}
 	if adfFront.Found {
-		front, err := decodeADFFeederSideElement(adfFront.Elem)
+		front, err := decodeADFFeederSide(adfFront.Elem)
 		if err != nil {
 			return a, fmt.Errorf("ADFFront: %w", err)
 		}

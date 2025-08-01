@@ -15,15 +15,15 @@ import (
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
-// RangeElement represents a range with minimum and maximum values.
+// Range represents a range with minimum and maximum values.
 // This is a common pattern used across multiple scanner configuration elements.
-type RangeElement struct {
+type Range struct {
 	MinValue int
 	MaxValue int
 }
 
 // toXML generates XML elements for MinValue and MaxValue.
-func (re RangeElement) toXML() []xmldoc.Element {
+func (re Range) toXML() []xmldoc.Element {
 	return []xmldoc.Element{
 		{
 			Name: NsWSCN + ":MinValue",
@@ -37,7 +37,7 @@ func (re RangeElement) toXML() []xmldoc.Element {
 }
 
 // decodeRangeElement decodes a RangeElement from an XML element.
-func decodeRangeElement(root xmldoc.Element) (re RangeElement, err error) {
+func decodeRange(root xmldoc.Element) (re Range, err error) {
 	defer func() { err = xmldoc.XMLErrWrap(root, err) }()
 
 	// Lookup MinValue and MaxValue elements

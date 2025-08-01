@@ -17,10 +17,10 @@ import (
 // Platen describes the capabilities of the flatbed platen available on the scanner.
 type Platen struct {
 	PlatenColor             []ColorEntry
-	PlatenMaximumSize       HeightAndWidthElement
-	PlatenMinimumSize       HeightAndWidthElement
-	PlatenOpticalResolution HeightAndWidthElement
-	PlatenResolutions       HeightAndWidthElement
+	PlatenMaximumSize       Dimension
+	PlatenMinimumSize       Dimension
+	PlatenOpticalResolution Dimension
+	PlatenResolutions       Resolutions
 }
 
 // toXML creates an XML element for Platen.
@@ -94,28 +94,28 @@ func decodePlaten(root xmldoc.Element) (Platen, error) {
 	}
 
 	// PlatenMaximumSize
-	max, err := decodeHeightAndWidthElement(platenMaximumSize.Elem)
+	max, err := decodeDimension(platenMaximumSize.Elem)
 	if err != nil {
 		return p, fmt.Errorf("PlatenMaximumSize: %w", err)
 	}
 	p.PlatenMaximumSize = max
 
 	// PlatenMinimumSize
-	min, err := decodeHeightAndWidthElement(platenMinimumSize.Elem)
+	min, err := decodeDimension(platenMinimumSize.Elem)
 	if err != nil {
 		return p, fmt.Errorf("PlatenMinimumSize: %w", err)
 	}
 	p.PlatenMinimumSize = min
 
 	// PlatenOpticalResolution
-	opt, err := decodeHeightAndWidthElement(platenOpticalResolution.Elem)
+	opt, err := decodeDimension(platenOpticalResolution.Elem)
 	if err != nil {
 		return p, fmt.Errorf("PlatenOpticalResolution: %w", err)
 	}
 	p.PlatenOpticalResolution = opt
 
 	// PlatenResolutions
-	res, err := decodeHeightAndWidthElement(platenResolutions.Elem)
+	res, err := decodeResolutions(platenResolutions.Elem)
 	if err != nil {
 		return p, fmt.Errorf("PlatenResolutions: %w", err)
 	}
