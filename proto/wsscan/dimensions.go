@@ -17,8 +17,8 @@ import (
 
 // Dimensions represents a simple width and height pair.
 type Dimensions struct {
-	Width  TextWithOverrideAndDefault
-	Height TextWithOverrideAndDefault
+	Width  int
+	Height int
 }
 
 // toXML creates an XML element for Dimensions.
@@ -26,8 +26,14 @@ func (d Dimensions) toXML(name string) xmldoc.Element {
 	return xmldoc.Element{
 		Name: name,
 		Children: []xmldoc.Element{
-			d.Width.toXML(NsWSCN + ":Width"),
-			d.Height.toXML(NsWSCN + ":Height"),
+			{
+				Name: NsWSCN + ":Width",
+				Text: strconv.Itoa(d.Width),
+			},
+			{
+				Name: NsWSCN + ":Height",
+				Text: strconv.Itoa(d.Height),
+			},
 		},
 	}
 }
@@ -40,25 +46,17 @@ func decodeDimensions(root xmldoc.Element) (Dimensions, error) {
 	for _, child := range root.Children {
 		switch child.Name {
 		case NsWSCN + ":Width":
-			// Validate that the text can be converted to int
-			if _, err := strconv.Atoi(child.Text); err != nil {
-				return dim, fmt.Errorf("invalid width value: %w", err)
-			}
-			width, err := new(TextWithOverrideAndDefault).decodeTextWithOverrideAndDefault(child)
+			width, err := strconv.Atoi(child.Text)
 			if err != nil {
-				return dim, fmt.Errorf("width: %w", err)
+				return dim, fmt.Errorf("invalid width value: %w", err)
 			}
 			dim.Width = width
 			widthFound = true
 
 		case NsWSCN + ":Height":
-			// Validate that the text can be converted to int
-			if _, err := strconv.Atoi(child.Text); err != nil {
-				return dim, fmt.Errorf("invalid height value: %w", err)
-			}
-			height, err := new(TextWithOverrideAndDefault).decodeTextWithOverrideAndDefault(child)
+			height, err := strconv.Atoi(child.Text)
 			if err != nil {
-				return dim, fmt.Errorf("height: %w", err)
+				return dim, fmt.Errorf("invalid height value: %w", err)
 			}
 			dim.Height = height
 			heightFound = true

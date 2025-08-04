@@ -8,8 +8,6 @@ package wsscan
 
 import (
 	"testing"
-
-	"github.com/OpenPrinting/go-mfp/util/optional"
 )
 
 // Test Film XML encoding/decoding
@@ -18,42 +16,20 @@ func TestFilmXML(t *testing.T) {
 	film := Film{
 		FilmColor: RGB24,
 		FilmMaximumSize: Dimensions{
-			Width:  TextWithOverrideAndDefault{Text: "100"},
-			Height: TextWithOverrideAndDefault{Text: "200"},
+			Width:  100,
+			Height: 200,
 		},
 		FilmMinimumSize: Dimensions{
-			Width:  TextWithOverrideAndDefault{Text: "10"},
-			Height: TextWithOverrideAndDefault{Text: "20"},
+			Width:  10,
+			Height: 20,
 		},
 		FilmOpticalResolution: Dimensions{
-			Width:  TextWithOverrideAndDefault{Text: "300"},
-			Height: TextWithOverrideAndDefault{Text: "300"},
+			Width:  300,
+			Height: 300,
 		},
 		FilmResolutions: Resolutions{
-			Widths: []TextWithOverrideAndDefault{
-				{
-					Text:        "300",
-					Override:    optional.New(BooleanElement("true")),
-					UsedDefault: optional.New(BooleanElement("false")),
-				},
-				{
-					Text:        "600",
-					Override:    optional.New(BooleanElement("false")),
-					UsedDefault: optional.New(BooleanElement("true")),
-				},
-			},
-			Heights: []TextWithOverrideAndDefault{
-				{
-					Text:        "300",
-					Override:    optional.New(BooleanElement("true")),
-					UsedDefault: optional.New(BooleanElement("false")),
-				},
-				{
-					Text:        "600",
-					Override:    optional.New(BooleanElement("false")),
-					UsedDefault: optional.New(BooleanElement("true")),
-				},
-			},
+			Widths:  []int{300, 600},
+			Heights: []int{300, 600},
 		},
 		FilmScanModesSupported: []FilmScanMode{
 			ColorSlideFilm,
@@ -81,18 +57,22 @@ func TestFilmXML(t *testing.T) {
 		t.Error("FilmColor mismatch")
 	}
 
-	if decoded.FilmMinimumSize.Width.Text != "10" {
-		t.Error("FilmMinimumSize width mismatch")
+	if decoded.FilmMinimumSize.Width != 10 {
+		t.Errorf("FilmMinimumSize width mismatch: got %d, want %d",
+			decoded.FilmMinimumSize.Width, 10)
 	}
-	if decoded.FilmMinimumSize.Height.Text != "20" {
-		t.Error("FilmMinimumSize height mismatch")
+	if decoded.FilmMinimumSize.Height != 20 {
+		t.Errorf("FilmMinimumSize height mismatch: got %d, want %d",
+			decoded.FilmMinimumSize.Height, 20)
 	}
 
-	if decoded.FilmOpticalResolution.Width.Text != "300" {
-		t.Error("FilmOpticalResolution width mismatch")
+	if decoded.FilmOpticalResolution.Width != 300 {
+		t.Errorf("FilmOpticalResolution width mismatch: got %d, want %d",
+			decoded.FilmOpticalResolution.Width, 300)
 	}
-	if decoded.FilmOpticalResolution.Height.Text != "300" {
-		t.Error("FilmOpticalResolution height mismatch")
+	if decoded.FilmOpticalResolution.Height != 300 {
+		t.Errorf("FilmOpticalResolution height mismatch: got %d, want %d",
+			decoded.FilmOpticalResolution.Height, 300)
 	}
 
 	// Compare resolutions
@@ -100,39 +80,19 @@ func TestFilmXML(t *testing.T) {
 		len(decoded.FilmResolutions.Heights) != len(film.FilmResolutions.Heights) {
 		t.Error("FilmResolutions length mismatch")
 	} else {
-		expectedWidths := []string{"300", "600"}
+		expectedWidths := []int{300, 600}
 		for i, w := range decoded.FilmResolutions.Widths {
-			if w.Text != expectedWidths[i] {
-				t.Errorf("FilmResolutions width[%d] mismatch: got %s, want %s",
-					i, w.Text, expectedWidths[i])
+			if w != expectedWidths[i] {
+				t.Errorf("FilmResolutions width[%d] mismatch: got %d, want %d",
+					i, w, expectedWidths[i])
 			}
 		}
 
-		// Check Override and UsedDefault attributes
-		for i, width := range decoded.FilmResolutions.Widths {
-			if optional.Get(width.Override) != optional.Get(film.FilmResolutions.Widths[i].Override) {
-				t.Errorf("FilmResolutions width[%d] Override mismatch", i)
-			}
-			if optional.Get(width.UsedDefault) != optional.Get(film.FilmResolutions.Widths[i].UsedDefault) {
-				t.Errorf("FilmResolutions width[%d] UsedDefault mismatch", i)
-			}
-		}
-
-		expectedHeights := []string{"300", "600"}
+		expectedHeights := []int{300, 600}
 		for i, h := range decoded.FilmResolutions.Heights {
-			if h.Text != expectedHeights[i] {
-				t.Errorf("FilmResolutions height[%d] mismatch: got %s, want %s",
-					i, h.Text, expectedHeights[i])
-			}
-		}
-
-		// Check Override and UsedDefault attributes
-		for i, height := range decoded.FilmResolutions.Heights {
-			if optional.Get(height.Override) != optional.Get(film.FilmResolutions.Heights[i].Override) {
-				t.Errorf("FilmResolutions height[%d] Override mismatch", i)
-			}
-			if optional.Get(height.UsedDefault) != optional.Get(film.FilmResolutions.Heights[i].UsedDefault) {
-				t.Errorf("FilmResolutions height[%d] UsedDefault mismatch", i)
+			if h != expectedHeights[i] {
+				t.Errorf("FilmResolutions height[%d] mismatch: got %d, want %d",
+					i, h, expectedHeights[i])
 			}
 		}
 	}
@@ -168,20 +128,20 @@ func TestFilmMissingFields(t *testing.T) {
 	film = Film{
 		FilmColor: RGB24,
 		FilmMaximumSize: Dimensions{
-			Width:  TextWithOverrideAndDefault{Text: "100"},
-			Height: TextWithOverrideAndDefault{Text: "200"},
+			Width:  100,
+			Height: 200,
 		},
 		FilmMinimumSize: Dimensions{
-			Width:  TextWithOverrideAndDefault{Text: "10"},
-			Height: TextWithOverrideAndDefault{Text: "20"},
+			Width:  10,
+			Height: 20,
 		},
 		FilmOpticalResolution: Dimensions{
-			Width:  TextWithOverrideAndDefault{Text: "300"},
-			Height: TextWithOverrideAndDefault{Text: "300"},
+			Width:  300,
+			Height: 300,
 		},
 		FilmResolutions: Resolutions{
-			Widths:  []TextWithOverrideAndDefault{{Text: "300"}},
-			Heights: []TextWithOverrideAndDefault{{Text: "300"}},
+			Widths:  []int{300},
+			Heights: []int{300},
 		},
 		FilmScanModesSupported: []FilmScanMode{},
 	}
