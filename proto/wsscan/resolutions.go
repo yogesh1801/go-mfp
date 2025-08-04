@@ -101,5 +101,9 @@ func decodeResolutions(root xmldoc.Element) (Resolutions, error) {
 		return res, fmt.Errorf("missing Width or Height elements")
 	}
 
+	if len(res.Widths) != len(res.Heights) {
+		return res, fmt.Errorf("widths and heights have different lengths")
+	}
+
 	return res, nil
 }
