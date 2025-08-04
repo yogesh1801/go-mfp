@@ -17,8 +17,8 @@ import (
 
 func TestResolutions_SingleValues(t *testing.T) {
 	orig := Resolutions{
-		Widths:  []int{210},
-		Heights: []int{297},
+		Widths:  []TextWithOverrideAndDefault{{Text: "210"}},
+		Heights: []TextWithOverrideAndDefault{{Text: "297"}},
 	}
 
 	elm := orig.toXML("wscn:Resolutions")
@@ -43,8 +43,8 @@ func TestResolutions_SingleValues(t *testing.T) {
 
 func TestResolutions_MultipleValues(t *testing.T) {
 	orig := Resolutions{
-		Widths:  []int{210, 297, 420},
-		Heights: []int{297, 420, 594},
+		Widths:  []TextWithOverrideAndDefault{{Text: "210"}, {Text: "297"}, {Text: "420"}},
+		Heights: []TextWithOverrideAndDefault{{Text: "297"}, {Text: "420"}, {Text: "594"}},
 	}
 
 	elm := orig.toXML("wscn:Resolutions")
@@ -69,8 +69,8 @@ func TestResolutions_MultipleValues(t *testing.T) {
 
 func TestResolutions_MixedValues(t *testing.T) {
 	orig := Resolutions{
-		Widths:  []int{210},
-		Heights: []int{297, 420, 594},
+		Widths:  []TextWithOverrideAndDefault{{Text: "210"}},
+		Heights: []TextWithOverrideAndDefault{{Text: "297"}, {Text: "420"}, {Text: "594"}},
 	}
 
 	elm := orig.toXML("wscn:Resolutions")
@@ -86,8 +86,8 @@ func TestResolutions_MixedValues(t *testing.T) {
 
 func TestResolutions_EmptyArrays(t *testing.T) {
 	orig := Resolutions{
-		Widths:  []int{},
-		Heights: []int{},
+		Widths:  []TextWithOverrideAndDefault{},
+		Heights: []TextWithOverrideAndDefault{},
 	}
 
 	elm := orig.toXML("wscn:Resolutions")
@@ -207,8 +207,8 @@ func TestResolutions_WrappedForm(t *testing.T) {
 	}
 
 	expected := Resolutions{
-		Widths:  []int{210, 297},
-		Heights: []int{297, 420},
+		Widths:  []TextWithOverrideAndDefault{{Text: "210"}, {Text: "297"}},
+		Heights: []TextWithOverrideAndDefault{{Text: "297"}, {Text: "420"}},
 	}
 
 	decoded, err := decodeResolutions(elm)

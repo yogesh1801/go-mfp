@@ -14,17 +14,17 @@ import (
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
-// ADFFeederSide describes the capabilities of a scanner ADF feeder side (ADFBack, ADFFront, etc.).
-type ADFFeederSide struct {
+// ADFSide describes the capabilities of a scanner ADF feeder side (ADFBack, ADFFront, etc.).
+type ADFSide struct {
 	ADFColor             []ColorEntry
-	ADFMaximumSize       Dimension
-	ADFMinimumSize       Dimension
-	ADFOpticalResolution Dimension
-	ADFResolutions       Dimension
+	ADFMaximumSize       Dimensions
+	ADFMinimumSize       Dimensions
+	ADFOpticalResolution Dimensions
+	ADFResolutions       Resolutions
 }
 
 // toXML creates an XML element for ADFFeederSide.
-func (s ADFFeederSide) toXML(name string) xmldoc.Element {
+func (s ADFSide) toXML(name string) xmldoc.Element {
 	elm := xmldoc.Element{Name: name}
 	if len(s.ADFColor) > 0 {
 		colorChildren := make([]xmldoc.Element, len(s.ADFColor))
@@ -47,9 +47,9 @@ func (s ADFFeederSide) toXML(name string) xmldoc.Element {
 }
 
 // decodeADFFeederSide decodes an ADFFeederSide from an XML element.
-func decodeADFFeederSide(root xmldoc.Element) (
-	ADFFeederSide, error) {
-	var s ADFFeederSide
+func decodeADFSide(root xmldoc.Element) (
+	ADFSide, error) {
+	var s ADFSide
 	adfColor := xmldoc.Lookup{Name: NsWSCN + ":ADFColor"}
 	adfMaximumSize := xmldoc.Lookup{Name: NsWSCN + ":ADFMaximumSize"}
 	adfMinimumSize := xmldoc.Lookup{Name: NsWSCN + ":ADFMinimumSize"}
@@ -75,25 +75,25 @@ func decodeADFFeederSide(root xmldoc.Element) (
 		s.ADFColor = append(s.ADFColor, val)
 	}
 
-	max, err := decodeDimension(adfMaximumSize.Elem)
+	max, err := decodeDimensions(adfMaximumSize.Elem)
 	if err != nil {
 		return s, fmt.Errorf("ADFMaximumSize: %w", err)
 	}
 	s.ADFMaximumSize = max
 
-	min, err := decodeDimension(adfMinimumSize.Elem)
+	min, err := decodeDimensions(adfMinimumSize.Elem)
 	if err != nil {
 		return s, fmt.Errorf("ADFMinimumSize: %w", err)
 	}
 	s.ADFMinimumSize = min
 
-	opt, err := decodeDimension(adfOpticalResolution.Elem)
+	opt, err := decodeDimensions(adfOpticalResolution.Elem)
 	if err != nil {
 		return s, fmt.Errorf("ADFOpticalResolution: %w", err)
 	}
 	s.ADFOpticalResolution = opt
 
-	res, err := decodeDimension(adfResolutions.Elem)
+	res, err := decodeResolutions(adfResolutions.Elem)
 	if err != nil {
 		return s, fmt.Errorf("ADFResolutions: %w", err)
 	}

@@ -17,9 +17,9 @@ import (
 // Platen describes the capabilities of the flatbed platen available on the scanner.
 type Platen struct {
 	PlatenColor             []ColorEntry
-	PlatenMaximumSize       Dimension
-	PlatenMinimumSize       Dimension
-	PlatenOpticalResolution Dimension
+	PlatenMaximumSize       Dimensions
+	PlatenMinimumSize       Dimensions
+	PlatenOpticalResolution Dimensions
 	PlatenResolutions       Resolutions
 }
 
@@ -94,21 +94,21 @@ func decodePlaten(root xmldoc.Element) (Platen, error) {
 	}
 
 	// PlatenMaximumSize
-	max, err := decodeDimension(platenMaximumSize.Elem)
+	max, err := decodeDimensions(platenMaximumSize.Elem)
 	if err != nil {
 		return p, fmt.Errorf("PlatenMaximumSize: %w", err)
 	}
 	p.PlatenMaximumSize = max
 
 	// PlatenMinimumSize
-	min, err := decodeDimension(platenMinimumSize.Elem)
+	min, err := decodeDimensions(platenMinimumSize.Elem)
 	if err != nil {
 		return p, fmt.Errorf("PlatenMinimumSize: %w", err)
 	}
 	p.PlatenMinimumSize = min
 
 	// PlatenOpticalResolution
-	opt, err := decodeDimension(platenOpticalResolution.Elem)
+	opt, err := decodeDimensions(platenOpticalResolution.Elem)
 	if err != nil {
 		return p, fmt.Errorf("PlatenOpticalResolution: %w", err)
 	}
