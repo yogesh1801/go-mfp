@@ -19,20 +19,20 @@ func TestADFFeederSide_RoundTrip(t *testing.T) {
 	orig := ADFSide{
 		ADFColor: []ColorEntry{BlackAndWhite1, RGB24},
 		ADFMaximumSize: Dimensions{
-			Width:  TextWithOverrideAndDefault{Text: "210"},
-			Height: TextWithOverrideAndDefault{Text: "297"},
+			Width:  210,
+			Height: 297,
 		},
 		ADFMinimumSize: Dimensions{
-			Width:  TextWithOverrideAndDefault{Text: "50"},
-			Height: TextWithOverrideAndDefault{Text: "100"},
+			Width:  50,
+			Height: 100,
 		},
 		ADFOpticalResolution: Dimensions{
-			Width:  TextWithOverrideAndDefault{Text: "600"},
-			Height: TextWithOverrideAndDefault{Text: "600"},
+			Width:  600,
+			Height: 600,
 		},
 		ADFResolutions: Resolutions{
-			Widths:  []TextWithOverrideAndDefault{{Text: "300"}},
-			Heights: []TextWithOverrideAndDefault{{Text: "300"}},
+			Widths:  []int{300},
+			Heights: []int{300},
 		},
 	}
 	elm := orig.toXML("wscn:ADFBack")

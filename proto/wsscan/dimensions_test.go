@@ -9,7 +9,6 @@ package wsscan
 import (
 	"testing"
 
-	"github.com/OpenPrinting/go-mfp/util/optional"
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
@@ -17,16 +16,8 @@ import (
 func TestDimensionsXML(t *testing.T) {
 	// Create a test Dimensions structure
 	dim := Dimensions{
-		Width: TextWithOverrideAndDefault{
-			Text:        "100",
-			Override:    optional.New(BooleanElement("true")),
-			UsedDefault: optional.New(BooleanElement("false")),
-		},
-		Height: TextWithOverrideAndDefault{
-			Text:        "200",
-			Override:    optional.New(BooleanElement("false")),
-			UsedDefault: optional.New(BooleanElement("true")),
-		},
+		Width:  100,
+		Height: 200,
 	}
 
 	// Convert to XML
@@ -44,51 +35,39 @@ func TestDimensionsXML(t *testing.T) {
 	}
 
 	// Compare original and decoded
-	if decoded.Width.Text != dim.Width.Text {
-		t.Errorf("Width text mismatch: got %q, want %q",
-			decoded.Width.Text, dim.Width.Text)
-	}
-	if optional.Get(decoded.Width.Override) != optional.Get(dim.Width.Override) {
-		t.Errorf("Width Override mismatch: got %v, want %v",
-			optional.Get(decoded.Width.Override), optional.Get(dim.Width.Override))
-	}
-	if optional.Get(decoded.Width.UsedDefault) != optional.Get(dim.Width.UsedDefault) {
-		t.Errorf("Width UsedDefault mismatch: got %v, want %v",
-			optional.Get(decoded.Width.UsedDefault), optional.Get(dim.Width.UsedDefault))
+	if decoded.Width != dim.Width {
+		t.Errorf("Width mismatch: got %d, want %d",
+			decoded.Width, dim.Width)
 	}
 
-	if decoded.Height.Text != dim.Height.Text {
-		t.Errorf("Height text mismatch: got %q, want %q",
-			decoded.Height.Text, dim.Height.Text)
-	}
-	if optional.Get(decoded.Height.Override) != optional.Get(dim.Height.Override) {
-		t.Errorf("Height Override mismatch: got %v, want %v",
-			optional.Get(decoded.Height.Override), optional.Get(dim.Height.Override))
-	}
-	if optional.Get(decoded.Height.UsedDefault) != optional.Get(dim.Height.UsedDefault) {
-		t.Errorf("Height UsedDefault mismatch: got %v, want %v",
-			optional.Get(decoded.Height.UsedDefault), optional.Get(dim.Height.UsedDefault))
+	if decoded.Height != dim.Height {
+		t.Errorf("Height mismatch: got %d, want %d",
+			decoded.Height, dim.Height)
 	}
 }
 
 // Test Dimensions with invalid values
 func TestDimensionsInvalid(t *testing.T) {
 	// Test with invalid width
-	dim := Dimensions{
-		Width:  TextWithOverrideAndDefault{Text: "invalid"},
-		Height: TextWithOverrideAndDefault{Text: "200"},
+	encoded := xmldoc.Element{
+		Name: "Dimensions",
+		Children: []xmldoc.Element{
+			{Name: NsWSCN + ":Width", Text: "invalid"},
+			{Name: NsWSCN + ":Height", Text: "200"},
+		},
 	}
-	encoded := dim.toXML("Dimensions")
 	if _, err := decodeDimensions(encoded); err == nil {
 		t.Error("Expected error with invalid width")
 	}
 
 	// Test with invalid height
-	dim = Dimensions{
-		Width:  TextWithOverrideAndDefault{Text: "100"},
-		Height: TextWithOverrideAndDefault{Text: "invalid"},
+	encoded = xmldoc.Element{
+		Name: "Dimensions",
+		Children: []xmldoc.Element{
+			{Name: NsWSCN + ":Width", Text: "100"},
+			{Name: NsWSCN + ":Height", Text: "invalid"},
+		},
 	}
-	encoded = dim.toXML("Dimensions")
 	if _, err := decodeDimensions(encoded); err == nil {
 		t.Error("Expected error with invalid height")
 	}

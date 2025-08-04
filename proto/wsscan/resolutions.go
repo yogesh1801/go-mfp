@@ -17,8 +17,8 @@ import (
 
 // Resolutions represents arrays of width and height values.
 type Resolutions struct {
-	Widths  []TextWithOverrideAndDefault
-	Heights []TextWithOverrideAndDefault
+	Widths  []int
+	Heights []int
 }
 
 // toXML creates an XML element for Resolutions.
@@ -29,8 +29,10 @@ func (r Resolutions) toXML(name string) xmldoc.Element {
 	if len(r.Widths) > 0 {
 		widthChildren := make([]xmldoc.Element, 0, len(r.Widths))
 		for _, width := range r.Widths {
-			widthChildren = append(widthChildren,
-				width.toXML(NsWSCN+":Width"))
+			widthChildren = append(widthChildren, xmldoc.Element{
+				Name: NsWSCN + ":Width",
+				Text: strconv.Itoa(width),
+			})
 		}
 		children = append(children, xmldoc.Element{
 			Name:     NsWSCN + ":Widths",
@@ -42,8 +44,10 @@ func (r Resolutions) toXML(name string) xmldoc.Element {
 	if len(r.Heights) > 0 {
 		heightChildren := make([]xmldoc.Element, 0, len(r.Heights))
 		for _, height := range r.Heights {
-			heightChildren = append(heightChildren,
-				height.toXML(NsWSCN+":Height"))
+			heightChildren = append(heightChildren, xmldoc.Element{
+				Name: NsWSCN + ":Height",
+				Text: strconv.Itoa(height),
+			})
 		}
 		children = append(children, xmldoc.Element{
 			Name:     NsWSCN + ":Heights",
@@ -67,14 +71,9 @@ func decodeResolutions(root xmldoc.Element) (Resolutions, error) {
 		case NsWSCN + ":Widths":
 			for _, wchild := range child.Children {
 				if wchild.Name == NsWSCN+":Width" {
-					// Validate that the text can be converted to int
-					if _, err := strconv.Atoi(wchild.Text); err != nil {
-						return res, fmt.Errorf("invalid width value: %w", err)
-					}
-					width, err := new(TextWithOverrideAndDefault).
-						decodeTextWithOverrideAndDefault(wchild)
+					width, err := strconv.Atoi(wchild.Text)
 					if err != nil {
-						return res, fmt.Errorf("width: %w", err)
+						return res, fmt.Errorf("invalid width value: %w", err)
 					}
 					res.Widths = append(res.Widths, width)
 				}
@@ -82,14 +81,9 @@ func decodeResolutions(root xmldoc.Element) (Resolutions, error) {
 		case NsWSCN + ":Heights":
 			for _, hchild := range child.Children {
 				if hchild.Name == NsWSCN+":Height" {
-					// Validate that the text can be converted to int
-					if _, err := strconv.Atoi(hchild.Text); err != nil {
-						return res, fmt.Errorf("invalid height value: %w", err)
-					}
-					height, err := new(TextWithOverrideAndDefault).
-						decodeTextWithOverrideAndDefault(hchild)
+					height, err := strconv.Atoi(hchild.Text)
 					if err != nil {
-						return res, fmt.Errorf("height: %w", err)
+						return res, fmt.Errorf("invalid height value: %w", err)
 					}
 					res.Heights = append(res.Heights, height)
 				}
