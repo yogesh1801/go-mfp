@@ -16,23 +16,23 @@ import (
 )
 
 func TestADFFeederSide_RoundTrip(t *testing.T) {
-	orig := ADFFeederSide{
+	orig := ADFSide{
 		ADFColor: []ColorEntry{BlackAndWhite1, RGB24},
-		ADFMaximumSize: Dimension{
-			Width:  210,
-			Height: 297,
+		ADFMaximumSize: Dimensions{
+			Width:  TextWithOverrideAndDefault{Text: "210"},
+			Height: TextWithOverrideAndDefault{Text: "297"},
 		},
-		ADFMinimumSize: Dimension{
-			Width:  50,
-			Height: 100,
+		ADFMinimumSize: Dimensions{
+			Width:  TextWithOverrideAndDefault{Text: "50"},
+			Height: TextWithOverrideAndDefault{Text: "100"},
 		},
-		ADFOpticalResolution: Dimension{
-			Width:  600,
-			Height: 600,
+		ADFOpticalResolution: Dimensions{
+			Width:  TextWithOverrideAndDefault{Text: "600"},
+			Height: TextWithOverrideAndDefault{Text: "600"},
 		},
-		ADFResolutions: Dimension{
-			Width:  300,
-			Height: 300,
+		ADFResolutions: Resolutions{
+			Widths:  []TextWithOverrideAndDefault{{Text: "300"}},
+			Heights: []TextWithOverrideAndDefault{{Text: "300"}},
 		},
 	}
 	elm := orig.toXML("wscn:ADFBack")
@@ -40,9 +40,9 @@ func TestADFFeederSide_RoundTrip(t *testing.T) {
 		t.Errorf("expected element name 'wscn:ADFBack', got '%s'", elm.Name)
 	}
 
-	parsed, err := decodeADFFeederSide(elm)
+	parsed, err := decodeADFSide(elm)
 	if err != nil {
-		t.Fatalf("decodeADFFeederSide returned error: %v", err)
+		t.Fatalf("decodeADFSide returned error: %v", err)
 	}
 	if !reflect.DeepEqual(orig, parsed) {
 		t.Errorf("expected %+v, got %+v", orig, parsed)
@@ -62,7 +62,7 @@ func TestADFFeederSide_MissingRequired(t *testing.T) {
 			},
 		},
 	}
-	_, err := decodeADFFeederSide(elm)
+	_, err := decodeADFSide(elm)
 	if err == nil {
 		t.Errorf("expected error for missing required elements, got nil")
 	}
@@ -108,7 +108,7 @@ func TestADFFeederSide_InvalidColorEntry(t *testing.T) {
 			},
 		},
 	}
-	_, err := decodeADFFeederSide(elm)
+	_, err := decodeADFSide(elm)
 	if err == nil {
 		t.Errorf("expected error for invalid color entry, got nil")
 	}

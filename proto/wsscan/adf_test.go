@@ -17,42 +17,42 @@ import (
 )
 
 func TestADF_RoundTrip(t *testing.T) {
-	adfBack := ADFFeederSide{
+	adfBack := ADFSide{
 		ADFColor: []ColorEntry{BlackAndWhite1},
-		ADFMaximumSize: Dimension{
-			Width:  210,
-			Height: 297,
+		ADFMaximumSize: Dimensions{
+			Width:  TextWithOverrideAndDefault{Text: "210"},
+			Height: TextWithOverrideAndDefault{Text: "297"},
 		},
-		ADFMinimumSize: Dimension{
-			Width:  50,
-			Height: 100,
+		ADFMinimumSize: Dimensions{
+			Width:  TextWithOverrideAndDefault{Text: "50"},
+			Height: TextWithOverrideAndDefault{Text: "100"},
 		},
-		ADFOpticalResolution: Dimension{
-			Width:  600,
-			Height: 600,
+		ADFOpticalResolution: Dimensions{
+			Width:  TextWithOverrideAndDefault{Text: "600"},
+			Height: TextWithOverrideAndDefault{Text: "600"},
 		},
-		ADFResolutions: Dimension{
-			Width:  300,
-			Height: 300,
+		ADFResolutions: Resolutions{
+			Widths:  []TextWithOverrideAndDefault{{Text: "300"}},
+			Heights: []TextWithOverrideAndDefault{{Text: "300"}},
 		},
 	}
-	adfFront := ADFFeederSide{
+	adfFront := ADFSide{
 		ADFColor: []ColorEntry{RGB24},
-		ADFMaximumSize: Dimension{
-			Width:  210,
-			Height: 297,
+		ADFMaximumSize: Dimensions{
+			Width:  TextWithOverrideAndDefault{Text: "210"},
+			Height: TextWithOverrideAndDefault{Text: "297"},
 		},
-		ADFMinimumSize: Dimension{
-			Width:  50,
-			Height: 100,
+		ADFMinimumSize: Dimensions{
+			Width:  TextWithOverrideAndDefault{Text: "50"},
+			Height: TextWithOverrideAndDefault{Text: "100"},
 		},
-		ADFOpticalResolution: Dimension{
-			Width:  600,
-			Height: 600,
+		ADFOpticalResolution: Dimensions{
+			Width:  TextWithOverrideAndDefault{Text: "600"},
+			Height: TextWithOverrideAndDefault{Text: "600"},
 		},
-		ADFResolutions: Dimension{
-			Width:  300,
-			Height: 300,
+		ADFResolutions: Resolutions{
+			Widths:  []TextWithOverrideAndDefault{{Text: "300"}},
+			Heights: []TextWithOverrideAndDefault{{Text: "300"}},
 		},
 	}
 	orig := ADF{

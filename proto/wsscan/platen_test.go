@@ -18,21 +18,21 @@ import (
 func TestPlaten_RoundTrip(t *testing.T) {
 	orig := Platen{
 		PlatenColor: []ColorEntry{BlackAndWhite1, RGB24},
-		PlatenMaximumSize: Dimension{
-			Width:  210,
-			Height: 297,
+		PlatenMaximumSize: Dimensions{
+			Width:  TextWithOverrideAndDefault{Text: "210"},
+			Height: TextWithOverrideAndDefault{Text: "297"},
 		},
-		PlatenMinimumSize: Dimension{
-			Width:  50,
-			Height: 100,
+		PlatenMinimumSize: Dimensions{
+			Width:  TextWithOverrideAndDefault{Text: "50"},
+			Height: TextWithOverrideAndDefault{Text: "100"},
 		},
-		PlatenOpticalResolution: Dimension{
-			Width:  600,
-			Height: 600,
+		PlatenOpticalResolution: Dimensions{
+			Width:  TextWithOverrideAndDefault{Text: "600"},
+			Height: TextWithOverrideAndDefault{Text: "600"},
 		},
 		PlatenResolutions: Resolutions{
-			Widths:  []int{300, 600},
-			Heights: []int{300, 600},
+			Widths:  []TextWithOverrideAndDefault{{Text: "300"}, {Text: "600"}},
+			Heights: []TextWithOverrideAndDefault{{Text: "300"}, {Text: "600"}},
 		},
 	}
 	elm := orig.toXML("wscn:Platen")

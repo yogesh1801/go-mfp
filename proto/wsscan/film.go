@@ -18,9 +18,9 @@ import (
 // attached to the scanner. It is an optional element.
 type Film struct {
 	FilmColor              ColorEntry
-	FilmMaximumSize        Dimension
-	FilmMinimumSize        Dimension
-	FilmOpticalResolution  Dimension
+	FilmMaximumSize        Dimensions
+	FilmMinimumSize        Dimensions
+	FilmOpticalResolution  Dimensions
 	FilmResolutions        Resolutions
 	FilmScanModesSupported []FilmScanMode
 }
@@ -97,19 +97,19 @@ func decodeFilm(root xmldoc.Element) (Film, error) {
 	}
 	f.FilmColor = color
 
-	maxSize, err := decodeDimension(filmMaxSize.Elem)
+	maxSize, err := decodeDimensions(filmMaxSize.Elem)
 	if err != nil {
 		return f, fmt.Errorf("FilmMaximumSize: %w", err)
 	}
 	f.FilmMaximumSize = maxSize
 
-	minSize, err := decodeDimension(filmMinSize.Elem)
+	minSize, err := decodeDimensions(filmMinSize.Elem)
 	if err != nil {
 		return f, fmt.Errorf("FilmMinimumSize: %w", err)
 	}
 	f.FilmMinimumSize = minSize
 
-	optRes, err := decodeDimension(filmOptRes.Elem)
+	optRes, err := decodeDimensions(filmOptRes.Elem)
 	if err != nil {
 		return f, fmt.Errorf("FilmOpticalResolution: %w", err)
 	}
