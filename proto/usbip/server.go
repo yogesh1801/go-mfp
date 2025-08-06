@@ -9,94 +9,143 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"net"
+	"sync"
+	"syscall"
+
+	"github.com/OpenPrinting/go-mfp/log"
 )
 
 // Server implements the USBIP server.
 type Server struct {
-	USBDevices []USBDevice
+	devices    [USBMaxDevices + 1]devslot
+	nextslot   int
+	byid       map[devBusID]*devslot    // Slots by devBusID
+	bylocation map[devLocation]*devslot // Slots by devLocation
+	lock       sync.Mutex
 }
 
-// AddUSBDevice adds a USBDevice to the container.
-func (srv *Server) AddUSBDevice(device USBDevice) {
-	srv.USBDevices = append(srv.USBDevices, device)
+// devslot represents a device slot.
+type devslot struct {
+	dev      *Device
+	busid    devBusID
+	location devLocation
+	pconn    *protoConn
 }
 
-// HandleAttach handles a device import request from the USB/IP client.
-func (srv *Server) HandleAttach() *OPREPImport {
-	usbDev := srv.USBDevices[0]
-	deviceDescriptor := usbDev.GetDeviceDescriptor()
-	configurations := usbDev.GetConfigurations()
-
-	var usbPath [256]byte
-	copy(usbPath[:], "/sys/devices/pci0000:00/0000:00:01.2/usb1/1-1")
-
-	var busID [32]byte
-	copy(busID[:], "1-1")
-
-	return &OPREPImport{
-		Base:                USBIPHeader{Version: ProtocolVersion, Command: OpRepImport, Status: 0},
-		UsbPath:             usbPath,
-		BusID:               busID,
-		Busnum:              1,
-		Devnum:              2,
-		Speed:               2,
-		IDVendor:            deviceDescriptor.IDVendor,
-		IDProduct:           deviceDescriptor.IDProduct,
-		BcdDevice:           deviceDescriptor.BcdDevice,
-		BDeviceClass:        deviceDescriptor.BDeviceClass,
-		BDeviceSubClass:     deviceDescriptor.BDeviceSubClass,
-		BDeviceProtocol:     deviceDescriptor.BDeviceProtocol,
-		BConfigurationValue: configurations[0].BConfigurationValue,
-		BNumConfigurations:  deviceDescriptor.BNumConfigurations,
-		BNumInterfaces:      configurations[0].BNumInterfaces,
+// NewServer creates a new [Server]
+func NewServer() *Server {
+	srv := &Server{
+		nextslot:   1,
+		byid:       make(map[devBusID]*devslot, USBMaxDevices+1),
+		bylocation: make(map[devLocation]*devslot, USBMaxDevices+1),
 	}
+
+	for i := range srv.devices {
+		slot := &srv.devices[i]
+		slot.location.Bus = 1 // Hardcoded for now
+		slot.location.Dev = i
+		slot.busid = slot.location.BusID()
+
+		srv.byid[slot.busid] = slot
+		srv.bylocation[slot.location] = slot
+	}
+
+	return srv
 }
 
-// HandleDeviceList responds with a list of available USB devices.
-func (srv *Server) HandleDeviceList() *OPREPDevList {
-	usbDev := srv.USBDevices[0]
-	deviceDescriptor := usbDev.GetDeviceDescriptor()
-	configurations := usbDev.GetConfigurations()
+// AddDevice adds a USBDevice to the container.
+func (srv *Server) AddDevice(dev *Device) error {
+	srv.lock.Lock()
+	defer srv.lock.Unlock()
 
-	var usbPath [256]byte
-	copy(usbPath[:], "/sys/devices/pci0000:00/0000:00:01.2/usb1/1-1")
+	// Look for the empty slot.
+	for i := range srv.devices {
+		next := (srv.nextslot + i) % len(srv.devices)
+		if next != 0 && srv.devices[next].dev == nil {
+			srv.devices[next].dev = dev
+			srv.nextslot = (next + 1) & len(srv.devices)
+			return nil
+		}
+	}
 
-	var busID [32]byte
-	copy(busID[:], "1-1")
+	return errors.New("Can't add new device. All slots are busy")
+}
 
-	list := &OPREPDevList{
-		Base:                USBIPHeader{Version: ProtocolVersion, Command: OpRepDevlist, Status: 0},
-		NExportedDevice:     1,
-		UsbPath:             usbPath,
-		BusID:               busID,
-		Busnum:              1,
-		Devnum:              2,
-		Speed:               2,
-		IDVendor:            deviceDescriptor.IDVendor,
-		IDProduct:           deviceDescriptor.IDProduct,
-		BcdDevice:           deviceDescriptor.BcdDevice,
-		BDeviceClass:        deviceDescriptor.BDeviceClass,
-		BDeviceSubClass:     deviceDescriptor.BDeviceSubClass,
-		BDeviceProtocol:     deviceDescriptor.BDeviceProtocol,
-		BConfigurationValue: configurations[0].BConfigurationValue,
-		BNumConfigurations:  deviceDescriptor.BNumConfigurations,
-		Interfaces: []USBInterface{
-			{
-				BInterfaceClass:    configurations[0].Interfaces[0][0].BInterfaceClass,
-				BInterfaceSubClass: configurations[0].Interfaces[0][0].BInterfaceSubClass,
-				BInterfaceProtocol: configurations[0].Interfaces[0][0].BInterfaceProtocol,
-				Align:              0,
-			},
+// doImport handles a device import request from the USB/IP client.
+// It returns true if device was actually attached and the protocol
+// response message in any case.
+func (srv *Server) doImport(pconn *protoConn, rq *protoImportRequest) *protoImportResponse {
+	srv.lock.Lock()
+	defer srv.lock.Unlock()
+
+	// Find the device
+	slot := srv.byid[rq.BusID]
+	if slot == nil || slot.dev == nil || slot.pconn != nil {
+		return &protoImportResponse{Status: protoHsError}
+	}
+
+	// Attach device to connection
+	slot.pconn = pconn
+
+	// Build the response
+	rsp := &protoImportResponse{
+		Status: protoHsOK,
+		DevInfo: &devInfo{
+			Location: slot.location,
+			Device:   slot.dev,
 		},
 	}
 
-	return list
+	return rsp
+}
+
+// doDevlist responds with a list of available USB devices.
+// It returns the protocol response message.
+func (srv *Server) doDevlist() *protoDevlistResponse {
+	// Gather connected but not yet exported slots
+	srv.lock.Lock()
+
+	slots := make([]devslot, 0, len(srv.devices))
+	for _, slot := range srv.devices {
+		if slot.dev != nil && slot.pconn == nil {
+			slots = append(slots, slot)
+		}
+	}
+
+	srv.lock.Unlock()
+
+	// Generate a response
+	rsp := &protoDevlistResponse{
+		Status:  protoHsOK,
+		Devlist: make([]devInfo, len(slots)),
+	}
+
+	for i := range slots {
+		rsp.Devlist[i].Location = slots[i].location
+		rsp.Devlist[i].Device = slots[i].dev
+	}
+
+	return rsp
+}
+
+// doDisconnect handles the client disconnect event.
+func (srv *Server) doDisconnect(pconn *protoConn) {
+	srv.lock.Lock()
+	defer srv.lock.Unlock()
+
+	for i := range srv.devices {
+		if srv.devices[i].pconn == pconn {
+			srv.devices[i].pconn = nil
+		}
+	}
 }
 
 // Run starts the USB/IP server and handles incoming connections.
-func (srv *Server) Run(ip string, port int) {
+func (srv *Server) Run(ctx context.Context, ip string, port int) {
 	if ip == "" {
 		ip = "0.0.0.0"
 	}
@@ -115,101 +164,197 @@ func (srv *Server) Run(ip string, port int) {
 		if err != nil {
 			continue
 		}
-		fmt.Printf("Connection address: %s\n", conn.RemoteAddr().String())
-		go srv.serve(conn)
+		go srv.Serve(ctx, conn)
 	}
 }
 
-// serve manages a client connection.
-func (srv *Server) serve(conn net.Conn) {
-	req := USBIPHeader{}
+// Serve manages a client connection.
+func (srv *Server) Serve(ctx context.Context, conn net.Conn) {
+	log.Debug(ctx, "Connection: from %s", conn.RemoteAddr())
+
+	// Create protocol connection
+	pconn := newProtoConn(conn)
 
 	defer func() {
-		fmt.Println("Close connection")
-		conn.Close()
+		srv.doDisconnect(pconn)
+		log.Debug(ctx, "Connection: closed")
+		pconn.Close()
 	}()
 
-	var buf [64]byte // Enough for both USBIPHeader and USBIPCMDSubmit
-	var busid [32]byte
+	devinfo := srv.handshake(ctx, pconn)
+	if devinfo == nil {
+		return
+	}
 
-	// Handle OpReqDevlist or OpReqImport commands
-	err := connReadAll(conn, buf[:8])
+	srv.io(ctx, pconn, devinfo)
+}
+
+// handshake performs the USBIP handshake exchange.
+func (srv *Server) handshake(ctx context.Context, pconn *protoConn) *devInfo {
+	rq, err := pconn.RecvHandshake()
 	if err != nil {
-		return
-	}
-	req.Unpack(buf[:8])
-	fmt.Println("Header Packet")
-	fmt.Printf("command: %x\n", req.Command)
-
-	switch req.Command {
-	case OpReqDevlist:
-		fmt.Println("list of devices")
-		connWriteAll(conn, srv.HandleDeviceList().Pack())
-		return
-
-	case OpReqImport:
-		fmt.Println("attach device")
-		err = connReadAll(conn, busid[:])
-		if err != nil {
-			return
-		}
-
-		err = connWriteAll(conn, srv.HandleAttach().Pack())
-		if err != nil {
-			return
-		}
+		log.Debug(ctx, "Handshake: %s", err)
+		return nil
 	}
 
-	// Now handle USB I/O requests
+	log.Debug(ctx, "Handshake: < %s", rq)
+
+	var rsp protoHandshakeResponse
+
+	switch rq := rq.(type) {
+	case *protoDevlistRequest:
+		rsp = srv.doDevlist()
+	case *protoImportRequest:
+		rsp = srv.doImport(pconn, rq)
+	}
+
+	if rsp != nil {
+		log.Debug(ctx, "Handshake: > %s", rsp)
+		err = pconn.SendHandshake(rsp)
+		if err != nil {
+			log.Debug(ctx, "Handshake: %s", err)
+			return nil
+		}
+	}
+
+	if rsp, ok := rsp.(*protoImportResponse); ok && rsp.Status == protoHsOK {
+		return rsp.DevInfo
+	}
+
+	return nil
+}
+
+// io performs USBIO I/O exchange.
+func (srv *Server) io(ctx context.Context, pconn *protoConn, devinfo *devInfo) {
+	dev := devinfo.Device
+	defer dev.shutdown()
+
+	// Map of the pending protoIOSubmitRequest by Seqnum.
+	//
+	// We need it, because protoIOUnlinkRequest lacks some
+	// important information (endpoint number, for example).
+	submitsBySeqnum := make(map[uint32]*protoIOSubmitRequest)
+
+	// Completion callback for protoIOSubmitRequest
+	completion := func(rq *protoIOSubmitRequest, err syscall.Errno) {
+		delete(submitsBySeqnum, rq.Seqnum)
+
+		rsp := rq.Response(err)
+		log.Debug(ctx, "IO:   > %s", rsp)
+		pconn.SendIO(rsp)
+	}
+
 	for {
-		fmt.Println("----------------")
-		fmt.Println("handles requests")
-		cmd := USBIPCMDSubmit{}
-		cmdHeaderData := buf[:cmd.Size()]
-		err := connReadAll(conn, cmdHeaderData)
+		rq, err := pconn.RecvIO()
 		if err != nil {
-			break
+			log.Debug(ctx, "IO:   < %s", err)
+			return
 		}
-		cmd.Unpack(cmdHeaderData)
 
-		var transferBuffer []byte
-		if cmd.Direction == DirectionOut && cmd.TransferBufferLength > 0 {
-			transferBuffer = make([]byte, cmd.TransferBufferLength)
-			err = connReadAll(conn, transferBuffer)
-			if err != nil {
-				return
+		log.Debug(ctx, "IO:   < %s", rq)
+
+		hdr := rq.Header()
+		if hdr.Location != devinfo.Location {
+			log.Debug(ctx, "IO:   < Device: expected %s, present %s",
+				devinfo.Location, hdr.Location)
+
+			// FIXME - reject request and continue
+			return
+		}
+
+		switch rq := rq.(type) {
+		case *protoIOSubmitRequest:
+			// Control requests are processed instantly.
+			if rq.Endpoint == 0 {
+				data, err := srv.control(ctx, dev, rq)
+
+				rq.Buffer = data
+				rq.actualLength = len(data)
+
+				rsp := rq.Response(err)
+				pconn.SendIO(rsp)
+				break
 			}
-		}
 
-		fmt.Printf("usbip cmd %x\n", cmd.Command)
-		fmt.Printf("usbip seqnum %x\n", cmd.Seqnum)
-		fmt.Printf("usbip devid %x\n", cmd.Devid)
-		fmt.Printf("usbip direction %x\n", cmd.Direction)
-		fmt.Printf("usbip ep %x\n", cmd.Ep)
-		fmt.Printf("usbip flags %x\n", cmd.TransferFlags)
-		fmt.Printf("usbip transfer buffer length %x\n", cmd.TransferBufferLength)
-		fmt.Printf("usbip start %x\n", cmd.StartFrame)
-		fmt.Printf("usbip number of packets %x\n", cmd.NumberOfPackets)
-		fmt.Printf("usbip interval %x\n", cmd.Interval)
-		fmt.Printf("usbip setup %s\n", BytesToString(cmd.Setup[:]))
-		fmt.Printf("usbip transfer buffer %s\n", BytesToString(transferBuffer))
+			submitsBySeqnum[rq.Seqnum] = rq
 
-		usbReq := USBRequest{
-			Seqnum:               cmd.Seqnum,
-			Devid:                cmd.Devid,
-			Direction:            cmd.Direction,
-			Ep:                   cmd.Ep,
-			Flags:                cmd.TransferFlags,
-			TransferBufferLength: cmd.TransferBufferLength,
-			NumberOfPackets:      cmd.NumberOfPackets,
-			Interval:             cmd.Interval,
-			Setup:                cmd.Setup,
-			TransferBuffer:       transferBuffer,
-		}
+			rq.completion = completion
+			err := dev.submit(rq)
+			if err != 0 {
+				rsp := rq.Response(err)
+				pconn.SendIO(rsp)
+			}
 
-		srv.USBDevices[0].SetConnection(conn)
-		if baseDevice, ok := srv.USBDevices[0].(interface{ HandleUSBRequest(USBDevice, USBRequest) }); ok {
-			baseDevice.HandleUSBRequest(srv.USBDevices[0], usbReq)
+		case *protoIOUnlinkRequest:
+			err := syscall.Errno(0)
+
+			submit := submitsBySeqnum[rq.Seqnum]
+			if submit != nil {
+				// This information is missed in
+				// the USBIP_CMD_SUBMIT.
+				rq.Endpoint = submit.Endpoint
+
+				err = dev.unlink(rq)
+			}
+
+			rsp := rq.Response(err)
+			pconn.SendIO(rsp)
 		}
 	}
+}
+
+// control handles USB control requests.
+func (srv *Server) control(ctx context.Context,
+	dev *Device, rq *protoIOSubmitRequest) ([]byte, syscall.Errno) {
+
+	var setup USBSetupPacket
+	setup.Decode(rq.Setup)
+
+	log.Debug(ctx, "CTRL: < %s", setup)
+	var data []byte
+	var err syscall.Errno
+
+	switch setup.RequestType & USBRecipientMask {
+	case USBRecipientDevice:
+		switch setup.Request {
+		case USBRequestGetStatus:
+			data, err = dev.getStatus()
+
+		case USBRequestGetDescriptor:
+			t := USBDescriptorType(setup.WValue >> 8)
+			i := int(setup.WValue & 255)
+			data, err = dev.getDescriptor(t, i)
+
+		case USBRequestGetConfiguration:
+			data, err = dev.getConfiguration()
+
+		case USBRequestSetConfiguration:
+			n := setup.WValue
+			data, err = dev.setConfiguration(int(n))
+		}
+
+	case USBRecipientInterface:
+		ifn := int(setup.WIndex)
+		alt := int(setup.WValue)
+
+		switch setup.Request {
+		case USBRequestGetStatus:
+			data, err = dev.getInterfaceStatus(ifn)
+
+		case USBRequestGetInterface:
+			data, err = dev.getInterface(ifn)
+
+		case USBRequestSetInterface:
+			data, err = dev.setInterface(ifn, alt)
+		}
+	}
+
+	if data != nil {
+		log.Debug(ctx, "CTRL: > %d bytes returned", len(data))
+	} else {
+		err = syscall.EPIPE
+		log.Debug(ctx, "CTRL: > %s", err)
+	}
+
+	return data, err
 }
