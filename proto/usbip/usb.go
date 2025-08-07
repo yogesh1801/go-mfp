@@ -6,7 +6,7 @@
 //
 // USB definitions
 
-package main
+package usbip
 
 import (
 	"fmt"

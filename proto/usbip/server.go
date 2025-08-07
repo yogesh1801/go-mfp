@@ -6,7 +6,7 @@
 //
 // IPP over USB emulation logic
 
-package main
+package usbip
 
 import (
 	"context"

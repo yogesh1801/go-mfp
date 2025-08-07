@@ -6,7 +6,7 @@
 //
 // USB Endpoint emulation.
 
-package main
+package usbip
 
 import (
 	"io"

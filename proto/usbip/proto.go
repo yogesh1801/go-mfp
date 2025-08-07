@@ -6,7 +6,7 @@
 //
 // USBIP protocol
 
-package main
+package usbip
 
 import (
 	"fmt"

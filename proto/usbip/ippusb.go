@@ -6,13 +6,16 @@
 //
 // IPP-USB device implementation
 
-package main
+package usbip
 
 import (
+	"context"
 	"net"
 	"net/http"
 	"sync/atomic"
 	"time"
+
+	"github.com/OpenPrinting/go-mfp/transport"
 )
 
 // ippusbAddr returned as local and remote address for the IPP over USB connections.
@@ -20,23 +23,20 @@ var ippusbAddr = &net.TCPAddr{IP: net.IPv4(127, 0, 0, 1), Port: 80, Zone: ""}
 
 // NewIPPUSB creates a new IPP over USB server (represented by the
 // [http.Server] and its [Endpoint]s
-func NewIPPUSB(numendpoints int) (*http.Server, []*Endpoint) {
+func NewIPPUSB(ctx context.Context,
+	numendpoints int,
+	handler http.Handler) (*transport.Server, []*Endpoint) {
+
 	endpoints := make([]*Endpoint, numendpoints)
 	for i := range endpoints {
 		endpoints[i] = NewEndpoint(EndpointInOut, USBXferBulk, 512)
 	}
 
-	srv := &http.Server{}
+	srv := transport.NewServer(ctx, nil, handler)
 	listener := newIppusbListener(endpoints)
-
-	srv.Handler = http.HandlerFunc(handler)
 	go srv.Serve(listener)
 
 	return srv, endpoints
-}
-
-func handler(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(404)
 }
 
 // ippusbListener implements the [net.Listener] interface on a top of

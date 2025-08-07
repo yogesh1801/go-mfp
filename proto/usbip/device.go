@@ -6,7 +6,7 @@
 //
 // The virtual device
 
-package main
+package usbip
 
 import (
 	"errors"

@@ -6,7 +6,7 @@
 //
 // Device information
 
-package main
+package usbip
 
 import (
 	"bytes"

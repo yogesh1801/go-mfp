@@ -6,7 +6,7 @@
 //
 // Binary encoding
 
-package main
+package usbip
 
 import "github.com/OpenPrinting/go-mfp/internal/assert"
 
