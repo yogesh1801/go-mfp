@@ -54,7 +54,10 @@ func (mx *msgXlat) Reverse(
 func (mx *msgXlat) translateMsg(msg *goipp.Message,
 	xlat func(*url.URL) *url.URL) (*goipp.Message, changeSetMessage) {
 
-	chgmsg := changeSetMessage{}
+	chgmsg := changeSetMessage{
+		Local:  mx.urlxlat.Local(),
+		Remote: mx.urlxlat.Remote(),
+	}
 
 	// Obtain a deep copy of all message attributes, packed
 	// into groups. Roll over all attributes, translating

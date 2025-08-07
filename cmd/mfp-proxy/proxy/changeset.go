@@ -11,6 +11,7 @@ package proxy
 import (
 	"bytes"
 	"fmt"
+	"net/url"
 
 	"github.com/OpenPrinting/goipp"
 )
@@ -18,7 +19,8 @@ import (
 // changeSetMessage represents set of changes, applied to
 // the [goipp.Message] during translation
 type changeSetMessage struct {
-	Groups []changeSetGroup // Changes per group
+	Local, Remote *url.URL
+	Groups        []changeSetGroup // Changes per group
 }
 
 // changeSetGroup represents set of changes, applied to the
@@ -43,6 +45,10 @@ func (chg changeSetMessage) Empty() bool {
 // It implements [log.Marshaler] interface.
 func (chg changeSetMessage) MarshalLog() []byte {
 	var buf bytes.Buffer
+
+	fmt.Fprintf(&buf, "Local URL:  %s\n", chg.Local)
+	fmt.Fprintf(&buf, "Remote URL: %s\n", chg.Remote)
+	fmt.Fprintf(&buf, "\n")
 
 	for _, g := range chg.Groups {
 		fmt.Fprintf(&buf, "GROUP %s:\n", g.Tag)

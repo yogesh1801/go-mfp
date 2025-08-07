@@ -54,6 +54,13 @@ var Command = argv.Command{
 			Validate:  argv.ValidateUint16,
 		},
 		argv.Option{
+			Name:      "-U",
+			Aliases:   []string{"--usbip"},
+			Help:      "USBIP mode",
+			Singleton: true,
+			Conflicts: []string{"-P"},
+		},
+		argv.Option{
 			Name:     "-E",
 			Aliases:  []string{"--escl"},
 			Help:     "Forward eSCL requests from local path to url",
@@ -138,15 +145,15 @@ func cmdProxyHandler(ctx context.Context, inv *argv.Invocation) error {
 
 	// Validate parameters
 	port, portOK := inv.Get("--port")
+	_, usbip := inv.Get("--usbip")
 
-	if !portOK {
-		err := errors.New("option required: --port")
+	if !portOK && !usbip {
+		err := errors.New("option required: --port or --usbip")
 		return err
 	}
 
 	// Parse mappings
 	var mappings []mapping
-	var err error
 
 	for _, opt := range inv.Values("--escl") {
 		m, err := parseMapping(protoESCL, opt)
@@ -190,18 +197,26 @@ func cmdProxyHandler(ctx context.Context, inv *argv.Invocation) error {
 	}
 
 	// Create HTTP server
-	portnum, err := strconv.Atoi(port)
-	assert.NoError(err)
+	var srvr *transport.Server
+	var portnum int
+	var err error
 
-	l, err := newListener(ctx, portnum)
-	if err != nil {
-		return err
+	if portOK {
+		portnum, err = strconv.Atoi(port)
+		assert.NoError(err)
+
+		l, err := newListener(ctx, portnum)
+		if err != nil {
+			return err
+		}
+
+		srvr = transport.NewServer(ctx, nil, mux)
+		go srvr.Serve(l)
+
+		defer srvr.Close()
+	} else {
+		srvr = newUsbipServer(ctx, mux)
 	}
-
-	srvr := transport.NewServer(ctx, nil, mux)
-	go srvr.Serve(l)
-
-	defer srvr.Close()
 
 	// Run external program if requested
 	if command, ok := inv.Get("command"); ok {
