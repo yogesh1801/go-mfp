@@ -9,21 +9,30 @@
 package transport
 
 import (
+	"context"
 	"net"
 	"net/http"
 	"sync"
+
+	"github.com/OpenPrinting/go-mfp/log"
 )
 
 // Server wraps [http.Server]
 type Server struct {
-	http.Server
+	http.Server                 // Underlying http.Server
+	ctx         context.Context // Server context
+	handler     http.Handler    // Request handler
 }
 
 // NewServer creates a new [Server].
 //
+// The provided [context.Context] used for logging and becomes
+// the base context for incoming requests.
+//
 // The [http.Server] used only as configuration template. If it
 // is nil, the reasonable defaults will be used instead.
-func NewServer(template *http.Server, handler http.Handler) *Server {
+func NewServer(ctx context.Context,
+	template *http.Server, handler http.Handler) *Server {
 	if template == nil {
 		template = &http.Server{}
 	}
@@ -44,11 +53,31 @@ func NewServer(template *http.Server, handler http.Handler) *Server {
 			BaseContext:                  template.BaseContext,
 			ConnContext:                  template.ConnContext,
 		},
+		ctx:     ctx,
+		handler: handler,
+	}
+
+	srvr.Server.BaseContext = func(net.Listener) context.Context {
+		return srvr.ctx
 	}
 
 	srvr.Handler = handler
 
 	return srvr
+}
+
+// handlerFunc wraps the http.Server.Handler.
+func (srvr *Server) handlerFunc(w http.ResponseWriter, r *http.Request) {
+	// Catch panics to log
+	defer func() {
+		v := recover()
+		if v != nil {
+			log.Panic(srvr.ctx, v)
+		}
+	}()
+
+	// Call the handler
+	srvr.handler.ServeHTTP(w, r)
 }
 
 // ServeAutoTLS is similar to the [http.Server.Serve] and

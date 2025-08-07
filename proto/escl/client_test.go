@@ -60,7 +60,7 @@ func TestClient(t *testing.T) {
 	}
 
 	handler := NewAbstractServer(context.TODO(), options)
-	server := transport.NewServer(nil, handler)
+	server := transport.NewServer(context.Background(), nil, handler)
 
 	go server.Serve(loopback)
 	defer server.Close()

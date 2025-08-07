@@ -69,7 +69,7 @@ func newProxy(ctx context.Context, m mapping, trace *traceWriter) (
 	go p.kill()
 
 	// Start HTTP server
-	p.srv = transport.NewServer(nil, p)
+	p.srv = transport.NewServer(ctx, nil, p)
 
 	p.closeWait.Add(1)
 	go func() {
@@ -102,14 +102,6 @@ func (p *proxy) Shutdown() {
 // ServeHTTP handles incoming HTTP requests.
 // It implements [http.Handler] interface.
 func (p *proxy) ServeHTTP(w http.ResponseWriter, in *http.Request) {
-	// Catch panics to log
-	defer func() {
-		v := recover()
-		if v != nil {
-			log.Panic(p.ctx, v)
-		}
-	}()
-
 	// Handle request
 	log.Debug(p.ctx, "%s %s", in.Method, in.URL)
 
