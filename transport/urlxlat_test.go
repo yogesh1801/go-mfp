@@ -82,6 +82,13 @@ func TestURLXlat(t *testing.T) {
 			in:     "http://127.0.0.1:631/1",
 			out:    "http://192.168.0.1:631/1",
 		},
+
+		{
+			local:  "http://localhost:60002/ipp/print",
+			remote: "ipp://localhost:631/printers/Boomaga",
+			in:     "ipp://localhost:60002/ipp/print",
+			out:    "ipp://localhost/printers/Boomaga",
+		},
 	}
 
 	for _, test := range tests {

@@ -30,6 +30,16 @@ func NewURLXlat(local, remote *url.URL) *URLXlat {
 	return &URLXlat{local, remote}
 }
 
+// Local returns the local-side URL
+func (ux *URLXlat) Local() *url.URL {
+	return ux.local
+}
+
+// Remote returns the remote-side URL
+func (ux *URLXlat) Remote() *url.URL {
+	return ux.remote
+}
+
 // Forward performs URL translation into local->remote direction
 func (ux *URLXlat) Forward(u *url.URL) *url.URL {
 	return ux.translate(u, ux.local, ux.remote)
@@ -66,21 +76,30 @@ func (ux *URLXlat) translate(u, from, to *url.URL) *url.URL {
 		return u
 	}
 
+	// Translate path.
+	//
+	// Input path must be prefixed by the path we are
+	// translating from (from.Path).
+	//
+	// If this is true, we replace the prefix with the
+	// path we are translating to (to.Path).
 	pathIn := u.Path
-	pathFrom := from.Path
+	pathOut := ""
 
 	switch {
-	case !strings.HasPrefix(pathIn, pathFrom):
+	case !strings.HasPrefix(pathIn, from.Path):
 		// u.Path must be prefixed by from.Path
 		return u
 
-	case pathIn == pathFrom:
-	case pathFrom == "/" || pathIn[len(pathFrom)] == '/':
-		// if pathIn is longer that pathFrom, they must
+	case pathIn == from.Path:
+		pathOut = to.Path
+
+	case from.Path == "/" || pathIn[len(from.Path)] == '/':
+		// if pathIn is longer that from.Path, they must
 		// diverge at the path separator
 		//
 		// Translate pathIn at this case
-		pathIn = pathIn[len(pathFrom):]
+		pathOut = path.Join(to.Path, pathIn[len(from.Path):])
 
 	default:
 		// Otherwise, don't translate
@@ -99,7 +118,7 @@ func (ux *URLXlat) translate(u, from, to *url.URL) *url.URL {
 
 	u.User = to.User
 	u.Host = to.Host
-	u.Path = path.Join(to.Path, pathIn)
+	u.Path = pathOut
 
 	URLStripPort(u)
 
