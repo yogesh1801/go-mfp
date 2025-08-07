@@ -61,7 +61,7 @@ func NewServer(ctx context.Context,
 		return srvr.ctx
 	}
 
-	srvr.Handler = handler
+	srvr.Handler = http.HandlerFunc(srvr.handlerFunc)
 
 	return srvr
 }
