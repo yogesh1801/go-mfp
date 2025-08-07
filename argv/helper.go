@@ -35,7 +35,7 @@ import (
 //	hlpOffSubCommandHelp:    |<------------------>|
 const (
 	hlpOffOptionName     = 2
-	hlpOffOptionHelp     = 20
+	hlpOffOptionHelp     = 24
 	hlpOffSubCommandName = hlpOffOptionName
 	hlpOffSubCommandHelp = hlpOffOptionHelp
 	hlpOffParameterName  = hlpOffOptionName
