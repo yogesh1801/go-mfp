@@ -14,12 +14,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"net"
 	"net/http"
 	"net/http/httputil"
 	"strconv"
 	"strings"
-	"sync"
 	"sync/atomic"
 
 	"github.com/OpenPrinting/go-mfp/log"
@@ -29,74 +27,28 @@ import (
 
 // proxy implements an IPP/eSCL/WSD proxy
 type proxy struct {
-	ctx       context.Context   // Logging/shutdown context
-	trace     *traceWriter      // Trace writer (may be nil)
-	cancel    func()            // ctx cancel function
-	m         mapping           // Local/remote mapping
-	l         net.Listener      // TCP listener for incoming connections
-	srv       *transport.Server // HTTP server for incoming connections
-	clnt      *transport.Client // HTTP client part of proxy
-	closeWait sync.WaitGroup    // Wait for proxy.Close completion
-	rqnum     atomic.Uint32     // Request number, for logging
+	ctx    context.Context   // Logging/shutdown context
+	trace  *traceWriter      // Trace writer (may be nil)
+	cancel func()            // ctx cancel function
+	m      mapping           // Local/remote mapping
+	clnt   *transport.Client // HTTP client part of proxy
+	rqnum  atomic.Uint32     // Request number, for logging
 }
 
 // newProxy creates a new proxy for the specified mapping.
-func newProxy(ctx context.Context, m mapping, trace *traceWriter) (
-	*proxy, error) {
-	log.Debug(ctx, "proxy started: %d->%s", m.localPort, m.targetURL)
+func newProxy(ctx context.Context, m mapping, trace *traceWriter) *proxy {
 
-	// Create TCP listener
-	l, err := newListener(ctx, m.localPort)
-	if err != nil {
-		return nil, err
-	}
-
-	// Create cancelable context
-	ctx, cancel := context.WithCancel(ctx)
+	log.Debug(ctx, "proxy added: %s->%s", m.localPath, m.targetURL)
 
 	// Create proxy structure
 	p := &proxy{
-		ctx:    ctx,
-		trace:  trace,
-		cancel: cancel,
-		m:      m,
-		l:      l,
-		clnt:   transport.NewClient(nil),
+		ctx:   ctx,
+		trace: trace,
+		m:     m,
+		clnt:  transport.NewClient(nil),
 	}
 
-	// Ensure cancellation propagation
-	p.closeWait.Add(1)
-	go p.kill()
-
-	// Start HTTP server
-	p.srv = transport.NewServer(ctx, nil, p)
-
-	p.closeWait.Add(1)
-	go func() {
-		p.srv.Serve(l)
-		p.closeWait.Done()
-	}()
-
-	return p, nil
-}
-
-// kill closes the proxy and terminates all active session when proxy.ctx
-// is canceled.
-func (p *proxy) kill() {
-	<-p.ctx.Done()
-
-	p.srv.Close()
-
-	p.closeWait.Done()
-}
-
-// Shutdown performs proxy shutdown.
-func (p *proxy) Shutdown() {
-	p.cancel()
-	p.closeWait.Wait()
-
-	log.Debug(p.ctx, "proxy finished: %d->%s",
-		p.m.localPort, p.m.targetURL)
+	return p
 }
 
 // ServeHTTP handles incoming HTTP requests.
@@ -110,6 +62,7 @@ func (p *proxy) ServeHTTP(w http.ResponseWriter, in *http.Request) {
 	switch {
 	case p.m.proto == protoIPP && in.Method == "POST" &&
 		ct == "application/ipp":
+
 		p.doIPP(w, in)
 
 	case in.Method == "GET":
@@ -150,6 +103,8 @@ func (p *proxy) msgxlat(in *http.Request) (*msgXlat, error) {
 		err = fmt.Errorf("%q: can't parse local URL", s)
 		return nil, err
 	}
+
+	u.Path = p.m.localPath
 
 	urlxlat := transport.NewURLXlat(u, p.m.targetURL)
 	msgxlat := newMsgXlat(urlxlat)

@@ -11,7 +11,6 @@ package proxy
 import (
 	"fmt"
 	"net/url"
-	"strconv"
 	"strings"
 
 	"github.com/OpenPrinting/go-mfp/transport"
@@ -21,8 +20,17 @@ import (
 type mapping struct {
 	param     string   // original parameter
 	proto     proto    // Proxy protocol
-	localPort int      // Local port
+	localPath string   // Local path
 	targetURL *url.URL // Destination URL
+}
+
+// validateMapping mapping validates mapping, defined as the
+// command-line option string.
+//
+// It can be used as argv.Option.Validate callback.
+func validateMapping(param string) error {
+	_, err := parseMapping(protoIPP, param)
+	return err
 }
 
 // parseMapping parses mapping from the command-line option
@@ -42,17 +50,14 @@ func parseMapping(proto proto, param string) (m mapping, err error) {
 	}
 
 	if local == "" || target == "" {
-		err = fmt.Errorf("parameter must be \"local-port=target-url\"")
+		err = fmt.Errorf("parameter must be \"path=url\"")
 		return
 	}
 
-	// Parse local-port
-	m.localPort, err = strconv.Atoi(local)
-	if err != nil || m.localPort < 1 || m.localPort > 65535 {
-		err = fmt.Errorf("%q: invalid port", local)
-		return
-	}
+	// Parse local path
+	m.localPath = local
 
+	// Parse target URL
 	m.targetURL, err = transport.ParseAddr(target, "")
 	if err != nil {
 		err = fmt.Errorf("%q: %s", target, err)

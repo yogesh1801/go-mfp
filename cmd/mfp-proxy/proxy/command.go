@@ -11,10 +11,14 @@ package proxy
 import (
 	"context"
 	"errors"
+	"fmt"
+	"strconv"
 
 	"github.com/OpenPrinting/go-mfp/argv"
+	"github.com/OpenPrinting/go-mfp/internal/assert"
 	"github.com/OpenPrinting/go-mfp/internal/env"
 	"github.com/OpenPrinting/go-mfp/log"
+	"github.com/OpenPrinting/go-mfp/transport"
 )
 
 // description is printed as a command description text
@@ -28,10 +32,10 @@ const description = "" +
 	"\n" +
 	"If optional command is specified, the CUPS_SERVER and the\n" +
 	"SANE_AIRSCAN_DEVICE environment variables will be set properly\n" +
-	"and the command will be executed, The simulator will exit when\n" +
+	"and the command will be executed, The proxy  will exit when\n" +
 	"the command finished.\n" +
 	"\n" +
-	"Without that the simulator will run until termination signal\n" +
+	"Without that the proxy  will run until termination signal\n" +
 	"is received.\n"
 
 // Command is the 'proxy' command description
@@ -42,37 +46,33 @@ var Command = argv.Command{
 	NoOptionsAfterParameters: true,
 	Options: []argv.Option{
 		argv.Option{
-			Name:      "--escl",
-			Help:      "Add eSCL proxy (--escl local-port=target-url)",
+			Name:      "-P",
+			Aliases:   []string{"--port"},
+			Help:      "TCP port to listen",
+			HelpArg:   "port",
 			Singleton: true,
-			Validate: func(s string) error {
-				_, err := parseMapping(protoESCL, s)
-				if err == nil {
-					err = errors.New("not implemented")
-				}
-				return err
-			},
+			Validate:  argv.ValidateUint16,
 		},
 		argv.Option{
-			Name:      "--ipp",
-			Help:      "Add IPP proxy (--ipp local-port=target-url)",
-			Singleton: true,
-			Validate: func(s string) error {
-				_, err := parseMapping(protoIPP, s)
-				return err
-			},
+			Name:     "-E",
+			Aliases:  []string{"--escl"},
+			Help:     "Forward eSCL requests from local path to url",
+			HelpArg:  "path=url",
+			Validate: validateMapping,
 		},
 		argv.Option{
-			Name:      "--wsd",
-			Help:      "Add WSD proxy (--wsd local-port=target-url)",
-			Singleton: true,
-			Validate: func(s string) error {
-				_, err := parseMapping(protoWSD, s)
-				if err == nil {
-					err = errors.New("not implemented")
-				}
-				return err
-			},
+			Name:     "-I",
+			Aliases:  []string{"--ipp"},
+			Help:     "Forward IPP requests from local path to url",
+			HelpArg:  "path=url",
+			Validate: validateMapping,
+		},
+		argv.Option{
+			Name:     "-W",
+			Aliases:  []string{"--wsd"},
+			Help:     "Forward IPP requests from local path to url",
+			HelpArg:  "path=url",
+			Validate: validateMapping,
 		},
 		argv.Option{
 			Name:     "-t",
@@ -136,54 +136,78 @@ func cmdProxyHandler(ctx context.Context, inv *argv.Invocation) error {
 		defer trace.Close()
 	}
 
-	// Start proxies
+	// Validate parameters
+	port, portOK := inv.Get("--port")
+
+	if !portOK {
+		err := errors.New("option required: --port")
+		return err
+	}
+
+	// Parse mappings
 	var mappings []mapping
-	var proxies []*proxy
-	var ippPort, esclPort int
+	var err error
 
-	for _, param := range inv.Values("--escl") {
-		m := mustParseMapping(protoESCL, param)
-		esclPort = m.localPort
-		mappings = append(mappings, m)
-	}
-
-	for _, param := range inv.Values("--ipp") {
-		m := mustParseMapping(protoIPP, param)
-		ippPort = m.localPort
-		mappings = append(mappings, m)
-	}
-
-	for _, param := range inv.Values("--wsd") {
-		m := mustParseMapping(protoWSD, param)
-		mappings = append(mappings, m)
-	}
-
-	for _, m := range mappings {
-		p, err := newProxy(ctx, m, trace)
+	for _, opt := range inv.Values("--escl") {
+		m, err := parseMapping(protoESCL, opt)
 		if err != nil {
-			log.Error(ctx, "%s: %s", m.param, err)
-			return errors.New("Initialization failure")
+			return err
 		}
-
-		proxies = append(proxies, p)
+		mappings = append(mappings, m)
 	}
 
-	if len(proxies) == 0 {
-		return errors.New("no proxies configured")
+	for _, opt := range inv.Values("--ipp") {
+		m, err := parseMapping(protoIPP, opt)
+		if err != nil {
+			return err
+		}
+		mappings = append(mappings, m)
 	}
 
-	// Shutdown all proxies at exit
-	defer func() {
-		for _, p := range proxies {
-			p.Shutdown()
+	for _, opt := range inv.Values("--wsd") {
+		m, err := parseMapping(protoWSD, opt)
+		if err != nil {
+			return err
 		}
-	}()
+		mappings = append(mappings, m)
+	}
+
+	if len(mappings) == 0 {
+		err := errors.New("at least one option required: --escl, --ipp or --wsd")
+		return err
+	}
+
+	// Create and populate the PathMux
+	mux := transport.NewPathMux()
+	for _, m := range mappings {
+		p := newProxy(ctx, m, trace)
+		ok := mux.Add(m.localPath, p)
+		if !ok {
+			err := fmt.Errorf("Local path %q used multiple times",
+				m.localPath)
+			return err
+		}
+	}
+
+	// Create HTTP server
+	portnum, err := strconv.Atoi(port)
+	assert.NoError(err)
+
+	l, err := newListener(ctx, portnum)
+	if err != nil {
+		return err
+	}
+
+	srvr := transport.NewServer(ctx, nil, mux)
+	go srvr.Serve(l)
+
+	defer srvr.Close()
 
 	// Run external program if requested
 	if command, ok := inv.Get("command"); ok {
 		runner := env.Runner{
-			CUPSPort: ippPort,
-			ESCLPort: esclPort,
+			CUPSPort: portnum,
+			ESCLPort: portnum,
 			ESCLName: "Virtual MFP Scanner",
 		}
 
