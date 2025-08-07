@@ -13,6 +13,9 @@ var (
 	// Console writes output to console.
 	Console Backend = &backendConsole{}
 
+	// Console writes output to stderr.
+	Stderr Backend = &backendStderr{}
+
 	// Discard silently discards any output.
 	Discard Backend = &backendDiscard{}
 )

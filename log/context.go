@@ -42,7 +42,7 @@ func WithPrefix(parent context.Context, prefix string) context.Context {
 }
 
 // CtxLogger returns a [Logger] associated with the [context.Context].
-// If no Logger is available, [DiscardLogger] will be returned.
+// If no Logger is available, [FatalLogger] will be returned.
 //
 // Note, [context.Context] parameter may be safely passed as nil.
 func CtxLogger(ctx context.Context) *Logger {
@@ -56,7 +56,7 @@ func CtxLogger(ctx context.Context) *Logger {
 		}
 	}
 
-	return DiscardLogger
+	return FatalLogger
 }
 
 // CtxPrefix returns a log prefix associated with the [context.Context].

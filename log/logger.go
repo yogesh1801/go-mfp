@@ -14,11 +14,22 @@ import (
 
 // Standard loggers:
 var (
-	// DefaultLogger is the default logging destination.
-	DefaultLogger = NewLogger(LevelAll, Console)
+	// StderrLogger writes logs to the stderr.
+	StderrLogger = NewLogger(LevelAll, Stderr)
+
+	// ConsoleLogger writes logs to the console.
+	// Logs are colored, if console supports that.
+	ConsoleLogger = NewLogger(LevelAll, Console)
+
+	// FatalLogger writes LevelFatal logs to the
+	// stderr and discards less important messages.
+	FatalLogger = NewLogger(LevelFatal, Stderr)
 
 	// DiscardLogger discards all logs written to.
 	DiscardLogger = NewLogger(LevelNone, Discard)
+
+	// DefaultLogger is the default logging destination.
+	DefaultLogger = ConsoleLogger
 )
 
 // Logger is the logging destination.
