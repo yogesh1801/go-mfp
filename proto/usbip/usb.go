@@ -147,18 +147,18 @@ type USBDeviceDescriptor struct {
 	IDVendor        uint16                       // Vendor ID
 	IDProduct       uint16                       // Product ID
 	BCDDevice       USBVersion                   // Device release number
-	Manufacturer    string                       // Manufacturer name
-	Product         string                       // Product name
-	SerialNumber    string                       // Device serial number
+	IManufacturer   string                       // Manufacturer name
+	IProduct        string                       // Product name
+	ISerialNumber   string                       // Device serial number
 	Configurations  []USBConfigurationDescriptor // Device configurations
 }
 
 // USBConfigurationDescriptor represents the USB configuration descriptor.
 type USBConfigurationDescriptor struct {
-	Configuration string            // Configuration description
-	BMAttributes  USBConfAttributes // Attribute bits
-	MaxPower      uint8             // Max power, in 2mA units
-	Interfaces    []USBInterface    // Interfaces grouped by alt settings
+	IConfiguration string            // Configuration description
+	BMAttributes   USBConfAttributes // Attribute bits
+	MaxPower       uint8             // Max power, in 2mA units
+	Interfaces     []USBInterface    // Interfaces grouped by alt settings
 }
 
 // USBInterface represents collection of [USBInterfaceDescriptor]s
@@ -182,7 +182,7 @@ type USBInterfaceDescriptor struct {
 	BInterfaceClass    uint8       // Interface class
 	BInterfaceSubClass uint8       // Interface subclass
 	BInterfaceProtocol uint8       // Interface protocol
-	Interface          string      // Interface description
+	IInterface         string      // Interface description
 	Endpoints          []*Endpoint // Interface endpoints
 }
 

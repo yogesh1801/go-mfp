@@ -91,16 +91,16 @@ func NewDevice(desc USBDeviceDescriptor) (*Device, error) {
 
 	// Populate strings
 	dev.addstring("") // Reserve index 0
-	dev.addstring(desc.Manufacturer)
-	dev.addstring(desc.Product)
-	dev.addstring(desc.SerialNumber)
+	dev.addstring(desc.IManufacturer)
+	dev.addstring(desc.IProduct)
+	dev.addstring(desc.ISerialNumber)
 
 	for _, conf := range desc.Configurations {
-		dev.addstring(conf.Configuration)
+		dev.addstring(conf.IConfiguration)
 
 		for _, iff := range conf.Interfaces {
 			for _, alt := range iff.AltSettings {
-				dev.addstring(alt.Interface)
+				dev.addstring(alt.IInterface)
 			}
 		}
 	}
@@ -151,13 +151,13 @@ func (dev *Device) getDescriptor(t USBDescriptorType, i int) ([]byte, syscall.Er
 		enc.PutLE16(desc.IDProduct)           // idProduct
 		enc.PutLE16(uint16(desc.BCDDevice))   // bcdDevice
 
-		i := dev.getstring(desc.Manufacturer)
+		i := dev.getstring(desc.IManufacturer)
 		enc.PutU8(uint8(i)) // iManufacturer
 
-		i = dev.getstring(desc.Product)
+		i = dev.getstring(desc.IProduct)
 		enc.PutU8(uint8(i)) // iProduct
 
-		i = dev.getstring(desc.SerialNumber)
+		i = dev.getstring(desc.ISerialNumber)
 		enc.PutU8(uint8(i)) // iSerialNumber
 
 		enc.PutU8(uint8(len(desc.Configurations))) // bNumConfigurations
@@ -179,7 +179,7 @@ func (dev *Device) getDescriptor(t USBDescriptorType, i int) ([]byte, syscall.Er
 		enc.PutU8(uint8(len(conf.Interfaces)))       // bNumInterfaces
 		enc.PutU8(uint8(i + 1))                      // bConfigurationValue
 
-		i := dev.getstring(conf.Configuration)
+		i := dev.getstring(conf.IConfiguration)
 		enc.PutU8(uint8(i)) // iConfiguration
 
 		attrs := conf.BMAttributes
@@ -203,7 +203,7 @@ func (dev *Device) getDescriptor(t USBDescriptorType, i int) ([]byte, syscall.Er
 				enc.PutU8(alt.BInterfaceSubClass)        // bInterfaceSubClass
 				enc.PutU8(alt.BInterfaceProtocol)        // bInterfaceProtocol
 
-				i := dev.getstring(alt.Interface)
+				i := dev.getstring(alt.IInterface)
 				enc.PutU8(uint8(i)) // iInterface
 
 				for _, ep := range alt.Endpoints {
