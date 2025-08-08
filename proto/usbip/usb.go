@@ -137,6 +137,21 @@ const (
 )
 
 // USBDeviceDescriptor represents the USB device descriptor.
+//
+// This structure and its children structures are very close
+// to the USB descriptor structures commonly used in the USB
+// documentation, but doesn't match 1:1.
+//
+// In particular, some fields, like bDescriptorType and bLength
+// are omitted and computed automatically. String fields, like
+// iManufacturer, are represented by Go strings, not by indices
+// of the strings descriptor (indices are assigned automatically
+// and appropriate string descriptors are automatically generated
+// as well).
+//
+// Interface numbers, alternate settings numbers and endpoint
+// addresses are automatically assigned, based on the device
+// configuration layout.
 type USBDeviceDescriptor struct {
 	BCDUSB          USBVersion                   // USB spec version
 	Speed           USBSpeed                     // Device speed
