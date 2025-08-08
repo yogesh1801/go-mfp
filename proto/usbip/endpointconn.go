@@ -51,7 +51,15 @@ func NewEndpointConn(ep *Endpoint, local, remote net.Addr) *EndpointConn {
 
 // Close closes the connection and unblocks all pending Reads and Writes.
 func (conn *EndpointConn) Close() error {
+	// Unblock readers and writers
 	conn.closecancel()
+
+	// Return connection to the listener's pool
+	listener := conn.listener.Swap(nil)
+	if listener != nil {
+		listener.endpoints <- conn.ep
+	}
+
 	return nil
 }
 
