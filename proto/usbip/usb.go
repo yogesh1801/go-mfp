@@ -14,7 +14,7 @@ import (
 	"github.com/OpenPrinting/go-mfp/util/generic"
 )
 
-// USB limits
+// USB limits.
 const (
 	// USBMaxDevices is the maximum number of devices on bus.
 	USBMaxDevices = 127
@@ -40,7 +40,7 @@ const (
 // USBVersion is the BCD-encoded version number.
 type USBVersion uint16
 
-// USBBVersion constant
+// USBBVersion constants.
 const (
 	// USB 1.0
 	USB10 USBVersion = 0x0100
@@ -70,7 +70,7 @@ const (
 	USBSpeedHigh USBSpeed = 3
 )
 
-// USBDescriptorType defines the type of the USB descriptor
+// USBDescriptorType defines the type of the USB descriptor.
 type USBDescriptorType uint8
 
 // Known USBDescriptorType values:
@@ -202,8 +202,7 @@ type USBInterfaceDescriptor struct {
 }
 
 // CntEndpoints returns USBInterfaceDescriptor's count of endpoints.
-// Please notice that the [EndpointInOut] endpoints are counted
-// twice.
+// Please notice that the [EndpointInOut] endpoints are counted twice.
 func (iff USBInterfaceDescriptor) CntEndpoints() int {
 	cnt := 0
 
@@ -226,7 +225,8 @@ type USBEndpointDescriptor struct {
 	MaxPacketSize uint16                // Max packet size for endpoint
 }
 
-// USBSetupRequestType is the request type bits
+// USBSetupRequestType is the request type bits. It is used
+// in the [USBSetupPacket].
 type USBSetupRequestType uint8
 
 // USBSetupRequestType bits:
