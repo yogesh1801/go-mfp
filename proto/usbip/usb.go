@@ -182,12 +182,12 @@ type USBInterface struct {
 	AltSettings []USBInterfaceDescriptor // Ordered by alt setting.
 }
 
-// CntEndpoints returns count of endpoints, used by the interface,
+// cntEndpoints returns count of endpoints, used by the interface,
 // taking all alternate settings into the configuration.
-func (iff USBInterface) CntEndpoints() int {
+func (iff USBInterface) cntEndpoints() int {
 	cnt := 0
 	for _, alt := range iff.AltSettings {
-		cnt = generic.Max(cnt, alt.CntEndpoints())
+		cnt = generic.Max(cnt, alt.cntEndpoints())
 	}
 	return cnt
 }
@@ -201,9 +201,9 @@ type USBInterfaceDescriptor struct {
 	Endpoints          []*Endpoint // Interface endpoints
 }
 
-// CntEndpoints returns USBInterfaceDescriptor's count of endpoints.
+// cntEndpoints returns USBInterfaceDescriptor's count of endpoints.
 // Please notice that the [EndpointInOut] endpoints are counted twice.
-func (iff USBInterfaceDescriptor) CntEndpoints() int {
+func (iff USBInterfaceDescriptor) cntEndpoints() int {
 	cnt := 0
 
 	for _, ep := range iff.Endpoints {
@@ -216,13 +216,6 @@ func (iff USBInterfaceDescriptor) CntEndpoints() int {
 	}
 
 	return cnt
-}
-
-// USBEndpointDescriptor represents the USB endpoint descriptor.
-type USBEndpointDescriptor struct {
-	Input         bool                  // This is input endpoint
-	BMAttributes  USBEndpointAttributes // Attribute bits
-	MaxPacketSize uint16                // Max packet size for endpoint
 }
 
 // USBSetupRequestType is the request type bits. It is used

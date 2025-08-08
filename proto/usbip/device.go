@@ -73,7 +73,7 @@ func NewDevice(desc USBDeviceDescriptor) (*Device, error) {
 
 		endpoints := 1 // Reserved for configuration endpoint
 		for _, iff := range conf.Interfaces {
-			endpoints += iff.CntEndpoints()
+			endpoints += iff.cntEndpoints()
 			if endpoints > USBMaxEndpoints {
 				err := fmt.Errorf(
 					"Configuration %d has too many (%d) endpoints",
@@ -192,7 +192,7 @@ func (dev *Device) getDescriptor(t USBDescriptorType, i int) ([]byte, syscall.Er
 		epnum := 1
 		for iffno, iff := range conf.Interfaces {
 			for altno, alt := range iff.AltSettings {
-				endpoints := iff.CntEndpoints()
+				endpoints := iff.cntEndpoints()
 
 				enc.PutU8(9)                             // bLength
 				enc.PutU8(uint8(USBDescriptorInterface)) // bDescriptorType
