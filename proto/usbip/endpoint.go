@@ -144,10 +144,17 @@ func (ep *Endpoint) Read(buf []byte) (int, error) {
 
 // ReadContext is the [context.Context]-aware version of the [Endpoint.Read].
 func (ep *Endpoint) ReadContext(ctx context.Context, buf []byte) (int, error) {
+	// Check that Endpoint direction allows reading
 	if ep.ty == EndpointIn {
 		return 0, io.ErrClosedPipe
 	}
 
+	// If context already canceled, return immediately
+	if err := ctx.Err(); err != nil {
+		return 0, err
+	}
+
+	// Wait for the data to arrive
 	ep.lock.Lock()
 	defer ep.lock.Unlock()
 
@@ -184,10 +191,17 @@ func (ep *Endpoint) Write(buf []byte) (int, error) {
 
 // WriteContext is the [context.Context]-aware version of the [Endpoint.Write].
 func (ep *Endpoint) WriteContext(ctx context.Context, buf []byte) (int, error) {
+	// Check that Endpoint direction allows writing
 	if ep.ty == EndpointOut {
 		return 0, io.ErrClosedPipe
 	}
 
+	// If context already canceled, return immediately
+	if err := ctx.Err(); err != nil {
+		return 0, err
+	}
+
+	// Wait for the opportunity to write the data
 	ep.lock.Lock()
 	defer ep.lock.Unlock()
 
