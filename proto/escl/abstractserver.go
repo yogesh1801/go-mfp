@@ -91,7 +91,7 @@ func NewAbstractServer(ctx context.Context,
 // It implements the [http.Handler] interface.
 func (srv *AbstractServer) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	// Create a transport.ServerQuery
-	query := transport.NewServerQuery(srv.ctx, w, rq)
+	query := transport.NewServerQuery(w, rq)
 	defer query.Finish()
 
 	// Call the OnHTTPRequest hook

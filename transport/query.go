@@ -9,7 +9,6 @@
 package transport
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -41,9 +40,8 @@ type ServerQuery struct {
 }
 
 // NewServerQuery returns the new [ServerQuery].
-func NewServerQuery(ctx context.Context,
-	w http.ResponseWriter, rq *http.Request) *ServerQuery {
-
+func NewServerQuery(w http.ResponseWriter, rq *http.Request) *ServerQuery {
+	ctx := rq.Context()
 	query := &ServerQuery{
 		log: log.Begin(ctx),
 		rq:  rq,
