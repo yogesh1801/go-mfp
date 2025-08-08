@@ -152,6 +152,14 @@ func NewEndpointListener(local, remote net.Addr,
 
 // Accept waits for and returns the next connection to the listener.
 func (listener *EndpointListener) Accept() (net.Conn, error) {
+	// Don't even try to accept, if listener already closed
+	select {
+	case <-listener.closechan:
+		return nil, net.ErrClosed
+	default:
+	}
+
+	// Wait for connection or close
 	select {
 	case ep := <-listener.endpoints:
 		conn := NewEndpointConn(ep, listener.local, listener.remote)
