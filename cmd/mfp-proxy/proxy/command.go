@@ -12,6 +12,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"strconv"
 
 	"github.com/OpenPrinting/go-mfp/argv"
@@ -215,7 +216,11 @@ func cmdProxyHandler(ctx context.Context, inv *argv.Invocation) error {
 
 		defer srvr.Close()
 	} else {
-		srvr = newUsbipServer(ctx, mux)
+		addr := &net.TCPAddr{
+			IP:   net.IPv4(127, 0, 0, 1),
+			Port: 3240,
+		}
+		srvr = newUsbipServer(ctx, addr, mux)
 	}
 
 	// Run external program if requested

@@ -10,6 +10,7 @@ package proxy
 
 import (
 	"context"
+	"net"
 	"net/http"
 
 	"github.com/OpenPrinting/go-mfp/internal/assert"
@@ -17,8 +18,14 @@ import (
 	"github.com/OpenPrinting/go-mfp/transport"
 )
 
+// newUsbipServer creates the new USBIP server representing
+// an IPP over USB MFP device.
+//
+// The server accepts incoming USBIP connection on a provided
+// address and forwards incoming IPP over USB requests (which
+// are essentially the HTTP requests) to the provided http.Handler.
 func newUsbipServer(ctx context.Context,
-	handler http.Handler) *transport.Server {
+	addr net.Addr, handler http.Handler) *transport.Server {
 
 	srv, endpoints := usbip.NewIPPUSB(ctx, 3, handler)
 
@@ -82,11 +89,11 @@ func newUsbipServer(ctx context.Context,
 	dev, err := usbip.NewDevice(desc)
 	assert.NoError(err)
 
-	usbipSrv := usbip.NewServer()
+	usbipSrv := usbip.NewServer(ctx)
 	err = usbipSrv.AddDevice(dev)
 	assert.NoError(err)
 
-	go usbipSrv.Run(ctx, "localhost", 3240)
+	go usbipSrv.ListenAndServe(addr)
 
 	return srv
 }

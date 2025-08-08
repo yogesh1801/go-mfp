@@ -11,21 +11,23 @@ package usbip
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net"
 	"sync"
 	"syscall"
+	"time"
 
 	"github.com/OpenPrinting/go-mfp/log"
+	"github.com/OpenPrinting/go-mfp/util/generic"
 )
 
 // Server implements the USBIP server.
 type Server struct {
-	devices    [USBMaxDevices + 1]devslot
-	nextslot   int
-	byid       map[devBusID]*devslot    // Slots by devBusID
-	bylocation map[devLocation]*devslot // Slots by devLocation
-	lock       sync.Mutex
+	ctx        context.Context            // Server context
+	devices    [USBMaxDevices + 1]devslot // Device slots
+	nextslot   int                        // Next free slot
+	byid       map[devBusID]*devslot      // Slots by devBusID
+	bylocation map[devLocation]*devslot   // Slots by devLocation
+	lock       sync.Mutex                 // Access lock
 }
 
 // devslot represents a device slot.
@@ -37,8 +39,9 @@ type devslot struct {
 }
 
 // NewServer creates a new [Server]
-func NewServer() *Server {
+func NewServer(ctx context.Context) *Server {
 	srv := &Server{
+		ctx:        ctx,
 		nextslot:   1,
 		byid:       make(map[devBusID]*devslot, USBMaxDevices+1),
 		bylocation: make(map[devLocation]*devslot, USBMaxDevices+1),
@@ -144,60 +147,71 @@ func (srv *Server) doDisconnect(pconn *protoConn) {
 	}
 }
 
-// Run starts the USB/IP server and handles incoming connections.
-func (srv *Server) Run(ctx context.Context, ip string, port int) {
-	if ip == "" {
-		ip = "0.0.0.0"
-	}
-	if port == 0 {
-		port = 3240
+// ListenAndServe listens on the TCP network address and
+// then calls [Server.Serve] to handle incoming connections.
+func (srv *Server) ListenAndServe(addr net.Addr) error {
+	l, err := net.Listen("tcp", addr.String())
+	if err != nil {
+		return err
 	}
 
-	listener, err := net.Listen("tcp", fmt.Sprintf("%s:%d", ip, port))
-	if err != nil {
-		panic(err)
-	}
-	defer listener.Close()
+	return srv.Serve(l)
+}
+
+// Serve accepts and serves incoming connections.
+func (srv *Server) Serve(l net.Listener) error {
+	const tempDelayMin = 5 * time.Millisecond
+	const tempDelayMax = 100 * time.Millisecond
+
+	tempDelay := tempDelayMin
 
 	for {
-		conn, err := listener.Accept()
+		conn, err := l.Accept()
 		if err != nil {
-			continue
+			if ne, ok := err.(net.Error); ok && ne.Temporary() {
+				time.Sleep(tempDelay)
+				tempDelay *= 2
+				tempDelay = generic.Min(tempDelay, tempDelayMax)
+				continue
+			}
+			return err
 		}
-		go srv.Serve(ctx, conn)
+
+		tempDelay = tempDelayMin
+		go srv.serve(conn)
 	}
 }
 
 // Serve manages a client connection.
-func (srv *Server) Serve(ctx context.Context, conn net.Conn) {
-	log.Debug(ctx, "Connection: from %s", conn.RemoteAddr())
+func (srv *Server) serve(conn net.Conn) {
+	log.Debug(srv.ctx, "Connection: from %s", conn.RemoteAddr())
 
 	// Create protocol connection
 	pconn := newProtoConn(conn)
 
 	defer func() {
 		srv.doDisconnect(pconn)
-		log.Debug(ctx, "Connection: closed")
+		log.Debug(srv.ctx, "Connection: closed")
 		pconn.Close()
 	}()
 
-	devinfo := srv.handshake(ctx, pconn)
+	devinfo := srv.handshake(pconn)
 	if devinfo == nil {
 		return
 	}
 
-	srv.io(ctx, pconn, devinfo)
+	srv.io(pconn, devinfo)
 }
 
 // handshake performs the USBIP handshake exchange.
-func (srv *Server) handshake(ctx context.Context, pconn *protoConn) *devInfo {
+func (srv *Server) handshake(pconn *protoConn) *devInfo {
 	rq, err := pconn.RecvHandshake()
 	if err != nil {
-		log.Debug(ctx, "Handshake: %s", err)
+		log.Debug(srv.ctx, "Handshake: %s", err)
 		return nil
 	}
 
-	log.Debug(ctx, "Handshake: < %s", rq)
+	log.Debug(srv.ctx, "Handshake: < %s", rq)
 
 	var rsp protoHandshakeResponse
 
@@ -209,10 +223,10 @@ func (srv *Server) handshake(ctx context.Context, pconn *protoConn) *devInfo {
 	}
 
 	if rsp != nil {
-		log.Debug(ctx, "Handshake: > %s", rsp)
+		log.Debug(srv.ctx, "Handshake: > %s", rsp)
 		err = pconn.SendHandshake(rsp)
 		if err != nil {
-			log.Debug(ctx, "Handshake: %s", err)
+			log.Debug(srv.ctx, "Handshake: %s", err)
 			return nil
 		}
 	}
@@ -225,7 +239,7 @@ func (srv *Server) handshake(ctx context.Context, pconn *protoConn) *devInfo {
 }
 
 // io performs USBIO I/O exchange.
-func (srv *Server) io(ctx context.Context, pconn *protoConn, devinfo *devInfo) {
+func (srv *Server) io(pconn *protoConn, devinfo *devInfo) {
 	dev := devinfo.Device
 	defer dev.shutdown()
 
@@ -240,22 +254,23 @@ func (srv *Server) io(ctx context.Context, pconn *protoConn, devinfo *devInfo) {
 		delete(submitsBySeqnum, rq.Seqnum)
 
 		rsp := rq.Response(err)
-		log.Debug(ctx, "IO:   > %s", rsp)
+		log.Debug(srv.ctx, "IO:   > %s", rsp)
 		pconn.SendIO(rsp)
 	}
 
 	for {
 		rq, err := pconn.RecvIO()
 		if err != nil {
-			log.Debug(ctx, "IO:   < %s", err)
+			log.Debug(srv.ctx, "IO:   < %s", err)
 			return
 		}
 
-		log.Debug(ctx, "IO:   < %s", rq)
+		log.Debug(srv.ctx, "IO:   < %s", rq)
 
 		hdr := rq.Header()
 		if hdr.Location != devinfo.Location {
-			log.Debug(ctx, "IO:   < Device: expected %s, present %s",
+			log.Debug(srv.ctx,
+				"IO:   < Device: expected %s, present %s",
 				devinfo.Location, hdr.Location)
 
 			// FIXME - reject request and continue
@@ -266,7 +281,7 @@ func (srv *Server) io(ctx context.Context, pconn *protoConn, devinfo *devInfo) {
 		case *protoIOSubmitRequest:
 			// Control requests are processed instantly.
 			if rq.Endpoint == 0 {
-				data, err := srv.control(ctx, dev, rq)
+				data, err := srv.control(dev, rq)
 
 				rq.Buffer = data
 				rq.actualLength = len(data)
@@ -304,13 +319,13 @@ func (srv *Server) io(ctx context.Context, pconn *protoConn, devinfo *devInfo) {
 }
 
 // control handles USB control requests.
-func (srv *Server) control(ctx context.Context,
-	dev *Device, rq *protoIOSubmitRequest) ([]byte, syscall.Errno) {
+func (srv *Server) control(dev *Device,
+	rq *protoIOSubmitRequest) ([]byte, syscall.Errno) {
 
 	var setup USBSetupPacket
 	setup.Decode(rq.Setup)
 
-	log.Debug(ctx, "CTRL: < %s", setup)
+	log.Debug(srv.ctx, "CTRL: < %s", setup)
 	var data []byte
 	var err syscall.Errno
 
@@ -350,10 +365,10 @@ func (srv *Server) control(ctx context.Context,
 	}
 
 	if data != nil {
-		log.Debug(ctx, "CTRL: > %d bytes returned", len(data))
+		log.Debug(srv.ctx, "CTRL: > %d bytes returned", len(data))
 	} else {
 		err = syscall.EPIPE
-		log.Debug(ctx, "CTRL: > %s", err)
+		log.Debug(srv.ctx, "CTRL: > %s", err)
 	}
 
 	return data, err
