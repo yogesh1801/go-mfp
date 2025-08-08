@@ -12,8 +12,6 @@ import (
 	"context"
 	"net"
 	"net/http"
-	"sync/atomic"
-	"time"
 
 	"github.com/OpenPrinting/go-mfp/transport"
 )
@@ -33,100 +31,8 @@ func NewIPPUSB(ctx context.Context,
 	}
 
 	srv := transport.NewServer(ctx, nil, handler)
-	listener := newIppusbListener(endpoints)
+	listener := NewEndpointListener(ippusbAddr, ippusbAddr, endpoints)
 	go srv.Serve(listener)
 
 	return srv, endpoints
-}
-
-// ippusbListener implements the [net.Listener] interface on a top of
-// the group of [Endpoint]s
-type ippusbListener struct {
-	endpoints chan *Endpoint // Queue of available endpoints
-	closechan chan struct{}  // Closed by ippusbListener.Close
-}
-
-// newIppusbListener returns the new ippusbListener
-func newIppusbListener(endpoints []*Endpoint) *ippusbListener {
-	listener := &ippusbListener{
-		endpoints: make(chan *Endpoint, len(endpoints)),
-		closechan: make(chan struct{}),
-	}
-
-	for _, ep := range endpoints {
-		listener.endpoints <- ep
-	}
-
-	return listener
-}
-
-// Accept waits for and returns the next connection to the listener.
-func (listener *ippusbListener) Accept() (net.Conn, error) {
-	select {
-	case ep := <-listener.endpoints:
-		conn := &ippusbConn{Endpoint: ep}
-		conn.listener.Store(listener)
-		return conn, nil
-	case <-listener.closechan:
-		return nil, net.ErrClosed
-	}
-}
-
-// Close closes the listener.
-// Any blocked Accept operations will be unblocked and return errors.
-func (listener *ippusbListener) Close() error {
-	close(listener.closechan)
-	return nil
-}
-
-// Addr returns the listener's network address.
-func (listener *ippusbListener) Addr() net.Addr {
-	return ippusbAddr
-}
-
-// ippusbEndpoint wraps the Endpoint and adds stub implementation of the
-// missed methods to implement the net.Conn interface
-type ippusbConn struct {
-	*Endpoint                                // Underlying Endpoint
-	listener  atomic.Pointer[ippusbListener] // Parent ippusbListener
-}
-
-// Close closes the connection.
-// Any blocked Read or Write operations will be unblocked and return errors.
-func (conn *ippusbConn) Close() error {
-	// Double-close protection
-	listener := conn.listener.Swap(nil)
-	if listener != nil {
-		listener.endpoints <- conn.Endpoint
-	}
-
-	return nil
-}
-
-// LocalAddr returns the local network address, if known.
-func (conn *ippusbConn) LocalAddr() net.Addr {
-	return ippusbAddr
-}
-
-// RemoteAddr returns the remote network address, if known.
-func (conn *ippusbConn) RemoteAddr() net.Addr {
-	return ippusbAddr
-}
-
-// SetDeadline sets the read and write deadlines associated
-// with the connection.
-func (conn *ippusbConn) SetDeadline(t time.Time) error {
-	return nil
-}
-
-// SetReadDeadline sets the deadline for future Read calls
-// and any currently-blocked Read call.
-func (conn *ippusbConn) SetReadDeadline(t time.Time) error {
-	return nil
-}
-
-// SetWriteDeadline sets the deadline for future Write calls
-// and any currently-blocked Write call.
-func (conn *ippusbConn) SetWriteDeadline(t time.Time) error {
-	return nil
 }
