@@ -9,6 +9,7 @@
 package usbip
 
 import (
+	"context"
 	"io"
 	"sync"
 	"syscall"
@@ -138,6 +139,11 @@ func (ep *Endpoint) shutdown() {
 
 // Read returns data that was sent to the [Endpoint] from the USB side.
 func (ep *Endpoint) Read(buf []byte) (int, error) {
+	return ep.ReadContext(context.Background(), buf)
+}
+
+// ReadContext is the [context.Context]-aware version of the [Endpoint.Read].
+func (ep *Endpoint) ReadContext(ctx context.Context, buf []byte) (int, error) {
 	if ep.ty == EndpointIn {
 		return 0, io.ErrClosedPipe
 	}
@@ -147,7 +153,11 @@ func (ep *Endpoint) Read(buf []byte) (int, error) {
 
 	for len(ep.outqueue) == 0 {
 		ep.lock.Unlock()
-		<-ep.outchan
+		select {
+		case <-ep.outchan:
+		case <-ctx.Done():
+			return 0, ctx.Err()
+		}
 		ep.lock.Lock()
 	}
 
@@ -169,6 +179,11 @@ func (ep *Endpoint) Read(buf []byte) (int, error) {
 
 // Write writes data that will arrive at the [Endpoint] at the USB side.
 func (ep *Endpoint) Write(buf []byte) (int, error) {
+	return ep.WriteContext(context.Background(), buf)
+}
+
+// WriteContext is the [context.Context]-aware version of the [Endpoint.Write].
+func (ep *Endpoint) WriteContext(ctx context.Context, buf []byte) (int, error) {
 	if ep.ty == EndpointOut {
 		return 0, io.ErrClosedPipe
 	}
@@ -178,7 +193,11 @@ func (ep *Endpoint) Write(buf []byte) (int, error) {
 
 	for len(ep.inqueue) == 0 {
 		ep.lock.Unlock()
-		<-ep.inchan
+		select {
+		case <-ep.inchan:
+		case <-ctx.Done():
+			return 0, ctx.Err()
+		}
 		ep.lock.Lock()
 	}
 
