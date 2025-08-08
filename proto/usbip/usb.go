@@ -153,32 +153,12 @@ type USBDeviceDescriptor struct {
 	Configurations  []USBConfigurationDescriptor // Device configurations
 }
 
-// Length returns the wire protocol length for the USBDeviceDescriptor
-func (USBDeviceDescriptor) Length() int {
-	return 18
-}
-
-// Type returns the USBDescriptorType of the USBDeviceDescriptor
-func (USBDeviceDescriptor) Type() USBDescriptorType {
-	return USBDescriptorDevice
-}
-
 // USBConfigurationDescriptor represents the USB configuration descriptor.
 type USBConfigurationDescriptor struct {
 	Configuration string            // Configuration description
 	BMAttributes  USBConfAttributes // Attribute bits
 	MaxPower      uint8             // Max power, in 2mA units
 	Interfaces    []USBInterface    // Interfaces grouped by alt settings
-}
-
-// Length returns the wire protocol length for the USBConfigurationDescriptor.
-func (USBConfigurationDescriptor) Length() int {
-	return 9
-}
-
-// Type returns the USBDescriptorType of the USBConfigurationDescriptor.
-func (USBConfigurationDescriptor) Type() USBDescriptorType {
-	return USBDescriptorConfiguration
 }
 
 // USBInterface represents collection of [USBInterfaceDescriptor]s
@@ -206,16 +186,6 @@ type USBInterfaceDescriptor struct {
 	Endpoints          []*Endpoint // Interface endpoints
 }
 
-// Length returns the wire protocol length for the USBInterfaceDescriptor.
-func (USBInterfaceDescriptor) Length() int {
-	return 9
-}
-
-// Type returns the USBDescriptorType of the USBInterfaceDescriptor.
-func (USBInterfaceDescriptor) Type() USBDescriptorType {
-	return USBDescriptorInterface
-}
-
 // CntEndpoints returns USBInterfaceDescriptor's count of endpoints.
 // Please notice that the [EndpointInOut] endpoints are counted
 // twice.
@@ -239,16 +209,6 @@ type USBEndpointDescriptor struct {
 	Input         bool                  // This is input endpoint
 	BMAttributes  USBEndpointAttributes // Attribute bits
 	MaxPacketSize uint16                // Max packet size for endpoint
-}
-
-// Length returns the wire protocol length for the USBEndpointDescriptor.
-func (USBEndpointDescriptor) Length() int {
-	return 7
-}
-
-// Type returns the USBDescriptorType of the USBEndpointDescriptor.
-func (USBEndpointDescriptor) Type() USBDescriptorType {
-	return USBDescriptorEndpoint
 }
 
 // USBSetupRequestType is the request type bits
@@ -409,7 +369,7 @@ func (p USBSetupPacket) Encode() [8]byte {
 	return ret
 }
 
-// Decode decides setup packet from the binary representation.
+// Decode decodes setup packet from the binary representation.
 func (p *USBSetupPacket) Decode(data [8]byte) {
 	dec := newDecoder(data[:])
 	p.RequestType = USBSetupRequestType(dec.GetU8())
