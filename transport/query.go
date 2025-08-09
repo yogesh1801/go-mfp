@@ -15,6 +15,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 	"sync/atomic"
 
 	"github.com/OpenPrinting/go-mfp/internal/assert"
@@ -52,19 +53,62 @@ func NewServerQuery(w http.ResponseWriter, rq *http.Request) *ServerQuery {
 	return query
 }
 
+// RequestContext returns the underlying Request.
+// Caller should not modify the request obtained this way.
+func (query *ServerQuery) Request() *http.Request {
+	return query.rq
+}
+
 // RequestContext returns the Request context.
 func (query *ServerQuery) RequestContext() context.Context {
 	return query.rq.Context()
 }
 
 // RequestURL returns the Request URL.
+//
+// The returned URL is taken unmodified from the underlying [http.Request],
+// so in most cases it will not contain scheme and post parts.
 func (query *ServerQuery) RequestURL() *url.URL {
 	return query.rq.URL
+}
+
+// RequestFullURL returns the Request full URL, with the reconstructed
+// Scheme and Host parts,
+func (query *ServerQuery) RequestFullURL() *url.URL {
+	u := URLClone(query.rq.URL)
+	u.Scheme = query.RequestScheme()
+	u.Host = query.RequestHost()
+
+	return u
 }
 
 // RequestMethod returns the Request Method.
 func (query *ServerQuery) RequestMethod() string {
 	return query.rq.Method
+}
+
+// RequestScheme returns the Request Scheme.
+func (query *ServerQuery) RequestScheme() string {
+	if query.rq.TLS != nil {
+		return "https"
+	}
+	return "http"
+}
+
+// RequestHost returns the Request Host.
+func (query *ServerQuery) RequestHost() string {
+	return query.rq.Host
+}
+
+// RequestContentType returns the Request content type,
+// normalized to the lowercase.
+func (query *ServerQuery) RequestContentType() string {
+	return strings.ToLower(query.rq.Header.Get("Content-Type"))
+}
+
+// RequestContentLength returns the Request content Length.
+func (query *ServerQuery) RequestContentLength() int64 {
+	return query.rq.ContentLength
 }
 
 // RequestHeader returns http.Header of the request
@@ -142,6 +186,9 @@ func (query *ServerQuery) NoCache() {
 }
 
 // Reject completes request with a error.
+//
+// The error parameter is sent as the text body of the HTTP
+// response. If it is nil, the reasonable default will be provided.
 func (query *ServerQuery) Reject(status int, err error) {
 	query.ResponseHeader().Set("Content-Type", "text/plain; charset=utf-8")
 	query.NoCache()
