@@ -96,7 +96,7 @@ func (mux *PathMux) Add(path string, handler http.Handler) bool {
 	return true
 }
 
-// Del deleted path to handler mapping from the [PathMux].
+// Del deletes path to handler mapping from the [PathMux].
 //
 // It returns true if the mapping was found and removed, false otherwise.
 func (mux *PathMux) Del(path string) bool {
@@ -113,6 +113,20 @@ func (mux *PathMux) Del(path string) bool {
 		copy(mux.mappings[n:], mux.mappings[n+1:])
 		mux.mappings = mux.mappings[:len(mux.mappings)-1]
 	}
+
+	return found
+}
+
+// Contains reports if [PathMux] already has mapping for the path
+func (mux *PathMux) Contains(path string) bool {
+	mux.lock.Lock()
+	defer mux.lock.Unlock()
+
+	path = CleanURLPath(path)
+
+	_, found := sort.Find(len(mux.mappings), func(i int) int {
+		return -mux.mappings[i].compare(path)
+	})
 
 	return found
 }
