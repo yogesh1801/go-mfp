@@ -4,11 +4,14 @@
 // Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
 // See LICENSE for license terms and conditions
 //
-// Package documentation
+// TeeReadCloser - io.TeeReader with Close
 
 package transport
 
-import "io"
+import (
+	"io"
+	"sync"
+)
 
 // teeReadCloser is like [io.TeeReader], but implements [io.ReadCloser]
 // interface as well.
@@ -16,14 +19,41 @@ import "io"
 // It can be useful, for example, to wrap the [http.Request.Body] or
 // [http.Response.Body] in order to shiff their content.
 type teeReadCloser struct {
-	io.Reader // Underlying io.TeeReader
-	io.Closer // Closer part of original io.ReadCloser
+	io.Reader           // Underlying io.TeeReader
+	rCloser   io.Closer // Closer part of original io.ReadCloser
+	wCloser   io.Closer // Closer part of original io.ReadCloser
+	closefunc func()
+	closeerr  error
 }
 
-// TeeReadCloser returns the new [TeeReadCloser].
+// TeeReadCloser is like [io.TeeReader] but for [io.ReadCloser]s.
+//
+// If the supplied [io.Writer] supports Close method, it will
+// be called as well.
 func TeeReadCloser(r io.ReadCloser, w io.Writer) io.ReadCloser {
-	return teeReadCloser{
-		Reader: io.TeeReader(r, w),
-		Closer: r,
+	tee := &teeReadCloser{
+		Reader:  io.TeeReader(r, w),
+		rCloser: r,
+	}
+
+	tee.closefunc = sync.OnceFunc(tee.doClose)
+
+	if wCloser, ok := w.(io.Closer); ok {
+		tee.wCloser = wCloser
+	}
+
+	return tee
+}
+
+// Close closes the teeReadCloser.
+func (tee *teeReadCloser) Close() error {
+	tee.closefunc()
+	return tee.closeerr
+}
+
+func (tee *teeReadCloser) doClose() {
+	tee.closeerr = tee.rCloser.Close()
+	if tee.wCloser != nil {
+		tee.wCloser.Close()
 	}
 }
