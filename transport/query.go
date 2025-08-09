@@ -9,6 +9,7 @@
 package transport
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -49,6 +50,11 @@ func NewServerQuery(w http.ResponseWriter, rq *http.Request) *ServerQuery {
 	}
 
 	return query
+}
+
+// RequestContext returns the Request context.
+func (query *ServerQuery) RequestContext() context.Context {
+	return query.rq.Context()
 }
 
 // RequestURL returns the Request URL.
