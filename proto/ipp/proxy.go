@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"sync/atomic"
@@ -195,6 +196,8 @@ func (proxy *Proxy) doRequest(query *transport.ServerQuery,
 		return nil, err
 	}
 
+	msg.Print(os.Stdout, true)
+
 	// Translate IPP message
 	msg2, chg := xlat.Forward(&msg)
 
@@ -276,7 +279,7 @@ func (proxy *Proxy) doResponse(rsp *http.Response,
 		rpipe, wpipe := io.Pipe()
 		body = transport.TeeReadCloser(body, wpipe)
 		skip := transport.SkipReader(rpipe, len(msg2bytes))
-		proxy.sniffer.Response(seqnum, rsp, &msg, skip)
+		proxy.sniffer.Response(seqnum, rsp, msg2, skip)
 	}
 
 	rsp.Body = body
