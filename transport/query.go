@@ -53,7 +53,7 @@ func NewServerQuery(w http.ResponseWriter, rq *http.Request) *ServerQuery {
 	return query
 }
 
-// RequestContext returns the underlying Request.
+// Request returns the underlying Request.
 // Caller should not modify the request obtained this way.
 func (query *ServerQuery) Request() *http.Request {
 	return query.rq
