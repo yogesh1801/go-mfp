@@ -50,7 +50,7 @@ func simulate(ctx context.Context, model *modeling.Model,
 	}
 
 	// Create a virtual server
-	handler := model.NewESCLServer(ctx, s)
+	handler := model.NewESCLServer(s)
 	server := transport.NewServer(ctx, nil, handler)
 
 	addr := fmt.Sprintf("localhost:%d", port)

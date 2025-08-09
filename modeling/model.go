@@ -9,7 +9,6 @@
 package modeling
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -567,7 +566,7 @@ func (model *Model) pyFormat(obj *cpython.Object, w io.Writer) error {
 // the existent abstract.Scanner implementation.
 //
 // It will return nil, if model doesn't have the eSCL scanner capabilities.
-func (model *Model) NewESCLServer(ctx context.Context,
+func (model *Model) NewESCLServer(
 	scanner abstract.Scanner) *escl.AbstractServer {
 
 	// Obtain scanner capabilities
@@ -587,7 +586,7 @@ func (model *Model) NewESCLServer(ctx context.Context,
 	}
 
 	// Create the eSCL server
-	return escl.NewAbstractServer(ctx, options)
+	return escl.NewAbstractServer(options)
 }
 
 // esclOnScannerCapabilitiesResponse implements the

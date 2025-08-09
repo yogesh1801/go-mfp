@@ -9,7 +9,6 @@
 package escl
 
 import (
-	"context"
 	"errors"
 	"io"
 	"net/http"
@@ -31,7 +30,6 @@ const AbstractServerHistorySize = 10
 
 // AbstractServer implements eSCL server on a top of [abstract.Scanner].
 type AbstractServer struct {
-	ctx      context.Context               // Logging context
 	options  AbstractServerOptions         // Server options
 	caps     *abstract.ScannerCapabilities // Scanner capabilities
 	status   ScannerStatus                 // Scanner status
@@ -57,8 +55,7 @@ type AbstractServerOptions struct {
 }
 
 // NewAbstractServer returns a new [AbstractServer].
-func NewAbstractServer(ctx context.Context,
-	options AbstractServerOptions) *AbstractServer {
+func NewAbstractServer(options AbstractServerOptions) *AbstractServer {
 
 	// Use DefaultVersion, if options.Version is not set
 	if options.Version == 0 {
@@ -70,7 +67,6 @@ func NewAbstractServer(ctx context.Context,
 
 	// Create the AbstractServer structure
 	srv := &AbstractServer{
-		ctx:     ctx,
 		options: options,
 		caps:    options.Scanner.Capabilities(),
 	}
@@ -278,7 +274,8 @@ func (srv *AbstractServer) postScanJobs(query *transport.ServerQuery) {
 	}
 
 	// Send request to the underlying abstract.Scanner
-	document, err := srv.options.Scanner.Scan(srv.ctx, absreq)
+	ctx := query.RequestContext()
+	document, err := srv.options.Scanner.Scan(ctx, absreq)
 	if err != nil {
 		query.Reject(http.StatusConflict, err)
 		return

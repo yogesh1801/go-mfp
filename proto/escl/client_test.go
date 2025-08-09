@@ -59,7 +59,7 @@ func TestClient(t *testing.T) {
 		BasePath: base.Path,
 	}
 
-	handler := NewAbstractServer(context.TODO(), options)
+	handler := NewAbstractServer(options)
 	server := transport.NewServer(context.Background(), nil, handler)
 
 	go server.Serve(loopback)
