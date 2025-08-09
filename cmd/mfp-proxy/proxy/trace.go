@@ -11,21 +11,26 @@ package proxy
 import (
 	"archive/tar"
 	"context"
+	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"sync"
 	"time"
 
 	"github.com/OpenPrinting/go-mfp/log"
+	"github.com/OpenPrinting/goipp"
 )
 
 // traceWriter writes a protocol trace
 type traceWriter struct {
-	ctx  context.Context // Logging context
-	name string          // file name
-	fp   *os.File        // Underlying file
-	tar  *tar.Writer     // TAR writer
-	lock sync.Mutex      // Access lock
-	err  error           // First error
+	ctx      context.Context // Logging context
+	name     string          // file name
+	fp       *os.File        // Underlying file
+	tar      *tar.Writer     // TAR writer
+	lock     sync.Mutex      // Access lock
+	err      error           // First error
+	donewait sync.WaitGroup  // Wait for async activities
 }
 
 // newTrace creates a new trace writer
@@ -57,6 +62,8 @@ func newTraceWriter(ctx context.Context, name string) (*traceWriter, error) {
 
 // Close closes the traceWriter
 func (trace *traceWriter) Close() {
+	trace.donewait.Wait()
+
 	trace.lock.Lock()
 	defer trace.lock.Unlock()
 
@@ -68,6 +75,56 @@ func (trace *traceWriter) Close() {
 	if err != nil {
 		trace.setError(err)
 	}
+}
+
+// IPPRequest is the [ipp.Sniffer.Request] callback.
+func (trace *traceWriter) IPPRequest(seqnum uint64,
+	rq *http.Request, msg *goipp.Message, body io.Reader) {
+
+	name := fmt.Sprintf("%8.8d/00-%s.ipp",
+		seqnum, goipp.Op(msg.Code))
+
+	data, _ := msg.EncodeBytes()
+	trace.Send(name, data)
+
+	trace.donewait.Add(1)
+	go func() {
+		data, _ := io.ReadAll(body)
+
+		if len(data) != 0 {
+			name := fmt.Sprintf("%8.8d/01-odata.%s",
+				seqnum, magic(data))
+
+			trace.Send(name, data)
+		}
+
+		trace.donewait.Done()
+	}()
+}
+
+// IPPResponse is the [ipp.Sniffer.Response] callback.
+func (trace *traceWriter) IPPResponse(seqnum uint64,
+	rsp *http.Response, msg *goipp.Message, body io.Reader) {
+
+	name := fmt.Sprintf("%8.8d/02-%s.ipp",
+		seqnum, goipp.Status(msg.Code))
+
+	data, _ := msg.EncodeBytes()
+	trace.Send(name, data)
+
+	trace.donewait.Add(1)
+	go func() {
+		data, _ := io.ReadAll(body)
+
+		if len(data) != 0 {
+			name := fmt.Sprintf("%8.8d/03-rdata.%s",
+				seqnum, magic(data))
+
+			trace.Send(name, data)
+		}
+
+		trace.donewait.Done()
+	}()
 }
 
 // Send writes a new record (a file) into the trace archive.

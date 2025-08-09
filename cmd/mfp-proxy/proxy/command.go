@@ -19,6 +19,7 @@ import (
 	"github.com/OpenPrinting/go-mfp/internal/assert"
 	"github.com/OpenPrinting/go-mfp/internal/env"
 	"github.com/OpenPrinting/go-mfp/log"
+	"github.com/OpenPrinting/go-mfp/proto/ipp"
 	"github.com/OpenPrinting/go-mfp/transport"
 )
 
@@ -188,12 +189,27 @@ func cmdProxyHandler(ctx context.Context, inv *argv.Invocation) error {
 	// Create and populate the PathMux
 	mux := transport.NewPathMux()
 	for _, m := range mappings {
-		p := newProxy(ctx, m, trace)
-		ok := mux.Add(m.localPath, p)
-		if !ok {
+		if mux.Contains(m.localPath) {
 			err := fmt.Errorf("Local path %q used multiple times",
 				m.localPath)
 			return err
+		}
+
+		switch m.proto {
+		case protoIPP:
+			proxy := ipp.NewProxy(m.localPath, m.targetURL)
+			if trace != nil {
+				sniffer := ipp.Sniffer{
+					Request:  trace.IPPRequest,
+					Response: trace.IPPResponse,
+				}
+				proxy.Sniff(sniffer)
+			}
+			mux.Add(m.localPath, proxy)
+		case protoESCL:
+			return errors.New("eSCL proxy not implemented")
+		case protoWSD:
+			return errors.New("WSD proxy not implemented")
 		}
 	}
 

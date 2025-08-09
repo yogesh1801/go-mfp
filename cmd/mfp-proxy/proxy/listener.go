@@ -104,7 +104,7 @@ func (l *listener) Accept() (net.Conn, error) {
 		tcpconn.SetKeepAlivePeriod(20 * time.Second)
 
 		// Issue log message
-		log.Debug(l.ctx, "%s: new connection from %s",
+		log.Debug(l.ctx, "PROXY %s: new connection from %s",
 			tcpconn.LocalAddr(), tcpconn.RemoteAddr())
 
 		return tcpconn, nil
