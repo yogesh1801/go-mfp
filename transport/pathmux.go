@@ -15,7 +15,35 @@ import (
 	"sync"
 )
 
-// PathMux is the HTTP request multiplexer, based on the URL path.
+// PathMux is an HTTP request multiplexer that makes routing decisions
+// based on the URL path.
+//
+// The [PathMux.Add] method registers a handler for a path and all its
+// subpaths. [PathMux.Del] removes a registered handler, and
+// [PathMux.Contains] checks if a handler is already installed for
+// a given path.
+//
+// These methods normalize their path parameter before use, making
+// "path", "/path" and "foo/../path" equivalent.
+//
+// Requests processed by the multiplexer have their paths normalized.
+// Normalization removes duplicate slashes and processes "." and ".."
+// elements, resulting in a clean, canonical path. The trailing slash
+// is preserved during this process.
+//
+// When matching a request path against a pattern, PathMux verifies
+// that the request path belongs to the subtree defined by the pattern.
+// For example, "/foo" matches "/foo" and "/foo/bar", but not "/foobar".
+//
+// If a pattern ends with a slash ("/"), the matched request path must
+// also include the slash. For example, "/foo/" matches "/foo/1" and
+// "/foo/2", but not "/foo" (while "/foo" without trailing slash
+// matches all three cases).
+//
+// In case of multiple matches, the most specific (longest) pattern wins.
+//
+// If PathMux.Add is called twice with the same pattern, the second call
+// overrides the previous handler rather than adding a duplicate.
 type PathMux struct {
 	mappings []pathMuxMapping
 	lock     sync.RWMutex
