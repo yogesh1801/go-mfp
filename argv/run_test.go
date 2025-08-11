@@ -47,11 +47,11 @@ var testCommandWithParametersHelp = `
 usage: copy-files [options] input-file... output-file
 
 Options are:
-  -c, --compress    compress output
+  -c, --compress        compress output
   -Z, --gzip-compression
-                    use gzip compression
-                    (slower but compresses better)
-  -h, --help        print help page
+                        use gzip compression
+                        (slower but compresses better)
+  -h, --help            print help page
 
 Parameters are:
   input-file
@@ -113,23 +113,22 @@ var testCommandWithSubCommandsHelp = `
 usage: test [options] command [arguments]
 
 Options are:
-  -v, --verbose     enable verbose logging
-  -h, --help        print help page
+  -v, --verbose         enable verbose logging
+  -h, --help            print help page
 
 Commands are:
-  connect           connect to the server
-  disconnect        disconnect from the server
-  send-files-to-server
-                    send-files-to-server uploads the files
-  help              print help page
+  connect               connect to the server
+  disconnect            disconnect from the server
+  send-files-to-server  send-files-to-server uploads the files
+  help                  print help page
 `
 
 var testCommandWithSubCommandsHelpConnect = `
 usage: connect [options]
 
 Options are:
-  --attempts, -a N  connection attempts
-  --timeout=sec     connection timeoit
+  --attempts, -a N      connection attempts
+  --timeout=sec         connection timeoit
 
 connect establishes server connection
 `

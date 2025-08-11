@@ -35,7 +35,7 @@ func TestHelpString(t *testing.T) {
 		"usage: help [command]\n" +
 			"\n" +
 			"Parameters are:\n" +
-			"  command           Command name\n"
+			"  command               Command name\n"
 
 	received := HelpString(&HelpCommand)
 	if expected != received {
