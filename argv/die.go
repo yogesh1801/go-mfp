@@ -16,7 +16,7 @@ import (
 
 var (
 	// dieOutput and dieExit variables allows to hook
-	// fatal exit on testing, having 100% coverage evem
+	// fatal exit on testing, having 100% coverage even
 	// on that case
 	dieOutput io.Writer = os.Stderr
 	dieExit             = os.Exit
