@@ -40,17 +40,31 @@ func (ux *URLXlat) Remote() *url.URL {
 	return ux.remote
 }
 
-// Forward performs URL translation into local->remote direction
+// Forward performs URL translation in the forward (remote->local) direction.
 func (ux *URLXlat) Forward(u *url.URL) *url.URL {
 	return ux.translate(u, ux.local, ux.remote)
 }
 
-// Reverse performs URL translation into reverse->local direction
+// Reverse performs URL translation in the reverse (local->remote) direction.
 func (ux *URLXlat) Reverse(u *url.URL) *url.URL {
 	return ux.translate(u, ux.remote, ux.local)
 }
 
-// translate provides an actual translation.
+// ForwardPath translates Path part of the URL in the forward
+// (local->remote) direction.
+func (ux *URLXlat) ForwardPath(path string) string {
+	pathOut, _ := ux.translatePath(path, ux.local, ux.remote)
+	return pathOut
+}
+
+// ReversePath translates Path part of the URL in the reverse
+// (remote->local) direction.
+func (ux *URLXlat) ReversePath(path string) string {
+	pathOut, _ := ux.translatePath(path, ux.remote, ux.local)
+	return pathOut
+}
+
+// translate translates URL u in the (from->to) direction,
 func (ux *URLXlat) translate(u, from, to *url.URL) *url.URL {
 	// Match schemes
 	switch {
@@ -77,32 +91,8 @@ func (ux *URLXlat) translate(u, from, to *url.URL) *url.URL {
 	}
 
 	// Translate path.
-	//
-	// Input path must be prefixed by the path we are
-	// translating from (from.Path).
-	//
-	// If this is true, we replace the prefix with the
-	// path we are translating to (to.Path).
-	pathIn := u.Path
-	pathOut := ""
-
-	switch {
-	case !strings.HasPrefix(pathIn, from.Path):
-		// u.Path must be prefixed by from.Path
-		return u
-
-	case pathIn == from.Path:
-		pathOut = to.Path
-
-	case from.Path == "/" || pathIn[len(from.Path)] == '/':
-		// if pathIn is longer that from.Path, they must
-		// diverge at the path separator
-		//
-		// Translate pathIn at this case
-		pathOut = path.Join(to.Path, pathIn[len(from.Path):])
-
-	default:
-		// Otherwise, don't translate
+	pathOut, ok := ux.translatePath(u.Path, from, to)
+	if !ok {
 		return u
 	}
 
@@ -123,4 +113,39 @@ func (ux *URLXlat) translate(u, from, to *url.URL) *url.URL {
 	URLStripPort(u)
 
 	return u
+}
+
+// translatePath translates path part of the URL in the (from->to)
+// direction.
+func (ux *URLXlat) translatePath(pathIn string,
+	from, to *url.URL) (pathOut string, ok bool) {
+	// Input path must be prefixed by the path we are
+	// translating from (from.Path).
+	//
+	// If this is true, we replace the prefix with the
+	// path we are translating to (to.Path).
+	switch {
+	case !strings.HasPrefix(pathIn, from.Path):
+		// u.Path must be prefixed by from.Path.
+		// Otherwise, don't translate
+		pathOut = pathIn
+
+	case pathIn == from.Path:
+		pathOut = to.Path
+		ok = true
+
+	case from.Path == "/" || pathIn[len(from.Path)] == '/':
+		// if pathIn is longer that from.Path, they must
+		// diverge at the path separator
+		//
+		// Translate pathIn at this case
+		pathOut = path.Join(to.Path, pathIn[len(from.Path):])
+		ok = true
+
+	default:
+		// Otherwise, don't translate
+		pathOut = pathIn
+	}
+
+	return
 }
