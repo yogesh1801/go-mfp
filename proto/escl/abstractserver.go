@@ -299,7 +299,7 @@ func (srv *AbstractServer) postScanJobs(query *transport.ServerQuery) {
 
 	// Call OnScanJobsResponse hook
 	if srv.options.Hooks.OnScanJobsResponse != nil {
-		joburi2 := srv.options.Hooks.OnScanJobsResponse(query, ss, info)
+		joburi2 := srv.options.Hooks.OnScanJobsResponse(query, ss)
 		if query.IsStatusSet() {
 			return
 		}
@@ -335,11 +335,9 @@ func (srv *AbstractServer) getJobURINextDocument(
 
 	var file abstract.DocumentFile
 	var err error
-	var info JobInfo
 
 	if srv.document != nil && srv.joburi == joburi {
 		file, err = srv.document.Next()
-		info = srv.status.Jobs[0]
 	}
 
 	srv.lock.Unlock()
@@ -362,20 +360,20 @@ func (srv *AbstractServer) getJobURINextDocument(
 	}
 
 	// Call OnNextDocumentResponse hook
+	body := io.NopCloser(file)
 	if srv.options.Hooks.OnNextDocumentResponse != nil {
-		file2 := srv.options.Hooks.OnNextDocumentResponse(
-			query, info, file)
+		body2 := srv.options.Hooks.OnNextDocumentResponse(query, body)
 		if query.IsStatusSet() {
 			return
 		}
 
-		if file2 != nil {
-			file = file2
+		if body2 != nil {
+			body = body2
 		}
 	}
 
 	// Send the response
-	query.SendData(http.StatusOK, file.Format(), file)
+	query.SendData(http.StatusOK, file.Format(), body)
 }
 
 // getJobURIScanImageInfo handles GET /{JobUri}/ScanImageInfo

@@ -205,11 +205,7 @@ func (c *Client) get(ctx context.Context, method, subpath string) (
 	}
 
 	// Decode the response
-	details = &HTTPDetails{
-		Status:     httpRsp.Status,
-		StatusCode: httpRsp.StatusCode,
-		Header:     httpRsp.Header,
-	}
+	details = newHTTPDetails(httpRsp)
 
 	if httpRsp.StatusCode/100 != http.StatusOK/100 {
 		err = fmt.Errorf("HTTP: %s", httpRsp.Status)
@@ -251,11 +247,7 @@ func (c *Client) post(ctx context.Context, method, subpath string,
 	defer httpRsp.Body.Close()
 
 	// Decode the response
-	details = &HTTPDetails{
-		Status:     httpRsp.Status,
-		StatusCode: httpRsp.StatusCode,
-		Header:     httpRsp.Header,
-	}
+	details = newHTTPDetails(httpRsp)
 
 	if httpRsp.StatusCode/100 != http.StatusOK/100 {
 		err = fmt.Errorf("HTTP: %s", httpRsp.Status)

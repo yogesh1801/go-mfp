@@ -9,7 +9,8 @@
 package escl
 
 import (
-	"github.com/OpenPrinting/go-mfp/abstract"
+	"io"
+
 	"github.com/OpenPrinting/go-mfp/transport"
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
@@ -80,10 +81,9 @@ type ServerHooks struct {
 	// The hook can modify the resulting JobURI by returning
 	// the non-empty new value.
 	//
-	// The ScanSettings and JobInfo parameters are provided
-	// just for information.
+	// The ScanSettings parameters is provided just for information.
 	OnScanJobsResponse func(*transport.ServerQuery,
-		*ScanSettings, JobInfo) (joburi string)
+		*ScanSettings) (joburi string)
 
 	// OnNextDocumentRequest is called when the eSCL NextDocument
 	// request is received.
@@ -96,10 +96,10 @@ type ServerHooks struct {
 	// OnNextDocumentResponse is called when the eSCL NextDocument
 	// response is generated.
 	//
-	// The hook can replace the resulting [abstract.DocumentFile]
+	// The hook can replace the resulting [io.ReadCloser]
 	// it by returning the non-nil new value.
 	OnNextDocumentResponse func(*transport.ServerQuery,
-		JobInfo, abstract.DocumentFile) abstract.DocumentFile
+		io.ReadCloser) io.ReadCloser
 
 	// OnDeleteRequest is called when the eSCL DELETE
 	// request is received

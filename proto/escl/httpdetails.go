@@ -8,11 +8,29 @@
 
 package escl
 
-import "net/http"
+import (
+	"net/http"
+	"strings"
+)
 
 // HTTPDetails contains HTTP-level details on the [Client]'s operation.
 type HTTPDetails struct {
-	Status     string      // e.g. "200 OK"
-	StatusCode int         // HTTP status code
-	Header     http.Header // HTTP response header
+	Status      string         // e.g. "200 OK"
+	StatusCode  int            // HTTP status code
+	ContentType string         // Response content type
+	Header      http.Header    // HTTP response header
+	Response    *http.Response // HTTP response
+}
+
+// newHTTPDetails fills HTTPDetails from the http.Response
+func newHTTPDetails(rsp *http.Response) *HTTPDetails {
+	details := &HTTPDetails{
+		Status:      rsp.Status,
+		StatusCode:  rsp.StatusCode,
+		ContentType: strings.ToLower(rsp.Header.Get("Content-Type")),
+		Header:      rsp.Header,
+		Response:    rsp,
+	}
+
+	return details
 }
