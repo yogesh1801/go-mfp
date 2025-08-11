@@ -31,38 +31,47 @@ func TestMain(t *testing.T) {
 		},
 	}
 
-	saveArgs := os.Args
-	saveDieOutput := dieOutput
-	saveDieExit := dieExit
-	defer func() {
+	run := func(args []string) {
+		saveArgs := os.Args
+		saveDieOutput := dieOutput
+		saveDieExit := dieExit
+		saveHelpOutput := HelpOutput
+
+		os.Args = args
+		dieOutput = buf
+		dieExit = func(int) {}
+		HelpOutput = buf
+
+		buf.Reset()
+		cmd.Main(nil)
+
 		os.Args = saveArgs
 		dieOutput = saveDieOutput
 		dieExit = saveDieExit
-	}()
+		HelpOutput = saveHelpOutput
+	}
 
-	os.Args = []string{"test", "hello", "world"}
-	cmd.Main(nil)
+	run([]string{"test", "hello", "world"})
 
 	expected := "hello, world"
 	received := buf.String()
 
 	if expected != received {
-		t.Errorf("test 1: expected: `%s`, received: `%s`",
+		t.Errorf("test 1:\n"+
+			"expected: `%s`\n"+
+			"present:  `%s`\n",
 			expected, received)
 	}
 
-	os.Args = []string{"test"}
-	dieOutput = buf
-	dieExit = func(int) {}
-	buf.Reset()
+	run([]string{"test"})
 
-	cmd.Main(nil)
-
-	expected = "missed parameter: \"greeting...\"\n"
+	expected = HelpString(&cmd)
 	received = buf.String()
 
 	if expected != received {
-		t.Errorf("test 2: expected: `%s`, received: `%s`",
+		t.Errorf("test 2:\n"+
+			"expected: `%s`\n"+
+			"present:  `%s`\n",
 			expected, received)
 	}
 }

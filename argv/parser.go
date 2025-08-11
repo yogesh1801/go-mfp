@@ -75,6 +75,30 @@ func newParser(cmd *Command, argv []string) *parser {
 
 // parse parses the argv and returns parsed Invocation
 func (prs *parser) parse(parent *Invocation) (*Invocation, error) {
+	// Call parser
+	err := prs.doParse(parent)
+
+	// Finally post-process results
+	if err != nil && len(prs.inv.argv) == 0 {
+		// If argv parsing fails and argv is empty, this
+		// is definitely due to the missed parameters.
+		//
+		// Call HelpHandler directly instead of the
+		// reporting error at this case.
+		inv := prs.inv
+		inv.immediate = HelpHandler
+		return inv, nil
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return prs.inv, nil
+}
+
+// doParse does the prs.parse work
+func (prs *parser) doParse(parent *Invocation) error {
 	// Parse arguments, one by one.
 	var doneOptions bool
 	var paramValues []string
@@ -111,7 +135,7 @@ func (prs *parser) parse(parent *Invocation) (*Invocation, error) {
 		}
 
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
 
@@ -121,11 +145,11 @@ func (prs *parser) parse(parent *Invocation) (*Invocation, error) {
 		if len(paramValues) < paramsMin {
 			missed := &prs.inv.cmd.Parameters[len(paramValues)]
 			err := fmt.Errorf("missed parameter: %q", missed.Name)
-			return nil, err
+			return err
 		}
 
 		if prs.inv.cmd.hasSubCommands() && prs.inv.subcmd == nil {
-			return nil, fmt.Errorf("missed sub-command name")
+			return fmt.Errorf("missed sub-command name")
 		}
 	}
 
@@ -133,7 +157,7 @@ func (prs *parser) parse(parent *Invocation) (*Invocation, error) {
 	if prs.inv.cmd.hasParameters() {
 		err := prs.handleParameters(paramValues)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
 
@@ -142,7 +166,7 @@ func (prs *parser) parse(parent *Invocation) (*Invocation, error) {
 
 	// Validate things
 	if err := prs.validateThings(); err != nil {
-		return nil, err
+		return err
 	}
 
 	// Finish Invocation
@@ -160,7 +184,7 @@ func (prs *parser) parse(parent *Invocation) (*Invocation, error) {
 		inv.parameters[i] = prs.parameters[i].value
 	}
 
-	return inv, nil
+	return nil
 }
 
 // handleShortOption handles a short option
