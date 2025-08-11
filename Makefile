@@ -1,5 +1,6 @@
 SUBDIRS	= \
 	abstract \
+	argv \
 	cmd \
 	cpython \
 	cups \
