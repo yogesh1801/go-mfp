@@ -19,6 +19,7 @@ import (
 	"github.com/OpenPrinting/go-mfp/internal/assert"
 	"github.com/OpenPrinting/go-mfp/internal/env"
 	"github.com/OpenPrinting/go-mfp/log"
+	"github.com/OpenPrinting/go-mfp/proto/escl"
 	"github.com/OpenPrinting/go-mfp/proto/ipp"
 	"github.com/OpenPrinting/go-mfp/transport"
 )
@@ -207,7 +208,8 @@ func cmdProxyHandler(ctx context.Context, inv *argv.Invocation) error {
 			}
 			mux.Add(m.localPath, proxy)
 		case protoESCL:
-			return errors.New("eSCL proxy not implemented")
+			proxy := escl.NewProxy(m.localPath, m.targetURL)
+			mux.Add(m.localPath, proxy)
 		case protoWSD:
 			return errors.New("WSD proxy not implemented")
 		}
