@@ -68,6 +68,8 @@ type proxyMsgChangesByValue struct {
 // The `clnt` is the client side of the proxy. If nil is passed,
 // the client will be created automatically.
 func NewProxy(localPath string, remoteURL *url.URL) *Proxy {
+	localPath = transport.CleanURLPath(localPath + "/")
+
 	proxy := &Proxy{
 		localPath: localPath,
 		remoteURL: remoteURL,
@@ -165,10 +167,10 @@ func (proxy *Proxy) getScannerCapabilities(query *transport.ServerQuery) {
 
 	// Forward request
 	ctx := query.RequestContext()
-	caps, _, err := proxy.clnt.GetScannerCapabilities(ctx)
+	caps, details, err := proxy.clnt.GetScannerCapabilities(ctx)
 
 	if err != nil {
-		query.Reject(http.StatusServiceUnavailable, err)
+		query.Reject(details.StatusCode, err)
 		return
 	}
 
@@ -201,10 +203,10 @@ func (proxy *Proxy) getScannerStatus(query *transport.ServerQuery) {
 
 	// Forward request
 	ctx := query.RequestContext()
-	status, _, err := proxy.clnt.GetScannerStatus(ctx)
+	status, details, err := proxy.clnt.GetScannerStatus(ctx)
 
 	if err != nil {
-		query.Reject(http.StatusServiceUnavailable, err)
+		query.Reject(details.StatusCode, err)
 		return
 	}
 
@@ -267,10 +269,10 @@ func (proxy *Proxy) postScanJobs(query *transport.ServerQuery) {
 
 	// Forward request
 	ctx := query.RequestContext()
-	joburi, _, err := proxy.clnt.Scan(ctx, *ss)
+	joburi, details, err := proxy.clnt.Scan(ctx, *ss)
 
 	if err != nil {
-		query.Reject(http.StatusServiceUnavailable, err)
+		query.Reject(details.StatusCode, err)
 		return
 	}
 
@@ -315,7 +317,7 @@ func (proxy *Proxy) getJobURINextDocument(
 
 	body, details, err := proxy.clnt.NextDocument(ctx, joburi)
 	if err != nil {
-		query.Reject(http.StatusServiceUnavailable, err)
+		query.Reject(details.StatusCode, err)
 		return
 	}
 
@@ -366,7 +368,7 @@ func (proxy *Proxy) deleteJobURI(
 
 	details, err := proxy.clnt.Cancel(ctx, joburi)
 	if err != nil {
-		query.Reject(http.StatusServiceUnavailable, err)
+		query.Reject(details.StatusCode, err)
 		return
 	}
 
