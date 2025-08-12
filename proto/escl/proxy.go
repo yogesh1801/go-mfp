@@ -190,6 +190,12 @@ func (proxy *Proxy) getScannerStatus(query *transport.ServerQuery) {
 		return
 	}
 
+	// Translate JobUrls in the response
+	for i := range status.Jobs {
+		job := &status.Jobs[i]
+		job.JobURI = proxy.reverseJobURI(query, job.JobURI)
+	}
+
 	// Call OnScannerStatusResponse hook
 	if proxy.hooks.OnScannerStatusResponse != nil {
 		status2 := proxy.hooks.OnScannerStatusResponse(
