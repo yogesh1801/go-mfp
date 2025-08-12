@@ -10,12 +10,10 @@ package log
 
 import (
 	"os"
-	"sync"
 )
 
 // backendStderr is the Backend that writes logs to stderr
 type backendStderr struct {
-	mutex sync.Mutex // Send lock
 }
 
 // Line implements [Backend.Send] method
