@@ -119,6 +119,7 @@ func (ux *URLXlat) translate(u, from, to *url.URL) *url.URL {
 // direction.
 func (ux *URLXlat) translatePath(pathIn string,
 	from, to *url.URL) (pathOut string, ok bool) {
+
 	// Input path must be prefixed by the path we are
 	// translating from (from.Path).
 	//
@@ -134,7 +135,7 @@ func (ux *URLXlat) translatePath(pathIn string,
 		pathOut = to.Path
 		ok = true
 
-	case from.Path == "/" || pathIn[len(from.Path)] == '/':
+	case strings.HasSuffix(from.Path, "/") || pathIn[len(from.Path)] == '/':
 		// if pathIn is longer that from.Path, they must
 		// diverge at the path separator
 		//

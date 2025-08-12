@@ -89,6 +89,13 @@ func TestURLXlat(t *testing.T) {
 			in:     "ipp://localhost:60002/ipp/print",
 			out:    "ipp://localhost/printers/Boomaga",
 		},
+
+		{
+			local:  "http://localhost:80/eSCLLL/",
+			remote: "http://localhost:50000/eSCL",
+			in:     "http://localhost/eSCLLL/ScanJobs/urn:uuid:652a6023-97af-4936-80d7-8962ed514842",
+			out:    "http://localhost:50000/eSCL/ScanJobs/urn:uuid:652a6023-97af-4936-80d7-8962ed514842",
+		},
 	}
 
 	for _, test := range tests {
