@@ -9,17 +9,16 @@
 package escl
 
 import (
-	"bytes"
-	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
 	"sync/atomic"
 
+	"github.com/OpenPrinting/go-mfp/internal/assert"
+	"github.com/OpenPrinting/go-mfp/log"
 	"github.com/OpenPrinting/go-mfp/transport"
 	"github.com/OpenPrinting/go-mfp/util/missed"
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
-	"github.com/OpenPrinting/goipp"
 )
 
 // Proxy is the forwarding eSCL proxy.
@@ -30,37 +29,13 @@ import (
 // the eSCL request and response bodies to properly translate URLs,
 // embedded into the protocol messages.
 type Proxy struct {
-	localPath string   // Path portion of the local URL
-	remoteURL *url.URL // Remote URLs
-	clnt      *Client  // eSCL client part of proxy
+	localPath string             // Path portion of the local URL
+	remoteURL *url.URL           // Remote URLs
+	clnt      *Client            // eSCL client part of proxy
+	urlxlat   *transport.URLXlat // URL translator
 	//sniffer   Sniffer           // Sniffer callbacks
 	hooks  ServerHooks   // eSCL server hooks
 	seqnum atomic.Uint64 // Sequence number, for sniffer
-}
-
-// proxyMsgXlat performs URL translation in the eSCL requests
-// and responses.
-type proxyMsgXlat struct {
-	urlxlat *transport.URLXlat
-}
-
-// proxyMsgChanges contains changes applied to the message by the
-// proxyMsgXlat.Forward or proxyMsgXlat.Reverse functions, for logging.
-type proxyMsgChanges struct {
-	local, remote *url.URL                 // Local and remote URLs
-	Groups        []proxyMsgChangesByGroup // Changes per group
-}
-
-// proxyMsgChangesByGroup per-group changes
-type proxyMsgChangesByGroup struct {
-	Tag    goipp.Tag                // Group tag
-	Values []proxyMsgChangesByValue // Changed values
-}
-
-// proxyMsgChangesByValue represents per-value changes
-type proxyMsgChangesByValue struct {
-	Path     string      // Path to the value from the Message root
-	Old, New goipp.Value // Old and new values
 }
 
 // NewProxy creates the new [Proxy].
@@ -70,10 +45,15 @@ type proxyMsgChangesByValue struct {
 func NewProxy(localPath string, remoteURL *url.URL) *Proxy {
 	localPath = transport.CleanURLPath(localPath + "/")
 
+	localURL, err := url.Parse("http://localhost")
+	assert.NoError(err)
+	localURL.Path = localPath
+
 	proxy := &Proxy{
 		localPath: localPath,
 		remoteURL: remoteURL,
 		clnt:      NewClient(remoteURL, nil),
+		urlxlat:   transport.NewURLXlat(localURL, remoteURL),
 	}
 	return proxy
 }
@@ -276,7 +256,8 @@ func (proxy *Proxy) postScanJobs(query *transport.ServerQuery) {
 		return
 	}
 
-	joburi = proxy.reverseJobURI(joburi)
+	// Translate joburi
+	joburi = proxy.reverseJobURI(query, joburi)
 
 	// Call OnScanJobsResponse hook
 	if proxy.hooks.OnScanJobsResponse != nil {
@@ -298,6 +279,8 @@ func (proxy *Proxy) postScanJobs(query *transport.ServerQuery) {
 func (proxy *Proxy) getJobURINextDocument(
 	query *transport.ServerQuery, joburi string) {
 
+	println("getJobURINextDocument: joburi:", joburi)
+
 	// Call OnNextDocumentRequest hook
 	if proxy.hooks.OnNextDocumentRequest != nil {
 		joburi2 := proxy.hooks.OnNextDocumentRequest(
@@ -311,10 +294,11 @@ func (proxy *Proxy) getJobURINextDocument(
 		}
 	}
 
+	// Translate joburi
+	joburi = proxy.forwardJobURI(query, joburi)
+
 	// Forward request
 	ctx := query.RequestContext()
-	joburi = proxy.forwardJobURI(joburi)
-
 	body, details, err := proxy.clnt.NextDocument(ctx, joburi)
 	if err != nil {
 		query.Reject(details.StatusCode, err)
@@ -362,10 +346,11 @@ func (proxy *Proxy) deleteJobURI(
 		}
 	}
 
+	// Translate joburi
+	joburi = proxy.forwardJobURI(query, joburi)
+
 	// Forward request
 	ctx := query.RequestContext()
-	joburi = proxy.forwardJobURI(joburi)
-
 	details, err := proxy.clnt.Cancel(ctx, joburi)
 	if err != nil {
 		query.Reject(details.StatusCode, err)
@@ -397,195 +382,33 @@ func (proxy *Proxy) sendXML(query *transport.ServerQuery,
 }
 
 // forwardJobURI translates the JobUri in the local->remote direction.
-func (proxy *Proxy) forwardJobURI(joburl string) string {
-	return joburl
+func (proxy *Proxy) forwardJobURI(query *transport.ServerQuery,
+	joburi string) string {
+
+	translated := proxy.urlxlat.ForwardPath(joburi)
+
+	ctx := query.RequestContext()
+	log.Begin(ctx).
+		Debug("eSCL: JobUri translated:").
+		Debug("  - %s", joburi).
+		Debug("  + %s", translated).
+		Commit()
+
+	return translated
 }
 
 // reverseJobURI translates the JobUri in the remote->local direction.
-func (proxy *Proxy) reverseJobURI(joburl string) string {
-	return joburl
-}
+func (proxy *Proxy) reverseJobURI(query *transport.ServerQuery,
+	joburi string) string {
 
-// newMsgXlat returns the new translateMsg for the query.
-func (proxy *Proxy) newMsgXlat(query *transport.ServerQuery) (
-	*proxyMsgXlat, error) {
+	translated := proxy.urlxlat.ReversePath(joburi)
 
-	// Guess Proxy's local (server) URL out of request.
-	s := query.RequestScheme() + "://" + query.RequestHost()
-	local, err := transport.ParseURL(s)
-	if err != nil {
-		err = fmt.Errorf("%q: can't parse local URL", s)
-		return nil, err
-	}
+	ctx := query.RequestContext()
+	log.Begin(ctx).
+		Debug("eSCL: JobUri translated:").
+		Debug("  - %s", joburi).
+		Debug("  + %s", translated).
+		Commit()
 
-	local.Path = proxy.localPath
-
-	// Fill the proxyMsgXlat structure
-	xlat := &proxyMsgXlat{
-		urlxlat: transport.NewURLXlat(local, proxy.remoteURL),
-	}
-
-	return xlat, nil
-}
-
-// Forward translates message in the forward (client->server)
-// direction.
-func (xlat *proxyMsgXlat) Forward(
-	msg *goipp.Message) (*goipp.Message, proxyMsgChanges) {
-
-	return xlat.translateMsg(msg, xlat.urlxlat.Forward)
-}
-
-// Forward translates message in the reverse (server->client)
-// direction.
-func (xlat *proxyMsgXlat) Reverse(
-	msg *goipp.Message) (*goipp.Message, proxyMsgChanges) {
-
-	return xlat.translateMsg(msg, xlat.urlxlat.Reverse)
-}
-
-// translateMsg performs the actual goipp.Message translation.
-//
-// It returns the translated goipp.Message and a set of applied
-// changes.
-//
-// Each found URL is translated using the provided `callback` function.
-func (xlat *proxyMsgXlat) translateMsg(msg *goipp.Message,
-	callback func(*url.URL) *url.URL) (*goipp.Message, proxyMsgChanges) {
-
-	chgmsg := proxyMsgChanges{
-		local:  xlat.urlxlat.Local(),
-		remote: xlat.urlxlat.Remote(),
-	}
-
-	// Obtain a deep copy of all message attributes, packed
-	// into groups. Roll over all attributes, translating
-	// values in place.
-	groups := msg.AttrGroups().DeepCopy()
-	for i := range groups {
-		group := &groups[i]
-		chggrp := proxyMsgChangesByGroup{Tag: group.Tag}
-
-		for j := range group.Attrs {
-			attr := &group.Attrs[j]
-			chg := xlat.translateAttr(attr, callback)
-			chggrp.Values = append(chggrp.Values, chg...)
-		}
-
-		if len(chggrp.Values) > 0 {
-			chgmsg.Groups = append(chgmsg.Groups, chggrp)
-		}
-	}
-
-	// Rebuild the message
-	msg2 := goipp.NewMessageWithGroups(msg.Version, msg.Code,
-		msg.RequestID, groups)
-
-	return msg2, chgmsg
-}
-
-// translateAttr translates URLs found in the goipp.Attribute, recursively
-// scanning nested collections.
-//
-// Each found URL is translated using the provided `callback` function.
-//
-// Translation is performed "in place".
-func (xlat *proxyMsgXlat) translateAttr(attr *goipp.Attribute,
-	callback func(*url.URL) *url.URL) []proxyMsgChangesByValue {
-
-	chg := []proxyMsgChangesByValue{}
-
-	for i := range attr.Values {
-		v := &attr.Values[i]
-		morechg := xlat.translateVal(&v.V, v.T, callback)
-
-		for _, c := range morechg {
-			path := attr.Name
-			if len(attr.Values) > 1 {
-				path += fmt.Sprintf("[%d]", i)
-			}
-
-			if c.Path != "" && len(attr.Values) == 0 {
-				path += "."
-			}
-
-			c.Path = path + c.Path
-
-			chg = append(chg, c)
-		}
-	}
-
-	return chg
-}
-
-// translateVal translates URLs in the goipp.Value, recursively
-// scanning nested collections.
-//
-// Each found URL is translated using the provided `callback` function.
-//
-// Translation is performed "in place".
-func (xlat *proxyMsgXlat) translateVal(v *goipp.Value, t goipp.Tag,
-	callback func(*url.URL) *url.URL) []proxyMsgChangesByValue {
-
-	switch oldval := (*v).(type) {
-	case goipp.Collection:
-		chg := []proxyMsgChangesByValue{}
-
-		for i := range oldval {
-			attr := &oldval[i]
-			morechg := xlat.translateAttr(attr, callback)
-			chg = append(chg, morechg...)
-		}
-
-		return chg
-
-	case goipp.String:
-		if t != goipp.TagURI {
-			return nil
-		}
-
-		u, err := transport.ParseURL(string(oldval))
-		if err == nil {
-			u2 := callback(u)
-			newval := goipp.String(u2.String())
-
-			if oldval != newval {
-				*v = goipp.String(u2.String())
-
-				chg := []proxyMsgChangesByValue{
-					{Old: oldval, New: newval},
-				}
-
-				return chg
-			}
-		}
-	}
-
-	return nil
-}
-
-// isEmpty reports if proxyMsgChanges contains no changes.
-func (chg proxyMsgChanges) isEmpty() bool {
-	return len(chg.Groups) == 0
-}
-
-// MarshalLog returns string representation of proxyMsgChanges for logging.
-// It implements [log.Marshaler] interface.
-func (chg proxyMsgChanges) MarshalLog() []byte {
-	var buf bytes.Buffer
-
-	fmt.Fprintf(&buf, "Local URL:  %s\n", chg.local)
-	fmt.Fprintf(&buf, "Remote URL: %s\n", chg.remote)
-	fmt.Fprintf(&buf, "\n")
-
-	for _, g := range chg.Groups {
-		fmt.Fprintf(&buf, "GROUP %s:\n", g.Tag)
-		for _, v := range g.Values {
-			fmt.Fprintf(&buf, "    ATTR %s:\n", v.Path)
-			fmt.Fprintf(&buf, "        - %s\n", v.Old)
-			fmt.Fprintf(&buf, "        + %s\n", v.New)
-		}
-	}
-
-	return buf.Bytes()
+	return translated
 }
