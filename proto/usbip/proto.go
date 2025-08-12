@@ -88,7 +88,7 @@ type protoDevlistResponse struct {
 // String returns string representation of the request, for logging
 func (rsp *protoDevlistResponse) String() string {
 	if rsp.Status != protoHsOK {
-		return fmt.Sprintf("OP_REP_DEVLIST: error")
+		return "OP_REP_DEVLIST: error"
 	}
 
 	return fmt.Sprintf("OP_REP_DEVLIST: %d devices", len(rsp.Devlist))
@@ -168,7 +168,7 @@ type protoImportResponse struct {
 // String returns string representation of the request, for logging
 func (rsp *protoImportResponse) String() string {
 	if rsp.Status != protoHsOK {
-		return fmt.Sprintf("OP_REP_IMPORT: error")
+		return "OP_REP_IMPORT: error"
 	}
 
 	return fmt.Sprintf("OP_REP_IMPORT: %s OK", rsp.DevInfo.Location)

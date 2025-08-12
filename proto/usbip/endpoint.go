@@ -15,9 +15,6 @@ import (
 	"syscall"
 )
 
-// endpointQueueSize is the size of the endpoint queue, in blocks.
-const endpointQueueSize = 64
-
 // EndpointType represents the endpoint type (in/out/bidir).
 //
 // Note, the hardware USB doesn't have such a thing that bidirectional
