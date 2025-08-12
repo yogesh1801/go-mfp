@@ -37,9 +37,7 @@ var ns = Namespace{
 
 // TestRealData tests real data decoding
 func TestRealData(t *testing.T) {
-	var input *strings.Reader
-
-	input = strings.NewReader(KyoceraECOSYSM2040dnProbeMatches)
+	input := strings.NewReader(KyoceraECOSYSM2040dnProbeMatches)
 	xml, err := Decode(ns, input)
 	if err != nil {
 		t.Errorf("%s", err)
