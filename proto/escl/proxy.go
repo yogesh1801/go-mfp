@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"sync/atomic"
 
 	"github.com/OpenPrinting/go-mfp/internal/assert"
 	"github.com/OpenPrinting/go-mfp/log"
@@ -34,8 +33,7 @@ type Proxy struct {
 	clnt      *Client            // eSCL client part of proxy
 	urlxlat   *transport.URLXlat // URL translator
 	//sniffer   Sniffer           // Sniffer callbacks
-	hooks  ServerHooks   // eSCL server hooks
-	seqnum atomic.Uint64 // Sequence number, for sniffer
+	hooks ServerHooks // eSCL server hooks
 }
 
 // NewProxy creates the new [Proxy].

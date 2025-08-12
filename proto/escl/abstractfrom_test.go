@@ -564,7 +564,6 @@ func TestFromAbstractResolutions(t *testing.T) {
 // function
 func TestFromAbstractSettingsProfiles(t *testing.T) {
 	type testData struct {
-		comment string // Not used
 		ver     Version
 		formats []string
 		in      []abstract.SettingsProfile
