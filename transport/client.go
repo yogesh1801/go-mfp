@@ -52,7 +52,7 @@ func (c *Client) Do(rq *http.Request) (*http.Response, error) {
 		status = rsp.Status
 	}
 
-	log.Debug(rq.Context(), "HTTP %s %s - %s", rq.Method, rq.URL, status)
+	log.Debug(rq.Context(), "HTTP-CLNT %s %s - %s", rq.Method, rq.URL, status)
 
 	return rsp, err
 }

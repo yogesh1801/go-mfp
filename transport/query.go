@@ -167,7 +167,7 @@ func (query *ServerQuery) WriteHeader(status int) {
 
 	if query.status.CompareAndSwap(0, int32(status)) {
 		query.w.WriteHeader(status)
-		query.log.Debug("HTTP %s %s -- %d %s",
+		query.log.Debug("HTTP-SRVR %s %s -- %d %s",
 			query.rq.Method, query.rq.URL,
 			status, http.StatusText(status))
 		query.log.Flush()
