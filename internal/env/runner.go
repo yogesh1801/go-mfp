@@ -14,6 +14,8 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/OpenPrinting/go-mfp/transport"
 )
 
 // Runner runs external program in the environment, where interactions
@@ -31,6 +33,7 @@ import (
 type Runner struct {
 	CUPSPort int    // CUPS server port, 0 if none
 	ESCLPort int    // eSCL server port, 0 if none
+	ESCLPath string // Path part of the eSCL URL
 	ESCLName string // eSCL scanner name (will be visible as SANE name)
 }
 
@@ -74,8 +77,8 @@ func (r *Runner) Run(ctx context.Context,
 		}
 
 		env := fmt.Sprintf(
-			envESCL+"escl:%s:http://localhost:%d/eSCL",
-			name, r.ESCLPort)
+			envESCL+"escl:%s:http://localhost:%d%s",
+			name, r.ESCLPort, transport.CleanURLPath(r.ESCLPath))
 		cmd.Env = append(cmd.Env, env)
 	}
 

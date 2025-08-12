@@ -155,6 +155,13 @@ func cmdProxyHandler(ctx context.Context, inv *argv.Invocation) error {
 		return err
 	}
 
+	var portnum int
+	if portOK {
+		var err error
+		portnum, err = strconv.Atoi(port)
+		assert.NoError(err)
+	}
+
 	// Parse mappings
 	var mappings []mapping
 
@@ -188,6 +195,10 @@ func cmdProxyHandler(ctx context.Context, inv *argv.Invocation) error {
 	}
 
 	// Create and populate the PathMux
+	runner := env.Runner{
+		ESCLName: "Virtual MFP Scanner",
+	}
+
 	mux := transport.NewPathMux()
 	for _, m := range mappings {
 		if mux.Contains(m.localPath) {
@@ -207,9 +218,16 @@ func cmdProxyHandler(ctx context.Context, inv *argv.Invocation) error {
 				proxy.Sniff(sniffer)
 			}
 			mux.Add(m.localPath, proxy)
+
+			runner.CUPSPort = portnum
+
 		case protoESCL:
 			proxy := escl.NewProxy(m.localPath, m.targetURL)
 			mux.Add(m.localPath, proxy)
+
+			runner.ESCLPort = portnum
+			runner.ESCLPath = m.targetURL.Path
+
 		case protoWSD:
 			return errors.New("WSD proxy not implemented")
 		}
@@ -217,13 +235,8 @@ func cmdProxyHandler(ctx context.Context, inv *argv.Invocation) error {
 
 	// Create HTTP server
 	var srvr *transport.Server
-	var portnum int
-	var err error
 
-	if portOK {
-		portnum, err = strconv.Atoi(port)
-		assert.NoError(err)
-
+	if portnum != 0 {
 		l, err := newListener(ctx, portnum)
 		if err != nil {
 			return err
@@ -243,12 +256,6 @@ func cmdProxyHandler(ctx context.Context, inv *argv.Invocation) error {
 
 	// Run external program if requested
 	if command, ok := inv.Get("command"); ok {
-		runner := env.Runner{
-			CUPSPort: portnum,
-			ESCLPort: portnum,
-			ESCLName: "Virtual MFP Scanner",
-		}
-
 		argv := inv.Values("args")
 		return runner.Run(ctx, command, argv...)
 	}

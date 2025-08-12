@@ -63,6 +63,7 @@ func simulate(ctx context.Context, model *modeling.Model,
 	if len(argv) != 0 {
 		runner := env.Runner{
 			ESCLPort: port,
+			ESCLPath: "/eSCL",
 			ESCLName: "Virtual MFP Scanner",
 		}
 
