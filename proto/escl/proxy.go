@@ -150,7 +150,7 @@ func (proxy *Proxy) getScannerCapabilities(query *transport.ServerQuery) {
 	caps, details, err := proxy.clnt.GetScannerCapabilities(ctx)
 
 	if err != nil {
-		query.Reject(details.StatusCode, err)
+		proxy.reject(query, details, err)
 		return
 	}
 
@@ -186,7 +186,7 @@ func (proxy *Proxy) getScannerStatus(query *transport.ServerQuery) {
 	status, details, err := proxy.clnt.GetScannerStatus(ctx)
 
 	if err != nil {
-		query.Reject(details.StatusCode, err)
+		proxy.reject(query, details, err)
 		return
 	}
 
@@ -252,7 +252,7 @@ func (proxy *Proxy) postScanJobs(query *transport.ServerQuery) {
 	joburi, details, err := proxy.clnt.Scan(ctx, *ss)
 
 	if err != nil {
-		query.Reject(details.StatusCode, err)
+		proxy.reject(query, details, err)
 		return
 	}
 
@@ -301,7 +301,7 @@ func (proxy *Proxy) getJobURINextDocument(
 	ctx := query.RequestContext()
 	body, details, err := proxy.clnt.NextDocument(ctx, joburi)
 	if err != nil {
-		query.Reject(details.StatusCode, err)
+		proxy.reject(query, details, err)
 		return
 	}
 
@@ -353,12 +353,26 @@ func (proxy *Proxy) deleteJobURI(
 	ctx := query.RequestContext()
 	details, err := proxy.clnt.Cancel(ctx, joburi)
 	if err != nil {
-		query.Reject(details.StatusCode, err)
+		proxy.reject(query, details, err)
 		return
 	}
 
 	// Send the response
 	query.WriteHeader(details.StatusCode)
+}
+
+// reject rejects the query due to the error, returned by proxy.clnt.
+//
+// Note, details may be nil.
+func (proxy *Proxy) reject(query *transport.ServerQuery,
+	details *HTTPDetails, err error) {
+
+	status := http.StatusServiceUnavailable
+	if details != nil {
+		status = details.StatusCode
+	}
+
+	query.Reject(status, err)
 }
 
 // sendXML generates and sends the XML response to the query.
