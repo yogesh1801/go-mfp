@@ -167,7 +167,13 @@ func (mux *PathMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// Lookup and call the handler
 	handler := mux.handler(r.URL.Path)
-	handler.ServeHTTP(w, r)
+	if handler != nil {
+		handler.ServeHTTP(w, r)
+		return
+	}
+
+	query := NewServerQuery(w, r)
+	query.Reject(http.StatusNotFound, nil)
 }
 
 // handler returns the request handler, based on the request URL path.
@@ -181,5 +187,5 @@ func (mux *PathMux) handler(path string) http.Handler {
 		}
 	}
 
-	return http.HandlerFunc(http.NotFound)
+	return nil
 }
