@@ -66,14 +66,3 @@ func parseMapping(proto proto, param string) (m mapping, err error) {
 
 	return
 }
-
-// mustParseMapping parses mapping like parseMapping and panics
-// in a case of errors
-func mustParseMapping(proto proto, param string) mapping {
-	m, err := parseMapping(proto, param)
-	if err != nil {
-		err = fmt.Errorf("%s: %s", param, err)
-		panic(err)
-	}
-	return m
-}
