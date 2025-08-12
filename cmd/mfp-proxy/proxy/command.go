@@ -226,7 +226,7 @@ func cmdProxyHandler(ctx context.Context, inv *argv.Invocation) error {
 			mux.Add(m.localPath, proxy)
 
 			runner.ESCLPort = portnum
-			runner.ESCLPath = m.targetURL.Path
+			runner.ESCLPath = m.localPath
 
 		case protoWSD:
 			return errors.New("WSD proxy not implemented")
