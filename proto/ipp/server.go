@@ -18,8 +18,7 @@ import (
 
 // Server represents an IPP server.
 type Server struct {
-	httpServer *http.Server
-	ops        map[goipp.Op]*Handler
+	ops map[goipp.Op]*Handler
 }
 
 // NewServer returns a new Sever.
