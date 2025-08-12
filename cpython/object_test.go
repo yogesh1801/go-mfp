@@ -818,6 +818,7 @@ func TestObjectCallable(t *testing.T) {
 
 	// Obtain callable object
 	obj, err = py.Eval("min")
+	assert.NoError(err)
 
 	callable = obj.IsCallable()
 	if !callable {

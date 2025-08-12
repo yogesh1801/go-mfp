@@ -356,7 +356,7 @@ func (gate pyGate) decodeBytes(pyobj pyObject) ([]byte, error) {
 			return nil, gate.lastError()
 		}
 
-		bytes := make([]byte, size, size)
+		bytes := make([]byte, size)
 		src := unsafe.Slice((*byte)(data), size)
 		copy(bytes, src)
 
