@@ -380,6 +380,9 @@ func (model *Model) pyImportSlice(v reflect.Value, obj *cpython.Object) error {
 	// Decode item by item
 	for i, item := range slice {
 		err = model.pyImportValue(v.Index(i), item)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -554,12 +557,6 @@ func (model *Model) pyImportValue(v reflect.Value, obj *cpython.Object) error {
 	}
 
 	return nil
-}
-
-// pyFormat writes Python object into the io.Writer.
-func (model *Model) pyFormat(obj *cpython.Object, w io.Writer) error {
-	f := newFormatter(w)
-	return f.Format(obj)
 }
 
 // NewESCLServer creates a virtual eSCL server on a top of
