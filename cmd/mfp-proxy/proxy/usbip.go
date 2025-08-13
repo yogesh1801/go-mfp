@@ -14,6 +14,7 @@ import (
 	"net/http"
 
 	"github.com/OpenPrinting/go-mfp/internal/assert"
+	"github.com/OpenPrinting/go-mfp/modeling"
 	"github.com/OpenPrinting/go-mfp/proto/usbip"
 	"github.com/OpenPrinting/go-mfp/transport"
 )
@@ -27,68 +28,19 @@ import (
 func newUsbipServer(ctx context.Context,
 	addr net.Addr, handler http.Handler) *transport.Server {
 
-	srv, endpoints := usbip.NewIPPUSB(ctx, 3, handler)
+	// Obtain device descriptor and its endpoints
+	desc, endpoints := modeling.DefaultUSBIPPDescriptor()
 
-	desc := usbip.USBDeviceDescriptor{
-		BCDUSB:          0x0200,
-		Speed:           usbip.USBSpeedHigh,
-		BDeviceClass:    0,
-		BDeviceSubClass: 0,
-		BDeviceProtocol: 0,
-		BMaxPacketSize:  64,
-		IDVendor:        0xdead,
-		IDProduct:       0xbeaf,
-		BCDDevice:       0x0100,
-		IManufacturer:   "OpenPrinting",
-		IProduct:        "Virtual MFP",
-		ISerialNumber:   "NN-001122334455",
-		Configurations: []usbip.USBConfigurationDescriptor{{
-			BMAttributes: usbip.USBConfAttrSelfPowered,
-			MaxPower:     1,
-			Interfaces: []usbip.USBInterface{
-				{
-					AltSettings: []usbip.USBInterfaceDescriptor{
-						{
-							BInterfaceClass:    7,
-							BInterfaceSubClass: 1,
-							BInterfaceProtocol: 4,
-							Endpoints: []*usbip.Endpoint{
-								endpoints[0],
-							},
-						},
-					},
-				},
-				{
-					AltSettings: []usbip.USBInterfaceDescriptor{
-						{
-							BInterfaceClass:    7,
-							BInterfaceSubClass: 1,
-							BInterfaceProtocol: 4,
-							Endpoints: []*usbip.Endpoint{
-								endpoints[1],
-							},
-						},
-					},
-				},
-				{
-					AltSettings: []usbip.USBInterfaceDescriptor{
-						{
-							BInterfaceClass:    7,
-							BInterfaceSubClass: 1,
-							BInterfaceProtocol: 4,
-							Endpoints: []*usbip.Endpoint{
-								endpoints[2],
-							},
-						},
-					},
-				},
-			},
-		}},
-	}
+	// Create HTTP server on a top of the USB device endpoints
+	srv := transport.NewServer(ctx, nil, handler)
+	listener := usbip.NewEndpointListener(addr, addr, endpoints)
+	go srv.Serve(listener)
 
+	// Create USB device
 	dev, err := usbip.NewDevice(desc)
 	assert.NoError(err)
 
+	// Create USBIP server
 	usbipSrv := usbip.NewServer(ctx)
 	err = usbipSrv.AddDevice(dev)
 	assert.NoError(err)

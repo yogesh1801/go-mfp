@@ -6,17 +6,18 @@
 //
 // Default configuration
 
-package virtual
+package modeling
 
 import (
 	"github.com/OpenPrinting/go-mfp/abstract"
+	"github.com/OpenPrinting/go-mfp/proto/usbip"
 	"github.com/OpenPrinting/go-mfp/util/generic"
 	"github.com/OpenPrinting/go-mfp/util/uuid"
 )
 
-// defaultsScannerCapabilities returns the default scanner
-// capabilities.
-func defaultsScannerCapabilities() *abstract.ScannerCapabilities {
+// DefaultScannerCapabilities the *[abstract.ScannerCapabilities]
+// for the typical scanner.
+func DefaultScannerCapabilities() *abstract.ScannerCapabilities {
 	colorModes := generic.MakeBitset(
 		abstract.ColorModeBinary,
 		abstract.ColorModeMono,
@@ -80,4 +81,75 @@ func defaultsScannerCapabilities() *abstract.ScannerCapabilities {
 		ADFDuplex:        inputcaps,
 	}
 	return caps
+}
+
+// DefaultUSBIPPDescriptor returns the [usbip.USBDeviceDescriptor]
+// and endpoints for the typical IPP over USB device.
+func DefaultUSBIPPDescriptor() (
+	usbip.USBDeviceDescriptor, []*usbip.Endpoint) {
+
+	endpoints := make([]*usbip.Endpoint, 3)
+	for i := range endpoints {
+		endpoints[i] = usbip.NewEndpoint(usbip.EndpointInOut,
+			usbip.USBXferBulk, 512)
+	}
+
+	desc := usbip.USBDeviceDescriptor{
+		BCDUSB:          0x0200,
+		Speed:           usbip.USBSpeedHigh,
+		BDeviceClass:    0,
+		BDeviceSubClass: 0,
+		BDeviceProtocol: 0,
+		BMaxPacketSize:  64,
+		IDVendor:        0xdead,
+		IDProduct:       0xbeaf,
+		BCDDevice:       0x0100,
+		IManufacturer:   "OpenPrinting",
+		IProduct:        "Virtual MFP",
+		ISerialNumber:   "NN-001122334455",
+		Configurations: []usbip.USBConfigurationDescriptor{{
+			BMAttributes: usbip.USBConfAttrSelfPowered,
+			MaxPower:     1,
+			Interfaces: []usbip.USBInterface{
+				{
+					AltSettings: []usbip.USBInterfaceDescriptor{
+						{
+							BInterfaceClass:    7,
+							BInterfaceSubClass: 1,
+							BInterfaceProtocol: 4,
+							Endpoints: []*usbip.Endpoint{
+								endpoints[0],
+							},
+						},
+					},
+				},
+				{
+					AltSettings: []usbip.USBInterfaceDescriptor{
+						{
+							BInterfaceClass:    7,
+							BInterfaceSubClass: 1,
+							BInterfaceProtocol: 4,
+							Endpoints: []*usbip.Endpoint{
+								endpoints[1],
+							},
+						},
+					},
+				},
+				{
+					AltSettings: []usbip.USBInterfaceDescriptor{
+						{
+							BInterfaceClass:    7,
+							BInterfaceSubClass: 1,
+							BInterfaceProtocol: 4,
+							Endpoints: []*usbip.Endpoint{
+								endpoints[2],
+							},
+						},
+					},
+				},
+			},
+		}},
+	}
+
+	return desc, endpoints
 }

@@ -117,7 +117,7 @@ func cmdVirtualHandler(ctx context.Context, inv *argv.Invocation) error {
 			return err
 		}
 	} else {
-		caps := defaultsScannerCapabilities()
+		caps := modeling.DefaultScannerCapabilities()
 		esclcaps := escl.FromAbstractScannerCapabilities(
 			escl.DefaultVersion, caps)
 		model.SetESCLScanCaps(esclcaps)
