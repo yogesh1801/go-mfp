@@ -4,9 +4,9 @@
 // Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
 // See LICENSE for license terms and conditions
 //
-// Default configuration
+// Default configurations
 
-package modeling
+package defaults
 
 import (
 	"github.com/OpenPrinting/go-mfp/abstract"
@@ -15,9 +15,9 @@ import (
 	"github.com/OpenPrinting/go-mfp/util/uuid"
 )
 
-// DefaultScannerCapabilities the *[abstract.ScannerCapabilities]
+// ScannerCapabilities the *[abstract.ScannerCapabilities]
 // for the typical scanner.
-func DefaultScannerCapabilities() *abstract.ScannerCapabilities {
+func ScannerCapabilities() *abstract.ScannerCapabilities {
 	colorModes := generic.MakeBitset(
 		abstract.ColorModeBinary,
 		abstract.ColorModeMono,
@@ -83,9 +83,9 @@ func DefaultScannerCapabilities() *abstract.ScannerCapabilities {
 	return caps
 }
 
-// DefaultUSBIPPDescriptor returns the [usbip.USBDeviceDescriptor]
+// USBIPPDescriptor returns the [usbip.USBDeviceDescriptor]
 // and endpoints for the typical IPP over USB device.
-func DefaultUSBIPPDescriptor() (
+func USBIPPDescriptor() (
 	usbip.USBDeviceDescriptor, []*usbip.Endpoint) {
 
 	endpoints := make([]*usbip.Endpoint, 3)

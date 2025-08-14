@@ -14,7 +14,7 @@ import (
 	"net/http"
 
 	"github.com/OpenPrinting/go-mfp/internal/assert"
-	"github.com/OpenPrinting/go-mfp/modeling"
+	"github.com/OpenPrinting/go-mfp/modeling/defaults"
 	"github.com/OpenPrinting/go-mfp/proto/usbip"
 	"github.com/OpenPrinting/go-mfp/transport"
 )
@@ -29,7 +29,7 @@ func newUsbipServer(ctx context.Context,
 	addr net.Addr, handler http.Handler) *transport.Server {
 
 	// Obtain device descriptor and its endpoints
-	desc, endpoints := modeling.DefaultUSBIPPDescriptor()
+	desc, endpoints := defaults.USBIPPDescriptor()
 
 	// Create HTTP server on a top of the USB device endpoints
 	srv := transport.NewServer(ctx, nil, handler)

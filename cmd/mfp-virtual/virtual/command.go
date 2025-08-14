@@ -16,6 +16,7 @@ import (
 	"github.com/OpenPrinting/go-mfp/argv"
 	"github.com/OpenPrinting/go-mfp/log"
 	"github.com/OpenPrinting/go-mfp/modeling"
+	"github.com/OpenPrinting/go-mfp/modeling/defaults"
 	"github.com/OpenPrinting/go-mfp/proto/escl"
 )
 
@@ -117,7 +118,7 @@ func cmdVirtualHandler(ctx context.Context, inv *argv.Invocation) error {
 			return err
 		}
 	} else {
-		caps := modeling.DefaultScannerCapabilities()
+		caps := defaults.ScannerCapabilities()
 		esclcaps := escl.FromAbstractScannerCapabilities(
 			escl.DefaultVersion, caps)
 		model.SetESCLScanCaps(esclcaps)
