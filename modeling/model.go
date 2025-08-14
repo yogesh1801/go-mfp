@@ -436,7 +436,7 @@ func (model *Model) pyImportValue(v reflect.Value, obj *cpython.Object) error {
 		return err
 
 	case escl.ColorSpace:
-		sps, err := esclDecodeColorMode(obj)
+		sps, err := esclDecodeColorSpace(obj)
 		if err == nil {
 			v.Set(reflect.ValueOf(sps))
 		}
