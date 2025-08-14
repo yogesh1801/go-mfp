@@ -11,16 +11,13 @@ package modeling
 import (
 	"fmt"
 	"io"
-	"net/http"
 	"os"
 	"reflect"
 
-	"github.com/OpenPrinting/go-mfp/abstract"
 	"github.com/OpenPrinting/go-mfp/cpython"
 	"github.com/OpenPrinting/go-mfp/internal/assert"
 	"github.com/OpenPrinting/go-mfp/proto/escl"
 	"github.com/OpenPrinting/go-mfp/proto/ipp"
-	"github.com/OpenPrinting/go-mfp/transport"
 	"github.com/OpenPrinting/go-mfp/util/uuid"
 )
 
@@ -123,21 +120,9 @@ func (model *Model) GetESCLScanCaps() *escl.ScannerCapabilities {
 func (model *Model) Write(w io.Writer) error {
 	f := newFormatter(w)
 
-	if model.esclScanCaps != nil {
-		obj, err := model.pyExportStruct(model.esclScanCaps)
-		if err != nil {
-			return err
-		}
+	err := model.esclWrite(f)
 
-		f.Printf("# eSCL scanner parameters:\n")
-		f.Printf("escl.caps = ")
-		err = f.Format(obj)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return err
 }
 
 // Read reads model from the [io.Reader]
@@ -557,46 +542,4 @@ func (model *Model) pyImportValue(v reflect.Value, obj *cpython.Object) error {
 	}
 
 	return nil
-}
-
-// NewESCLServer creates a virtual eSCL server on a top of
-// the existent abstract.Scanner implementation.
-//
-// It will return nil, if model doesn't have the eSCL scanner capabilities.
-func (model *Model) NewESCLServer(
-	scanner abstract.Scanner) *escl.AbstractServer {
-
-	// Obtain scanner capabilities
-	caps := model.GetESCLScanCaps()
-	if caps == nil {
-		return nil
-	}
-
-	// Setup options
-	options := escl.AbstractServerOptions{
-		Version:  caps.Version,
-		Scanner:  scanner,
-		BasePath: "/eSCL",
-		Hooks: escl.ServerHooks{
-			OnScannerCapabilitiesResponse: model.esclOnScannerCapabilitiesResponse,
-		},
-	}
-
-	// Create the eSCL server
-	return escl.NewAbstractServer(options)
-}
-
-// esclOnScannerCapabilitiesResponse implements the
-// [escl.ServerHooks.OnScannerCapabilitiesResponse] hook
-// for the modeled eSCL scanner.
-func (model *Model) esclOnScannerCapabilitiesResponse(
-	query *transport.ServerQuery,
-	caps *escl.ScannerCapabilities) *escl.ScannerCapabilities {
-
-	caps2 := model.GetESCLScanCaps()
-	if caps2 == nil {
-		query.Reject(http.StatusServiceUnavailable, nil)
-	}
-
-	return caps2
 }

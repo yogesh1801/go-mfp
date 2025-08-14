@@ -4,322 +4,73 @@
 // Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
 // See LICENSE for license terms and conditions
 //
-// eSCL-specific functions
+// eSCL part of Model
 
 package modeling
 
 import (
-	"fmt"
+	"net/http"
 
-	"github.com/OpenPrinting/go-mfp/cpython"
+	"github.com/OpenPrinting/go-mfp/abstract"
 	"github.com/OpenPrinting/go-mfp/proto/escl"
-	"github.com/OpenPrinting/go-mfp/util/optional"
+	"github.com/OpenPrinting/go-mfp/transport"
 )
 
-// esclDecodeADFOption decodes escl.ADFOption from the Python object
-func esclDecodeADFOption(obj *cpython.Object) (escl.ADFOption, error) {
-	s, err := obj.Str()
-	if err != nil {
-		return 0, err
+// esclWrite writes eSCL part of model into the [formatter].
+func (model *Model) esclWrite(f *formatter) error {
+	if model.esclScanCaps != nil {
+		obj, err := model.pyExportStruct(model.esclScanCaps)
+		if err != nil {
+			return err
+		}
+
+		f.Printf("# eSCL scanner parameters:\n")
+		f.Printf("escl.caps = ")
+
+		return f.Format(obj)
 	}
 
-	opt := escl.DecodeADFOption(s)
-	if opt == escl.UnknownADFOption {
-		return 0, fmt.Errorf("%s: invalid eSCL AdfOption", s)
-	}
-
-	return opt, nil
+	return nil
 }
 
-// esclDecodeADFState decodes escl.ADFState from the Python object
-func esclDecodeADFState(obj *cpython.Object) (escl.ADFState, error) {
-	s, err := obj.Str()
-	if err != nil {
-		return 0, err
+// NewESCLServer creates a virtual eSCL server on a top of
+// the existent abstract.Scanner implementation.
+//
+// It will return nil, if model doesn't have the eSCL scanner capabilities.
+func (model *Model) NewESCLServer(
+	scanner abstract.Scanner) *escl.AbstractServer {
+
+	// Obtain scanner capabilities
+	caps := model.GetESCLScanCaps()
+	if caps == nil {
+		return nil
 	}
 
-	st := escl.DecodeADFState(s)
-	if st == escl.UnknownADFState {
-		return 0, fmt.Errorf("%s: invalid eSCL AdfState", s)
+	// Setup options
+	options := escl.AbstractServerOptions{
+		Version:  caps.Version,
+		Scanner:  scanner,
+		BasePath: "/eSCL",
+		Hooks: escl.ServerHooks{
+			OnScannerCapabilitiesResponse: model.esclOnScannerCapabilitiesResponse,
+		},
 	}
 
-	return st, nil
+	// Create the eSCL server
+	return escl.NewAbstractServer(options)
 }
 
-// esclDecodeBinaryRendering decodes escl.BinaryRendering from the
-// Python object
-func esclDecodeBinaryRendering(obj *cpython.Object) (
-	escl.BinaryRendering, error) {
+// esclOnScannerCapabilitiesResponse implements the
+// [escl.ServerHooks.OnScannerCapabilitiesResponse] hook
+// for the modeled eSCL scanner.
+func (model *Model) esclOnScannerCapabilitiesResponse(
+	query *transport.ServerQuery,
+	caps *escl.ScannerCapabilities) *escl.ScannerCapabilities {
 
-	s, err := obj.Str()
-	if err != nil {
-		return 0, err
+	caps2 := model.GetESCLScanCaps()
+	if caps2 == nil {
+		query.Reject(http.StatusServiceUnavailable, nil)
 	}
 
-	rnd := escl.DecodeBinaryRendering(s)
-	if rnd == escl.UnknownBinaryRendering {
-		return 0, fmt.Errorf("%s: invalid eSCL BinaryRendering(", s)
-	}
-
-	return rnd, nil
-}
-
-// esclDecodeCCDChannel decodes escl.CCDChannel from the Python object
-func esclDecodeCCDChannel(obj *cpython.Object) (escl.CCDChannel, error) {
-	s, err := obj.Str()
-	if err != nil {
-		return 0, err
-	}
-
-	ccd := escl.DecodeCCDChannel(s)
-	if ccd == escl.UnknownCCDChannel {
-		return 0, fmt.Errorf("%s: invalid eSCL CcdChannel", s)
-	}
-
-	return ccd, nil
-}
-
-// esclDecodeColorMode decodes escl.ColorMode from the Python object
-func esclDecodeColorMode(obj *cpython.Object) (escl.ColorMode, error) {
-	s, err := obj.Str()
-	if err != nil {
-		return 0, err
-	}
-
-	cm := escl.DecodeColorMode(s)
-	if cm == escl.UnknownColorMode {
-		return 0, fmt.Errorf("%s: invalid eSCL ColorMode(", s)
-	}
-
-	return cm, nil
-}
-
-// esclDecodeColorSpace decodes escl.ColorSpace from the Python object
-func esclDecodeColorSpace(obj *cpython.Object) (escl.ColorSpace, error) {
-	s, err := obj.Str()
-	if err != nil {
-		return 0, err
-	}
-
-	sps := escl.DecodeColorSpace(s)
-	if sps == escl.UnknownColorSpace {
-		return 0, fmt.Errorf("%s: invalid eSCL ColorSpace", s)
-	}
-
-	return sps, nil
-}
-
-// esclDecodeContentType decodes escl.ContentType from the Python object
-func esclDecodeContentType(obj *cpython.Object) (escl.ContentType, error) {
-	s, err := obj.Str()
-	if err != nil {
-		return 0, err
-	}
-
-	ct := escl.DecodeContentType(s)
-	if ct == escl.UnknownContentType {
-		return 0, fmt.Errorf("%s: invalid eSCL ContentType", s)
-	}
-
-	return ct, nil
-}
-
-// esclDecodeDiscreteResolution decodes escl.DiscreteResolution
-// from the Python object
-func esclDecodeDiscreteResolution(obj *cpython.Object) (
-	res escl.DiscreteResolution, err error) {
-
-	attr, err := obj.GetAttr("X")
-	if err != nil {
-		return
-	}
-
-	tmp, err := attr.Int()
-	if err != nil {
-		return
-	}
-
-	res.XResolution = int(tmp)
-
-	attr, err = obj.GetAttr("Y")
-	if err != nil {
-		return
-	}
-
-	tmp, err = attr.Int()
-	if err != nil {
-		return
-	}
-
-	res.YResolution = int(tmp)
-
-	return
-}
-
-// esclDecodeFeedDirection decodes escl.FeedDirection from the Python object
-func esclDecodeFeedDirection(obj *cpython.Object) (escl.FeedDirection, error) {
-	s, err := obj.Str()
-	if err != nil {
-		return 0, err
-	}
-
-	feed := escl.DecodeFeedDirection(s)
-	if feed == escl.UnknownFeedDirection {
-		return 0, fmt.Errorf("%s: invalid eSCL FeedDirection", s)
-	}
-
-	return feed, nil
-}
-
-// esclDecodeImagePosition decodes escl.ImagePosition from the Python object
-func esclDecodeImagePosition(obj *cpython.Object) (escl.ImagePosition, error) {
-	s, err := obj.Str()
-	if err != nil {
-		return 0, err
-	}
-
-	pos := escl.DecodeImagePosition(s)
-	if pos == escl.UnknownImagePosition {
-		return 0, fmt.Errorf("%s: invalid eSCL ImagePosition", s)
-	}
-
-	return pos, nil
-}
-
-// esclDecodeInputSource decodes escl.InputSource from the Python object
-func esclDecodeInputSource(obj *cpython.Object) (escl.InputSource, error) {
-	s, err := obj.Str()
-	if err != nil {
-		return 0, err
-	}
-
-	src := escl.DecodeInputSource(s)
-	if src == escl.UnknownInputSource {
-		return 0, fmt.Errorf("%s: invalid eSCL InputSource", s)
-	}
-
-	return src, nil
-}
-
-// esclDecodeIntent decodes escl.Intent from the Python object
-func esclDecodeIntent(obj *cpython.Object) (escl.Intent, error) {
-	s, err := obj.Str()
-	if err != nil {
-		return 0, err
-	}
-
-	intent := escl.DecodeIntent(s)
-	if intent == escl.UnknownIntent {
-		return 0, fmt.Errorf("%s: invalid eSCL Intent", s)
-	}
-
-	return intent, nil
-}
-
-// esclDecodeJobState decodes escl.JobState from the Python object
-func esclDecodeJobState(obj *cpython.Object) (escl.JobState, error) {
-	s, err := obj.Str()
-	if err != nil {
-		return 0, err
-	}
-
-	st := escl.DecodeJobState(s)
-	if st == escl.UnknownJobState {
-		return 0, fmt.Errorf("%s: invalid eSCL JobState", s)
-	}
-
-	return st, nil
-}
-
-// esclDecodeJobStateReason decodes escl.JobStateReason from the Python object
-func esclDecodeJobStateReason(obj *cpython.Object) (escl.JobStateReason, error) {
-	s, err := obj.Str()
-	if err != nil {
-		return "", err
-	}
-
-	return escl.JobStateReason(s), nil
-}
-
-// esclDecodeRange decodes escl.Range from the Python object
-func esclDecodeRange(obj *cpython.Object) (r escl.Range, err error) {
-	attr, err := obj.GetAttr("Min")
-	if err != nil {
-		return
-	}
-
-	tmp, err := attr.Int()
-	if err != nil {
-		return
-	}
-
-	r.Min = int(tmp)
-
-	attr, err = obj.GetAttr("Max")
-	if err != nil {
-		return
-	}
-
-	tmp, err = attr.Int()
-	if err != nil {
-		return
-	}
-
-	r.Max = int(tmp)
-
-	attr, err = obj.GetAttr("Normal")
-	if err != nil {
-		return
-	}
-
-	tmp, err = attr.Int()
-	if err != nil {
-		return
-	}
-
-	r.Normal = int(tmp)
-
-	attr, err = obj.GetAttr("Step")
-	if err != nil {
-		return
-	}
-
-	tmp, err = attr.Int()
-	if err != nil {
-		return
-	}
-
-	r.Step = optional.New(int(tmp))
-
-	return
-}
-
-// esclDecodeVersion decodes escl.Version from the Python object
-func esclDecodeVersion(obj *cpython.Object) (escl.Version, error) {
-	s, err := obj.Str()
-	if err != nil {
-		return 0, err
-	}
-
-	ver, err := escl.DecodeVersion(s)
-	if err != nil {
-		return 0, err
-	}
-
-	return ver, nil
-}
-
-// esclDecodeUnits decodes escl.Units from the Python object
-func esclDecodeUnits(obj *cpython.Object) (escl.Units, error) {
-	un, err := obj.Str()
-	if err != nil {
-		return 0, err
-	}
-
-	st := escl.DecodeUnits(un)
-	if st == escl.UnknownUnits {
-		return 0, fmt.Errorf("%s: invalid eSCL Units", un)
-	}
-
-	return st, nil
+	return caps2
 }
