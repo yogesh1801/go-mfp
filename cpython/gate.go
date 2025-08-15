@@ -9,6 +9,7 @@
 package cpython
 
 import (
+	"fmt"
 	"math/big"
 	"runtime"
 	"strings"
@@ -63,14 +64,26 @@ func (gate pyGate) lastError() error {
 
 	// Decode the error
 	var msg string
+	var needLocation bool
 
 	if etype != nil {
-		nm, _ := gate.getattr(etype, "__name__")
-		if nm != nil {
-			s, _ := gate.str(nm)
-			if s != "" {
-				msg = s + ":"
-			}
+		var nm string
+		if tmp, _ := gate.getattr(etype, "__name__"); tmp != nil {
+			nm, _ = gate.str(tmp)
+			C.py_obj_unref(tmp)
+		}
+
+		if nm != "" {
+			msg = nm + ":"
+		}
+
+		// Some exception types, like SyntaxError, already
+		// come with the file:line information. Others require
+		// additional effort...
+		switch nm {
+		case "SyntaxError":
+		default:
+			needLocation = true
 		}
 	}
 
@@ -85,7 +98,83 @@ func (gate pyGate) lastError() error {
 		msg = "Unknown Python exception"
 	}
 
+	if needLocation && trace != nil {
+		file, line, err := gate.lastErrorLocation(trace)
+		if err == nil {
+			msg += fmt.Sprintf(" (%s, line %d)", file, line)
+		}
+	}
+
 	return ErrPython{msg}
+}
+
+// lastErrorLocation extracts file and line information out of the
+// traceback object.
+func (gate pyGate) lastErrorLocation(trace pyObject) (
+	file string, line int, err error) {
+
+	var lineno, frame, code, filename pyObject
+
+	// follow trace = trace.tb_next, until latest frame is reached.
+	for {
+		var next pyObject
+		next, err = gate.getattr(trace, "tb_next")
+		if err != nil {
+			return
+		}
+		defer C.py_obj_unref(next)
+
+		// Note, we don't have here a convenient access to
+		// the None object to compare, so just run the loop
+		// while trace.tb_next is of the same type as trace.
+		if C.py_obj_type(next) != C.py_obj_type(trace) {
+			break
+		}
+
+		trace = next
+	}
+
+	// lineno = trace.tb_lineno
+	lineno, err = gate.getattr(trace, "tb_lineno")
+	if err != nil {
+		return
+	}
+	defer C.py_obj_unref(lineno)
+
+	// frame = trace.tb_frame
+	frame, err = gate.getattr(trace, "tb_frame")
+	if err != nil {
+		return
+	}
+	defer C.py_obj_unref(frame)
+
+	// code = frame.f_code
+	code, err = gate.getattr(frame, "f_code")
+	if err != nil {
+		return
+	}
+	defer C.py_obj_unref(code)
+
+	// filename = code.co_filename
+	filename, err = gate.getattr(code, "co_filename")
+	if err != nil {
+		return
+	}
+	defer C.py_obj_unref(filename)
+
+	// Now convert filename and lineno from Python to go
+	file, err = gate.decodeUnicode(filename)
+	if err != nil {
+		return
+	}
+
+	n, err := gate.decodeUint64(lineno)
+	if err != nil {
+		return
+	}
+
+	line = int(n)
+	return
 }
 
 // objOrLastError returns pyobj, if it is not nil, or gate.lastError()
@@ -134,9 +223,10 @@ func (gate pyGate) typename(pyobj pyObject) string {
 	name := "unknown"
 
 	t := pyObject(unsafe.Pointer(C.py_obj_type(pyobj)))
-	n, err := gate.getattr(t, "__name__")
-	if err == nil {
-		s, err := gate.str(n)
+	if tmp, err := gate.getattr(t, "__name__"); err == nil {
+		s, err := gate.str(tmp)
+		C.py_obj_unref(tmp)
+
 		if err == nil {
 			name = s
 		}

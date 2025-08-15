@@ -565,7 +565,7 @@ bool py_obj_delattr(PyObject *x, const char *name) {
 }
 
 // py_obj_getattr retrieves the attribute with the specified name.
-// The returned answer, on success, contains a string reference to PyObject.
+// The returned answer, on success, contains a strong reference to PyObject.
 // It returns true on success, false on error.
 bool py_obj_getattr(PyObject *x, const char *name, PyObject **answer) {
     PyObject *attr = PyObject_GetAttrString_p(x, name);
