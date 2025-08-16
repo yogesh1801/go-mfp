@@ -12,6 +12,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 
 	"github.com/OpenPrinting/go-mfp/argv"
 	"github.com/OpenPrinting/go-mfp/discovery"
@@ -85,7 +86,7 @@ var Command = argv.Command{
 		argv.Option{
 			Name:      "-m",
 			Aliases:   []string{"--model"},
-			Help:      "write model to file",
+			Help:      "write model to file (use - for stdout)",
 			HelpArg:   "file",
 			Required:  true,
 			Singleton: true,
@@ -207,5 +208,9 @@ func cmdModelHandler(ctx context.Context, inv *argv.Invocation) error {
 	file, _ := inv.Get("-m")
 
 	model.SetESCLScanCaps(esclcaps)
+	if file == "-" {
+		return model.Write(os.Stdout)
+	}
+
 	return model.Save(file)
 }
