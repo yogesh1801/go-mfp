@@ -53,6 +53,7 @@ func (vscan *VirtualScanner) Scan(ctx context.Context, req ScannerRequest) (
 
 	filter := NewFilter(doc)
 	filter.SetResolution(req.Resolution)
+	filter.SetRegion(req.Region)
 
 	return filter, nil
 }
