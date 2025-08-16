@@ -172,6 +172,21 @@ func (req *ScannerRequest) Validate(scancaps *ScannerCapabilities) error {
 		return ErrParam{ErrInvalidParam, "Input", req.Input}
 	}
 
+	// Check DocumentFormat
+	if req.DocumentFormat != "" {
+		ok := false
+		for _, fmt := range scancaps.DocumentFormats {
+			if req.DocumentFormat == fmt {
+				ok = true
+				break
+			}
+		}
+		if !ok {
+			return ErrParam{ErrInvalidParam,
+				"DocumentFormat", req.DocumentFormat}
+		}
+	}
+
 	// Gather overall scanner parameters
 	var intents generic.Bitset[Intent]
 	var colorModes generic.Bitset[ColorMode]
