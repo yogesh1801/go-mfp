@@ -109,3 +109,38 @@ func TestPythonInitError(t *testing.T) {
 		py.Close()
 	}
 }
+
+// TestPythonLoad tests module loading.
+func TestPythonLoad(t *testing.T) {
+	py, err := NewPython()
+	assert.NoError(err)
+
+	mod := "\n" +
+		"i = 5\n" +
+		""
+
+	err = py.Load(mod, "mymodule", "modulefile.py")
+	if err != nil {
+		t.Errorf("Python.Import: %s", err)
+		return
+	}
+
+	obj, err := py.Eval("mymodule.i")
+	if err != nil {
+		t.Errorf("Python.Import: can't access module variable: %s", err)
+		return
+	}
+
+	v, err := obj.Int()
+	if err != nil {
+		t.Errorf("Python.Import: can't decode module variable: %s", err)
+		return
+	}
+
+	if v != 5 {
+		t.Errorf("Python.Import: module variable value:\n"+
+			"expected: %d\n"+
+			"presend:  %d\n",
+			5, v)
+	}
+}

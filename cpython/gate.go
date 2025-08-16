@@ -755,7 +755,7 @@ func (gate pyGate) setTupleItem(tuple, item pyObject, idx int) error {
 	return nil
 }
 
-// pyInterpEval evaluates string as a Python statement.
+// eval evaluates string as a Python statement.
 //
 // The name parameter indicates the Python source file name and
 // used only for diagnostic messages.
@@ -780,4 +780,29 @@ func (gate pyGate) eval(s, name string, expr bool) (pyObject, error) {
 	}
 
 	return pyobj, nil
+}
+
+// load loads (imports) string as a Python module.
+//
+// Module name is specified by the 'name' parameter and
+// the 'file' parameter is used as a file name for the
+// diagnostics messages.
+func (gate pyGate) load(s, name, file string) error {
+	// Convert strings to C
+	cs := C.CString(s)
+	defer C.free(unsafe.Pointer(cs))
+
+	cname := C.CString(name)
+	defer C.free(unsafe.Pointer(cname))
+
+	cfile := C.CString(file)
+	defer C.free(unsafe.Pointer(cfile))
+
+	// Import the module
+	ok := bool(C.py_interp_load(cs, cname, cfile))
+	if !ok {
+		return gate.lastError()
+	}
+
+	return nil
 }

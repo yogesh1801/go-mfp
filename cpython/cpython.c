@@ -55,6 +55,7 @@ static __typeof__(PyComplex_ImagAsDouble)       *PyComplex_ImagAsDouble_p;
 static __typeof__(PyComplex_RealAsDouble)       *PyComplex_RealAsDouble_p;
 static __typeof__(Py_DecRef)                    *Py_DecRef_p;
 static __typeof__(PyDict_New)                   *PyDict_New_p;
+static __typeof__(PyDict_SetItemString)         *PyDict_SetItemString_p;
 static __typeof__(PyErr_Clear)                  *PyErr_Clear_p;
 static __typeof__(PyErr_Fetch)                  *PyErr_Fetch_p;
 static __typeof__(PyErr_NormalizeException)     *PyErr_NormalizeException_p;
@@ -65,6 +66,7 @@ static __typeof__(PyEval_SaveThread)            *PyEval_SaveThread_p;
 static __typeof__(PyFloat_AsDouble)             *PyFloat_AsDouble_p;
 static __typeof__(PyFloat_FromDouble)           *PyFloat_FromDouble_p;
 static __typeof__(PyImport_AddModule)           *PyImport_AddModule_p;
+static __typeof__(PyImport_ExecCodeModule)      *PyImport_ExecCodeModule_p;
 static __typeof__(Py_IncRef)                    *Py_IncRef_p;
 static __typeof__(Py_InitializeEx)              *Py_InitializeEx_p;
 static __typeof__(PyInterpreterState_Clear)     *PyInterpreterState_Clear_p;
@@ -208,6 +210,7 @@ static void py_load_all (void) {
     PyComplex_RealAsDouble_p = py_load("PyComplex_RealAsDouble");
     Py_DecRef_p = py_load("Py_DecRef");
     PyDict_New_p = py_load("PyDict_New");
+    PyDict_SetItemString_p = py_load("PyDict_SetItemString");
     PyErr_Clear_p = py_load("PyErr_Clear");
     PyErr_Fetch_p = py_load("PyErr_Fetch");
     PyErr_NormalizeException_p = py_load("PyErr_NormalizeException");
@@ -218,6 +221,7 @@ static void py_load_all (void) {
     PyFloat_AsDouble_p = py_load("PyFloat_AsDouble");
     PyFloat_FromDouble_p = py_load("PyFloat_FromDouble");
     PyImport_AddModule_p = py_load("PyImport_AddModule");
+    PyImport_ExecCodeModule_p = py_load("PyImport_ExecCodeModule");
     Py_IncRef_p = py_load("Py_IncRef");
     Py_InitializeEx_p = py_load("Py_InitializeEx");
     PyInterpreterState_Clear_p = py_load("PyInterpreterState_Clear");
@@ -430,6 +434,38 @@ bool py_interp_eval (const char *s, const char *file,
 
     *res = ret;
     return true;
+}
+
+// py_interp_load loads (imports) string as a Python module.
+//
+// The name parameter becomes the module name, while the
+// file parameter used for diagnostics messages and
+// indicated the input file name.
+bool py_interp_load (const char *s, const char *name, const char *file) {
+    // Obtain the __main__ module reference and its namespace
+    PyObject *main_module = PyImport_AddModule_p("__main__");
+    if (main_module == NULL) {
+        return false;
+    }
+
+    PyObject *dict = PyModule_GetDict_p(main_module);
+
+    // Compile the statement
+    PyObject *code = Py_CompileString_p(s, file, Py_file_input);
+    if (code == NULL) {
+        return false;
+    }
+
+    // Add the module
+    PyObject *module = PyImport_ExecCodeModule_p(name, code);
+    if (module == NULL) {
+        return false;
+    }
+
+    int rc = PyDict_SetItemString_p(dict, name, module);
+    Py_DecRef_p(module);
+
+    return rc == 0;
 }
 
 // py_obj_is_bool reports if PyObject is PyBool_Type

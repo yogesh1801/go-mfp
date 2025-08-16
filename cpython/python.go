@@ -343,6 +343,15 @@ func (py *Python) Exec(s, filename string) error {
 	return err
 }
 
+// Load loads (imports) string as a Python module with name 'name' as if
+// it was loaded from the file 'file'.
+func (py *Python) Load(s, name, file string) error {
+	gate := py.gate()
+	defer gate.release()
+
+	return gate.load(s, name, file)
+}
+
 // eval is the common body for Python.Eval and Python.Exec
 func (py *Python) eval(s, filename string, expr bool) (*Object, error) {
 	// Adjust filename to point to the Go file:line position

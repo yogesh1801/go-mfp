@@ -57,6 +57,13 @@ void py_leave (PyThreadState *prev);
 bool py_interp_eval (const char *s, const char *file,
                      bool expr, PyObject **res);
 
+// py_interp_load loads (imports) string as a Python module.
+//
+// The name parameter becomes the module name, while the
+// file parameter used for diagnostics messages and
+// indicated the input file name.
+bool py_interp_load (const char *s, const char *name, const char *file);
+
 // py_obj_is_bool reports if PyObject is PyBool_Type
 bool py_obj_is_bool (PyObject *x);
 
