@@ -31,9 +31,11 @@ type Model struct {
 	ippPrinterAttrs *ipp.PrinterAttributes
 	esclScanCaps    *escl.ScannerCapabilities
 
-	pyUUID       *cpython.Object
-	pyRange      *cpython.Object
-	pyResolution *cpython.Object
+	// Common Python constructors
+	pyUUID *cpython.Object
+
+	// Python hooks for eSCL
+	esclOnScanJobsRequestScriptlet *cpython.Object
 }
 
 // NewModel creates a new Model with empty printer/scanner parameters.
@@ -51,24 +53,20 @@ func NewModel() (*Model, error) {
 		return nil, err
 	}
 
+	// Load modules
+	err = py.Load(embedPyEscl, "escl", "escl.py")
+	if err != nil {
+		return nil, err
+	}
+
 	// Load some commonly used Python objects
 	model := &Model{py: py}
 	if err == nil {
 		model.pyUUID, err = py.GetGlobal("UUID")
 	}
-	if err == nil {
-		model.pyRange, err = py.GetGlobal("Range")
-	}
-	if err == nil {
-		model.pyResolution, err = py.GetGlobal("Resolution")
-	}
 
 	assert.Must(model.pyUUID != nil)
 	assert.Must(model.pyUUID.IsCallable())
-	assert.Must(model.pyRange != nil)
-	assert.Must(model.pyRange.IsCallable())
-	assert.Must(model.pyResolution != nil)
-	assert.Must(model.pyResolution.IsCallable())
 
 	if err != nil {
 		return nil, err
@@ -138,21 +136,9 @@ func (model *Model) Read(filename string, r io.Reader) error {
 		return err
 	}
 
-	obj, err := model.py.Eval("escl.caps")
+	err = model.esclLoad()
 	if err != nil {
-		err = fmt.Errorf("escl.caps: %s", err)
 		return err
-	}
-
-	if !obj.IsNone() {
-		var caps *escl.ScannerCapabilities
-		err = model.pyImportStruct(&caps, obj)
-		if err != nil {
-			err = fmt.Errorf("escl.caps: %s", err)
-			return err
-		}
-
-		model.esclScanCaps = caps
 	}
 
 	return nil
@@ -191,7 +177,7 @@ func (model *Model) Load(file string) error {
 }
 
 // pyExportStruct converts the protocol object, represented as Go
-// structure or pointer to structure, into the Python object.
+// structure or pointer to structure, into the Python dictionary.
 //
 // s MUST be struct or pointer to struct.
 func (model *Model) pyExportStruct(s any) (*cpython.Object, error) {
@@ -267,20 +253,14 @@ func (model *Model) pyExportValue(v reflect.Value) (*cpython.Object, error) {
 	// Handle known types
 	data := v.Interface()
 	switch v := data.(type) {
+	// The following types have their own simple classes
+	// at the Python side.
 	case escl.Version:
 		return model.py.NewObject(v.String())
-
-	case escl.Range:
-		args := []any{v.Min, v.Max, v.Normal}
-		if v.Step != nil {
-			args = append(args, *v.Step)
-		}
-		return model.pyRange.Call(args...)
-	case escl.DiscreteResolution:
-		return model.pyResolution.Call(v.XResolution, v.YResolution)
 	case uuid.UUID:
 		return model.pyUUID.Call(v.String())
 
+	// fmt.Stringer becomes Python string
 	case fmt.Stringer:
 		return model.py.NewObject(v.String())
 	}
@@ -434,13 +414,6 @@ func (model *Model) pyImportValue(v reflect.Value, obj *cpython.Object) error {
 		}
 		return err
 
-	case escl.DiscreteResolution:
-		r, err := esclDecodeDiscreteResolution(obj)
-		if err == nil {
-			v.Set(reflect.ValueOf(r))
-		}
-		return err
-
 	case escl.FeedDirection:
 		feed, err := esclDecodeFeedDirection(obj)
 		if err == nil {
@@ -487,13 +460,6 @@ func (model *Model) pyImportValue(v reflect.Value, obj *cpython.Object) error {
 		un, err := esclDecodeUnits(obj)
 		if err == nil {
 			v.Set(reflect.ValueOf(un))
-		}
-		return err
-
-	case escl.Range:
-		r, err := esclDecodeRange(obj)
-		if err == nil {
-			v.Set(reflect.ValueOf(r))
 		}
 		return err
 

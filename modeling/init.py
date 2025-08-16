@@ -1,34 +1,17 @@
+# MFP - Miulti-Function Printers and scanners toolkit
+# Printer and scanner modeling.
+#
+# Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
+# See LICENSE for license terms and conditions
+#
+# Python initialization
+
 from dataclasses import dataclass
 from uuid import UUID
+from typing import TypedDict
+from http.client import HTTPMessage
 
-# Range represents range of integers
 @dataclass
-class Range:
-    Min: int
-    Max: int
-    Normal: int
-    Step: int = None
-
-# Resolution represents printing or scanning resolution
-@dataclass
-class Resolution:
-    X: int
-    Y: int = None
-
-    def __post_init__(self):
-        if self.Y == None:
-            self.Y = self.X
-
-    def __repr__(self):
-        if self.X == self.Y:
-            return 'Resolution({})'.format(self.X)
-
-        return 'Resolution(X={}, Y={})'.format(self.X, self.Y)
-
-# __eSCL is the non-exported type, used to represent eSCL scanner
-# configuration
-@dataclass
-class __eSCL:
-    caps: dict = None
-
-escl = __eSCL()
+class HTTPQuery:
+    Request: HTTPMessage
+    Response: HTTPMessage

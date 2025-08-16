@@ -13,7 +13,6 @@ import (
 
 	"github.com/OpenPrinting/go-mfp/cpython"
 	"github.com/OpenPrinting/go-mfp/proto/escl"
-	"github.com/OpenPrinting/go-mfp/util/optional"
 )
 
 // esclDecodeADFOption decodes escl.ADFOption from the Python object
@@ -124,38 +123,6 @@ func esclDecodeContentType(obj *cpython.Object) (escl.ContentType, error) {
 	return ct, nil
 }
 
-// esclDecodeDiscreteResolution decodes escl.DiscreteResolution
-// from the Python object
-func esclDecodeDiscreteResolution(obj *cpython.Object) (
-	res escl.DiscreteResolution, err error) {
-
-	attr, err := obj.GetAttr("X")
-	if err != nil {
-		return
-	}
-
-	tmp, err := attr.Int()
-	if err != nil {
-		return
-	}
-
-	res.XResolution = int(tmp)
-
-	attr, err = obj.GetAttr("Y")
-	if err != nil {
-		return
-	}
-
-	tmp, err = attr.Int()
-	if err != nil {
-		return
-	}
-
-	res.YResolution = int(tmp)
-
-	return
-}
-
 // esclDecodeFeedDirection decodes escl.FeedDirection from the Python object
 func esclDecodeFeedDirection(obj *cpython.Object) (escl.FeedDirection, error) {
 	s, err := obj.Str()
@@ -239,59 +206,6 @@ func esclDecodeJobStateReason(obj *cpython.Object) (escl.JobStateReason, error) 
 	}
 
 	return escl.JobStateReason(s), nil
-}
-
-// esclDecodeRange decodes escl.Range from the Python object
-func esclDecodeRange(obj *cpython.Object) (r escl.Range, err error) {
-	attr, err := obj.GetAttr("Min")
-	if err != nil {
-		return
-	}
-
-	tmp, err := attr.Int()
-	if err != nil {
-		return
-	}
-
-	r.Min = int(tmp)
-
-	attr, err = obj.GetAttr("Max")
-	if err != nil {
-		return
-	}
-
-	tmp, err = attr.Int()
-	if err != nil {
-		return
-	}
-
-	r.Max = int(tmp)
-
-	attr, err = obj.GetAttr("Normal")
-	if err != nil {
-		return
-	}
-
-	tmp, err = attr.Int()
-	if err != nil {
-		return
-	}
-
-	r.Normal = int(tmp)
-
-	attr, err = obj.GetAttr("Step")
-	if err != nil {
-		return
-	}
-
-	tmp, err = attr.Int()
-	if err != nil {
-		return
-	}
-
-	r.Step = optional.New(int(tmp))
-
-	return
 }
 
 // esclDecodeVersion decodes escl.Version from the Python object
