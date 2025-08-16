@@ -8,6 +8,8 @@
 
 package abstract
 
+import "fmt"
+
 // Region defines a scanning region.
 // See [Dimension] description for definition of the coordinate system.
 type Region struct {
@@ -15,6 +17,12 @@ type Region struct {
 	YOffset Dimension // Vertical offset, 0-based
 	Width   Dimension // Region width
 	Height  Dimension // Region height
+}
+
+// String returns string representation of [Region], for logging.
+func (reg Region) String() string {
+	return fmt.Sprintf("%dx%d+%d+%x",
+		reg.Width, reg.Height, reg.XOffset, reg.YOffset)
 }
 
 // IsZero reports if Region has a zero value.

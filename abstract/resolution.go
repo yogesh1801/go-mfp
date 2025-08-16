@@ -8,10 +8,17 @@
 
 package abstract
 
+import "fmt"
+
 // Resolution specifies a discrete scanner resolution.
 type Resolution struct {
 	XResolution int // X resolution, DPI
 	YResolution int // Y resolution, DPI
+}
+
+// String returns string representation of [Resolution], for logging.
+func (res Resolution) String() string {
+	return fmt.Sprintf("%dx%d", res.XResolution, res.YResolution)
 }
 
 // IsZero reports if Resolution has zero value.

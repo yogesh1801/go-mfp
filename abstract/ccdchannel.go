@@ -8,6 +8,8 @@
 
 package abstract
 
+import "fmt"
+
 // CCDChannel specifies which CCD color channel to use for grayscale
 // and monochrome scannig.
 type CCDChannel int
@@ -23,3 +25,26 @@ const (
 	CCDChannelGrayCcdEmulated                   // Emulated Gray
 	ccdChannelMax
 )
+
+// String returns the string representation of the [CCDChannel],
+// for logging.
+func (ccd CCDChannel) String() string {
+	switch ccd {
+	case CCDChannelUnset:
+		return "Unset"
+	case CCDChannelRed:
+		return "Red"
+	case CCDChannelGreen:
+		return "Green"
+	case CCDChannelBlue:
+		return "Blue"
+	case CCDChannelNTSC:
+		return "NTSC"
+	case CCDChannelGrayCcd:
+		return "GrayCcd"
+	case CCDChannelGrayCcdEmulated:
+		return "GrayCcdEmulated"
+	}
+
+	return fmt.Sprintf("Unknown (%d)", int(ccd))
+}

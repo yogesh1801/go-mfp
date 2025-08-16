@@ -8,6 +8,8 @@
 
 package abstract
 
+import "fmt"
+
 // ADFMode specifies the ADF scanning mode.
 type ADFMode int
 
@@ -18,3 +20,17 @@ const (
 	ADFModeDuplex                 // AFD duplex mode
 	adfModeMax
 )
+
+// String returns the string representation of the [ADFMode], for logging.
+func (mode ADFMode) String() string {
+	switch mode {
+	case ADFModeUnset:
+		return "Unset"
+	case ADFModeSimplex:
+		return "Simplex"
+	case ADFModeDuplex:
+		return "Duplex"
+	}
+
+	return fmt.Sprintf("Unknown (%d)", int(mode))
+}

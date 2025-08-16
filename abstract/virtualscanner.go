@@ -8,7 +8,11 @@
 
 package abstract
 
-import "context"
+import (
+	"context"
+
+	"github.com/OpenPrinting/go-mfp/log"
+)
 
 // VirtualScanner implements the [Scanner] interface for the virtual
 // (simulated) scanner.
@@ -29,8 +33,14 @@ func (vscan *VirtualScanner) Capabilities() *ScannerCapabilities {
 func (vscan *VirtualScanner) Scan(ctx context.Context, req ScannerRequest) (
 	Document, error) {
 
+	log.Begin(ctx).
+		Debug("VSCAN: scan requested:").
+		Object(log.LevelDebug, 4, &req).
+		Commit()
+
 	err := req.Validate(vscan.ScanCaps)
 	if err != nil {
+		log.Debug(ctx, "VSCAN: %s", err)
 		return nil, err
 	}
 

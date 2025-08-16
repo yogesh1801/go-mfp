@@ -8,6 +8,8 @@
 
 package abstract
 
+import "fmt"
+
 // ColorDepth specified image depth, in bits per channel.
 type ColorDepth int
 
@@ -18,3 +20,17 @@ const (
 	ColorDepth16                      // 16 bit (48 bit RGB)
 	colorDepthMax
 )
+
+// String returns the string representation of the [ColorDepth], for logging.
+func (depth ColorDepth) String() string {
+	switch depth {
+	case ColorDepthUnset:
+		return "Unset"
+	case ColorDepth8:
+		return "8"
+	case ColorDepth16:
+		return "16"
+	}
+
+	return fmt.Sprintf("Unknown (%d)", int(depth))
+}

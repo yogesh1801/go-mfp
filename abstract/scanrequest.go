@@ -9,6 +9,9 @@
 package abstract
 
 import (
+	"bytes"
+	"fmt"
+
 	"github.com/OpenPrinting/go-mfp/util/generic"
 	"github.com/OpenPrinting/go-mfp/util/optional"
 )
@@ -44,6 +47,65 @@ type ScannerRequest struct {
 	Sharpen      optional.Val[int] // Image sharpen
 	Threshold    optional.Val[int] // ColorModeBinary+BinaryRenderingThreshold
 	Compression  optional.Val[int] // Lower num, better image
+}
+
+// MarshalLog formats [ScannerRequest] for logging.
+// It implements the [log.Marshaler] interface.
+func (req *ScannerRequest) MarshalLog() []byte {
+	buf := &bytes.Buffer{}
+	fmt.Fprintf(buf, "Input:           %s\n", req.Input)
+	if req.ADFMode != ADFModeUnset {
+		fmt.Fprintf(buf, "ADFMode:         %s\n", req.ADFMode)
+	}
+	if req.ColorMode != ColorModeUnset {
+		fmt.Fprintf(buf, "ColorMode:       %s\n", req.ColorMode)
+	}
+	if req.ColorDepth != ColorDepthUnset {
+		fmt.Fprintf(buf, "ColorDepth:      %s\n", req.ColorDepth)
+	}
+	if req.BinaryRendering != BinaryRenderingUnset {
+		fmt.Fprintf(buf, "BinaryRendering: %s\n", req.BinaryRendering)
+	}
+	if req.CCDChannel != CCDChannelUnset {
+		fmt.Fprintf(buf, "CCDChannel:      %s\n", req.CCDChannel)
+	}
+	fmt.Fprintf(buf, "DocumentFormat:  %q\n", req.DocumentFormat)
+	if !req.Region.IsZero() {
+		fmt.Fprintf(buf, "Region:          %s\n", req.Region)
+	}
+	if !req.Resolution.IsZero() {
+		fmt.Fprintf(buf, "Resolution:      %s\n", req.Resolution)
+	}
+	fmt.Fprintf(buf, "Intent:          %s\n", req.Intent)
+	if req.Brightness != nil {
+		fmt.Fprintf(buf, "Brightness:      %d\n", *req.Brightness)
+	}
+	if req.Contrast != nil {
+		fmt.Fprintf(buf, "Contrast:        %d\n", *req.Contrast)
+	}
+	if req.Gamma != nil {
+		fmt.Fprintf(buf, "Gamma:           %d\n", *req.Gamma)
+	}
+	if req.Highlight != nil {
+		fmt.Fprintf(buf, "Highlight:       %d\n", *req.Highlight)
+	}
+	if req.NoiseRemoval != nil {
+		fmt.Fprintf(buf, "NoiseRemoval:    %d\n", *req.NoiseRemoval)
+	}
+	if req.Shadow != nil {
+		fmt.Fprintf(buf, "Shadow:          %d\n", *req.Shadow)
+	}
+	if req.Sharpen != nil {
+		fmt.Fprintf(buf, "Sharpen:         %d\n", *req.Sharpen)
+	}
+	if req.Threshold != nil {
+		fmt.Fprintf(buf, "Threshold:       %d\n", *req.Threshold)
+	}
+	if req.Compression != nil {
+		fmt.Fprintf(buf, "Compression:     %d\n", *req.Compression)
+	}
+
+	return buf.Bytes()
 }
 
 // Validate checks request validity against the [ScannerCapabilities]

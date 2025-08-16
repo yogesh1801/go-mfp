@@ -8,6 +8,8 @@
 
 package abstract
 
+import "fmt"
+
 // ColorMode specifies the color space capabilities of printer or scanner.
 type ColorMode int
 
@@ -19,3 +21,19 @@ const (
 	ColorModeColor                   // Full-color mode
 	colorModeMax
 )
+
+// String returns string representation of the [ColorMode], for logging.
+func (mode ColorMode) String() string {
+	switch mode {
+	case ColorModeUnset:
+		return "Unset"
+	case ColorModeBinary:
+		return "Binary"
+	case ColorModeMono:
+		return "Mono"
+	case ColorModeColor:
+		return "Color"
+	}
+
+	return fmt.Sprintf("Unknown (%d)", int(mode))
+}

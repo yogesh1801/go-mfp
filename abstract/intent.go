@@ -8,6 +8,8 @@
 
 package abstract
 
+import "fmt"
+
 // Intent represents a scan intent, which implies automatic
 // choosing of the appropriate scan parameters by the scanner.
 type Intent int
@@ -23,3 +25,25 @@ const (
 	IntentBusinessCard                 // Business card
 	intentMax
 )
+
+// String returns the string representation of the [Intent], for logging.
+func (intent Intent) String() string {
+	switch intent {
+	case IntentUnset:
+		return "Unset"
+	case IntentDocument:
+		return "Document"
+	case IntentTextAndGraphic:
+		return "TextAndGraphic"
+	case IntentPhoto:
+		return "Photo"
+	case IntentPreview:
+		return "Preview"
+	case IntentObject:
+		return "Object"
+	case IntentBusinessCard:
+		return "BusinessCard"
+	}
+
+	return fmt.Sprintf("Unknown (%d)", int(intent))
+}

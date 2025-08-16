@@ -8,6 +8,8 @@
 
 package abstract
 
+import "fmt"
+
 // Input specifies the desired input source.
 type Input int
 
@@ -19,3 +21,19 @@ const (
 	InputCamera              // Scan from camera
 	inputMax
 )
+
+// String returns the string representation of the [Input], for logging
+func (in Input) String() string {
+	switch in {
+	case InputUnset:
+		return "Unset"
+	case InputPlaten:
+		return "Platen"
+	case InputADF:
+		return "ADF"
+	case InputCamera:
+		return "Camera"
+	}
+
+	return fmt.Sprintf("Unknown (%d)", int(in))
+}
