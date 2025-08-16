@@ -708,6 +708,7 @@ bool py_complex_get (PyObject *x, double *real, double *imag) {
     double i = PyComplex_ImagAsDouble_p(x);
 
     if ((r == -1.0 || i == -1.0) && PyErr_Occurred_p() != NULL) {
+        PyErr_Clear_p();
         return false;
     }
 
@@ -735,6 +736,7 @@ bool py_float_get (PyObject *x, double *val) {
     double v = PyFloat_AsDouble_p(x);
 
     if (v == -1.0 && PyErr_Occurred_p() != NULL) {
+        PyErr_Clear_p();
         return false;
     }
 
@@ -788,9 +790,10 @@ bool py_long_get_int64 (PyObject *x, int64_t *val, bool *overflow) {
         PyObject *err = PyErr_Occurred_p();
         if (err == PyExc_OverflowError_p) {
             ovf = true;
-        } else {
+        } else if (err != NULL) {
             ok = false;
         }
+        PyErr_Clear_p();
     }
 
     if (!(INT64_MIN <= tmp && tmp <= INT64_MAX)) {
@@ -811,14 +814,15 @@ bool py_long_get_uint64 (PyObject *x, uint64_t *val, bool *overflow) {
     unsigned long long  tmp;
     bool                ok = true, ovf = false;
 
-    tmp = (int64_t) PyLong_AsUnsignedLongLong_p(x);
+    tmp = (uint64_t) PyLong_AsUnsignedLongLong_p(x);
     if (tmp == (unsigned long long) -1) {
         PyObject *err = PyErr_Occurred_p();
         if (err == PyExc_OverflowError_p) {
             ovf = true;
-        } else {
+        } else if (err != NULL) {
             ok = false;
         }
+        PyErr_Clear_p();
     }
 
     if (!(tmp <= UINT64_MAX)) {
