@@ -86,28 +86,61 @@ func (f *formatter) formatDict(dict *cpython.Object, indent int) {
 	}
 
 	// Format the dictionary
-	f.Printf("{\n")
-	for i := range keys {
-		key, val := keys[i], vals[i]
-
-		f.indent(indent + 1)
-		f.Printf("%s: ", key)
-
-		f.formatValue(val, indent+1)
-		if f.err != nil {
-			return
+	//
+	// Only the small dictionaries of simple object are
+	// formatted horizontally.
+	horizontal := len(keys) <= 2
+	for i := 0; i < len(vals) && horizontal; i++ {
+		val := vals[i]
+		switch {
+		case val.IsBool():
+		case val.IsFloat():
+		case val.IsLong():
+		case val.IsUnicode():
+		default:
+			horizontal = false
 		}
-
-		last := i == len(keys)-1
-		if !last {
-			f.write(",")
-		}
-
-		f.write("\n")
 	}
 
-	f.indent(indent)
-	f.write("}")
+	if horizontal {
+		// Format dictionary horizontally
+		f.Printf("{")
+
+		for i := range keys {
+			key, val := keys[i], vals[i]
+
+			f.Printf("%s: ", key)
+			f.formatValue(val, indent)
+
+			last := i == len(keys)-1
+			if !last {
+				f.write(", ")
+			}
+		}
+
+		f.Printf("}")
+	} else {
+		// Format dictionary vertically
+		f.Printf("{\n")
+		for i := range keys {
+			key, val := keys[i], vals[i]
+
+			f.indent(indent + 1)
+			f.Printf("%s: ", key)
+
+			f.formatValue(val, indent+1)
+
+			last := i == len(keys)-1
+			if !last {
+				f.write(",")
+			}
+
+			f.write("\n")
+		}
+
+		f.indent(indent)
+		f.write("}")
+	}
 }
 
 // formatArray writes Python array-like object into the io.Writer.
@@ -154,9 +187,6 @@ func (f *formatter) formatArray(obj *cpython.Object, indent int) {
 		}
 
 		f.formatValue(val, indent+1)
-		if f.err != nil {
-			return
-		}
 
 		last := i == length-1
 		if !last {
