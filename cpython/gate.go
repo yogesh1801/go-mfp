@@ -471,8 +471,82 @@ func (gate pyGate) decodeBytes(pyobj pyObject) ([]byte, error) {
 	return nil, gate.decodeError(pyobj, "[]byte")
 }
 
-// decodeComplex decodes PyComplex_Type object as complex128.
+// decodeComplex decodes pyObject as complex128.
+// It handles conversion from the compatible types.
 func (gate pyGate) decodeComplex(pyobj pyObject) (complex128, error) {
+	if bool(C.py_obj_is_complex(pyobj)) {
+		return gate.decodeExactComplex(pyobj)
+	}
+
+	v, err := gate.decodeFloat(pyobj)
+	if err == nil {
+		return complex(float64(v), 0), nil
+	}
+
+	return 0, err
+}
+
+// decodeFloat decodes pyObject as float64.
+// It handles conversion from the compatible types.
+func (gate pyGate) decodeFloat(pyobj pyObject) (float64, error) {
+	if bool(C.py_obj_is_float(pyobj)) {
+		return gate.decodeExactFloat(pyobj)
+	}
+
+	i64, err := gate.decodeExactInt64(pyobj)
+	if err == nil {
+		return float64(i64), nil
+	}
+
+	if _, ovf := err.(ErrOverflow); ovf {
+		u64, err2 := gate.decodeExactUint64(pyobj)
+		if err2 == nil {
+			return float64(u64), nil
+		}
+	}
+
+	return 0, err
+}
+
+// decodeInt64 decodes pyObject as int64.
+// It handles conversion from the compatible types.
+func (gate pyGate) decodeInt64(pyobj pyObject) (int64, error) {
+	if bool(C.py_obj_is_float(pyobj)) {
+		f64, err := gate.decodeExactFloat(pyobj)
+		if err == nil {
+			if minInt64Float <= f64 && f64 <= maxInt64Float {
+				return int64(f64), nil
+			}
+
+			s, _ := gate.repr(pyobj)
+			return 0, ErrOverflow{s}
+		}
+	}
+
+	return gate.decodeExactInt64(pyobj)
+}
+
+// decodeUint64 decodes pyObject as uint64.
+// It handles conversion from the compatible types.
+func (gate pyGate) decodeUint64(pyobj pyObject) (uint64, error) {
+	if bool(C.py_obj_is_float(pyobj)) {
+		f64, err := gate.decodeExactFloat(pyobj)
+		if err == nil {
+			if 0 <= f64 && f64 <= maxUint64Float {
+				return uint64(f64), nil
+			}
+
+			s, _ := gate.repr(pyobj)
+			return 0, ErrOverflow{s}
+		}
+	}
+
+	return gate.decodeExactUint64(pyobj)
+}
+
+// decodeExactComplex decodes pyObject as complex128.
+// The object type must be PyComplex_Type.
+func (gate pyGate) decodeExactComplex(pyobj pyObject) (complex128, error) {
 	if !bool(C.py_obj_is_complex(pyobj)) {
 		return 0, gate.decodeError(pyobj, "complex128")
 	}
@@ -487,8 +561,9 @@ func (gate pyGate) decodeComplex(pyobj pyObject) (complex128, error) {
 	return complex(float64(real), float64(imag)), nil
 }
 
-// decodeFloat decodes PyFloat_Type object as float64.
-func (gate pyGate) decodeFloat(pyobj pyObject) (float64, error) {
+// decodeExactFloat decodes pyObject as float64.
+// The object type must be PyFloat_Type.
+func (gate pyGate) decodeExactFloat(pyobj pyObject) (float64, error) {
 	if !bool(C.py_obj_is_float(pyobj)) {
 		return 0, gate.decodeError(pyobj, "float64")
 	}
@@ -503,8 +578,9 @@ func (gate pyGate) decodeFloat(pyobj pyObject) (float64, error) {
 	return float64(val), nil
 }
 
-// decodeInt64 decodes PyLong_Type object as int64
-func (gate pyGate) decodeInt64(pyobj pyObject) (int64, error) {
+// decodeExactInt64 decodes pyObject as int64.
+// The object type must be PyLong_Type.
+func (gate pyGate) decodeExactInt64(pyobj pyObject) (int64, error) {
 	if !bool(C.py_obj_is_long(pyobj)) {
 		return 0, gate.decodeError(pyobj, "int64")
 	}
@@ -524,8 +600,9 @@ func (gate pyGate) decodeInt64(pyobj pyObject) (int64, error) {
 	return int64(val), nil
 }
 
-// decodeInt64 decodes PyLong_Type object as uint64
-func (gate pyGate) decodeUint64(pyobj pyObject) (uint64, error) {
+// decodeExactUint64 decodes pyObject as uint64.
+// The object type must be PyLong_Type.
+func (gate pyGate) decodeExactUint64(pyobj pyObject) (uint64, error) {
 	if !bool(C.py_obj_is_long(pyobj)) {
 		return 0, gate.decodeError(pyobj, "uint64")
 	}

@@ -64,6 +64,7 @@ func TestObjectFromPython(t *testing.T) {
 		{expr: `-0x7fffffff`, unbox: unboxUint, mustfail: true},
 		{expr: `0xffffffff`, val: int64(0xffffffff), unbox: unboxInt},
 		{expr: `0xffffffff`, val: uint64(0xffffffff), unbox: unboxUint},
+		{expr: `0xffffffffffffffff`, val: uint64(0xffffffffffffffff), unbox: unboxUint},
 		{expr: verybig, unbox: unboxInt, mustfail: true},
 		{expr: verybig, unbox: unboxUint, mustfail: true},
 		{expr: `0`, val: bigint("0"), unbox: unboxBigint},
@@ -84,6 +85,48 @@ func TestObjectFromPython(t *testing.T) {
 		{expr: `None`, unbox: unboxFloat, mustfail: true},
 		{expr: `complex(1,2)`, val: complex(1, 2), unbox: unboxComplex},
 		{expr: `None`, unbox: unboxComplex, mustfail: true},
+
+		// Corner cases for integers
+		{expr: `-1`, val: int64(-1), unbox: unboxInt},
+		{expr: `-9223372036854775808`, val: int64(-9223372036854775808), unbox: unboxInt},
+		{expr: `9223372036854775807`, val: int64(9223372036854775807), unbox: unboxInt},
+		{expr: `0xffffffffffffffff`, val: uint64(0xffffffffffffffff), unbox: unboxUint},
+		{expr: `18446744073709551615`, val: uint64(18446744073709551615), unbox: unboxUint},
+
+		// Numerical conversions -> complex
+		{expr: `0`, val: complex(0, 0), unbox: unboxComplex},
+		{expr: `1`, val: complex(1, 0), unbox: unboxComplex},
+		{expr: `1.5`, val: complex(1.5, 0), unbox: unboxComplex},
+		{expr: `"hello"`, unbox: unboxComplex, mustfail: true},
+
+		// Numerical conversions -> float
+		{expr: `0`, val: 0.0, unbox: unboxFloat},
+		{expr: `1`, val: 1.0, unbox: unboxFloat},
+		{expr: `1.5`, val: 1.5, unbox: unboxFloat},
+		{expr: `0xffffffffffffffff`, val: 18446744073709551615., unbox: unboxFloat},
+		{expr: `0xfffffffffffffffff`, unbox: unboxFloat, mustfail: true},
+		{expr: `"hello"`, unbox: unboxFloat, mustfail: true},
+
+		// Numerical conversions -> int64
+		{expr: `0`, val: int64(0), unbox: unboxInt},
+		{expr: `0.0`, val: int64(0), unbox: unboxInt},
+		{expr: `2.0`, val: int64(2), unbox: unboxInt},
+		{expr: `1.5`, val: int64(1), unbox: unboxInt},
+		{expr: `-1.5`, val: int64(-1), unbox: unboxInt},
+		{expr: fmt.Sprintf("%f", maxInt64Float), val: int64(maxInt64Float), unbox: unboxInt},
+		{expr: fmt.Sprintf("%f", minInt64Float), val: int64(minInt64Float), unbox: unboxInt},
+		{expr: fmt.Sprintf("%f", maxUint64Float), mustfail: true, unbox: unboxInt},
+
+		// Numerical conversions -> uint64
+		{expr: `0`, val: uint64(0), unbox: unboxUint},
+		{expr: `0.0`, val: uint64(0), unbox: unboxUint},
+		{expr: `2.0`, val: uint64(2), unbox: unboxUint},
+		{expr: `1.5`, val: uint64(1), unbox: unboxUint},
+		{expr: `-1.5`, mustfail: true, unbox: unboxUint},
+		{expr: fmt.Sprintf("%f", maxInt64Float), val: uint64(maxInt64Float), unbox: unboxUint},
+		{expr: fmt.Sprintf("%f", minInt64Float), mustfail: true, unbox: unboxUint},
+		{expr: fmt.Sprintf("%f", maxUint64Float), val: uint64(maxUint64Float), unbox: unboxUint},
+		{expr: fmt.Sprintf("%f", maxUint64Float+2000), mustfail: true, unbox: unboxUint},
 	}
 
 	py, err := NewPython()
