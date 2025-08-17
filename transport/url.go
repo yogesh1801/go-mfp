@@ -11,6 +11,7 @@ package transport
 import (
 	"errors"
 	"fmt"
+	"net"
 	"net/netip"
 	"net/url"
 	"path"
@@ -43,16 +44,20 @@ var (
 // This function intended for parsing addresses entered by users (interactively
 // or via configuration files) and less restrictive that [ParseURL].
 //
-// The following additional forms are accepted:
+// The following additional forms are accepted (assuming http scheme):
 //
-//	Input                	Meaning
-//	=====			=======
-//	192.168.0.1		scheme://192.168.0.1:port/path
-//	2001:db8::1		scheme://[2001:db8::1]:port/path
-//	[2001:db8::1]		scheme://[2001:db8::1]:port/path
-//	192.168.0.1:1234	scheme://192.168.0.1:1234/path
-//	[2001:db8::1]:1234	scheme://[2001:db8::1]:1234/path
-//	/path			unix:/path
+//	Input                   Meaning
+//	=====                   =======
+//	192.168.0.1             http://192.168.0.1
+//	2001:db8::1             http://[2001:db8::1]
+//	[2001:db8::1]           http://[2001:db8::1]
+//	192.168.0.1:1234        http://192.168.0.1:1234
+//	[2001:db8::1]:1234      http://[2001:db8::1]:1234
+//	192.168.0.1/path        http://192.168.0.1/path
+//	192.168.0.1:1234/path   http://192.168.0.1:1234/path
+//	2001:db8::1/path        http://[2001:db8::1]/path
+//	[2001:db8::1]:1234/path http://[2001:db8::1]:1234/path
+//	/path                   unix:/path
 //
 // Missed scheme, port and path are taken from template. The template
 // must be either URL string that MUST parse, or empty string.
@@ -67,27 +72,44 @@ var (
 // If template is not empty and it doesn't parse, this function
 // panics instead of returning an error.
 func ParseAddr(addr, template string) (*url.URL, error) {
-	// Setup default scheme, port and path. Use template, if provided.
-	scheme := "http"
-	port := ""
-	path := "/"
-
+	// Parse template, if provided
+	var templateURL *url.URL
 	if template != "" {
-		templateURL := MustParseURL(template)
+		templateURL = MustParseURL(template)
+	}
+
+	// Split address into parts
+	scheme, host, path, ok := parseSplit(addr)
+	if !ok {
+		return nil, ErrURLInvalid
+	}
+
+	// If we have a scheme, parse as a normal URL
+	if scheme != "" {
+		return ParseURL(addr)
+	}
+
+	// Initialize defaults
+	port := ""
+	scheme = "http"
+	if templateURL != nil {
 		scheme = templateURL.Scheme
 		port = templateURL.Port()
-		if port != "" {
-			port = ":" + port
+		if path == "" {
+			path = templateURL.Path
 		}
-		path = templateURL.Path
 	}
 
 	// Try IP addr, IP addr with port, UNIX path. Rebuild
 	// URL string, if something of above does match.
-	if host := parseIPAddr(addr); host != "" {
-		addr = scheme + "://" + host + port + path
-	} else if host := parseIPAddrPort(addr); host != "" {
-		if template == "" {
+	if tmp := parseIPAddr(host); tmp != "" {
+		host = tmp
+		if port != "" {
+			host = net.JoinHostPort(host, port)
+		}
+	} else if tmp := parseIPAddrPort(host); tmp != "" {
+		host = tmp
+		if templateURL == nil {
 			switch {
 			case strings.HasSuffix(host, ":80"):
 				scheme = "http"
@@ -97,19 +119,46 @@ func ParseAddr(addr, template string) (*url.URL, error) {
 				scheme = "ipp"
 			}
 		}
-
-		addr = scheme + "://" + host + path
 	} else if strings.HasPrefix(addr, "/") {
-		addr = "unix:" + addr
+		scheme = "unix"
+	} else {
+		return nil, ErrURLInvalid
 	}
+
+	addr = scheme + "://" + host + "/" + path
 
 	// Now parse whatever we have.
 	u, err := ParseURL(addr)
 	if err != nil {
-		return nil, errors.New("invalid address or URL")
+		return nil, err
 	}
 
 	return u, nil
+}
+
+// parseSplit splits the url string into the scheme, host and path
+func parseSplit(s string) (scheme, host, path string, ok bool) {
+	if s == "" {
+		return
+	}
+
+	// Cut off scheme
+	if i := strings.Index(s, "://"); i >= 0 {
+		scheme, host = s[:i], s[i+3:]
+		if scheme == "" || host == "" {
+			return
+		}
+	} else {
+		host = s
+	}
+
+	// Cut off path
+	if i := strings.Index(host, "/"); i >= 0 {
+		host, path = host[:i], host[i:]
+	}
+
+	ok = true
+	return
 }
 
 // parseIPAddr parses IP address. It accepts the following forms of addresses:

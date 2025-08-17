@@ -260,6 +260,27 @@ func TestParseAddr(t *testing.T) {
 			out: "http://[::1]:81/",
 		},
 
+		// IP4 and IP4 addresses with path
+		{
+			in:  "127.0.0.1/eSCL",
+			out: "http://127.0.0.1/eSCL",
+		},
+
+		{
+			in:  "::1/eSCL",
+			out: "http://[::1]/eSCL",
+		},
+
+		{
+			in:  "127.0.0.1:222/eSCL",
+			out: "http://127.0.0.1:222/eSCL",
+		},
+
+		{
+			in:  "[::1]:222/eSCL",
+			out: "http://[::1]:222/eSCL",
+		},
+
 		// UNIX paths
 		{
 			in:  "/var/run/cups/cups.sock",
@@ -321,7 +342,23 @@ func TestParseAddr(t *testing.T) {
 
 		{
 			in:  "example.com:123456",
-			err: `invalid address or URL`,
+			err: ErrURLInvalid.Error(),
+		},
+
+		// Miscellaneous broken URLs
+		{
+			in:  "",
+			err: ErrURLInvalid.Error(),
+		},
+
+		{
+			in:  "://localhost",
+			err: ErrURLInvalid.Error(),
+		},
+
+		{
+			in:  "http://",
+			err: ErrURLInvalid.Error(),
 		},
 	}
 
@@ -340,8 +377,13 @@ func TestParseAddr(t *testing.T) {
 			// Error as expected; nothing to do
 
 		case u.String() != test.out:
-			t.Errorf("%q: output mismatch:\nexpected: %s\npresent:  %s",
-				test.in, test.out, u)
+			t.Errorf("%q: output mismatch:\n"+
+				"template: %s\n"+
+				"expected: %s\n"+
+				"present:  %s",
+				test.in,
+				test.template,
+				test.out, u)
 		}
 
 	}
