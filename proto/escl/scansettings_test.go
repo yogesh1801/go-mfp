@@ -224,9 +224,9 @@ func TestScanSettingsDecodeErrors(t *testing.T) {
 			xml: xmldoc.WithChildren(
 				NsScan+":ScanSettings",
 				xmldoc.WithText(NsPWG+":Version", "2.0"),
-				xmldoc.WithText(NsScan+":ColorSpace", "bad"),
+				xmldoc.WithText(NsScan+":ColorSpace", "bad space"),
 			),
-			err: `/scan:ScanSettings/scan:ColorSpace: invalid ColorSpace: "bad"`,
+			err: `/scan:ScanSettings/scan:ColorSpace: invalid ColorSpace: "bad space"`,
 		},
 
 		{

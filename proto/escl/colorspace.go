@@ -8,20 +8,40 @@
 
 package escl
 
-import "github.com/OpenPrinting/go-mfp/util/xmldoc"
+import (
+	"fmt"
+
+	"github.com/OpenPrinting/go-mfp/util/xmldoc"
+)
 
 // ColorSpace defines the color space used for scanning.
-type ColorSpace int
+//
+// The Mopria eSCL specification doesn't provide detailed information
+// of this type.
+//
+// So here we represent it as a string and list known values as
+// string constants.
+type ColorSpace string
 
-// Known color modes:
+// Known values for ColorSpace:
 const (
-	UnknownColorSpace ColorSpace = iota // Unknown color mode
-	SRGB                                // sRGG
+	UnknownColorSpace ColorSpace = ""
+	SRGB              ColorSpace = "sRGB"
 )
 
 // decodeColorSpace decodes [ColorSpace] from the XML tree.
 func decodeColorSpace(root xmldoc.Element) (sps ColorSpace, err error) {
-	return decodeEnum(root, DecodeColorSpace)
+	var v string
+	v, err = decodeNMTOKEN(root)
+
+	if err != nil {
+		err = fmt.Errorf("invalid ColorSpace: %q", root.Text)
+		err = xmldoc.XMLErrWrap(root, err)
+		return
+	}
+
+	sps = ColorSpace(v)
+	return
 }
 
 // toXML generates XML tree for the [ColorSpace].
@@ -34,20 +54,10 @@ func (sps ColorSpace) toXML(name string) xmldoc.Element {
 
 // String returns a string representation of the [ColorSpace]
 func (sps ColorSpace) String() string {
-	switch sps {
-	case SRGB:
-		return "sRGB"
-	}
-
-	return "Unknown"
+	return string(sps)
 }
 
 // DecodeColorSpace decodes [ColorSpace] out of its XML string representation.
 func DecodeColorSpace(s string) ColorSpace {
-	switch s {
-	case "sRGB":
-		return SRGB
-	}
-
-	return UnknownColorSpace
+	return ColorSpace(s)
 }

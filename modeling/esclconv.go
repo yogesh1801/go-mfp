@@ -97,12 +97,12 @@ func esclDecodeColorMode(obj *cpython.Object) (escl.ColorMode, error) {
 func esclDecodeColorSpace(obj *cpython.Object) (escl.ColorSpace, error) {
 	s, err := obj.Str()
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 
 	sps := escl.DecodeColorSpace(s)
 	if sps == escl.UnknownColorSpace {
-		return 0, fmt.Errorf("%s: invalid eSCL ColorSpace", s)
+		return "", fmt.Errorf("%s: invalid eSCL ColorSpace", s)
 	}
 
 	return sps, nil

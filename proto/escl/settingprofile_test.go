@@ -217,11 +217,11 @@ func TestSettingProfileDecodeErrors(t *testing.T) {
 			xml: xmldoc.WithChildren(NsScan+":SettingProfile",
 				xmldoc.WithChildren(NsScan+":ColorSpaces",
 					xmldoc.WithText(NsScan+":ColorSpace",
-						"Unknown"),
+						"bad val"),
 				),
 				res.toXML(NsScan+":SupportedResolutions"),
 			),
-			err: `/scan:SettingProfile/scan:ColorSpaces/scan:ColorSpace: invalid ColorSpace: "Unknown"`,
+			err: `/scan:SettingProfile/scan:ColorSpaces/scan:ColorSpace: invalid ColorSpace: "bad val"`,
 		},
 
 		// Error in CCDChannels
