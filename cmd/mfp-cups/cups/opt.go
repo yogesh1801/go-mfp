@@ -268,7 +268,7 @@ func optPPDNameGet(inv *argv.Invocation) string {
 // optCUPSURL returns CUPS URL (-u/--cups option).
 // If option is not set, it uses default destination.
 func optCUPSURL(inv *argv.Invocation) *url.URL {
-	dest := transport.DefaultCupsUNIX
+	dest := cups.DefaultUNIXURL
 
 	if addr, ok := inv.Parent().Get("-u"); ok {
 		dest = transport.MustParseAddr(addr, "ipp://localhost/")

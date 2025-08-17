@@ -11,12 +11,10 @@ package cups
 import (
 	"context"
 	"testing"
-
-	"github.com/OpenPrinting/go-mfp/transport"
 )
 
 func TestCUPS(t *testing.T) {
-	c := NewClient(transport.DefaultCupsUNIX, nil)
+	c := NewClient(DefaultUNIXURL, nil)
 	rsp, err := c.CUPSGetDefault(context.Background(), []string{"all"})
 
 	if err != nil {

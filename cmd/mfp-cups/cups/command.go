@@ -13,6 +13,7 @@ import (
 	"fmt"
 
 	"github.com/OpenPrinting/go-mfp/argv"
+	"github.com/OpenPrinting/go-mfp/cups"
 	"github.com/OpenPrinting/go-mfp/log"
 	"github.com/OpenPrinting/go-mfp/transport"
 )
@@ -36,8 +37,7 @@ var Command = argv.Command{
 			Name:    "-u",
 			Aliases: []string{"--cups"},
 			Help: "CUPS server address or URL\n" +
-				fmt.Sprintf("default: %q",
-					transport.DefaultCupsUNIX),
+				fmt.Sprintf("default: %q", cups.DefaultUNIXURL),
 			Validate: transport.ValidateAddr,
 		},
 		argv.HelpOption,
