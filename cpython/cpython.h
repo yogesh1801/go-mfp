@@ -53,9 +53,13 @@ void py_leave (PyThreadState *prev);
 //
 // If expr is true, this function evaluates Python expression and
 // saves its result into res. Otherwise, it evaluates a multi-line
-// Python script and don't return any PyObject (sets *res to NULL)
+// Python script and don't return any PyObject (sets *res to NULL).
+//
+// In a case of the execution exception, the file line that caused
+// the exception is saved into lineno. If line cannot be determined,
+// it will be set to -1.
 bool py_interp_eval (const char *s, const char *file,
-                     bool expr, PyObject **res);
+                     bool expr, PyObject **res, long *lineno);
 
 // py_interp_load loads (imports) string as a Python module.
 //

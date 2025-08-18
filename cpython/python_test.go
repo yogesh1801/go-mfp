@@ -11,6 +11,7 @@ package cpython
 import (
 	"errors"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/OpenPrinting/go-mfp/internal/assert"
@@ -142,5 +143,31 @@ func TestPythonLoad(t *testing.T) {
 			"expected: %d\n"+
 			"presend:  %d\n",
 			5, v)
+	}
+}
+
+// TestPythonErrorLocation tests accuracy of error location reporting
+func TestPythonErrorLocation(t *testing.T) {
+	// This script must raise an exception in the stdlib.
+	// Here we verify that we can properly locate error line
+	// that belongs to the our code, not to the stdlib.
+	script := "" +
+		"import base64\n" +
+		"base64.b64encode(5)\n" +
+		""
+
+	py, err := NewPython()
+	assert.NoError(err)
+
+	err = py.Exec(script, "test.py")
+	assert.MustMsg(err != nil, "Python exception MUST occur")
+	expected := "(test.py, line 2)"
+	present := err.Error()
+
+	if !strings.HasSuffix(present, expected) {
+		t.Errorf("invalid error location reported:\n"+
+			"expected: %s\n"+
+			"present:  %s\n",
+			expected, present)
 	}
 }

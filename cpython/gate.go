@@ -50,6 +50,13 @@ func (gate pyGate) release() {
 
 // lastError returns a last error, nil if none.
 func (gate pyGate) lastError() error {
+	return gate.lastErrorAt("", -1)
+}
+
+// lastErrorAt returns a last error, nil if none.
+//
+// If file != "" and line > 0, it overrides the error location information.
+func (gate pyGate) lastErrorAt(file string, line int) error {
 	var etype, evalue, trace pyObject
 
 	// Fetch Python error information
@@ -99,7 +106,10 @@ func (gate pyGate) lastError() error {
 	}
 
 	if needLocation && trace != nil {
-		file, line, err := gate.lastErrorLocation(trace)
+		var err error
+		if file == "" || line < 0 {
+			file, line, err = gate.lastErrorLocation(trace)
+		}
 		if err == nil {
 			msg += fmt.Sprintf(" (%s, line %d)", file, line)
 		}
@@ -774,9 +784,10 @@ func (gate pyGate) eval(s, name string, expr bool) (pyObject, error) {
 
 	// Execute the expression
 	var pyobj pyObject
-	ok := bool(C.py_interp_eval(cs, cname, C.bool(expr), &pyobj))
+	var lineno C.long
+	ok := bool(C.py_interp_eval(cs, cname, C.bool(expr), &pyobj, &lineno))
 	if !ok {
-		return nil, gate.lastError()
+		return nil, gate.lastErrorAt(name, int(lineno))
 	}
 
 	return pyobj, nil

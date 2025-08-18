@@ -58,6 +58,7 @@ static __typeof__(PyDict_New)                   *PyDict_New_p;
 static __typeof__(PyDict_SetItemString)         *PyDict_SetItemString_p;
 static __typeof__(PyErr_Clear)                  *PyErr_Clear_p;
 static __typeof__(PyErr_Fetch)                  *PyErr_Fetch_p;
+static __typeof__(PyErr_Restore)                *PyErr_Restore_p;
 static __typeof__(PyErr_NormalizeException)     *PyErr_NormalizeException_p;
 static __typeof__(PyErr_Occurred)               *PyErr_Occurred_p;
 static __typeof__(PyEval_EvalCode)              *PyEval_EvalCode_p;
@@ -137,8 +138,11 @@ PyTypeObject *PyTuple_Type_p;
 PyTypeObject *PyType_Type_p;
 PyTypeObject *PyUnicode_Type_p;
 
-/// Directly exposed libpython functions:
+// Directly exposed libpython functions:
 Py_ssize_t                      (*PyUnicode_GetLength_p)(PyObject *);
+
+// Forward declarations
+static PyObject *py_obj_getattr_int(PyObject *x, const char *name);
 
 // py_set_error formats and sets py_error.
 static void py_set_error (const char *fmt, ...) {
@@ -213,6 +217,7 @@ static void py_load_all (void) {
     PyDict_SetItemString_p = py_load("PyDict_SetItemString");
     PyErr_Clear_p = py_load("PyErr_Clear");
     PyErr_Fetch_p = py_load("PyErr_Fetch");
+    PyErr_Restore_p = py_load("PyErr_Restore");
     PyErr_NormalizeException_p = py_load("PyErr_NormalizeException");
     PyErr_Occurred_p = py_load("PyErr_Occurred");
     PyEval_EvalCode_p = py_load("PyEval_EvalCode");
@@ -399,9 +404,16 @@ void py_interp_close (PyInterpreterState *interp) {
 //
 // If expr is true, this function evaluates Python expression and
 // saves its result into res. Otherwise, it evaluates a multi-line
-// Python script and don't return any PyObject (sets *res to NULL)
+// Python script and don't return any PyObject (sets *res to NULL).
+//
+// In a case of the execution exception, the file line that caused
+// the exception is saved into lineno. If line cannot be determined,
+// it will be set to -1.
 bool py_interp_eval (const char *s, const char *file,
-                     bool expr, PyObject **res) {
+                     bool expr, PyObject **res, long *lineno) {
+
+    // Initialize lineno into the safe default
+    *lineno = -1;
 
     // Obtain the __main__ module reference and its namespace
     PyObject *main_module = PyImport_AddModule_p("__main__");
@@ -420,6 +432,44 @@ bool py_interp_eval (const char *s, const char *file,
 
     // Execute the statement, release code object
     PyObject *ret = PyEval_EvalCode_p(code, dict, dict);
+
+    // In a case of error, locate the last frame that belongs
+    // to the our code.
+    if (PyErr_Occurred_p()) {
+        PyObject     *exc, *val, *tb;
+        PyObject     *frame, f_code;
+        PyTypeObject *frame_t;
+
+        PyErr_Fetch_p(&exc, &val, &tb);
+
+        frame = tb;
+        frame_t = py_obj_type(frame);
+
+        do {
+            PyObject *tb_frame = py_obj_getattr_int(frame, "tb_frame");
+            PyObject *f_code = py_obj_getattr_int(tb_frame, "f_code");
+
+            if (f_code == code) {
+                PyObject *loc = py_obj_getattr_int(frame, "tb_lineno");
+                uint64_t tmp = (uint64_t) PyLong_AsUnsignedLongLong_p(loc);
+
+                if (PyErr_Occurred_p()) {
+                    PyErr_Clear_p();
+                } else {
+                    *lineno = (long) tmp;
+                }
+            }
+
+            frame = py_obj_getattr_int(frame, "tb_next");
+            if (frame == NULL) {
+                break;
+            }
+        } while (frame != NULL && py_obj_type(frame) == frame_t);
+
+        PyErr_Restore_p(exc, val, tb);
+    }
+
+    // Release the code object
     Py_DecRef_p(code);
 
     // Now interpret the result
@@ -607,6 +657,29 @@ bool py_obj_getattr(PyObject *x, const char *name, PyObject **answer) {
     PyObject *attr = PyObject_GetAttrString_p(x, name);
     *answer = attr;
     return attr != NULL;
+}
+
+// py_obj_getattr_int is the py_obj_getattr version for the
+// internal use.
+//
+// It has the following differences from the normal py_obj_getattr:
+//   - the returned reference is borrowed, not string
+//   - input object may be NULL
+//   - error is cleared if any occurs
+static PyObject *py_obj_getattr_int(PyObject *x, const char *name) {
+    PyObject *attr = NULL;
+
+    if (x != NULL) {
+        attr = PyObject_GetAttrString_p(x, name);
+
+        if (attr != NULL) {
+            Py_DecRef_p(attr);
+        }else{
+            PyErr_Clear_p();
+        }
+    }
+
+    return attr;
 }
 
 // py_obj_getattr sets the attribute with the specified name.
