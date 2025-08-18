@@ -81,7 +81,7 @@ ShortEdgeFeed = 'ShortEdgeFeed'
 class ScanSettings(TypedDict):
     Version: str
     Intent: str
-    ScanRegions: list[Region]
+    ScanRegions: list
     DocumentFormat: str
     DocumentFormatExt: str
     ContentType: str
