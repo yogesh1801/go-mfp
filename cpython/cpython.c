@@ -437,36 +437,36 @@ bool py_interp_eval (const char *s, const char *file,
     // to the our code.
     if (PyErr_Occurred_p()) {
         PyObject     *exc, *val, *tb;
-        PyObject     *frame, f_code;
-        PyTypeObject *frame_t;
 
         PyErr_Fetch_p(&exc, &val, &tb);
 
-        frame = tb;
-        frame_t = py_obj_type(frame);
+        if (tb != NULL) {
+            PyObject     *frame = tb;
+            PyTypeObject *frame_t = py_obj_type(frame);
 
-        do {
-            PyObject *tb_frame = py_obj_getattr_int(frame, "tb_frame");
-            PyObject *f_code = py_obj_getattr_int(tb_frame, "f_code");
+            do {
+                PyObject *tb_frame = py_obj_getattr_int(frame, "tb_frame");
+                PyObject *f_code = py_obj_getattr_int(tb_frame, "f_code");
 
-            if (f_code == code) {
-                PyObject *loc = py_obj_getattr_int(frame, "tb_lineno");
-                uint64_t tmp = (uint64_t) PyLong_AsUnsignedLongLong_p(loc);
+                if (f_code == code) {
+                    PyObject *loc = py_obj_getattr_int(frame, "tb_lineno");
+                    uint64_t tmp = (uint64_t) PyLong_AsUnsignedLongLong_p(loc);
 
-                if (PyErr_Occurred_p()) {
-                    PyErr_Clear_p();
-                } else {
-                    *lineno = (long) tmp;
+                    if (PyErr_Occurred_p()) {
+                        PyErr_Clear_p();
+                    } else {
+                        *lineno = (long) tmp;
+                    }
                 }
-            }
 
-            frame = py_obj_getattr_int(frame, "tb_next");
-            if (frame == NULL) {
-                break;
-            }
-        } while (frame != NULL && py_obj_type(frame) == frame_t);
+                frame = py_obj_getattr_int(frame, "tb_next");
+                if (frame == NULL) {
+                    break;
+                }
+            } while (frame != NULL && py_obj_type(frame) == frame_t);
 
-        PyErr_Restore_p(exc, val, tb);
+            PyErr_Restore_p(exc, val, tb);
+        }
     }
 
     // Release the code object
