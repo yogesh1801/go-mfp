@@ -13,5 +13,8 @@ import _ "embed" // For go:embed to work
 //go:embed init.py
 var embedPyInit string
 
+//go:embed query.py
+var embedPyQuery string
+
 //go:embed escl.py
 var embedPyEscl string

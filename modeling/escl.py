@@ -8,7 +8,6 @@
 
 from uuid import UUID
 from typing import TypedDict
-from http.client import HTTPMessage
 
 # Range represents range of integers
 class Range (TypedDict):

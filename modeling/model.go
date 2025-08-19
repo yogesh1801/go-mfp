@@ -32,10 +32,16 @@ type Model struct {
 	esclScanCaps    *escl.ScannerCapabilities
 
 	// Common Python constructors
-	pyUUID *cpython.Object
 
 	// Modules
-	modEscl *cpython.Object
+	modQuery *cpython.Object // query.py
+	modEscl  *cpython.Object // escl.py
+
+	// Important Python class constructors
+	clsDict        *cpython.Object // dict
+	clsHTTPMessage *cpython.Object // query.HTTPMessage
+	clsQuery       *cpython.Object // query.Query constructor
+	clsUUID        *cpython.Object // uuid.UUID
 
 	// Python hooks for eSCL
 	esclOnScanJobsRequestScriptlet *cpython.Object
@@ -50,6 +56,12 @@ func NewModel() (*Model, error) {
 		return nil, err
 	}
 
+	defer func() {
+		if err != nil {
+			py.Close()
+		}
+	}()
+
 	// Create Model structure
 	model := &Model{py: py}
 
@@ -60,22 +72,42 @@ func NewModel() (*Model, error) {
 	}
 
 	// Load modules
+	model.modEscl, err = py.Load(embedPyQuery, "query", "query.py")
+	if err != nil {
+		return nil, err
+	}
+
 	model.modEscl, err = py.Load(embedPyEscl, "escl", "escl.py")
 	if err != nil {
 		return nil, err
 	}
 
-	// Load some commonly used Python objects
-	if err == nil {
-		model.pyUUID, err = py.GetGlobal("UUID")
-	}
-
-	assert.Must(model.pyUUID != nil)
-	assert.Must(model.pyUUID.IsCallable())
-
+	// Load commonly used class constructors
+	model.clsDict, err = py.Eval("dict")
 	if err != nil {
 		return nil, err
 	}
+
+	model.clsQuery, err = py.Eval("query.Query")
+	if err != nil {
+		return nil, err
+	}
+
+	model.clsHTTPMessage, err = py.Eval("query.HTTPMessage")
+	if err != nil {
+		return nil, err
+	}
+
+	model.clsUUID, err = py.Eval("UUID")
+	if err != nil {
+		return nil, err
+	}
+
+	// Verify things
+	assert.Must(model.clsDict.IsCallable())
+	assert.Must(model.clsHTTPMessage.IsCallable())
+	assert.Must(model.clsQuery.IsCallable())
+	assert.Must(model.clsUUID.IsCallable())
 
 	return model, nil
 }
@@ -263,7 +295,7 @@ func (model *Model) pyExportValue(v reflect.Value) (*cpython.Object, error) {
 	case escl.Version:
 		return model.py.NewObject(v.String())
 	case uuid.UUID:
-		return model.pyUUID.Call(v.String())
+		return model.clsUUID.Call(v.String())
 
 	// fmt.Stringer becomes Python string
 	case fmt.Stringer:

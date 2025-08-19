@@ -119,25 +119,41 @@ func (model *Model) esclOnScannerCapabilitiesResponse(
 	return caps2
 }
 
-// esclOnScanJobsRequest implements the [escl.ServerHooks.esclOnScanJobsRequest]
+// esclOnScanJobsRequest implements the [escl.ServerHooks.OnScanJobsRequest]
 // hook for he modeled eSCL scanner.
 func (model *Model) esclOnScanJobsRequest(
 	query *transport.ServerQuery,
 	ss *escl.ScanSettings) *escl.ScanSettings {
 
-	obj, err := model.pyExportStruct(ss)
+	// Export request to Python
+	q, err := model.queryToPython(query)
 	if err != nil {
 		query.Reject(http.StatusServiceUnavailable, err)
 		return nil
 	}
-	_, err = model.esclOnScanJobsRequestScriptlet.Call(obj)
+
+	rq, err := model.pyExportStruct(ss)
+	if err != nil {
+		query.Reject(http.StatusServiceUnavailable, err)
+		return nil
+	}
+
+	// Call the hook
+	_, err = model.esclOnScanJobsRequestScriptlet.Call(q, rq)
+	if err != nil {
+		query.Reject(http.StatusServiceUnavailable, err)
+		return nil
+	}
+
+	// Convert possibly modified request back to Go
+	err = model.queryFromPython(query, q)
 	if err != nil {
 		query.Reject(http.StatusServiceUnavailable, err)
 		return nil
 	}
 
 	var ss2 *escl.ScanSettings
-	err = model.pyImportStruct(&ss2, obj)
+	err = model.pyImportStruct(&ss2, rq)
 	if err != nil {
 		query.Reject(http.StatusServiceUnavailable, err)
 		return nil
