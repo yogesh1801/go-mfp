@@ -44,10 +44,20 @@ func HTTPRemoveHopByHopHeaders(hdr http.Header) {
 }
 
 // HTTPCopyHeaders copies HTTP headers from src to dst.
+//
+// Headers that already present in the `dst` but not present
+// in the `src` are not touched.
 func HTTPCopyHeaders(dst, src http.Header) {
 	for k, v := range src {
 		if strings.ToLower(k) != "content-length" {
 			dst[k] = v
 		}
+	}
+}
+
+// HTTPPurgeHeaders removes all headers from the [http.Header].
+func HTTPPurgeHeaders(hdr http.Header) {
+	for key := range hdr {
+		delete(hdr, key)
 	}
 }
