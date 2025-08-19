@@ -120,7 +120,7 @@ func TestPythonLoad(t *testing.T) {
 		"i = 5\n" +
 		""
 
-	err = py.Load(mod, "mymodule", "modulefile.py")
+	_, err = py.Load(mod, "mymodule", "modulefile.py")
 	if err != nil {
 		t.Errorf("Python.Import: %s", err)
 		return

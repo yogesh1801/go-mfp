@@ -345,11 +345,19 @@ func (py *Python) Exec(s, filename string) error {
 
 // Load loads (imports) string as a Python module with name 'name' as if
 // it was loaded from the file 'file'.
-func (py *Python) Load(s, name, file string) error {
+//
+// On success it returns the module [Object].
+func (py *Python) Load(s, name, file string) (*Object, error) {
 	gate := py.gate()
 	defer gate.release()
 
-	return gate.load(s, name, file)
+	pyobj, err := gate.load(s, name, file)
+	if err != nil {
+		return nil, err
+	}
+
+	obj := newObjectFromPython(py, gate, pyobj)
+	return obj, nil
 }
 
 // eval is the common body for Python.Eval and Python.Exec

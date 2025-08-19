@@ -396,8 +396,8 @@ void py_interp_close (PyInterpreterState *interp) {
 }
 
 // py_interp_eval evaluates string as a Python statement or expression.
-// It returns Python value of the executed statement on
-// success, NULL in a case of any error.
+// It returns, via the 'res' pointer, the strong reference to the Python
+// value of the executed statement.
 //
 // The name parameter is used for diagnostics messages and
 // indicated the input file name.
@@ -487,11 +487,15 @@ bool py_interp_eval (const char *s, const char *file,
 }
 
 // py_interp_load loads (imports) string as a Python module.
+// It returns, via the 'res' pointer, the strong reference
+// to the Python object of the loaded module.
 //
 // The name parameter becomes the module name, while the
 // file parameter used for diagnostics messages and
 // indicated the input file name.
-bool py_interp_load (const char *s, const char *name, const char *file) {
+bool py_interp_load (const char *s, const char *name, const char *file,
+                    PyObject **res) {
+
     // Obtain the __main__ module reference and its namespace
     PyObject *main_module = PyImport_AddModule_p("__main__");
     if (main_module == NULL) {
@@ -513,7 +517,11 @@ bool py_interp_load (const char *s, const char *name, const char *file) {
     }
 
     int rc = PyDict_SetItemString_p(dict, name, module);
-    Py_DecRef_p(module);
+    if (rc == 0) {
+        *res = module;
+    } else {
+        Py_DecRef_p(module);
+    }
 
     return rc == 0;
 }

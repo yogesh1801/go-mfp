@@ -34,6 +34,9 @@ type Model struct {
 	// Common Python constructors
 	pyUUID *cpython.Object
 
+	// Modules
+	modEscl *cpython.Object
+
 	// Python hooks for eSCL
 	esclOnScanJobsRequestScriptlet *cpython.Object
 }
@@ -47,6 +50,9 @@ func NewModel() (*Model, error) {
 		return nil, err
 	}
 
+	// Create Model structure
+	model := &Model{py: py}
+
 	// Load startup script
 	err = py.Exec(embedPyInit, "init.py")
 	if err != nil {
@@ -54,13 +60,12 @@ func NewModel() (*Model, error) {
 	}
 
 	// Load modules
-	err = py.Load(embedPyEscl, "escl", "escl.py")
+	model.modEscl, err = py.Load(embedPyEscl, "escl", "escl.py")
 	if err != nil {
 		return nil, err
 	}
 
 	// Load some commonly used Python objects
-	model := &Model{py: py}
 	if err == nil {
 		model.pyUUID, err = py.GetGlobal("UUID")
 	}

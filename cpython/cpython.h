@@ -45,8 +45,8 @@ PyThreadState *py_enter (PyInterpreterState *interp);
 void py_leave (PyThreadState *prev);
 
 // py_interp_eval evaluates string as a Python statement or expression.
-// It returns Python value of the executed statement on
-// success, NULL in a case of any error.
+// It returns, via the 'res' pointer, the strong reference to the Python
+// value of the executed statement.
 //
 // The name parameter is used for diagnostics messages and
 // indicated the input file name.
@@ -62,11 +62,14 @@ bool py_interp_eval (const char *s, const char *file,
                      bool expr, PyObject **res, long *lineno);
 
 // py_interp_load loads (imports) string as a Python module.
+// It returns, via the 'res' pointer, the strong reference
+// to the Python object of the loaded module.
 //
 // The name parameter becomes the module name, while the
 // file parameter used for diagnostics messages and
 // indicated the input file name.
-bool py_interp_load (const char *s, const char *name, const char *file);
+bool py_interp_load (const char *s, const char *name, const char *file,
+                     PyObject **res);
 
 // py_obj_is_bool reports if PyObject is PyBool_Type
 bool py_obj_is_bool (PyObject *x);

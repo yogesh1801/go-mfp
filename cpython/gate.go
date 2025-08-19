@@ -798,7 +798,7 @@ func (gate pyGate) eval(s, name string, expr bool) (pyObject, error) {
 // Module name is specified by the 'name' parameter and
 // the 'file' parameter is used as a file name for the
 // diagnostics messages.
-func (gate pyGate) load(s, name, file string) error {
+func (gate pyGate) load(s, name, file string) (pyObject, error) {
 	// Convert strings to C
 	cs := C.CString(s)
 	defer C.free(unsafe.Pointer(cs))
@@ -810,10 +810,11 @@ func (gate pyGate) load(s, name, file string) error {
 	defer C.free(unsafe.Pointer(cfile))
 
 	// Import the module
-	ok := bool(C.py_interp_load(cs, cname, cfile))
+	var pyobj pyObject
+	ok := bool(C.py_interp_load(cs, cname, cfile, &pyobj))
 	if !ok {
-		return gate.lastError()
+		return nil, gate.lastError()
 	}
 
-	return nil
+	return pyobj, nil
 }
