@@ -17,7 +17,8 @@ import (
 var Images struct {
 	// Small images in various formats
 	BMP100x75             []byte
-	JPEG100x75            []byte
+	JPEG100x75rgb8        []byte
+	JPEG100x75gray8       []byte
 	PDF100x75             []byte
 	PNG100x75rgb8         []byte
 	PNG100x75rgb8i        []byte
@@ -38,8 +39,11 @@ var Images struct {
 //go:embed "data/UEIT-100x75.bmp"
 var imageBMP100x75 []byte
 
-//go:embed "data/UEIT-100x75.jpeg"
-var imageJPEG100x75 []byte
+//go:embed "data/UEIT-100x75rgb8.jpeg"
+var imageJPEG100x75rgb8 []byte
+
+//go:embed "data/UEIT-100x75gray8.jpeg"
+var imageJPEG100x75gray8 []byte
 
 //go:embed "data/UEIT-100x75.pdf"
 var imagePDF100x75 []byte
@@ -73,7 +77,8 @@ var imagePNG5100x7016 []byte
 
 func init() {
 	Images.BMP100x75 = imageBMP100x75
-	Images.JPEG100x75 = imageJPEG100x75
+	Images.JPEG100x75rgb8 = imageJPEG100x75rgb8
+	Images.JPEG100x75gray8 = imageJPEG100x75gray8
 	Images.PDF100x75 = imagePDF100x75
 	Images.PNG100x75rgb8 = imagePNG100x75rgb8
 	Images.PNG100x75rgb8i = imagePNG100x75rgb8i
