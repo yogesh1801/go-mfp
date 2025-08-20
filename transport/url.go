@@ -220,7 +220,7 @@ func parseIPAddrPort(addr string) string {
 		return ""
 	}
 
-	portnum, err := strconv.ParseInt(port, 10, 16)
+	portnum, err := strconv.ParseUint(port, 10, 16)
 	if err != nil {
 		return ""
 	}

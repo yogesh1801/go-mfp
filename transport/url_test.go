@@ -281,6 +281,11 @@ func TestParseAddr(t *testing.T) {
 			out: "http://[::1]:222/eSCL",
 		},
 
+		{
+			in:  "localhost:50000/eSCL",
+			out: "http://localhost:50000/eSCL",
+		},
+
 		// UNIX paths
 		{
 			in:  "/var/run/cups/cups.sock",
