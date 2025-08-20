@@ -13,6 +13,7 @@ import (
 	"io"
 	"os"
 	"reflect"
+	"strings"
 
 	"github.com/OpenPrinting/go-mfp/cpython"
 	"github.com/OpenPrinting/go-mfp/internal/assert"
@@ -153,11 +154,57 @@ func (model *Model) GetESCLScanCaps() *escl.ScannerCapabilities {
 
 // Write writes model into the [io.Writer]
 func (model *Model) Write(w io.Writer) error {
-	f := newFormatter(w)
+	var escl string
 
-	err := model.esclWrite(f)
+	// Format parts
+	if model.esclScanCaps != nil {
+		obj, err := model.pyExportStruct(model.esclScanCaps)
+		if err != nil {
+			return err
+		}
 
-	return err
+		escl, err = formatPython(obj)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Expand callback
+	expand := func(name string) string {
+		switch name {
+		case "ESCL":
+			return escl
+		}
+
+		return ""
+	}
+
+	// Split template into lines. Trim terminating empty lines, if any.
+	template := strings.Split(embedPyModel, "\n")
+	for len(template) > 0 && template[len(template)-1] == "" {
+		template = template[:len(template)-1]
+	}
+
+	// Expand template
+	skip := true
+	for _, t := range template {
+		switch {
+		case strings.HasPrefix(t, "#-"):
+			skip = false
+		case strings.HasPrefix(t, "#-escl"):
+			skip = model.esclScanCaps == nil
+		default:
+			if !skip {
+				s := os.Expand(t, expand)
+				_, err := w.Write(([]byte)(s + "\n"))
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	return nil
 }
 
 // Read reads model from the [io.Reader]

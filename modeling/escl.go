@@ -17,23 +17,6 @@ import (
 	"github.com/OpenPrinting/go-mfp/transport"
 )
 
-// esclWrite writes eSCL part of model into the [formatter].
-func (model *Model) esclWrite(f *formatter) error {
-	if model.esclScanCaps != nil {
-		obj, err := model.pyExportStruct(model.esclScanCaps)
-		if err != nil {
-			return err
-		}
-
-		f.Printf("# eSCL scanner parameters:\n")
-		f.Printf("escl.caps = ")
-
-		return f.Format(obj)
-	}
-
-	return nil
-}
-
 // esclLoad decodes eSCL part of model. The model file assumed to
 // be preloaded into the Model's Python interpreter (model.py).
 func (model *Model) esclLoad() error {

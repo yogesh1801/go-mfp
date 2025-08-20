@@ -10,24 +10,27 @@ package modeling
 
 import (
 	"fmt"
-	"io"
+	"strings"
 
 	"github.com/OpenPrinting/go-mfp/cpython"
 )
 
 // formatter saves Model data to files
 type formatter struct {
-	w   io.Writer // Output io.Writer
-	err error     // Sticky error
+	buf strings.Builder // Output buffer
+	err error           // Sticky error
 }
 
-// newFormatter creates a new formatter
-func newFormatter(w io.Writer) *formatter {
-	return &formatter{w: w}
+// formatPython formats the [cpython.Object] as a string.
+func formatPython(obj *cpython.Object) (string, error) {
+	var f formatter
+
+	f.format(obj)
+	return f.buf.String(), f.err
 }
 
 // Format writes Python object into the io.Writer.
-func (f *formatter) Format(obj *cpython.Object) error {
+func (f *formatter) format(obj *cpython.Object) error {
 	f.formatValue(obj, 0)
 	f.write("\n")
 	return f.err
@@ -208,20 +211,20 @@ func (f *formatter) formatArray(obj *cpython.Object, indent int) {
 // write writes the string.
 func (f *formatter) write(s string) {
 	if f.err == nil {
-		_, f.err = f.w.Write([]byte(s))
+		_, f.err = f.buf.Write([]byte(s))
 	}
 }
 
 // indent writes the indentation space.
 func (f *formatter) indent(indent int) {
 	if f.err == nil {
-		_, f.err = fmt.Fprintf(f.w, "%*s", indent*2, "")
+		_, f.err = fmt.Fprintf(&f.buf, "%*s", indent*2, "")
 	}
 }
 
 // printf writes the formatted string.
 func (f *formatter) Printf(format string, args ...any) {
 	if f.err == nil {
-		_, f.err = fmt.Fprintf(f.w, format, args...)
+		_, f.err = fmt.Fprintf(&f.buf, format, args...)
 	}
 }
