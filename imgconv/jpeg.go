@@ -12,7 +12,6 @@ import (
 	"errors"
 	"image/color"
 	"io"
-	"runtime"
 	"runtime/cgo"
 	"unsafe"
 
@@ -45,10 +44,6 @@ type jpegPanic struct{}
 
 // NewJPEGReader creates a new [Reader] for JPEG images.
 func NewJPEGReader(input io.Reader) (r Reader, err error) {
-	// Must lock OS thread, so panicing from Cgo callback will work
-	runtime.LockOSThread()
-	defer runtime.UnlockOSThread()
-
 	// Create reader structure.
 	reader := &jpegReader{
 		input: input,
@@ -175,10 +170,6 @@ func (reader *jpegReader) readRow() {
 	if reader.err != nil {
 		return
 	}
-
-	// Must lock OS thread, so panicing from Cgo callback will work
-	runtime.LockOSThread()
-	defer runtime.UnlockOSThread()
 
 	defer func() {
 		p := recover()
