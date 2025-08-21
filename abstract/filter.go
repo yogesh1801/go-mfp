@@ -33,7 +33,7 @@ type Filter struct {
 func NewFilter(input Document) *Filter {
 	return &Filter{
 		input:  input,
-		format: DocumentFormatPNG, // FIXME
+		format: imgconv.MIMETypePNG, // FIXME
 	}
 }
 

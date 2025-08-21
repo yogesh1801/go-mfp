@@ -13,6 +13,7 @@ import (
 	"io"
 	"testing"
 
+	"github.com/OpenPrinting/go-mfp/imgconv"
 	"github.com/OpenPrinting/go-mfp/internal/testutils"
 )
 
@@ -96,22 +97,22 @@ func TestDocumentFromBytesFileFormat(t *testing.T) {
 	tests := []testData{
 		{
 			data:   testutils.Images.BMP100x75,
-			format: DocumentFormatBMP,
+			format: imgconv.MIMETypeBMP,
 		},
 
 		{
 			data:   testutils.Images.PNG100x75rgb8,
-			format: DocumentFormatPNG,
+			format: imgconv.MIMETypePNG,
 		},
 
 		{
 			data:   testutils.Images.PNG100x75gray8,
-			format: DocumentFormatPNG,
+			format: imgconv.MIMETypePNG,
 		},
 
 		{
 			data:   testutils.Images.JPEG100x75rgb8,
-			format: DocumentFormatJPEG,
+			format: imgconv.MIMETypeJPEG,
 		},
 	}
 

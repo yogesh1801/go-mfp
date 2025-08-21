@@ -4,27 +4,27 @@
 // Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
 // See LICENSE for license terms and conditions
 //
-// Document format detection
+// Image format detection
 
-package abstract
+package imgconv
 
 import "bytes"
 
 // MIME types for known document formats:
 const (
-	DocumentFormatBMP  = "image/bmp"
-	DocumentFormatJPEG = "image/jpeg"
-	DocumentFormatPDF  = "application/pdf"
-	DocumentFormatPNG  = "image/png"
-	DocumentFormatTIFF = "image/tiff"
-	DocumentFormatData = "application/octet-stream"
+	MIMETypeBMP  = "image/bmp"
+	MIMETypeJPEG = "image/jpeg"
+	MIMETypePDF  = "application/pdf"
+	MIMETypePNG  = "image/png"
+	MIMETypeTIFF = "image/tiff"
+	MIMETypeData = "application/octet-stream"
 )
 
-// DocumentFormatDetect detects document type by its few starting bytes
+// MIMETypeDetect detects image type by its few starting bytes
 // and returns its MIME type.
 //
 // If format cannot be guessed, "" is returned.
-func DocumentFormatDetect(image []byte) string {
+func MIMETypeDetect(image []byte) string {
 	for _, ent := range formatTable {
 		if bytes.HasPrefix(image, ent.prefix) {
 			return ent.mime
@@ -40,11 +40,11 @@ var formatTable = []struct {
 	prefix []byte
 	mime   string
 }{
-	{[]byte{'B', 'M'}, DocumentFormatBMP},
-	{[]byte{0xff, 0xd8}, DocumentFormatJPEG},
-	{[]byte{'%', 'P', 'D', 'F', '-'}, DocumentFormatPDF},
+	{[]byte{'B', 'M'}, MIMETypeBMP},
+	{[]byte{0xff, 0xd8}, MIMETypeJPEG},
+	{[]byte{'%', 'P', 'D', 'F', '-'}, MIMETypePDF},
 	{[]byte{0x89, 'P', 'N', 'G', 0x0d, 0x0a, 0x1a, 0x0a},
-		DocumentFormatPNG},
-	{[]byte{'I', 'I', '*', 0}, DocumentFormatTIFF},
-	{[]byte{'M', 'M', 0, '*'}, DocumentFormatTIFF},
+		MIMETypePNG},
+	{[]byte{'I', 'I', '*', 0}, MIMETypeTIFF},
+	{[]byte{'M', 'M', 0, '*'}, MIMETypeTIFF},
 }

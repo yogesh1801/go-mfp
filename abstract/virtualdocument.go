@@ -11,6 +11,8 @@ package abstract
 import (
 	"io"
 	"sync"
+
+	"github.com/OpenPrinting/go-mfp/imgconv"
 )
 
 // virtualDocument is the [Document], constructed by the
@@ -43,9 +45,9 @@ type virtualDocumentFile struct {
 
 // newVirtualDocumentFile returns new virtualDocumentFile
 func newVirtualDocumentFile(data []byte) *virtualDocumentFile {
-	format := DocumentFormatDetect(data)
+	format := imgconv.MIMETypeDetect(data)
 	if format == "" {
-		format = DocumentFormatData
+		format = imgconv.MIMETypeData
 	}
 
 	return &virtualDocumentFile{
