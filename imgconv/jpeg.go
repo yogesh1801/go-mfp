@@ -178,7 +178,7 @@ func (reader *jpegReader) readRow() {
 		}
 	}()
 
-	C.do_jpeg_read_scanlines(reader.jpeg,
+	C.do_jpeg_read_scanline(reader.jpeg,
 		unsafe.Pointer(&reader.rowBytes[0]))
 }
 
@@ -241,13 +241,260 @@ func jpegSkipInputDataCallback(jpeg C.j_decompress_ptr, n C.long) {
 	reader.jpeg.src.bytes_in_buffer = 0
 
 	lim := io.LimitedReader{R: reader.input, N: int64(skip)}
-	io.Copy(io.Discard, &lim)
+	_, err := io.Copy(io.Discard, &lim)
+
+	reader.setError(err)
 }
 
 // jpegTermSourceCallback called by libjpeg to cleanup the source.
 //
 //export jpegTermSourceCallback
 func jpegTermSourceCallback(jpeg C.j_decompress_ptr) {
+}
+
+// jpegWriter implements the [Writer] interface for writing JPEG images
+type jpegWriter struct {
+	handle     cgo.Handle                     // Handle to self
+	jpeg       *C.struct_jpeg_compress_struct // JPEG encoder
+	jpegErrMgr *C.struct_jpeg_error_mgr       // JPEG error manager
+	jpegDstMgr *C.struct_jpeg_destination_mgr // JPEG destination manager
+	buf        [65536]byte                    // Input buffer
+	err        error                          // Error from the libjpeg
+	output     io.Writer                      // Underlying io.Writer
+	wid, hei   int                            // Image size
+	model      color.Model                    // Color model
+	rowBytes   []byte                         // Row encoding buffer
+	y          int                            // Current y-coordinate
+}
+
+// NewJPEGWriter creates a new [Writer] for JPEG images.
+// Supported color models are following:
+//   - color.GrayModel
+//   - color.RGBAModel
+//
+// The quality is the [0...100] integer that defines the tradeoff between
+// level of compression and image quality. 0 is the best compression, lowest
+// quality, 100 is the best quality, lowest compression.
+func NewJPEGWriter(output io.Writer,
+	wid, hei int, model color.Model, quality int) (w Writer, err error) {
+
+	// Check model
+	if model != color.GrayModel && model != color.RGBAModel {
+		err := errors.New("JPEG: unsupported color model")
+		return nil, err
+	}
+
+	// Create writer structure.
+	writer := &jpegWriter{
+		output: output,
+		wid:    wid,
+		hei:    hei,
+		model:  model,
+	}
+
+	p := C.calloc(C.size_t(unsafe.Sizeof(*writer.jpeg)), 1)
+	writer.jpeg = (*C.struct_jpeg_compress_struct)(p)
+
+	p = C.calloc(C.size_t(unsafe.Sizeof(*writer.jpegErrMgr)), 1)
+	writer.jpegErrMgr = (*C.struct_jpeg_error_mgr)(p)
+
+	p = C.calloc(C.size_t(unsafe.Sizeof(*writer.jpegDstMgr)), 1)
+	writer.jpegDstMgr = (*C.struct_jpeg_destination_mgr)(p)
+
+	writer.handle = cgo.NewHandle(writer)
+
+	defer func() {
+		if err != nil {
+			writer.Close()
+		}
+	}()
+
+	// Initialize libjpeg stuff
+	defer func() {
+		p := recover()
+		if _, ok := p.(jpegPanic); p != nil && !ok {
+			panic(p)
+		}
+
+		err = writer.err
+	}()
+
+	C.do_jpeg_init_compress(writer.jpeg,
+		writer.jpegErrMgr, writer.jpegDstMgr, C.uintptr_t(writer.handle))
+
+	writer.jpeg.image_width = C.JDIMENSION(wid)
+	writer.jpeg.image_height = C.JDIMENSION(hei)
+	writer.jpeg.data_precision = 8
+	if model == color.RGBAModel {
+		writer.jpeg.input_components = 3
+		writer.jpeg.in_color_space = C.JCS_RGB
+		writer.rowBytes = make([]byte, writer.wid*3)
+	} else {
+		writer.jpeg.input_components = 1
+		writer.jpeg.in_color_space = C.JCS_GRAYSCALE
+		writer.rowBytes = make([]byte, writer.wid)
+	}
+
+	C.jpeg_set_defaults(writer.jpeg)
+	C.jpeg_set_quality(writer.jpeg, C.int(quality), C.TRUE)
+
+	// Use 4:4:4 subsampling
+	writer.jpeg.comp_info.h_samp_factor = 1
+	writer.jpeg.comp_info.v_samp_factor = 1
+
+	C.jpeg_start_compress(writer.jpeg, 1)
+
+	return writer, nil
+}
+
+// Size returns the image size.
+func (writer *jpegWriter) Size() (wid, hei int) {
+	return writer.wid, writer.hei
+}
+
+// ColorModel returns the [color.Model] of image being written.
+func (writer *jpegWriter) ColorModel() color.Model {
+	return writer.model
+}
+
+// Write writes the next image [Row].
+func (writer *jpegWriter) Write(row Row) error {
+	// Check for pending error
+	if writer.err != nil {
+		return writer.err
+	}
+
+	// Silently ignore excessive rows
+	if writer.y == writer.hei {
+		return nil
+	}
+
+	// Encode the row
+	wid := generic.Min(row.Width(), writer.wid)
+
+	var bytesPerPixel int
+
+	switch writer.model {
+	case color.GrayModel:
+		bytesPerPixel = 1
+		bytesGray8fromRow(writer.rowBytes, row)
+	case color.RGBAModel:
+		bytesPerPixel = 3
+		bytesRGB8fromRow(writer.rowBytes, row)
+	}
+
+	// Fill the tail
+	if wid < writer.wid {
+		end := writer.wid * bytesPerPixel
+		for x := wid * bytesPerPixel; x < end; x++ {
+			writer.rowBytes[x] = 0xff
+		}
+	}
+
+	// Write the row
+	defer func() {
+		p := recover()
+		if _, ok := p.(jpegPanic); p != nil && !ok {
+			panic(p)
+		}
+	}()
+
+	C.do_jpeg_write_scanline(writer.jpeg,
+		unsafe.Pointer(&writer.rowBytes[0]))
+
+	return writer.err
+}
+
+// Close flushes the buffered data and then closes the Writer
+func (writer *jpegWriter) Close() error {
+	writer.finish()
+
+	C.free(unsafe.Pointer(writer.jpeg))
+	C.free(unsafe.Pointer(writer.jpegErrMgr))
+	C.free(unsafe.Pointer(writer.jpegDstMgr))
+
+	writer.jpeg = nil
+	writer.jpegErrMgr = nil
+	writer.jpegDstMgr = nil
+
+	writer.handle.Delete()
+
+	return writer.err
+}
+
+// finish ends the compression and flushes buffered output data.
+func (writer *jpegWriter) finish() {
+	defer func() {
+		p := recover()
+		if _, ok := p.(jpegPanic); p != nil && !ok {
+			panic(p)
+		}
+	}()
+
+	C.jpeg_finish_compress(writer.jpeg)
+}
+
+// setError sets the writer.err, if it is not set yet
+func (writer *jpegWriter) setError(err error) {
+	if writer.err == nil {
+		writer.err = err
+	}
+}
+
+// flush writes out all data from the output buffer
+func (writer *jpegWriter) flush() {
+	sz := len(writer.buf) - int(writer.jpeg.dest.free_in_buffer)
+	data := writer.buf[:sz]
+
+	// Write all data in the buffer
+	for len(data) > 0 && writer.err == nil {
+		n, err := writer.output.Write(data)
+		data = data[n:]
+		writer.setError(err)
+	}
+
+	// Reset the buffer
+	writer.jpeg.dest.free_in_buffer = C.size_t(len(writer.buf))
+	next := (*C.JOCTET)(unsafe.Pointer(&writer.buf[0]))
+	writer.jpeg.dest.next_output_byte = next
+}
+
+// jpegInitDestination called by libjpeg to initialize the destination.
+//
+//export jpegInitDestination
+func jpegInitDestination(jpeg C.j_compress_ptr) {
+	p := (cgo.Handle)(unsafe.Pointer(jpeg.client_data)).Value()
+	writer := p.(*jpegWriter)
+
+	writer.jpeg.dest.free_in_buffer = C.size_t(len(writer.buf))
+	next := (*C.JOCTET)(unsafe.Pointer(&writer.buf[0]))
+	writer.jpeg.dest.next_output_byte = next
+}
+
+// jpegEmptyOutputBuffer called by libjpeg to flush out the output buffer.
+//
+//export jpegEmptyOutputBuffer
+func jpegEmptyOutputBuffer(jpeg C.j_compress_ptr) C.boolean {
+	p := (cgo.Handle)(unsafe.Pointer(jpeg.client_data)).Value()
+	writer := p.(*jpegWriter)
+
+	writer.flush()
+
+	if writer.err != nil {
+		return C.TRUE
+	}
+
+	return C.FALSE
+}
+
+// jpegTermDestination called by libjpeg to finish with the destination.
+//
+//export jpegTermDestination
+func jpegTermDestination(jpeg C.j_compress_ptr) {
+	p := (cgo.Handle)(unsafe.Pointer(jpeg.client_data)).Value()
+	writer := p.(*jpegWriter)
+
+	writer.flush()
 }
 
 // jpegErrorCallback is the error callback.

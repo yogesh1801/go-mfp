@@ -14,6 +14,7 @@ import (
 	"image"
 	"image/color"
 	"image/jpeg"
+	"io"
 	"testing"
 
 	"github.com/OpenPrinting/go-mfp/internal/testutils"
@@ -191,6 +192,113 @@ func TestJPEGDecode(t *testing.T) {
 			_ = img
 
 			reader.Close()
+		}
+	}
+}
+
+// TestJPEGEncode tests JPEG writer
+func TestJPEGEncode(t *testing.T) {
+	type testData struct {
+		name string      // Image name, for logging
+		data []byte      // Image data
+		img  image.Image // Decoded reference images
+	}
+
+	tests := []testData{
+		{
+			name: "JPEG100x75rgb8",
+			data: testutils.Images.JPEG100x75rgb8,
+		},
+
+		{
+			name: "JPEG100x75gray8",
+			data: testutils.Images.JPEG100x75gray8,
+		},
+	}
+
+	// Decode reference images. We need to do it only once.
+	for i := range tests {
+		test := &tests[i]
+		reference, err := jpeg.Decode(bytes.NewReader(test.data))
+		if err != nil {
+			panic(err)
+		}
+		test.img = reference
+	}
+
+	buf := &bytes.Buffer{}
+	for _, test := range tests {
+		// Create image reader
+		in := bytes.NewReader(test.data)
+		reader, err := NewJPEGReader(in)
+		if err != nil {
+			panic(err)
+		}
+
+		// Create image writer
+		buf.Reset()
+		wid, hei := reader.Size()
+		model := reader.ColorModel()
+
+		writer, err := NewJPEGWriter(buf, wid, hei, model, 95)
+		if err != nil {
+			t.Errorf("%s: NewJPEGWriter: %s", test.name, err)
+			reader.Close()
+			continue
+		}
+
+		// Test Writer.ColorModel method
+		newmodel := writer.ColorModel()
+		if newmodel != model {
+			t.Errorf("%s: Writer.Model mismatch:\n"+
+				"expected: %v\n"+
+				"present:  %v\n",
+				test.name, newmodel, model)
+		}
+
+		// Test Writer.Size method
+		newwid, newhei := writer.Size()
+		if newwid != wid || newhei != hei {
+			t.Errorf("%s: Writer.Size mismatch:\n"+
+				"expected: %d x %d\n"+
+				"present:  %d x %d\n",
+				test.name, wid, hei, newwid, newhei)
+		}
+
+		// Recode the image, row by row
+		row := reader.NewRow()
+		for err == nil {
+			_, err = reader.Read(row)
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				panic(err)
+			}
+
+			err = writer.Write(row)
+			if err != nil {
+				t.Errorf("%s: Writer.Write: %s", test.name, err)
+				reader.Close()
+				writer.Close()
+				continue
+			}
+		}
+
+		reader.Close()
+		writer.Close()
+
+		// Decode just encoded image by reference reader
+		img, err := jpeg.Decode(buf)
+		if err != nil {
+			t.Errorf("%s: error in encoded image: %s",
+				test.name, err)
+			continue
+		}
+
+		dist := imageEuclideanDistance(test.img, img)
+		if dist > 1.5/100 {
+			t.Errorf("%s: images too different", test.name)
 		}
 	}
 }
