@@ -20,7 +20,7 @@ import (
 
 // #cgo pkg-config: libjpeg
 //
-// #include "jpeg.h"
+// #include "jpegglue.h"
 import "C"
 
 // jpegReaderimplements the [Reader] interface for reading JPEG images.

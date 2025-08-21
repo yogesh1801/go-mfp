@@ -4,7 +4,10 @@
 // Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
 // See LICENSE for license terms and conditions
 //
-// JPEG Reader and Writer
+// JPEG Reader and Writer (CGo glue)
+
+#ifndef jpegglue_h
+#define jpegglue_h
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -91,5 +94,7 @@ do_jpeg_write_scanline (j_compress_ptr jpeg, void *buf) {
     JSAMPROW           lines[1] = {buf};
     return jpeg_write_scanlines(jpeg, lines,1);
 }
+
+#endif
 
 // vim:ts=8:sw=4:et
