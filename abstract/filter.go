@@ -83,7 +83,7 @@ func (filter *Filter) Next() (DocumentFile, error) {
 	}
 
 	// Create filtering pipeline
-	pipeline, err := imgconv.NewPNGReader(input)
+	_, pipeline, err := imgconv.NewDetectReader(input)
 	if err != nil {
 		return nil, err
 	}
@@ -166,6 +166,7 @@ func (file *filterDocumentFile) Format() string {
 		return file.filter.format
 	}
 	return file.input.Format()
+
 }
 
 // Read reads the document file content as a sequence of bytes.
