@@ -28,7 +28,7 @@ func TestDocumentFormatDetect(t *testing.T) {
 		},
 
 		{
-			data:   testutils.Images.JPEG100x75,
+			data:   testutils.Images.JPEG100x75rgb8,
 			format: DocumentFormatJPEG,
 		},
 
