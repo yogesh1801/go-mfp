@@ -12,7 +12,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/OpenPrinting/go-mfp/util/optional"
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
@@ -29,7 +28,7 @@ func TestScannerStatus_toXML(t *testing.T) {
 				Time:      DateTime(testTime),
 			},
 		},
-		ConditionHistory: optional.New([]ConditionHistoryEntry{
+		ConditionHistory: []ConditionHistoryEntry{
 			{
 				ClearTime: DateTime(clearTime),
 				Component: PlatenComponent,
@@ -37,7 +36,7 @@ func TestScannerStatus_toXML(t *testing.T) {
 				Severity:  Warning,
 				Time:      DateTime(testTime),
 			},
-		}),
+		},
 		ScannerCurrentTime:  DateTime(testTime),
 		ScannerState:        Idle,
 		ScannerStateReasons: []ScannerStateReason{StateNone},
