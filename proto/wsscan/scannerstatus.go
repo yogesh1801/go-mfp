@@ -11,7 +11,6 @@ package wsscan
 import (
 	"fmt"
 
-	"github.com/OpenPrinting/go-mfp/util/optional"
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
@@ -19,7 +18,7 @@ import (
 // providing comprehensive information about the scanner's current state.
 type ScannerStatus struct {
 	ActiveConditions    []DeviceCondition
-	ConditionHistory    optional.Val[[]ConditionHistoryEntry]
+	ConditionHistory    []ConditionHistoryEntry
 	ScannerCurrentTime  DateTime
 	ScannerState        ScannerState
 	ScannerStateReasons []ScannerStateReason
@@ -42,18 +41,15 @@ func (ss ScannerStatus) toXML(name string) xmldoc.Element {
 	}
 
 	// ConditionHistory (optional)
-	if ss.ConditionHistory != nil {
-		ch := optional.Get(ss.ConditionHistory)
-		if len(ch) > 0 {
-			chChildren := make([]xmldoc.Element, len(ch))
-			for i, v := range ch {
-				chChildren[i] = v.toXML(NsWSCN + ":ConditionHistoryEntry")
-			}
-			children = append(children, xmldoc.Element{
-				Name:     NsWSCN + ":ConditionHistory",
-				Children: chChildren,
-			})
+	if len(ss.ConditionHistory) > 0 {
+		chChildren := make([]xmldoc.Element, len(ss.ConditionHistory))
+		for i, v := range ss.ConditionHistory {
+			chChildren[i] = v.toXML(NsWSCN + ":ConditionHistoryEntry")
 		}
+		children = append(children, xmldoc.Element{
+			Name:     NsWSCN + ":ConditionHistory",
+			Children: chChildren,
+		})
 	}
 
 	// ScannerCurrentTime
@@ -156,7 +152,7 @@ func decodeScannerStatus(root xmldoc.Element) (ss ScannerStatus, err error) {
 			}
 		}
 		if len(ch) > 0 {
-			ss.ConditionHistory = optional.New(ch)
+			ss.ConditionHistory = ch
 		}
 	}
 
