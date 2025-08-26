@@ -128,7 +128,20 @@ func (filter *Filter) Next() (DocumentFile, error) {
 	wid, hei := pipeline.Size()
 	model := pipeline.ColorModel()
 
-	file.encoder, err = imgconv.NewPNGWriter(file.output, wid, hei, model)
+	switch filter.format {
+	default:
+		// FIXME
+		//
+		// For now, while not all image formats are implemented,
+		// we fallback to JPEG, as it is safe default. Later it will be fixed.
+		fallthrough
+
+	case imgconv.MIMETypeJPEG:
+		file.encoder, err = imgconv.NewJPEGWriter(file.output, wid, hei, model, 100)
+	case imgconv.MIMETypePNG:
+		file.encoder, err = imgconv.NewPNGWriter(file.output, wid, hei, model)
+	}
+
 	if err != nil {
 		pipeline.Close()
 		return nil, err

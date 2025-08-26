@@ -52,6 +52,7 @@ func (vscan *VirtualScanner) Scan(ctx context.Context, req ScannerRequest) (
 	doc := NewVirtualDocument(vscan.Resolution, images...)
 
 	filter := NewFilter(doc)
+	filter.SetOutputFormat(req.DocumentFormat)
 	filter.SetResolution(req.Resolution)
 	filter.SetRegion(req.Region)
 
