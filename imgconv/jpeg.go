@@ -412,6 +412,10 @@ func (writer *jpegWriter) Write(row Row) error {
 	C.do_jpeg_write_scanline(writer.jpeg,
 		unsafe.Pointer(&writer.rowBytes[0]))
 
+	if writer.err == nil {
+		writer.y++
+	}
+
 	return writer.err
 }
 
@@ -451,9 +455,15 @@ func (writer *jpegWriter) setError(err error) {
 	}
 }
 
-// flush writes out all data from the output buffer
-func (writer *jpegWriter) flush() {
-	sz := len(writer.buf) - int(writer.jpeg.dest.free_in_buffer)
+// flush writes out all data from the output buffer.
+//
+// If wholebuf is true, the writer.jpeg.dest.free_in_buffer is
+// ignored and entire buffer is written.
+func (writer *jpegWriter) flush(wholebuf bool) {
+	sz := len(writer.buf)
+	if !wholebuf {
+		sz -= int(writer.jpeg.dest.free_in_buffer)
+	}
 	data := writer.buf[:sz]
 
 	// Write all data in the buffer
@@ -488,9 +498,9 @@ func jpegEmptyOutputBuffer(jpeg C.j_compress_ptr) C.boolean {
 	p := (cgo.Handle)(unsafe.Pointer(jpeg.client_data)).Value()
 	writer := p.(*jpegWriter)
 
-	writer.flush()
+	writer.flush(true)
 
-	if writer.err != nil {
+	if writer.err == nil {
 		return C.TRUE
 	}
 
@@ -504,7 +514,7 @@ func jpegTermDestination(jpeg C.j_compress_ptr) {
 	p := (cgo.Handle)(unsafe.Pointer(jpeg.client_data)).Value()
 	writer := p.(*jpegWriter)
 
-	writer.flush()
+	writer.flush(false)
 }
 
 // jpegErrorCallback is the error callback.
