@@ -17,7 +17,7 @@ import (
 
 // NewDetectReader automatically detects image format and returns
 // the appropriate reader.
-func NewDetectReader(input io.Reader) (mime string, r Reader, err error) {
+func NewDetectReader(input io.Reader) (r Reader, err error) {
 	var buf [16]byte
 	off := 0
 
@@ -37,10 +37,9 @@ func NewDetectReader(input io.Reader) (mime string, r Reader, err error) {
 		}
 	}
 
-	mime = MIMETypeDetect(buf[:])
 	input = io.MultiReader(bytes.NewReader(buf[:]), input)
 
-	switch mime {
+	switch mime := MIMETypeDetect(buf[:]); mime {
 	case MIMETypeJPEG:
 		r, err = NewJPEGReader(input)
 	case MIMETypePNG:

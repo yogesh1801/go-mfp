@@ -43,7 +43,7 @@ type jpegReader struct {
 type jpegPanic struct{}
 
 // NewJPEGReader creates a new [Reader] for JPEG images.
-func NewJPEGReader(input io.Reader) (r Reader, err error) {
+func NewJPEGReader(input io.Reader) (r Decoder, err error) {
 	// Create reader structure.
 	reader := &jpegReader{
 		input: input,
@@ -119,6 +119,11 @@ func (reader *jpegReader) Close() {
 	reader.jpegSrcMgr = nil
 
 	reader.handle.Delete()
+}
+
+// MIMEType returns the MIME type of the image being encoded.
+func (*jpegReader) MIMEType() string {
+	return MIMETypeJPEG
 }
 
 // ColorModel returns the [color.Model] of image being decoded.
@@ -276,7 +281,7 @@ type jpegWriter struct {
 // level of compression and image quality. 0 is the best compression, lowest
 // quality, 100 is the best quality, lowest compression.
 func NewJPEGWriter(output io.Writer,
-	wid, hei int, model color.Model, quality int) (w Writer, err error) {
+	wid, hei int, model color.Model, quality int) (w Encoder, err error) {
 
 	// Check model
 	if model != color.GrayModel && model != color.RGBAModel {
@@ -345,6 +350,11 @@ func NewJPEGWriter(output io.Writer,
 	C.jpeg_start_compress(writer.jpeg, 1)
 
 	return writer, nil
+}
+
+// MIMEType returns the MIME type of the image being encoded.
+func (*jpegWriter) MIMEType() string {
+	return MIMETypeJPEG
 }
 
 // Size returns the image size.

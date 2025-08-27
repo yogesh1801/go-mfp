@@ -83,7 +83,7 @@ func (filter *Filter) Next() (DocumentFile, error) {
 	}
 
 	// Create filtering pipeline
-	_, pipeline, err := imgconv.NewDetectReader(input)
+	pipeline, err := imgconv.NewDetectReader(input)
 	if err != nil {
 		return nil, err
 	}
