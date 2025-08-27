@@ -11,6 +11,7 @@ package abstract
 import (
 	"bytes"
 	"image"
+	"io"
 
 	"github.com/OpenPrinting/go-mfp/imgconv"
 )
@@ -169,7 +170,8 @@ type filterDocumentFile struct {
 	pipeline imgconv.Reader // Image data decoding/filtering pipeline
 	row      imgconv.Row    // Temporary Row for encoding
 	output   *bytes.Buffer  // Output stream buffer
-	encoder  imgconv.Writer // Image encoder
+	encoder  imgconv.Writer // Image encoder; nil if closed
+	err      error          // Sticky error
 }
 
 // Format returns the MIME type of the image format used by
@@ -186,27 +188,41 @@ func (file *filterDocumentFile) Format() string {
 // It implements the [io.Reader] interface.
 func (file *filterDocumentFile) Read(buf []byte) (int, error) {
 	// Run filtering pipeline until we have some output data
-	for file.output.Len() == 0 {
+	for file.output.Len() == 0 && file.err == nil {
 		// Don't let buffer to grow indefinitely
 		file.output.Reset()
 
-		// Read and encode the next image Row
-		_, err := file.pipeline.Read(file.row)
-		if err != nil {
-			return 0, err
+		// Read the next image Row
+		_, file.err = file.pipeline.Read(file.row)
+		if file.err != nil {
+			println(file.err.Error())
+			if file.err == io.EOF {
+				err := file.encoder.Close()
+				file.encoder = nil
+
+				if err != nil {
+					file.err = err
+				}
+			}
+			println(file.output.Len())
+			break
 		}
 
-		err = file.encoder.Write(file.row)
-		if err != nil {
-			return 0, err
-		}
+		file.err = file.encoder.Write(file.row)
 	}
 
 	// Return buffered data
-	return file.output.Read(buf)
+	if file.output.Len() != 0 {
+		return file.output.Read(buf)
+	}
+
+	return 0, file.err
 }
 
 // close closes the filterDocumentFile.
 func (file *filterDocumentFile) close() {
 	file.pipeline.Close()
+	if file.encoder != nil {
+		file.encoder.Close()
+	}
 }
