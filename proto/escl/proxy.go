@@ -283,8 +283,6 @@ func (proxy *Proxy) postScanJobs(query *transport.ServerQuery) {
 func (proxy *Proxy) getJobURINextDocument(
 	query *transport.ServerQuery, joburi string) {
 
-	println("getJobURINextDocument: joburi:", joburi)
-
 	// Call OnNextDocumentRequest hook
 	if proxy.hooks.OnNextDocumentRequest != nil {
 		joburi2 := proxy.hooks.OnNextDocumentRequest(
