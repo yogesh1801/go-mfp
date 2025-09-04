@@ -63,38 +63,40 @@ func (gr *grayscale) Read(row Row) (n int, err error) {
 	// Convert to Grayscale, using the standard NTSC formula:
 	//
 	//   Y = R * 0.299 + G * 0.587 + B * 0.114
-	switch r := row.(type) {
+	switch row := row.(type) {
 	case RowRGBA32:
-		for i := range r {
+		for i := range row {
 			// Note:
 			//
 			//   19595 : 38470 : 7471 = 0.299 : 0.587 : 0.114
 			//   19595 + 38470 + 7471 = 65536.
-			c := r[i]
+			c := row[i]
 			r, g, b, _ := c.RGBA()
 			y := uint8((19595*r + 38470*g + 7471*b + 1<<15) >> 24)
 
 			c.R, c.G, c.B = y, y, y
+			row[i] = c
 		}
 	case RowRGBA64:
-		for i := range r {
+		for i := range row {
 			// Note:
 			//
 			//   19595 : 38470 : 7471 = 0.299 : 0.587 : 0.114
 			//   19595 + 38470 + 7471 = 65536.
-			c := r[i]
+			c := row[i]
 			r, g, b, _ := c.RGBA()
 			y := uint16((19595*r + 38470*g + 7471*b + 1<<15) >> 16)
 
 			c.R, c.G, c.B = y, y, y
+			row[i] = c
 		}
 
 	case RowRGBAFP32:
-		for i := range r {
+		for i := range row {
 			// RowRGBAFP32 uses the following layout:
 			// R-G-B-A-R-G-B-A-...
 			off := i * 4
-			s := r[off : off+4]
+			s := row[off : off+4]
 			y := s[0]*0.299 + s[1]*0.587 + s[2]*0.114
 			s[0], s[1], s[2] = y, y, y
 		}
