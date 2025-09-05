@@ -97,7 +97,7 @@ type ServerHooks struct {
 	// response is generated.
 	//
 	// The hook can replace the resulting [io.ReadCloser]
-	// it by returning the non-nil new value.
+	// by returning the non-nil new value.
 	OnNextDocumentResponse func(*transport.ServerQuery,
 		io.ReadCloser) io.ReadCloser
 
