@@ -101,7 +101,7 @@ func (filter *Filter) Next() (DocumentFile, error) {
 
 	// Resample to resolution
 	res := filter.input.Resolution()
-	if !filter.opt.Res.IsZero() && filter.opt.Res != res {
+	if !filter.opt.Res.IsZero() && !res.IsZero() && filter.opt.Res != res {
 		wid, hei := pipeline.Size()
 		newwid := wid * filter.opt.Res.XResolution / res.XResolution
 		newhei := hei * filter.opt.Res.YResolution / res.YResolution
