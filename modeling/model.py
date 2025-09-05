@@ -14,6 +14,12 @@
 # eSCL scanner parameters:
 escl.caps = $ESCL
 
-# Put your hooks here:
+# ----- PUT YOUR ESCL HOOKS HERE -----
 
+# Called on request:  POST /{root}/ScanJobs
+#
 # def escl_onScanJobsRequest (q: query.Query, rq: escl.ScanSettings):
+
+# Called on response: GET /{JobUri}/NextDocument
+#
+# def escl_onNextDocumentResponse (q: query.Query, flt: escl.ImageFilter):

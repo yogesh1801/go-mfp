@@ -16,11 +16,6 @@ class Range (TypedDict):
     Normal: int
     Step: int
 
-# Resolution represents printing or scanning resolution
-class Resolution(TypedDict):
-    XResolution: int
-    YResolution: int
-
 # Region represents scanning region
 class Region (TypedDict):
     Width: int
@@ -85,8 +80,8 @@ class ScanSettings(TypedDict):
     DocumentFormatExt: str
     ContentType: str
     InputSource: str
-    XResolution: Resolution
-    YResolution: Resolution
+    XResolution: int
+    YResolution: int
     ColorMode: str
     ColorSpace: str
     CcdChannel: str
@@ -104,6 +99,12 @@ class ScanSettings(TypedDict):
     Threshold: int
     BlankPageDetection: bool
     BlankPageDetectionAndRemoval: bool
+
+class ImageFilter(TypedDict):
+    OutputFormat: str
+    XResolution: int
+    YResolution: int
+    ColorMode: str
 
 # caps is the model-settable variable that defines the
 # eSCL scanner capabilities
