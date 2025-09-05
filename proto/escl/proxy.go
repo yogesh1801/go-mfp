@@ -265,7 +265,7 @@ func (proxy *Proxy) postScanJobs(query *transport.ServerQuery) {
 
 	// Call OnScanJobsResponse hook
 	if proxy.hooks.OnScanJobsResponse != nil {
-		joburi2 := proxy.hooks.OnScanJobsResponse(query, ss)
+		joburi2 := proxy.hooks.OnScanJobsResponse(query, ss, joburi)
 		if query.IsStatusSet() {
 			return
 		}

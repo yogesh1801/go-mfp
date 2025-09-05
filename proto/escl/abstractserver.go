@@ -299,7 +299,9 @@ func (srv *AbstractServer) postScanJobs(query *transport.ServerQuery) {
 
 	// Call OnScanJobsResponse hook
 	if srv.options.Hooks.OnScanJobsResponse != nil {
-		joburi2 := srv.options.Hooks.OnScanJobsResponse(query, ss)
+		joburi2 := srv.options.Hooks.OnScanJobsResponse(query,
+			ss, joburi)
+
 		if query.IsStatusSet() {
 			return
 		}
