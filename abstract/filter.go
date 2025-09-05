@@ -51,7 +51,7 @@ type FilterOptions struct {
 	Mode ColorMode
 
 	// Depth requests image conversion into the different
-	// color depth/
+	// color depth.
 	// Use [ColorDepthUnset] to bypass this step.
 	Depth ColorDepth
 }
