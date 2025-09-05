@@ -90,12 +90,12 @@ func (file *virtualDocumentFile) close() {
 	file.lock.Unlock()
 }
 
-// Format returns Document's Resolution
+// Resolution returns Document's Resolution
 func (doc *virtualDocument) Resolution() Resolution {
 	return doc.res
 }
 
-// Next returns the next file as [io.Reader]
+// Next returns the next file as [DocumentFile]
 func (doc *virtualDocument) Next() (DocumentFile, error) {
 	// Lock the lock
 	doc.lock.Lock()

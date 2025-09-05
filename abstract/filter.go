@@ -11,6 +11,7 @@ package abstract
 import (
 	"bytes"
 	"image"
+	"image/color"
 	"io"
 
 	"github.com/OpenPrinting/go-mfp/imgconv"
@@ -24,47 +25,56 @@ import (
 // Filter implements the [Document] interface.
 type Filter struct {
 	input   Document            // Input document
-	format  string              // MIME type of the output format
-	res     Resolution          // Resolution after filtering
-	reg     Region              // Image region after filtering
+	opt     FilterOptions       // Filter options
 	curfile *filterDocumentFile // Current DocumentFile, nil if none
 }
 
+// FilterOptions define image transformations, performed
+// by the [Filter].
+type FilterOptions struct {
+	// OutputFormat specified the MIME type of the output
+	// image. If set to "", the output format will be choosen
+	// automatically.
+	OutputFormat string
+
+	// Res requests image resampling into the specified resolution.
+	// Use zero value of [Resolution] to skip this step.
+	Res Resolution
+
+	// Reg requests image clipping to the specified region.
+	// Use zero value of [Region] to skip this step.
+	Reg Region
+
+	// Mode requests image conversion into the particular
+	// [ColorMode].
+	// Use [ColorModeUnset] to bypass this step.
+	Mode ColorMode
+
+	// Depth requests image conversion into the different
+	// color depth/
+	// Use [ColorDepthUnset] to bypass this step.
+	Depth ColorDepth
+}
+
 // NewFilter creates a new [Filter] on a top of existent [Document].
-func NewFilter(input Document) *Filter {
-	return &Filter{
-		input:  input,
-		format: imgconv.MIMETypePNG, // FIXME
+func NewFilter(input Document, opt FilterOptions) *Filter {
+	filter := &Filter{
+		input: input,
+		opt:   opt,
 	}
-}
 
-// SetOutputFormat sets the output format (a MIME type)
-func (filter *Filter) SetOutputFormat(format string) error {
-	filter.format = format
-	return nil
-}
+	if filter.opt.OutputFormat == "" {
+		filter.opt.OutputFormat = imgconv.MIMETypePNG //FIXME
+	}
 
-// SetResolution adds resolution-change resampling filter.
-func (filter *Filter) SetResolution(res Resolution) {
-	filter.res = res
-}
-
-// SetRegion adds a filter that extracts image [Region].
-//
-// Region position is interpreted relative to the top-left
-// Document corner. Some parts of the Region or the entire
-// Region may fall outside the document boundaries.
-//
-// It works by cropping document or adding additional space.
-func (filter *Filter) SetRegion(reg Region) {
-	filter.reg = reg
+	return filter
 }
 
 // Resolution returns the document's rendering resolution in DPI
 // (dots per inch).
 func (filter *Filter) Resolution() Resolution {
-	if !filter.res.IsZero() {
-		return filter.res
+	if !filter.opt.Res.IsZero() {
+		return filter.opt.Res
 	}
 	return filter.input.Resolution()
 }
@@ -91,29 +101,66 @@ func (filter *Filter) Next() (DocumentFile, error) {
 
 	// Resample to resolution
 	res := filter.input.Resolution()
-	if !filter.res.IsZero() && filter.res != res {
+	if !filter.opt.Res.IsZero() && filter.opt.Res != res {
 		wid, hei := pipeline.Size()
-		newwid := wid * filter.res.XResolution / res.XResolution
-		newhei := hei * filter.res.YResolution / res.YResolution
+		newwid := wid * filter.opt.Res.XResolution / res.XResolution
+		newhei := hei * filter.opt.Res.YResolution / res.YResolution
 
 		pipeline = imgconv.NewScaler(pipeline, newwid, newhei)
-		res = filter.res
+		res = filter.opt.Res
 	}
 
 	// Resize image
-	if !filter.reg.IsZero() {
+	if !filter.opt.Reg.IsZero() {
 		rect := image.Rect(
 			0, 0,
-			filter.reg.Width.Dots(res.XResolution),
-			filter.reg.Height.Dots(res.XResolution),
+			filter.opt.Reg.Width.Dots(res.XResolution),
+			filter.opt.Reg.Height.Dots(res.XResolution),
 		)
 
 		rect = rect.Add(image.Point{
-			X: filter.reg.XOffset.Dots(res.XResolution),
-			Y: filter.reg.YOffset.Dots(res.XResolution),
+			X: filter.opt.Reg.XOffset.Dots(res.XResolution),
+			Y: filter.opt.Reg.YOffset.Dots(res.XResolution),
 		})
 
 		pipeline = imgconv.NewResizer(pipeline, rect)
+	}
+
+	// Honor color mode conversion options
+	model := pipeline.ColorModel()
+
+	switch filter.opt.Mode {
+	case ColorModeMono:
+		switch model {
+		case color.RGBAModel:
+			model = color.GrayModel
+		case color.RGBA64Model:
+			model = color.Gray16Model
+		}
+	case ColorModeColor:
+		switch model {
+		case color.GrayModel:
+			model = color.RGBAModel
+		case color.Gray16Model:
+			model = color.RGBA64Model
+		}
+	}
+
+	switch filter.opt.Depth {
+	case ColorDepth8:
+		switch model {
+		case color.Gray16Model:
+			model = color.GrayModel
+		case color.RGBA64Model:
+			model = color.RGBAModel
+		}
+	case ColorDepth16:
+		switch model {
+		case color.GrayModel:
+			model = color.Gray16Model
+		case color.RGBAModel:
+			model = color.RGBA64Model
+		}
 	}
 
 	// Create filterDocumentFile
@@ -127,9 +174,8 @@ func (filter *Filter) Next() (DocumentFile, error) {
 
 	// Create encoder
 	wid, hei := pipeline.Size()
-	model := pipeline.ColorModel()
 
-	switch filter.format {
+	switch filter.opt.OutputFormat {
 	default:
 		// FIXME
 		//
@@ -177,11 +223,10 @@ type filterDocumentFile struct {
 // Format returns the MIME type of the image format used by
 // the document file.
 func (file *filterDocumentFile) Format() string {
-	if file.filter.format != "" {
-		return file.filter.format
+	if file.filter.opt.OutputFormat != "" {
+		return file.filter.opt.OutputFormat
 	}
 	return file.input.Format()
-
 }
 
 // Read reads the document file content as a sequence of bytes.
@@ -195,7 +240,6 @@ func (file *filterDocumentFile) Read(buf []byte) (int, error) {
 		// Read the next image Row
 		_, file.err = file.pipeline.Read(file.row)
 		if file.err != nil {
-			println(file.err.Error())
 			if file.err == io.EOF {
 				err := file.encoder.Close()
 				file.encoder = nil
@@ -204,7 +248,6 @@ func (file *filterDocumentFile) Read(buf []byte) (int, error) {
 					file.err = err
 				}
 			}
-			println(file.output.Len())
 			break
 		}
 
