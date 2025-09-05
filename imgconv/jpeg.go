@@ -277,6 +277,11 @@ type jpegWriter struct {
 //   - color.GrayModel
 //   - color.RGBAModel
 //
+// The following color models are also supported, but resulting
+// image depth is 8 bit (this is the JPEG format limitation):
+//   - color.Gray16Model
+//   - color.RGBA64Model
+//
 // The quality is the [0...100] integer that defines the tradeoff between
 // level of compression and image quality. 0 is the best compression, lowest
 // quality, 100 is the best quality, lowest compression.
@@ -284,7 +289,14 @@ func NewJPEGWriter(output io.Writer,
 	wid, hei int, model color.Model, quality int) (w Encoder, err error) {
 
 	// Check model
-	if model != color.GrayModel && model != color.RGBAModel {
+	var rgb bool
+
+	switch model {
+	case color.RGBAModel, color.RGBA64Model:
+		rgb = true
+	case color.GrayModel, color.Gray16Model:
+		rgb = false
+	default:
 		err := errors.New("JPEG: unsupported color model")
 		return nil, err
 	}
@@ -330,7 +342,7 @@ func NewJPEGWriter(output io.Writer,
 	writer.jpeg.image_width = C.JDIMENSION(wid)
 	writer.jpeg.image_height = C.JDIMENSION(hei)
 	writer.jpeg.data_precision = 8
-	if model == color.RGBAModel {
+	if rgb {
 		writer.jpeg.input_components = 3
 		writer.jpeg.in_color_space = C.JCS_RGB
 		writer.rowBytes = make([]byte, writer.wid*3)
