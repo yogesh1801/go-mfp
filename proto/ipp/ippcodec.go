@@ -87,7 +87,6 @@ type ippCodecStep struct {
 	attrName    string             // IPP attribute name
 	attrTag     goipp.Tag          // IPP attribute tag
 	zeroTag     goipp.Tag          // How to encode zero value
-	slice       bool               // It's a slice of values
 	conformance ippAttrConformance // Attribute conformance
 	min, max    int                // Range limits for integers
 
@@ -294,7 +293,7 @@ func ippCodecGenerateInternal(t reflect.Type,
 			methods = ippCodecMethodsByKind[fldKind]
 		}
 		if methods == nil && fldKind == reflect.Struct {
-			methods, err = ippCodecMethodsCollection(fldType, slice)
+			methods, err = ippCodecMethodsCollection(fldType)
 			if err != nil {
 				err = fmt.Errorf("%s.%s: %w",
 					diagTypeName(t), fld.Name, err)
@@ -316,7 +315,6 @@ func ippCodecGenerateInternal(t reflect.Type,
 			attrName:    tag.name,
 			attrTag:     tag.ippTag,
 			zeroTag:     tag.zeroTag,
-			slice:       slice,
 			conformance: tag.conformance,
 			min:         tag.min,
 			max:         tag.max,
@@ -632,7 +630,7 @@ func ippDecSlice(p unsafe.Pointer, vals goipp.Values,
 
 // ippCodecMethodsCollection creates ippCodecMethods for encoding
 // nested structure or slice of structures as IPP Collection
-func ippCodecMethodsCollection(t reflect.Type, slice bool) (
+func ippCodecMethodsCollection(t reflect.Type) (
 	*ippCodecMethods, error) {
 
 	codec, err := ippCodecGenerate(t)
