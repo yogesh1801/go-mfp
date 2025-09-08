@@ -15,14 +15,13 @@ import (
 	"github.com/OpenPrinting/goipp"
 )
 
-// Maybe implements a kind of [Maybe (a.k.a. Option) type]
-// in Go for IPP values.
+// Maybe implements a [Maybe (a.k.a. Option) type] in Go for IPP values.
 //
-// Some IPP attributes may either have a particular value, or be absent
-// with a reason. IPP represents such a values as Void value with Tag that
-// provides some information why value is missed.
+// Some IPP attributes may either have a particular value or be absent
+// with a specific reason. IPP represents such values as Void values with Tags
+// that provide information about why the value is missing.
 //
-// [RFC 8011] calls this mechanism "Out-of-Band Values", see
+// [RFC 8011] calls this mechanism "Out-of-Band Values"; see
 // [RFC 8011, 5.1.1] for details.
 //
 // Three IPP tags are defined for this purpose:
@@ -38,15 +37,15 @@ import (
 // Maybe[T] can wrap any value that can be used with IPP and has the following
 // states:
 //
-//  1. Value is not set and Tag is [goipp.TagZero]. At this case, Attribute
-//     will not be sent when encoding. Missed Attribute represented this
-//     way when IPP date is decoded. This is initial (zero) state of the
-//     Maybe[T] field.
+//  1. Value is not set and Tag is [goipp.TagZero]. In this case, the Attribute
+//     will not be sent when encoding. Missing Attributes are represented
+//     this way when IPP data is decoded. This is the initial (zero) state
+//     of a Maybe[T] field.
 //
-//  2. Value is not set and Tag is not zero. At this case, Attribute is encoded
-//     with Void value and appropriate Tag.
+//  2. Value is not set and Tag is not zero. In this case, the Attribute is encoded
+//     as a Void value with the appropriate Tag.
 //
-//  3. Value is set. At this case, Attribute is encoded normally, according to
+//  3. Value is set. In this case, the Attribute is encoded normally, according to
 //     the underlying value type and the "ipp:" struct tag.
 //
 // [RFC 8011]: https://datatracker.ietf.org/doc/html/rfc8011
