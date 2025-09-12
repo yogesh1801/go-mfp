@@ -80,7 +80,7 @@ var Command = argv.Command{
 		argv.Option{
 			Name:     "-W",
 			Aliases:  []string{"--wsd"},
-			Help:     "Forward IPP requests from local path to url",
+			Help:     "Forward WSD requests from local path to url",
 			HelpArg:  "path=url",
 			Validate: validateMapping,
 		},
