@@ -82,8 +82,8 @@ type ServerHooks struct {
 	// the non-empty new value.
 	//
 	// The ScanSettings parameters is provided just for information.
-	OnScanJobsResponse func(*transport.ServerQuery,
-		*ScanSettings) (joburi string)
+	OnScanJobsResponse func(query *transport.ServerQuery,
+		ss *ScanSettings, joburi string) string
 
 	// OnNextDocumentRequest is called when the eSCL NextDocument
 	// request is received.
@@ -97,7 +97,7 @@ type ServerHooks struct {
 	// response is generated.
 	//
 	// The hook can replace the resulting [io.ReadCloser]
-	// it by returning the non-nil new value.
+	// by returning the non-nil new value.
 	OnNextDocumentResponse func(*transport.ServerQuery,
 		io.ReadCloser) io.ReadCloser
 

@@ -265,7 +265,7 @@ func (proxy *Proxy) postScanJobs(query *transport.ServerQuery) {
 
 	// Call OnScanJobsResponse hook
 	if proxy.hooks.OnScanJobsResponse != nil {
-		joburi2 := proxy.hooks.OnScanJobsResponse(query, ss)
+		joburi2 := proxy.hooks.OnScanJobsResponse(query, ss, joburi)
 		if query.IsStatusSet() {
 			return
 		}
@@ -282,8 +282,6 @@ func (proxy *Proxy) postScanJobs(query *transport.ServerQuery) {
 // getJobURINextDocument handles GET /{JobUri}/NextDocument
 func (proxy *Proxy) getJobURINextDocument(
 	query *transport.ServerQuery, joburi string) {
-
-	println("getJobURINextDocument: joburi:", joburi)
 
 	// Call OnNextDocumentRequest hook
 	if proxy.hooks.OnNextDocumentRequest != nil {

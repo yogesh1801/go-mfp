@@ -68,6 +68,15 @@ type Reader interface {
 	Close()
 }
 
+// Decoder is the [Reader] with few additional methods, intended
+// for decoding image formats, such as JPEG, PNG, ...
+type Decoder interface {
+	Reader
+
+	// MIMEType returns the MIME type of the image being decoded.
+	MIMEType() string
+}
+
 // Writer implements streaming image writer.
 //
 // It writes image row by row into the supplied [io.Writer].
@@ -87,4 +96,13 @@ type Writer interface {
 
 	// Close flushes the buffered data and then closes the Writer
 	Close() error
+}
+
+// Encoder is the [Writer] with few additional methods, intended
+// for encoding image formats, such as JPEG, PNG, ...
+type Encoder interface {
+	Writer
+
+	// MIMEType returns the MIME type of the image being decoded.
+	MIMEType() string
 }

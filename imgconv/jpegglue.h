@@ -84,7 +84,7 @@ do_jpeg_init_compress (struct jpeg_compress_struct *jpeg,
 static inline JDIMENSION
 do_jpeg_read_scanline (j_decompress_ptr jpeg, void *buf) {
     JSAMPROW           lines[1] = {buf};
-    return jpeg_read_scanlines(jpeg, lines,1);
+    return jpeg_read_scanlines(jpeg, lines, 1);
 }
 
 // do_jpeg_write_scanline calls jpeg_write_scanlines for a
@@ -92,7 +92,7 @@ do_jpeg_read_scanline (j_decompress_ptr jpeg, void *buf) {
 static inline JDIMENSION
 do_jpeg_write_scanline (j_compress_ptr jpeg, void *buf) {
     JSAMPROW           lines[1] = {buf};
-    return jpeg_write_scanlines(jpeg, lines,1);
+    return jpeg_write_scanlines(jpeg, lines, 1);
 }
 
 #endif

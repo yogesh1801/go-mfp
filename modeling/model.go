@@ -32,8 +32,6 @@ type Model struct {
 	ippPrinterAttrs *ipp.PrinterAttributes
 	esclScanCaps    *escl.ScannerCapabilities
 
-	// Common Python constructors
-
 	// Modules
 	modQuery *cpython.Object // query.py
 	modEscl  *cpython.Object // escl.py
@@ -45,7 +43,11 @@ type Model struct {
 	clsUUID        *cpython.Object // uuid.UUID
 
 	// Python hooks for eSCL
-	esclOnScanJobsRequestScriptlet *cpython.Object
+	esclOnScanJobsRequestScriptlet      *cpython.Object
+	esclOnNextDocumentResponseScriptlet *cpython.Object
+
+	// eSCL state
+	esclScanSettings escl.ScanSettings
 }
 
 // NewModel creates a new Model with empty printer/scanner parameters.
@@ -73,7 +75,7 @@ func NewModel() (*Model, error) {
 	}
 
 	// Load modules
-	model.modEscl, err = py.Load(embedPyQuery, "query", "query.py")
+	model.modQuery, err = py.Load(embedPyQuery, "query", "query.py")
 	if err != nil {
 		return nil, err
 	}

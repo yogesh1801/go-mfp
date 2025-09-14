@@ -38,8 +38,8 @@ type pngReader struct {
 	y        int           // Current y-coordinate
 }
 
-// NewPNGReader creates a new [Reader] for PNG images
-func NewPNGReader(input io.Reader) (Reader, error) {
+// NewPNGReader creates a new [Decoder] for PNG images
+func NewPNGReader(input io.Reader) (Decoder, error) {
 	// Create reader structure. Initialize libpng stuff
 	reader := &pngReader{input: input}
 	reader.handle = cgo.NewHandle(reader)
@@ -108,6 +108,11 @@ func NewPNGReader(input io.Reader) (Reader, error) {
 	reader.rowBytes = make([]byte, bytesPerPixel*int(width))
 
 	return reader, nil
+}
+
+// MIMEType returns the MIME type of the image being decoded.
+func (*pngReader) MIMEType() string {
+	return MIMETypePNG
 }
 
 // Close closes the reader.
@@ -201,7 +206,7 @@ type pngWriter struct {
 //   - color.RGBAModel
 //   - color.RGBA64Model
 func NewPNGWriter(output io.Writer,
-	wid, hei int, model color.Model) (Writer, error) {
+	wid, hei int, model color.Model) (Encoder, error) {
 
 	// Translate model into libpng terms
 	var colorType, depth C.int
@@ -266,6 +271,11 @@ func NewPNGWriter(output io.Writer,
 	}
 
 	return writer, nil
+}
+
+// MIMEType returns the MIME type of the image being encoded.
+func (*pngWriter) MIMEType() string {
+	return MIMETypePNG
 }
 
 // Size returns the image size.
