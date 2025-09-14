@@ -14,6 +14,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/OpenPrinting/go-mfp/util/optional"
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
@@ -142,4 +143,13 @@ func decodeOptional[T any](root xmldoc.Element,
 	}
 
 	return optional.New(v), nil
+}
+
+func decodeTime(root xmldoc.Element) (v time.Time, err error) {
+	v, err = time.Parse(time.RFC3339, root.Text)
+	if err != nil {
+		err = fmt.Errorf("invalid time: %q", root.Text)
+		err = xmldoc.XMLErrWrap(root, err)
+	}
+	return
 }

@@ -10,6 +10,7 @@ package wsscan
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
@@ -17,21 +18,29 @@ import (
 // ConditionHistoryEntry represents the <wscn:ConditionHistoryEntry> element,
 // providing details about a previously active condition that has been cleared.
 type ConditionHistoryEntry struct {
-	ClearTime DateTime
+	ClearTime time.Time
 	Component Component
-	Name      NameElement
+	Name      ConditionName
 	Severity  Severity
-	Time      DateTime
+	Time      time.Time
 }
 
 // toXML generates XML tree for the [ConditionHistoryEntry].
 func (che ConditionHistoryEntry) toXML(name string) xmldoc.Element {
 	children := []xmldoc.Element{
-		che.ClearTime.toXML(NsWSCN + ":ClearTime"),
+		{
+			Name: NsWSCN + ":ClearTime",
+			Text: che.ClearTime.Format(time.RFC3339),
+		},
+
 		che.Component.toXML(NsWSCN + ":Component"),
 		che.Name.toXML(NsWSCN + ":Name"),
 		che.Severity.toXML(NsWSCN + ":Severity"),
-		che.Time.toXML(NsWSCN + ":Time"),
+
+		{
+			Name: NsWSCN + ":Time",
+			Text: che.Time.Format(time.RFC3339),
+		},
 	}
 	return xmldoc.Element{
 		Name:     name,
@@ -76,19 +85,19 @@ func decodeConditionHistoryEntry(root xmldoc.Element) (
 		return che, xmldoc.XMLErrMissed(missed.Name)
 	}
 
-	if che.ClearTime, err = decodeDateTime(clearTime.Elem); err != nil {
+	if che.ClearTime, err = decodeTime(clearTime.Elem); err != nil {
 		return che, fmt.Errorf("clearTime: %w", err)
 	}
 	if che.Component, err = decodeComponent(component.Elem); err != nil {
 		return che, fmt.Errorf("component: %w", err)
 	}
-	if che.Name, err = decodeNameElement(name.Elem); err != nil {
+	if che.Name, err = decodeConditionName(name.Elem); err != nil {
 		return che, fmt.Errorf("name: %w", err)
 	}
 	if che.Severity, err = decodeSeverity(severity.Elem); err != nil {
 		return che, fmt.Errorf("severity: %w", err)
 	}
-	if che.Time, err = decodeDateTime(time.Elem); err != nil {
+	if che.Time, err = decodeTime(time.Elem); err != nil {
 		return che, fmt.Errorf("time: %w", err)
 	}
 
