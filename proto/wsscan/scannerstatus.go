@@ -10,6 +10,7 @@ package wsscan
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
@@ -19,7 +20,7 @@ import (
 type ScannerStatus struct {
 	ActiveConditions    []DeviceCondition
 	ConditionHistory    []ConditionHistoryEntry
-	ScannerCurrentTime  DateTime
+	ScannerCurrentTime  time.Time
 	ScannerState        ScannerState
 	ScannerStateReasons []ScannerStateReason
 }
@@ -53,8 +54,10 @@ func (ss ScannerStatus) toXML(name string) xmldoc.Element {
 	}
 
 	// ScannerCurrentTime
-	children = append(children, ss.ScannerCurrentTime.toXML(
-		NsWSCN+":ScannerCurrentTime"))
+	children = append(children, xmldoc.Element{
+		Name: NsWSCN + ":ScannerCurrentTime",
+		Text: ss.ScannerCurrentTime.Format(time.RFC3339),
+	})
 
 	// ScannerState
 	children = append(children, ss.ScannerState.toXML(NsWSCN+":ScannerState"))
@@ -117,7 +120,7 @@ func decodeScannerStatus(root xmldoc.Element) (ss ScannerStatus, err error) {
 	}
 
 	// Required fields
-	if ss.ScannerCurrentTime, err = decodeDateTime(scannerCurrentTime.Elem); err != nil {
+	if ss.ScannerCurrentTime, err = decodeTime(scannerCurrentTime.Elem); err != nil {
 		return ss, fmt.Errorf("scannerCurrentTime: %w", err)
 	}
 	if ss.ScannerState, err = decodeScannerState(scannerState.Elem); err != nil {

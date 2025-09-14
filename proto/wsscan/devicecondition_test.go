@@ -21,7 +21,7 @@ func TestDeviceCondition_toXML(t *testing.T) {
 		Component: PlatenComponent,
 		Name:      CoverOpen,
 		Severity:  Warning,
-		Time:      DateTime(testTime),
+		Time:      testTime,
 	}
 
 	expected := xmldoc.Element{
@@ -105,7 +105,7 @@ func Test_decodeDeviceCondition(t *testing.T) {
 				Component: PlatenComponent,
 				Name:      CoverOpen,
 				Severity:  Warning,
-				Time:      DateTime(testTime),
+				Time:      testTime,
 			},
 			wantErr: false,
 		},

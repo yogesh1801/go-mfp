@@ -10,6 +10,7 @@ package wsscan
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
@@ -18,9 +19,9 @@ import (
 // providing details about one of the scanner's currently active conditions.
 type DeviceCondition struct {
 	Component Component
-	Name      NameElement
+	Name      ConditionName
 	Severity  Severity
-	Time      DateTime
+	Time      time.Time
 }
 
 // toXML generates XML tree for the [DeviceCondition].
@@ -29,7 +30,10 @@ func (dc DeviceCondition) toXML(name string) xmldoc.Element {
 		dc.Component.toXML(NsWSCN + ":Component"),
 		dc.Name.toXML(NsWSCN + ":Name"),
 		dc.Severity.toXML(NsWSCN + ":Severity"),
-		dc.Time.toXML(NsWSCN + ":Time"),
+		xmldoc.Element{
+			Name: NsWSCN + ":Time",
+			Text: dc.Time.Format(time.RFC3339),
+		},
 	}
 	return xmldoc.Element{
 		Name:     name,
@@ -72,13 +76,13 @@ func decodeDeviceCondition(root xmldoc.Element) (
 	if dc.Component, err = decodeComponent(component.Elem); err != nil {
 		return dc, fmt.Errorf("component: %w", err)
 	}
-	if dc.Name, err = decodeNameElement(name.Elem); err != nil {
+	if dc.Name, err = decodeConditionName(name.Elem); err != nil {
 		return dc, fmt.Errorf("name: %w", err)
 	}
 	if dc.Severity, err = decodeSeverity(severity.Elem); err != nil {
 		return dc, fmt.Errorf("severity: %w", err)
 	}
-	if dc.Time, err = decodeDateTime(time.Elem); err != nil {
+	if dc.Time, err = decodeTime(time.Elem); err != nil {
 		return dc, fmt.Errorf("time: %w", err)
 	}
 

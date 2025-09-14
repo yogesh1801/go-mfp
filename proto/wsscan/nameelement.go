@@ -9,90 +9,55 @@
 package wsscan
 
 import (
+	"fmt"
+
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
-// NameElement names the current error condition specified in
+// ConditionName names the current error condition specified in
 // DeviceCondition or ConditionHistoryEntry.
 //
 // Values are defined by the WS-Scan spec.
-type NameElement int
+type ConditionName string
 
-// Known NameElement values.
+// Known ConditionName values.
 const (
-	UnknownNameElement NameElement = iota
-	Calibrating
-	CoverOpen
-	InputTrayEmpty
-	InterlockOpen
-	InternalStorageFull
-	LampError
-	LampWarming
-	MediaJam
-	MultipleFeedError
+	UnknownConditionName ConditionName = ""
+	Calibrating          ConditionName = "Calibrating"
+	CoverOpen            ConditionName = "CoverOpen"
+	InputTrayEmpty       ConditionName = "InputTrayEmpty"
+	InterlockOpen        ConditionName = "InterlockOpen"
+	InternalStorageFull  ConditionName = "InternalStorageFull"
+	LampError            ConditionName = "LampError"
+	LampWarming          ConditionName = "LampWarming"
+	MediaJam             ConditionName = "MediaJam"
+	MultipleFeedError    ConditionName = "MultipleFeedError"
 )
 
-// decodeNameElement decodes [NameElement] from the XML tree.
-func decodeNameElement(root xmldoc.Element) (ne NameElement, err error) {
-	return decodeEnum(root, DecodeNameElement)
+// decodeConditionName decodes [ConditionName] from the XML tree.
+func decodeConditionName(root xmldoc.Element) (cn ConditionName, err error) {
+	var v string
+	v, err = decodeNMTOKEN(root)
+	if err != nil {
+		err = fmt.Errorf("invalid ConditionName: %q",
+			root.Text)
+		err = xmldoc.XMLErrWrap(root, err)
+		return
+	}
+
+	cn = ConditionName(v)
+	return
 }
 
-// toXML generates XML tree for the [NameElement].
-func (ne NameElement) toXML(name string) xmldoc.Element {
+// toXML generates XML tree for the [ConditionName].
+func (cn ConditionName) toXML(name string) xmldoc.Element {
 	return xmldoc.Element{
 		Name: name,
-		Text: ne.String(),
+		Text: cn.String(),
 	}
 }
 
-// String returns a string representation of the [NameElement].
-func (ne NameElement) String() string {
-	switch ne {
-	case Calibrating:
-		return "Calibrating"
-	case CoverOpen:
-		return "CoverOpen"
-	case InputTrayEmpty:
-		return "InputTrayEmpty"
-	case InterlockOpen:
-		return "InterlockOpen"
-	case InternalStorageFull:
-		return "InternalStorageFull"
-	case LampError:
-		return "LampError"
-	case LampWarming:
-		return "LampWarming"
-	case MediaJam:
-		return "MediaJam"
-	case MultipleFeedError:
-		return "MultipleFeedError"
-	}
-
-	return "Unknown"
-}
-
-// DecodeNameElement decodes [NameElement] out of its XML string representation.
-func DecodeNameElement(s string) NameElement {
-	switch s {
-	case "Calibrating":
-		return Calibrating
-	case "CoverOpen":
-		return CoverOpen
-	case "InputTrayEmpty":
-		return InputTrayEmpty
-	case "InterlockOpen":
-		return InterlockOpen
-	case "InternalStorageFull":
-		return InternalStorageFull
-	case "LampError":
-		return LampError
-	case "LampWarming":
-		return LampWarming
-	case "MediaJam":
-		return MediaJam
-	case "MultipleFeedError":
-		return MultipleFeedError
-	}
-
-	return UnknownNameElement
+// String returns a string representation of the [ConditionName].
+func (cn ConditionName) String() string {
+	return string(cn)
 }

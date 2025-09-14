@@ -19,11 +19,11 @@ func TestConditionHistoryEntry_toXML(t *testing.T) {
 	testTime, _ := time.Parse(time.RFC3339, "2024-01-01T12:00:00Z")
 	clearTime, _ := time.Parse(time.RFC3339, "2024-01-01T13:00:00Z")
 	che := ConditionHistoryEntry{
-		ClearTime: DateTime(clearTime),
+		ClearTime: clearTime,
 		Component: PlatenComponent,
 		Name:      CoverOpen,
 		Severity:  Warning,
-		Time:      DateTime(testTime),
+		Time:      testTime,
 	}
 
 	expected := xmldoc.Element{
@@ -113,11 +113,11 @@ func Test_decodeConditionHistoryEntry(t *testing.T) {
 				},
 			},
 			expected: ConditionHistoryEntry{
-				ClearTime: DateTime(clearTime),
+				ClearTime: clearTime,
 				Component: PlatenComponent,
 				Name:      CoverOpen,
 				Severity:  Warning,
-				Time:      DateTime(testTime),
+				Time:      testTime,
 			},
 			wantErr: false,
 		},
