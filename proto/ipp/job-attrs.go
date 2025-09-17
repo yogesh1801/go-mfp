@@ -21,7 +21,7 @@ type JobAttributes struct {
 	Copies                   int                        `ipp:"?copies,>0"`
 	Finishings               []int                      `ipp:"?finishings,enum"`
 	JobHoldUntil             KwJobHoldUntil             `ipp:"?job-hold-until"`
-	JobPriority              int                        `ipp:"?job-priority,1:100"`
+	JobPriority              int                        `ipp:"?job-priority,(1:100)"`
 	JobSheets                KwJobSheets                `ipp:"?job-sheets"`
 	Media                    KwMedia                    `ipp:"?media"`
 	MultipleDocumentHandling KwMultipleDocumentHandling `ipp:"?multiple-document-handling"`
@@ -39,9 +39,9 @@ type JobAttributes struct {
 	JobHoldUntilTime        time.Time             `ipp:"?job-hold-until-time"`
 	JobAccountID            string                `ipp:"?job-account-id,name"`
 	JobAccountingUserID     string                `ipp:"?job-accounting-user-id,name"`
-	JobCancelAfter          int                   `ipp:"?job-cancel-after,0:MAX"`
+	JobCancelAfter          int                   `ipp:"?job-cancel-after,(0:MAX)"`
 	JobRetainUntil          string                `ipp:"?job-retain-until,keyword"`
-	JobRetainUntilInterval  int                   `ipp:"?job-retain-until-interval,0:MAX"`
+	JobRetainUntilInterval  int                   `ipp:"?job-retain-until-interval,(0:MAX)"`
 	JobRetainUntilTime      time.Time             `ipp:"?job-retain-until-time"`
 	JobSheetMessage         string                `ipp:"?job-sheet-message,text"`
 	JobSheetsCol            []JobSheets           `ipp:"?job-sheets-col"`
@@ -76,8 +76,8 @@ type JobTemplate struct {
 	FinishingsSupported               []int                        `ipp:"?finishings-supported,enum"`
 	JobHoldUntilDefault               KwJobHoldUntil               `ipp:"?job-hold-until-default"`
 	JobHoldUntilSupported             []KwJobHoldUntil             `ipp:"?job-hold-until-supported"`
-	JobPriorityDefault                int                          `ipp:"?job-priority-default,1:100"`
-	JobPrioritySupported              int                          `ipp:"?job-priority-supported,1:100"`
+	JobPriorityDefault                int                          `ipp:"?job-priority-default,(1:100)"`
+	JobPrioritySupported              int                          `ipp:"?job-priority-supported,(1:100)"`
 	JobSheetsDefault                  KwJobSheets                  `ipp:"?job-sheets-default"`
 	JobSheetsSupported                []KwJobSheets                `ipp:"?job-sheets-supported"`
 	MediaDefault                      KwMedia                      `ipp:"?media-default"`
@@ -103,17 +103,17 @@ type JobTemplate struct {
 	JobAccountIDSupported            bool                    `ipp:"?job-account-id-supported"`
 	JobAccountingUserIDDefault       string                  `ipp:"?job-accounting-user-id-default,name|no-value"`
 	JobAccountingUserIDSupported     bool                    `ipp:"?job-accounting-user-id-supported"`
-	JobCancelAfterDefault            int                     `ipp:"?job-cancel-after-default,0:MAX"`
-	JobCancelAfterSupported          goipp.Range             `ipp:"?job-cancel-after-supported,0:MAX"`
+	JobCancelAfterDefault            int                     `ipp:"?job-cancel-after-default,(0:MAX)"`
+	JobCancelAfterSupported          goipp.Range             `ipp:"?job-cancel-after-supported,(0:MAX)"`
 	JobDelayOutputUntilDefault       KwJobDelayOutputUntil   `ipp:"?job-delay-output-until-default"`
 	JobDelayOutputUntilSupported     []KwJobDelayOutputUntil `ipp:"?job-delay-output-until-supported"`
-	JobDelayOutputUntilTimeSupported goipp.Range             `ipp:"?job-delay-output-until-time-supported,0:MAX"`
-	JobHoldUntilTimeSupported        goipp.Range             `ipp:"?job-hold-until-time-supported,0:MAX"`
+	JobDelayOutputUntilTimeSupported goipp.Range             `ipp:"?job-delay-output-until-time-supported,(0:MAX)"`
+	JobHoldUntilTimeSupported        goipp.Range             `ipp:"?job-hold-until-time-supported,(0:MAX)"`
 	JobRetainUntilDefault            string                  `ipp:"?job-retain-until-default,keyword"`
-	JobRetainUntilIntervalDefault    int                     `ipp:"?job-retain-until-interval-default,0:MAX"`
-	JobRetainUntilIntervalSupported  goipp.Range             `ipp:"?job-retain-until-interval-supported,0:MAX"`
+	JobRetainUntilIntervalDefault    int                     `ipp:"?job-retain-until-interval-default,(0:MAX)"`
+	JobRetainUntilIntervalSupported  goipp.Range             `ipp:"?job-retain-until-interval-supported,(0:MAX)"`
 	JobRetainUntilSupported          []string                `ipp:"?job-retain-until-supported,keyword"`
-	JobRetainUntilTimeSupported      goipp.Range             `ipp:"?job-retain-until-time-supported,0:MAX"`
+	JobRetainUntilTimeSupported      goipp.Range             `ipp:"?job-retain-until-time-supported,(0:MAX)"`
 	JobSheetsColDefault              []JobSheets             `ipp:"?job-sheets-col-default,collection|no-value"`
 	JobSheetsColSupported            []string                `ipp:"?job-sheets-col-supported,keyword"`
 
@@ -152,7 +152,7 @@ type JobTemplate struct {
 	JobErrorActionDefault           string              `ipp:"?job-error-action-default,keyword"`
 	JobErrorActionSupported         []string            `ipp:"?job-error-action-supported,keyword"`
 	MediaOverprintDefault           []JobMediaOverprint `ipp:"?media-overprint-default"`
-	MediaOverprintDistanceSupported goipp.Range         `ipp:"?media-overprint-distance-supported,0:MAX"`
+	MediaOverprintDistanceSupported goipp.Range         `ipp:"?media-overprint-distance-supported,(0:MAX)"`
 	MediaOverprintMethodSupported   []string            `ipp:"?media-overprint-method-supported,keyword"`
 	MediaOverprintSupported         []string            `ipp:"?media-overprint-supported,keyword"`
 	PrintColorModeDefault           string              `ipp:"?print-color-mode-default,keyword"`
@@ -174,34 +174,34 @@ type MediaCol struct {
 	KwMediaBackCoating KwMediaBackCoating `ipp:"?media-back-coating"`
 	MediaColor         KwColor            `ipp:"?media-color"`
 	MediaFrontCoating  KwMediaBackCoating `ipp:"?media-front-coating"`
-	MediaHoleCount     int                `ipp:"?media-hole-count,0:MAX"`
+	MediaHoleCount     int                `ipp:"?media-hole-count,(0:MAX)"`
 	MediaInfo          string             `ipp:"?media-info,text"`
 	MediaKey           KwMedia            `ipp:"?media-key"`
-	MediaOrderCount    int                `ipp:"?media-order-count,1:MAX"`
+	MediaOrderCount    int                `ipp:"?media-order-count,(1:MAX)"`
 	MediaPrePrinted    string             `ipp:"?media-pre-printed,keyword"`
 	MediaRecycled      string             `ipp:"?media-recycled,keyword"`
 	MediaSize          MediaSize          `ipp:"?media-size"`
 	MediaType          string             `ipp:"?media-type,keyword"`
-	MediaWeightMetric  int                `ipp:"?media-weight-metric,0:MAX"`
+	MediaWeightMetric  int                `ipp:"?media-weight-metric,(0:MAX)"`
 
 	// ----- PWG5100.7 -----
-	MediaBottomMargin     int                   `ipp:"?media-bottom-margin,0:MAX"`
+	MediaBottomMargin     int                   `ipp:"?media-bottom-margin,(0:MAX)"`
 	MediaGrain            string                `ipp:"?media-grain,keyword"`
-	MediaLeftMargin       int                   `ipp:"?media-left-margin,0:MAX"`
-	MediaRightMargin      int                   `ipp:"?media-right-margin,0:MAX"`
+	MediaLeftMargin       int                   `ipp:"?media-left-margin,(0:MAX)"`
+	MediaRightMargin      int                   `ipp:"?media-right-margin,(0:MAX)"`
 	MediaSizeName         string                `ipp:"?media-size-name,keyword"`
 	MediaSourceProperties MediaSourceProperties `ipp:"?media-source-properties"`
 	MediaSource           string                `ipp:"?media-source,keyword"`
-	MediaThickness        int                   `ipp:"?media-thickness,1:MAX"`
+	MediaThickness        int                   `ipp:"?media-thickness,(1:MAX)"`
 	MediaTooth            string                `ipp:"?media-tooth,keyword"`
-	MediaTopMargin        int                   `ipp:"?media-top-margin,0:MAX"`
+	MediaTopMargin        int                   `ipp:"?media-top-margin,(0:MAX)"`
 }
 
 // MediaSize represents media size parameters (which may be either
 // pair of integers or pair of ranges) and used in many places
 type MediaSize struct {
-	XDimension goipp.IntegerOrRange `ipp:"x-dimension,0:MAX"`
-	YDimension goipp.IntegerOrRange `ipp:"y-dimension,0:MAX"`
+	XDimension goipp.IntegerOrRange `ipp:"x-dimension,(0:MAX)"`
+	YDimension goipp.IntegerOrRange `ipp:"y-dimension,(0:MAX)"`
 }
 
 // MediaSourceProperties represents "media-source-properties"
@@ -246,7 +246,7 @@ type JobPdlInitFile struct {
 // JobMediaOverprint represents "media-overprint" collection entry
 // in JobAttributes
 type JobMediaOverprint struct {
-	MediaOverprintDistance int    `ipp:"media-overprint-distance,0:MAX"`
+	MediaOverprintDistance int    `ipp:"media-overprint-distance,(0:MAX)"`
 	MediaOverprintMethod   string `ipp:"media-overprint-method,keyword"`
 }
 

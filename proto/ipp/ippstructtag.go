@@ -109,11 +109,10 @@ func ippStructTagParse(s string) (*ippStructTag, error) {
 
 		// Check for result
 		if !ok && err == nil {
-			err = errors.New("unknown keyword")
+			err = fmt.Errorf("unknown keyword: %q", part)
 		}
 
 		if err != nil {
-			err = fmt.Errorf("%q: %s", part, err)
 			return nil, err
 		}
 	}
@@ -170,7 +169,7 @@ func (stag *ippStructTag) parseMinMax(s string) (bool, error) {
 	// Parse limit
 	v, err := strconv.ParseInt(s[1:], 10, 64)
 	if err != nil {
-		err = errors.New("invalid limit")
+		err = fmt.Errorf("%q: invalid limit", s)
 		return false, err
 	}
 
@@ -180,14 +179,14 @@ func (stag *ippStructTag) parseMinMax(s string) (bool, error) {
 		if math.MinInt32-1 <= v && v <= math.MaxInt32-1 {
 			stag.min = int(v + 1)
 		} else {
-			err = errors.New("limit out of range")
+			err = fmt.Errorf("%q: limit out of range", s)
 		}
 
 	case '<':
 		if math.MinInt32+1 <= v && v <= math.MaxInt32+1 {
 			stag.max = int(v - 1)
 		} else {
-			err = errors.New("limit out of range")
+			err = fmt.Errorf("%q: limit out of range", s)
 		}
 	}
 
@@ -196,50 +195,70 @@ func (stag *ippStructTag) parseMinMax(s string) (bool, error) {
 
 // parseRange parses range constraints:
 //
+//	MAX
 //	MIN:MAX
 //
 // Return value:
 //   - true, nil  - parameter was parsed and applied
-//   - false, nil - parameter is not keyword
+//   - false, nil - parameter is not range
 //   - false, err - invalid parameter
 func (stag *ippStructTag) parseRange(s string) (bool, error) {
-	fields := strings.Split(s, ":")
-	if len(fields) != 2 || fields[0] == "" || fields[1] == "" {
+	// Range starts with '('
+	if s[0] != '(' {
 		return false, nil
 	}
 
-	var min, max int64
-	var err error
+	// Range ends with ')'
+	if s[len(s)-1] != ')' {
+		return false, fmt.Errorf("range: missed ')'")
+	}
 
-	// Parse min/max. Don't propagate syntax here, just
-	// reject the parameter
-	min, err = strconv.ParseInt(fields[0], 10, 64)
-	if err == nil {
-		if fields[1] == "MAX" {
-			max = math.MaxInt32
-		} else {
-			max, err = strconv.ParseInt(fields[1], 10, 64)
+	// Strip brackets
+	s = s[1 : len(s)-1]
+
+	// Range consists of 1 or 2 fields
+	fields := strings.Split(s, ":")
+	if (len(fields) != 1 && len(fields) != 2) ||
+		fields[0] == "" || fields[1] == "" {
+		err := fmt.Errorf("range (%s): invalid syntax", s)
+		return false, err
+	}
+
+	// Parse fields.
+	parsed := make([]int32, len(fields))
+	for i, fld := range fields {
+		switch fld {
+		case "MIN":
+			parsed[i] = math.MinInt32
+		case "MAX":
+			parsed[i] = math.MaxInt32
+		default:
+			v, err := strconv.ParseInt(fld, 10, 32)
+			parsed[i] = int32(v)
+
+			if err != nil {
+				err = fmt.Errorf("range (%s): invalid value", s)
+				return false, err
+			}
 		}
 	}
 
-	if err != nil {
-		return false, nil
-	}
-
 	// Check range
-	switch {
-	case min < math.MinInt32 || min > math.MaxInt32:
-		err = fmt.Errorf("%v out of range", min)
-	case max < math.MinInt32 || max > math.MaxInt32:
-		err = fmt.Errorf("%v out of range", max)
-	case min > max:
-		err = fmt.Errorf("range min>max")
+	var min, max int32
+	if len(fields) == 2 {
+		min = parsed[0]
+		max = parsed[1]
+	} else {
+		min = math.MinInt32
+		max = parsed[0]
 	}
 
-	if err == nil {
-		stag.min = int(min)
-		stag.max = int(max)
+	if min > max {
+		return false, fmt.Errorf("range (%d:%d): min>max", min, max)
 	}
 
-	return true, err
+	stag.min = int(min)
+	stag.max = int(max)
+
+	return true, nil
 }

@@ -94,7 +94,7 @@ func TestIppCodecGenerate(t *testing.T) {
 				// ipp: tag contains unknown keyword
 				FldBadTag int `ipp:"fld-bad-tag,unknown"`
 			}{},
-			err: `struct {...}.FldBadTag: "unknown": unknown keyword`,
+			err: `struct {...}.FldBadTag: unknown keyword: "unknown"`,
 		},
 
 		{
@@ -146,39 +146,39 @@ func TestIppCodecGenerate(t *testing.T) {
 		{
 			data: struct {
 				// ipp: range constraint syntactically invalid
-				FldBadTag int `ipp:"fld-bad-tag,0:XXX"`
+				FldBadTag int `ipp:"fld-bad-tag,(0:XXX)"`
 			}{},
-			err: `struct {...}.FldBadTag: "0:XXX": unknown keyword`,
+			err: `struct {...}.FldBadTag: range (0:XXX): invalid value`,
 		},
 
 		{
 			data: struct {
 				// ipp: range lower bound doesn't fit int32
-				FldGoodTag int `ipp:"fld-good-tag,4294967296:5"`
+				FldGoodTag int `ipp:"fld-good-tag,(4294967296:5)"`
 			}{},
-			err: `struct {...}.FldGoodTag: "4294967296:5": 4294967296 out of range`,
+			err: `struct {...}.FldGoodTag: range (4294967296:5): invalid value`,
 		},
 
 		{
 			data: struct {
 				// ipp: range upper bound doesn't fit int32
-				FldGoodTag int `ipp:"fld-good-tag,5:4294967296"`
+				FldGoodTag int `ipp:"fld-good-tag,(5:4294967296)"`
 			}{},
-			err: `struct {...}.FldGoodTag: "5:4294967296": 4294967296 out of range`,
+			err: `struct {...}.FldGoodTag: range (5:4294967296): invalid value`,
 		},
 
 		{
 			data: struct {
 				// ipp: range min > max
-				FldGoodTag int `ipp:"fld-good-tag,10:5"`
+				FldGoodTag int `ipp:"fld-good-tag,(10:5)"`
 			}{},
-			err: `struct {...}.FldGoodTag: "10:5": range min>max`,
+			err: `struct {...}.FldGoodTag: range (10:5): min>max`,
 		},
 
 		{
 			data: struct {
 				// ipp: tag contains valid range constraint
-				FldGoodTag int `ipp:"fld-good-tag,0:100"`
+				FldGoodTag int `ipp:"fld-good-tag,(0:100)"`
 			}{},
 		},
 
@@ -1186,7 +1186,9 @@ func checkError(t *testing.T, name string, err, expected error) {
 		t.Errorf("error not expected: %s", err)
 	case err != nil && expected != nil && err.Error() != expected.Error():
 		t.Errorf("in test %q:", name)
-		t.Errorf("error expected: %s, got: %s", expected, err)
+		t.Errorf("error mismatch:\n"+
+			"expected: %s\n"+
+			"present:  %s", expected, err)
 	}
 }
 
