@@ -106,45 +106,6 @@ func TestIppCodecGenerate(t *testing.T) {
 
 		{
 			data: struct {
-				// ipp: tag contains invalid (empty) limit constraint
-				FldBadTag int `ipp:"fld-bad-tag,<"`
-			}{},
-			err: `struct {...}.FldBadTag: "<": invalid limit`,
-		},
-
-		{
-			data: struct {
-				// ipp: tag contains invalid (parse error) limit constraint
-				FldBadTag int `ipp:"fld-bad-tag,<XXX"`
-			}{},
-			err: `struct {...}.FldBadTag: "<XXX": invalid limit`,
-		},
-
-		{
-			data: struct {
-				// ipp: tag contains invalid (out of range) upper limit
-				FldBadTag int `ipp:"fld-bad-tag,<4294967296"`
-			}{},
-			err: `struct {...}.FldBadTag: "<4294967296": limit out of range`,
-		},
-
-		{
-			data: struct {
-				// ipp: tag contains invalid (out of range) lower limit
-				FldBadTag int `ipp:"fld-bad-tag,>4294967296"`
-			}{},
-			err: `struct {...}.FldBadTag: ">4294967296": limit out of range`,
-		},
-
-		{
-			data: struct {
-				// ipp: tag contains valid limit constraint
-				FldGoodTag int `ipp:"fld-good-tag,>-3,<100"`
-			}{},
-		},
-
-		{
-			data: struct {
 				// ipp: range constraint syntactically invalid
 				FldBadTag int `ipp:"fld-bad-tag,(0:XXX)"`
 			}{},

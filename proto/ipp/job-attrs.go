@@ -18,14 +18,14 @@ import (
 type JobAttributes struct {
 	// RFC8011, Internet Printing Protocol/1.1: Model and Semantics
 	// 5.2 Job Template Attributes
-	Copies                   int                        `ipp:"?copies,>0"`
+	Copies                   int                        `ipp:"?copies,(1:MAX)"`
 	Finishings               []int                      `ipp:"?finishings,enum"`
 	JobHoldUntil             KwJobHoldUntil             `ipp:"?job-hold-until"`
 	JobPriority              int                        `ipp:"?job-priority,(1:100)"`
 	JobSheets                KwJobSheets                `ipp:"?job-sheets"`
 	Media                    KwMedia                    `ipp:"?media"`
 	MultipleDocumentHandling KwMultipleDocumentHandling `ipp:"?multiple-document-handling"`
-	NumberUp                 int                        `ipp:"?number-up,>0"`
+	NumberUp                 int                        `ipp:"?number-up,(1:MAX)"`
 	OrientationRequested     int                        `ipp:"?orientation-requested,enum"`
 	PageRanges               []goipp.IntegerOrRange     `ipp:"?page-ranges"`
 	PrinterResolution        goipp.Resolution           `ipp:"?printer-resolution"`
@@ -50,7 +50,7 @@ type JobAttributes struct {
 	// 7 Job Template Attributes
 	FeedOrientation    string               `ipp:"?feed-orientation,keyword"`
 	FontNameRequested  string               `ipp:"?font-name-requested,name"`
-	FontSizeRequested  int                  `ipp:"?font-size-requested,>0"`
+	FontSizeRequested  int                  `ipp:"?font-size-requested,(1:MAX)"`
 	JobPhoneNumber     string               `ipp:"?job-phone-number,uri"`
 	JobRecipientName   string               `ipp:"?job-recipient-name,name"`
 	JobSaveDisposition []JobSaveDisposition `ipp:"?job-save-disposition"`
@@ -70,8 +70,8 @@ type JobAttributes struct {
 type JobTemplate struct {
 	// RFC8011, Internet Printing Protocol/1.1: Model and Semantics
 	// 5.2 Job Template Attributes
-	CopiesDefault                     int                          `ipp:"?copies-default,>0"`
-	CopiesSupported                   goipp.Range                  `ipp:"?copies-supported,>0"`
+	CopiesDefault                     int                          `ipp:"?copies-default,(1:MAX)"`
+	CopiesSupported                   goipp.Range                  `ipp:"?copies-supported,(1:MAX)"`
 	FinishingsDefault                 []int                        `ipp:"?finishings-default,enum"`
 	FinishingsSupported               []int                        `ipp:"?finishings-supported,enum"`
 	JobHoldUntilDefault               KwJobHoldUntil               `ipp:"?job-hold-until-default"`
@@ -85,8 +85,8 @@ type JobTemplate struct {
 	MediaSupported                    []KwMedia                    `ipp:"?media-supported"`
 	MultipleDocumentHandlingDefault   KwMultipleDocumentHandling   `ipp:"?multiple-document-handling-default"`
 	MultipleDocumentHandlingSupported []KwMultipleDocumentHandling `ipp:"?multiple-document-handling-supported"`
-	NumberUpDefault                   int                          `ipp:"?number-up-default,>0"`
-	NumberUpSupported                 []goipp.IntegerOrRange       `ipp:"?number-up-supported,>0"`
+	NumberUpDefault                   int                          `ipp:"?number-up-default,(1:MAX)"`
+	NumberUpSupported                 []goipp.IntegerOrRange       `ipp:"?number-up-supported,(1:MAX)"`
 	OrientationRequestedDefault       int                          `ipp:"?orientation-requested-default,enum"`
 	OrientationRequestedSupported     []int                        `ipp:"?orientation-requested-supported,enum"`
 	PageRangesSupported               bool                         `ipp:"?page-ranges-supported"`
@@ -123,8 +123,8 @@ type JobTemplate struct {
 	FeedOrientationSupported             []string             `ipp:"?feed-orientation-supported,keyword"`
 	FontNameRequestedDefault             string               `ipp:"?font-name-requested-default,name"`
 	FontNameRequestedSupported           []string             `ipp:"?font-name-requested-supported,name"`
-	FontSizeRequestedDefault             int                  `ipp:"?font-size-requested-default,>0"`
-	FontSizeRequestedSupported           []int                `ipp:"?font-size-requested-supported,>0"`
+	FontSizeRequestedDefault             int                  `ipp:"?font-size-requested-default,(1:MAX)"`
+	FontSizeRequestedSupported           []int                `ipp:"?font-size-requested-supported,(1:MAX)"`
 	JobPhoneNumberDefault                string               `ipp:"?job-phone-number-default,uri"`
 	JobPhoneNumberSupported              bool                 `ipp:"?job-phone-number-supported"`
 	JobRecipientNameDefault              string               `ipp:"?job-recipient-name-default,name"`

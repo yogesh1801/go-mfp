@@ -101,9 +101,6 @@ func ippStructTagParse(s string) (*ippStructTag, error) {
 		// Apply available parsers until OK or error
 		ok, err := stag.parseKeyword(part)
 		if !ok && err == nil {
-			ok, err = stag.parseMinMax(part)
-		}
-		if !ok && err == nil {
 			ok, err = stag.parseRange(part)
 		}
 
@@ -148,49 +145,6 @@ func (stag *ippStructTag) parseKeyword(s string) (bool, error) {
 	}
 
 	return false, nil
-}
-
-// parseRange parses min/max limit constraints:
-//
-//	>NNN - min range
-//	<NNN - max range
-//
-// Return value:
-//   - true, nil  - parameter was parsed and applied
-//   - false, nil - parameter is not keyword
-//   - false, err - invalid parameter
-func (stag *ippStructTag) parseMinMax(s string) (bool, error) {
-	// Limit starts with '<' or '>'
-	pfx := s[0]
-	if pfx != '<' && pfx != '>' {
-		return false, nil
-	}
-
-	// Parse limit
-	v, err := strconv.ParseInt(s[1:], 10, 64)
-	if err != nil {
-		err = fmt.Errorf("%q: invalid limit", s)
-		return false, err
-	}
-
-	// Save limit; check for range
-	switch pfx {
-	case '>':
-		if math.MinInt32-1 <= v && v <= math.MaxInt32-1 {
-			stag.min = int(v + 1)
-		} else {
-			err = fmt.Errorf("%q: limit out of range", s)
-		}
-
-	case '<':
-		if math.MinInt32+1 <= v && v <= math.MaxInt32+1 {
-			stag.max = int(v - 1)
-		} else {
-			err = fmt.Errorf("%q: limit out of range", s)
-		}
-	}
-
-	return true, err
 }
 
 // parseRange parses range constraints:
