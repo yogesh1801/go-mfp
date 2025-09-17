@@ -19,6 +19,7 @@ import (
 	"time"
 	"unsafe"
 
+	"github.com/OpenPrinting/go-mfp/internal/assert"
 	"github.com/OpenPrinting/goipp"
 )
 
@@ -194,8 +195,6 @@ func ippCodecGenerateInternal(t reflect.Type,
 		t: t,
 	}
 
-	maybeCodecType := reflect.TypeOf((*maybeCodecInterface)(nil)).Elem()
-
 	for i := 0; i < t.NumField(); i++ {
 		// Fetch field by field
 		//
@@ -257,37 +256,27 @@ func ippCodecGenerateInternal(t reflect.Type,
 
 		// Obtain fldType.
 		//
-		// Field may be wrapped into Maybe[T], handle it here.
+		// Handle special cases: pointers and slices.
 		fldType := fld.Type
-		var maybe maybeCodecInterface
-
-		if reflect.PointerTo(fldType).Implements(maybeCodecType) {
-			// If type implements maybeCodecInterface, it is value
-			// wrapped into Maybe[T].
-			//
-			// We need the underlying type to generate encode/decode steps,
-			// but Maybe[T] wrapper will be saved as nil pointer to
-			// maybeCodecType. We will need it later to generate Maybe[T]
-			// wrappers.
-			maybe = reflect.NewAt(fldType, nil).Interface().(maybeCodecInterface)
-			fldType = maybe.typeof()
-		}
-
-		// Handle slices.
-		//
-		// Like Maybe[T], slices are handled as wrapper of actual data type.
-		// So if we are at slice, move fldType down to the underlying data
-		// type and remember the fact; we will need it later to generate
-		// slice wrappers.
 		fldKind := fldType.Kind()
-		slice := fldKind == reflect.Slice
-		if slice {
+
+		isOptional := false
+		isSlice := false
+
+		switch fldKind {
+		case reflect.Pointer:
+			isOptional = true
+			fldType = fldType.Elem()
+			fldKind = fldType.Kind()
+
+		case reflect.Slice:
+			isSlice = true
 			fldType = fldType.Elem()
 			fldKind = fldType.Kind()
 		}
 
-		// Now fldType points to the actual type to be encoded and decoded.
-		// Obtain its ippCodecMethods.
+		// Now fldType points to the actual type to be encoded and
+		// decoded.  Obtain its ippCodecMethods.
 		methods := ippCodecMethodsByType[fldType]
 		if methods == nil {
 			methods = ippCodecMethodsByKind[fldKind]
@@ -370,7 +359,7 @@ func ippCodecGenerateInternal(t reflect.Type,
 		}
 
 		// Generate slice wrapper for slice fields.
-		if slice {
+		if isSlice {
 			t := reflect.SliceOf(fldType)
 
 			encode := step.encode
@@ -386,18 +375,20 @@ func ippCodecGenerateInternal(t reflect.Type,
 			}
 		}
 
-		// Generate Maybe[T] wrapper where appropriate.
-		if maybe != nil {
+		// Generate optional.Val[T] wrapper where appropriate.
+		if isOptional {
+			t := reflect.PointerTo(fldType)
+
 			encode := step.encode
 			decode := step.decode
 
 			step.encode = func(p unsafe.Pointer) goipp.Values {
-				return maybe.encode(p, encode)
+				return ippEncPtr(p, t, encode)
 			}
 
 			step.decode = func(p unsafe.Pointer,
 				vals goipp.Values) error {
-				return maybe.decode(p, vals, decode)
+				return ippDecPtr(p, vals, t, decode)
 			}
 		}
 
@@ -624,6 +615,45 @@ func ippDecSlice(p unsafe.Pointer, vals goipp.Values,
 
 	out := reflect.NewAt(t, p)
 	out.Elem().Set(slice)
+
+	return nil
+}
+
+// ----- ippCodecMethods for pointers -----
+
+// ippEncPtr encodes pointer to value
+//
+// p is pointer to pointer, t is the type of value the pointer
+// points to, (so for *string t will be string while p's value will
+// be of type *string, represented as unsafe.Pointer)
+//
+// encode is the single-value encoder (i.e., ippEncString for slice
+// of strings)
+func ippEncPtr(p unsafe.Pointer,
+	t reflect.Type, encode func(unsafe.Pointer) goipp.Values) goipp.Values {
+
+	ptr := reflect.NewAt(t, p).Elem()
+	if ptr.IsNil() {
+		return nil
+	}
+
+	return encode(unsafe.Pointer(ptr.Pointer()))
+}
+
+// ippDecSlice decodes pointer to value.
+func ippDecPtr(p unsafe.Pointer, vals goipp.Values,
+	t reflect.Type, decode func(unsafe.Pointer, goipp.Values) error) error {
+
+	assert.Must(len(vals) > 0)
+
+	tmp := reflect.New(t.Elem())
+	err := decode(unsafe.Pointer(tmp.Pointer()), vals[:1])
+	if err != nil {
+		return err
+	}
+
+	ptr := reflect.NewAt(t, p).Elem()
+	ptr.Set(tmp)
 
 	return nil
 }

@@ -14,6 +14,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/OpenPrinting/go-mfp/util/optional"
 	"github.com/OpenPrinting/goipp"
 )
 
@@ -400,6 +401,9 @@ type ippTestStruct struct {
 
 	FldVersion      goipp.Version   `ipp:"fld-version"`
 	FldVersionSlice []goipp.Version `ipp:"fld-version-slice"`
+
+	FltOptionalMissed  optional.Val[int] `ipp:"flt-optional-missed"`
+	FltOptionalPresent optional.Val[int] `ipp:"flt-optional-present"`
 }
 
 // ippDecodeTest represents a single decode test data
@@ -921,6 +925,13 @@ var ippDecodeTestData = []ippDecodeTest{
 					{goipp.TagKeyword, goipp.String("0.1")},
 				},
 			},
+
+			goipp.Attribute{
+				Name: "flt-optional-present",
+				Values: goipp.Values{
+					{goipp.TagInteger, goipp.Integer(5)},
+				},
+			},
 		},
 		data: &ippTestStruct{
 			TestEmbedded: TestEmbedded{123},
@@ -1026,6 +1037,8 @@ var ippDecodeTestData = []ippDecodeTest{
 				goipp.MakeVersion(1, 1),
 				goipp.MakeVersion(1, 0),
 			},
+
+			FltOptionalPresent: optional.New(5),
 		},
 	},
 }

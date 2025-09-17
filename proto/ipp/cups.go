@@ -9,6 +9,7 @@
 package ipp
 
 import (
+	"github.com/OpenPrinting/go-mfp/util/optional"
 	"github.com/OpenPrinting/goipp"
 )
 
@@ -88,17 +89,17 @@ type (
 		RequestHeader
 
 		// Operational attributes
-		ExcludeSchemes      []string   `ipp:"?exclude-schemes,name"`
-		IncludeSchemes      []string   `ipp:"?include-schemes,name"`
-		Limit               int        `ipp:"?limit,1:MAX"`
-		PpdMake             string     `ipp:"?ppd-make,text"`
-		PpdMakeAndModel     string     `ipp:"?ppd-make-and-model,text"`
-		ModelNumber         Maybe[int] `ipp:"?ppd-model-number"`
-		PpdNaturalLanguage  string     `ipp:"?ppd-natural-language,text"`
-		PpdProduct          string     `ipp:"?ppd-product,text"`
-		PpdPsversion        string     `ipp:"?ppd-psversion,text"`
-		PpdType             string     `ipp:"?ppd-type,keyword"`
-		RequestedAttributes []string   `ipp:"?requested-attributes,keyword"`
+		ExcludeSchemes      []string          `ipp:"?exclude-schemes,name"`
+		IncludeSchemes      []string          `ipp:"?include-schemes,name"`
+		Limit               int               `ipp:"?limit,1:MAX"`
+		PpdMake             string            `ipp:"?ppd-make,text"`
+		PpdMakeAndModel     string            `ipp:"?ppd-make-and-model,text"`
+		ModelNumber         optional.Val[int] `ipp:"?ppd-model-number"`
+		PpdNaturalLanguage  string            `ipp:"?ppd-natural-language,text"`
+		PpdProduct          string            `ipp:"?ppd-product,text"`
+		PpdPsversion        string            `ipp:"?ppd-psversion,text"`
+		PpdType             string            `ipp:"?ppd-type,keyword"`
+		RequestedAttributes []string          `ipp:"?requested-attributes,keyword"`
 	}
 
 	// CUPSGetPPDsResponse is the CUPS-Get-PPDs Response.
