@@ -19,6 +19,15 @@ func New[T any](v T) *T {
 	return &v
 }
 
+// NotZero returns [New](v) for any non-zero values of v, nil otherwise.
+func NotZero[T comparable](v T) *T {
+	var zero T
+	if v != zero {
+		return New(v)
+	}
+	return nil
+}
+
 // Get returns [Val]'s value. If Val is nil, T's zero value is returned.
 func Get[T any](opt Val[T]) T {
 	var v T
