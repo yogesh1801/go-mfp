@@ -40,14 +40,14 @@ type (
 		RequestHeader
 
 		// Operation attributes
-		FirstPrinterName    string   `ipp:"?first-printer-name"`
-		Limit               int      `ipp:"?limit"`
-		PrinterID           int      `ipp:"?printer-id"`
-		PrinterLocation     string   `ipp:"?printer-location,text"`
-		PrinterType         int      `ipp:"?printer-type,enum"`
-		PrinterTypeMask     int      `ipp:"?printer-type-mask,enum"`
-		RequestedUserName   string   `ipp:"?requested-user-name,name"`
-		RequestedAttributes []string `ipp:"?requested-attributes,keyword"`
+		FirstPrinterName    optional.Val[string] `ipp:"?first-printer-name"`
+		Limit               optional.Val[int]    `ipp:"?limit"`
+		PrinterID           optional.Val[int]    `ipp:"?printer-id"`
+		PrinterLocation     optional.Val[string] `ipp:"?printer-location,text"`
+		PrinterType         optional.Val[int]    `ipp:"?printer-type,enum"`
+		PrinterTypeMask     optional.Val[int]    `ipp:"?printer-type-mask,enum"`
+		RequestedUserName   optional.Val[string] `ipp:"?requested-user-name,name"`
+		RequestedAttributes []string             `ipp:"?requested-attributes,keyword"`
 	}
 
 	// CUPSGetPrintersResponse is the CUPS-Get-Printers Response.
@@ -67,11 +67,11 @@ type (
 		RequestHeader
 
 		// Operational attributes
-		ExcludeSchemes      []string `ipp:"?exclude-schemes,name"`
-		IncludeSchemes      []string `ipp:"?include-schemes,name"`
-		Limit               int      `ipp:"?limit,1:MAX"`
-		RequestedAttributes []string `ipp:"?requested-attributes,keyword"`
-		Timeout             int      `ipp:"?timeout,1:MAX"`
+		ExcludeSchemes      []string          `ipp:"?exclude-schemes,name"`
+		IncludeSchemes      []string          `ipp:"?include-schemes,name"`
+		Limit               optional.Val[int] `ipp:"?limit,(1:MAX)"`
+		RequestedAttributes []string          `ipp:"?requested-attributes,keyword"`
+		Timeout             optional.Val[int] `ipp:"?timeout,(1:MAX)"`
 	}
 
 	// CUPSGetDevicesResponse is the CUPS-Get-Devices Response.
@@ -89,17 +89,17 @@ type (
 		RequestHeader
 
 		// Operational attributes
-		ExcludeSchemes      []string          `ipp:"?exclude-schemes,name"`
-		IncludeSchemes      []string          `ipp:"?include-schemes,name"`
-		Limit               int               `ipp:"?limit,1:MAX"`
-		PpdMake             string            `ipp:"?ppd-make,text"`
-		PpdMakeAndModel     string            `ipp:"?ppd-make-and-model,text"`
-		ModelNumber         optional.Val[int] `ipp:"?ppd-model-number"`
-		PpdNaturalLanguage  string            `ipp:"?ppd-natural-language,text"`
-		PpdProduct          string            `ipp:"?ppd-product,text"`
-		PpdPsversion        string            `ipp:"?ppd-psversion,text"`
-		PpdType             string            `ipp:"?ppd-type,keyword"`
-		RequestedAttributes []string          `ipp:"?requested-attributes,keyword"`
+		ExcludeSchemes      []string             `ipp:"?exclude-schemes,name"`
+		IncludeSchemes      []string             `ipp:"?include-schemes,name"`
+		Limit               optional.Val[int]    `ipp:"?limit,(1:MAX)"`
+		PpdMake             optional.Val[string] `ipp:"?ppd-make,text"`
+		PpdMakeAndModel     optional.Val[string] `ipp:"?ppd-make-and-model,text"`
+		ModelNumber         optional.Val[int]    `ipp:"?ppd-model-number"`
+		PpdNaturalLanguage  optional.Val[string] `ipp:"?ppd-natural-language,text"`
+		PpdProduct          optional.Val[string] `ipp:"?ppd-product,text"`
+		PpdPsversion        optional.Val[string] `ipp:"?ppd-psversion,text"`
+		PpdType             optional.Val[string] `ipp:"?ppd-type,keyword"`
+		RequestedAttributes []string             `ipp:"?requested-attributes,keyword"`
 	}
 
 	// CUPSGetPPDsResponse is the CUPS-Get-PPDs Response.
@@ -121,8 +121,8 @@ type (
 		//
 		// Use PrinterURI to specify particular print queue
 		// or PPDName to request PPD file by its name.
-		PrinterURI string `ipp:"?printer-uri,uri"`
-		PPDName    string `ipp:"?ppd-name,name"`
+		PrinterURI optional.Val[string] `ipp:"?printer-uri,uri"`
+		PPDName    optional.Val[string] `ipp:"?ppd-name,name"`
 	}
 
 	// CUPSGetPPDResponse is the CUPS-Get-PPD Response.
@@ -142,7 +142,7 @@ type (
 		ResponseHeader
 
 		// Operational attributes
-		PrinterURI string `ipp:"?printer-uri,uri"`
+		PrinterURI optional.Val[string] `ipp:"?printer-uri,uri"`
 	}
 )
 

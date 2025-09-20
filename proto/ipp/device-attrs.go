@@ -8,17 +8,19 @@
 
 package ipp
 
+import "github.com/OpenPrinting/go-mfp/util/optional"
+
 // DeviceAttributes represents device attributes, as returned by
 // the CUPS-Get-Devices request
 type DeviceAttributes struct {
 	ObjectRawAttrs
 
-	DeviceClass        KwDeviceClass `ipp:"?device-class"`
-	DeviceInfo         string        `ipp:"?device-info,text"`
-	DeviceMakeAndModel string        `ipp:"?device-make-and-model,text"`
-	DeviceURI          string        `ipp:"?device-uri,uri"`
-	DeviceID           string        `ipp:"device-id,text"`
-	DeviceLocation     string        `ipp:"device-location,text"`
+	DeviceClass        optional.Val[KwDeviceClass] `ipp:"?device-class"`
+	DeviceInfo         optional.Val[string]        `ipp:"?device-info,text"`
+	DeviceMakeAndModel optional.Val[string]        `ipp:"?device-make-and-model,text"`
+	DeviceURI          optional.Val[string]        `ipp:"?device-uri,uri"`
+	DeviceID           optional.Val[string]        `ipp:"device-id,text"`
+	DeviceLocation     optional.Val[string]        `ipp:"device-location,text"`
 }
 
 // KnownAttrs returns information about all known IPP attributes

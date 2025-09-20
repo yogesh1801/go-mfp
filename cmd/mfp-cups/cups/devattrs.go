@@ -18,10 +18,22 @@ import (
 // devAttrsFormat pretty-prints [ipp.DeviceAttributes]
 func devAttrsFormat(w io.Writer, dev *ipp.DeviceAttributes) {
 	fmt.Fprintf(w, "Device information:\n")
-	fmt.Fprintf(w, "  Class:          %s\n", dev.DeviceClass)
-	fmt.Fprintf(w, "  Info:           %s\n", dev.DeviceInfo)
-	fmt.Fprintf(w, "  Make and Model: %s\n", dev.DeviceMakeAndModel)
-	fmt.Fprintf(w, "  Device URI:     %s\n", dev.DeviceURI)
-	fmt.Fprintf(w, "  IEEE-1284 ID:   %s\n", dev.DeviceID)
-	fmt.Fprintf(w, "  Location:       %s\n", dev.DeviceLocation)
+	if dev.DeviceClass != nil {
+		fmt.Fprintf(w, "  Class:          %s\n", *dev.DeviceClass)
+	}
+	if dev.DeviceInfo != nil {
+		fmt.Fprintf(w, "  Info:           %s\n", *dev.DeviceInfo)
+	}
+	if dev.DeviceMakeAndModel != nil {
+		fmt.Fprintf(w, "  Make and Model: %s\n", *dev.DeviceMakeAndModel)
+	}
+	if dev.DeviceURI != nil {
+		fmt.Fprintf(w, "  Device URI:     %s\n", *dev.DeviceURI)
+	}
+	if dev.DeviceID != nil {
+		fmt.Fprintf(w, "  IEEE-1284 ID:   %s\n", *dev.DeviceID)
+	}
+	if dev.DeviceLocation != nil {
+		fmt.Fprintf(w, "  Location:       %s\n", *dev.DeviceLocation)
+	}
 }

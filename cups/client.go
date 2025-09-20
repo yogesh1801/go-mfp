@@ -17,6 +17,7 @@ import (
 
 	"github.com/OpenPrinting/go-mfp/proto/ipp"
 	"github.com/OpenPrinting/go-mfp/transport"
+	"github.com/OpenPrinting/go-mfp/util/optional"
 	"github.com/OpenPrinting/goipp"
 )
 
@@ -72,13 +73,13 @@ func (c *Client) CUPSGetPrinters(ctx context.Context,
 
 	rq := &ipp.CUPSGetPrintersRequest{
 		RequestHeader:       ipp.DefaultRequestHeader,
-		FirstPrinterName:    sel.FirstPrinterName,
-		Limit:               sel.Limit,
-		PrinterID:           sel.PrinterID,
-		PrinterLocation:     sel.PrinterLocation,
-		PrinterType:         sel.PrinterType,
-		PrinterTypeMask:     sel.PrinterTypeMask,
-		RequestedUserName:   sel.User,
+		FirstPrinterName:    optional.NotZero(sel.FirstPrinterName),
+		Limit:               optional.NotZero(sel.Limit),
+		PrinterID:           optional.NotZero(sel.PrinterID),
+		PrinterLocation:     optional.NotZero(sel.PrinterLocation),
+		PrinterType:         optional.NotZero(sel.PrinterType),
+		PrinterTypeMask:     optional.NotZero(sel.PrinterTypeMask),
+		RequestedUserName:   optional.NotZero(sel.User),
 		RequestedAttributes: attrs,
 	}
 
@@ -116,8 +117,8 @@ func (c *Client) CUPSGetDevices(ctx context.Context,
 		RequestHeader:       ipp.DefaultRequestHeader,
 		ExcludeSchemes:      sel.ExcludeSchemes,
 		IncludeSchemes:      sel.IncludeSchemes,
-		Limit:               sel.Limit,
-		Timeout:             tm,
+		Limit:               optional.NotZero(sel.Limit),
+		Timeout:             optional.NotZero(tm),
 		RequestedAttributes: attrs,
 	}
 
@@ -146,8 +147,8 @@ func (c *Client) CUPSGetPPD(ctx context.Context,
 
 	rq := &ipp.CUPSGetPPDRequest{
 		RequestHeader: ipp.DefaultRequestHeader,
-		PrinterURI:    printerURI,
-		PPDName:       ppdName,
+		PrinterURI:    optional.NotZero(printerURI),
+		PPDName:       optional.NotZero(ppdName),
 	}
 
 	rsp := &ipp.CUPSGetPPDResponse{}
@@ -163,7 +164,7 @@ func (c *Client) CUPSGetPPD(ctx context.Context,
 
 	rsp.Body.Close()
 	if rsp.Status == goipp.StatusCupsSeeOther {
-		return nil, rsp.PrinterURI, nil
+		return nil, optional.Get(rsp.PrinterURI), nil
 	}
 
 	return nil, "", fmt.Errorf("IPP: %s", rsp.Status)

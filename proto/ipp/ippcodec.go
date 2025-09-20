@@ -94,7 +94,6 @@ type ippCodecStep struct {
 	// Encode/decode functions
 	encode  func(p unsafe.Pointer) goipp.Values
 	decode  func(p unsafe.Pointer, v goipp.Values) error
-	iszero  func(p unsafe.Pointer) bool
 	setzero func(p unsafe.Pointer)
 }
 
@@ -311,9 +310,6 @@ func ippCodecGenerateInternal(t reflect.Type,
 			encode: methods.encode,
 			decode: methods.decode,
 
-			iszero: func(p unsafe.Pointer) bool {
-				return reflect.NewAt(fldType, p).Elem().IsZero()
-			},
 			setzero: func(p unsafe.Pointer) {
 				reflect.NewAt(fldType, p).Elem().Set(zero)
 			},
@@ -432,26 +428,21 @@ func (codec *ippCodec) encodeAttrs(in interface{}) (attrs goipp.Attributes) {
 	attrs = make(goipp.Attributes, 0, len(codec.steps))
 
 	for _, step := range codec.steps {
-		attr := goipp.Attribute{Name: step.attrName}
+		// Encode attribute values
 		ptr := unsafe.Pointer(uintptr(p) + step.offset)
 
-		// Check for zero value, if it requires special handling
-		doZero := step.conformance == ipAttrOptional ||
-			step.zeroTag != goipp.TagZero
-
-		if doZero && step.iszero(ptr) {
-			if step.zeroTag != goipp.TagZero {
-				attr.Values.Add(step.zeroTag, goipp.Void{})
-				attrs.Add(attr)
-			}
-			continue
+		values := step.encode(ptr)
+		if values == nil && step.zeroTag != goipp.TagZero {
+			values = goipp.Values{{step.zeroTag, goipp.Void{}}}
 		}
 
-		// Normal encode
-		values := step.encode(ptr)
-
+		// If we have value, encode the whole attribute
 		if len(values) != 0 {
+			attr := goipp.Attribute{Name: step.attrName}
+
 			for _, v := range values {
+				// Use default step.attrTag, if value tag
+				// is not set explicitly.
 				tag := step.attrTag
 				if v.T != goipp.TagZero {
 					tag = v.T
@@ -496,8 +487,8 @@ func (codec ippCodec) doDecode(out interface{}, attrs goipp.Attributes) error {
 	// Build map of attributes
 	attrByName := make(map[string]goipp.Attribute)
 	for _, attr := range attrs {
-		// If we see some attribute, the second occurrence
-		// Silently ignored. Note, CUPS does the same
+		// If we see the same attribute, the second occurrence
+		// is silently ignored. Note, CUPS does the same
 		//
 		// For details, see discussion here:
 		//   https://lore.kernel.org/printing-architecture/84EEF38C-152E-4779-B1E8-578D6BB896E6@msweet.org/
