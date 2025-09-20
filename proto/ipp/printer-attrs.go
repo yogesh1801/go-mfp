@@ -93,11 +93,11 @@ type PrinterDescription struct {
 	URISecuritySupported              []KwURISecurity             `ipp:"uri-security-supported"`
 
 	// CUPS extensions to Printer Description Attributes
-	DeviceURI          []string      `ipp:"?device-uri,uri"`
-	PrinterID          int           `ipp:"?printer-id"`
-	PrinterIsShared    bool          `ipp:"?printer-is-shared"`
-	PrinterIsTemporary bool          `ipp:"?printer-is-temporary"`
-	PrinterType        EnPrinterType `ipp:"?printer-type"`
+	DeviceURI          []string                    `ipp:"?device-uri,uri"`
+	PrinterID          optional.Val[int]           `ipp:"?printer-id"`
+	PrinterIsShared    optional.Val[bool]          `ipp:"?printer-is-shared"`
+	PrinterIsTemporary optional.Val[bool]          `ipp:"?printer-is-temporary"`
+	PrinterType        optional.Val[EnPrinterType] `ipp:"?printer-type"`
 
 	// PWG5100.7: IPP Job Extensions v2.1 (JOBEXT)
 	// 6.9 Printer Description Attributes
@@ -111,7 +111,7 @@ type PrinterDescription struct {
 	JobHistoryAttributesConfigured   []string                    `ipp:"?job-history-attributes-configured,keyword"`
 	JobHistoryAttributesSupported    []string                    `ipp:"?job-history-attributes-supported,keyword"`
 	JobHistoryIntervalConfigured     optional.Val[int]           `ipp:"?job-history-interval-configured,(0:MAX)"`
-	JobHistoryIntervalSupported      goipp.Range                 `ipp:"?job-history-interval-supported,(0:MAX)"`
+	JobHistoryIntervalSupported      optional.Val[goipp.Range]   `ipp:"?job-history-interval-supported,(0:MAX)"`
 	JobMandatoryAttributesSupported  optional.Val[bool]          `ipp:"?job-mandatory-attributes-supported"`
 	JobSpoolingSupported             optional.Val[KwJobSpooling] `ipp:"?job-spooling-supported"`
 	MediaBackCoatingSupported        []KwMediaBackCoating        `ipp:"?media-back-coating-supported"`

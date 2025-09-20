@@ -77,8 +77,8 @@ type JobTemplate struct {
 	FinishingsSupported               []int                                    `ipp:"?finishings-supported,enum"`
 	JobHoldUntilDefault               optional.Val[KwJobHoldUntil]             `ipp:"?job-hold-until-default"`
 	JobHoldUntilSupported             []KwJobHoldUntil                         `ipp:"?job-hold-until-supported"`
-	JobPriorityDefault                int                                      `ipp:"?job-priority-default,(1:100)"`
-	JobPrioritySupported              int                                      `ipp:"?job-priority-supported,(1:100)"`
+	JobPriorityDefault                optional.Val[int]                        `ipp:"?job-priority-default,(1:100)"`
+	JobPrioritySupported              optional.Val[int]                        `ipp:"?job-priority-supported,(1:100)"`
 	JobSheetsDefault                  optional.Val[KwJobSheets]                `ipp:"?job-sheets-default"`
 	JobSheetsSupported                []KwJobSheets                            `ipp:"?job-sheets-supported"`
 	MediaDefault                      optional.Val[KwMedia]                    `ipp:"?media-default"`

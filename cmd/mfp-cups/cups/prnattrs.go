@@ -13,6 +13,7 @@ import (
 	"io"
 
 	"github.com/OpenPrinting/go-mfp/proto/ipp"
+	"github.com/OpenPrinting/go-mfp/util/optional"
 	"github.com/OpenPrinting/goipp"
 )
 
@@ -31,16 +32,26 @@ var prnAttrsRequested = []string{
 
 // prnAttrsFormat pretty-prints [ipp.PrinterAttributes]
 func prnAttrsFormat(w io.Writer, prn *ipp.PrinterAttributes) {
-	fmt.Fprintf(w, "%s:\n", prn.PrinterName)
+	fmt.Fprintf(w, "%s:\n", optional.Get(prn.PrinterName))
 
 	fmt.Fprintf(w, "  General information:\n")
 	fmt.Fprintf(w, "    URL:          %s\n", prn.PrinterURISupported)
 	fmt.Fprintf(w, "    Device URI:   %s\n", prn.DeviceURI)
-	fmt.Fprintf(w, "    ID:           %d\n", prn.PrinterID)
-	fmt.Fprintf(w, "    Shared:       %v\n", prn.PrinterIsShared)
-	fmt.Fprintf(w, "    Temporary:    %v\n", prn.PrinterIsTemporary)
-	fmt.Fprintf(w, "    Printer Type: 0x%x\n", int(prn.PrinterType))
-	fmt.Fprintf(w, "    Decoded Type: %s\n", prn.PrinterType)
+	if prn.PrinterID != nil {
+		fmt.Fprintf(w, "    ID:           %d\n", *prn.PrinterID)
+	}
+	if prn.PrinterIsShared != nil {
+		fmt.Fprintf(w, "    Shared:       %v\n", *prn.PrinterIsShared)
+	}
+	if prn.PrinterIsTemporary != nil {
+		fmt.Fprintf(w, "    Temporary:    %v\n", *prn.PrinterIsTemporary)
+	}
+	if prn.PrinterType != nil {
+		fmt.Fprintf(w, "    Printer Type: 0x%x\n", int(*prn.PrinterType))
+	}
+	if prn.PrinterType != nil {
+		fmt.Fprintf(w, "    Decoded Type: %s\n", *prn.PrinterType)
+	}
 	fmt.Fprintf(w, "\n")
 
 	fmt.Fprintf(w, "  Printer attributes:\n")
