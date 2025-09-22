@@ -20,11 +20,10 @@ import (
 
 // ippStructTag represents parsed ipp: struct tag
 type ippStructTag struct {
-	name        string             // Attribute name
-	ippTag      goipp.Tag          // IPP tag
-	zeroTag     goipp.Tag          // How to encode zero value
-	conformance ippAttrConformance // Attribute conformance
-	min, max    int                // Range limits for integers
+	name     string    // Attribute name
+	ippTag   goipp.Tag // IPP tag
+	zeroTag  goipp.Tag // How to encode zero value
+	min, max int       // Range limits for integers
 }
 
 // ippStructTagToIppTag maps ipp: struct tag keyword to the
@@ -69,27 +68,6 @@ func ippStructTagParse(s string) (*ippStructTag, error) {
 		name: parts[0],
 		min:  math.MinInt32,
 		max:  math.MaxInt32,
-	}
-
-	// Parse attribute conformance:
-	//   ?name - optional attribute
-	//   !name - required attribute
-	//   name  - recommended attribute
-	switch stag.name[0] {
-	case '?':
-		stag.conformance = ipAttrOptional
-		stag.name = stag.name[1:]
-
-	case '!':
-		stag.conformance = ipAttrRequired
-		stag.name = stag.name[1:]
-
-	default:
-		stag.conformance = ipAttrRecommended
-	}
-
-	if stag.name == "" {
-		return nil, errors.New("missed attribute name")
 	}
 
 	// Parse remaining parameters

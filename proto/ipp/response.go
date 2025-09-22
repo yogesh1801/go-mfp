@@ -42,9 +42,9 @@ type ResponseHeader struct {
 	Status    goipp.Status
 
 	// Common Operation attributes.
-	AttributesCharset         string `ipp:"!attributes-charset,charset"`
-	AttributesNaturalLanguage string `ipp:"!attributes-natural-language,naturalLanguage"`
-	StatusMessage             string `ipp:"?status-message,text"`
+	AttributesCharset         string `ipp:"attributes-charset,charset"`
+	AttributesNaturalLanguage string `ipp:"attributes-natural-language,naturalLanguage"`
+	StatusMessage             string `ipp:"status-message,text"`
 
 	// Raw IPP message.
 	//

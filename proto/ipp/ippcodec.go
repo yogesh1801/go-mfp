@@ -23,16 +23,6 @@ import (
 	"github.com/OpenPrinting/goipp"
 )
 
-// ippAttrConformance represents conformance level of each
-// particular attribute
-type ippAttrConformance int
-
-const (
-	ipAttrOptional    ippAttrConformance = iota // Optional attribute
-	ipAttrRecommended                           // Recommended attribute
-	ipAttrRequired                              // Required attribute
-)
-
 // ippEncodeAttrs encodes attributes defined by particular structure
 // into goipp.Attributes.
 //
@@ -84,12 +74,11 @@ type ippCodec struct {
 // ippCodecStep represents a single encoding/decoding step for the
 // ippCodec
 type ippCodecStep struct {
-	offset      uintptr            // Field offset within structure
-	attrName    string             // IPP attribute name
-	attrTag     goipp.Tag          // IPP attribute tag
-	zeroTag     goipp.Tag          // How to encode zero value
-	conformance ippAttrConformance // Attribute conformance
-	min, max    int                // Range limits for integers
+	offset   uintptr   // Field offset within structure
+	attrName string    // IPP attribute name
+	attrTag  goipp.Tag // IPP attribute tag
+	zeroTag  goipp.Tag // How to encode zero value
+	min, max int       // Range limits for integers
 
 	// Encode/decode functions
 	encode  func(p unsafe.Pointer) goipp.Values
@@ -305,13 +294,12 @@ func ippCodecGenerateInternal(t reflect.Type,
 		// Generate encoding/decoding step for underlying type.
 		zero := reflect.Zero(fldType)
 		step := ippCodecStep{
-			offset:      fld.Offset,
-			attrName:    tag.name,
-			attrTag:     tag.ippTag,
-			zeroTag:     tag.zeroTag,
-			conformance: tag.conformance,
-			min:         tag.min,
-			max:         tag.max,
+			offset:   fld.Offset,
+			attrName: tag.name,
+			attrTag:  tag.ippTag,
+			zeroTag:  tag.zeroTag,
+			min:      tag.min,
+			max:      tag.max,
 
 			encode: methods.encode,
 			decode: methods.decode,

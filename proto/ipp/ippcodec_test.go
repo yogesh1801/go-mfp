@@ -68,13 +68,6 @@ func TestIppCodecGenerate(t *testing.T) {
 
 		{
 			data: struct {
-				FldBad int `ipp:"?"`
-			}{},
-			err: `struct {...}.FldBad: missed attribute name`,
-		},
-
-		{
-			data: struct {
 				FldBad float64 `ipp:"flg-bad"`
 			}{},
 			err: `struct {...}.FldBad: float64 type not supported`,
