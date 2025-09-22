@@ -15,10 +15,10 @@ import "github.com/OpenPrinting/go-mfp/util/optional"
 type DeviceAttributes struct {
 	ObjectRawAttrs
 
-	DeviceClass        optional.Val[KwDeviceClass] `ipp:"?device-class"`
-	DeviceInfo         optional.Val[string]        `ipp:"?device-info,text"`
-	DeviceMakeAndModel optional.Val[string]        `ipp:"?device-make-and-model,text"`
-	DeviceURI          optional.Val[string]        `ipp:"?device-uri,uri"`
+	DeviceClass        optional.Val[KwDeviceClass] `ipp:"device-class"`
+	DeviceInfo         optional.Val[string]        `ipp:"device-info,text"`
+	DeviceMakeAndModel optional.Val[string]        `ipp:"device-make-and-model,text"`
+	DeviceURI          optional.Val[string]        `ipp:"device-uri,uri"`
 	DeviceID           optional.Val[string]        `ipp:"device-id,text"`
 	DeviceLocation     optional.Val[string]        `ipp:"device-location,text"`
 }

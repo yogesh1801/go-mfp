@@ -63,6 +63,10 @@ func ippStructTagParse(s string) (*ippStructTag, error) {
 		return nil, errors.New("missed attribute name")
 	}
 
+	if !ValidateKeyword(parts[0]) {
+		return nil, fmt.Errorf("%q: invalid attribute name", parts[0])
+	}
+
 	// Initialize ippStructTag
 	stag := &ippStructTag{
 		name: parts[0],
