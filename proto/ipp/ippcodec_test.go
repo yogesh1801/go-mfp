@@ -54,13 +54,6 @@ func TestIppCodecGenerate(t *testing.T) {
 
 		{
 			data: struct {
-				FldNoIPPTag int
-			}{},
-			err: `struct {...}: contains no IPP fields`,
-		},
-
-		{
-			data: struct {
 				FldBad int `ipp:""`
 			}{},
 			err: `struct {...}.FldBad: missed attribute name`,
@@ -178,11 +171,6 @@ func TestIppCodecGenerate(t *testing.T) {
 			}{},
 			err: `struct {...}.unexported: ipp: tag used with unexported field`,
 		},
-
-		{
-			data: struct{}{},
-			err:  `struct {}: contains no IPP fields`,
-		},
 	}
 
 	for _, test := range tests {
@@ -194,6 +182,35 @@ func TestIppCodecGenerate(t *testing.T) {
 		}
 
 		checkError(t, "TestIppCodecGenerate", err, errExpected)
+	}
+}
+
+// TestIppCodecStandardTypes tests that ippCodecGenerate() successfully
+// generates codecs for  the standard types.
+func TestIppCodecStandardTypes(t *testing.T) {
+	tests := []any{
+		CUPSGetDefaultRequest{},
+		CUPSGetDefaultResponse{},
+		CUPSGetDevicesRequest{},
+		CUPSGetDevicesResponse{},
+		CUPSGetPPDRequest{},
+		CUPSGetPPDResponse{},
+		CUPSGetPPDsRequest{},
+		CUPSGetPPDsResponse{},
+		CUPSGetPrintersRequest{},
+		CUPSGetPrintersResponse{},
+		DeviceAttributes{},
+		PpdAttributes{},
+		PrinterDescription{},
+	}
+
+	for _, test := range tests {
+		ty := reflect.TypeOf(test)
+		_, err := ippCodecGenerate(ty)
+		if err != nil {
+			t.Errorf("ippCodecGenerate: %s: %s",
+				reflect.TypeOf(test), err)
+		}
 	}
 }
 

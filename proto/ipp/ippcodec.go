@@ -152,12 +152,6 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 	attrNames := make(map[string]string)
 	codec, err := ippCodecGenerateInternal(t, attrNames)
 
-	// At least 1 step must be generated
-	if err == nil && len(codec.steps) == 0 {
-		err = fmt.Errorf("%s: contains no IPP fields",
-			diagTypeName(t))
-	}
-
 	if err != nil {
 		return nil, err
 	}
