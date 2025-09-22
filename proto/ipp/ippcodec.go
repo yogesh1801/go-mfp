@@ -152,6 +152,18 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 	attrNames := make(map[string]string)
 	codec, err := ippCodecGenerateInternal(t, attrNames)
 
+	// Type must either implement the Object interface or
+	// contain at least 1 IPP field.
+	if err == nil && len(codec.steps) == 0 {
+		var obj Object
+		objtype := reflect.TypeOf(&obj).Elem()
+
+		if !reflect.PointerTo(t).AssignableTo(objtype) {
+			err = fmt.Errorf("%s: contains no IPP fields",
+				diagTypeName(t))
+		}
+	}
+
 	if err != nil {
 		return nil, err
 	}

@@ -54,6 +54,13 @@ func TestIppCodecGenerate(t *testing.T) {
 
 		{
 			data: struct {
+				FldNoIPPTag int
+			}{},
+			err: `struct {...}: contains no IPP fields`,
+		},
+
+		{
+			data: struct {
 				FldBad int `ipp:""`
 			}{},
 			err: `struct {...}.FldBad: missed attribute name`,
@@ -170,6 +177,11 @@ func TestIppCodecGenerate(t *testing.T) {
 				unexported int `ipp:"unexported"`
 			}{},
 			err: `struct {...}.unexported: ipp: tag used with unexported field`,
+		},
+
+		{
+			data: struct{}{},
+			err:  `struct {}: contains no IPP fields`,
 		},
 	}
 
