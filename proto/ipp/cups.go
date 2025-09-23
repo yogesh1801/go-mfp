@@ -108,7 +108,7 @@ type (
 		ResponseHeader
 
 		// Other attributes.
-		PPDs []*PpdAttributes
+		PPDs []*PPDAttributes
 	}
 
 	// CUPSGetPPDRequest operation (0x400f) returns PPD file from
@@ -509,7 +509,7 @@ func (rsp *CUPSGetPPDsResponse) Decode(msg *goipp.Message) error {
 
 	for _, grp := range msg.Groups {
 		if grp.Tag == goipp.TagPrinterGroup && len(grp.Attrs) > 0 {
-			ppd := &PpdAttributes{}
+			ppd := &PPDAttributes{}
 			err = ippDecodeAttrs(ppd, grp.Attrs)
 			if err != nil {
 				return err

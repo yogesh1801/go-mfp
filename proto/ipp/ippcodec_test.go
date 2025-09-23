@@ -205,7 +205,7 @@ func TestIppCodecStandardTypes(t *testing.T) {
 		CUPSGetPrintersRequest{},
 		CUPSGetPrintersResponse{},
 		DeviceAttributes{},
-		PpdAttributes{},
+		PPDAttributes{},
 		PrinterDescription{},
 	}
 

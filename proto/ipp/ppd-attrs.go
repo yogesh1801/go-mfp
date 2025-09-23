@@ -8,14 +8,14 @@
 
 package ipp
 
-// PpdAttributes represents PPD file attributes, as returned by
+// PPDAttributes represents PPD file attributes, as returned by
 // the CUPS-Get-PPDs request
-type PpdAttributes struct {
+type PPDAttributes struct {
 	ObjectRawAttrs
 }
 
 // KnownAttrs returns information about all known IPP attributes
-// of the PpdAttributes
-func (attrs *PpdAttributes) KnownAttrs() []AttrInfo {
+// of the PPDAttributes
+func (attrs *PPDAttributes) KnownAttrs() []AttrInfo {
 	return ippKnownAttrs(attrs)
 }
