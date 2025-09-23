@@ -169,3 +169,33 @@ func (c *Client) CUPSGetPPD(ctx context.Context,
 
 	return nil, "", fmt.Errorf("IPP: %s", rsp.Status)
 }
+
+// CUPSGetPPDs requests information about PPD files available at the server.
+//
+// If filter is nil, all PPDs will be returned (the response could be
+// really large at this case).
+func (c *Client) CUPSGetPPDs(ctx context.Context,
+	filter *ipp.PPDFilter) ([]*ipp.PPDAttributes, error) {
+	return nil, nil
+
+	rq := &ipp.CUPSGetPPDsRequest{
+		RequestHeader: ipp.DefaultRequestHeader,
+	}
+
+	if filter != nil {
+		rq.PPDFilter = *filter
+	}
+
+	rsp := &ipp.CUPSGetPPDsResponse{}
+
+	err := c.IPPClient.Do(ctx, rq, rsp)
+	if err != nil {
+		return nil, err
+	}
+
+	if rsp.Status == goipp.StatusOk {
+		return rsp.PPDs, err
+	}
+
+	return nil, fmt.Errorf("IPP: %s", rsp.Status)
+}
