@@ -17,8 +17,8 @@ import (
 )
 
 // cmdGetPrinters defines the "get-printers" sub-command.
-var cmdGetPrinters = argv.Command{
-	Name:    "get-printers",
+var cmdListPrinters = argv.Command{
+	Name:    "list-printers",
 	Help:    "Get information on configured printers",
 	Handler: cmdGetPrintersHandler,
 	Options: []argv.Option{

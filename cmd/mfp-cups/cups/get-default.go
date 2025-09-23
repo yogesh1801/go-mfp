@@ -16,9 +16,9 @@ import (
 	"github.com/OpenPrinting/go-mfp/internal/env"
 )
 
-// cmdGetDefault defines the "get-default" sub-command
-var cmdGetDefault = argv.Command{
-	Name:    "get-default",
+// cmdDefaultPrinter defines the "default-printer" sub-command
+var cmdDefaultPrinter = argv.Command{
+	Name:    "default-printer",
 	Help:    "Get default printer",
 	Handler: cmdGetDefaultHandler,
 	Options: []argv.Option{

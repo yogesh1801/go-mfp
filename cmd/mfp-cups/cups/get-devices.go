@@ -16,9 +16,9 @@ import (
 	"github.com/OpenPrinting/go-mfp/internal/env"
 )
 
-// cmdGetPrinters defines the "get-printers" sub-command.
-var cmdGetDevices = argv.Command{
-	Name:    "get-devices",
+// cmdDetectPrinters defines the "detect-printers" sub-command.
+var cmdDetectPrinters = argv.Command{
+	Name:    "detect-printers",
 	Help:    "Search for available devices",
 	Handler: cmdGetDevicesHandler,
 	Options: []argv.Option{

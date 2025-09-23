@@ -43,10 +43,10 @@ var Command = argv.Command{
 		argv.HelpOption,
 	},
 	SubCommands: []argv.Command{
-		cmdGetDefault,
-		cmdGetDevices,
+		cmdDefaultPrinter,
+		cmdDetectPrinters,
 		cmdGetPPD,
-		cmdGetPrinters,
+		cmdListPrinters,
 		argv.HelpCommand,
 	},
 	Handler: cmdCupsHandler,
