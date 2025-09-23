@@ -16,11 +16,11 @@ import (
 	"github.com/OpenPrinting/go-mfp/internal/env"
 )
 
-// cmdGetPrinters defines the "get-printers" sub-command.
+// cmdGetPrinters defines the "list-printers" sub-command.
 var cmdListPrinters = argv.Command{
 	Name:    "list-printers",
 	Help:    "Get information on configured printers",
-	Handler: cmdGetPrintersHandler,
+	Handler: cmdListPrintersHandler,
 	Options: []argv.Option{
 		optAttrs,
 		optID,
@@ -31,8 +31,8 @@ var cmdListPrinters = argv.Command{
 	},
 }
 
-// cmdGetPrintersHandler is the "get-printers" command handler
-func cmdGetPrintersHandler(ctx context.Context, inv *argv.Invocation) error {
+// cmdListPrintersHandler is the "list-printers" command handler
+func cmdListPrintersHandler(ctx context.Context, inv *argv.Invocation) error {
 	// Prepare arguments
 	dest := optCUPSURL(inv)
 

@@ -20,7 +20,7 @@ import (
 var cmdDetectPrinters = argv.Command{
 	Name:    "detect-printers",
 	Help:    "Search for available devices",
-	Handler: cmdGetDevicesHandler,
+	Handler: cmdDetectPrintersHandler,
 	Options: []argv.Option{
 		optSchemesExclude,
 		optSchemesInclude,
@@ -30,8 +30,8 @@ var cmdDetectPrinters = argv.Command{
 	},
 }
 
-// cmdGetPrintersHandler is the "get-printers" command handler
-func cmdGetDevicesHandler(ctx context.Context, inv *argv.Invocation) error {
+// cmdDetectPrintersHandler is the "detect-printers" command handler
+func cmdDetectPrintersHandler(ctx context.Context, inv *argv.Invocation) error {
 	// Prepare arguments
 	dest := optCUPSURL(inv)
 

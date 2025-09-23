@@ -20,15 +20,15 @@ import (
 var cmdDefaultPrinter = argv.Command{
 	Name:    "default-printer",
 	Help:    "Get default printer",
-	Handler: cmdGetDefaultHandler,
+	Handler: cmdDefaultPrinterHandler,
 	Options: []argv.Option{
 		optAttrs,
 		argv.HelpOption,
 	},
 }
 
-// cmdGetDefaultHandler is the "get-default" command handler
-func cmdGetDefaultHandler(ctx context.Context, inv *argv.Invocation) error {
+// cmdDefaultPrinterHandler is the "default-printer" command handler
+func cmdDefaultPrinterHandler(ctx context.Context, inv *argv.Invocation) error {
 	dest := optCUPSURL(inv)
 
 	attrList := optAttrsGet(inv)
