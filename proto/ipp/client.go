@@ -21,6 +21,7 @@ import (
 
 	"github.com/OpenPrinting/go-mfp/log"
 	"github.com/OpenPrinting/go-mfp/transport"
+	"github.com/OpenPrinting/go-mfp/util/optional"
 	"github.com/OpenPrinting/goipp"
 )
 
@@ -175,4 +176,45 @@ ERROR:
 	log.Debug(ctx, "HTTP %s %s - %s", httpRq.Method, httpRq.URL, err)
 	httpRsp.Body.Close()
 	return err
+}
+
+// GetPrinterAttributes returns printer attributes.
+// The attrs attribute allows to specify list of requested attributes.
+//
+// Note, certain printer attributes may depend on the format being
+// printer, so second argument, if not "", allows to specify the
+// desired document format.
+//
+// According to the RFC8011, only the following attributes may depend
+// on the document format:
+//
+//   - Job Template attributes ("xxx-default", "xxx-supported", and "xxx-ready")
+//   - "pdl-override-supported"
+//   - "compression-supported"
+//   - "job-k-octets-supported"
+//   - "job-impressions-supported
+//   - "job-media-sheets-supported"
+//   - "printer-driver-installer"
+//   - "color-supported"
+//   - "reference-uri-schemes-supported"
+//
+// See RFC8011, 4.2.5.1. for details.
+func (c *Client) GetPrinterAttributes(ctx context.Context,
+	attrs []string, format string) (*PrinterAttributes, error) {
+
+	rq := &GetPrinterAttributesRequest{
+		RequestHeader:       DefaultRequestHeader,
+		PrinterURI:          c.URL.String(),
+		DocumentFormat:      optional.NotZero(format),
+		RequestedAttributes: attrs,
+	}
+
+	rsp := &GetPrinterAttributesResponse{}
+
+	err := c.Do(ctx, rq, rsp)
+	if err != nil {
+		return nil, err
+	}
+
+	return rsp.Printer, nil
 }
