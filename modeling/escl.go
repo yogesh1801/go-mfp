@@ -68,6 +68,16 @@ func (flt *esclImageFilter) FilterOptions() (opt abstract.FilterOptions) {
 	return
 }
 
+// SetESCLScanCaps sets the [escl.ScannerCapabilities].
+func (model *Model) SetESCLScanCaps(caps *escl.ScannerCapabilities) {
+	model.esclScanCaps = caps
+}
+
+// GetESCLScanCaps returns the [escl.ScannerCapabilities].
+func (model *Model) GetESCLScanCaps() *escl.ScannerCapabilities {
+	return model.esclScanCaps
+}
+
 // esclLoad decodes eSCL part of model. The model file assumed to
 // be preloaded into the Model's Python interpreter (model.py).
 func (model *Model) esclLoad() error {

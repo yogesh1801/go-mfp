@@ -144,16 +144,6 @@ func (model *Model) GetIPPPrinterAttrs() *ipp.PrinterAttributes {
 	return model.ippPrinterAttrs
 }
 
-// SetESCLScanCaps sets the [escl.ScannerCapabilities].
-func (model *Model) SetESCLScanCaps(caps *escl.ScannerCapabilities) {
-	model.esclScanCaps = caps
-}
-
-// GetESCLScanCaps returns the [escl.ScannerCapabilities].
-func (model *Model) GetESCLScanCaps() *escl.ScannerCapabilities {
-	return model.esclScanCaps
-}
-
 // Write writes model into the [io.Writer]
 func (model *Model) Write(w io.Writer) error {
 	var escl string
