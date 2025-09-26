@@ -14,6 +14,7 @@ import (
 
 	"github.com/OpenPrinting/go-mfp/log"
 	"github.com/OpenPrinting/go-mfp/proto/escl"
+	"github.com/OpenPrinting/go-mfp/proto/ipp"
 	"github.com/OpenPrinting/go-mfp/transport"
 )
 
@@ -41,6 +42,52 @@ func queryESCLScannerCapabilities(ctx context.Context,
 
 		clnt := escl.NewClient(u, nil)
 		caps, _, err2 := clnt.GetScannerCapabilities(ctx)
+
+		if err2 != nil {
+			if err == nil {
+				err = err2
+			}
+
+			log.Debug(ctx, "escl: %q: %s", ep, err2)
+			continue
+		}
+
+		return caps, nil
+	}
+
+	return nil, err
+}
+
+// queryIPPPrinterAttributes queries ipp.PrinterAttributes from
+// the provided endpoints (assuming they all are aliases of the same
+// device).
+func queryIPPPrinterAttributes(ctx context.Context,
+	endpoints []string) (*ipp.PrinterAttributes, error) {
+
+	var err error
+
+	for _, ep := range endpoints {
+		log.Debug(ctx, "ipp: trying %q", ep)
+
+		var u *url.URL
+		u, err2 := transport.ParseAddr(ep, "ipp://localhost")
+		if err2 != nil {
+			if err == nil {
+				err = err2
+			}
+
+			log.Debug(ctx, "ipp: %q: %s", ep, err2)
+			continue
+		}
+
+		clnt := ipp.NewClient(u, nil)
+		caps, err2 := clnt.GetPrinterAttributes(ctx,
+			[]string{
+				ipp.GetPrinterAttributesAll,
+				ipp.GetPrinterAttributesMediaColDatabase,
+			},
+			"",
+		)
 
 		if err2 != nil {
 			if err == nil {

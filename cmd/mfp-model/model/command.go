@@ -19,6 +19,8 @@ import (
 	"github.com/OpenPrinting/go-mfp/discovery/dnssd"
 	"github.com/OpenPrinting/go-mfp/log"
 	"github.com/OpenPrinting/go-mfp/modeling"
+	"github.com/OpenPrinting/go-mfp/proto/escl"
+	"github.com/OpenPrinting/go-mfp/proto/ipp"
 	"github.com/OpenPrinting/go-mfp/transport"
 )
 
@@ -63,9 +65,6 @@ var Command = argv.Command{
 			Singleton: true,
 			Validate: func(s string) error {
 				err := transport.ValidateAddr(s)
-				if err == nil {
-					err = errors.New("not implemented")
-				}
 				return err
 			},
 		},
@@ -139,11 +138,13 @@ func cmdModelHandler(ctx context.Context, inv *argv.Invocation) error {
 	// Check options
 	optDHSSD, haveDNSSD := inv.Get("--dnssd")
 	_, validate := inv.Get("--validate")
-	escl := inv.Values("--escl")
-	ipp := inv.Values("--ipp")
-	wsd := inv.Values("--wsd")
+	optESCL := inv.Values("--escl")
+	optIPP := inv.Values("--ipp")
+	optWSD := inv.Values("--wsd")
 
-	if !haveDNSSD && !validate && ipp == nil && escl == nil && wsd == nil {
+	if !haveDNSSD && !validate &&
+		optIPP == nil && optESCL == nil && optWSD == nil {
+
 		err := errors.New("at least one option required: --dnssd, --escl, --ipp, --wsd or --validate")
 		return err
 	}
@@ -171,21 +172,21 @@ func cmdModelHandler(ctx context.Context, inv *argv.Invocation) error {
 
 		for _, unit := range dev.PrintUnits {
 			if unit.Proto == discovery.ServiceIPP {
-				ipp = append(ipp, unit.Endpoints...)
+				optIPP = append(optIPP, unit.Endpoints...)
 			}
 		}
 
 		for _, unit := range dev.ScanUnits {
 			switch unit.Proto {
 			case discovery.ServiceESCL:
-				escl = append(escl, unit.Endpoints...)
+				optESCL = append(optESCL, unit.Endpoints...)
 			case discovery.ServiceWSD:
-				wsd = append(wsd, unit.Endpoints...)
+				optWSD = append(optWSD, unit.Endpoints...)
 			}
 		}
 
 		// Check that something was discovered.
-		if ipp == nil && escl == nil && wsd == nil {
+		if optIPP == nil && optESCL == nil && optWSD == nil {
 			err := errors.New("no eSCL/IPP/WSD endpoints discovered")
 			return err
 		}
@@ -198,16 +199,33 @@ func cmdModelHandler(ctx context.Context, inv *argv.Invocation) error {
 	}
 
 	// Query printer and scanner capabilities
-	esclcaps, err := queryESCLScannerCapabilities(ctx, escl)
-	if err != nil {
-		err = fmt.Errorf("Can't get eSCL ScannerCapabilities: %s", err)
-		return err
+	var esclcaps *escl.ScannerCapabilities
+	var ippattrs *ipp.PrinterAttributes
+
+	if optESCL != nil {
+		esclcaps, err = queryESCLScannerCapabilities(ctx, optESCL)
+		if err != nil {
+			err = fmt.Errorf(
+				"Can't get eSCL ScannerCapabilities: %s", err)
+			return err
+		}
+	}
+
+	if optIPP != nil {
+		ippattrs, err = queryIPPPrinterAttributes(ctx, optIPP)
+		if err != nil {
+			err = fmt.Errorf(
+				"Can't get IPP Printer Attributes", err)
+			return err
+		}
 	}
 
 	// Save model to file
 	file, _ := inv.Get("-m")
 
 	model.SetESCLScanCaps(esclcaps)
+	model.SetIPPPrinterAttrs(ippattrs)
+
 	if file == "-" {
 		return model.Write(os.Stdout)
 	}
