@@ -19,5 +19,8 @@ var embedPyInit string
 //go:embed query.py
 var embedPyQuery string
 
+//go:embed ipp.py
+var embedPyIPP string
+
 //go:embed escl.py
 var embedPyEscl string

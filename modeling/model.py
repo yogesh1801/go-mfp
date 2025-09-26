@@ -10,6 +10,10 @@
 # This is the generated MFP model file.
 # You probably need to edit it appropriately before use.
 
+#-ipp
+# IPP printer attributes:
+ipp.attrs = $IPP
+
 #-escl
 # eSCL scanner parameters:
 escl.caps = $ESCL
