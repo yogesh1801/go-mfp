@@ -21,12 +21,15 @@ import (
 // There are may be many interpreters within a single process.
 // Each has its own namespace and isolated from others.
 type Python struct {
-	interp  pyInterp // Underlying *C.PyInterpreterState
-	objects *objmap  // Objects owned by the interpreter
-	pyNone  pyObject // Cached None object
-	pyTrue  pyObject // Cached True object
-	pyFalse pyObject // Cached False object
-	globals *Object  // Global dictionary
+	interp   pyInterp // Underlying *C.PyInterpreterState
+	objects  *objmap  // Objects owned by the interpreter
+	pyNone   pyObject // Cached None pyObject
+	pyTrue   pyObject // Cached True pyObject
+	pyFalse  pyObject // Cached False pyObject
+	objNone  *Object  // Cached None Object
+	objTrue  *Object  // Cached True Object
+	objFalse *Object  // Cached False Object
+	globals  *Object  // Global dictionary
 }
 
 // NewPython creates a new Python interpreter.
@@ -49,6 +52,10 @@ func NewPython() (py *Python, err error) {
 
 		py.pyFalse, err = gate.eval("False", "", true)
 		assert.NoError(err)
+
+		py.objNone = newObjectFromPython(py, gate, py.pyNone)
+		py.objTrue = newObjectFromPython(py, gate, py.pyTrue)
+		py.objFalse = newObjectFromPython(py, gate, py.pyFalse)
 
 		gate.release()
 
@@ -124,6 +131,20 @@ func (py *Python) DelGlobal(name string) (bool, error) {
 //	name in globals()
 func (py *Python) ContainsGlobal(name string) (bool, error) {
 	return py.globals.Contains(name)
+}
+
+// None returns the None Object
+func (py *Python) None() *Object {
+	return py.objNone
+}
+
+// Bool returns the boolean Object
+func (py *Python) Bool(v bool) *Object {
+	if v {
+		return py.objTrue
+	}
+
+	return py.objFalse
 }
 
 // NewObject creates a new Python Object for the Go value.
