@@ -82,7 +82,7 @@ func (model *Model) pyExportIPPValue(tag goipp.Tag, val goipp.Value) (
 	case goipp.String:
 		return model.py.NewObject(v)
 	case goipp.Time:
-		return model.clsDateTimeFromISO.Call(v.String())
+		return model.py.NewObject(v.String())
 	case goipp.Resolution:
 		return model.py.NewObject(v.String())
 	case goipp.Range:
