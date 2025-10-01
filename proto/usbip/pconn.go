@@ -197,6 +197,7 @@ func (pconn *protoConn) read(buf []byte) error {
 
 		case err == io.EOF:
 			// Connection has closed prematurely
+			err = io.ErrUnexpectedEOF
 			fallthrough
 
 		case err != nil:
