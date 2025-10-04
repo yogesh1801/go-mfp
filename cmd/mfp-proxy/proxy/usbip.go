@@ -29,20 +29,23 @@ func newUsbipServer(ctx context.Context,
 	addr net.Addr, handler http.Handler) *transport.Server {
 
 	// Obtain device descriptor and its endpoints
-	desc, endpoints := defaults.USBIPPDescriptor()
+	desc := defaults.USBIPPDescriptor()
 
-	// Create HTTP server on a top of the USB device endpoints
+	// Create USB device.
+	dev := usbip.MustNewDevice(desc)
+
+	// IPP over USB is the HTTP-based protocol.
+	// Create HTTP server on a top of the USB device endpoints.
 	srv := transport.NewServer(ctx, nil, handler)
-	listener := usbip.NewEndpointListener(addr, addr, endpoints)
-	go srv.Serve(listener)
 
-	// Create USB device
-	dev, err := usbip.NewDevice(desc)
-	assert.NoError(err)
+	endpoints := dev.EndpointsByClass(7, 1, 4)
+	listener := usbip.NewEndpointListener(addr, addr, endpoints)
+
+	go srv.Serve(listener)
 
 	// Create USBIP server
 	usbipSrv := usbip.NewServer(ctx)
-	err = usbipSrv.AddDevice(dev)
+	err := usbipSrv.AddDevice(dev)
 	assert.NoError(err)
 
 	go usbipSrv.ListenAndServe(addr)

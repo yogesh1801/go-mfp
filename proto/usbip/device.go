@@ -13,6 +13,8 @@ import (
 	"fmt"
 	"math"
 	"syscall"
+
+	"github.com/OpenPrinting/go-mfp/internal/assert"
 )
 
 // Device represents the virtual USB device.
@@ -107,6 +109,40 @@ func NewDevice(desc USBDeviceDescriptor) (*Device, error) {
 	dev.setConfiguration(1)
 
 	return dev, nil
+}
+
+// MustNewDevice works like [NewDevice], but it panics in a case
+// of an error. Note, the only reason here to fail is the malformed
+// [USBDeviceDescriptor].
+func MustNewDevice(desc USBDeviceDescriptor) *Device {
+	dev, err := NewDevice(desc)
+	assert.NoError(err)
+	return dev
+}
+
+// EndpointsByClass returns all device endpoints that belongs to the
+// device interfaces with the specified class/subclass/protocol combination.
+//
+// It makes sense if all interfaces of the same class/subclass/protocol
+// are functionally equal.
+func (dev *Device) EndpointsByClass(class, subclass, proto uint8) []*Endpoint {
+	endpoints := []*Endpoint{}
+
+	for _, conf := range dev.Descriptor.Configurations {
+		for _, iff := range conf.Interfaces {
+			for _, alt := range iff.AltSettings {
+				if class == alt.BInterfaceClass &&
+					subclass == alt.BInterfaceSubClass &&
+					proto == alt.BInterfaceProtocol {
+
+					endpoints = append(endpoints,
+						alt.Endpoints...)
+				}
+			}
+		}
+	}
+
+	return endpoints
 }
 
 // GetStatus returns the USB device status.

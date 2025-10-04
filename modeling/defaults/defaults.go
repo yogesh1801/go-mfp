@@ -84,10 +84,8 @@ func ScannerCapabilities() *abstract.ScannerCapabilities {
 }
 
 // USBIPPDescriptor returns the [usbip.USBDeviceDescriptor]
-// and endpoints for the typical IPP over USB device.
-func USBIPPDescriptor() (
-	usbip.USBDeviceDescriptor, []*usbip.Endpoint) {
-
+// for the typical IPP over USB device.
+func USBIPPDescriptor() usbip.USBDeviceDescriptor {
 	endpoints := make([]*usbip.Endpoint, 3)
 	for i := range endpoints {
 		endpoints[i] = usbip.NewEndpoint(usbip.EndpointInOut,
@@ -151,5 +149,5 @@ func USBIPPDescriptor() (
 		}},
 	}
 
-	return desc, endpoints
+	return desc
 }
