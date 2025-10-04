@@ -17,7 +17,7 @@ import (
 
 // Device represents the virtual USB device.
 //
-// Device lifetime is following:
+// Device lifetime is the following:
 //   - use [NewDevice] to create the new Device.
 //   - fill required callbacks
 //   - use [Server.AddDevice] to add device to the server
