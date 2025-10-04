@@ -341,7 +341,7 @@ func (srv *Server) control(dev *Device,
 			data, err = dev.getDescriptor(t, i)
 
 		case USBRequestGetConfiguration:
-			data, err = dev.getConfiguration()
+			data, err = dev.GetConfiguration()
 
 		case USBRequestSetConfiguration:
 			n := setup.WValue

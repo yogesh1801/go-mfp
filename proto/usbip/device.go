@@ -25,14 +25,12 @@ type Device struct {
 	// Device description
 	Descriptor USBDeviceDescriptor // Device descriptor
 
-	// Device state (read-only)
-	Configuration int   // Current configuration
-	AltSettings   []int // Per-interface current alt setting
-
 	// User-defined callbacks
 	OnConfigurationChange func() // Called when configuration changes
 
-	// Internal state
+	// Device state
+	configuration  int            // Current configuration
+	altSettings    []int          // Per-interface current alt setting
 	maxAltSettings []int          // Max alt setting, by interface
 	endpoints      []*Endpoint    // Endpoints of current configuration
 	strings        []string       // Content of string descriptors
@@ -115,7 +113,7 @@ func NewDevice(desc USBDeviceDescriptor) (*Device, error) {
 func (dev *Device) getStatus() ([]byte, syscall.Errno) {
 	data := make([]byte, 2)
 
-	conf := dev.Descriptor.Configurations[dev.Configuration-1]
+	conf := dev.Descriptor.Configurations[dev.configuration-1]
 
 	if conf.BMAttributes&USBConfAttrSelfPowered != 0 {
 		data[1] |= 0x01
@@ -277,8 +275,8 @@ func (dev *Device) getDescriptor(t USBDescriptorType, i int) ([]byte, syscall.Er
 }
 
 // GetConfiguration returns the current configuration.
-func (dev *Device) getConfiguration() ([]byte, syscall.Errno) {
-	return []byte{uint8(dev.Configuration)}, 0
+func (dev *Device) GetConfiguration() ([]byte, syscall.Errno) {
+	return []byte{uint8(dev.configuration)}, 0
 }
 
 // SetConfiguration selects the current configuration.
@@ -289,11 +287,11 @@ func (dev *Device) setConfiguration(n int) ([]byte, syscall.Errno) {
 
 	if n != 0 {
 		// Save Configuration
-		dev.Configuration = n
+		dev.configuration = n
 		conf := dev.Descriptor.Configurations[n-1]
 
-		// Update dev.AltSettings
-		dev.AltSettings = make([]int, len(conf.Interfaces))
+		// Update dev.altSettings
+		dev.altSettings = make([]int, len(conf.Interfaces))
 		dev.maxAltSettings = make([]int, len(conf.Interfaces))
 
 		for i, iff := range conf.Interfaces {
@@ -376,7 +374,7 @@ func (dev *Device) shutdown() {
 
 // GetInterfaceStatus returns the USB interface status.
 func (dev *Device) getInterfaceStatus(ifn int) ([]byte, syscall.Errno) {
-	if ifn >= len(dev.AltSettings) {
+	if ifn >= len(dev.altSettings) {
 		return nil, syscall.EPIPE
 	}
 
@@ -385,16 +383,16 @@ func (dev *Device) getInterfaceStatus(ifn int) ([]byte, syscall.Errno) {
 
 // GetInterface returns alternate setting selection on the given interface.
 func (dev *Device) getInterface(ifn int) ([]byte, syscall.Errno) {
-	if ifn >= len(dev.AltSettings) {
+	if ifn >= len(dev.altSettings) {
 		return nil, syscall.EPIPE
 	}
 
-	return []byte{uint8(dev.AltSettings[ifn])}, 0
+	return []byte{uint8(dev.altSettings[ifn])}, 0
 }
 
 // SetInterface selects alternate setting selection on the given interface.
 func (dev *Device) setInterface(ifn, alt int) ([]byte, syscall.Errno) {
-	if ifn >= len(dev.AltSettings) {
+	if ifn >= len(dev.altSettings) {
 		return nil, syscall.EPIPE
 	}
 
@@ -402,7 +400,7 @@ func (dev *Device) setInterface(ifn, alt int) ([]byte, syscall.Errno) {
 		return nil, syscall.EPIPE
 	}
 
-	dev.AltSettings[ifn] = alt
+	dev.altSettings[ifn] = alt
 	return []byte{}, 0
 }
 
