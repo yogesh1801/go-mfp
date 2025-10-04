@@ -126,7 +126,7 @@ func (ep *Endpoint) unlink(rq *protoIOUnlinkRequest) syscall.Errno {
 	return 0
 }
 
-// shutdown cancels app pending protoIOSubmitRequest.
+// shutdown cancels all pending protoIOSubmitRequest.
 func (ep *Endpoint) shutdown() {
 	ep.lock.Lock()
 	ep.inqueue = ep.inqueue[:0]
