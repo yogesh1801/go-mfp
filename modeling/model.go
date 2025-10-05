@@ -194,12 +194,12 @@ func (model *Model) Write(w io.Writer) error {
 	skip := true
 	for _, t := range template {
 		switch {
-		case strings.HasPrefix(t, "#-"):
-			skip = false
 		case strings.HasPrefix(t, "#-escl"):
 			skip = model.esclScanCaps == nil
 		case strings.HasPrefix(t, "#-ipp"):
 			skip = model.ippPrinterAttrs == nil
+		case strings.HasPrefix(t, "#-"):
+			skip = false
 		default:
 			if !skip {
 				s := os.Expand(t, expand)
