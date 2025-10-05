@@ -194,11 +194,18 @@ func (iff USBInterface) cntEndpoints() int {
 
 // USBInterfaceDescriptor represents the USB interface descriptor.
 type USBInterfaceDescriptor struct {
-	BInterfaceClass    uint8       // Interface class
-	BInterfaceSubClass uint8       // Interface subclass
-	BInterfaceProtocol uint8       // Interface protocol
-	IInterface         string      // Interface description
-	Endpoints          []*Endpoint // Interface endpoints
+	BInterfaceClass    uint8                   // Interface class
+	BInterfaceSubClass uint8                   // Interface subclass
+	BInterfaceProtocol uint8                   // Interface protocol
+	IInterface         string                  // Interface description
+	Endpoints          []USBEndpointDescriptor // Interface endpoints
+}
+
+// USBEndpointDescriptor represents the USB endpoint descriptor.
+type USBEndpointDescriptor struct {
+	Type           EndpointType          // Endpoint type
+	BMAttributes   USBEndpointAttributes // Endpoint attribute bits
+	WMaxPacketSize uint16                // Max packet size, bytes
 }
 
 // cntEndpoints returns USBInterfaceDescriptor's count of endpoints.
@@ -207,7 +214,7 @@ func (iff USBInterfaceDescriptor) cntEndpoints() int {
 	cnt := 0
 
 	for _, ep := range iff.Endpoints {
-		switch ep.Type() {
+		switch ep.Type {
 		case EndpointIn, EndpointOut:
 			cnt++
 		case EndpointInOut:

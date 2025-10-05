@@ -47,13 +47,11 @@ type Endpoint struct {
 }
 
 // NewEndpoint creates a new endpoint.
-func NewEndpoint(ty EndpointType,
-	attrs USBEndpointAttributes, pktsize int) *Endpoint {
-
+func NewEndpoint(desc USBEndpointDescriptor) *Endpoint {
 	ep := &Endpoint{
-		ty:      ty,
-		attrs:   attrs,
-		pktsize: pktsize,
+		ty:      desc.Type,
+		attrs:   desc.BMAttributes,
+		pktsize: int(desc.WMaxPacketSize),
 		inchan:  make(chan struct{}, 1),
 		outchan: make(chan struct{}, 1),
 	}

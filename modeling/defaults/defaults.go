@@ -86,10 +86,10 @@ func ScannerCapabilities() *abstract.ScannerCapabilities {
 // USBIPPDescriptor returns the [usbip.USBDeviceDescriptor]
 // for the typical IPP over USB device.
 func USBIPPDescriptor() usbip.USBDeviceDescriptor {
-	endpoints := make([]*usbip.Endpoint, 3)
-	for i := range endpoints {
-		endpoints[i] = usbip.NewEndpoint(usbip.EndpointInOut,
-			usbip.USBXferBulk, 512)
+	ippusbEndpoint := usbip.USBEndpointDescriptor{
+		Type:           usbip.EndpointInOut,
+		BMAttributes:   usbip.USBXferBulk,
+		WMaxPacketSize: 512,
 	}
 
 	desc := usbip.USBDeviceDescriptor{
@@ -115,8 +115,8 @@ func USBIPPDescriptor() usbip.USBDeviceDescriptor {
 							BInterfaceClass:    7,
 							BInterfaceSubClass: 1,
 							BInterfaceProtocol: 4,
-							Endpoints: []*usbip.Endpoint{
-								endpoints[0],
+							Endpoints: []usbip.USBEndpointDescriptor{
+								ippusbEndpoint,
 							},
 						},
 					},
@@ -127,8 +127,8 @@ func USBIPPDescriptor() usbip.USBDeviceDescriptor {
 							BInterfaceClass:    7,
 							BInterfaceSubClass: 1,
 							BInterfaceProtocol: 4,
-							Endpoints: []*usbip.Endpoint{
-								endpoints[1],
+							Endpoints: []usbip.USBEndpointDescriptor{
+								ippusbEndpoint,
 							},
 						},
 					},
@@ -139,8 +139,8 @@ func USBIPPDescriptor() usbip.USBDeviceDescriptor {
 							BInterfaceClass:    7,
 							BInterfaceSubClass: 1,
 							BInterfaceProtocol: 4,
-							Endpoints: []*usbip.Endpoint{
-								endpoints[2],
+							Endpoints: []usbip.USBEndpointDescriptor{
+								ippusbEndpoint,
 							},
 						},
 					},

@@ -31,12 +31,13 @@ type Device struct {
 	OnConfigurationChange func() // Called when configuration changes
 
 	// Device state
-	configuration  int            // Current configuration
-	altSettings    []int          // Per-interface current alt setting
-	maxAltSettings []int          // Max alt setting, by interface
-	endpoints      []*Endpoint    // Endpoints of current configuration
-	strings        []string       // Content of string descriptors
-	stringsmap     map[string]int // Indices of strings descriptors
+	configuration  int               // Current configuration
+	altSettings    []int             // Per-interface current alt setting
+	maxAltSettings []int             // Max alt setting, by interface
+	endpoints      []*Endpoint       // Endpoints of current configuration
+	endpointsTree  [][][][]*Endpoint // All Endpoints, defined by descriptor
+	strings        []string          // Content of string descriptors
+	stringsmap     map[string]int    // Indices of strings descriptors
 }
 
 // NewDevice creates a new device, based on the provided device descriptor.
@@ -71,13 +72,13 @@ func NewDevice(desc USBDeviceDescriptor) (*Device, error) {
 			return nil, err
 		}
 
-		endpoints := 1 // Reserved for configuration endpoint
+		cntEndpoints := 1 // Reserved for configuration endpoint
 		for _, iff := range conf.Interfaces {
-			endpoints += iff.cntEndpoints()
-			if endpoints > USBMaxEndpoints {
+			cntEndpoints += iff.cntEndpoints()
+			if cntEndpoints > USBMaxEndpoints {
 				err := fmt.Errorf(
 					"Configuration %d has too many (%d) endpoints",
-					confno, endpoints)
+					confno, cntEndpoints)
 				return nil, err
 			}
 		}
@@ -87,6 +88,30 @@ func NewDevice(desc USBDeviceDescriptor) (*Device, error) {
 	dev := &Device{
 		Descriptor: desc,
 		stringsmap: make(map[string]int),
+	}
+
+	// Populate endpointsTree
+	dev.endpointsTree = make([][][][]*Endpoint, len(desc.Configurations))
+	for confno, conf := range desc.Configurations {
+		iffs := len(conf.Interfaces)
+		dev.endpointsTree[confno] = make([][][]*Endpoint, iffs)
+
+		for iffno, iff := range conf.Interfaces {
+			alts := len(iff.AltSettings)
+			dev.endpointsTree[confno][iffno] =
+				make([][]*Endpoint, alts)
+
+			for altno, alt := range iff.AltSettings {
+				eps := len(alt.Endpoints)
+				dev.endpointsTree[confno][iffno][altno] =
+					make([]*Endpoint, eps)
+
+				for epno, ep := range alt.Endpoints {
+					dev.endpointsTree[confno][iffno][altno][epno] =
+						NewEndpoint(ep)
+				}
+			}
+		}
 	}
 
 	// Populate strings
@@ -126,23 +151,23 @@ func MustNewDevice(desc USBDeviceDescriptor) *Device {
 // It makes sense if all interfaces of the same class/subclass/protocol
 // are functionally equal.
 func (dev *Device) EndpointsByClass(class, subclass, proto uint8) []*Endpoint {
-	endpoints := []*Endpoint{}
+	found := []*Endpoint{}
 
-	for _, conf := range dev.Descriptor.Configurations {
-		for _, iff := range conf.Interfaces {
-			for _, alt := range iff.AltSettings {
+	for confno, conf := range dev.Descriptor.Configurations {
+		for iffno, iff := range conf.Interfaces {
+			for altno, alt := range iff.AltSettings {
 				if class == alt.BInterfaceClass &&
 					subclass == alt.BInterfaceSubClass &&
 					proto == alt.BInterfaceProtocol {
 
-					endpoints = append(endpoints,
-						alt.Endpoints...)
+					endpoints := dev.endpointsTree[confno][iffno][altno]
+					found = append(found, endpoints...)
 				}
 			}
 		}
 	}
 
-	return endpoints
+	return found
 }
 
 // GetStatus returns the USB device status.
@@ -226,13 +251,13 @@ func (dev *Device) getDescriptor(t USBDescriptorType, i int) ([]byte, syscall.Er
 		epnum := 1
 		for iffno, iff := range conf.Interfaces {
 			for altno, alt := range iff.AltSettings {
-				endpoints := iff.cntEndpoints()
+				cntEndpoints := iff.cntEndpoints()
 
 				enc.PutU8(9)                             // bLength
 				enc.PutU8(uint8(USBDescriptorInterface)) // bDescriptorType
 				enc.PutU8(uint8(iffno))                  // bInterfaceNumber
 				enc.PutU8(uint8(altno))                  // bAlternateSetting
-				enc.PutU8(uint8(endpoints))              // bNumEndpoints
+				enc.PutU8(uint8(cntEndpoints))           // bNumEndpoints
 				enc.PutU8(alt.BInterfaceClass)           // bInterfaceClass
 				enc.PutU8(alt.BInterfaceSubClass)        // bInterfaceSubClass
 				enc.PutU8(alt.BInterfaceProtocol)        // bInterfaceProtocol
@@ -240,7 +265,8 @@ func (dev *Device) getDescriptor(t USBDescriptorType, i int) ([]byte, syscall.Er
 				i := dev.getstring(alt.IInterface)
 				enc.PutU8(uint8(i)) // iInterface
 
-				for _, ep := range alt.Endpoints {
+				endpoints := dev.endpointsTree[i][iffno][altno]
+				for _, ep := range endpoints {
 					ty := ep.Type()
 					if ty == EndpointIn || ty == EndpointInOut {
 						enc.PutU8(7) // bLength
@@ -324,7 +350,9 @@ func (dev *Device) setConfiguration(n int) ([]byte, syscall.Errno) {
 	if n != 0 {
 		// Save Configuration
 		dev.configuration = n
-		conf := dev.Descriptor.Configurations[n-1]
+
+		confno := n - 1
+		conf := dev.Descriptor.Configurations[confno]
 
 		// Update dev.altSettings
 		dev.altSettings = make([]int, len(conf.Interfaces))
@@ -334,21 +362,23 @@ func (dev *Device) setConfiguration(n int) ([]byte, syscall.Errno) {
 			dev.maxAltSettings[i] = len(iff.AltSettings)
 		}
 
-		// Update dev.Endpoints
+		// Update dev.endpoints
 		// dev.endpoints[0] is reserved.
 		dev.endpoints = make([]*Endpoint, 0, 16)
 		dev.endpoints = append(dev.endpoints, nil)
 
-		for _, iff := range conf.Interfaces {
-			for _, alt := range iff.AltSettings {
-				for _, ep := range alt.Endpoints {
-					switch ep.Type() {
+		for iffno, iff := range conf.Interfaces {
+			for altno, alt := range iff.AltSettings {
+				for epno, ep := range alt.Endpoints {
+					epp := dev.endpointsTree[confno][iffno][altno][epno]
+
+					switch ep.Type {
 					case EndpointIn, EndpointOut:
 						dev.endpoints = append(dev.endpoints,
-							ep)
+							epp)
 					case EndpointInOut:
 						dev.endpoints = append(dev.endpoints,
-							ep, ep)
+							epp, epp)
 					}
 				}
 			}
