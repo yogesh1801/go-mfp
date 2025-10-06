@@ -37,7 +37,7 @@ const (
 )
 
 type (
-	// Get-Printer-Attributes operation (0x000b) returns
+	// GetPrinterAttributesRequest operation (0x000b) returns
 	// the requested printer attributes.
 	GetPrinterAttributesRequest struct {
 		ObjectRawAttrs
