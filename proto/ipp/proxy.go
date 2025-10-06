@@ -15,7 +15,6 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
-	"os"
 	"strconv"
 	"strings"
 	"sync/atomic"
@@ -195,8 +194,6 @@ func (proxy *Proxy) doRequest(query *transport.ServerQuery,
 	if err != nil {
 		return nil, err
 	}
-
-	msg.Print(os.Stdout, true)
 
 	// Translate IPP message
 	msg2, chg := xlat.Forward(&msg)
