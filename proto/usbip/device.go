@@ -15,6 +15,7 @@ import (
 	"syscall"
 
 	"github.com/OpenPrinting/go-mfp/internal/assert"
+	"github.com/OpenPrinting/go-mfp/proto/usb"
 )
 
 // Device represents the virtual USB device.
@@ -25,7 +26,7 @@ import (
 //   - use [Server.AddDevice] to add device to the server
 type Device struct {
 	// Device description
-	Descriptor USBDeviceDescriptor // Device descriptor
+	Descriptor usb.DeviceDescriptor // Device descriptor
 
 	// User-defined callbacks
 	OnConfigurationChange func() // Called when configuration changes
@@ -41,7 +42,7 @@ type Device struct {
 }
 
 // NewDevice creates a new device, based on the provided device descriptor.
-func NewDevice(desc USBDeviceDescriptor) (*Device, error) {
+func NewDevice(desc usb.DeviceDescriptor) (*Device, error) {
 	// Validate device descriptor
 	confs := len(desc.Configurations)
 
@@ -49,7 +50,7 @@ func NewDevice(desc USBDeviceDescriptor) (*Device, error) {
 	case confs == 0:
 		return nil, errors.New("Device has no configurations")
 
-	case confs > USBMaxConfigurations:
+	case confs > usb.MaxConfigurations:
 		err := fmt.Errorf("Device has too many (%d) configurations",
 			confs)
 		return nil, err
@@ -65,7 +66,7 @@ func NewDevice(desc USBDeviceDescriptor) (*Device, error) {
 				confno)
 			return nil, err
 
-		case iffs > USBMaxInterfaces:
+		case iffs > usb.MaxInterfaces:
 			err := fmt.Errorf(
 				"Configuration %d has too many [%d] interfaces",
 				confno, iffs)
@@ -74,8 +75,8 @@ func NewDevice(desc USBDeviceDescriptor) (*Device, error) {
 
 		cntEndpoints := 1 // Reserved for configuration endpoint
 		for _, iff := range conf.Interfaces {
-			cntEndpoints += iff.cntEndpoints()
-			if cntEndpoints > USBMaxEndpoints {
+			cntEndpoints += iff.CntEndpoints()
+			if cntEndpoints > usb.MaxEndpoints {
 				err := fmt.Errorf(
 					"Configuration %d has too many (%d) endpoints",
 					confno, cntEndpoints)
@@ -139,7 +140,7 @@ func NewDevice(desc USBDeviceDescriptor) (*Device, error) {
 // MustNewDevice works like [NewDevice], but it panics in a case
 // of an error. Note, the only reason here to fail is the malformed
 // [USBDeviceDescriptor].
-func MustNewDevice(desc USBDeviceDescriptor) *Device {
+func MustNewDevice(desc usb.DeviceDescriptor) *Device {
 	dev, err := NewDevice(desc)
 	assert.NoError(err)
 	return dev
@@ -176,11 +177,11 @@ func (dev *Device) getStatus() ([]byte, syscall.Errno) {
 
 	conf := dev.Descriptor.Configurations[dev.configuration-1]
 
-	if conf.BMAttributes&USBConfAttrSelfPowered != 0 {
+	if conf.BMAttributes&usb.ConfAttrSelfPowered != 0 {
 		data[1] |= 0x01
 	}
 
-	if conf.BMAttributes&USBConfAttrRemoteWakeup != 0 {
+	if conf.BMAttributes&usb.ConfAttrRemoteWakeup != 0 {
 		data[1] |= 0x02
 	}
 
@@ -189,9 +190,9 @@ func (dev *Device) getStatus() ([]byte, syscall.Errno) {
 
 // GetDescriptor returns USB descriptor, in the USB wire representation.
 // If type or index is invalid, it returns nil and syscall.EPIPE.
-func (dev *Device) getDescriptor(t USBDescriptorType, i int) ([]byte, syscall.Errno) {
+func (dev *Device) getDescriptor(t usb.DescriptorType, i int) ([]byte, syscall.Errno) {
 	switch t {
-	case USBDescriptorDevice:
+	case usb.DescriptorDevice:
 		if i > 0 {
 			return nil, syscall.EPIPE
 		}
@@ -199,16 +200,16 @@ func (dev *Device) getDescriptor(t USBDescriptorType, i int) ([]byte, syscall.Er
 		desc := dev.Descriptor
 		enc := newEncoder(18)
 
-		enc.PutU8(18)                         // bLength
-		enc.PutU8(uint8(USBDescriptorDevice)) // bDescriptorType
-		enc.PutLE16(uint16(desc.BCDUSB))      // bcdUSB
-		enc.PutU8(desc.BDeviceClass)          // bDeviceClass
-		enc.PutU8(desc.BDeviceSubClass)       // bDeviceSubClass
-		enc.PutU8(desc.BDeviceProtocol)       // bDeviceProtocol
-		enc.PutU8(desc.BMaxPacketSize)        // bMaxPacketSize
-		enc.PutLE16(desc.IDVendor)            // idVendor
-		enc.PutLE16(desc.IDProduct)           // idProduct
-		enc.PutLE16(uint16(desc.BCDDevice))   // bcdDevice
+		enc.PutU8(18)                          // bLength
+		enc.PutU8(uint8(usb.DescriptorDevice)) // bDescriptorType
+		enc.PutLE16(uint16(desc.BCDUSB))       // bcdUSB
+		enc.PutU8(desc.BDeviceClass)           // bDeviceClass
+		enc.PutU8(desc.BDeviceSubClass)        // bDeviceSubClass
+		enc.PutU8(desc.BDeviceProtocol)        // bDeviceProtocol
+		enc.PutU8(desc.BMaxPacketSize)         // bMaxPacketSize
+		enc.PutLE16(desc.IDVendor)             // idVendor
+		enc.PutLE16(desc.IDProduct)            // idProduct
+		enc.PutLE16(uint16(desc.BCDDevice))    // bcdDevice
 
 		i := dev.getstring(desc.IManufacturer)
 		enc.PutU8(uint8(i)) // iManufacturer
@@ -223,7 +224,7 @@ func (dev *Device) getDescriptor(t USBDescriptorType, i int) ([]byte, syscall.Er
 
 		return enc.Bytes(), 0
 
-	case USBDescriptorConfiguration:
+	case usb.DescriptorConfiguration:
 		if i > len(dev.Descriptor.Configurations) {
 			return nil, syscall.EPIPE
 		}
@@ -232,17 +233,17 @@ func (dev *Device) getDescriptor(t USBDescriptorType, i int) ([]byte, syscall.Er
 		conf := dev.Descriptor.Configurations[i]
 		enc := newEncoder(256)
 
-		enc.PutU8(9)                                 // bLength
-		enc.PutU8(uint8(USBDescriptorConfiguration)) // bDescriptorType
-		enc.PutLE16(0)                               // wTotalLength, reserved
-		enc.PutU8(uint8(len(conf.Interfaces)))       // bNumInterfaces
-		enc.PutU8(uint8(i + 1))                      // bConfigurationValue
+		enc.PutU8(9)                                  // bLength
+		enc.PutU8(uint8(usb.DescriptorConfiguration)) // bDescriptorType
+		enc.PutLE16(0)                                // wTotalLength, reserved
+		enc.PutU8(uint8(len(conf.Interfaces)))        // bNumInterfaces
+		enc.PutU8(uint8(i + 1))                       // bConfigurationValue
 
 		i := dev.getstring(conf.IConfiguration)
 		enc.PutU8(uint8(i)) // iConfiguration
 
 		attrs := conf.BMAttributes
-		attrs |= USBConfAttrReserved
+		attrs |= usb.ConfAttrReserved
 		enc.PutU8(uint8(attrs)) // bmAttributes
 
 		enc.PutU8(conf.MaxPower) // bMaxPower
@@ -251,16 +252,16 @@ func (dev *Device) getDescriptor(t USBDescriptorType, i int) ([]byte, syscall.Er
 		epnum := 1
 		for iffno, iff := range conf.Interfaces {
 			for altno, alt := range iff.AltSettings {
-				cntEndpoints := iff.cntEndpoints()
+				cntEndpoints := iff.CntEndpoints()
 
-				enc.PutU8(9)                             // bLength
-				enc.PutU8(uint8(USBDescriptorInterface)) // bDescriptorType
-				enc.PutU8(uint8(iffno))                  // bInterfaceNumber
-				enc.PutU8(uint8(altno))                  // bAlternateSetting
-				enc.PutU8(uint8(cntEndpoints))           // bNumEndpoints
-				enc.PutU8(alt.BInterfaceClass)           // bInterfaceClass
-				enc.PutU8(alt.BInterfaceSubClass)        // bInterfaceSubClass
-				enc.PutU8(alt.BInterfaceProtocol)        // bInterfaceProtocol
+				enc.PutU8(9)                              // bLength
+				enc.PutU8(uint8(usb.DescriptorInterface)) // bDescriptorType
+				enc.PutU8(uint8(iffno))                   // bInterfaceNumber
+				enc.PutU8(uint8(altno))                   // bAlternateSetting
+				enc.PutU8(uint8(cntEndpoints))            // bNumEndpoints
+				enc.PutU8(alt.BInterfaceClass)            // bInterfaceClass
+				enc.PutU8(alt.BInterfaceSubClass)         // bInterfaceSubClass
+				enc.PutU8(alt.BInterfaceProtocol)         // bInterfaceProtocol
 
 				i := dev.getstring(alt.IInterface)
 				enc.PutU8(uint8(i)) // iInterface
@@ -268,10 +269,10 @@ func (dev *Device) getDescriptor(t USBDescriptorType, i int) ([]byte, syscall.Er
 				endpoints := dev.endpointsTree[i][iffno][altno]
 				for _, ep := range endpoints {
 					ty := ep.Type()
-					if ty == EndpointIn || ty == EndpointInOut {
+					if ty == usb.EndpointIn || ty == usb.EndpointInOut {
 						enc.PutU8(7) // bLength
 						enc.PutU8(   // bDescriptorType
-							uint8(USBDescriptorEndpoint))
+							uint8(usb.DescriptorEndpoint))
 
 						addr := epnum | 0x80
 						epnum++
@@ -282,10 +283,10 @@ func (dev *Device) getDescriptor(t USBDescriptorType, i int) ([]byte, syscall.Er
 						enc.PutU8(0)                      // bInterval
 					}
 
-					if ty == EndpointOut || ty == EndpointInOut {
+					if ty == usb.EndpointOut || ty == usb.EndpointInOut {
 						enc.PutU8(7) // bLength
 						enc.PutU8(   // bDescriptorType
-							uint8(USBDescriptorEndpoint))
+							uint8(usb.DescriptorEndpoint))
 
 						addr := epnum
 						epnum++
@@ -307,14 +308,14 @@ func (dev *Device) getDescriptor(t USBDescriptorType, i int) ([]byte, syscall.Er
 
 		return data, 0
 
-	case USBDescriptorString:
+	case usb.DescriptorString:
 		// String Descriptor Zero is special: it contains list of
 		// supported languages.
 		if i == 0 {
 			enc := newEncoder(4)
-			enc.PutU8(8)                          // bLength
-			enc.PutU8(uint8(USBDescriptorString)) // bDescriptorType
-			enc.PutLE16(0x0409)                   // wLANGID[0]
+			enc.PutU8(8)                           // bLength
+			enc.PutU8(uint8(usb.DescriptorString)) // bDescriptorType
+			enc.PutLE16(0x0409)                    // wLANGID[0]
 			return enc.Bytes(), 0
 		}
 
@@ -324,8 +325,8 @@ func (dev *Device) getDescriptor(t USBDescriptorType, i int) ([]byte, syscall.Er
 
 		s := []byte(dev.strings[i])
 		enc := newEncoder(4)
-		enc.PutU8(uint8(len(s)*2 + 2))        // bLength
-		enc.PutU8(uint8(USBDescriptorString)) // bDescriptorType
+		enc.PutU8(uint8(len(s)*2 + 2))         // bLength
+		enc.PutU8(uint8(usb.DescriptorString)) // bDescriptorType
 		for _, c := range s {
 			enc.PutLE16(uint16(c)) // bString
 		}
@@ -373,10 +374,10 @@ func (dev *Device) setConfiguration(n int) ([]byte, syscall.Errno) {
 					epp := dev.endpointsTree[confno][iffno][altno][epno]
 
 					switch ep.Type {
-					case EndpointIn, EndpointOut:
+					case usb.EndpointIn, usb.EndpointOut:
 						dev.endpoints = append(dev.endpoints,
 							epp)
-					case EndpointInOut:
+					case usb.EndpointInOut:
 						dev.endpoints = append(dev.endpoints,
 							epp, epp)
 					}
@@ -406,8 +407,8 @@ func (dev *Device) submit(rq *protoIOSubmitRequest) syscall.Errno {
 	}
 
 	// Check for direction mismatch
-	if (rq.Input && ep.Type() == EndpointOut) ||
-		(!rq.Input && ep.Type() == EndpointIn) {
+	if (rq.Input && ep.Type() == usb.EndpointOut) ||
+		(!rq.Input && ep.Type() == usb.EndpointIn) {
 		return syscall.EPIPE
 	}
 
@@ -473,8 +474,8 @@ func (dev *Device) setInterface(ifn, alt int) ([]byte, syscall.Errno) {
 // addstring adds string to strings descriptor.
 func (dev *Device) addstring(s string) {
 	if len(dev.strings) < math.MaxUint8 {
-		if len(s) > USBMaxStringLength {
-			s = s[:USBMaxStringLength]
+		if len(s) > usb.MaxStringLength {
+			s = s[:usb.MaxStringLength]
 		}
 
 		if _, found := dev.stringsmap[s]; !found {
@@ -487,8 +488,8 @@ func (dev *Device) addstring(s string) {
 // getstring returns the string descriptor index for the string.
 // If index is not available, 0 will be returned (which is OK for USB).
 func (dev *Device) getstring(s string) int {
-	if len(s) > USBMaxStringLength {
-		s = s[:USBMaxStringLength]
+	if len(s) > usb.MaxStringLength {
+		s = s[:usb.MaxStringLength]
 	}
 
 	return dev.stringsmap[s]

@@ -17,17 +17,18 @@ import (
 	"time"
 
 	"github.com/OpenPrinting/go-mfp/log"
+	"github.com/OpenPrinting/go-mfp/proto/usb"
 	"github.com/OpenPrinting/go-mfp/util/generic"
 )
 
 // Server implements the USBIP server.
 type Server struct {
-	ctx        context.Context            // Server context
-	devices    [USBMaxDevices + 1]devslot // Device slots
-	nextslot   int                        // Next free slot
-	byid       map[devBusID]*devslot      // Slots by devBusID
-	bylocation map[devLocation]*devslot   // Slots by devLocation
-	lock       sync.Mutex                 // Access lock
+	ctx        context.Context             // Server context
+	devices    [usb.MaxDevices + 1]devslot // Device slots
+	nextslot   int                         // Next free slot
+	byid       map[devBusID]*devslot       // Slots by devBusID
+	bylocation map[devLocation]*devslot    // Slots by devLocation
+	lock       sync.Mutex                  // Access lock
 }
 
 // devslot represents a device slot.
@@ -43,8 +44,8 @@ func NewServer(ctx context.Context) *Server {
 	srv := &Server{
 		ctx:        ctx,
 		nextslot:   1,
-		byid:       make(map[devBusID]*devslot, USBMaxDevices+1),
-		bylocation: make(map[devLocation]*devslot, USBMaxDevices+1),
+		byid:       make(map[devBusID]*devslot, usb.MaxDevices+1),
+		bylocation: make(map[devLocation]*devslot, usb.MaxDevices+1),
 	}
 
 	for i := range srv.devices {
@@ -322,44 +323,44 @@ func (srv *Server) io(pconn *protoConn, devinfo *devInfo) {
 func (srv *Server) control(dev *Device,
 	rq *protoIOSubmitRequest) ([]byte, syscall.Errno) {
 
-	var setup USBSetupPacket
+	var setup usb.SetupPacket
 	setup.Decode(rq.Setup)
 
 	log.Debug(srv.ctx, "CTRL: < %s", setup)
 	var data []byte
 	var err syscall.Errno
 
-	switch setup.RequestType & USBRecipientMask {
-	case USBRecipientDevice:
+	switch setup.RequestType & usb.RecipientMask {
+	case usb.RecipientDevice:
 		switch setup.Request {
-		case USBRequestGetStatus:
+		case usb.RequestGetStatus:
 			data, err = dev.getStatus()
 
-		case USBRequestGetDescriptor:
-			t := USBDescriptorType(setup.WValue >> 8)
+		case usb.RequestGetDescriptor:
+			t := usb.DescriptorType(setup.WValue >> 8)
 			i := int(setup.WValue & 255)
 			data, err = dev.getDescriptor(t, i)
 
-		case USBRequestGetConfiguration:
+		case usb.RequestGetConfiguration:
 			data, err = dev.GetConfiguration()
 
-		case USBRequestSetConfiguration:
+		case usb.RequestSetConfiguration:
 			n := setup.WValue
 			data, err = dev.setConfiguration(int(n))
 		}
 
-	case USBRecipientInterface:
+	case usb.RecipientInterface:
 		ifn := int(setup.WIndex)
 		alt := int(setup.WValue)
 
 		switch setup.Request {
-		case USBRequestGetStatus:
+		case usb.RequestGetStatus:
 			data, err = dev.getInterfaceStatus(ifn)
 
-		case USBRequestGetInterface:
+		case usb.RequestGetInterface:
 			data, err = dev.getInterface(ifn)
 
-		case USBRequestSetInterface:
+		case usb.RequestSetInterface:
 			data, err = dev.setInterface(ifn, alt)
 		}
 	}

@@ -13,31 +13,15 @@ import (
 	"io"
 	"sync"
 	"syscall"
-)
 
-// EndpointType represents the endpoint type (in/out/bidir).
-//
-// Note, the hardware USB doesn't have such a thing that bidirectional
-// endpoint, but it is much more convenient from the software point of
-// view that having a pair of endpoints, one per direction, to implement
-// a logically bidirectional endpoint.
-//
-// So at the USB side the bidirectional endpoint are represented by
-// the pair of uni-directional endpoints.
-type EndpointType int
-
-// Endpoint types:
-const (
-	EndpointIn    EndpointType = iota // Input (host->device)
-	EndpointOut                       // Output (device->host)
-	EndpointInOut                     // Input/Output (bidirectional)
+	"github.com/OpenPrinting/go-mfp/proto/usb"
 )
 
 // Endpoint is the virtual USB endpoint. Effectively, it implements
 // the uni-direction data queue.
 type Endpoint struct {
-	ty       EndpointType            // Endpoint type
-	attrs    USBEndpointAttributes   // Endpoint attributes
+	ty       usb.EndpointType        // Endpoint type
+	attrs    usb.EndpointAttributes  // Endpoint attributes
 	pktsize  int                     // The packet size
 	inqueue  []*protoIOSubmitRequest // Queue of input submit requests
 	outqueue []*protoIOSubmitRequest // Queue of output submit requests
@@ -47,7 +31,7 @@ type Endpoint struct {
 }
 
 // NewEndpoint creates a new endpoint.
-func NewEndpoint(desc USBEndpointDescriptor) *Endpoint {
+func NewEndpoint(desc usb.EndpointDescriptor) *Endpoint {
 	ep := &Endpoint{
 		ty:      desc.Type,
 		attrs:   desc.BMAttributes,
@@ -60,12 +44,12 @@ func NewEndpoint(desc USBEndpointDescriptor) *Endpoint {
 }
 
 // Type returns the endpoint type.
-func (ep *Endpoint) Type() EndpointType {
+func (ep *Endpoint) Type() usb.EndpointType {
 	return ep.ty
 }
 
 // Attrs returns endpoint attributes.
-func (ep *Endpoint) Attrs() USBEndpointAttributes {
+func (ep *Endpoint) Attrs() usb.EndpointAttributes {
 	return ep.attrs
 }
 
@@ -140,7 +124,7 @@ func (ep *Endpoint) Read(buf []byte) (int, error) {
 // ReadContext is the [context.Context]-aware version of the [Endpoint.Read].
 func (ep *Endpoint) ReadContext(ctx context.Context, buf []byte) (int, error) {
 	// Check that Endpoint direction allows reading
-	if ep.ty == EndpointIn {
+	if ep.ty == usb.EndpointIn {
 		return 0, io.ErrClosedPipe
 	}
 
@@ -187,7 +171,7 @@ func (ep *Endpoint) Write(buf []byte) (int, error) {
 // WriteContext is the [context.Context]-aware version of the [Endpoint.Write].
 func (ep *Endpoint) WriteContext(ctx context.Context, buf []byte) (int, error) {
 	// Check that Endpoint direction allows writing
-	if ep.ty == EndpointOut {
+	if ep.ty == usb.EndpointOut {
 		return 0, io.ErrClosedPipe
 	}
 
