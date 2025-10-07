@@ -74,6 +74,7 @@ type PrinterDescription struct {
 	PagesPerMinute                    optional.Val[int]           `ipp:"pages-per-minute"`
 	PdlOverrideSupported              optional.Val[KwPdlOverride] `ipp:"pdl-override-supported"`
 	PrinterDriverInstaller            optional.Val[string]        `ipp:"printer-driver-installer,uri"`
+	PrinterDeviceID                   optional.Val[string]        `ipp:"printer-device-id,text"`
 	PrinterInfo                       optional.Val[string]        `ipp:"printer-info,text"`
 	PrinterIsAcceptingJobs            optional.Val[bool]          `ipp:"printer-is-accepting-jobs"`
 	PrinterLocation                   optional.Val[string]        `ipp:"printer-location,text"`
@@ -82,8 +83,8 @@ type PrinterDescription struct {
 	PrinterMoreInfoManufacturer       optional.Val[string]        `ipp:"printer-more-info-manufacturer,uri"`
 	PrinterMoreInfo                   optional.Val[string]        `ipp:"printer-more-info,uri"`
 	PrinterName                       optional.Val[string]        `ipp:"printer-name,name"`
-	PrinterState                      optional.Val[int]           `ipp:"printer-state,enum"`
 	PrinterStateMessage               optional.Val[string]        `ipp:"printer-state-message,text"`
+	PrinterState                      optional.Val[int]           `ipp:"printer-state,enum"`
 	PrinterStateReasons               []KwPrinterStateReasons     `ipp:"printer-state-reasons"`
 	PrinterUpTime                     optional.Val[int]           `ipp:"printer-up-time"`
 	PrinterURISupported               []string                    `ipp:"printer-uri-supported,uri"`
