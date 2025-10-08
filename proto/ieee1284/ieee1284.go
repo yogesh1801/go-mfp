@@ -32,7 +32,10 @@ import "strings"
 //	SERIALNUMBER  SERN, SN          Device serial number
 //
 // See IEEE Std 1284-2000, 7.6 Device ID for details.
-type DeviceID []DeviceIDRecord
+type DeviceID struct {
+	RawData string           // DeviceID raw string
+	Records []DeviceIDRecord // Parsed records
+}
 
 // DeviceIDRecord represents a single DeviceID key:value1,value2,...,valueN
 // record.
@@ -43,12 +46,15 @@ type DeviceIDRecord struct {
 }
 
 // DeviceIDParse parses the IEEE 1284 device id string.
-func DeviceIDParse(s string) DeviceID {
+func DeviceIDParse(s string) *DeviceID {
 	// Split device id into fields
 	fields := strings.Split(s, ";")
 
 	// Parse each field
-	devid := make(DeviceID, 0, 4)
+	devid := &DeviceID{
+		RawData: s,
+		Records: make([]DeviceIDRecord, 0, 4),
+	}
 
 	for _, fld := range fields {
 		// Strip white space before and after the record.
@@ -77,17 +83,17 @@ func DeviceIDParse(s string) DeviceID {
 			Values:  values,
 		}
 
-		devid = append(devid, rec)
+		devid.Records = append(devid.Records, rec)
 	}
 
 	return devid
 }
 
 // Get returns DeviceIDRecord by name, or nil if record is not found.
-func (devid DeviceID) Get(key string) *DeviceIDRecord {
+func (devid *DeviceID) Get(key string) *DeviceIDRecord {
 	key = strings.ToUpper(key)
 
-	for _, rec := range devid {
+	for _, rec := range devid.Records {
 		if strings.ToUpper(rec.Key) == key {
 			return &rec
 		}
@@ -96,18 +102,18 @@ func (devid DeviceID) Get(key string) *DeviceIDRecord {
 }
 
 // Manufacturer returns the manufacturer name.
-func (devid DeviceID) Manufacturer() string {
+func (devid *DeviceID) Manufacturer() string {
 	return devid.find("MANUFACTURER", "MFG")
 }
 
 // Model returns the model name.
-func (devid DeviceID) Model() string {
+func (devid *DeviceID) Model() string {
 	return devid.find("MODEL", "MDL")
 }
 
 // CommandSet returns the device command set
 // (list of supported document formats).
-func (devid DeviceID) CommandSet() []string {
+func (devid *DeviceID) CommandSet() []string {
 	keys := []string{"COMMAND SET", "CMD"}
 	for _, key := range keys {
 		if rec := devid.Get(key); rec != nil {
@@ -119,11 +125,11 @@ func (devid DeviceID) CommandSet() []string {
 }
 
 // SerialNumber returns the device serial number.
-func (devid DeviceID) SerialNumber() string {
+func (devid *DeviceID) SerialNumber() string {
 	return devid.find("SERIALNUMBER", "SERN", "SN")
 }
 
-func (devid DeviceID) find(keys ...string) string {
+func (devid *DeviceID) find(keys ...string) string {
 	for _, key := range keys {
 		if rec := devid.Get(key); rec != nil {
 			return rec.RawData
