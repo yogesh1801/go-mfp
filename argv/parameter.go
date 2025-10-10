@@ -108,10 +108,8 @@ func (param *Parameter) verify() error {
 		}
 	}
 
-	if strings.HasSuffix(check, "...") {
-		// Strip trailing "...", if any
-		check = check[0 : len(check)-3]
-	}
+	// Strip trailing "...", if any
+	check = strings.TrimSuffix(check, "...")
 
 	// Check remaining name
 	if check == "" {
