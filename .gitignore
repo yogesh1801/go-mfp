@@ -9,6 +9,7 @@ cmd/mfp-cups/mfp-cups
 cmd/mfp-discover/mfp-discover
 cmd/mfp-model/mfp-model
 cmd/mfp-proxy/mfp-proxy
+cmd/mfp-usb/mfp-usb
 cmd/mfp-virtual/mfp-virtual
 
 .vscode
