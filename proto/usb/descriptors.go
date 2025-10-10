@@ -192,6 +192,38 @@ type DeviceDescriptor struct {
 	Configurations  []ConfigurationDescriptor // Device configurations
 }
 
+// Contains returns true, if the [DeviceDescriptor] has at least
+// one interface with the specified class/subclass/protocol combination.
+//
+// Use negative value for wildcard match (i.e., (7,-1,-1) will match
+// any interface with Class 7, ignoring subclass and protocol.
+func (desc DeviceDescriptor) Contains(class, subclass, proto int) bool {
+	for _, conf := range desc.Configurations {
+		for _, iff := range conf.Interfaces {
+			for _, alt := range iff.AltSettings {
+				if class >= 0 &&
+					class != int(alt.BInterfaceClass) {
+					continue
+				}
+
+				if subclass >= 0 &&
+					subclass != int(alt.BInterfaceSubClass) {
+					continue
+				}
+
+				if proto >= 0 &&
+					proto != int(alt.BInterfaceProtocol) {
+					continue
+				}
+
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
 // ConfigurationDescriptor represents the USB configuration descriptor.
 type ConfigurationDescriptor struct {
 	IConfiguration string         // Configuration description
