@@ -312,7 +312,7 @@ func libusbContext() (*C.libusb_context, error) {
 	defer libusbContextLock.Unlock()
 
 	// Initialize libusb_context on demand
-	if libusbContextPtr != nil {
+	if libusbContextPtr == nil {
 		// Obtain libusb_context
 		rc := C.libusb_init(&libusbContextPtr)
 		if rc != 0 {
