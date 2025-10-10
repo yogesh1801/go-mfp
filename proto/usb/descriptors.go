@@ -53,6 +53,11 @@ const (
 	USB20 Version = 0x0200
 )
 
+// String returns string representation of [Version]
+func (v Version) String() string {
+	return fmt.Sprintf("%d.%d", v>>8, v&0xff)
+}
+
 // Speed defines the USB speed codes.
 type Speed int
 
@@ -108,7 +113,7 @@ type ConfAttributes uint8
 const (
 	ConfAttrReserved     ConfAttributes = 1 << 7
 	ConfAttrSelfPowered  ConfAttributes = 1 << 6
-	ConfAttrRemoteWakeup ConfAttributes = 1 << 7
+	ConfAttrRemoteWakeup ConfAttributes = 1 << 5
 )
 
 // EndpointType represents the endpoint type (in/out/bidir).
