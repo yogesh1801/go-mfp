@@ -201,22 +201,21 @@ func (desc DeviceDescriptor) Contains(class, subclass, proto int) bool {
 	for _, conf := range desc.Configurations {
 		for _, iff := range conf.Interfaces {
 			for _, alt := range iff.AltSettings {
-				if class >= 0 &&
-					class != int(alt.BInterfaceClass) {
-					continue
+				cls := alt.BInterfaceClass
+				sub := alt.BInterfaceSubClass
+				prt := alt.BInterfaceProtocol
+
+				if cls == 0 {
+					// If class is 0, use base class
+					// of the device.
+					cls = desc.BDeviceClass
 				}
 
-				if subclass >= 0 &&
-					subclass != int(alt.BInterfaceSubClass) {
-					continue
+				if (class < 0 || class == int(cls)) &&
+					(subclass < 0 || subclass == int(sub)) &&
+					(proto < 0 || proto == int(prt)) {
+					return true
 				}
-
-				if proto >= 0 &&
-					proto != int(alt.BInterfaceProtocol) {
-					continue
-				}
-
-				return true
 			}
 		}
 	}
