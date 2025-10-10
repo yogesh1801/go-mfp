@@ -1,3 +1,3 @@
-SUBDIRS	= escl ipp usb usbip wsd wsscan
+SUBDIRS	= escl ipp usb usbhost usbip wsd wsscan
 
 include ../Rules.mak
