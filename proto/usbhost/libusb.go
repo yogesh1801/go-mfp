@@ -177,19 +177,21 @@ func libusbDecodeConfigurationDescriptor(dev *C.libusb_device,
 
 	// Roll over all interfaces
 	ifcnt := cconf.bNumInterfaces
-	ifaces := (*[256]C.struct_libusb_interface)(
-		unsafe.Pointer(cconf._interface))[:ifcnt:ifcnt]
-
 	conf.Interfaces = make([]usb.Interface, 0, ifcnt)
 
-	for _, ciff := range ifaces {
-		var iff usb.Interface
-		iff, err = libusbDecodeInterface(dev, handle, &ciff)
-		if err != nil {
-			return
-		}
+	if ifcnt > 0 {
+		ifaces := (*[256]C.struct_libusb_interface)(
+			unsafe.Pointer(cconf._interface))[:ifcnt:ifcnt]
 
-		conf.Interfaces = append(conf.Interfaces, iff)
+		for _, ciff := range ifaces {
+			var iff usb.Interface
+			iff, err = libusbDecodeInterface(dev, handle, &ciff)
+			if err != nil {
+				return
+			}
+
+			conf.Interfaces = append(conf.Interfaces, iff)
+		}
 	}
 
 	return
@@ -203,19 +205,21 @@ func libusbDecodeInterface(dev *C.libusb_device,
 
 	// Roll over all alt settings
 	altcnt := ciff.num_altsetting
-	alts := (*[256]C.struct_libusb_interface_descriptor)(
-		unsafe.Pointer(ciff.altsetting))[:altcnt:altcnt]
-
 	iff.AltSettings = make([]usb.InterfaceDescriptor, 0, altcnt)
 
-	for _, calt := range alts {
-		var alt usb.InterfaceDescriptor
-		alt, err = libusbDecodeInterfaceDescriptor(dev, handle, &calt)
-		if err != nil {
-			return
-		}
+	if altcnt > 0 {
+		alts := (*[256]C.struct_libusb_interface_descriptor)(
+			unsafe.Pointer(ciff.altsetting))[:altcnt:altcnt]
 
-		iff.AltSettings = append(iff.AltSettings, alt)
+		for _, calt := range alts {
+			var alt usb.InterfaceDescriptor
+			alt, err = libusbDecodeInterfaceDescriptor(dev, handle, &calt)
+			if err != nil {
+				return
+			}
+
+			iff.AltSettings = append(iff.AltSettings, alt)
+		}
 	}
 
 	return
@@ -237,17 +241,19 @@ func libusbDecodeInterfaceDescriptor(dev *C.libusb_device,
 
 	// Roll over endpoints
 	epcnt := calt.bNumEndpoints
-	endpoints := (*[256]C.struct_libusb_endpoint_descriptor)(
-		unsafe.Pointer(calt.endpoint))[:epcnt:epcnt]
+	if epcnt > 0 {
+		endpoints := (*[256]C.struct_libusb_endpoint_descriptor)(
+			unsafe.Pointer(calt.endpoint))[:epcnt:epcnt]
 
-	for _, cep := range endpoints {
-		var ep usb.EndpointDescriptor
-		ep, err = libusbDecodeEndpointDescriptor(dev, handle, &cep)
-		if err != nil {
-			return
+		for _, cep := range endpoints {
+			var ep usb.EndpointDescriptor
+			ep, err = libusbDecodeEndpointDescriptor(dev, handle, &cep)
+			if err != nil {
+				return
+			}
+
+			alt.Endpoints = append(alt.Endpoints, ep)
 		}
-
-		alt.Endpoints = append(alt.Endpoints, ep)
 	}
 
 	return
