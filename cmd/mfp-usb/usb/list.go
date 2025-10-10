@@ -44,7 +44,9 @@ func cmdListHandler(ctx context.Context, inv *argv.Invocation) error {
 	for _, info := range list {
 		desc := info.Desc
 
-		if !all && desc.BDeviceClass != 7 {
+		if !all &&
+			desc.BDeviceClass != 7 &&
+			!desc.Contains(7, -1, -1) {
 			continue
 		}
 
