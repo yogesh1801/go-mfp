@@ -114,6 +114,12 @@ func (inv *Invocation) Get(name string) (val string, found bool) {
 	return
 }
 
+// Flag returns true if option is present in the command line.
+func (inv *Invocation) Flag(name string) bool {
+	_, found := inv.Get(name)
+	return found
+}
+
 // Values returns a slice of all values of option or parameter by
 // its name.
 //
