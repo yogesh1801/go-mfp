@@ -4,6 +4,7 @@ SUBDIRS = \
 	mfp-discover \
 	mfp-model \
 	mfp-proxy \
+	mfp-usb \
 	mfp-virtual
 
 include ../Rules.mak
