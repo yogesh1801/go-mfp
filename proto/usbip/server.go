@@ -330,8 +330,8 @@ func (srv *Server) control(dev *Device,
 	var data []byte
 	var err syscall.Errno
 
-	switch setup.RequestType & usb.RecipientMask {
-	case usb.RecipientDevice:
+	switch setup.RequestType & (usb.RequestTypeTypeMask | usb.RecipientMask) {
+	case usb.RequestTypeStandard | usb.RecipientDevice:
 		switch setup.Request {
 		case usb.RequestGetStatus:
 			data, err = dev.getStatus()
@@ -349,7 +349,7 @@ func (srv *Server) control(dev *Device,
 			data, err = dev.setConfiguration(int(n))
 		}
 
-	case usb.RecipientInterface:
+	case usb.RequestTypeStandard | usb.RecipientInterface:
 		ifn := int(setup.WIndex)
 		alt := int(setup.WValue)
 
