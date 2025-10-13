@@ -225,16 +225,18 @@ func (desc DeviceDescriptor) Contains(class, subclass, proto int) bool {
 
 // ConfigurationDescriptor represents the USB configuration descriptor.
 type ConfigurationDescriptor struct {
-	IConfiguration string         // Configuration description
-	BMAttributes   ConfAttributes // Attribute bits
-	MaxPower       uint8          // Max power, in 2mA units
-	Interfaces     []Interface    // Interfaces grouped by alt settings
+	BConfigurationValue uint8          // Identifier of this configuration
+	IConfiguration      string         // Configuration description
+	BMAttributes        ConfAttributes // Attribute bits
+	MaxPower            uint8          // Max power, in 2mA units
+	Interfaces          []Interface    // Interfaces grouped by alt settings
 }
 
 // Interface represents collection of [InterfaceDescriptor]s
 // that belongs to the same interface, ordered by bAlternateSetting.
 type Interface struct {
-	AltSettings []InterfaceDescriptor // Ordered by alt setting.
+	BInterfaceNumber uint8                 // Identifier of this interface
+	AltSettings      []InterfaceDescriptor // Ordered by alt setting.
 }
 
 // CntEndpoints returns count of endpoints, used by the interface,
@@ -252,7 +254,9 @@ type InterfaceDescriptor struct {
 	BInterfaceClass    uint8                // Interface class
 	BInterfaceSubClass uint8                // Interface subclass
 	BInterfaceProtocol uint8                // Interface protocol
+	BAlternateSetting  uint8                // This alt setting identifier
 	IInterface         string               // Interface description
+	IEEE1284DeviceID   string               // IEEE-1284 Device ID
 	Endpoints          []EndpointDescriptor // Interface endpoints
 }
 
