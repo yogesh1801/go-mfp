@@ -416,17 +416,22 @@ type SetupPacket struct {
 func (p SetupPacket) String() string {
 	name := fmt.Sprintf("%s (%s)", p.Request, p.RequestType)
 
-	switch p.Request {
-	case RequestGetDescriptor:
-		t := DescriptorType(p.WValue >> 8)
-		i := p.WValue & 255
-		return fmt.Sprintf("%s: %s[%d]", name, t, i)
+	if (p.RequestType & RequestTypeTypeMask) == RequestTypeStandard {
+		switch p.Request {
+		case RequestGetDescriptor:
+			t := DescriptorType(p.WValue >> 8)
+			i := p.WValue & 255
+			return fmt.Sprintf("%s: %s[%d]", name, t, i)
 
-	case RequestSetConfiguration, RequestSetInterface:
-		return fmt.Sprintf("%s: %d", name, p.WValue)
+		case RequestSetConfiguration, RequestSetInterface:
+			return fmt.Sprintf("%s: %d", name, p.WValue)
+
+		default:
+			return fmt.Sprintf("%s (%s)", p.Request, p.RequestType)
+		}
 	}
 
-	return name
+	return fmt.Sprintf("Request %d (%s)", int(p.Request), p.RequestType)
 }
 
 // Encode returns the binary representation of the setup packet.
