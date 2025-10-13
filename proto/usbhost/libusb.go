@@ -9,6 +9,7 @@
 package usbhost
 
 import (
+	"fmt"
 	"runtime"
 	"sync"
 	"unsafe"
@@ -87,6 +88,81 @@ func ListDevices() ([]DeviceInfo, error) {
 	}
 
 	return infos, nil
+}
+
+// LoadIEEE1284DeviceID updates the [DeviceInfo] by loading IEEE-1284
+// device ID into the [InterfaceDescriptor.IEEE1284DeviceID] of the
+// eligible interfaces.
+//
+// Note, this function may have a side effect by changing the USB
+// device configuration.
+func LoadIEEE1284DeviceID(info *DeviceInfo) error {
+	// Open the device
+	handle, err := libusbOpen(*info)
+	if err != nil {
+		return err
+	}
+
+	defer C.libusb_close(handle)
+
+	// Save current configuration
+	oldConfig := C.int(-1)
+
+	rc := C.libusb_get_configuration(handle, &oldConfig)
+	if rc < 0 {
+		// If configuration cannot be read, assume device
+		// is not configured
+		oldConfig = C.int(-1)
+	}
+
+	curConfig := oldConfig
+	defer func() {
+		if oldConfig != -1 && curConfig != -1 &&
+			oldConfig != curConfig {
+			// If the old configuration cannot be restored,
+			// we can't do anything with that.
+			//
+			// So just do ours best and ignore any possible error.
+			C.libusb_set_configuration(handle, oldConfig)
+		}
+	}()
+
+	// Roll over all device interfaces
+	for _, conf := range info.Desc.Configurations {
+		for _, iff := range conf.Interfaces {
+			for altno := range iff.AltSettings {
+				alt := &iff.AltSettings[altno]
+
+				if alt.BInterfaceClass == 7 &&
+					alt.BInterfaceSubClass == 1 {
+					config := C.int(
+						conf.BConfigurationValue)
+
+					if config != curConfig {
+						rc = C.libusb_set_configuration(
+							handle, config)
+						if rc < 0 {
+							continue
+						}
+
+						curConfig = config
+					}
+
+					if config == curConfig {
+						s := libusbGetDeviceID(
+							handle,
+							uint8(config),
+							iff.BInterfaceNumber,
+							alt.BAlternateSetting)
+
+						alt.IEEE1284DeviceID = s
+					}
+				}
+			}
+		}
+	}
+
+	return nil
 }
 
 // libusbDecodeDeviceInfo decodes DeviceInfo out of C.libusb_device
@@ -170,9 +246,10 @@ func libusbDecodeConfigurationDescriptor(dev *C.libusb_device,
 
 	// Decode configuration descriptor itself
 	conf = usb.ConfigurationDescriptor{
-		IConfiguration: libusbGetString(handle, cconf.iConfiguration),
-		BMAttributes:   usb.ConfAttributes(cconf.bmAttributes),
-		MaxPower:       uint8(cconf.MaxPower),
+		BConfigurationValue: uint8(cconf.bConfigurationValue),
+		IConfiguration:      libusbGetString(handle, cconf.iConfiguration),
+		BMAttributes:        usb.ConfAttributes(cconf.bmAttributes),
+		MaxPower:            uint8(cconf.MaxPower),
 	}
 
 	// Roll over all interfaces
@@ -184,11 +261,24 @@ func libusbDecodeConfigurationDescriptor(dev *C.libusb_device,
 			unsafe.Pointer(cconf._interface))[:ifcnt:ifcnt]
 
 		for _, ciff := range ifaces {
+			if ciff.num_altsetting == 0 {
+				// It should not happen, but if it happens,
+				// we will crash in attempt to fetch
+				// BInterfaceNumber from the first
+				// alt setting.
+				//
+				// So skip interfaces without alt settings.
+				continue
+			}
+
 			var iff usb.Interface
 			iff, err = libusbDecodeInterface(dev, handle, &ciff)
 			if err != nil {
 				return
 			}
+
+			iff.BInterfaceNumber =
+				uint8(ciff.altsetting.bInterfaceNumber)
 
 			conf.Interfaces = append(conf.Interfaces, iff)
 		}
@@ -236,6 +326,7 @@ func libusbDecodeInterfaceDescriptor(dev *C.libusb_device,
 		BInterfaceClass:    uint8(calt.bInterfaceClass),
 		BInterfaceSubClass: uint8(calt.bInterfaceSubClass),
 		BInterfaceProtocol: uint8(calt.bInterfaceProtocol),
+		BAlternateSetting:  uint8(calt.bAlternateSetting),
 		IInterface:         libusbGetString(handle, calt.iInterface),
 	}
 
@@ -291,6 +382,86 @@ func libusbGetString(handle *C.libusb_device_handle, i C.uint8_t) string {
 	}
 
 	return C.GoString((*C.char)(unsafe.Pointer(&buf[0])))
+}
+
+// libusbGetDeviceID returns IEEE-1284 device ID using the particular
+// combination of the interface number and alt setting.
+func libusbGetDeviceID(handle *C.libusb_device_handle,
+	confno, ifno, altno uint8) string {
+
+	var buf [2048]byte
+
+	rc := C.libusb_control_transfer(
+		handle,
+		C.LIBUSB_REQUEST_TYPE_CLASS|C.LIBUSB_ENDPOINT_IN|
+			C.LIBUSB_RECIPIENT_INTERFACE,
+		0,
+		C.uint16_t(confno),
+		(C.uint16_t(ifno)<<8)|C.uint16_t(altno),
+		(*C.uchar)(unsafe.Pointer(&buf[0])), C.uint16_t(len(buf)),
+		1000)
+
+	if rc < 2 {
+		return ""
+	}
+
+	// According to the IEEE-1284, the length of the Device ID string
+	// is saved in the first two bytes of returned data, MSB first.
+	//
+	// If length is out of range, assume that vendor incorrectly
+	// implemented the IEEE-1284 spec and retry with the LSB first.
+	//
+	// If that fails too, use count of transferred bytes instead.
+	length := (C.int(buf[0]) << 8) | C.int(buf[1])
+	if length < 2 || length > rc {
+		length = (C.int(buf[1]) << 8) | C.int(buf[0])
+	}
+	if length < 2 || length > rc {
+		length = rc
+	}
+
+	// Extract the IEEE-1284 Device ID string
+	return string(buf[2:length])
+}
+
+// libusbOpen opens the device, specified by the DeviceInfo, and
+// returns C.libusb_device_handle.
+func libusbOpen(info DeviceInfo) (handle *C.libusb_device_handle, err error) {
+	// Obtain libusb context
+	context, err := libusbContext()
+	if err != nil {
+		return
+	}
+
+	// Obtain list of devices
+	var devlist **C.libusb_device
+	cnt := C.libusb_get_device_list(context, &devlist)
+	if cnt < 0 {
+		err = libusbError{"libusb_get_device_list", int(cnt)}
+		return
+	}
+	defer C.libusb_free_device_list(devlist, 1)
+
+	// Find and open the requested device
+	for _, dev := range unsafe.Slice(devlist, cnt) {
+		loc := Location{
+			Bus: int(C.libusb_get_bus_number(dev)),
+			Dev: int(C.libusb_get_device_address(dev)),
+		}
+
+		if loc == info.Loc {
+			rc := C.libusb_open(dev, &handle)
+			if rc < 0 {
+				err = libusbError{"libusb_open", int(rc)}
+			}
+			return
+		}
+	}
+
+	err = fmt.Errorf("USB %d-%d: device not found",
+		info.Loc.Bus, info.Loc.Dev)
+
+	return
 }
 
 // libusbIsFatal determines whether a libusb error should be considered fatal
