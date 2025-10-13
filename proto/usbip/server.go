@@ -327,50 +327,112 @@ func (srv *Server) control(dev *Device,
 	setup.Decode(rq.Setup)
 
 	log.Debug(srv.ctx, "CTRL: < %s", setup)
+
 	var data []byte
 	var err syscall.Errno
 
-	switch setup.RequestType & (usb.RequestTypeTypeMask | usb.RecipientMask) {
-	case usb.RequestTypeStandard | usb.RecipientDevice:
-		switch setup.Request {
-		case usb.RequestGetStatus:
-			data, err = dev.getStatus()
+	switch setup.RequestType & usb.RequestTypeTypeMask {
+	case usb.RequestTypeStandard:
+		data, err = srv.controlStandard(dev, setup)
 
-		case usb.RequestGetDescriptor:
-			t := usb.DescriptorType(setup.WValue >> 8)
-			i := int(setup.WValue & 255)
-			data, err = dev.getDescriptor(t, i)
+	case usb.RequestTypeClass:
+		data, err = srv.controlClassSpecific(dev, setup)
 
-		case usb.RequestGetConfiguration:
-			data, err = dev.GetConfiguration()
-
-		case usb.RequestSetConfiguration:
-			n := setup.WValue
-			data, err = dev.setConfiguration(int(n))
-		}
-
-	case usb.RequestTypeStandard | usb.RecipientInterface:
-		ifn := int(setup.WIndex)
-		alt := int(setup.WValue)
-
-		switch setup.Request {
-		case usb.RequestGetStatus:
-			data, err = dev.getInterfaceStatus(ifn)
-
-		case usb.RequestGetInterface:
-			data, err = dev.getInterface(ifn)
-
-		case usb.RequestSetInterface:
-			data, err = dev.setInterface(ifn, alt)
-		}
+	default:
+		err = syscall.EPIPE
 	}
 
 	if data != nil {
 		log.Debug(srv.ctx, "CTRL: > %d bytes returned", len(data))
 	} else {
-		err = syscall.EPIPE
 		log.Debug(srv.ctx, "CTRL: > %s", err)
 	}
 
 	return data, err
+}
+
+// classSpecific handles USB standard control requests.
+func (srv *Server) controlStandard(dev *Device,
+	setup usb.SetupPacket) ([]byte, syscall.Errno) {
+
+	switch setup.RequestType & usb.RecipientMask {
+	case usb.RecipientDevice:
+		switch setup.Request {
+		case usb.RequestGetStatus:
+			return dev.getStatus()
+
+		case usb.RequestGetDescriptor:
+			t := usb.DescriptorType(setup.WValue >> 8)
+			i := int(setup.WValue & 255)
+			return dev.getDescriptor(t, i)
+
+		case usb.RequestGetConfiguration:
+			return dev.GetConfiguration()
+
+		case usb.RequestSetConfiguration:
+			n := setup.WValue
+			return dev.setConfiguration(int(n))
+		}
+
+	case usb.RecipientInterface:
+		ifn := int(setup.WIndex)
+		alt := int(setup.WValue)
+
+		switch setup.Request {
+		case usb.RequestGetStatus:
+			return dev.getInterfaceStatus(ifn)
+
+		case usb.RequestGetInterface:
+			return dev.getInterface(ifn)
+
+		case usb.RequestSetInterface:
+			return dev.setInterface(ifn, alt)
+		}
+	}
+
+	return nil, syscall.EPIPE
+}
+
+// classSpecific handles USB class-specific control requests.
+func (srv *Server) controlClassSpecific(dev *Device,
+	setup usb.SetupPacket) ([]byte, syscall.Errno) {
+
+	// Get interface descriptor
+	alt := dev.altDesc(int(setup.WValue),
+		int(setup.WIndex>>8), int(setup.WIndex&255))
+
+	if alt == nil {
+		return nil, syscall.EPIPE
+	}
+
+	// Check interface class and protocol
+	if alt.BInterfaceClass != 7 || alt.BInterfaceSubClass != 1 {
+		return nil, syscall.EPIPE
+	}
+
+	if alt.BInterfaceProtocol != 1 && alt.BInterfaceProtocol != 2 {
+		return nil, syscall.EPIPE
+	}
+
+	// Handle class-specific request for the printer class
+	if setup.RequestType&usb.SetupIn != 0 {
+		switch setup.Request {
+		case 0:
+			// GET_DEVICE_ID
+			devid := alt.IEEE1284DeviceID
+			if devid == "" {
+				return nil, syscall.EPIPE
+			}
+
+			length := len(devid) + 2
+			data := make([]byte, length)
+			data[0] = uint8(length >> 8)
+			data[1] = uint8(length)
+			copy(data[2:], devid)
+
+			return data, 0
+		}
+	}
+
+	return nil, syscall.EPIPE
 }

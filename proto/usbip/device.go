@@ -439,6 +439,36 @@ func (dev *Device) shutdown() {
 	}
 }
 
+// confDesc returns *usb.ConfigurationDescriptor by index, or nil,
+// if index is out of range.
+func (dev *Device) confDesc(confno int) *usb.ConfigurationDescriptor {
+	desc := &dev.Descriptor
+	if 1 <= confno && confno <= len(desc.Configurations) {
+		return &desc.Configurations[confno-1]
+	}
+	return nil
+}
+
+// ifDesc returns *usb.Interface by index, or nil, if some index is
+// out of range.
+func (dev *Device) ifDesc(confno, iffno int) *usb.Interface {
+	conf := dev.confDesc(confno)
+	if conf != nil && iffno >= 0 && iffno < len(conf.Interfaces) {
+		return &conf.Interfaces[iffno]
+	}
+	return nil
+}
+
+// altDesc returns *usb.InterfaceDescriptor by index, or nil,
+// if some index is out of range.
+func (dev *Device) altDesc(confno, iffno, altno int) *usb.InterfaceDescriptor {
+	iff := dev.ifDesc(confno, iffno)
+	if iff != nil && altno >= 0 && altno < len(iff.AltSettings) {
+		return &iff.AltSettings[altno]
+	}
+	return nil
+}
+
 // GetInterfaceStatus returns the USB interface status.
 func (dev *Device) getInterfaceStatus(ifn int) ([]byte, syscall.Errno) {
 	if ifn >= len(dev.altSettings) {
