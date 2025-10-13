@@ -50,6 +50,8 @@ func cmdListHandler(ctx context.Context, inv *argv.Invocation) error {
 			continue
 		}
 
+		usbhost.LoadIEEE1284DeviceID(&info)
+
 		pager.Printf("Bus %3.3d Device %3.3d ID %4.4x:%4.4x",
 			info.Loc.Bus, info.Loc.Dev,
 			desc.IDVendor, desc.IDProduct)
@@ -98,6 +100,8 @@ func cmdListHandler(ctx context.Context, inv *argv.Invocation) error {
 						alt.BInterfaceProtocol)
 					pager.Printf("        Description: %s",
 						alt.IInterface)
+					pager.Printf("        Device ID:   %q",
+						alt.IEEE1284DeviceID)
 					pager.Printf("        Endpoints:")
 
 					for _, ep := range alt.Endpoints {
