@@ -176,7 +176,6 @@ func (c *Client) CUPSGetPPD(ctx context.Context,
 // really large at this case).
 func (c *Client) CUPSGetPPDs(ctx context.Context,
 	filter *ipp.PPDFilter) ([]*ipp.PPDAttributes, error) {
-	return nil, nil
 
 	rq := &ipp.CUPSGetPPDsRequest{
 		RequestHeader: ipp.DefaultRequestHeader,
