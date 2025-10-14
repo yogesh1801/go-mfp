@@ -92,7 +92,7 @@ func USBIPPDescriptor() usb.DeviceDescriptor {
 		WMaxPacketSize: 512,
 	}
 
-	const deviceId = "MFG:OpenPrinting;MDL:Virtual MFP;CMD:PJL,POSTSCRIPT;CLS:PRINTER;SERN:OP-0000223321;"
+	const deviceID = "MFG:OpenPrinting;MDL:Virtual MFP;CMD:PJL,POSTSCRIPT;CLS:PRINTER;SERN:OP-0000223321;"
 
 	desc := usb.DeviceDescriptor{
 		BCDUSB:          0x0200,
@@ -117,7 +117,7 @@ func USBIPPDescriptor() usb.DeviceDescriptor {
 							BInterfaceClass:    7,
 							BInterfaceSubClass: 1,
 							BInterfaceProtocol: 1,
-							IEEE1284DeviceID:   deviceId,
+							IEEE1284DeviceID:   deviceID,
 							Endpoints: []usb.EndpointDescriptor{
 								ippusbEndpoint,
 							},
