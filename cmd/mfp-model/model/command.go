@@ -215,7 +215,7 @@ func cmdModelHandler(ctx context.Context, inv *argv.Invocation) error {
 		ippattrs, err = queryIPPPrinterAttributes(ctx, optIPP)
 		if err != nil {
 			err = fmt.Errorf(
-				"Can't get IPP Printer Attributes", err)
+				"Can't get IPP Printer Attributes: %s", err)
 			return err
 		}
 	}
