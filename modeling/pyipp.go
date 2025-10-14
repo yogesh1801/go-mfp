@@ -9,10 +9,7 @@
 package modeling
 
 import (
-	"errors"
-
 	"github.com/OpenPrinting/go-mfp/cpython"
-	"github.com/OpenPrinting/go-mfp/internal/assert"
 	"github.com/OpenPrinting/go-mfp/proto/ipp"
 	"github.com/OpenPrinting/goipp"
 )
@@ -96,6 +93,4 @@ func (model *Model) pyExportIPPValue(tag goipp.Tag, val goipp.Value) (
 	}
 
 	return model.py.None(), nil
-	assert.NoError(errors.New("internal error"))
-	return nil, nil
 }
