@@ -398,10 +398,16 @@ func (srv *Server) controlClassSpecific(dev *Device,
 	setup usb.SetupPacket) ([]byte, syscall.Errno) {
 
 	// Get interface descriptor
-	alt := dev.altDesc(int(setup.WValue),
-		int(setup.WIndex>>8), int(setup.WIndex&255))
+	confno := int(setup.WValue)
+	iffno := int(setup.WIndex >> 8)
+	altno := int(setup.WIndex & 255)
+
+	alt := dev.altIndex(confno, iffno, altno)
 
 	if alt == nil {
+		log.Debug(srv.ctx, "CTRL: %d-%d-%d: interface not found",
+			confno, iffno, altno)
+
 		return nil, syscall.EPIPE
 	}
 

@@ -128,8 +128,8 @@ func LoadIEEE1284DeviceID(info *DeviceInfo) error {
 	}()
 
 	// Roll over all device interfaces
-	for _, conf := range info.Desc.Configurations {
-		for _, iff := range conf.Interfaces {
+	for confno, conf := range info.Desc.Configurations {
+		for iffno, iff := range conf.Interfaces {
 			for altno := range iff.AltSettings {
 				alt := &iff.AltSettings[altno]
 
@@ -151,9 +151,9 @@ func LoadIEEE1284DeviceID(info *DeviceInfo) error {
 					if config == curConfig {
 						s := libusbGetDeviceID(
 							handle,
-							uint8(config),
-							iff.BInterfaceNumber,
-							alt.BAlternateSetting)
+							confno,
+							iffno,
+							altno)
 
 						alt.IEEE1284DeviceID = s
 					}
@@ -386,8 +386,13 @@ func libusbGetString(handle *C.libusb_device_handle, i C.uint8_t) string {
 
 // libusbGetDeviceID returns IEEE-1284 device ID using the particular
 // combination of the interface number and alt setting.
+//
+// Please notice, confno, ifno and altno must be the zero-based
+// indices of the configuration, interface and alt setting, not
+// their bConfigurationValue, bInterfaceNumber and bAlternateSetting
+// values.
 func libusbGetDeviceID(handle *C.libusb_device_handle,
-	confno, ifno, altno uint8) string {
+	confno, ifno, altno int) string {
 
 	var buf [2048]byte
 

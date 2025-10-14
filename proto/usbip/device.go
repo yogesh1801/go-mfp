@@ -439,30 +439,31 @@ func (dev *Device) shutdown() {
 	}
 }
 
-// confDesc returns *usb.ConfigurationDescriptor by index, or nil,
-// if index is out of range.
-func (dev *Device) confDesc(confno int) *usb.ConfigurationDescriptor {
+// confIndex returns *usb.ConfigurationDescriptor by index
+// (not by bConfigurationValue!), or nil if index is out of range.
+func (dev *Device) confIndex(confno int) *usb.ConfigurationDescriptor {
 	desc := &dev.Descriptor
-	if 1 <= confno && confno <= len(desc.Configurations) {
-		return &desc.Configurations[confno-1]
+	if confno >= 0 && confno < len(desc.Configurations) {
+		return &desc.Configurations[confno]
 	}
 	return nil
 }
 
-// ifDesc returns *usb.Interface by index, or nil, if some index is
-// out of range.
-func (dev *Device) ifDesc(confno, iffno int) *usb.Interface {
-	conf := dev.confDesc(confno)
+// ifIndex returns *usb.Interface by index (not by bConfigurationValue
+// and bInterfaceNumber), or nil, if some index is out of range.
+func (dev *Device) ifIndex(confno, iffno int) *usb.Interface {
+	conf := dev.confIndex(confno)
 	if conf != nil && iffno >= 0 && iffno < len(conf.Interfaces) {
 		return &conf.Interfaces[iffno]
 	}
 	return nil
 }
 
-// altDesc returns *usb.InterfaceDescriptor by index, or nil,
-// if some index is out of range.
-func (dev *Device) altDesc(confno, iffno, altno int) *usb.InterfaceDescriptor {
-	iff := dev.ifDesc(confno, iffno)
+// altIndex returns *usb.InterfaceDescriptor by index (not by
+// bConfigurationValue, bInterfaceNumber and bAlternateSetting),
+// or nil, if some index is out of range.
+func (dev *Device) altIndex(confno, iffno, altno int) *usb.InterfaceDescriptor {
+	iff := dev.ifIndex(confno, iffno)
 	if iff != nil && altno >= 0 && altno < len(iff.AltSettings) {
 		return &iff.AltSettings[altno]
 	}
