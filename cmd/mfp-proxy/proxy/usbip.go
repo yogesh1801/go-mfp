@@ -22,7 +22,7 @@ import (
 // newUsbipServer creates the new USBIP server representing
 // an IPP over USB MFP device.
 //
-// The server accepts incoming USBIP connection on a provided
+// The server accepts incoming USBIP connection on the provided
 // address and forwards incoming IPP over USB requests (which
 // are essentially the HTTP requests) to the provided http.Handler.
 func newUsbipServer(ctx context.Context,
