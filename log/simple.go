@@ -71,6 +71,15 @@ func Fatal(ctx context.Context, format string, v ...any) {
 	CtxLogger(ctx).Fatal(CtxPrefix(ctx), format, v...)
 }
 
+// Dump writes the hex dump to the [Logger] associated
+// with the Context.
+//
+// If Logger is not available, [DefaultLogger] will be used.
+// The [context.Context] parameter may be safely passed as nil.
+func Dump(ctx context.Context, level Level, data []byte) {
+	CtxLogger(ctx).Dump(CtxPrefix(ctx), level, data)
+}
+
 // Panic writes panic message to log, including the call stack,
 // and terminates the program
 func Panic(ctx context.Context, v any) {

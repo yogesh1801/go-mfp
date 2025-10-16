@@ -86,6 +86,47 @@ func (rec *Record) Fatal(format string, v ...any) {
 	os.Exit(1)
 }
 
+// Dump writes the hex dump to the Record.
+func (rec *Record) Dump(level Level, data []byte) *Record {
+	buf := bufAlloc()
+	defer bufFree(buf)
+
+	for len(data) > 0 {
+		wid := generic.Min(len(data), 16)
+
+		for i := 0; i < wid; i++ {
+			fmt.Fprintf(buf, "%2.2x", data[i])
+			if i%4 == 3 {
+				buf.Write([]byte(":"))
+			} else {
+				buf.Write([]byte(" "))
+			}
+
+		}
+
+		if pad := 16 - wid; pad > 0 {
+			buf.Write(bytes.Repeat([]byte(" "), pad*3))
+		}
+
+		buf.Write([]byte{' ', ' '})
+
+		for i := 0; i < wid; i++ {
+			c := data[i]
+
+			if 0x20 <= c && c < 0x80 {
+				buf.WriteByte(c)
+			} else {
+				buf.WriteByte('.')
+			}
+		}
+
+		buf.Write([]byte{'\n'})
+		data = data[wid:]
+	}
+
+	return rec.text(level, 0, generic.CopySlice(buf.Bytes()))
+}
+
 // Object writes any object that implements [Marshaler]
 // interface to the Record.
 func (rec *Record) Object(level Level, indent int, obj Marshaler) *Record {
@@ -113,6 +154,8 @@ func (rec *Record) text(level Level, indent int, text []byte) *Record {
 
 	if indent > 0 {
 		buf := bufAlloc()
+		defer bufFree(buf)
+
 		buf.Write(bytes.Repeat([]byte(" "), indent))
 
 		for i := range lines {

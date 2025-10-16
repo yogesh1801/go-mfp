@@ -120,6 +120,11 @@ func (lgr *Logger) Fatal(prefix, format string, v ...any) {
 	lgr.Begin(prefix).Fatal(format, v...)
 }
 
+// Dump writes the hex dump to the Logger.
+func (lgr *Logger) Dump(prefix string, level Level, data []byte) {
+	lgr.Begin(prefix).Dump(level, data).Commit()
+}
+
 // Object writes any object that implements [Marshaler]
 // interface to the Logger.
 func (lgr *Logger) Object(prefix string, level Level, indent int, obj Marshaler) *Logger {
