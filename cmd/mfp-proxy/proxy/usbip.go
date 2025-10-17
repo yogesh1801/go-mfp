@@ -14,10 +14,23 @@ import (
 	"net/http"
 
 	"github.com/OpenPrinting/go-mfp/internal/assert"
+	"github.com/OpenPrinting/go-mfp/log"
 	"github.com/OpenPrinting/go-mfp/modeling/defaults"
 	"github.com/OpenPrinting/go-mfp/proto/usbip"
 	"github.com/OpenPrinting/go-mfp/transport"
 )
+
+func drainLegacyPrinter(ctx context.Context, endpoint *usbip.Endpoint) {
+	buf := make([]byte, 512)
+	for {
+		n, err := endpoint.Read(buf)
+		if err != nil {
+			break
+		}
+
+		log.Dump(ctx, log.LevelTrace, buf[:n])
+	}
+}
 
 // newUsbipServer creates the new USBIP server representing
 // an IPP over USB MFP device.
@@ -40,6 +53,11 @@ func newUsbipServer(ctx context.Context,
 
 	endpoints := dev.EndpointsByClass(7, 1, 4)
 	listener := usbip.NewEndpointListener(addr, addr, endpoints)
+
+	endpoints = dev.EndpointsByClass(7, 1, 1)
+	for _, endpoint := range endpoints {
+		go drainLegacyPrinter(ctx, endpoint)
+	}
 
 	go srv.Serve(listener)
 
