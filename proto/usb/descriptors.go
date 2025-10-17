@@ -260,6 +260,13 @@ type InterfaceDescriptor struct {
 	Endpoints          []EndpointDescriptor // Interface endpoints
 }
 
+// Match reports if InterfaceDescriptor matches the [ClassID].
+func (iff InterfaceDescriptor) Match(id ClassID) bool {
+	return iff.BInterfaceClass == id.Class &&
+		iff.BInterfaceSubClass == id.SubClass &&
+		iff.BInterfaceProtocol == id.Protocol
+}
+
 // EndpointDescriptor represents the USB endpoint descriptor.
 type EndpointDescriptor struct {
 	Type           EndpointType       // Endpoint type
