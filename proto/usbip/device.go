@@ -146,6 +146,38 @@ func MustNewDevice(desc usb.DeviceDescriptor) *Device {
 	return dev
 }
 
+// EndpointsByFunc returns all device endpoints for which the matching
+// function returns true.
+func (dev *Device) EndpointsByFunc(
+	match func(usb.InterfaceDescriptor) bool) []*Endpoint {
+
+	found := []*Endpoint{}
+
+	for confno, conf := range dev.Descriptor.Configurations {
+		for iffno, iff := range conf.Interfaces {
+			for altno, alt := range iff.AltSettings {
+				if match(alt) {
+					endpoints := dev.endpointsTree[confno][iffno][altno]
+					found = append(found, endpoints...)
+				}
+			}
+		}
+	}
+
+	return found
+}
+
+// EndpointsByClass returns all device endpoints that match the
+// specified [usb.ClassID]
+// device interfaces with the specified class/subclass/protocol combination.
+func (dev *Device) EndpointsByClassID(id usb.ClassID) []*Endpoint {
+	match := func(alt usb.InterfaceDescriptor) bool {
+		return alt.Match(id)
+	}
+
+	return dev.EndpointsByFunc(match)
+}
+
 // EndpointsByClass returns all device endpoints that belongs to the
 // device interfaces with the specified class/subclass/protocol combination.
 //

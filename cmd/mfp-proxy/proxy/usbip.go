@@ -14,23 +14,11 @@ import (
 	"net/http"
 
 	"github.com/OpenPrinting/go-mfp/internal/assert"
-	"github.com/OpenPrinting/go-mfp/log"
 	"github.com/OpenPrinting/go-mfp/modeling/defaults"
+	"github.com/OpenPrinting/go-mfp/proto/ieee1284"
+	"github.com/OpenPrinting/go-mfp/proto/usb"
 	"github.com/OpenPrinting/go-mfp/proto/usbip"
-	"github.com/OpenPrinting/go-mfp/transport"
 )
-
-func drainLegacyPrinter(ctx context.Context, endpoint *usbip.Endpoint) {
-	buf := make([]byte, 512)
-	for {
-		n, err := endpoint.Read(buf)
-		if err != nil {
-			break
-		}
-
-		log.Dump(ctx, log.LevelTrace, buf[:n])
-	}
-}
 
 // newUsbipServer creates the new USBIP server representing
 // an IPP over USB MFP device.
@@ -39,34 +27,33 @@ func drainLegacyPrinter(ctx context.Context, endpoint *usbip.Endpoint) {
 // address and forwards incoming IPP over USB requests (which
 // are essentially the HTTP requests) to the provided http.Handler.
 func newUsbipServer(ctx context.Context,
-	addr net.Addr, handler http.Handler) *transport.Server {
+	addr net.Addr, handler http.Handler) *usbip.Server {
 
-	// Obtain device descriptor and its endpoints
+	// Obtain device descriptor
 	desc := defaults.USBIPPDescriptor()
 
-	// Create USB device.
-	dev := usbip.MustNewDevice(desc)
+	// Create enough IEEE-1284 virtual printers
+	match711 := usb.ClassID{Class: 7, SubClass: 1, Protocol: 1}
+	match712 := usb.ClassID{Class: 7, SubClass: 1, Protocol: 2}
 
-	// IPP over USB is the HTTP-based protocol.
-	// Create HTTP server on a top of the USB device endpoints.
-	srv := transport.NewServer(ctx, nil, handler)
+	n := desc.CntMatch(match711)
+	n += desc.CntMatch(match712)
 
-	endpoints := dev.EndpointsByClass(7, 1, 4)
-	listener := usbip.NewEndpointListener(addr, addr, endpoints)
-
-	endpoints = dev.EndpointsByClass(7, 1, 1)
-	for _, endpoint := range endpoints {
-		go drainLegacyPrinter(ctx, endpoint)
+	ieeeprinters := make([]*ieee1284.Printer, n)
+	for i := 0; i < n; i++ {
+		ieeeprinters[i] = ieee1284.NewPrinter(ctx)
 	}
 
-	go srv.Serve(listener)
+	// Create the USB printer device
+	dev, err := usbip.NewPrinter(ctx, desc, handler, ieeeprinters)
+	assert.NoError(err)
 
 	// Create USBIP server
 	usbipSrv := usbip.NewServer(ctx)
-	err := usbipSrv.AddDevice(dev)
+	err = usbipSrv.AddDevice(dev)
 	assert.NoError(err)
 
 	go usbipSrv.ListenAndServe(addr)
 
-	return srv
+	return usbipSrv
 }

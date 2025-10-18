@@ -233,16 +233,14 @@ func cmdProxyHandler(ctx context.Context, inv *argv.Invocation) error {
 		}
 	}
 
-	// Create HTTP server
-	var srvr *transport.Server
-
+	// Create server for incoming connections.
 	if portnum != 0 {
 		l, err := newListener(ctx, portnum)
 		if err != nil {
 			return err
 		}
 
-		srvr = transport.NewServer(ctx, nil, mux)
+		srvr := transport.NewServer(ctx, nil, mux)
 		go srvr.Serve(l)
 
 		defer srvr.Close()
@@ -251,7 +249,8 @@ func cmdProxyHandler(ctx context.Context, inv *argv.Invocation) error {
 			IP:   net.IPv4(127, 0, 0, 1),
 			Port: 3240,
 		}
-		srvr = newUsbipServer(ctx, addr, mux)
+
+		newUsbipServer(ctx, addr, mux)
 	}
 
 	// Run external program if requested

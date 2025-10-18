@@ -23,25 +23,17 @@ import (
 // Data, that was written into the endpoint from the USB side appears
 // as data received from the connection and visa versa.
 type EndpointConn struct {
-	ep            *Endpoint          // Underlying endpoint
-	local, remote net.Addr           // Local and Remote addresses
-	closectx      context.Context    // Canceled by Close()
-	closecancel   context.CancelFunc // Cancels closectx
-	listener      atomic.Pointer[    // Parent listener, nil if none
+	ep          *Endpoint          // Underlying endpoint
+	closectx    context.Context    // Canceled by Close()
+	closecancel context.CancelFunc // Cancels closectx
+	listener    atomic.Pointer[    // Parent listener, nil if none
 	EndpointListener]
 }
 
 // NewEndpointConn creates the [EndpointConn] on a top of the existent
 // [Endpoint].
-//
-// The local and remote addresses are only used to implement the
-// [net.Conn.LocalAddr] and [net.Conn.RemoteAddr] interfaces.
-func NewEndpointConn(ep *Endpoint, local, remote net.Addr) *EndpointConn {
-	conn := &EndpointConn{
-		ep:     ep,
-		local:  local,
-		remote: remote,
-	}
+func NewEndpointConn(ep *Endpoint) *EndpointConn {
+	conn := &EndpointConn{ep: ep}
 
 	ctx := context.Background()
 	conn.closectx, conn.closecancel = context.WithCancel(ctx)
@@ -83,12 +75,12 @@ func (conn *EndpointConn) Write(buf []byte) (int, error) {
 
 // LocalAddr returns the local network address, if known.
 func (conn *EndpointConn) LocalAddr() net.Addr {
-	return conn.local
+	return localhostAddr{}
 }
 
 // RemoteAddr returns the remote network address, if known.
 func (conn *EndpointConn) RemoteAddr() net.Addr {
-	return conn.remote
+	return localhostAddr{}
 }
 
 // SetDeadline sets the read and write deadlines associated
@@ -119,28 +111,17 @@ func (conn *EndpointConn) SetWriteDeadline(t time.Time) error {
 // wrapped into the [EndpointConn] type. The [EndpointConn.Close]
 // returns connection into the pool.
 type EndpointListener struct {
-	endpoints     chan *Endpoint // Queue of available endpoints
-	closechan     chan struct{}  // Closed by EndpointListener.Close
-	local, remote net.Addr       // Listener's addresses
+	endpoints chan *Endpoint // Queue of available endpoints
+	closechan chan struct{}  // Closed by EndpointListener.Close
 }
 
 // NewEndpointListener creates the new [EndpointListener] on a top
 // of the group of existing [Endpoint]s.
-//
-// The provided local and remote addresses become local and remote
-// addresses of the [EndpointConn] connections, "accepted" from the
-// listener.
-//
-// The local address is also returned by the [net.Listener.Addr]
-// method of the listener.
-func NewEndpointListener(local, remote net.Addr,
-	endpoints []*Endpoint) *EndpointListener {
+func NewEndpointListener(endpoints []*Endpoint) *EndpointListener {
 
 	listener := &EndpointListener{
 		endpoints: make(chan *Endpoint, len(endpoints)),
 		closechan: make(chan struct{}),
-		local:     local,
-		remote:    remote,
 	}
 
 	for _, ep := range endpoints {
@@ -162,7 +143,7 @@ func (listener *EndpointListener) Accept() (net.Conn, error) {
 	// Wait for connection or close
 	select {
 	case ep := <-listener.endpoints:
-		conn := NewEndpointConn(ep, listener.local, listener.remote)
+		conn := NewEndpointConn(ep)
 		conn.listener.Store(listener)
 		return conn, nil
 	case <-listener.closechan:
@@ -179,5 +160,24 @@ func (listener *EndpointListener) Close() error {
 
 // Addr returns the listener's network address.
 func (listener *EndpointListener) Addr() net.Addr {
-	return listener.local
+	return localhostAddr{}
+}
+
+// localhostAddr implements the [net.Addr] interface for addresses
+// used by EndpointConn.
+//
+// EndpointConn implements the [net.Conn] interface on a top of [Entpoint],
+// which implies that it must be able to report its "local" and "remote"
+// addresses. These addresses are actually meaningless for the USN
+// endpoints, but interface requirements forces us to implement this.
+//
+// So we use just a dummy type that implements the required functionality.
+type localhostAddr struct{}
+
+func (localhostAddr) Network() string {
+	return "tcp"
+}
+
+func (localhostAddr) String() string {
+	return "localhost"
 }

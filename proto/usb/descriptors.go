@@ -223,6 +223,16 @@ func (desc DeviceDescriptor) Contains(class, subclass, proto int) bool {
 	return false
 }
 
+// CntMatch returns count of [InterfaceDescriptor]s (alternate settings)
+// in the DeviceDescriptor that match the [ClassID]
+func (conf DeviceDescriptor) CntMatch(id ClassID) int {
+	cnt := 0
+	for _, conf := range conf.Configurations {
+		cnt += conf.CntMatch(id)
+	}
+	return cnt
+}
+
 // ConfigurationDescriptor represents the USB configuration descriptor.
 type ConfigurationDescriptor struct {
 	BConfigurationValue uint8          // Identifier of this configuration
@@ -230,6 +240,16 @@ type ConfigurationDescriptor struct {
 	BMAttributes        ConfAttributes // Attribute bits
 	MaxPower            uint8          // Max power, in 2mA units
 	Interfaces          []Interface    // Interfaces grouped by alt settings
+}
+
+// CntMatch returns count of [InterfaceDescriptor]s (alternate settings)
+// in the ConfigurationDescriptor that match the [ClassID]
+func (conf ConfigurationDescriptor) CntMatch(id ClassID) int {
+	cnt := 0
+	for _, iff := range conf.Interfaces {
+		cnt += iff.CntMatch(id)
+	}
+	return cnt
 }
 
 // Interface represents collection of [InterfaceDescriptor]s
@@ -249,6 +269,18 @@ func (iff Interface) CntEndpoints() int {
 	return cnt
 }
 
+// CntMatch returns count of [InterfaceDescriptor]s (alternate settings)
+// that match the [ClassID]
+func (iff Interface) CntMatch(id ClassID) int {
+	cnt := 0
+	for _, alt := range iff.AltSettings {
+		if alt.Match(id) {
+			cnt++
+		}
+	}
+	return cnt
+}
+
 // InterfaceDescriptor represents the USB interface descriptor.
 type InterfaceDescriptor struct {
 	BInterfaceClass    uint8                // Interface class
@@ -261,10 +293,10 @@ type InterfaceDescriptor struct {
 }
 
 // Match reports if InterfaceDescriptor matches the [ClassID].
-func (iff InterfaceDescriptor) Match(id ClassID) bool {
-	return iff.BInterfaceClass == id.Class &&
-		iff.BInterfaceSubClass == id.SubClass &&
-		iff.BInterfaceProtocol == id.Protocol
+func (atl InterfaceDescriptor) Match(id ClassID) bool {
+	return atl.BInterfaceClass == id.Class &&
+		atl.BInterfaceSubClass == id.SubClass &&
+		atl.BInterfaceProtocol == id.Protocol
 }
 
 // EndpointDescriptor represents the USB endpoint descriptor.
