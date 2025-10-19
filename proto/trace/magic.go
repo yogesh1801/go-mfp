@@ -6,7 +6,7 @@
 //
 // Package documentation
 
-package proxy
+package trace
 
 import "bytes"
 

@@ -21,6 +21,7 @@ import (
 	"github.com/OpenPrinting/go-mfp/log"
 	"github.com/OpenPrinting/go-mfp/proto/escl"
 	"github.com/OpenPrinting/go-mfp/proto/ipp"
+	"github.com/OpenPrinting/go-mfp/proto/trace"
 	"github.com/OpenPrinting/go-mfp/transport"
 )
 
@@ -135,15 +136,15 @@ func cmdProxyHandler(ctx context.Context, inv *argv.Invocation) error {
 	ctx = log.NewContext(ctx, logger)
 
 	// Setup trace
-	var trace *traceWriter
+	var tracer *trace.Writer
 	if traceName, _ := inv.Get("-t"); traceName != "" {
 		var err error
-		trace, err = newTraceWriter(ctx, traceName)
+		tracer, err = trace.NewWriter(ctx, traceName)
 		if err != nil {
 			return err
 		}
 
-		defer trace.Close()
+		defer tracer.Close()
 	}
 
 	// Validate parameters
@@ -210,10 +211,10 @@ func cmdProxyHandler(ctx context.Context, inv *argv.Invocation) error {
 		switch m.proto {
 		case protoIPP:
 			proxy := ipp.NewProxy(m.localPath, m.targetURL)
-			if trace != nil {
+			if tracer != nil {
 				sniffer := ipp.Sniffer{
-					Request:  trace.IPPRequest,
-					Response: trace.IPPResponse,
+					Request:  tracer.IPPRequest,
+					Response: tracer.IPPResponse,
 				}
 				proxy.Sniff(sniffer)
 			}
