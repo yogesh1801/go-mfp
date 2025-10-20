@@ -225,9 +225,9 @@ func (desc DeviceDescriptor) Contains(class, subclass, proto int) bool {
 
 // CntMatch returns count of [InterfaceDescriptor]s (alternate settings)
 // in the DeviceDescriptor that match the [ClassID]
-func (conf DeviceDescriptor) CntMatch(id ClassID) int {
+func (desc DeviceDescriptor) CntMatch(id ClassID) int {
 	cnt := 0
-	for _, conf := range conf.Configurations {
+	for _, conf := range desc.Configurations {
 		cnt += conf.CntMatch(id)
 	}
 	return cnt
@@ -293,10 +293,10 @@ type InterfaceDescriptor struct {
 }
 
 // Match reports if InterfaceDescriptor matches the [ClassID].
-func (atl InterfaceDescriptor) Match(id ClassID) bool {
-	return atl.BInterfaceClass == id.Class &&
-		atl.BInterfaceSubClass == id.SubClass &&
-		atl.BInterfaceProtocol == id.Protocol
+func (alt InterfaceDescriptor) Match(id ClassID) bool {
+	return alt.BInterfaceClass == id.Class &&
+		alt.BInterfaceSubClass == id.SubClass &&
+		alt.BInterfaceProtocol == id.Protocol
 }
 
 // EndpointDescriptor represents the USB endpoint descriptor.
@@ -308,10 +308,10 @@ type EndpointDescriptor struct {
 
 // CntEndpoints returns InterfaceDescriptor's count of endpoints.
 // Please notice that the [EndpointInOut] endpoints are counted twice.
-func (iff InterfaceDescriptor) CntEndpoints() int {
+func (alt InterfaceDescriptor) CntEndpoints() int {
 	cnt := 0
 
-	for _, ep := range iff.Endpoints {
+	for _, ep := range alt.Endpoints {
 		switch ep.Type {
 		case EndpointIn, EndpointOut:
 			cnt++
