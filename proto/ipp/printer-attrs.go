@@ -1,3 +1,4 @@
+
 // MFP - Miulti-Function Printers and scanners toolkit
 // IPP - Internet Printing Protocol implementation
 //
@@ -218,9 +219,10 @@ func (pa *PrinterAttributes) KnownAttrs() []AttrInfo {
 	return ippKnownAttrs(pa)
 }
 
-// Set sets [goipp.Attibute] by name.
-func (pa *PrinterAttributes) Set(name string, attr goipp.Attribute) error {
-	return pa.set(name, attr, ippCodecGet(pa))
+// Set sets [goipp.Attibute]. It updates the appropriate structure
+// field and Object's raw attributes.
+func (pa *PrinterAttributes) Set(attr goipp.Attribute) error {
+	return pa.set(attr, pa)
 }
 
 // IsCharsetSupported tells if charset is supported

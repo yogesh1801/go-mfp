@@ -32,7 +32,8 @@ func (attrs *DeviceAttributes) KnownAttrs() []AttrInfo {
 	return ippKnownAttrs(attrs)
 }
 
-// Set sets [goipp.Attibute] by name.
-func (attrs *DeviceAttributes) Set(name string, attr goipp.Attribute) error {
-	return attrs.set(name, attr, ippCodecGet(attrs))
+// Set sets [goipp.Attibute]. It updates the appropriate structure
+// field and Object's raw attributes.
+func (attrs *DeviceAttributes) Set(attr goipp.Attribute) error {
+	return attrs.set(attr, attrs)
 }

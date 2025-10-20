@@ -72,9 +72,10 @@ func (rq *GetPrinterAttributesRequest) KnownAttrs() []AttrInfo {
 	return ippKnownAttrs(rq)
 }
 
-// Set sets [goipp.Attibute] by name.
-func (rq *GetPrinterAttributesRequest) Set(name string, attr goipp.Attribute) error {
-	return rq.set(name, attr, ippCodecGet(rq))
+// Set sets [goipp.Attibute]. It updates the appropriate structure
+// field and Object's raw attributes.
+func (rq *GetPrinterAttributesRequest) Set(attr goipp.Attribute) error {
+	return rq.set(attr, rq)
 }
 
 // Encode encodes GetPrinterAttributesRequest into the goipp.Message.
@@ -111,9 +112,10 @@ func (rsp *GetPrinterAttributesResponse) KnownAttrs() []AttrInfo {
 	return ippKnownAttrs(rsp)
 }
 
-// Set sets [goipp.Attibute] by name.
-func (rsp *GetPrinterAttributesResponse) Set(name string, attr goipp.Attribute) error {
-	return rsp.set(name, attr, ippCodecGet(rsp))
+// Set sets [goipp.Attibute]. It updates the appropriate structure
+// field and Object's raw attributes.
+func (rsp *GetPrinterAttributesResponse) Set(attr goipp.Attribute) error {
+	return rsp.set(attr, rsp)
 }
 
 // Encode encodes GetPrinterAttributesResponse into goipp.Message.
