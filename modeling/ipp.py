@@ -11,8 +11,8 @@ from enum import Enum
 # IPP tags
 class TAG(Enum):
     # Delimiters
-    END = 0x03
     ZERO = 0x00
+    END = 0x03
 
     # Groups of attributes
     OPERATION = 0x01
