@@ -25,6 +25,9 @@ type Object interface {
 	// KnownAttributes return information about known
 	// attributes of the Object
 	KnownAttrs() []AttrInfo
+
+	// GetAttr returns [goipp.Attibute] by name
+	Get(name string) (goipp.Attribute, bool)
 }
 
 // ObjectRawAttrs MUST be embedded into every IPP-encodable structure.
