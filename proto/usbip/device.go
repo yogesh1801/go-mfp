@@ -167,9 +167,8 @@ func (dev *Device) EndpointsByFunc(
 	return found
 }
 
-// EndpointsByClass returns all device endpoints that match the
+// EndpointsByClassID returns all device endpoints that match the
 // specified [usb.ClassID]
-// device interfaces with the specified class/subclass/protocol combination.
 func (dev *Device) EndpointsByClassID(id usb.ClassID) []*Endpoint {
 	match := func(alt usb.InterfaceDescriptor) bool {
 		return alt.Match(id)
