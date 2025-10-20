@@ -149,6 +149,11 @@ func (rq *CUPSGetDefaultRequest) KnownAttrs() []AttrInfo {
 	return ippKnownAttrs(rq)
 }
 
+// Set sets [goipp.Attibute] by name.
+func (rq *CUPSGetDefaultRequest) Set(name string, attr goipp.Attribute) error {
+	return rq.set(name, attr, ippCodecGet(rq))
+}
+
 // Encode encodes CUPSGetDefaultRequest into the goipp.Message.
 func (rq *CUPSGetDefaultRequest) Encode() *goipp.Message {
 	groups := goipp.Groups{
@@ -181,6 +186,11 @@ func (rq *CUPSGetDefaultRequest) Decode(msg *goipp.Message) error {
 // of the CUPSGetDefaultResponse.
 func (rsp *CUPSGetDefaultResponse) KnownAttrs() []AttrInfo {
 	return ippKnownAttrs(rsp)
+}
+
+// Set sets [goipp.Attibute] by name.
+func (rsp *CUPSGetDefaultResponse) Set(name string, attr goipp.Attribute) error {
+	return rsp.set(name, attr, ippCodecGet(rsp))
 }
 
 // Encode encodes CUPSGetDefaultResponse into goipp.Message.
@@ -240,6 +250,11 @@ func (rq *CUPSGetPrintersRequest) KnownAttrs() []AttrInfo {
 	return ippKnownAttrs(rq)
 }
 
+// Set sets [goipp.Attibute] by name.
+func (rq *CUPSGetPrintersRequest) Set(name string, attr goipp.Attribute) error {
+	return rq.set(name, attr, ippCodecGet(rq))
+}
+
 // Encode encodes CUPSGetPrintersRequest into the goipp.Message.
 func (rq *CUPSGetPrintersRequest) Encode() *goipp.Message {
 	groups := goipp.Groups{
@@ -272,6 +287,11 @@ func (rq *CUPSGetPrintersRequest) Decode(msg *goipp.Message) error {
 // of the CUPSGetPrintersResponse.
 func (rsp *CUPSGetPrintersResponse) KnownAttrs() []AttrInfo {
 	return ippKnownAttrs(rsp)
+}
+
+// Set sets [goipp.Attibute] by name.
+func (rsp *CUPSGetPrintersResponse) Set(name string, attr goipp.Attribute) error {
+	return rsp.set(name, attr, ippCodecGet(rsp))
 }
 
 // Encode encodes CUPSGetPrintersResponse into goipp.Message.
@@ -335,6 +355,11 @@ func (rq *CUPSGetDevicesRequest) KnownAttrs() []AttrInfo {
 	return ippKnownAttrs(rq)
 }
 
+// Set sets [goipp.Attibute] by name.
+func (rq *CUPSGetDevicesRequest) Set(name string, attr goipp.Attribute) error {
+	return rq.set(name, attr, ippCodecGet(rq))
+}
+
 // Encode encodes CUPSGetDevicesRequest into the goipp.Message.
 func (rq *CUPSGetDevicesRequest) Encode() *goipp.Message {
 	groups := goipp.Groups{
@@ -367,6 +392,11 @@ func (rq *CUPSGetDevicesRequest) Decode(msg *goipp.Message) error {
 // of the CUPSGetDevicesResponse.
 func (rsp *CUPSGetDevicesResponse) KnownAttrs() []AttrInfo {
 	return ippKnownAttrs(rsp)
+}
+
+// Set sets [goipp.Attibute] by name.
+func (rsp *CUPSGetDevicesResponse) Set(name string, attr goipp.Attribute) error {
+	return rsp.set(name, attr, ippCodecGet(rsp))
 }
 
 // Encode encodes CUPSGetDevicesResponse into goipp.Message.
@@ -430,6 +460,11 @@ func (rq *CUPSGetPPDsRequest) KnownAttrs() []AttrInfo {
 	return ippKnownAttrs(rq)
 }
 
+// Set sets [goipp.Attibute] by name.
+func (rq *CUPSGetPPDsRequest) Set(name string, attr goipp.Attribute) error {
+	return rq.set(name, attr, ippCodecGet(rq))
+}
+
 // Encode encodes CUPSGetPPDsRequest into the goipp.Message.
 func (rq *CUPSGetPPDsRequest) Encode() *goipp.Message {
 	groups := goipp.Groups{
@@ -462,6 +497,11 @@ func (rq *CUPSGetPPDsRequest) Decode(msg *goipp.Message) error {
 // of the CUPSGetPPDsResponse.
 func (rsp *CUPSGetPPDsResponse) KnownAttrs() []AttrInfo {
 	return ippKnownAttrs(rsp)
+}
+
+// Set sets [goipp.Attibute] by name.
+func (rsp *CUPSGetPPDsResponse) Set(name string, attr goipp.Attribute) error {
+	return rsp.set(name, attr, ippCodecGet(rsp))
 }
 
 // Encode encodes CUPSGetPPDsResponse into goipp.Message.
@@ -525,6 +565,11 @@ func (rq *CUPSGetPPDRequest) KnownAttrs() []AttrInfo {
 	return ippKnownAttrs(rq)
 }
 
+// Set sets [goipp.Attibute] by name.
+func (rq *CUPSGetPPDRequest) Set(name string, attr goipp.Attribute) error {
+	return rq.set(name, attr, ippCodecGet(rq))
+}
+
 // Encode encodes CUPSGetPPDRequest into the goipp.Message.
 func (rq *CUPSGetPPDRequest) Encode() *goipp.Message {
 	groups := goipp.Groups{
@@ -557,6 +602,11 @@ func (rq *CUPSGetPPDRequest) Decode(msg *goipp.Message) error {
 // of the CUPSGetPPDResponse.
 func (rsp *CUPSGetPPDResponse) KnownAttrs() []AttrInfo {
 	return ippKnownAttrs(rsp)
+}
+
+// Set sets [goipp.Attibute] by name.
+func (rsp *CUPSGetPPDResponse) Set(name string, attr goipp.Attribute) error {
+	return rsp.set(name, attr, ippCodecGet(rsp))
 }
 
 // Encode encodes CUPSGetPPDResponse into goipp.Message.

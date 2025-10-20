@@ -8,7 +8,11 @@
 
 package ipp
 
-import "github.com/OpenPrinting/goipp"
+import (
+	"errors"
+
+	"github.com/OpenPrinting/goipp"
+)
 
 // Object is the interface that MUST be implemented by any
 // concrete type that can be encoded to and decoded from the
@@ -26,8 +30,13 @@ type Object interface {
 	// attributes of the Object
 	KnownAttrs() []AttrInfo
 
-	// GetAttr returns [goipp.Attibute] by name
+	// Get returns [goipp.Attibute] by name
 	Get(name string) (goipp.Attribute, bool)
+
+	// Set sets [goipp.Attibute] by name. It updates both
+	// object raw attributes and the corresponding field
+	// in the object structure (if any).
+	Set(name string, attr goipp.Attribute) error
 }
 
 // ObjectRawAttrs MUST be embedded into every IPP-encodable structure.
@@ -55,6 +64,14 @@ func (rawattrs *ObjectRawAttrs) Get(name string) (
 
 	attr, found = rawattrs.byName[name]
 	return
+}
+
+// set sets attribute by name and updates the outer structure that
+// contains the ObjectRawAttrs (hence the need for ippCodec to
+// obtain information about the attribute).
+func (rawattrs *ObjectRawAttrs) set(name string, attr goipp.Attribute,
+	codec *ippCodec) error {
+	return errors.New("not implemented")
 }
 
 // setattrs saves all raw IPP attributes

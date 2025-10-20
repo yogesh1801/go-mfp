@@ -72,6 +72,11 @@ func (rq *GetPrinterAttributesRequest) KnownAttrs() []AttrInfo {
 	return ippKnownAttrs(rq)
 }
 
+// Set sets [goipp.Attibute] by name.
+func (rq *GetPrinterAttributesRequest) Set(name string, attr goipp.Attribute) error {
+	return rq.set(name, attr, ippCodecGet(rq))
+}
+
 // Encode encodes GetPrinterAttributesRequest into the goipp.Message.
 func (rq *GetPrinterAttributesRequest) Encode() *goipp.Message {
 	groups := goipp.Groups{
@@ -104,6 +109,11 @@ func (rq *GetPrinterAttributesRequest) Decode(msg *goipp.Message) error {
 // of the GetPrinterAttributesResponse.
 func (rsp *GetPrinterAttributesResponse) KnownAttrs() []AttrInfo {
 	return ippKnownAttrs(rsp)
+}
+
+// Set sets [goipp.Attibute] by name.
+func (rsp *GetPrinterAttributesResponse) Set(name string, attr goipp.Attribute) error {
+	return rsp.set(name, attr, ippCodecGet(rsp))
 }
 
 // Encode encodes GetPrinterAttributesResponse into goipp.Message.

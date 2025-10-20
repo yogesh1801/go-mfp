@@ -218,6 +218,11 @@ func (pa *PrinterAttributes) KnownAttrs() []AttrInfo {
 	return ippKnownAttrs(pa)
 }
 
+// Set sets [goipp.Attibute] by name.
+func (pa *PrinterAttributes) Set(name string, attr goipp.Attribute) error {
+	return pa.set(name, attr, ippCodecGet(pa))
+}
+
 // IsCharsetSupported tells if charset is supported
 func (pa *PrinterAttributes) IsCharsetSupported(cs string) bool {
 	for _, supp := range pa.CharsetSupported {

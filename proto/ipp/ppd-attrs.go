@@ -8,7 +8,10 @@
 
 package ipp
 
-import "github.com/OpenPrinting/go-mfp/util/optional"
+import (
+	"github.com/OpenPrinting/go-mfp/util/optional"
+	"github.com/OpenPrinting/goipp"
+)
 
 // PPDFilter specifies the subset of PPD files and their attributes,
 // returned by the CUPS-Get-PPDs request.
@@ -36,4 +39,9 @@ type PPDAttributes struct {
 // of the PPDAttributes
 func (attrs *PPDAttributes) KnownAttrs() []AttrInfo {
 	return ippKnownAttrs(attrs)
+}
+
+// Set sets [goipp.Attibute] by name.
+func (attrs *PPDAttributes) Set(name string, attr goipp.Attribute) error {
+	return attrs.set(name, attr, ippCodecGet(attrs))
 }

@@ -8,7 +8,10 @@
 
 package ipp
 
-import "github.com/OpenPrinting/go-mfp/util/optional"
+import (
+	"github.com/OpenPrinting/go-mfp/util/optional"
+	"github.com/OpenPrinting/goipp"
+)
 
 // DeviceAttributes represents device attributes, as returned by
 // the CUPS-Get-Devices request
@@ -27,4 +30,9 @@ type DeviceAttributes struct {
 // of the DeviceAttributes
 func (attrs *DeviceAttributes) KnownAttrs() []AttrInfo {
 	return ippKnownAttrs(attrs)
+}
+
+// Set sets [goipp.Attibute] by name.
+func (attrs *DeviceAttributes) Set(name string, attr goipp.Attribute) error {
+	return attrs.set(name, attr, ippCodecGet(attrs))
 }

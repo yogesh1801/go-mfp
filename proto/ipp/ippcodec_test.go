@@ -274,6 +274,7 @@ type testFakeObject int
 func (testFakeObject) RawAttrs() *ObjectRawAttrs          { return nil }
 func (testFakeObject) KnownAttrs() []AttrInfo             { return nil }
 func (testFakeObject) Get(string) (goipp.Attribute, bool) { return goipp.Attribute{}, false }
+func (testFakeObject) Set(string, goipp.Attribute) error  { return nil }
 
 // TestIppEncodeDecodeAttrsPanic tests panic in
 // ippEncodeAttrs and ippDecodeAttrs
