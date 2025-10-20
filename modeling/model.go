@@ -84,7 +84,7 @@ func NewModel() (*Model, error) {
 		return nil, err
 	}
 
-	model.modIPP, err = py.Load(embedPyEscl, "ipp", "ipp.py")
+	model.modIPP, err = py.Load(embedPyIPP, "ipp", "ipp.py")
 	if err != nil {
 		return nil, err
 	}
