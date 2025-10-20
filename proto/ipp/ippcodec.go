@@ -47,7 +47,7 @@ func ippDecodeAttrs(obj Object, attrs goipp.Attributes) error {
 
 	err := codec.decodeAttrs(obj, attrs)
 	if err == nil {
-		obj.RawAttrs().set(attrs)
+		obj.RawAttrs().setattrs(attrs)
 	}
 
 	return err

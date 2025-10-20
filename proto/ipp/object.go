@@ -57,8 +57,8 @@ func (rawattrs *ObjectRawAttrs) Get(name string) (
 	return
 }
 
-// set saves raw IPP attributes
-func (rawattrs *ObjectRawAttrs) set(attrs goipp.Attributes) {
+// setattrs saves all raw IPP attributes
+func (rawattrs *ObjectRawAttrs) setattrs(attrs goipp.Attributes) {
 	rawattrs.attrs = make(goipp.Attributes, 0, len(attrs))
 	rawattrs.byName = make(map[string]goipp.Attribute, len(attrs))
 
