@@ -66,9 +66,10 @@ func ippKnownAttrs(obj Object) []AttrInfo {
 // then reused, to minimize performance overhead associated with
 // reflection
 type ippCodec struct {
-	t          reflect.Type   // Type of structure
-	steps      []ippCodecStep // Encoding/decoding steps
-	knownAttrs []AttrInfo     // Known attributes
+	t           reflect.Type             // Type of structure
+	steps       []ippCodecStep           // Encoding/decoding steps
+	stepsByName map[string]*ippCodecStep // Steps indexed by attribute name
+	knownAttrs  []AttrInfo               // Known attributes
 }
 
 // ippCodecStep represents a single encoding/decoding step for the
@@ -157,9 +158,12 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 		return nil, err
 	}
 
-	// Build knownAttrs
+	// Build stepsByName and knownAttrs
+	codec.stepsByName = make(map[string]*ippCodecStep, len(codec.steps))
 	codec.knownAttrs = make([]AttrInfo, len(codec.steps))
+
 	for i := range codec.steps {
+		codec.stepsByName[codec.steps[i].attrName] = &codec.steps[i]
 		codec.knownAttrs[i].Name = codec.steps[i].attrName
 		codec.knownAttrs[i].Tag = codec.steps[i].attrTag
 	}
@@ -478,6 +482,20 @@ func (codec ippCodec) doDecode(out interface{}, attrs goipp.Attributes) error {
 		panic(err)
 	}
 
+	p := unsafe.Pointer(v.Pointer())
+
+	// Special optimization for a single attribute, used by Object.Set
+	if len(attrs) == 1 {
+		step := codec.stepsByName[attrs[0].Name]
+
+		var err error
+		if step != nil {
+			err = codec.doDecodeStep(p, *step, attrs[0])
+		}
+
+		return err
+	}
+
 	// Build map of attributes
 	attrByName := make(map[string]goipp.Attribute)
 	for _, attr := range attrs {
@@ -492,44 +510,54 @@ func (codec ippCodec) doDecode(out interface{}, attrs goipp.Attributes) error {
 	}
 
 	// Now decode, step by step
-	p := unsafe.Pointer(v.Pointer())
 	for _, step := range codec.steps {
 		// Lookup the attribute
 		attr, found := attrByName[step.attrName]
-		if !found {
-			// FIXME: place to handle required attributes
-			continue
-		}
-
-		// If not slice, at least one value must be present
-		// IPP protocol doesn't allow attributes without values
-		// and github.com/OpenPrinting/goipp will never return
-		// them.
-		//
-		// So if Values slice is empty, this is artificial construct.
-		// Reject it in this case.
-		if len(attr.Values) == 0 {
-			err := fmt.Errorf("%q: at least 1 value required",
-				step.attrName)
-			return err
-		}
-
-		// Call decoder
-		err := step.decode(unsafe.Pointer(uintptr(p)+step.offset),
-			attr.Values)
-
-		var conv ippErrConvert
-		if errors.As(err, &conv) && conv.from == goipp.TypeVoid {
-			step.setzero(unsafe.Pointer(uintptr(p) + step.offset))
-			err = nil
-		}
-
-		if err != nil {
-			return fmt.Errorf("%q: %w", step.attrName, err)
+		if found {
+			err := codec.doDecodeStep(p, step, attr)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
 	return nil
+}
+
+// doDecodeStep decodes a single attribute.
+// p is the unsafe.Pointer to the outer structure.
+func (codec ippCodec) doDecodeStep(p unsafe.Pointer,
+	step ippCodecStep, attr goipp.Attribute) error {
+
+	// At least one attribute value must be present.
+	//
+	// IPP protocol doesn't allow attributes without values
+	// and github.com/OpenPrinting/goipp will never returns
+	// them.
+	//
+	// So if Values slice is empty, this is artificial construct.
+	// Reject it in this case.
+	if len(attr.Values) == 0 {
+		err := fmt.Errorf("%q: at least 1 value required",
+			step.attrName)
+		return err
+	}
+
+	// Call decoder
+	err := step.decode(unsafe.Pointer(uintptr(p)+step.offset),
+		attr.Values)
+
+	var conv ippErrConvert
+	if errors.As(err, &conv) && conv.from == goipp.TypeVoid {
+		step.setzero(unsafe.Pointer(uintptr(p) + step.offset))
+		err = nil
+	}
+
+	if err != nil {
+		err = fmt.Errorf("%q: %w", step.attrName, err)
+	}
+
+	return err
 }
 
 // ippCodecMethods contains per-type encode and decode functions
