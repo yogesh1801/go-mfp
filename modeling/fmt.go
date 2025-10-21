@@ -165,18 +165,25 @@ func (f *formatter) formatArray(obj *cpython.Object, indent int) {
 	// Here we also decide, will we use horizontal o vertical
 	// output format.
 	vals := make([]*cpython.Object, length)
-	horizontal := true
+	width := 0
 	for i := 0; i < length; i++ {
+		// Fill array of values
 		vals[i], f.err = obj.Get(i)
 		if f.err != nil {
 			return
 		}
 
-		// Use horizontal format for a sequence of keywords,
-		// they all are Unicode strings from the Python point
-		// of view.
-		horizontal = horizontal && vals[i].IsUnicode()
+		// Compute total width
+		var s string
+		s, f.err = vals[i].Repr()
+		if f.err != nil {
+			return
+		}
+
+		width += len(s) + 3
 	}
+
+	horizontal := width <= 60
 
 	// Format the array
 	f.write("[")

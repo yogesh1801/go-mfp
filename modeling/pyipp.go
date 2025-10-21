@@ -13,7 +13,6 @@ import (
 
 	"github.com/OpenPrinting/go-mfp/cpython"
 	"github.com/OpenPrinting/go-mfp/proto/ipp"
-	"github.com/OpenPrinting/go-mfp/util/generic"
 	"github.com/OpenPrinting/goipp"
 )
 
@@ -52,32 +51,13 @@ func (model *Model) pyExportIPPAttrs(attrs goipp.Attributes) (
 func (model *Model) pyExportIPPValues(vals goipp.Values) (
 	*cpython.Object, error) {
 
-	objs := []*cpython.Object{}
-	prevTag := goipp.TagZero
-
+	objs := make([]*cpython.Object, 0, len(vals))
 	for _, v := range vals {
-		// Export IPP tag, if needed
-		switch {
-		case v.T == prevTag:
-		case prevTag == goipp.TagZero && pyIPPTagNotNeeded.Contains(v.T):
-		default:
-			obj, err := model.pyExportIPPTag(v.T)
-			if err != nil {
-				return nil, err
-			}
-			objs = append(objs, obj)
+		obj, err := model.pyExportIPPValue(v.T, v.V)
+		if err != nil {
+			return nil, err
 		}
-
-		prevTag = v.T
-
-		// Export value
-		if v.T.Type() != goipp.TypeVoid {
-			obj, err := model.pyExportIPPValue(v.T, v.V)
-			if err != nil {
-				return nil, err
-			}
-			objs = append(objs, obj)
-		}
+		objs = append(objs, obj)
 	}
 
 	if len(objs) == 1 {
@@ -87,49 +67,49 @@ func (model *Model) pyExportIPPValues(vals goipp.Values) (
 	return model.py.NewObject(objs)
 }
 
-var pyIPPTagNotNeeded = generic.NewSetOf(
-	goipp.TagInteger,
-	goipp.TagBoolean,
-	goipp.TagKeyword,
-	goipp.TagBeginCollection,
-)
-
-// pyExportIPPTag exports IPP tag as [cpython.Object].
-func (model *Model) pyExportIPPTag(tag goipp.Tag) (*cpython.Object, error) {
-	s := pyIPPTagName[tag]
-
-	if s == "" {
-		return nil, fmt.Errorf("invalid IPP tag %d", int(tag))
-	}
-
-	return model.py.Eval("ipp.TAG." + s)
-}
-
 // pyExportIPPValue exports IPP value as [cpython.Object].
 func (model *Model) pyExportIPPValue(tag goipp.Tag, val goipp.Value) (
 	*cpython.Object, error) {
 
+	// Collections handled the special way
+	if v, ok := val.(goipp.Collection); ok {
+		return model.pyExportIPPAttrs(goipp.Attributes(v))
+	}
+
+	// Obtain name of the Python type
+	pytypename := pyIPPTagName[tag]
+	if pytypename == "" {
+		return nil, fmt.Errorf("invalid IPP tag %d", int(tag))
+	}
+
+	pytypename = "ipp." + pytypename
+
+	// Obtain constructor
+	pytype, err := model.py.Eval(pytypename)
+	if err != nil {
+		return nil, err
+	}
+
+	// Encode the value
 	switch v := val.(type) {
 	case goipp.Void:
-		return model.pyExportIPPTag(tag)
+		return pytype.Call()
 	case goipp.Integer:
-		return model.py.NewObject(v)
+		return pytype.Call(v)
 	case goipp.Boolean:
-		return model.py.Bool(bool(v)), nil
+		return pytype.Call(bool(v))
 	case goipp.String:
-		return model.py.NewObject(v)
+		return pytype.Call(v)
 	case goipp.Time:
-		return model.py.NewObject(v.String())
+		return pytype.Call(v.String())
 	case goipp.Resolution:
-		return model.py.NewObject(v.String())
+		return pytype.Call(v.Xres, v.Yres, v.Units.String())
 	case goipp.Range:
-		return model.py.NewObject(v.String())
+		return pytype.Call(v.Lower, v.Upper)
 	case goipp.TextWithLang:
-		return model.py.NewObject(v.String())
+		return pytype.Call(v.Text, v.Lang)
 	case goipp.Binary:
-		return model.py.NewObject(string(v))
-	case goipp.Collection:
-		return model.pyExportIPPAttrs(goipp.Attributes(v))
+		return pytype.Call(string(v))
 	}
 
 	return model.py.None(), nil

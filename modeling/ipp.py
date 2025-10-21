@@ -6,6 +6,7 @@
 #
 # IPP-related definitions
 
+from dataclasses import dataclass
 from enum import Enum
 
 # IPP tags
@@ -62,6 +63,146 @@ class TAG(Enum):
     # Formatting
     def __repr__ (self):
         return 'ipp.TAG.' + self.name
+
+# IPP_TAG_UNSUPPORTED_VALUE
+class UNSUPPORTED_VALUE:
+    def __repr__ (self):
+        return 'ipp.UNSUPPORTED_VALUE'
+
+# IPP_TAG_DEFAULT
+class DEFAULT:
+    def __repr__ (self):
+        return 'ipp.DEFAULT'
+
+# IPP_TAG_UNKNOWN
+class UNKNOWN:
+    def __repr__ (self):
+        return 'ipp.UNKNOWN'
+
+# IPP_TAG_NOVALUE
+class NOVALUE:
+    def __repr__ (self):
+        return 'ipp.NOVALUE'
+
+# IPP_TAG_NOTSETTABLE
+class NOTSETTABLE:
+    def __repr__ (self):
+        return 'ipp.NOTSETTABLE'
+
+# IPP_TAG_DELETEATTR
+class DELETEATTR:
+    def __repr__ (self):
+        return 'ipp.DELETEATTR'
+
+# IPP_TAG_ADMINDEFINE
+class ADMINDEFINE:
+    def __repr__ (self):
+        return 'ipp.ADMINDEFINE'
+
+
+
+
+# IPP_TAG_INTEGER
+class INTEGER(int):
+    def __repr__ (self):
+        return 'ipp.INTEGER(' + repr(int(self)) + ')'
+
+# IPP_TAG_BOOLEAN
+class BOOLEAN(str):
+    def __repr__ (self):
+        return 'ipp.BOOLEAN(' + repr(bool(self)) + ')'
+
+# IPP_TAG_ENUM
+class ENUM(str):
+    def __repr__ (self):
+        return 'ipp.ENUM(' + repr(int(self)) + ')'
+
+# IPP_TAG_STRING
+class STRING(str):
+    def __repr__ (self):
+        return 'ipp.STRING(' + repr(str(self)) + ')'
+
+# IPP_TAG_DATE
+class DATE(str):
+    def __repr__ (self):
+        return 'ipp.DATE(' + repr(str(self)) + ')'
+
+# IPP_TAG_RESOLUTION
+@dataclass
+class RESOLUTION:
+    X: int
+    Y: int
+    Units: str
+
+    def __repr__ (self):
+        return 'ipp.RESOLUTION(' + repr(self.X) + ', ' + repr(self.Y) + ', ' + repr(self.Units) + ')'
+
+# IPP_TAG_RANGE
+@dataclass
+class RANGE:
+    Min: int
+    Max: int
+
+    def __repr__ (self):
+        return 'ipp.RANGE(' + repr(self.Min) + ', ' + repr(self.Max) + ')'
+
+# IPP_TAG_TEXTLANG
+@dataclass
+class TEXTLANG:
+    Text: str
+    Lang: str
+
+    def __repr__ (self):
+        return 'ipp.TEXTLANG(' + repr(self.Text) + ', ' + repr(self.Lang) + ')'
+
+# IPP_TAG_NAMELANG
+@dataclass
+class NAMELANG:
+    Name: str
+    Lang: str
+
+    def __repr__ (self):
+        return 'ipp.NAMELANG(' + repr(self.Name) + ', ' + repr(self.Lang) + ')'
+
+# IPP_TAG_TEXT
+class TEXT(str):
+    def __repr__ (self):
+        return 'ipp.TEXT(' + repr(str(self)) + ')'
+
+# IPP_TAG_NAME
+class NAME(str):
+    def __repr__ (self):
+        return 'ipp.NAME(' + repr(str(self)) + ')'
+
+# IPP_TAG_KEYWORD
+class KEYWORD(str):
+    def __repr__ (self):
+        return 'ipp.KEYWORD(' + repr(str(self)) + ')'
+
+# IPP_TAG_URI
+class URI(str):
+    def __repr__ (self):
+        return 'ipp.URI(' + repr(str(self)) + ')'
+
+# IPP_TAG_URISCHEME
+class URISCHEME(str):
+    def __repr__ (self):
+        return 'ipp.URISCHEME(' + repr(str(self)) + ')'
+
+# IPP_TAG_CHARSET
+class CHARSET(str):
+    def __repr__ (self):
+        return 'ipp.CHARSET(' + repr(str(self)) + ')'
+
+# IPP_TAG_LANGUAGE
+class LANGUAGE(str):
+    def __repr__ (self):
+        return 'ipp.LANGUAGE(' + repr(str(self)) + ')'
+
+# IPP_TAG_MIMETYPE
+class MIMETYPE(str):
+    def __repr__ (self):
+        return 'ipp.MIMETYPE(' + repr(str(self)) + ')'
 
 # attrs is the model-settable variable that defines the
 # IPP printer attributes
