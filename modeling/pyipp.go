@@ -9,8 +9,11 @@
 package modeling
 
 import (
+	"fmt"
+
 	"github.com/OpenPrinting/go-mfp/cpython"
 	"github.com/OpenPrinting/go-mfp/proto/ipp"
+	"github.com/OpenPrinting/go-mfp/util/generic"
 	"github.com/OpenPrinting/goipp"
 )
 
@@ -49,12 +52,31 @@ func (model *Model) pyExportIPPAttrs(attrs goipp.Attributes) (
 func (model *Model) pyExportIPPValues(vals goipp.Values) (
 	*cpython.Object, error) {
 
-	objs := make([]*cpython.Object, len(vals))
-	for i := range objs {
-		var err error
-		objs[i], err = model.pyExportIPPValue(vals[i].T, vals[i].V)
-		if err != nil {
-			return nil, err
+	objs := []*cpython.Object{}
+	prevTag := goipp.TagZero
+
+	for _, v := range vals {
+		// Export IPP tag, if needed
+		switch {
+		case v.T == prevTag:
+		case prevTag == goipp.TagZero && pyIPPTagNotNeeded.Contains(v.T):
+		default:
+			obj, err := model.pyExportIPPTag(v.T)
+			if err != nil {
+				return nil, err
+			}
+			objs = append(objs, obj)
+		}
+
+		prevTag = v.T
+
+		// Export value
+		if v.T.Type() != goipp.TypeVoid {
+			obj, err := model.pyExportIPPValue(v.T, v.V)
+			if err != nil {
+				return nil, err
+			}
+			objs = append(objs, obj)
 		}
 	}
 
@@ -65,13 +87,31 @@ func (model *Model) pyExportIPPValues(vals goipp.Values) (
 	return model.py.NewObject(objs)
 }
 
-// pyExportIPPValue exports a single IPP value into the [cpython.Object].
+var pyIPPTagNotNeeded = generic.NewSetOf(
+	goipp.TagInteger,
+	goipp.TagBoolean,
+	goipp.TagKeyword,
+	goipp.TagBeginCollection,
+)
+
+// pyExportIPPTag exports IPP tag as [cpython.Object].
+func (model *Model) pyExportIPPTag(tag goipp.Tag) (*cpython.Object, error) {
+	s := pyIPPTagName[tag]
+
+	if s == "" {
+		return nil, fmt.Errorf("invalid IPP tag %d", int(tag))
+	}
+
+	return model.py.Eval("ipp.TAG." + s)
+}
+
+// pyExportIPPValue exports IPP value as [cpython.Object].
 func (model *Model) pyExportIPPValue(tag goipp.Tag, val goipp.Value) (
 	*cpython.Object, error) {
 
 	switch v := val.(type) {
 	case goipp.Void:
-		return model.py.None(), nil
+		return model.pyExportIPPTag(tag)
 	case goipp.Integer:
 		return model.py.NewObject(v)
 	case goipp.Boolean:

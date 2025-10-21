@@ -59,6 +59,10 @@ class TAG(Enum):
     END_COLLECTION = 0x37
     MEMBERNAME = 0x4a
 
+    # Formatting
+    def __repr__ (self):
+        return 'ipp.TAG.' + self.name
+
 # attrs is the model-settable variable that defines the
 # IPP printer attributes
 attrs = None
