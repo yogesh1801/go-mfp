@@ -77,30 +77,27 @@ class DEFAULT:
 # IPP_TAG_UNKNOWN
 class UNKNOWN:
     def __repr__ (self):
-        return 'ipp.UNKNOWN'
+        return 'ipp.UNKNOWN()'
 
 # IPP_TAG_NOVALUE
 class NOVALUE:
     def __repr__ (self):
-        return 'ipp.NOVALUE'
+        return 'ipp.NOVALUE()'
 
 # IPP_TAG_NOTSETTABLE
 class NOTSETTABLE:
     def __repr__ (self):
-        return 'ipp.NOTSETTABLE'
+        return 'ipp.NOTSETTABLE()'
 
 # IPP_TAG_DELETEATTR
 class DELETEATTR:
     def __repr__ (self):
-        return 'ipp.DELETEATTR'
+        return 'ipp.DELETEATTR()'
 
 # IPP_TAG_ADMINDEFINE
 class ADMINDEFINE:
     def __repr__ (self):
-        return 'ipp.ADMINDEFINE'
-
-
-
+        return 'ipp.ADMINDEFINE()'
 
 # IPP_TAG_INTEGER
 class INTEGER(int):
@@ -108,12 +105,18 @@ class INTEGER(int):
         return 'ipp.INTEGER(' + repr(int(self)) + ')'
 
 # IPP_TAG_BOOLEAN
-class BOOLEAN(str):
+@dataclass
+class BOOLEAN:
+    Val : bool
+
+    def __bool__ (self):
+        return self.Val
+
     def __repr__ (self):
-        return 'ipp.BOOLEAN(' + repr(bool(self)) + ')'
+        return 'ipp.BOOLEAN(' + repr(bool(self.Val)) + ')'
 
 # IPP_TAG_ENUM
-class ENUM(str):
+class ENUM(int):
     def __repr__ (self):
         return 'ipp.ENUM(' + repr(int(self)) + ')'
 
