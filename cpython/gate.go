@@ -245,6 +245,24 @@ func (gate pyGate) typename(pyobj pyObject) string {
 	return name
 }
 
+// typemodulename returns name of the module where PyObject's
+// type is defined.
+func (gate pyGate) typemodulename(pyobj pyObject) string {
+	name := "unknown"
+
+	t := pyObject(unsafe.Pointer(C.py_obj_type(pyobj)))
+	if tmp, err := gate.getattr(t, "__module__"); err == nil {
+		s, err := gate.str(tmp)
+		C.py_obj_unref(tmp)
+
+		if err == nil {
+			name = s
+		}
+	}
+
+	return name
+}
+
 // length returns length of container object (list, tuple, dict, ...)
 // in items.
 func (gate pyGate) length(pyobj pyObject) (int, error) {

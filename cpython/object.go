@@ -463,6 +463,16 @@ func (obj *Object) TypeName() string {
 	return gate.typename(pyobj)
 }
 
+// TypeModuleName returns name of the module where Object's Python type
+// is defined.
+func (obj *Object) TypeModuleName() string {
+	gate := obj.py.gate()
+	defer gate.release()
+
+	pyobj := obj.py.lookupObjID(gate, obj.oid)
+	return gate.typemodulename(pyobj)
+}
+
 // IsCallable reports if Object is callable.
 func (obj *Object) IsCallable() bool {
 	return objDoNoError(obj, pyGate.callable)
