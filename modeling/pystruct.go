@@ -120,8 +120,8 @@ func (model *Model) pyExportValue(v reflect.Value) (*cpython.Object, error) {
 	return model.py.NewObject(data)
 }
 
-// pyImportStruct the Python object into the Go struucture, that expected
-// to be the protocol object.
+// pyImportStruct converts the Python object into the Go structure,
+// that expected to be the protocol object.
 //
 // p MUST be pointer to struct or pointer to pointer to struct.
 func (model *Model) pyImportStruct(p any, obj *cpython.Object) error {
