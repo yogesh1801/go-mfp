@@ -50,7 +50,7 @@ func TestObjectFromPython(t *testing.T) {
 	tests := []testData{
 		{expr: `None`, val: true, unbox: unboxNone},
 		{expr: `True`, val: true, unbox: unboxBool},
-		{expr: `0`, unbox: unboxBool, mustfail: true},
+		{expr: `0`, val: false, unbox: unboxBool},
 		{expr: `False`, val: false, unbox: unboxBool},
 		{expr: `"hello"`, val: "hello", unbox: unboxUnicode},
 		{expr: `"привет"`, val: "привет", unbox: unboxUnicode},

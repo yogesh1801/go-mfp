@@ -381,6 +381,30 @@ func (obj *Object) Bigint() (*big.Int, error) {
 
 // Bool returns Object value as bool or an error.
 func (obj *Object) Bool() (bool, error) {
+	// Try the fast conversion
+	val, err := obj.fastBool()
+	if err == nil {
+		return val, nil
+	}
+
+	// Try to call the __bool__ method
+	toBool, _ := obj.GetAttr("__bool__")
+	if toBool != nil {
+		answer, _ := toBool.Call()
+		if answer != nil {
+			val, err2 := answer.fastBool()
+			if err2 == nil {
+				return val, nil
+			}
+		}
+	}
+
+	return false, err
+}
+
+// fastBool returns Object value as bool or an error.
+// This is the fast path for Obkect.Bool.
+func (obj *Object) fastBool() (bool, error) {
 	gate := obj.py.gate()
 	defer gate.release()
 
