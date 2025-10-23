@@ -21,7 +21,8 @@ import (
 
 // pyExportIPP converts the [ipp.Object] into the [cpython.Object].
 func (model *Model) pyExportIPP(s ipp.Object) (*cpython.Object, error) {
-	return model.pyExportIPPAttrs(s.RawAttrs().All())
+	obj, err := model.pyExportIPPAttrs(s.RawAttrs().All())
+	return obj, err
 }
 
 // pyExportIPPAttrs exports IPP attributes into the [cpython.Object].
@@ -145,7 +146,7 @@ func (model *Model) pyImportIPPAttrs(obj *cpython.Object) (
 		var valobj *cpython.Object
 
 		// Obtain key name and value
-		key, err = keyobjs[i].Repr()
+		key, err = keyobjs[i].Str()
 		if err == nil {
 			valobj, err = obj.Get(keyobjs[i])
 		}
@@ -207,6 +208,7 @@ func (model *Model) pyImportIPPValues(obj *cpython.Object) (
 	return vals, nil
 }
 
+// pyImportIPPValue imports IPP value from the Python object
 func (model *Model) pyImportIPPValue(obj *cpython.Object) (
 	tag goipp.Tag, val goipp.Value, err error) {
 
@@ -225,7 +227,7 @@ func (model *Model) pyImportIPPValue(obj *cpython.Object) (
 			var data bool
 			data, err = obj.Bool()
 			val = goipp.Boolean(data)
-		case goipp.TypeString:
+		case goipp.TypeString, goipp.TypeBinary:
 			var data string
 			data, err = obj.Str()
 			val = goipp.String(data)
@@ -244,12 +246,11 @@ func (model *Model) pyImportIPPValue(obj *cpython.Object) (
 
 			val = goipp.Time{Time: t}
 		case goipp.TypeResolution:
+			val, err = model.pyImportIPPResolution(obj)
 		case goipp.TypeRange:
+			val, err = model.pyImportIPPRange(obj)
 		case goipp.TypeTextWithLang:
-		case goipp.TypeBinary:
-			var data []byte
-			data, err = obj.Bytes()
-			val = goipp.Binary(data)
+			val, err = model.pyImportIPPTextWithLang(obj, tag)
 		default:
 			err = fmt.Errorf("ipp.%s: unknown type", typename)
 		}
@@ -265,6 +266,143 @@ func (model *Model) pyImportIPPValue(obj *cpython.Object) (
 	}
 
 	err = fmt.Errorf("%s cannot be converted to IPP value", obj.TypeName())
+	return
+}
+
+// pyImportIPPResolution imports IPP resolution from the Python object
+func (model *Model) pyImportIPPResolution(obj *cpython.Object) (
+	res goipp.Resolution, err error) {
+
+	var x, y int64
+	var units goipp.Units
+
+	// Load Xres
+	obj2, err := obj.GetAttr("X")
+	if err == nil {
+		x, err = obj2.Int()
+	}
+
+	if err != nil {
+		err = pyIPPImportErrorWrap("X", err)
+		return
+	}
+
+	// Load Yres
+	obj2, err = obj.GetAttr("Y")
+	if err == nil {
+		y, err = obj2.Int()
+	}
+
+	if err != nil {
+		err = pyIPPImportErrorWrap("Y", err)
+		return
+	}
+
+	// Load Units
+	obj2, err = obj.GetAttr("Units")
+	if err == nil {
+		var s string
+		s, err = obj2.Str()
+
+		switch {
+		case err != nil:
+		case s == "dpi":
+			units = goipp.UnitsDpi
+		case s == "dpcm":
+			units = goipp.UnitsDpcm
+		default:
+			err = fmt.Errorf("%s: invalid resolution units", s)
+		}
+	}
+
+	if err != nil {
+		err = pyIPPImportErrorWrap("Units", err)
+		return
+	}
+
+	res = goipp.Resolution{
+		Xres:  int(x),
+		Yres:  int(y),
+		Units: units,
+	}
+
+	return
+}
+
+// pyImportIPPRange imports IPP range from the Python object
+func (model *Model) pyImportIPPRange(obj *cpython.Object) (
+	rng goipp.Range, err error) {
+
+	var lower, upper int64
+
+	// Load Lower
+	obj2, err := obj.GetAttr("Lower")
+	if err == nil {
+		lower, err = obj2.Int()
+	}
+
+	if err != nil {
+		err = pyIPPImportErrorWrap("Lower", err)
+		return
+	}
+
+	// Load Upper
+	obj2, err = obj.GetAttr("Upper")
+	if err == nil {
+		upper, err = obj2.Int()
+	}
+
+	if err != nil {
+		err = pyIPPImportErrorWrap("Upper", err)
+		return
+	}
+
+	rng = goipp.Range{
+		Lower: int(lower),
+		Upper: int(upper),
+	}
+
+	return
+}
+
+// pyImportIPPTextWithLang imports IPP text with language from the Python object
+func (model *Model) pyImportIPPTextWithLang(obj *cpython.Object, tag goipp.Tag) (
+	txt goipp.TextWithLang, err error) {
+
+	var lang, text string
+
+	// Load lang
+	obj2, err := obj.GetAttr("Lang")
+	if err == nil {
+		lang, err = obj2.Str()
+	}
+
+	if err != nil {
+		err = pyIPPImportErrorWrap("Lang", err)
+		return
+	}
+
+	// Load Text or Name
+	nm := "Text"
+	if tag == goipp.TagNameLang {
+		nm = "Name"
+	}
+
+	obj2, err = obj.GetAttr(nm)
+	if err == nil {
+		text, err = obj2.Str()
+	}
+
+	if err != nil {
+		err = pyIPPImportErrorWrap(nm, err)
+		return
+	}
+
+	txt = goipp.TextWithLang{
+		Lang: lang,
+		Text: text,
+	}
+
 	return
 }
 

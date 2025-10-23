@@ -143,11 +143,11 @@ class RESOLUTION:
 # IPP_TAG_RANGE
 @dataclass
 class RANGE:
-    Min: int
-    Max: int
+    Lower: int
+    Upper: int
 
     def __repr__ (self):
-        return 'ipp.RANGE(' + repr(self.Min) + ', ' + repr(self.Max) + ')'
+        return 'ipp.RANGE(' + repr(self.Lower) + ', ' + repr(self.Upper) + ')'
 
 # IPP_TAG_TEXTLANG
 @dataclass
