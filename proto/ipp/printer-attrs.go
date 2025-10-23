@@ -1,4 +1,3 @@
-
 // MFP - Miulti-Function Printers and scanners toolkit
 // IPP - Internet Printing Protocol implementation
 //
@@ -211,6 +210,17 @@ type PrinterSaveInfo struct {
 	SaveLocation       optional.Val[string] `ipp:"save-location,uri"`
 	SaveName           optional.Val[string] `ipp:"save-name,name"`
 	SaveDocumentFormat optional.Val[string] `ipp:"save-document-format,mimeMediaType"`
+}
+
+// DecodePrinterAttributes decodes [PrinterAttributes] from
+// [goipp.Attributes].
+func DecodePrinterAttributes(attrs goipp.Attributes) (*PrinterAttributes, error) {
+	pa := &PrinterAttributes{}
+	err := ippDecodeAttrs(pa, attrs)
+	if err != nil {
+		return nil, err
+	}
+	return pa, nil
 }
 
 // KnownAttrs returns information about all known IPP attributes

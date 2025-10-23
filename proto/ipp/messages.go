@@ -152,8 +152,7 @@ func (rsp *GetPrinterAttributesResponse) Decode(msg *goipp.Message) error {
 	}
 
 	if len(msg.Printer) != 0 {
-		rsp.Printer = &PrinterAttributes{}
-		err = ippDecodeAttrs(rsp.Printer, msg.Printer)
+		rsp.Printer, err = DecodePrinterAttributes(msg.Printer)
 		if err != nil {
 			return err
 		}

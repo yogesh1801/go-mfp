@@ -229,8 +229,7 @@ func (rsp *CUPSGetDefaultResponse) Decode(msg *goipp.Message) error {
 	}
 
 	if len(msg.Printer) != 0 {
-		rsp.Printer = &PrinterAttributes{}
-		err = ippDecodeAttrs(rsp.Printer, msg.Printer)
+		rsp.Printer, err = DecodePrinterAttributes(msg.Printer)
 		if err != nil {
 			return err
 		}
@@ -333,8 +332,7 @@ func (rsp *CUPSGetPrintersResponse) Decode(msg *goipp.Message) error {
 
 	for _, grp := range msg.Groups {
 		if grp.Tag == goipp.TagPrinterGroup && len(grp.Attrs) > 0 {
-			prn := &PrinterAttributes{}
-			err = ippDecodeAttrs(prn, grp.Attrs)
+			prn, err := DecodePrinterAttributes(grp.Attrs)
 			if err != nil {
 				return err
 			}
