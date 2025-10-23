@@ -232,6 +232,11 @@ func (model *Model) Read(filename string, r io.Reader) error {
 		return err
 	}
 
+	err = model.ippLoad()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

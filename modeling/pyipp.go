@@ -9,7 +9,6 @@
 package modeling
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -119,15 +118,16 @@ func (model *Model) pyExportIPPValue(tag goipp.Tag, val goipp.Value) (
 	return model.py.None(), nil
 }
 
-// pyImportIPP imports ipp.Object from the Python representation
-func (model *Model) pyImportIPP(s ipp.Object, obj *cpython.Object) error {
+// pyImportPrinterAppributes imports IPP printer attributes from the
+// Python representation
+func (model *Model) pyImportPrinterAppributes(obj *cpython.Object) (
+	*ipp.PrinterAttributes, error) {
 	attrs, err := model.pyImportIPPAttrs(obj)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	_ = attrs
-	return errors.New("not implemented")
+	return ipp.DecodePrinterAttributes(attrs)
 }
 
 // pyImportIPPAttrs imports IPP attributes from the [cpython.Object].
