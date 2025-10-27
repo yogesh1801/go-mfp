@@ -50,13 +50,22 @@ func simulate(ctx context.Context, model *modeling.Model,
 	}
 
 	// Create a virtual server
-	handler := model.NewESCLServer(s)
-	server := transport.NewServer(ctx, nil, handler)
+	pathmux := transport.NewPathMux()
+	server := transport.NewServer(ctx, nil, pathmux)
 
 	addr := fmt.Sprintf("localhost:%d", port)
 	ln, err := net.Listen("tcp", addr)
 	if err != nil {
 		return err
+	}
+
+	// Add handlers
+	if handler := model.NewESCLServer(s); handler != nil {
+		pathmux.Add("/eSCL", handler)
+	}
+
+	if handler := model.NewIPPServer(); handler != nil {
+		pathmux.Add("/ipp/print", handler)
 	}
 
 	// Run external command if specified
