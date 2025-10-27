@@ -35,22 +35,30 @@ import (
 // the corresponding [http.ResponseWriter], passed to the
 // [http.Handler.ServeHTTP].
 type ServerQuery struct {
-	log    *log.Record         // Log record for the query
-	rq     *http.Request       // Incoming request
-	w      http.ResponseWriter // Underlying http.ResponseWriter
-	status atomic.Int32        // HTTP status, 0 if not known yet
+	log       *log.Record         // Log record for the query
+	logprefix string              // Log prefix
+	rq        *http.Request       // Incoming request
+	w         http.ResponseWriter // Underlying http.ResponseWriter
+	status    atomic.Int32        // HTTP status, 0 if not known yet
 }
 
 // NewServerQuery returns the new [ServerQuery].
 func NewServerQuery(w http.ResponseWriter, rq *http.Request) *ServerQuery {
 	ctx := rq.Context()
 	query := &ServerQuery{
-		log: log.Begin(ctx),
-		rq:  rq,
-		w:   w,
+		log:       log.Begin(ctx),
+		logprefix: "HTTP-SRVR",
+		rq:        rq,
+		w:         w,
 	}
 
 	return query
+}
+
+// SetLogPrefix sets log prefix used for log messages generated
+// during the [ServerQuery] processing. Default is "HTTP-SRVR".
+func (query *ServerQuery) SetLogPrefix(prefix string) {
+	query.logprefix = prefix
 }
 
 // Request returns the underlying Request.
@@ -167,7 +175,8 @@ func (query *ServerQuery) WriteHeader(status int) {
 
 	if query.status.CompareAndSwap(0, int32(status)) {
 		query.w.WriteHeader(status)
-		query.log.Debug("HTTP-SRVR %s %s -- %d %s",
+		query.log.Debug("%s %s %s -- %d %s",
+			query.logprefix,
 			query.rq.Method, query.rq.URL,
 			status, http.StatusText(status))
 		query.log.Flush()
