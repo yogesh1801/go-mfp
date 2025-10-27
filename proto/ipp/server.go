@@ -9,14 +9,18 @@
 package ipp
 
 import (
+	"bytes"
 	"fmt"
 	"mime"
 	"net/http"
+	"net/http/httputil"
 
+	"github.com/OpenPrinting/go-mfp/log"
+	"github.com/OpenPrinting/go-mfp/transport"
 	"github.com/OpenPrinting/goipp"
 )
 
-// Server represents an IPP server.
+// Server represents the IPP server.
 type Server struct {
 	ops map[goipp.Op]*Handler
 }
@@ -33,30 +37,47 @@ func NewServer() *Server {
 // [http.Handler] interface.
 //
 // Using this interface, the [Server] can work on a top of
-// existent [http.Server] or [http.ServeMux].
+// existent [http.Server], [http.ServeMux], [transport.PathMux]
+// and so on.
 func (s *Server) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
+	// Setup things
+	query := transport.NewServerQuery(w, rq)
+	query.SetLogPrefix("IPP")
+	ctx := query.RequestContext()
+
+	// Dump request HTTP headers
+	dump, _ := httputil.DumpRequest(query.Request(), false)
+	log.Debug(ctx, "IPP request received:")
+	log.Debug(ctx, "%s", dump)
+
 	// Check HTTP parameters
-	if rq.Method != "POST" {
-		s.httpError(w, ErrHTTPMethodNotAllowed)
+	if query.RequestMethod() != "POST" {
+		s.httpError(query, ErrHTTPMethodNotAllowed)
 		return
 	}
 
-	ctype := rq.Header.Get("Content-Type")
+	ctype := query.RequestContentType()
 	mediatype, _, _ := mime.ParseMediaType(ctype)
 	if mediatype != goipp.ContentType {
 		err := NewErrHTTP(http.StatusUnsupportedMediaType,
 			fmt.Sprintf("unsupported media type: %q", ctype))
-		s.httpError(w, err)
+		s.httpError(query, err)
 		return
 	}
 
 	// Decode IPP message
 	msg := &goipp.Message{}
-	err := msg.Decode(rq.Body)
+	err := msg.Decode(query.RequestBody())
 	if err != nil {
-		s.httpError(w, err)
+		s.httpError(query, err)
 		return
 	}
+
+	// Log the IPP request
+	var buf bytes.Buffer
+	msg.Print(&buf, true)
+	log.Debug(ctx, "IPP request message:")
+	log.Debug(ctx, buf.String())
 
 	// Check IPP parameters
 	if msg.RequestID == 0 {
@@ -64,7 +85,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 			goipp.StatusErrorBadRequest,
 			fmt.Sprintf("bad request ID %d", msg.RequestID))
 
-		s.httpError(w, err)
+		s.httpError(query, err)
 		return
 	}
 
@@ -74,7 +95,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 			goipp.StatusErrorVersionNotSupported,
 			fmt.Sprintf("bad request version %s", msg.Version))
 
-		s.httpError(w, err)
+		s.httpError(query, err)
 		return
 	}
 
@@ -85,52 +106,49 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 			goipp.StatusErrorOperationNotSupported,
 			fmt.Sprintf("unsupported operation %s", op))
 
-		s.httpError(w, err)
+		s.httpError(query, err)
 		return
 	}
 
 	// Handle the message
 	rsp, err := handler.handle(msg)
 	if err != nil {
-		s.httpError(w, err)
+		s.httpError(query, err)
 		return
 	}
 
-	// Send response
-	w.Header().Set("Content-Type", "application/ipp")
-	w.WriteHeader(http.StatusOK) // At HTTP level everything OK.
+	// Log the response
+	buf.Reset()
+	rsp.Print(&buf, false)
+	log.Debug(ctx, "IPP response message:")
+	log.Debug(ctx, buf.String())
 
-	rsp.Encode(w)
+	// Send response
+	query.ResponseHeader().Set("Content-Type", "application/ipp")
+	query.WriteHeader(http.StatusOK) // At HTTP level everything OK.
+
+	rsp.Encode(query)
+}
+
+// RegisterHandler adds the request [Handler].
+func (s *Server) RegisterHandler(handler *Handler) {
+	s.ops[handler.Op] = handler
 }
 
 // httpError finishes HTTP request with an error.
-func (s *Server) httpError(w http.ResponseWriter, err error) {
-AGAIN:
+func (s *Server) httpError(query *transport.ServerQuery, err error) {
 	switch err := err.(type) {
 	case *ErrHTTP:
-		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		s.httpNoCache(w)
-		w.WriteHeader(err.Status)
-
-		fmt.Fprintf(w, "%3.3d %s\n", err.Status, err.Message)
+		query.Reject(err.Status, err)
 
 	case *ErrIPP:
-		w.Header().Set("Content-Type", "application/ipp")
-		w.WriteHeader(http.StatusOK) // At HTTP level everything OK.
+		query.ResponseHeader().Set("Content-Type", "application/ipp")
+		query.WriteHeader(http.StatusOK) // At HTTP level everything OK.
 
 		msg := err.Encode()
-		msg.Encode(w)
+		msg.Encode(query)
 
 	default:
-		err = NewErrHTTP(http.StatusInternalServerError,
-			err.Error())
-		goto AGAIN
+		query.Reject(http.StatusInternalServerError, err)
 	}
-}
-
-// httpNoCache sets response headers to disable caching.
-func (s *Server) httpNoCache(w http.ResponseWriter) {
-	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	w.Header().Set("Pragma", "no-cache")
-	w.Header().Set("Expires", "0")
 }

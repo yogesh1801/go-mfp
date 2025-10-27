@@ -55,3 +55,15 @@ type RequestHeader struct {
 func (rqh *RequestHeader) Header() *RequestHeader {
 	return rqh
 }
+
+// ResponseHeader returns the appropriate [ResponseHeader]
+// for the request.
+func (rqh *RequestHeader) ResponseHeader(status goipp.Status) ResponseHeader {
+	return ResponseHeader{
+		Version:                   goipp.DefaultVersion,
+		RequestID:                 rqh.RequestID,
+		Status:                    status,
+		AttributesCharset:         DefaultCharset,
+		AttributesNaturalLanguage: DefaultNaturalLanguage,
+	}
+}

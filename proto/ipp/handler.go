@@ -29,10 +29,15 @@ type Handler struct {
 //	}
 //
 //	handler := NewHandler(DoCUPSGetDefaultRequest)
-func NewHandler[RQT any, RQ interface {
-	*RQT
-	Request
-}](f func(rq RQ) Response) *Handler {
+func NewHandler[RQT any, RSPT any,
+	RQ interface {
+		*RQT
+		Request
+	},
+	RSP interface {
+		*RSPT
+		Response
+	}](f func(rq RQ) RSP) *Handler {
 
 	callback := func(rqMsg *goipp.Message) (*goipp.Message, error) {
 		rq := RQ(new(RQT))
