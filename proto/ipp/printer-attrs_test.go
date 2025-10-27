@@ -9,7 +9,6 @@
 package ipp
 
 import (
-	_ "embed"
 	"testing"
 
 	"github.com/OpenPrinting/go-mfp/internal/testutils"
