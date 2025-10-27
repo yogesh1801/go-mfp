@@ -183,7 +183,7 @@ type PrinterDescription struct {
 	PrinterUUID                  optional.Val[string]    `ipp:"printer-uuid,uri"`
 
 	// These seems to be originated from CUPS. I was unable to
-	// find any RFC or PWG standard describing these attrubutes
+	// find any RFC or PWG standard describing these attributes
 	//
 	// Anyway, these attributes are widely supported by hardware
 	// printers
