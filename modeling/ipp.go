@@ -24,6 +24,19 @@ func (model *Model) GetIPPPrinterAttrs() *ipp.PrinterAttributes {
 	return model.ippPrinterAttrs
 }
 
+// NewIPPServer creates a virtual IPP server.
+// It will return nil, if model doesn't have the IPP printer attributes.
+func (model *Model) NewIPPServer() *ipp.Printer {
+	// Obtain printer attributes
+	attrs := model.GetIPPPrinterAttrs()
+	if attrs == nil {
+		return nil
+	}
+
+	// Create the IPP print server
+	return ipp.NewPrinter(attrs)
+}
+
 // ippLoad decodes the IPP part of the model. The model file assumed to
 // be already loaded into the Model's Python interpreter (model.py).
 func (model *Model) ippLoad() error {
