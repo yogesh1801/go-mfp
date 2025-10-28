@@ -200,8 +200,8 @@ type MediaCol struct {
 // MediaSize represents media size parameters (which may be either
 // pair of integers or pair of ranges) and used in many places
 type MediaSize struct {
-	XDimension goipp.IntegerOrRange `ipp:"x-dimension,(0:MAX)"`
-	YDimension goipp.IntegerOrRange `ipp:"y-dimension,(0:MAX)"`
+	XDimension goipp.IntegerOrRange `ipp:"x-dimension,(1:MAX)"`
+	YDimension goipp.IntegerOrRange `ipp:"y-dimension,(1:MAX)"`
 }
 
 // MediaSourceProperties represents "media-source-properties"
