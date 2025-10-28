@@ -168,8 +168,7 @@ type JobTemplate struct {
 // MediaCol is the "media-col", "media-col-xxx" collection entry.
 // It is used in many places.
 //
-// PWG5100.3: 3.13., Table 10.
-// PWG5100.7: 6.3.1., Table 6.
+// PWG5100.7
 type MediaCol struct {
 	// ----- PWG5100.3 -----
 	KwMediaBackCoating optional.Val[KwMediaBackCoating] `ipp:"media-back-coating"`
