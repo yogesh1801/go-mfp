@@ -29,26 +29,6 @@ import (
 func simulate(ctx context.Context, model *modeling.Model,
 	port int, argv []string) error {
 
-	esclcaps := model.GetESCLScanCaps()
-	if esclcaps == nil {
-		err := errors.New("Model doesn't define eSCL scanner capabilities")
-		return err
-	}
-
-	s := &abstract.VirtualScanner{
-		ScanCaps: esclcaps.ToAbstract(),
-		Resolution: abstract.Resolution{
-			XResolution: 600,
-			YResolution: 600,
-		},
-		PlatenImage: testutils.Images.PNG5100x7016,
-		ADFImages: [][]byte{
-			testutils.Images.PNG5100x7016,
-			testutils.Images.PNG5100x7016,
-			testutils.Images.PNG5100x7016,
-		},
-	}
-
 	// Create a virtual server
 	pathmux := transport.NewPathMux()
 	server := transport.NewServer(ctx, nil, pathmux)
@@ -59,13 +39,35 @@ func simulate(ctx context.Context, model *modeling.Model,
 		return err
 	}
 
-	// Add handlers
-	if handler := model.NewESCLServer(s); handler != nil {
+	// Add eSCL handler
+	if esclcaps := model.GetESCLScanCaps(); esclcaps != nil {
+
+		s := &abstract.VirtualScanner{
+			ScanCaps: esclcaps.ToAbstract(),
+			Resolution: abstract.Resolution{
+				XResolution: 600,
+				YResolution: 600,
+			},
+			PlatenImage: testutils.Images.PNG5100x7016,
+			ADFImages: [][]byte{
+				testutils.Images.PNG5100x7016,
+				testutils.Images.PNG5100x7016,
+				testutils.Images.PNG5100x7016,
+			},
+		}
+
+		handler := model.NewESCLServer(s)
 		pathmux.Add("/eSCL", handler)
 	}
 
+	// Add IPP handler
 	if handler := model.NewIPPServer(); handler != nil {
 		pathmux.Add("/ipp/print", handler)
+	}
+
+	// Check that we have added at least something
+	if pathmux.Empty() {
+		return errors.New("model is emoty")
 	}
 
 	// Run external command if specified
