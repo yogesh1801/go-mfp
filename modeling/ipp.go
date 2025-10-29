@@ -50,7 +50,7 @@ func (model *Model) ippLoad() error {
 	if !obj.IsNone() {
 		pa, err := model.pyImportPrinterAppributes(obj)
 		if err != nil {
-			err = fmt.Errorf("escl.caps: %s", err)
+			err = fmt.Errorf("ipp.attrs: %s", err)
 			return err
 		}
 
