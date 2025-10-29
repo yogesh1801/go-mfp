@@ -49,4 +49,7 @@ var (
 		AttributesNaturalLanguage: DefaultNaturalLanguage,
 		StatusMessage:             "success",
 	}
+
+	// DefaultDecodeOptions is the default value for [DecodeOptions]
+	DefaultDecodeOptions = DecodeOptions{}
 )

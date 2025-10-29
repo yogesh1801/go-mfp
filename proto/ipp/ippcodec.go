@@ -176,6 +176,7 @@ func (enc *ippEncoder) encPtr(
 // ippDecoder maintains context for decocing Object from the
 // goipp.Attributes.
 type ippDecoder struct {
+	opt DecodeOptions // Decoder options
 }
 
 // Decode decodes Object from the goipp.Attributes.
@@ -415,6 +416,11 @@ func (dec *ippDecoder) decSlice(
 		tmp.Elem().Set(zero)
 		err := decode(dec, unsafe.Pointer(tmp.Pointer()), vals[i:i+1])
 		if err != nil {
+			if dec.opt.KeepTrying {
+				// Skip the value
+				continue
+			}
+
 			return err
 		}
 
@@ -447,6 +453,11 @@ func (dec *ippDecoder) decPtr(
 	}
 
 	if err != nil {
+		if dec.opt.KeepTrying {
+			reflect.NewAt(t, p).Elem().Set(reflect.Zero(t))
+			return nil
+		}
+
 		return err
 	}
 
@@ -962,6 +973,11 @@ func (codec ippCodec) doDecodeStep(dec *ippDecoder,
 	}
 
 	if err != nil {
+		if dec.opt.KeepTrying {
+			step.setzero(dec, unsafe.Pointer(uintptr(p)+step.offset))
+			return nil
+		}
+
 		err = fmt.Errorf("%q: %w", step.attrName, err)
 	}
 

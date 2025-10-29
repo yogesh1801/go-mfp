@@ -41,7 +41,7 @@ func NewHandler[RQT any, RSPT any,
 
 	callback := func(rqMsg *goipp.Message) (*goipp.Message, error) {
 		rq := RQ(new(RQT))
-		err := rq.Decode(rqMsg)
+		err := rq.Decode(rqMsg, DecodeOptions{})
 		if err != nil {
 			return nil, err
 		}

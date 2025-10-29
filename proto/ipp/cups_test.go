@@ -18,8 +18,17 @@ import (
 )
 
 var (
-	_ Request  = &CUPSGetDefaultRequest{}
+	_ Request = &CUPSGetDefaultRequest{}
+	_ Request = &CUPSGetPrintersRequest{}
+	_ Request = &CUPSGetDevicesRequest{}
+	_ Request = &CUPSGetPPDsRequest{}
+	_ Request = &CUPSGetPPDRequest{}
+
 	_ Response = &CUPSGetDefaultResponse{}
+	_ Response = &CUPSGetPrintersResponse{}
+	_ Response = &CUPSGetDevicesResponse{}
+	_ Response = &CUPSGetPPDsResponse{}
+	_ Response = &CUPSGetPPDResponse{}
 )
 
 // TestCupsRequests tests CUPS requests
@@ -149,7 +158,7 @@ func TestCupsRequests(t *testing.T) {
 		// Decode test
 		rq := reflect.New(rqType).Interface().(Request)
 
-		err := rq.Decode(test.msg)
+		err := rq.Decode(test.msg, DecodeOptions{})
 		if err == nil {
 			err = errors.New("")
 		}
@@ -285,7 +294,7 @@ func TestCupsRequesponses(t *testing.T) {
 		// Decode test
 		rsp := reflect.New(rspType).Interface().(Response)
 
-		err := rsp.Decode(test.msg)
+		err := rsp.Decode(test.msg, DecodeOptions{})
 		if err == nil {
 			err = errors.New("")
 		}

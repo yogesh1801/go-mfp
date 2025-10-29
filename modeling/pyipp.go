@@ -127,7 +127,7 @@ func (model *Model) pyImportPrinterAppributes(obj *cpython.Object) (
 		return nil, err
 	}
 
-	return ipp.DecodePrinterAttributes(attrs)
+	return ipp.DecodePrinterAttributes(attrs, ipp.DefaultDecodeOptions)
 }
 
 // pyImportIPPAttrs imports IPP attributes from the [cpython.Object].

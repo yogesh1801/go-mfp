@@ -27,7 +27,7 @@ type Response interface {
 	//   - Encode encodes Response into goipp.Message.
 	//   - Decode decodes Response from goipp.Message.
 	Encode() *goipp.Message
-	Decode(*goipp.Message) error
+	Decode(*goipp.Message, DecodeOptions) error
 }
 
 // ResponseHeader is the common [Response] header. It contains common
