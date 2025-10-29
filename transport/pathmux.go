@@ -159,6 +159,14 @@ func (mux *PathMux) Contains(path string) bool {
 	return found
 }
 
+// Empty reports if PathMux contains no registered mappings.
+func (mux *PathMux) Empty() bool {
+	mux.lock.Lock()
+	defer mux.lock.Unlock()
+
+	return len(mux.mappings) == 0
+}
+
 // ServeHTTP dispatches the request to the handler, based
 // on the request URI path.
 func (mux *PathMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
