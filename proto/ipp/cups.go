@@ -157,10 +157,12 @@ func (rq *CUPSGetDefaultRequest) Set(attr goipp.Attribute) error {
 
 // Encode encodes CUPSGetDefaultRequest into the goipp.Message.
 func (rq *CUPSGetDefaultRequest) Encode() *goipp.Message {
+	enc := ippEncoder{}
+
 	groups := goipp.Groups{
 		{
 			Tag:   goipp.TagOperationGroup,
-			Attrs: ippEncodeAttrs(rq),
+			Attrs: enc.Encode(rq),
 		},
 	}
 
@@ -175,7 +177,8 @@ func (rq *CUPSGetDefaultRequest) Decode(msg *goipp.Message) error {
 	rq.Version = msg.Version
 	rq.RequestID = msg.RequestID
 
-	err := ippDecodeAttrs(rq, msg.Operation)
+	dec := ippDecoder{}
+	err := dec.Decode(rq, msg.Operation)
 	if err != nil {
 		return err
 	}
@@ -197,17 +200,19 @@ func (rsp *CUPSGetDefaultResponse) Set(attr goipp.Attribute) error {
 
 // Encode encodes CUPSGetDefaultResponse into goipp.Message.
 func (rsp *CUPSGetDefaultResponse) Encode() *goipp.Message {
+	enc := ippEncoder{}
+
 	groups := goipp.Groups{
 		{
 			Tag:   goipp.TagOperationGroup,
-			Attrs: ippEncodeAttrs(rsp),
+			Attrs: enc.Encode(rsp),
 		},
 	}
 
 	if rsp.Printer != nil {
 		groups.Add(goipp.Group{
 			Tag:   goipp.TagPrinterGroup,
-			Attrs: ippEncodeAttrs(rsp.Printer),
+			Attrs: enc.Encode(rsp.Printer),
 		})
 	}
 
@@ -223,7 +228,8 @@ func (rsp *CUPSGetDefaultResponse) Decode(msg *goipp.Message) error {
 	rsp.RequestID = msg.RequestID
 	rsp.Status = goipp.Status(msg.Code)
 
-	err := ippDecodeAttrs(rsp, msg.Operation)
+	dec := ippDecoder{}
+	err := dec.Decode(rsp, msg.Operation)
 	if err != nil {
 		return err
 	}
@@ -259,10 +265,12 @@ func (rq *CUPSGetPrintersRequest) Set(attr goipp.Attribute) error {
 
 // Encode encodes CUPSGetPrintersRequest into the goipp.Message.
 func (rq *CUPSGetPrintersRequest) Encode() *goipp.Message {
+	enc := ippEncoder{}
+
 	groups := goipp.Groups{
 		{
 			Tag:   goipp.TagOperationGroup,
-			Attrs: ippEncodeAttrs(rq),
+			Attrs: enc.Encode(rq),
 		},
 	}
 
@@ -277,7 +285,8 @@ func (rq *CUPSGetPrintersRequest) Decode(msg *goipp.Message) error {
 	rq.Version = msg.Version
 	rq.RequestID = msg.RequestID
 
-	err := ippDecodeAttrs(rq, msg.Operation)
+	dec := ippDecoder{}
+	err := dec.Decode(rq, msg.Operation)
 	if err != nil {
 		return err
 	}
@@ -299,17 +308,19 @@ func (rsp *CUPSGetPrintersResponse) Set(attr goipp.Attribute) error {
 
 // Encode encodes CUPSGetPrintersResponse into goipp.Message.
 func (rsp *CUPSGetPrintersResponse) Encode() *goipp.Message {
+	enc := ippEncoder{}
+
 	groups := goipp.Groups{
 		{
 			Tag:   goipp.TagOperationGroup,
-			Attrs: ippEncodeAttrs(rsp),
+			Attrs: enc.Encode(rsp),
 		},
 	}
 
 	for _, prn := range rsp.Printer {
 		groups.Add(goipp.Group{
 			Tag:   goipp.TagPrinterGroup,
-			Attrs: ippEncodeAttrs(prn),
+			Attrs: enc.Encode(prn),
 		})
 	}
 
@@ -325,7 +336,8 @@ func (rsp *CUPSGetPrintersResponse) Decode(msg *goipp.Message) error {
 	rsp.RequestID = msg.RequestID
 	rsp.Status = goipp.Status(msg.Code)
 
-	err := ippDecodeAttrs(rsp, msg.Operation)
+	dec := ippDecoder{}
+	err := dec.Decode(rsp, msg.Operation)
 	if err != nil {
 		return err
 	}
@@ -365,10 +377,12 @@ func (rq *CUPSGetDevicesRequest) Set(attr goipp.Attribute) error {
 
 // Encode encodes CUPSGetDevicesRequest into the goipp.Message.
 func (rq *CUPSGetDevicesRequest) Encode() *goipp.Message {
+	enc := ippEncoder{}
+
 	groups := goipp.Groups{
 		{
 			Tag:   goipp.TagOperationGroup,
-			Attrs: ippEncodeAttrs(rq),
+			Attrs: enc.Encode(rq),
 		},
 	}
 
@@ -383,7 +397,8 @@ func (rq *CUPSGetDevicesRequest) Decode(msg *goipp.Message) error {
 	rq.Version = msg.Version
 	rq.RequestID = msg.RequestID
 
-	err := ippDecodeAttrs(rq, msg.Operation)
+	dec := ippDecoder{}
+	err := dec.Decode(rq, msg.Operation)
 	if err != nil {
 		return err
 	}
@@ -405,17 +420,19 @@ func (rsp *CUPSGetDevicesResponse) Set(attr goipp.Attribute) error {
 
 // Encode encodes CUPSGetDevicesResponse into goipp.Message.
 func (rsp *CUPSGetDevicesResponse) Encode() *goipp.Message {
+	enc := ippEncoder{}
+
 	groups := goipp.Groups{
 		{
 			Tag:   goipp.TagOperationGroup,
-			Attrs: ippEncodeAttrs(rsp),
+			Attrs: enc.Encode(rsp),
 		},
 	}
 
 	for _, prn := range rsp.Printer {
 		groups.Add(goipp.Group{
 			Tag:   goipp.TagPrinterGroup,
-			Attrs: ippEncodeAttrs(prn),
+			Attrs: enc.Encode(prn),
 		})
 	}
 
@@ -431,7 +448,8 @@ func (rsp *CUPSGetDevicesResponse) Decode(msg *goipp.Message) error {
 	rsp.RequestID = msg.RequestID
 	rsp.Status = goipp.Status(msg.Code)
 
-	err := ippDecodeAttrs(rsp, msg.Operation)
+	dec := ippDecoder{}
+	err := dec.Decode(rsp, msg.Operation)
 	if err != nil {
 		return err
 	}
@@ -439,7 +457,7 @@ func (rsp *CUPSGetDevicesResponse) Decode(msg *goipp.Message) error {
 	for _, grp := range msg.Groups {
 		if grp.Tag == goipp.TagPrinterGroup && len(grp.Attrs) > 0 {
 			dev := &DeviceAttributes{}
-			err = ippDecodeAttrs(dev, grp.Attrs)
+			err = dec.Decode(dev, grp.Attrs)
 			if err != nil {
 				return err
 			}
@@ -472,10 +490,12 @@ func (rq *CUPSGetPPDsRequest) Set(attr goipp.Attribute) error {
 
 // Encode encodes CUPSGetPPDsRequest into the goipp.Message.
 func (rq *CUPSGetPPDsRequest) Encode() *goipp.Message {
+	enc := ippEncoder{}
+
 	groups := goipp.Groups{
 		{
 			Tag:   goipp.TagOperationGroup,
-			Attrs: ippEncodeAttrs(rq),
+			Attrs: enc.Encode(rq),
 		},
 	}
 
@@ -490,7 +510,8 @@ func (rq *CUPSGetPPDsRequest) Decode(msg *goipp.Message) error {
 	rq.Version = msg.Version
 	rq.RequestID = msg.RequestID
 
-	err := ippDecodeAttrs(rq, msg.Operation)
+	dec := ippDecoder{}
+	err := dec.Decode(rq, msg.Operation)
 	if err != nil {
 		return err
 	}
@@ -512,17 +533,19 @@ func (rsp *CUPSGetPPDsResponse) Set(attr goipp.Attribute) error {
 
 // Encode encodes CUPSGetPPDsResponse into goipp.Message.
 func (rsp *CUPSGetPPDsResponse) Encode() *goipp.Message {
+	enc := ippEncoder{}
+
 	groups := goipp.Groups{
 		{
 			Tag:   goipp.TagOperationGroup,
-			Attrs: ippEncodeAttrs(rsp),
+			Attrs: enc.Encode(rsp),
 		},
 	}
 
 	for _, ppd := range rsp.PPDs {
 		groups.Add(goipp.Group{
 			Tag:   goipp.TagPrinterGroup,
-			Attrs: ippEncodeAttrs(ppd),
+			Attrs: enc.Encode(ppd),
 		})
 	}
 
@@ -538,7 +561,8 @@ func (rsp *CUPSGetPPDsResponse) Decode(msg *goipp.Message) error {
 	rsp.RequestID = msg.RequestID
 	rsp.Status = goipp.Status(msg.Code)
 
-	err := ippDecodeAttrs(rsp, msg.Operation)
+	dec := ippDecoder{}
+	err := dec.Decode(rsp, msg.Operation)
 	if err != nil {
 		return err
 	}
@@ -546,7 +570,7 @@ func (rsp *CUPSGetPPDsResponse) Decode(msg *goipp.Message) error {
 	for _, grp := range msg.Groups {
 		if grp.Tag == goipp.TagPrinterGroup && len(grp.Attrs) > 0 {
 			ppd := &PPDAttributes{}
-			err = ippDecodeAttrs(ppd, grp.Attrs)
+			err = dec.Decode(ppd, grp.Attrs)
 			if err != nil {
 				return err
 			}
@@ -579,10 +603,12 @@ func (rq *CUPSGetPPDRequest) Set(attr goipp.Attribute) error {
 
 // Encode encodes CUPSGetPPDRequest into the goipp.Message.
 func (rq *CUPSGetPPDRequest) Encode() *goipp.Message {
+	enc := ippEncoder{}
+
 	groups := goipp.Groups{
 		{
 			Tag:   goipp.TagOperationGroup,
-			Attrs: ippEncodeAttrs(rq),
+			Attrs: enc.Encode(rq),
 		},
 	}
 
@@ -597,7 +623,8 @@ func (rq *CUPSGetPPDRequest) Decode(msg *goipp.Message) error {
 	rq.Version = msg.Version
 	rq.RequestID = msg.RequestID
 
-	err := ippDecodeAttrs(rq, msg.Operation)
+	dec := ippDecoder{}
+	err := dec.Decode(rq, msg.Operation)
 	if err != nil {
 		return err
 	}
@@ -619,10 +646,12 @@ func (rsp *CUPSGetPPDResponse) Set(attr goipp.Attribute) error {
 
 // Encode encodes CUPSGetPPDResponse into goipp.Message.
 func (rsp *CUPSGetPPDResponse) Encode() *goipp.Message {
+	enc := ippEncoder{}
+
 	groups := goipp.Groups{
 		{
 			Tag:   goipp.TagOperationGroup,
-			Attrs: ippEncodeAttrs(rsp),
+			Attrs: enc.Encode(rsp),
 		},
 	}
 
@@ -638,7 +667,8 @@ func (rsp *CUPSGetPPDResponse) Decode(msg *goipp.Message) error {
 	rsp.RequestID = msg.RequestID
 	rsp.Status = goipp.Status(msg.Code)
 
-	err := ippDecodeAttrs(rsp, msg.Operation)
+	dec := ippDecoder{}
+	err := dec.Decode(rsp, msg.Operation)
 	if err != nil {
 		return err
 	}

@@ -80,10 +80,12 @@ func (rq *GetPrinterAttributesRequest) Set(attr goipp.Attribute) error {
 
 // Encode encodes GetPrinterAttributesRequest into the goipp.Message.
 func (rq *GetPrinterAttributesRequest) Encode() *goipp.Message {
+	enc := ippEncoder{}
+
 	groups := goipp.Groups{
 		{
 			Tag:   goipp.TagOperationGroup,
-			Attrs: ippEncodeAttrs(rq),
+			Attrs: enc.Encode(rq),
 		},
 	}
 
@@ -98,7 +100,8 @@ func (rq *GetPrinterAttributesRequest) Decode(msg *goipp.Message) error {
 	rq.Version = msg.Version
 	rq.RequestID = msg.RequestID
 
-	err := ippDecodeAttrs(rq, msg.Operation)
+	dec := ippDecoder{}
+	err := dec.Decode(rq, msg.Operation)
 	if err != nil {
 		return err
 	}
@@ -120,17 +123,19 @@ func (rsp *GetPrinterAttributesResponse) Set(attr goipp.Attribute) error {
 
 // Encode encodes GetPrinterAttributesResponse into goipp.Message.
 func (rsp *GetPrinterAttributesResponse) Encode() *goipp.Message {
+	enc := ippEncoder{}
+
 	groups := goipp.Groups{
 		{
 			Tag:   goipp.TagOperationGroup,
-			Attrs: ippEncodeAttrs(rsp),
+			Attrs: enc.Encode(rsp),
 		},
 	}
 
 	if rsp.Printer != nil {
 		groups.Add(goipp.Group{
 			Tag:   goipp.TagPrinterGroup,
-			Attrs: ippEncodeAttrs(rsp.Printer),
+			Attrs: enc.Encode(rsp.Printer),
 		})
 	}
 
@@ -146,7 +151,8 @@ func (rsp *GetPrinterAttributesResponse) Decode(msg *goipp.Message) error {
 	rsp.RequestID = msg.RequestID
 	rsp.Status = goipp.Status(msg.Code)
 
-	err := ippDecodeAttrs(rsp, msg.Operation)
+	dec := ippDecoder{}
+	err := dec.Decode(rsp, msg.Operation)
 	if err != nil {
 		return err
 	}

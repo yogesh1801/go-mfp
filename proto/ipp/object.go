@@ -72,12 +72,14 @@ func (rawattrs *ObjectRawAttrs) Get(name string) (
 // contains the ObjectRawAttrs (hence the need for ippCodec to
 // obtain information about the attribute).
 func (rawattrs *ObjectRawAttrs) set(attr goipp.Attribute, outer Object) error {
-	codec := ippCodecGet(outer)
-	err := codec.doDecode(outer, goipp.Attributes{attr})
+	// Update the outer structure
+	dec := ippDecoder{}
+	err := dec.DecodeSingle(outer, attr)
 	if err != nil {
 		return err
 	}
 
+	// Update raw attributes
 	i, found := rawattrs.byName[attr.Name]
 	if !found {
 		i = len(rawattrs.attrs)

@@ -264,7 +264,8 @@ func TestDecodePanic(t *testing.T) {
 		checkError(t, "TestDecodePanic", err, errExpected)
 	}()
 
-	codec.decodeAttrs(&p, attrs)
+	dec := ippDecoder{}
+	codec.decodeAttrs(&dec, &p, attrs)
 }
 
 // testFakeObject implements Object interface, but it is not structure.
@@ -297,12 +298,15 @@ func TestIppEncodeDecodePanic(t *testing.T) {
 		action()
 	}
 
+	enc := ippEncoder{}
+	dec := ippDecoder{}
+
 	doTest(func() {}, nil)
 
-	doTest(func() { ippEncodeAttrs(new(testFakeObject)) },
+	doTest(func() { enc.Encode(new(testFakeObject)) },
 		errors.New("ipp.testFakeObject: is not struct"))
 
-	doTest(func() { ippDecodeAttrs(new(testFakeObject), nil) },
+	doTest(func() { dec.Decode(new(testFakeObject), nil) },
 		errors.New("ipp.testFakeObject: is not struct"))
 }
 
@@ -1034,8 +1038,10 @@ func (test ippDecodeTest) exec(t *testing.T) {
 	codec := ippCodecMustGenerate(ttype)
 
 	// Decode IPP attributes
+	dec := ippDecoder{}
+
 	out := reflect.New(ttype).Interface()
-	err := codec.decodeAttrs(out, test.attrs)
+	err := codec.decodeAttrs(&dec, out, test.attrs)
 
 	checkError(t, "TestIppDecode", err, test.err)
 	if err != nil {
@@ -1050,7 +1056,8 @@ func (test ippDecodeTest) exec(t *testing.T) {
 	}
 
 	// Now encode it back
-	attrs := codec.encodeAttrs(out)
+	enc := ippEncoder{}
+	attrs := codec.encodeAttrs(&enc, out)
 
 	diff = testDiffAttrs(test.attrs, attrs)
 	if diff != "" {
@@ -1120,7 +1127,9 @@ func (test ippEncodeDecodeTest) exec(t *testing.T) {
 
 			if err.Error() != test.panic.Error() {
 				t.Errorf("in test %q:", test.name)
-				t.Errorf("panic expected: %s, got: %s",
+				t.Errorf("panic mismatch:\n"+
+					"expected: %s\n"+
+					"present:  %s",
 					test.panic, err)
 			}
 		}
@@ -1130,11 +1139,13 @@ func (test ippEncodeDecodeTest) exec(t *testing.T) {
 	codec := ippCodecMustGenerate(test.t)
 
 	// Test encoding
-	attrs := codec.encodeAttrs(test.data)
+	enc := ippEncoder{}
+	attrs := codec.encodeAttrs(&enc, test.data)
 
 	// Test decoding
+	dec := ippDecoder{}
 	out := reflect.New(test.t).Interface()
-	err := codec.decodeAttrs(out, attrs)
+	err := codec.decodeAttrs(&dec, out, attrs)
 
 	checkError(t, test.name, err, test.err)
 	if err != nil {
