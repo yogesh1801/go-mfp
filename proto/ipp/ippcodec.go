@@ -434,8 +434,18 @@ func (dec *ippDecoder) decPtr(
 
 	assert.Must(len(vals) > 0)
 
+	// Decode the value
 	tmp := reflect.New(t.Elem())
 	err := decode(dec, unsafe.Pointer(tmp.Pointer()), vals[:1])
+
+	// Conversion from goipp.TypeVoid to non-void value is not
+	// a error here. Just zero the pointer and return.
+	var conv ippErrConvert
+	if errors.As(err, &conv) && conv.from == goipp.TypeVoid {
+		reflect.NewAt(t, p).Elem().Set(reflect.Zero(t))
+		return nil
+	}
+
 	if err != nil {
 		return err
 	}
@@ -943,6 +953,8 @@ func (codec ippCodec) doDecodeStep(dec *ippDecoder,
 	err := step.decode(dec,
 		unsafe.Pointer(uintptr(p)+step.offset), attr.Values)
 
+	// Conversion from goipp.TypeVoid to non-void value is not
+	// a error here. Just zero the value and return.
 	var conv ippErrConvert
 	if errors.As(err, &conv) && conv.from == goipp.TypeVoid {
 		step.setzero(dec, unsafe.Pointer(uintptr(p)+step.offset))
