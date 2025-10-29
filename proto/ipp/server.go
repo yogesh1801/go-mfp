@@ -127,7 +127,10 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	query.ResponseHeader().Set("Content-Type", "application/ipp")
 	query.WriteHeader(http.StatusOK) // At HTTP level everything OK.
 
-	rsp.Encode(query)
+	err = rsp.Encode(query)
+	if err != nil {
+		log.Error(ctx, "IPP error sending response: %s", err)
+	}
 }
 
 // RegisterHandler adds the request [Handler].

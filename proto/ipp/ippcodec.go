@@ -48,6 +48,8 @@ func (enc *ippEncoder) encIntegerOrRange(p unsafe.Pointer) goipp.Values {
 		tag = goipp.TagInteger
 	case goipp.Range:
 		tag = goipp.TagRange
+	default:
+		return nil
 	}
 	out := goipp.Values{{tag, in}}
 	return out
@@ -846,6 +848,7 @@ func (codec *ippCodec) encodeAttrs(enc *ippEncoder,
 		ptr := unsafe.Pointer(uintptr(p) + step.offset)
 
 		values := step.encode(enc, ptr)
+
 		if values == nil && step.zeroTag != goipp.TagZero {
 			values = goipp.Values{{step.zeroTag, goipp.Void{}}}
 		}
