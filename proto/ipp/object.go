@@ -9,6 +9,7 @@
 package ipp
 
 import (
+	"github.com/OpenPrinting/go-mfp/util/generic"
 	"github.com/OpenPrinting/goipp"
 )
 
@@ -28,6 +29,14 @@ type Object interface {
 	// attributes of the Object
 	KnownAttrs() []AttrInfo
 
+	// Errors returns a slice of errors that has occurred during
+	// the [Object] decoding.
+	//
+	// If [DecodeOptions.KeepTrying] set to true, non-fatal errors
+	// doesn't interrupt decoding but instead saved here (and may
+	// be reported as decode warnings).
+	Errors() []error
+
 	// Get returns [goipp.Attibute] by name
 	Get(name string) (goipp.Attribute, bool)
 
@@ -43,6 +52,7 @@ type Object interface {
 type ObjectRawAttrs struct {
 	attrs  goipp.Attributes // Raw attributes
 	byName map[string]int   // Attribute indices by name
+	errors []error          // Possible decode errors
 }
 
 // RawAttrs returns [ObjecRawtAttrs], which gives uniform
@@ -66,6 +76,16 @@ func (rawattrs *ObjectRawAttrs) Get(name string) (
 	}
 
 	return
+}
+
+// Errors returns a slice of errors that has occurred during
+// the [Object] decoding.
+//
+// If [DecodeOptions.KeepTrying] set to true, non-fatal errors
+// doesn't interrupt decoding but instead saved here (and may
+// be reported as decode warnings).
+func (rawattrs *ObjectRawAttrs) Errors() []error {
+	return rawattrs.errors
 }
 
 // set sets attribute by name and updates the outer structure that
@@ -92,10 +112,11 @@ func (rawattrs *ObjectRawAttrs) set(attr goipp.Attribute, outer Object) error {
 	return nil
 }
 
-// setattrs saves all raw IPP attributes
-func (rawattrs *ObjectRawAttrs) setattrs(attrs goipp.Attributes) {
+// save saves all raw IPP attributes and decode errors.
+func (rawattrs *ObjectRawAttrs) save(attrs goipp.Attributes, errors []error) {
 	rawattrs.attrs = make(goipp.Attributes, 0, len(attrs))
 	rawattrs.byName = make(map[string]int, len(attrs))
+	rawattrs.errors = generic.CopySlice(errors)
 
 	for _, attr := range attrs {
 		// If we see some attribute, the second occurrence is

@@ -182,12 +182,17 @@ type ippDecoder struct {
 	codec    *ippCodec     // Codec for the object
 	typename string        // Type name being decoding
 	path     []any         // Path to current attr (string/int indices)
+	errors   []error       // Decode errors
 }
 
 // begin initializes ippDecoder before decoding the object.
 func (dec *ippDecoder) begin(obj Object) {
 	dec.codec = ippCodecGet(obj)
 	dec.typename = diagTypeName(dec.codec.t)
+	dec.errors = nil
+
+	// Reserve path slots.
+	// 8 should be enough in most cases to avoid re-allocation.
 	dec.path = make([]any, 0, 8)
 }
 
@@ -202,7 +207,7 @@ func (dec *ippDecoder) Decode(obj Object, attrs goipp.Attributes) error {
 
 	err := dec.codec.decodeAttrs(dec, obj, attrs)
 	if err == nil {
-		obj.RawAttrs().setattrs(attrs)
+		obj.RawAttrs().save(attrs, dec.errors)
 	}
 
 	return err
@@ -535,8 +540,10 @@ func (dec *ippDecoder) pathString() string {
 // errWrap wraps the decode error so it includes common information,
 // like path to the problematic attribute.
 func (dec *ippDecoder) errWrap(err error) error {
-	return fmt.Errorf("IPP decode %s: %q: %w",
+	err = fmt.Errorf("IPP decode %s: %q: %w",
 		dec.typename, dec.pathString(), err)
+	dec.errors = append(dec.errors, err)
+	return err
 }
 
 // errConvert returns type conversion error
