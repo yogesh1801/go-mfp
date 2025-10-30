@@ -98,8 +98,16 @@ func queryIPPPrinterAttributes(ctx context.Context,
 				err = err2
 			}
 
-			log.Debug(ctx, "escl: %q: %s", ep, err2)
+			log.Debug(ctx, "ipp: %q: %s", ep, err2)
 			continue
+		}
+
+		errors := caps.Errors()
+		if errors != nil {
+			log.Warning(ctx, "ipp: printer attributes decoded with warnings:")
+			for _, err := range errors {
+				log.Warning(ctx, "  %s", err)
+			}
 		}
 
 		return caps, nil
