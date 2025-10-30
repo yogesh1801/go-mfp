@@ -328,6 +328,8 @@ type TestEmbedded struct {
 // ippTestStruct is the structure, intended for testing
 // of the IPP codec
 type ippTestStruct struct {
+	ObjectRawAttrs
+
 	TestEmbedded
 
 	FldBooleanF     bool   `ipp:"fld-boolean-f,boolean"`
@@ -395,6 +397,14 @@ type ippTestStruct struct {
 	FltOptionalPresent optional.Val[int] `ipp:"flt-optional-present"`
 }
 
+func (s *ippTestStruct) KnownAttrs() []AttrInfo {
+	return ippKnownAttrs(s)
+}
+
+func (s *ippTestStruct) Set(attr goipp.Attribute) error {
+	return s.set(attr, s)
+}
+
 // ippDecodeTest represents a single decode test data
 type ippDecodeTest struct {
 	attrs goipp.Attributes // Input attributes
@@ -426,7 +436,7 @@ var ippDecodeTestData = []ippDecodeTest{
 			},
 		},
 
-		err: errors.New(`IPP decode ipp.ippTestStruct: "fld-boolean-slice": can't convert octetString to Boolean`),
+		err: errors.New(`IPP decode ipp.ippTestStruct: "fld-boolean-slice[2]": can't convert octetString to Boolean`),
 	},
 
 	{
@@ -462,7 +472,7 @@ var ippDecodeTestData = []ippDecodeTest{
 			),
 		},
 
-		err: errors.New(`IPP decode ipp.ippTestStruct: "fld-coll": "coll-int": can't convert boolean to Integer or RangeOfInteger`),
+		err: errors.New(`IPP decode ipp.ippTestStruct: "fld-coll/coll-int": can't convert boolean to Integer or RangeOfInteger`),
 	},
 
 	{
@@ -480,7 +490,7 @@ var ippDecodeTestData = []ippDecodeTest{
 			),
 		},
 
-		err: errors.New(`IPP decode ipp.ippTestStruct: "fld-coll-slice": "coll-int": can't convert boolean to Integer or RangeOfInteger`),
+		err: errors.New(`IPP decode ipp.ippTestStruct: "fld-coll-slice[0]/coll-int": can't convert boolean to Integer or RangeOfInteger`),
 	},
 
 	{
@@ -498,7 +508,7 @@ var ippDecodeTestData = []ippDecodeTest{
 			),
 		},
 
-		err: errors.New(`IPP decode ipp.ippTestStruct: "fld-coll-slice": "coll-u16": Value 65536 out of range`),
+		err: errors.New(`IPP decode ipp.ippTestStruct: "fld-coll-slice[0]/coll-u16": Value 65536 out of range`),
 	},
 
 	{
@@ -517,7 +527,7 @@ var ippDecodeTestData = []ippDecodeTest{
 			),
 		},
 
-		err: errors.New(`IPP decode ipp.ippTestStruct: "fld-coll-slice": "coll-u16": Value 65536 out of range`),
+		err: errors.New(`IPP decode ipp.ippTestStruct: "fld-coll-slice[0]/coll-u16": Value 65536 out of range`),
 	},
 
 	{
@@ -1040,8 +1050,8 @@ func (test ippDecodeTest) exec(t *testing.T) {
 	// Decode IPP attributes
 	dec := ippDecoder{}
 
-	out := reflect.New(ttype).Interface()
-	err := codec.decodeAttrs(&dec, out, test.attrs)
+	out := &ippTestStruct{}
+	err := dec.Decode(out, test.attrs)
 
 	checkError(t, "TestIppDecode", err, test.err)
 	if err != nil {

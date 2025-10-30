@@ -178,7 +178,17 @@ func (enc *ippEncoder) encPtr(
 // ippDecoder maintains context for decocing Object from the
 // goipp.Attributes.
 type ippDecoder struct {
-	opt DecodeOptions // Decoder options
+	opt      DecodeOptions // Decoder options
+	codec    *ippCodec     // Codec for the object
+	typename string        // Type name being decoding
+	path     []any         // Path to current attr (string/int indices)
+}
+
+// begin initializes ippDecoder before decoding the object.
+func (dec *ippDecoder) begin(obj Object) {
+	dec.codec = ippCodecGet(obj)
+	dec.typename = diagTypeName(dec.codec.t)
+	dec.path = make([]any, 0, 8)
 }
 
 // Decode decodes Object from the goipp.Attributes.
@@ -188,9 +198,9 @@ type ippDecoder struct {
 //
 // This function will panic, if codec cannot be generated.
 func (dec *ippDecoder) Decode(obj Object, attrs goipp.Attributes) error {
-	codec := ippCodecGet(obj)
+	dec.begin(obj)
 
-	err := codec.decodeAttrs(dec, obj, attrs)
+	err := dec.codec.decodeAttrs(dec, obj, attrs)
 	if err == nil {
 		obj.RawAttrs().setattrs(attrs)
 	}
@@ -200,8 +210,8 @@ func (dec *ippDecoder) Decode(obj Object, attrs goipp.Attributes) error {
 
 // DecodeSingle decodes (updates) a single attribute of the Object.
 func (dec *ippDecoder) DecodeSingle(obj Object, attr goipp.Attribute) error {
-	codec := ippCodecGet(obj)
-	return codec.doDecode(dec, obj, goipp.Attributes{attr})
+	dec.begin(obj)
+	return dec.codec.decodeAttrs(dec, obj, goipp.Attributes{attr})
 }
 
 // Decode: goipp.IntegerOrRange
@@ -210,7 +220,7 @@ func (dec *ippDecoder) decIntegerOrRange(p unsafe.Pointer, vals goipp.Values) er
 	if !ok {
 		err := fmt.Errorf("can't convert %s to Integer or RangeOfInteger",
 			vals[0].T)
-		return err
+		return dec.errWrap(err)
 	}
 
 	*(*goipp.IntegerOrRange)(p) = res
@@ -221,7 +231,7 @@ func (dec *ippDecoder) decIntegerOrRange(p unsafe.Pointer, vals goipp.Values) er
 func (dec *ippDecoder) decRange(p unsafe.Pointer, vals goipp.Values) error {
 	res, ok := vals[0].V.(goipp.Range)
 	if !ok {
-		return ippErrConvertMake(vals[0], goipp.TypeRange)
+		return dec.errConvert(vals[0], goipp.TypeRange)
 	}
 
 	*(*goipp.Range)(p) = res
@@ -232,7 +242,7 @@ func (dec *ippDecoder) decRange(p unsafe.Pointer, vals goipp.Values) error {
 func (dec *ippDecoder) decResolution(p unsafe.Pointer, vals goipp.Values) error {
 	res, ok := vals[0].V.(goipp.Resolution)
 	if !ok {
-		return ippErrConvertMake(vals[0], goipp.TypeResolution)
+		return dec.errConvert(vals[0], goipp.TypeResolution)
 	}
 
 	*(*goipp.Resolution)(p) = res
@@ -243,7 +253,7 @@ func (dec *ippDecoder) decResolution(p unsafe.Pointer, vals goipp.Values) error 
 func (dec *ippDecoder) decTextWithLang(p unsafe.Pointer, vals goipp.Values) error {
 	res, ok := vals[0].V.(goipp.TextWithLang)
 	if !ok {
-		return ippErrConvertMake(vals[0], goipp.TypeTextWithLang)
+		return dec.errConvert(vals[0], goipp.TypeTextWithLang)
 	}
 
 	*(*goipp.TextWithLang)(p) = res
@@ -254,7 +264,7 @@ func (dec *ippDecoder) decTextWithLang(p unsafe.Pointer, vals goipp.Values) erro
 func (dec *ippDecoder) decVersion(p unsafe.Pointer, vals goipp.Values) error {
 	s, ok := vals[0].V.(goipp.String)
 	if !ok {
-		return ippErrConvertMake(vals[0], goipp.TypeString)
+		return dec.errConvert(vals[0], goipp.TypeString)
 	}
 
 	ver, err := dec.decVersionString(string(s))
@@ -289,14 +299,14 @@ func (dec *ippDecoder) decVersionString(s string) (goipp.Version, error) {
 	return goipp.MakeVersion(uint8(major), uint8(minor)), nil
 
 ERROR:
-	return 0, fmt.Errorf("%q: invalid version string", s)
+	return 0, dec.errWrap(fmt.Errorf("%q: invalid version string", s))
 }
 
 // Decode: time.Time
 func (dec *ippDecoder) decDateTime(p unsafe.Pointer, vals goipp.Values) error {
 	res, ok := vals[0].V.(goipp.Time)
 	if !ok {
-		return ippErrConvertMake(vals[0], goipp.TypeDateTime)
+		return dec.errConvert(vals[0], goipp.TypeDateTime)
 	}
 
 	*(*time.Time)(p) = res.Time
@@ -308,7 +318,7 @@ func (dec *ippDecoder) decDateTime(p unsafe.Pointer, vals goipp.Values) error {
 func (dec *ippDecoder) decBool(p unsafe.Pointer, vals goipp.Values) error {
 	res, ok := vals[0].V.(goipp.Boolean)
 	if !ok {
-		return ippErrConvertMake(vals[0], goipp.TypeBoolean)
+		return dec.errConvert(vals[0], goipp.TypeBoolean)
 	}
 
 	*(*bool)(p) = bool(res)
@@ -319,7 +329,7 @@ func (dec *ippDecoder) decBool(p unsafe.Pointer, vals goipp.Values) error {
 func (dec *ippDecoder) decInt(p unsafe.Pointer, vals goipp.Values) error {
 	res, ok := vals[0].V.(goipp.Integer)
 	if !ok {
-		return ippErrConvertMake(vals[0], goipp.TypeInteger)
+		return dec.errConvert(vals[0], goipp.TypeInteger)
 	}
 
 	*(*int)(p) = int(res)
@@ -336,7 +346,7 @@ func (dec *ippDecoder) decString(p unsafe.Pointer, vals goipp.Values) error {
 		*(*string)(p) = string(res)
 
 	default:
-		return ippErrConvertMake(vals[0], goipp.TypeString)
+		return dec.errConvert(vals[0], goipp.TypeString)
 	}
 
 	return nil
@@ -346,12 +356,11 @@ func (dec *ippDecoder) decString(p unsafe.Pointer, vals goipp.Values) error {
 func (dec *ippDecoder) decUint16(p unsafe.Pointer, vals goipp.Values) error {
 	res, ok := vals[0].V.(goipp.Integer)
 	if !ok {
-		return ippErrConvertMake(vals[0], goipp.TypeInteger)
+		return dec.errConvert(vals[0], goipp.TypeInteger)
 	}
 
 	if res < 0 || res > math.MaxUint16 {
-		err := fmt.Errorf("Value %d out of range", res)
-		return err
+		return dec.errWrap(fmt.Errorf("Value %d out of range", res))
 	}
 
 	*(*uint16)(p) = uint16(res)
@@ -387,14 +396,14 @@ func (dec *ippDecoder) decCollectionInternal(
 	for i := range vals {
 		coll, ok := vals[i].V.(goipp.Collection)
 		if !ok {
-			err := ippErrConvertMake(vals[i], goipp.TypeCollection)
+			err := dec.errConvert(vals[i], goipp.TypeCollection)
 			return reflect.Value{}, err
 		}
 
 		attrs := goipp.Attributes(coll)
 		ss := reflect.New(codec.t)
 
-		err := codec.doDecode(dec, ss.Interface(), attrs)
+		err := codec.decodeAttrs(dec, ss.Interface(), attrs)
 		if err != nil {
 			return reflect.Value{}, err
 		}
@@ -410,11 +419,19 @@ func (dec *ippDecoder) decSlice(
 	p unsafe.Pointer, vals goipp.Values, t reflect.Type,
 	decode func(*ippDecoder, unsafe.Pointer, goipp.Values) error) error {
 
+	// Update current path
+	dec.pathEnter()
+	defer dec.pathLeave()
+
+	// Setup things
 	slice := reflect.MakeSlice(t, 0, len(vals))
 	tmp := reflect.New(t.Elem())
 	zero := reflect.Zero(t.Elem())
 
+	// Now decode, step by step
 	for i := range vals {
+		dec.pathSet(i)
+
 		tmp.Elem().Set(zero)
 		err := decode(dec, unsafe.Pointer(tmp.Pointer()), vals[i:i+1])
 		if err != nil {
@@ -467,6 +484,74 @@ func (dec *ippDecoder) decPtr(
 	ptr.Set(tmp)
 
 	return nil
+}
+
+// pathEnter advises the path to the next nesting level.
+func (dec *ippDecoder) pathEnter() {
+	dec.path = append(dec.path, nil)
+}
+
+// pathLeave shrinks the path to reflect leaving the current nesting level.
+func (dec *ippDecoder) pathLeave() {
+	dec.path = dec.path[:len(dec.path)-1]
+}
+
+// Set attribute name or index at the current path level
+func (dec *ippDecoder) pathSet(p any) {
+	dec.path[len(dec.path)-1] = p
+}
+
+// pathString returns the current path as a string.
+func (dec *ippDecoder) pathString() string {
+	// Estimate buffer size
+	sz := 0
+	for _, p := range dec.path {
+		switch p := p.(type) {
+		case string:
+			sz += len(p) + 1
+		case int:
+			sz += 4 // "[NN]"
+		}
+	}
+
+	// Format the path
+	path := make([]byte, 0, sz)
+	for _, p := range dec.path {
+		switch p := p.(type) {
+		case string:
+			path = append(path, '/')
+			path = append(path, ([]byte)(p)...)
+		case int:
+			path = append(path, '[')
+			path = append(path, ([]byte)(strconv.Itoa(p))...)
+			path = append(path, ']')
+		}
+	}
+
+	// Strip leading '/' and convert path to the string
+	return string(path[1:])
+}
+
+// errWrap wraps the decode error so it includes common information,
+// like path to the problematic attribute.
+func (dec *ippDecoder) errWrap(err error) error {
+	return fmt.Errorf("IPP decode %s: %q: %w",
+		dec.typename, dec.pathString(), err)
+}
+
+// errConvert returns type conversion error
+func (dec *ippDecoder) errConvert(fromval struct {
+	T goipp.Tag
+	V goipp.Value
+}, to goipp.Type) error {
+
+	var err error = ippErrConvert{
+		fromTag: fromval.T,
+		from:    fromval.V.Type(),
+		to:      to,
+	}
+
+	return dec.errWrap(err)
 }
 
 // ippKnownAttrs returns information about Object's known attributes
@@ -876,24 +961,13 @@ func (codec *ippCodec) encodeAttrs(enc *ippEncoder,
 }
 
 // Decode structure from the goipp.Attributes
-//
-// This function wraps (ippCodec) doDecode, adding some common
-// error handling and so on
 func (codec *ippCodec) decodeAttrs(dec *ippDecoder,
 	out interface{}, attrs goipp.Attributes) error {
 
-	err := codec.doDecode(dec, out, attrs)
-	if err != nil {
-		err = fmt.Errorf("IPP decode %s: %w",
-			diagTypeName(codec.t), err)
-	}
-	return err
-}
+	// Update path
+	dec.pathEnter()
+	defer dec.pathLeave()
 
-// doDecode performs the actual work of decoding structure
-// from goipp.Attributes
-func (codec ippCodec) doDecode(dec *ippDecoder,
-	out interface{}, attrs goipp.Attributes) error {
 	// Check for type mismatch
 	v := reflect.ValueOf(out)
 	if v.Kind() != reflect.Pointer || v.Elem().Type() != codec.t {
@@ -949,6 +1023,9 @@ func (codec ippCodec) doDecode(dec *ippDecoder,
 func (codec ippCodec) doDecodeStep(dec *ippDecoder,
 	p unsafe.Pointer, step ippCodecStep, attr goipp.Attribute) error {
 
+	// Update path
+	dec.pathSet(step.attrName)
+
 	// At least one attribute value must be present.
 	//
 	// IPP protocol doesn't allow attributes without values
@@ -958,9 +1035,7 @@ func (codec ippCodec) doDecodeStep(dec *ippDecoder,
 	// So if Values slice is empty, this is artificial construct.
 	// Reject it in this case.
 	if len(attr.Values) == 0 {
-		err := fmt.Errorf("%q: at least 1 value required",
-			step.attrName)
-		return err
+		return dec.errWrap(errors.New("at least 1 value required"))
 	}
 
 	// Call decoder
@@ -980,8 +1055,6 @@ func (codec ippCodec) doDecodeStep(dec *ippDecoder,
 			step.setzero(dec, unsafe.Pointer(uintptr(p)+step.offset))
 			return nil
 		}
-
-		err = fmt.Errorf("%q: %w", step.attrName, err)
 	}
 
 	return err
@@ -1100,23 +1173,11 @@ var ippCodecMethodsByKind = map[reflect.Kind]*ippCodecMethods{
 	},
 }
 
-// ----- Errors, specific to IPP codec -----
-
-// Can't convert XXX to YYY
+// ippErrConvert represents conversion error between expected
+// and present goipp.Type
 type ippErrConvert struct {
-	fromTag  goipp.Tag
-	from, to goipp.Type
-}
-
-func ippErrConvertMake(fromval struct {
-	T goipp.Tag
-	V goipp.Value
-}, to goipp.Type) ippErrConvert {
-	return ippErrConvert{
-		fromTag: fromval.T,
-		from:    fromval.V.Type(),
-		to:      to,
-	}
+	fromTag  goipp.Tag  // Attribute tag
+	from, to goipp.Type // Source and destination types
 }
 
 // Convert ippErrConvert to string.
