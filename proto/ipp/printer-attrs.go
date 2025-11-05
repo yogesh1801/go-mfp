@@ -93,13 +93,6 @@ type PrinterDescription struct {
 	URIAuthenticationSupported        []KwURIAuthentication       `ipp:"uri-authentication-supported"`
 	URISecuritySupported              []KwURISecurity             `ipp:"uri-security-supported"`
 
-	// CUPS extensions to Printer Description Attributes
-	DeviceURI          []string                    `ipp:"device-uri,uri"`
-	PrinterID          optional.Val[int]           `ipp:"printer-id"`
-	PrinterIsShared    optional.Val[bool]          `ipp:"printer-is-shared"`
-	PrinterIsTemporary optional.Val[bool]          `ipp:"printer-is-temporary"`
-	PrinterType        optional.Val[EnPrinterType] `ipp:"printer-type"`
-
 	// PWG5100.7: IPP Job Extensions v2.1 (JOBEXT)
 	// 6.9 Printer Description Attributes
 	ClientInfoSupported              []string                    `ipp:"client-info-supported,keyword"`
@@ -182,19 +175,21 @@ type PrinterDescription struct {
 	PrinterSupply                []string                `ipp:"printer-supply.string"`
 	PrinterUUID                  optional.Val[string]    `ipp:"printer-uuid,uri"`
 
-	// These seems to be originated from CUPS. I was unable to
-	// find any RFC or PWG standard describing these attributes
-	//
-	// Anyway, these attributes are widely supported by hardware
-	// printers
-	MarkerChangeTime optional.Val[int]    `ipp:"marker-change-time,(0:MAX)"`
-	MarkerColors     []string             `ipp:"marker-colors,name"`
-	MarkerHighLevels []int                `ipp:"marker-high-levels,(0:100)"`
-	MarkerLevels     []int                `ipp:"marker-levels,(-3:100)"`
-	MarkerLowLevels  []int                `ipp:"marker-low-levels,(0:100)"`
-	MarkerMessage    optional.Val[string] `ipp:"marker-message,text"`
-	MarkerNames      []string             `ipp:"marker-names,name"`
-	MarkerTypes      []string             `ipp:"marker-types,keyword"`
+	// CUPS extensions
+	DeviceURI          []string                    `ipp:"device-uri,uri"`
+	MarkerChangeTime   optional.Val[int]           `ipp:"marker-change-time,(0:MAX)"`
+	MarkerColors       []string                    `ipp:"marker-colors,name"`
+	MarkerHighLevels   []int                       `ipp:"marker-high-levels,(0:100)"`
+	MarkerLevels       []int                       `ipp:"marker-levels,(-3:100)"`
+	MarkerLowLevels    []int                       `ipp:"marker-low-levels,(0:100)"`
+	MarkerMessage      optional.Val[string]        `ipp:"marker-message,text"`
+	MarkerNames        []string                    `ipp:"marker-names,name"`
+	MarkerTypes        []string                    `ipp:"marker-types,keyword"`
+	PrinterID          optional.Val[int]           `ipp:"printer-id"`
+	PrinterIsShared    optional.Val[bool]          `ipp:"printer-is-shared"`
+	PrinterIsTemporary optional.Val[bool]          `ipp:"printer-is-temporary"`
+	PrinterType        optional.Val[EnPrinterType] `ipp:"printer-type"`
+	UrfSupported       []string                    `ipp:"urf-supported,keyword"`
 }
 
 // PrinterJobSaveDisposition represents "job-save-disposition-default"
