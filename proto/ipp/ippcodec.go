@@ -1141,7 +1141,8 @@ type ippCodecMethods struct {
 	// override (encoded as a part of struct tag).
 	defaultIppTag goipp.Tag
 
-	// Encode function
+	// encode function is called to encode the Go value
+	// into the IPP value.
 	//
 	// IPP, at the wire protocol level, doesn't distinguish between
 	// scalar and vector values (scalars are encoded as a single-value
@@ -1151,7 +1152,8 @@ type ippCodecMethods struct {
 	// if not goipp.TagZero, overrides per-attribute tag setting.
 	encode func(enc *ippEncoder, s *ippCodecStep, p unsafe.Pointer) goipp.Values
 
-	// Decode function
+	// decode function is called to decode IPP value into
+	// the Go value.
 	decode func(dec *ippDecoder, s *ippCodecStep, p unsafe.Pointer, v goipp.Values) error
 }
 
