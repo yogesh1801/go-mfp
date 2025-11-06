@@ -590,6 +590,7 @@ type ippCodecStep struct {
 	attrTag  goipp.Tag // IPP attribute tag
 	zeroTag  goipp.Tag // How to encode zero value
 	min, max int       // Range limits for integers
+	isSlice  bool      // Slice output, multiple values expected
 
 	// Encode/decode functions
 	encode  func(enc *ippEncoder, p unsafe.Pointer) goipp.Values
@@ -814,6 +815,7 @@ func ippCodecGenerateInternal(t reflect.Type,
 			zeroTag:  tag.zeroTag,
 			min:      tag.min,
 			max:      tag.max,
+			isSlice:  isSlice,
 
 			encode: methods.encode,
 			decode: methods.decode,
@@ -1045,6 +1047,13 @@ func (codec ippCodec) doDecodeStep(dec *ippDecoder,
 	// Reject it in this case.
 	if len(attr.Values) == 0 {
 		return dec.errWrap(errors.New("at least 1 value required"))
+	}
+
+	// If not slice and we have more that 1 value, generate a
+	// warning and continue.
+	if !step.isSlice && len(attr.Values) > 1 {
+		err := fmt.Errorf("1 value expected, %d present", len(attr.Values))
+		dec.errWrap(err)
 	}
 
 	// Call decoder
