@@ -592,7 +592,7 @@ type ippCodecStep struct {
 	// Encode/decode functions
 	encode  func(enc *ippEncoder, p unsafe.Pointer) goipp.Values
 	decode  func(dec *ippDecoder, p unsafe.Pointer, v goipp.Values) error
-	setzero func(dec *ippDecoder, p unsafe.Pointer)
+	setzero func(p unsafe.Pointer)
 }
 
 // Cache of generated codecs
@@ -816,7 +816,7 @@ func ippCodecGenerateInternal(t reflect.Type,
 			encode: methods.encode,
 			decode: methods.decode,
 
-			setzero: func(dec *ippDecoder, p unsafe.Pointer) {
+			setzero: func(p unsafe.Pointer) {
 				reflect.NewAt(fldType, p).Elem().Set(zero)
 			},
 		}
@@ -1053,13 +1053,13 @@ func (codec ippCodec) doDecodeStep(dec *ippDecoder,
 	// a error here. Just zero the value and return.
 	var conv ippErrConvert
 	if errors.As(err, &conv) && conv.from == goipp.TypeVoid {
-		step.setzero(dec, unsafe.Pointer(uintptr(p)+step.offset))
+		step.setzero(unsafe.Pointer(uintptr(p) + step.offset))
 		err = nil
 	}
 
 	if err != nil {
 		if dec.opt.KeepTrying {
-			step.setzero(dec, unsafe.Pointer(uintptr(p)+step.offset))
+			step.setzero(unsafe.Pointer(uintptr(p) + step.offset))
 			return nil
 		}
 	}
