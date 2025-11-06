@@ -63,6 +63,7 @@ func (rqh *RequestHeader) ResponseHeader(status goipp.Status) ResponseHeader {
 		Version:                   goipp.DefaultVersion,
 		RequestID:                 rqh.RequestID,
 		Status:                    status,
+		StatusMessage:             status.String(),
 		AttributesCharset:         DefaultCharset,
 		AttributesNaturalLanguage: DefaultNaturalLanguage,
 	}
