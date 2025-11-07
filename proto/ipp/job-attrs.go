@@ -49,6 +49,7 @@ type JobAttributes struct {
 	JobRetainUntilTime      optional.Val[time.Time]             `ipp:"job-retain-until-time"`
 	JobSheetMessage         optional.Val[string]                `ipp:"job-sheet-message,text"`
 	JobSheetsCol            []JobSheets                         `ipp:"job-sheets-col"`
+	PrintContentOptimize    optional.Val[string]                `ipp:"print-content-optimize,keyword"`
 
 	// PWG5100.11: IPP Job and Printer Extensions – Set 2 (JPS2)
 	// 7 Job Template Attributes
@@ -124,6 +125,8 @@ type JobTemplate struct {
 	JobRetainUntilTimeSupported      optional.Val[goipp.Range]           `ipp:"job-retain-until-time-supported,(0:MAX)"`
 	JobSheetsColDefault              []JobSheets                         `ipp:"job-sheets-col-default,collection|no-value"`
 	JobSheetsColSupported            []string                            `ipp:"job-sheets-col-supported,keyword"`
+	PrintContentOptimizeDefault      optional.Val[string]                `ipp:"print-content-optimize-default,keyword"`
+	PrintContentOptimizeSupported    []string                            `ipp:"print-content-optimize-supported,keyword"`
 
 	// PWG5100.11: IPP Job and Printer Extensions – Set 2 (JPS2)
 	// 7 Job Template Attributes
