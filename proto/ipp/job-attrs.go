@@ -33,6 +33,9 @@ type JobAttributes struct {
 	PrintQuality             optional.Val[int]                        `ipp:"print-quality,enum"`
 	Sides                    optional.Val[KwSides]                    `ipp:"sides"`
 
+	// PWG5100.2: IPP “output-bin” attribute extension
+	OutputBin optional.Val[string] `ipp:"output-bin,keyword"`
+
 	// PWG5100.7: IPP Job Extensions v2.1 (JOBEXT)
 	// 6.8 Job Template Attributes
 	JobDelayOutputUntil     optional.Val[KwJobDelayOutputUntil] `ipp:"job-delay-output-until"`
@@ -97,6 +100,10 @@ type JobTemplate struct {
 	PrintQualitySupported             []int                                    `ipp:"print-quality-supported,enum"`
 	SidesDefault                      optional.Val[KwSides]                    `ipp:"sides-default"`
 	SidesSupported                    []KwSides                                `ipp:"sides-supported"`
+
+	// PWG5100.2: IPP “output-bin” attribute extension
+	OutputBinDefault   optional.Val[string] `ipp:"output-bin-default,keyword"`
+	OutputBinSupported []string             `ipp:"output-bin-supported,keyword"`
 
 	// PWG5100.7: IPP Job Extensions v2.1 (JOBEXT)
 	// 6.9 Printer Description Attributes
@@ -171,18 +178,18 @@ type JobTemplate struct {
 // PWG5100.7
 type MediaCol struct {
 	// ----- PWG5100.3 -----
-	KwMediaBackCoating optional.Val[KwMediaBackCoating] `ipp:"media-back-coating"`
-	MediaColor         optional.Val[KwColor]            `ipp:"media-color"`
-	MediaFrontCoating  optional.Val[KwMediaBackCoating] `ipp:"media-front-coating"`
-	MediaHoleCount     optional.Val[int]                `ipp:"media-hole-count,(0:MAX)"`
-	MediaInfo          optional.Val[string]             `ipp:"media-info,text"`
-	MediaKey           optional.Val[KwMedia]            `ipp:"media-key"`
-	MediaOrderCount    optional.Val[int]                `ipp:"media-order-count,(1:MAX)"`
-	MediaPrePrinted    optional.Val[string]             `ipp:"media-pre-printed,keyword"`
-	MediaRecycled      optional.Val[string]             `ipp:"media-recycled,keyword"`
-	MediaSize          optional.Val[MediaSize]          `ipp:"media-size"`
-	MediaType          optional.Val[string]             `ipp:"media-type,keyword"`
-	MediaWeightMetric  optional.Val[int]                `ipp:"media-weight-metric,(0:MAX)"`
+	MediaBackCoating  optional.Val[KwMediaBackCoating] `ipp:"media-back-coating"`
+	MediaColor        optional.Val[KwColor]            `ipp:"media-color"`
+	MediaFrontCoating optional.Val[KwMediaBackCoating] `ipp:"media-front-coating"`
+	MediaHoleCount    optional.Val[int]                `ipp:"media-hole-count,(0:MAX)"`
+	MediaInfo         optional.Val[string]             `ipp:"media-info,text"`
+	MediaKey          optional.Val[KwMedia]            `ipp:"media-key"`
+	MediaOrderCount   optional.Val[int]                `ipp:"media-order-count,(1:MAX)"`
+	MediaPrePrinted   optional.Val[string]             `ipp:"media-pre-printed,keyword"`
+	MediaRecycled     optional.Val[string]             `ipp:"media-recycled,keyword"`
+	MediaSize         optional.Val[MediaSize]          `ipp:"media-size"`
+	MediaType         optional.Val[string]             `ipp:"media-type,keyword"`
+	MediaWeightMetric optional.Val[int]                `ipp:"media-weight-metric,(0:MAX)"`
 
 	// ----- PWG5100.7 -----
 	MediaBottomMargin     optional.Val[int]                   `ipp:"media-bottom-margin,(0:MAX)"`
