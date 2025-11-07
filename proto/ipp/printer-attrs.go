@@ -172,8 +172,15 @@ type PrinterDescription struct {
 	PrinterOutputTray            []string                `ipp:"printer-output-tray,string"`
 	PrinterSupplyDescription     []goipp.TextWithLang    `ipp:"printer-supply-description"`
 	PrinterSupplyInfoURI         optional.Val[string]    `ipp:"printer-supply-info-uri,uri"`
-	PrinterSupply                []string                `ipp:"printer-supply.string"`
+	PrinterSupply                []string                `ipp:"printer-supply,string"`
 	PrinterUUID                  optional.Val[string]    `ipp:"printer-uuid,uri"`
+
+	// Wi-Fi Peer-to-Peer Services Print (P2Ps-Print)
+	// Technical Specification
+	// (for Wi-Fi Direct® services certification)
+	PclmRasterBackSide       optional.Val[string] `ipp:"pclm-raster-back-side,keyword"`
+	PclmStripHeightPreferred optional.Val[int]    `ipp:"pclm-strip-height-preferred"`
+	PclmStripHeightSupported []int                `ipp:"pclm-strip-height-supported"`
 
 	// CUPS extensions
 	DeviceURI          []string                    `ipp:"device-uri,uri"`

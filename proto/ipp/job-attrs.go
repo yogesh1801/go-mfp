@@ -170,6 +170,12 @@ type JobTemplate struct {
 	PrintRenderingIntentSupported   []string                  `ipp:"print-rendering-intent-supported,keyword"`
 	PrintScalingDefault             optional.Val[string]      `ipp:"print-scaling-default,keyword"`
 	PrintScalingSupported           []string                  `ipp:"print-scaling-supported,keyword"`
+
+	// Wi-Fi Peer-to-Peer Services Print (P2Ps-Print)
+	// Technical Specification
+	// (for Wi-Fi Direct® services certification)
+	PclmSourceResolution          optional.Val[goipp.Resolution] `ipp:"pclm-source-resolution"`
+	PclmSourceResolutionSupported []goipp.Resolution             `ipp:"pclm-source-resolution-supported"`
 }
 
 // MediaCol is the "media-col", "media-col-xxx" collection entry.
