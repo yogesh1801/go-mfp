@@ -20,6 +20,7 @@ import (
 	"unsafe"
 
 	"github.com/OpenPrinting/go-mfp/internal/assert"
+	"github.com/OpenPrinting/go-mfp/util/generic"
 	"github.com/OpenPrinting/goipp"
 )
 
@@ -989,35 +990,19 @@ func (codec *ippCodec) decodeAttrs(dec *ippDecoder,
 
 	p := unsafe.Pointer(v.Pointer())
 
-	// Special optimization for a single attribute, used by Object.Set
-	if len(attrs) == 1 {
-		step := codec.stepsByName[attrs[0].Name]
-
-		var err error
-		if step != nil {
-			err = codec.doDecodeStep(dec, p, *step, attrs[0])
-		}
-
-		return err
-	}
-
-	// Build map of attributes
-	attrByName := make(map[string]goipp.Attribute)
+	// Now decode, attribute by attribute
+	attersSeen := generic.NewSet[string]()
 	for _, attr := range attrs {
-		// If we see the same attribute, the second occurrence
-		// is silently ignored. Note, CUPS does the same
-		//
-		// For details, see discussion here:
-		//   https://lore.kernel.org/printing-architecture/84EEF38C-152E-4779-B1E8-578D6BB896E6@msweet.org/
-		if _, found := attrByName[attr.Name]; !found {
-			attrByName[attr.Name] = attr
+		if !attersSeen.TestAndAdd(attr.Name) {
+			// If we see the same attribute, the second occurrence
+			// is silently ignored. Note, CUPS does the same
+			//
+			// For details, see discussion here:
+			//   https://lore.kernel.org/printing-architecture/84EEF38C-152E-4779-B1E8-578D6BB896E6@msweet.org/
+			continue
 		}
-	}
 
-	// Now decode, step by step
-	for _, step := range codec.steps {
-		// Lookup the attribute
-		attr, found := attrByName[step.attrName]
+		step, found := codec.stepsByName[attr.Name]
 		if found {
 			err := codec.doDecodeStep(dec, p, step, attr)
 			if err != nil {
@@ -1032,7 +1017,7 @@ func (codec *ippCodec) decodeAttrs(dec *ippDecoder,
 // doDecodeStep decodes a single attribute.
 // p is the unsafe.Pointer to the outer structure.
 func (codec ippCodec) doDecodeStep(dec *ippDecoder,
-	p unsafe.Pointer, step ippCodecStep, attr goipp.Attribute) error {
+	p unsafe.Pointer, step *ippCodecStep, attr goipp.Attribute) error {
 
 	// Update path
 	dec.pathSet(step.attrName)
