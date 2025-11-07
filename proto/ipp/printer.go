@@ -22,9 +22,9 @@ type Printer struct {
 
 // NewPrinter creates a new [Printer], which facilities and
 // behavior is defined by the supplied [PrinterAttributes].
-func NewPrinter(attrs *PrinterAttributes) *Printer {
+func NewPrinter(attrs *PrinterAttributes, options ServerOptions) *Printer {
 	// Create the Printer structure
-	server := NewServer()
+	server := NewServer(options)
 	printer := &Printer{
 		server: server,
 		attrs:  attrs,

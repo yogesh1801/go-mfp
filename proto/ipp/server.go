@@ -22,11 +22,18 @@ import (
 
 // Server represents the IPP server.
 type Server struct {
-	ops map[goipp.Op]*Handler
+	options ServerOptions
+	ops     map[goipp.Op]*Handler
+}
+
+// ServerOptions allows to specify options that can modify
+// the [Server] behavior.
+type ServerOptions struct {
+	Hooks ServerHooks // IPP server hooks
 }
 
 // NewServer returns a new Sever.
-func NewServer() *Server {
+func NewServer(options ServerOptions) *Server {
 	s := &Server{
 		ops: make(map[goipp.Op]*Handler),
 	}
