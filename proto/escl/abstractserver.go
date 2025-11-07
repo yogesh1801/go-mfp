@@ -38,8 +38,8 @@ type AbstractServer struct {
 	lock     sync.Mutex                    // Access lock
 }
 
-// AbstractServerOptions represents the [AbstractServerOptions]
-// creation options.
+// AbstractServerOptions allows to specify options that can
+// modify the [AbstractServer] behavior.
 type AbstractServerOptions struct {
 	Version Version          // eSCL version, DefaultVersion, if not set
 	Scanner abstract.Scanner // Underlying abstract.Scanner
