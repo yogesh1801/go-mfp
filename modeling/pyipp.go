@@ -266,6 +266,7 @@ func (model *Model) pyImportIPPValue(obj *cpython.Object) (
 		var attrs goipp.Attributes
 		attrs, err = model.pyImportIPPAttrs(obj)
 		val = goipp.Collection(attrs)
+		tag = goipp.TagBeginCollection
 		return
 	}
 
