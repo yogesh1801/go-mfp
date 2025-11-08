@@ -18,26 +18,19 @@ type Handler struct {
 	callback func(*goipp.Message) (*goipp.Message, error)
 }
 
-// NewHandler creates a new IPP handler.
+// NewHandler creates a new IPP handler from the function that
+// consumes [Request] and returns the [goipp.Message] response:
 //
-// Its parameter is a function with a single parameter, a pointer
-// to structure that implements [Request] interface, and return value
-// is of the [Response] type:
-//
-//	func DoCUPSGetDefaultRequest(rq *CUPSGetDefaultRequest) Response {
+//	func DoCUPSGetDefaultRequest(rq *CUPSGetDefaultRequest) *goipp.Message {
 //	. . .
 //	}
 //
 //	handler := NewHandler(DoCUPSGetDefaultRequest)
-func NewHandler[RQT any, RSPT any,
+func NewHandler[RQT any,
 	RQ interface {
 		*RQT
 		Request
-	},
-	RSP interface {
-		*RSPT
-		Response
-	}](f func(rq RQ) RSP) *Handler {
+	}](f func(rq RQ) *goipp.Message) *Handler {
 
 	callback := func(rqMsg *goipp.Message) (*goipp.Message, error) {
 		rq := RQ(new(RQT))
@@ -46,8 +39,7 @@ func NewHandler[RQT any, RSPT any,
 			return nil, err
 		}
 
-		rsp := f(rq)
-		msg := rsp.Encode()
+		msg := f(rq)
 
 		return msg, nil
 	}

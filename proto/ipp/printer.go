@@ -44,12 +44,22 @@ func (printer *Printer) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 
 // handleGetPrinterAttributes handles Get-Printer-Attributes request.
 func (printer *Printer) handleGetPrinterAttributes(
-	rq *GetPrinterAttributesRequest) *GetPrinterAttributesResponse {
+	rq *GetPrinterAttributesRequest) *goipp.Message {
 
 	rsp := &GetPrinterAttributesResponse{
 		ResponseHeader: rq.ResponseHeader(goipp.StatusOk),
 		Printer:        printer.attrs,
 	}
 
-	return rsp
+	msg := rsp.Encode()
+	if printer.server.options.UseRawPrinterAttributes {
+		// Replace printer attributes in response
+		msg.Printer = printer.attrs.RawAttrs().All()
+
+		// Rebuild msg.Groups
+		msg.Groups = nil
+		msg.Groups = msg.AttrGroups()
+	}
+
+	return msg
 }

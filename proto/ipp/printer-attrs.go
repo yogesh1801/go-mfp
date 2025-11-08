@@ -45,14 +45,14 @@ const (
 
 // PrinterAttributes represents IPP Printer Attributes
 type PrinterAttributes struct {
+	ObjectRawAttrs
+
 	PrinterDescription
 	JobTemplate
 }
 
 // PrinterDescription contains Printer Description and Status Attributes
 type PrinterDescription struct {
-	ObjectRawAttrs
-
 	// RFC8011, 5.4: Printer Description and Status Attributes
 	CharsetConfigured                 optional.Val[string]        `ipp:"charset-configured,charset"`
 	CharsetSupported                  []string                    `ipp:"charset-supported,charset"`
