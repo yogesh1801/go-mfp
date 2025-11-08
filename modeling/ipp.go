@@ -34,7 +34,10 @@ func (model *Model) NewIPPServer() *ipp.Printer {
 	}
 
 	// Create the IPP print server
-	return ipp.NewPrinter(attrs, ipp.ServerOptions{})
+	options := ipp.ServerOptions{
+		UseRawPrinterAttributes: true,
+	}
+	return ipp.NewPrinter(attrs, options)
 }
 
 // ippLoad decodes the IPP part of the model. The model file assumed to
