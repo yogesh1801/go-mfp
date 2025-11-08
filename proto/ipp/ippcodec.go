@@ -431,6 +431,15 @@ func (dec *ippDecoder) decSlice(
 	tmp := reflect.New(t.Elem())
 	zero := reflect.Zero(t.Elem())
 
+	// Handle OOB
+	//
+	// See RFC8010, 3.5.2. for details
+	// https://datatracker.ietf.org/doc/html/rfc8010#section-3.5.2
+	if vals[0].T.Type() == goipp.TypeVoid {
+		reflect.NewAt(t, p).Elem().Set(reflect.Zero(t))
+		return nil
+	}
+
 	// Now decode, step by step
 	for i := range vals {
 		dec.pathSet(i)
@@ -440,6 +449,7 @@ func (dec *ippDecoder) decSlice(
 		if err != nil {
 			if dec.opt.KeepTrying {
 				// Skip the value
+				dec.errPush(err)
 				continue
 			}
 
@@ -461,20 +471,22 @@ func (dec *ippDecoder) decPtr(
 
 	assert.Must(len(vals) > 0)
 
-	// Decode the value
-	tmp := reflect.New(t.Elem())
-	err := decode(dec, unsafe.Pointer(tmp.Pointer()), vals[:1])
-
-	// Conversion from goipp.TypeVoid to non-void value is not
-	// a error here. Just zero the pointer and return.
-	var conv ippErrConvert
-	if errors.As(err, &conv) && conv.from == goipp.TypeVoid {
+	// Handle OOB
+	//
+	// See RFC8010, 3.5.2. for details
+	// https://datatracker.ietf.org/doc/html/rfc8010#section-3.5.2
+	if vals[0].T.Type() == goipp.TypeVoid {
 		reflect.NewAt(t, p).Elem().Set(reflect.Zero(t))
 		return nil
 	}
 
+	// Decode the value
+	tmp := reflect.New(t.Elem())
+	err := decode(dec, unsafe.Pointer(tmp.Pointer()), vals[:1])
+
 	if err != nil {
 		if dec.opt.KeepTrying {
+			dec.errPush(err)
 			reflect.NewAt(t, p).Elem().Set(reflect.Zero(t))
 			return nil
 		}
@@ -539,7 +551,6 @@ func (dec *ippDecoder) pathString() string {
 func (dec *ippDecoder) errWrap(err error) error {
 	err = fmt.Errorf("IPP decode %s: %q: %w",
 		dec.typename, dec.pathString(), err)
-	dec.errors = append(dec.errors, err)
 	return err
 }
 
@@ -556,6 +567,11 @@ func (dec *ippDecoder) errConvert(fromval struct {
 	}
 
 	return dec.errWrap(err)
+}
+
+// errPush adds the error into the ippDecoder.errors slice.
+func (dec *ippDecoder) errPush(err error) {
+	dec.errors = append(dec.errors, err)
 }
 
 // ippKnownAttrs returns information about Object's known attributes
@@ -1006,6 +1022,7 @@ func (codec *ippCodec) decodeAttrs(dec *ippDecoder,
 		if found {
 			err := codec.doDecodeStep(dec, p, step, attr)
 			if err != nil {
+				dec.errPush(err)
 				return err
 			}
 		}
@@ -1031,30 +1048,25 @@ func (codec ippCodec) doDecodeStep(dec *ippDecoder,
 	// So if Values slice is empty, this is artificial construct.
 	// Reject it in this case.
 	if len(attr.Values) == 0 {
-		return dec.errWrap(errors.New("at least 1 value required"))
+		err := dec.errWrap(errors.New("at least 1 value required"))
+		dec.errPush(err)
+		return err
 	}
 
 	// If not slice and we have more that 1 value, generate a
 	// warning and continue.
 	if !step.isSlice && len(attr.Values) > 1 {
 		err := fmt.Errorf("1 value expected, %d present", len(attr.Values))
-		dec.errWrap(err)
+		dec.errPush(dec.errWrap(err))
 	}
 
 	// Call decoder
 	err := step.decode(dec,
 		unsafe.Pointer(uintptr(p)+step.offset), attr.Values)
 
-	// Conversion from goipp.TypeVoid to non-void value is not
-	// a error here. Just zero the value and return.
-	var conv ippErrConvert
-	if errors.As(err, &conv) && conv.from == goipp.TypeVoid {
-		step.setzero(unsafe.Pointer(uintptr(p) + step.offset))
-		err = nil
-	}
-
 	if err != nil {
 		if dec.opt.KeepTrying {
+			dec.errPush(err)
 			step.setzero(unsafe.Pointer(uintptr(p) + step.offset))
 			return nil
 		}
