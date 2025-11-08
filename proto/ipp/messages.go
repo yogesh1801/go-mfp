@@ -9,6 +9,8 @@
 package ipp
 
 import (
+	"errors"
+
 	"github.com/OpenPrinting/go-mfp/util/optional"
 	"github.com/OpenPrinting/goipp"
 )
@@ -161,11 +163,14 @@ func (rsp *GetPrinterAttributesResponse) Decode(
 		return err
 	}
 
-	if len(msg.Printer) != 0 {
-		rsp.Printer, err = DecodePrinterAttributes(msg.Printer, opt)
-		if err != nil {
-			return err
-		}
+	if len(msg.Printer) == 0 {
+		err = errors.New("missed printer attributes in response")
+		return err
+	}
+
+	rsp.Printer, err = DecodePrinterAttributes(msg.Printer, opt)
+	if err != nil {
+		return err
 	}
 
 	return nil
