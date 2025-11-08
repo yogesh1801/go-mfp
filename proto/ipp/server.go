@@ -57,6 +57,14 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	log.Debug(ctx, "IPP request received:")
 	log.Debug(ctx, "%s", dump)
 
+	// Call the OnHTTPRequest hook
+	if s.options.Hooks.OnHTTPRequest != nil {
+		s.options.Hooks.OnHTTPRequest(query)
+		if query.IsStatusSet() {
+			return
+		}
+	}
+
 	// Check HTTP parameters
 	if query.RequestMethod() != "POST" {
 		s.httpError(query, ErrHTTPMethodNotAllowed)
@@ -78,6 +86,17 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	if err != nil {
 		s.httpError(query, err)
 		return
+	}
+
+	// Call the OnIPPRequest hook
+	if s.options.Hooks.OnIPPRequest != nil {
+		msg2 := s.options.Hooks.OnIPPRequest(query, msg)
+		if query.IsStatusSet() {
+			return
+		}
+		if msg2 != nil {
+			msg = msg2
+		}
 	}
 
 	// Log the IPP request
@@ -124,6 +143,17 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
+	// Call the OnIPPResponse hook
+	if s.options.Hooks.OnIPPResponse != nil {
+		rsp2 := s.options.Hooks.OnIPPResponse(query, rsp)
+		if query.IsStatusSet() {
+			return
+		}
+		if rsp2 != nil {
+			rsp = rsp2
+		}
+	}
+
 	// Log the response
 	buf.Reset()
 	rsp.Print(&buf, false)
@@ -152,11 +182,33 @@ func (s *Server) httpError(query *transport.ServerQuery, err error) {
 		query.Reject(err.Status, err)
 
 	case *ErrIPP:
+		// Create the IPP response
+		rsp := err.Encode()
+
+		// Call OnIPPResponse hook
+		if s.options.Hooks.OnIPPResponse != nil {
+			rsp2 := s.options.Hooks.OnIPPResponse(query, rsp)
+			if query.IsStatusSet() {
+				return
+			}
+			if rsp2 != nil {
+				rsp = rsp2
+			}
+		}
+
+		// Log the response
+		var buf bytes.Buffer
+		ctx := query.RequestContext()
+
+		rsp.Print(&buf, false)
+		log.Debug(ctx, "IPP response message:")
+		log.Debug(ctx, buf.String())
+
+		// Finish the HTTP query
 		query.ResponseHeader().Set("Content-Type", "application/ipp")
 		query.WriteHeader(http.StatusOK) // At HTTP level everything OK.
 
-		msg := err.Encode()
-		msg.Encode(query)
+		rsp.Encode(query)
 
 	default:
 		query.Reject(http.StatusInternalServerError, err)
