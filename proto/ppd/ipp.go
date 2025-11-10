@@ -33,6 +33,8 @@ func ippImport(ipp *C.ipp_t) (goipp.Attributes, error) {
 		return nil, err
 	}
 
+	defer fd.Close()
+
 	// Write ipp to the temporary file
 	state := C.libppd_ippWriteFile(C.int(fd), ipp)
 	if state == C.IPP_STATE_ERROR {
