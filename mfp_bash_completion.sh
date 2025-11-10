@@ -65,6 +65,7 @@ __mfp_complete()
 complete -o nospace -F __mfp_complete mfp-cups
 complete -o nospace -F __mfp_complete mfp-discover
 complete -o nospace -F __mfp_complete mfp-model
+complete -o nospace -F __mfp_complete mfp-ppd
 complete -o nospace -F __mfp_complete mfp-proxy
 complete -o nospace -F __mfp_complete mfp-usb
 complete -o nospace -F __mfp_complete mfp-virtual
