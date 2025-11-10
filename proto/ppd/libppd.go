@@ -9,6 +9,7 @@
 package ppd
 
 // #include "libppd.h"
+// #cgo LDFLAGS: -l dl
 import "C"
 import "errors"
 
