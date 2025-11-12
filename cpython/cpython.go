@@ -16,7 +16,7 @@ import (
 )
 
 // #cgo pkg-config: python3
-// #cgo LDFLAGS: -l python3 -l dl
+// #cgo LDFLAGS: -l dl
 //
 // #include "cpython.h"
 import "C"

@@ -11,6 +11,9 @@
 #include <dlfcn.h>
 #include <stdarg.h>
 
+// py_libpython3 contains libpython3.so handle.
+static void                                     *py_libpython3;
+
 // py_error is set to non-NULL in a case of any initialization
 // error. py_error_buf provides static buffer for that.
 //
@@ -40,7 +43,7 @@ static PyThreadState                            *py_main_thread;
 // So we can't use libpython3.NN.so.1.0 symbols directly. Loading
 // the libpython3.so implicitly puts these symbols into the main
 // process namespace, but every symbols needs to be manually resolved
-// with the explicit dlsym(RTLD_DEFAULT, name) call.
+// with the explicit dlsym(py_libpython3, name) call.
 //
 // So these pointers keeps these resolved symbols...
 static __typeof__(PyBool_FromLong)              *PyBool_FromLong_p;
@@ -161,7 +164,7 @@ static void *py_load (const char *name) {
     void *p = NULL;
 
     if (py_error == NULL) {
-        p = dlsym(RTLD_DEFAULT, name);
+        p = dlsym(py_libpython3, name);
         if (p == NULL) {
             py_set_error("%s", dlerror());
         }
@@ -176,9 +179,9 @@ static void *py_load2 (const char *name1, const char *name2) {
     void *p = NULL;
 
     if (py_error == NULL) {
-        p = dlsym(RTLD_DEFAULT, name1);
+        p = dlsym(py_libpython3, name1);
         if (p == NULL) {
-            p = dlsym(RTLD_DEFAULT, name2);
+            p = dlsym(py_libpython3, name2);
         }
 
         if (p == NULL) {
@@ -200,8 +203,49 @@ static void *py_load_ptr (const char *name) {
     return NULL;
 }
 
+// py_load_library loads the libpython3.so library
+static void py_load_library (void) {
+    char libname[128];
+
+    // Most of the distros comes with the libpython3.so library.
+    // This library is empty by itself, but via the ELF NEEDED
+    // it loads the proper libpython3.NN.MM.so as its dependency.
+    py_libpython3 = dlopen("libpython3.so", RTLD_NOW | RTLD_GLOBAL);
+    if (py_libpython3 != NULL) {
+        return;
+    }
+
+    // This is the Debian way. Debian comes with the libpython3.NN.so
+    // library instead of the libpython3.so.
+    sprintf(libname, "libpython3.%d.so", PY_MINOR_VERSION);
+    py_libpython3 = dlopen(libname, RTLD_NOW | RTLD_GLOBAL);
+    if (py_libpython3 != NULL) {
+        return;
+    }
+
+    // Try to be even more specific and use PY_MINOR_VERSION and
+    // PY_MICRO_VERSION of the Python we have build against.
+    sprintf(libname, "libpython3.%d.%d.so", PY_MINOR_VERSION, PY_MICRO_VERSION);
+    py_libpython3 = dlopen(libname, RTLD_NOW | RTLD_GLOBAL);
+    if (py_libpython3 != NULL) {
+        return;
+    }
+
+    // And now retry the generic libpython3.so just in order to
+    // obtain the proper error string.
+    py_libpython3 = dlopen("libpython3.so", RTLD_NOW | RTLD_GLOBAL);
+    if (py_libpython3 == NULL) {
+        py_set_error("%s", dlerror());
+        return;
+    }
+}
+
 // py_load_all loads all Python symbols.
 static void py_load_all (void) {
+    // Load the libpython3.so library
+    py_load_library();
+
+    // Load all required symbols
     PyBool_FromLong_p = py_load("PyBool_FromLong");
     PyByteArray_AsString_p = py_load("PyByteArray_AsString");
     PyByteArray_Size_p = py_load("PyByteArray_Size");
