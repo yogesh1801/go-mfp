@@ -9,6 +9,7 @@
 package ipp
 
 import (
+	"reflect"
 	"time"
 
 	"github.com/OpenPrinting/go-mfp/util/optional"
@@ -179,6 +180,12 @@ type JobTemplate struct {
 	// (for Wi-Fi Direct® services certification)
 	PclmSourceResolution          optional.Val[goipp.Resolution] `ipp:"pclm-source-resolution"`
 	PclmSourceResolutionSupported []goipp.Resolution             `ipp:"pclm-source-resolution-supported"`
+}
+
+// KnownAttrs returns information about all known IPP attributes
+// of the JobTemplate
+func (*JobTemplate) KnownAttrs() []AttrInfo {
+	return ippKnownAttrsType(reflect.TypeOf((*JobTemplate)(nil)))
 }
 
 // MediaCol is the "media-col", "media-col-xxx" collection entry.
