@@ -9,6 +9,7 @@
 package ipp
 
 import (
+	"reflect"
 	"time"
 
 	"github.com/OpenPrinting/go-mfp/util/optional"
@@ -199,6 +200,12 @@ type PrinterDescription struct {
 	UrfSupported       []string                    `ipp:"urf-supported,keyword"`
 }
 
+// KnownAttrs returns information about all known IPP attributes
+// of the PrinterDescription
+func (*PrinterDescription) KnownAttrs() []AttrInfo {
+	return ippKnownAttrsType(reflect.TypeOf((*PrinterDescription)(nil)))
+}
+
 // PrinterJobSaveDisposition represents "job-save-disposition-default"
 // collection entry in PrinterAttributes
 type PrinterJobSaveDisposition struct {
@@ -230,8 +237,8 @@ func DecodePrinterAttributes(attrs goipp.Attributes, opt DecodeOptions) (
 
 // KnownAttrs returns information about all known IPP attributes
 // of the PrinterAttributes
-func (pa *PrinterAttributes) KnownAttrs() []AttrInfo {
-	return ippKnownAttrs(pa)
+func (*PrinterAttributes) KnownAttrs() []AttrInfo {
+	return ippKnownAttrsType(reflect.TypeOf((*PrinterAttributes)(nil)))
 }
 
 // Set sets [goipp.Attibute]. It updates the appropriate structure

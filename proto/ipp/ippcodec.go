@@ -582,6 +582,15 @@ func ippKnownAttrs(obj Object) []AttrInfo {
 	return codec.knownAttrs
 }
 
+// ippKnownAttrsType returns information about known attributes of
+// structure, defined by its type.
+//
+// t must be pointer to structure.
+func ippKnownAttrsType(t reflect.Type) []AttrInfo {
+	codec := ippCodecGetType(t)
+	return codec.knownAttrs
+}
+
 // ippCodec represents actions required to encode/decode structures
 // of the particular type. Codecs are generated at initialization and
 // then reused, to minimize performance overhead associated with
@@ -643,7 +652,15 @@ func ippCodecGet(obj Object) *ippCodec {
 		panic(err)
 	}
 
+	return ippCodecGetType(t)
+}
+
+// ippCodecGetType returns coded for structure, defined by its type.
+//
+// t must be pointer to structure.
+func ippCodecGetType(t reflect.Type) *ippCodec {
 	// We need reflect.Type of the structure, not pointer
+	assert.Must(t.Kind() == reflect.Pointer)
 	t = t.Elem()
 
 	// Lookup cache
