@@ -65,7 +65,7 @@ type JobAttributes struct {
 	// PWG5100.13: IPP Driver Replacement Extensions v2.0 (NODRIVER)
 	// 6.2 Job and Document Template Attributes
 	JobErrorAction       optional.Val[string] `ipp:"job-error-action,keyword"`
-	MediaOverprint       []JobMediaOverprint  `ipp:"media-overprint"`
+	MediaOverprint       []MediaOverprint     `ipp:"media-overprint"`
 	PrintColorMode       optional.Val[string] `ipp:"print-color-mode,keyword"`
 	PrintRenderingIntent optional.Val[string] `ipp:"print-rendering-intent,keyword"`
 	PrintScaling         optional.Val[string] `ipp:"print-scaling,keyword"`
@@ -163,7 +163,7 @@ type JobTemplate struct {
 	// 6.5 Printer Description Attributes
 	JobErrorActionDefault           optional.Val[string]      `ipp:"job-error-action-default,keyword"`
 	JobErrorActionSupported         []string                  `ipp:"job-error-action-supported,keyword"`
-	MediaOverprintDefault           []JobMediaOverprint       `ipp:"media-overprint-default"`
+	MediaOverprintDefault           []MediaOverprint          `ipp:"media-overprint-default"`
 	MediaOverprintDistanceSupported optional.Val[goipp.Range] `ipp:"media-overprint-distance-supported,(0:MAX)"`
 	MediaOverprintMethodSupported   []string                  `ipp:"media-overprint-method-supported,keyword"`
 	MediaOverprintSupported         []string                  `ipp:"media-overprint-supported,keyword"`
@@ -186,52 +186,6 @@ type JobTemplate struct {
 // of the JobTemplate
 func (*JobTemplate) KnownAttrs() []AttrInfo {
 	return ippKnownAttrsType(reflect.TypeOf((*JobTemplate)(nil)))
-}
-
-// MediaCol is the "media-col", "media-col-xxx" collection entry.
-// It is used in many places.
-//
-// PWG5100.7
-type MediaCol struct {
-	// ----- PWG5100.3 -----
-	MediaBackCoating  optional.Val[KwMediaBackCoating] `ipp:"media-back-coating"`
-	MediaColor        optional.Val[KwColor]            `ipp:"media-color"`
-	MediaFrontCoating optional.Val[KwMediaBackCoating] `ipp:"media-front-coating"`
-	MediaHoleCount    optional.Val[int]                `ipp:"media-hole-count,(0:MAX)"`
-	MediaInfo         optional.Val[string]             `ipp:"media-info,text"`
-	MediaKey          optional.Val[KwMedia]            `ipp:"media-key"`
-	MediaOrderCount   optional.Val[int]                `ipp:"media-order-count,(1:MAX)"`
-	MediaPrePrinted   optional.Val[string]             `ipp:"media-pre-printed,keyword"`
-	MediaRecycled     optional.Val[string]             `ipp:"media-recycled,keyword"`
-	MediaSize         optional.Val[MediaSize]          `ipp:"media-size"`
-	MediaType         optional.Val[string]             `ipp:"media-type,keyword"`
-	MediaWeightMetric optional.Val[int]                `ipp:"media-weight-metric,(0:MAX)"`
-
-	// ----- PWG5100.7 -----
-	MediaBottomMargin     optional.Val[int]                   `ipp:"media-bottom-margin,(0:MAX)"`
-	MediaGrain            optional.Val[string]                `ipp:"media-grain,keyword"`
-	MediaLeftMargin       optional.Val[int]                   `ipp:"media-left-margin,(0:MAX)"`
-	MediaRightMargin      optional.Val[int]                   `ipp:"media-right-margin,(0:MAX)"`
-	MediaSizeName         optional.Val[string]                `ipp:"media-size-name,keyword"`
-	MediaSourceProperties optional.Val[MediaSourceProperties] `ipp:"media-source-properties"`
-	MediaSource           optional.Val[string]                `ipp:"media-source,keyword"`
-	MediaThickness        optional.Val[int]                   `ipp:"media-thickness,(1:MAX)"`
-	MediaTooth            optional.Val[string]                `ipp:"media-tooth,keyword"`
-	MediaTopMargin        optional.Val[int]                   `ipp:"media-top-margin,(0:MAX)"`
-}
-
-// MediaSize represents media size parameters (which may be either
-// pair of integers or pair of ranges) and used in many places
-type MediaSize struct {
-	XDimension goipp.IntegerOrRange `ipp:"x-dimension,(1:MAX)"`
-	YDimension goipp.IntegerOrRange `ipp:"y-dimension,(1:MAX)"`
-}
-
-// MediaSourceProperties represents "media-source-properties"
-// collectiobn in MediaCol
-type MediaSourceProperties struct {
-	MediaSourceFeedDirection   string `ipp:"media-source-feed-direction,keyword"`
-	MediaSourceFeedOrientation int    `ipp:"media-source-feed-orientation,enum"`
 }
 
 // JobSheets represents "job-sheets-col" collection entry in
@@ -264,13 +218,6 @@ type JobPdlInitFile struct {
 	PdlInitFileLocation string `ipp:"pdl-init-file-location,uri"`
 	PdlInitFileName     string `ipp:"pdl-init-file-name,name"`
 	PdlInitFileEntry    string `ipp:"pdl-init-file-entry,name"`
-}
-
-// JobMediaOverprint represents "media-overprint" collection entry
-// in JobAttributes
-type JobMediaOverprint struct {
-	MediaOverprintDistance int    `ipp:"media-overprint-distance,(0:MAX)"`
-	MediaOverprintMethod   string `ipp:"media-overprint-method,keyword"`
 }
 
 // JobPresets represents "job-presets-supported" collection entry

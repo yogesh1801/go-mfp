@@ -50,6 +50,7 @@ type PrinterAttributes struct {
 
 	PrinterDescription
 	JobTemplate
+	MediaColDatabase
 }
 
 // PrinterDescription contains Printer Description and Status Attributes
@@ -111,7 +112,6 @@ type PrinterDescription struct {
 	JobSpoolingSupported             optional.Val[KwJobSpooling] `ipp:"job-spooling-supported"`
 	MediaBackCoatingSupported        []KwMediaBackCoating        `ipp:"media-back-coating-supported"`
 	MediaBottomMarginSupported       []int                       `ipp:"media-bottom-margin-supported,(0:MAX)"`
-	MediaColDatabase                 []MediaCol                  `ipp:"media-col-database"`
 	MediaColDefault                  optional.Val[MediaCol]      `ipp:"media-col-default"`
 	MediaColorSupported              []string                    `ipp:"media-color-supported,keyword"`
 	MediaColReady                    []MediaCol                  `ipp:"media-col-ready"`
