@@ -30,21 +30,25 @@ func XMLLoad(name string) (xmldoc.Element, error) {
 		return xmldoc.Element{}, err
 	}
 
-	// Fix XML namespace prefixes and return
-	xmlFixNamespacePrefixes(&xml)
+	// Cleanup loaded XML
+	xmlCleanup(&xml)
+
 	return xml, nil
 }
 
-// xmlFixNamespacePrefixes fixes XML namespace prefixes.
+// xmlCleanup performs some post-load cleanup on the loaded
+// XML document:
 //
-// Our XML parser doesn't support XML files without namespace
-// prefixes, while IANA registration database is one of these
-// files. If namespace prefixes are missed, XML parser translates
-// them into "-:". This function removes these unneeded prefixes.
-func xmlFixNamespacePrefixes(root *xmldoc.Element) {
+//  1. Our XML parser doesn't support XML files without namespace
+//     prefixes, while IANA registration database is one of these
+//     files. If namespace prefixes are missed, XML parser translates
+//     them into "-:". This function removes these unneeded prefixes.
+//  2. Element's Text is trimmed (just in case).
+func xmlCleanup(root *xmldoc.Element) {
 	root.Name, _ = strings.CutPrefix(root.Name, "-:")
 	for i := range root.Children {
 		chld := &root.Children[i]
-		xmlFixNamespacePrefixes(chld)
+		chld.Text = strings.TrimSpace(chld.Text)
+		xmlCleanup(chld)
 	}
 }
