@@ -18,6 +18,9 @@ GO	:= go
 CTAGS	:= $(shell which ctags 2>/dev/null)
 GOLINT	:= $(shell which golint 2>/dev/null)
 
+# ----- Tools -----
+IPP_REGISTRATIONS_GENERATE := go run $(TOPDIR)/tools/ipp-registrations-generate
+
 # ----- Common targets -----
 
 .PHONY: all
@@ -38,7 +41,7 @@ vet:	do_vet subdirs_vet
 cover:	do_cover
 
 # Dependencies
-do_all:	tags
+do_all:	tags $(ALL_LOCAL)
 
 # Default actions
 tags:
