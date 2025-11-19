@@ -13,4 +13,6 @@ cmd/mfp-proxy/mfp-proxy
 cmd/mfp-usb/mfp-usb
 cmd/mfp-virtual/mfp-virtual
 
+tools/ipp-registrations-generate/ipp-registrations-generate
+
 .vscode

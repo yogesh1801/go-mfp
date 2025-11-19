@@ -10,6 +10,7 @@ SUBDIRS	= \
 	log \
 	modeling \
 	proto \
+	tools \
 	transport \
 	util
 
