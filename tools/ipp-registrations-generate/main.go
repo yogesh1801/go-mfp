@@ -12,6 +12,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/OpenPrinting/go-mfp/argv"
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
@@ -98,7 +99,8 @@ func commandHandler(ctx context.Context, inv *argv.Invocation) error {
 	// Check for errors
 	if len(db.Errors) != 0 {
 		for _, err := range db.Errors {
-			fmt.Println(err)
+			s := strings.TrimRight(err.Error(), "\n")
+			fmt.Println(s)
 		}
 
 		err := fmt.Errorf("%d errors encountered", len(db.Errors))
