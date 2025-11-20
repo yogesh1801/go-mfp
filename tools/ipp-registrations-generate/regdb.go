@@ -40,6 +40,7 @@ type RegDBAttr struct {
 	XRef         string                // Document it is defined in
 	Link         string                // Attr to borrow members from
 	Members      map[string]*RegDBAttr // Members, by name
+	Borrowed     map[string]*RegDBAttr // Borrowed members
 }
 
 // NewRegDB creates a new RegDB
@@ -279,6 +280,7 @@ func (db *RegDB) resolveLinksRecursive(attrs map[string]*RegDBAttr) {
 	}
 	sort.Strings(names)
 
+	// Roll over all attributes in collection
 	for _, name := range names {
 		attr := attrs[name]
 		if attr.Link != "" {
@@ -286,14 +288,18 @@ func (db *RegDB) resolveLinksRecursive(attrs map[string]*RegDBAttr) {
 		}
 	}
 
+	// Visit all children recursively
 	for _, name := range names {
 		attr := attrs[name]
 		db.resolveLinksRecursive(attr.Members)
 	}
 }
 
-// resolveLink resolves link of the single attribute
-func (db *RegDB) resolveLink(attr *RegDBAttr) (target map[string]*RegDBAttr) {
+// resolveLink resolves link of the single attribute:
+//
+//	attr.Link becomes absolute
+//	attr.Borrowed populated
+func (db *RegDB) resolveLink(attr *RegDBAttr) {
 	// Try db.Links
 	path := attr.Path()
 	if link := db.Links[path]; link != "" {
@@ -310,16 +316,17 @@ func (db *RegDB) resolveLink(attr *RegDBAttr) (target map[string]*RegDBAttr) {
 				attr.Path(), link)
 
 		default:
-			return attr2.Members
+			attr.Link = link
+			attr.Borrowed = attr2.Members
+			return
 		}
 
 		db.Errors = append(db.Errors, err)
-		return nil
 	}
 
 	// Lookup top-level collections
-	target = db.Collections[attr.Link]
-	if target != nil {
+	attr.Borrowed = db.Collections[attr.Link]
+	if attr.Borrowed != nil {
 		return
 	}
 
@@ -328,7 +335,8 @@ func (db *RegDB) resolveLink(attr *RegDBAttr) (target map[string]*RegDBAttr) {
 	assert.Must(len(splitpath) > 0)
 
 	splitpath[len(splitpath)-1] = attr.Link
-	attr2 := db.AllAttrs[strings.Join(splitpath, "/")]
+	path = strings.Join(splitpath, "/")
+	attr2 := db.AllAttrs[path]
 
 	var err error
 	switch {
@@ -345,11 +353,12 @@ func (db *RegDB) resolveLink(attr *RegDBAttr) (target map[string]*RegDBAttr) {
 			attr.Path(), attr.Link)
 
 	default:
-		return attr2.Members
+		attr.Link = path
+		attr.Borrowed = attr2.Members
+		return
 	}
 
 	db.Errors = append(db.Errors, err)
-	return nil
 }
 
 // handleSuffixes handles attributes, marked by suffixes
@@ -436,7 +445,7 @@ func (db *RegDB) checkEmptyCollectionsRecursive(attrs map[string]*RegDBAttr) {
 	// Now roll over all names
 	for _, name := range names {
 		attr := attrs[name]
-		if attr.Syntax.Collection && len(attr.Members) == 0 && db.Links[attr.Path()] == "" {
+		if attr.Syntax.Collection && len(attr.Members) == 0 && len(attr.Borrowed) == 0 {
 			err := fmt.Errorf("%s: empty collection", attr.Path())
 			db.Errors = append(db.Errors, err)
 		}
