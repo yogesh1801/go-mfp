@@ -15,6 +15,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/OpenPrinting/go-mfp/internal/assert"
 	"github.com/OpenPrinting/go-mfp/util/generic"
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
@@ -37,6 +38,7 @@ type RegDBAttr struct {
 	SyntaxString string                // Syntax string
 	Syntax       Syntax                // Attribute syntax, parsed
 	XRef         string                // Document it is defined in
+	Link         string                // Attr to borrow members from
 	Members      map[string]*RegDBAttr // Members, by name
 }
 
@@ -91,7 +93,12 @@ func (db *RegDB) Load(xml xmldoc.Element, errata bool) error {
 					submember.Elem.Text,
 				)
 				if err == nil && !db.ErrataSkip.Contains(from) {
-					err = db.newDirectLink(from, to)
+					attr := db.AllAttrs[from]
+					if attr == nil {
+						err = fmt.Errorf("%s->%s: broken source", from, to)
+					} else {
+						attr.Link = to
+					}
 				}
 				if err != nil {
 					return err
@@ -158,9 +165,9 @@ func (db *RegDB) Load(xml xmldoc.Element, errata bool) error {
 	}
 
 	if !errata {
-		db.verifyLinks()
 		db.handleSuffixes()
-		db.checkEmptyCollections()
+		db.resolveLinks()
+		//db.checkEmptyCollections()
 	}
 
 	return nil
@@ -255,29 +262,94 @@ func (db *RegDB) Lookup(path string) map[string]*RegDBAttr {
 	return nil
 }
 
-// verifyLinks checks that there is no broken links in the db.Links
-func (db *RegDB) verifyLinks() {
-	// Process links in predictable way
-	sources := make([]string, 0, len(db.Links))
-	for src := range db.Links {
-		sources = append(sources, src)
+// resolveLinks resolves links between attributes
+func (db *RegDB) resolveLinks() {
+	for _, col := range db.CollectionNames() {
+		attrs := db.Collections[col]
+		db.resolveLinksRecursive(attrs)
 	}
+}
 
-	sort.Strings(sources)
+// resolveLinksRecursive does the actual work of resolving links
+func (db *RegDB) resolveLinksRecursive(attrs map[string]*RegDBAttr) {
+	// Process attrs in predictable order
+	names := make([]string, 0, len(attrs))
+	for name := range attrs {
+		names = append(names, name)
+	}
+	sort.Strings(names)
 
-	// Now verify
-	for _, src := range sources {
-		dst := db.Links[src]
-
-		if db.Lookup(src) == nil {
-			err := fmt.Errorf("%s->%s: broken source", src, dst)
-			db.Errors = append(db.Errors, err)
-
-		} else if db.Lookup(dst) == nil {
-			err := fmt.Errorf("%s->%s: broken target", src, dst)
-			db.Errors = append(db.Errors, err)
+	for _, name := range names {
+		attr := attrs[name]
+		if attr.Link != "" {
+			db.resolveLink(attr)
 		}
 	}
+
+	for _, name := range names {
+		attr := attrs[name]
+		db.resolveLinksRecursive(attr.Members)
+	}
+}
+
+// resolveLink resolves link of the single attribute
+func (db *RegDB) resolveLink(attr *RegDBAttr) (target map[string]*RegDBAttr) {
+	// Try db.Links
+	path := attr.Path()
+	if link := db.Links[path]; link != "" {
+		attr2 := db.AllAttrs[link]
+
+		var err error
+		switch {
+		case attr2 == nil:
+			err = fmt.Errorf("%s->%s: broken link\n",
+				attr.Path(), link)
+
+		case len(attr2.Members) == 0:
+			err = fmt.Errorf("%s->%s: link target enpty\n",
+				attr.Path(), link)
+
+		default:
+			return attr2.Members
+		}
+
+		db.Errors = append(db.Errors, err)
+		return nil
+	}
+
+	// Lookup top-level collections
+	target = db.Collections[attr.Link]
+	if target != nil {
+		return
+	}
+
+	// Resolve link within attr's neighbors
+	splitpath := strings.Split(attr.Path(), "/")
+	assert.Must(len(splitpath) > 0)
+
+	splitpath[len(splitpath)-1] = attr.Link
+	attr2 := db.AllAttrs[strings.Join(splitpath, "/")]
+
+	var err error
+	switch {
+	case attr2 == nil:
+		err = fmt.Errorf("%s->%s: broken link\n",
+			attr.Path(), attr.Link)
+
+	case attr2 == attr:
+		err = fmt.Errorf("%s->%s: link to self\n",
+			attr.Path(), attr.Link)
+
+	case len(attr2.Members) == 0:
+		err = fmt.Errorf("%s->%s: link target enpty\n",
+			attr.Path(), attr.Link)
+
+	default:
+		return attr2.Members
+	}
+
+	db.Errors = append(db.Errors, err)
+	return nil
 }
 
 // handleSuffixes handles attributes, marked by suffixes
@@ -440,46 +512,36 @@ func (db *RegDB) resolveAliases(aliases []*RegDBAttr) (*RegDBAttr, error) {
 //	  <syntax/>
 //	  <xref type="uri" data="https://ftp.pwg.org/pub/pwg/candidates/cs-ippdocobject12-20240517-5100.5.pdf">PWG5100.5</xref>
 //	</record>
-//
-// On success, additional explicit call to RegDB.newDirectLink is required to
-// save the link.
 func (db *RegDB) newLink(collection, name, member, submember string) (
 	from, to string, err error) {
 
 	var path []string
-	var link []string
-	var last string
 
 	switch {
 	case name != "" && member != "" && submember == "":
 		path = []string{collection, name}
-		link = []string{collection}
-		last = member
+		to = member
 
 	case name != "" && member != "" && submember != "":
 		path = []string{collection, name, member}
-		link = []string{collection, name}
-		last = submember
+		to = submember
 
 	default:
 		panic("internal error")
 	}
 
-	if fields := strings.Split(last, `"`); len(fields) == 3 {
+	if fields := strings.Split(to, `"`); len(fields) == 3 {
 		// <Any "cover-back" member attribute>
 		// <-00> <----1---> <--------2------->
-		last = fields[1]
-		link = append(link, last)
+		to = fields[1]
 	} else {
 		// <Any Job Template attribute>
-		last = strings.TrimPrefix(last, "<Any ")
-		last = strings.TrimSuffix(last, " attribute>")
-		last = strings.TrimSuffix(last, " Attribute>")
-		link = []string{last}
+		to = strings.TrimPrefix(to, "<Any ")
+		to = strings.TrimSuffix(to, " attribute>")
+		to = strings.TrimSuffix(to, " Attribute>")
 	}
 
 	from = strings.Join(path, "/")
-	to = strings.Join(link, "/")
 
 	return
 }
@@ -488,11 +550,6 @@ func (db *RegDB) newLink(collection, name, member, submember string) (
 // It allows to create link targeted to the different top-level collection.
 // Used only in the errata.xml with the following syntax:
 func (db *RegDB) newDirectLink(from, to string) error {
-	if from == to {
-		// Sometimes we have link to self, just skip it
-		return nil
-	}
-
 	if db.Links[from] != "" {
 		err := fmt.Errorf("%s: duplicated link", from)
 		return err
