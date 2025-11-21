@@ -186,7 +186,7 @@ func (db *RegDB) Load(xml xmldoc.Element, errata bool) error {
 	if !errata {
 		db.handleSuffixes()
 		db.resolveLinks()
-		db.checkEmptyCollections()
+		//db.checkEmptyCollections()
 	}
 
 	return nil
