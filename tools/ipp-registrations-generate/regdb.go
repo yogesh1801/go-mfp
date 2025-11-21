@@ -25,6 +25,7 @@ type RegDB struct {
 	Collections map[string]map[string]*RegDBAttr // Attrs by collection
 	AllAttrs    map[string]*RegDBAttr            // All attributes, by path
 	Links       map[string]string                // Src uses target's attrs
+	Subst       map[string]string                // Abs paths for links
 	ErrataSkip  generic.Set[string]              // Errata: ignored attrs
 	Errata      map[string]*RegDBAttr            // Errata: replaced by path
 	Errors      []error                          // Collected errors
@@ -49,6 +50,7 @@ func NewRegDB() *RegDB {
 		Collections: make(map[string]map[string]*RegDBAttr),
 		AllAttrs:    make(map[string]*RegDBAttr),
 		Links:       make(map[string]string),
+		Subst:       make(map[string]string),
 		ErrataSkip:  generic.NewSet[string](),
 		Errata:      make(map[string]*RegDBAttr),
 	}
@@ -135,7 +137,7 @@ func (db *RegDB) Load(xml xmldoc.Element, errata bool) error {
 			}
 		}
 
-		// Process "link" and "skip" elements; only in errata
+		// Process "link", "skip" and "subst" elements; only in errata
 		if errata {
 			for _, chld := range registry.Children {
 				switch chld.Name {
@@ -160,6 +162,22 @@ func (db *RegDB) Load(xml xmldoc.Element, errata bool) error {
 					if ok {
 						db.ErrataSkip.Add(name.Text)
 					}
+
+				case "subst":
+					name := xmldoc.Lookup{Name: "name", Required: true}
+					use := xmldoc.Lookup{Name: "use", Required: true}
+
+					missed := chld.Lookup(&name, &use)
+					if missed != nil {
+						err := fmt.Errorf("missed subst element %s", missed.Name)
+						return err
+					}
+
+					err := db.addSubst(name.Elem.Text, use.Elem.Text)
+					if err != nil {
+						return err
+					}
+
 				}
 			}
 		}
@@ -300,28 +318,28 @@ func (db *RegDB) resolveLinksRecursive(attrs map[string]*RegDBAttr) {
 //	attr.Link becomes absolute
 //	attr.Borrowed populated
 func (db *RegDB) resolveLink(attr *RegDBAttr) {
-	// Try db.Links
-	path := attr.Path()
-	if link := db.Links[path]; link != "" {
-		attr2 := db.AllAttrs[link]
+	// Lookup substitutions
+	if subst, ok := db.Subst[attr.Link]; ok {
+		attr2 := db.AllAttrs[subst]
 
 		var err error
 		switch {
 		case attr2 == nil:
-			err = fmt.Errorf("%s->%s: broken link\n",
-				attr.Path(), link)
+			err = fmt.Errorf("%s->%s: broken subst\n",
+				attr.Path(), subst)
+			db.Errors = append(db.Errors, err)
 
 		case len(attr2.Members) == 0:
-			err = fmt.Errorf("%s->%s: link target enpty\n",
-				attr.Path(), link)
+			err = fmt.Errorf("%s->%s: subst target enpty\n",
+				attr.Path(), subst)
+			db.Errors = append(db.Errors, err)
 
 		default:
-			attr.Link = link
+			attr.Link = subst
 			attr.Borrowed = attr2.Members
-			return
 		}
 
-		db.Errors = append(db.Errors, err)
+		return
 	}
 
 	// Lookup top-level collections
@@ -335,7 +353,7 @@ func (db *RegDB) resolveLink(attr *RegDBAttr) {
 	assert.Must(len(splitpath) > 0)
 
 	splitpath[len(splitpath)-1] = attr.Link
-	path = strings.Join(splitpath, "/")
+	path := strings.Join(splitpath, "/")
 	attr2 := db.AllAttrs[path]
 
 	var err error
@@ -343,22 +361,22 @@ func (db *RegDB) resolveLink(attr *RegDBAttr) {
 	case attr2 == nil:
 		err = fmt.Errorf("%s->%s: broken link\n",
 			attr.Path(), attr.Link)
+		db.Errors = append(db.Errors, err)
 
 	case attr2 == attr:
 		err = fmt.Errorf("%s->%s: link to self\n",
 			attr.Path(), attr.Link)
+		db.Errors = append(db.Errors, err)
 
 	case len(attr2.Members) == 0:
 		err = fmt.Errorf("%s->%s: link target enpty\n",
 			attr.Path(), attr.Link)
+		db.Errors = append(db.Errors, err)
 
 	default:
 		attr.Link = path
 		attr.Borrowed = attr2.Members
-		return
 	}
-
-	db.Errors = append(db.Errors, err)
 }
 
 // handleSuffixes handles attributes, marked by suffixes
@@ -567,6 +585,17 @@ func (db *RegDB) newDirectLink(from, to string) error {
 	//fmt.Println(from, "->", to)
 	db.Links[from] = to
 
+	return nil
+}
+
+// addSubst adds a substitution for the attribute link target
+func (db *RegDB) addSubst(name, use string) error {
+	if _, dup := db.Subst[name]; dup {
+		err := fmt.Errorf("%s: duplicated substutution)", name)
+		return err
+	}
+
+	db.Subst[name] = use
 	return nil
 }
 

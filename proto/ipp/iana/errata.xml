@@ -17,236 +17,79 @@
       <xref data="https://ftp.pwg.org/pub/pwg/candidates/cs-ippsystem11-20250328-5100.22.pdf" type="uri">PWG5100.22</xref>
     </record>
 
-    <! ----- Manually inserted links ----- !>
-    <link>
-      <! IANA refers to PWG5100.5, but it is not true !>
+    <! ----- Substitutions for ambiguous links ----- !>
+    <subst>
       <! See PWG5100.3-2023, 5.2.1: Job Template/cover-back !>
-      <from>Document Status/cover-back-actual</from>
-      <to>Job Template/cover-back</to>
-    </link>
+      <name>cover-back</name>
+      <use>Job Template/cover-back</use>
+    </subst>
 
-    <link>
-      <! IANA refers to PWG5100.5, but it is not true !>
+    <subst>
       <! See PWG5100.3-2023, 5.2.1: Job Template/cover-front !>
-      <from>Document Status/cover-front-actual</from>
-      <to>Job Template/cover-front</to>
-    </link>
+      <name>cover-front</name>
+      <use>Job Template/cover-front</use>
+    </subst>
 
-    <link>
-      <! IANA refers to PWG5100.5, but it is not true !>
+    <subst>
       <! See PWG5100.1-2022, 5.2: Job Template/finishings-col !>
-      <from>Document Status/finishings-col-actual</from>
-      <to>Job Template/finishings-col</to>
-    </link>
+      <name>finishings-col</name>
+      <use>Job Template/finishings-col</use>
+    </subst>
 
-    <link>
-      <! IANA refers to PWG5100.5, but it is not true !>
+    <subst>
       <! See PWG5100.3-2023, 5.2.5: Job Template/insert-sheet !>
-      <from>Document Status/insert-sheet-actual(deprecated)</from>
-      <to>Job Template/insert-sheet(deprecated)</to>
-    </link>
+      <name>insert-sheet</name>
+      <use>Job Template/insert-sheet(deprecated)</use>
+    </subst>
 
-    <link>
-      <! IANA refers to PWG5100.5, but it is not true !>
+    <subst>
       <! See PWG5100.7-2023, 6.3.1: Job Template/media-col!>
-      <from>Document Status/media-col-actual</from>
-      <to>Job Template/media-col</to>
-    </link>
+      <name>media-col</name>
+      <use>Job Template/media-col</use>
+    </subst>
 
-    <link>
-      <! IANA refers to PWG5100.5, but it is not true !>
+    <subst>
       <! See PWG5100.3-2023, 5.2.16: Job Template/separator-sheets !>
-      <from>Document Status/separator-sheets-actual</from>
-      <to>Job Template/separator-sheets</to>
-    </link>
+      <name>separator-sheets</name>
+      <use>Job Template/separator-sheets</use>
+    </subst>
 
-    <link>
-      <! See PWG5100.3-2023, 5.2.1: Job Template/cover-back !>
-      <from>Document Template/cover-back</from>
-      <to>Job Template/cover-back</to>
-    </link>
-
-    <link>
-      <! IANA refers to PWG5100.5, but it is not true !>
-      <! See PWG5100.3-2023, 5.2.5: Job Template/insert-sheet !>
-      <from>Document Template/insert-sheet(deprecated)</from>
-      <to>Job Template/insert-sheet(deprecated)</to>
-    </link>
-
-    <link>
-      <! IANA refers to PWG5100.5, but it is not true !>
-      <! See PWG5100.7-2023, 6.3.1: Job Template/media-col!>
-      <from>Document Template/media-col</from>
-      <to>Job Template/media-col</to>
-    </link>
-
-    <link>
-      <! IANA refers to PWG5100.5, but it is not true !>
-      <! See PWG5100.3-2023, 5.2.16: Job Template/separator-sheets !>
-      <from>Document Template/separator-sheets</from>
-      <to>Job Template/separator-sheets</to>
-    </link>
-
-    <link>
-      <! See PWG5100.3-2023, 5.2.1: Job Template/cover-back !>
-      <from>Job Status/cover-back-actual</from>
-      <to>Job Template/cover-back</to>
-    </link>
-
-    <link>
-      <! See PWG5100.3-2023, 5.2.1: Job Template/cover-front !>
-      <from>Job Status/cover-front-actual</from>
-      <to>Job Template/cover-front</to>
-    </link>
-
-    <link>
-      <! See PWG5100.1-2022, 5.2: Job Template/finishings-col !>
-      <from>Job Status/finishings-col-actual</from>
-      <to>Job Template/finishings-col</to>
-    </link>
-
-    <link>
-      <! See PWG5100.3-2023, 5.2.5: Job Template/insert-sheet !>
-      <from>Job Status/insert-sheet-actual(deprecated)</from>
-      <to>Job Template/insert-sheet(deprecated)</to>
-    </link>
-
-    <link>
+    <subst>
       <! See PWG5100.3-2023, 5.2.9: Job Template/job-error-sheet !>
-      <from>Job Status/job-error-sheet-actual</from>
-      <to>Job Template/job-error-sheet</to>
-    </link>
+      <name>job-error-sheet</name>
+      <use>Job Template/job-error-sheet</use>
+    </subst>
 
-    <link>
+    <subst>
       <! See PWG5100.7-2023, 6.8.1: Job Template/job-sheets-col !>
-      <from>Job Status/job-sheets-col-actual</from>
-      <to>Job Template/job-sheets-col</to>
-    </link>
+      <name>job-sheets-col</name>
+      <use>Job Template/job-sheets-col</use>
+    </subst>
 
-    <link>
-      <! See PWG5100.7-2023, 6.3.1: Job Template/media-col!>
-      <from>Job Status/media-col-actual</from>
-      <to>Job Template/media-col</to>
-    </link>
-
-    <link>
+    <subst>
       <! See PWG5100.6-2003, 4.1: Job Template/overrides !>
-      <from>Job Status/overrides-actual</from>
-      <to>Job Template/overrides</to>
-    </link>
+      <name>overrides</name>
+      <use>Job Template/overrides</use>
+    </subst>
 
-    <link>
-      <! See PWG5100.3-2023, 5.2.16: Job Template/separator-sheets !>
-      <from>Job Status/separator-sheets-actual</from>
-      <to>Job Template/separator-sheets</to>
-    </link>
-
-    <link>
-      <! See PWG5100.7-2023, 6.3.1: Job Template/media-col!>
-      <from>Job Template/cover-back/media-col</from>
-      <to>Job Template/media-col</to>
-    </link>
-
-    <link>
-      <! See PWG5100.7-2023, 6.3.1: Job Template/media-col!>
-      <from>Job Template/cover-front/media-col</from>
-      <to>Job Template/media-col</to>
-    </link>
-
-    <link>
-      <! See PWG5100.7-2023, 6.3.1: Job Template/media-col!>
-      <from>Job Template/job-error-sheet/media-col</from>
-      <to>Job Template/media-col</to>
-    </link>
-
-    <link>
-      <! See PWG5100.7-2023, 6.3.1: Job Template/media-col!>
-      <from>Job Template/job-sheets-col/media-col</from>
-      <to>Job Template/media-col</to>
-    </link>
-
-    <link>
-      <! See PWG5100.7-2023, 6.3.1: Job Template/media-col!>
-      <from>Job Template/proof-print/media-col</from>
-      <to>Job Template/media-col</to>
-    </link>
-
-    <link>
-      <! See PWG5100.7-2023, 6.3.1: Job Template/media-col!>
-      <from>Job Template/separator-sheets/media-col</from>
-      <to>Job Template/media-col</to>
-    </link>
-
-    <link>
+    <subst>
       <! See PWG5100.7-2023, 6.6.4: job-pages-col (collection) !>
-      <from>Operation/job-pages-col</from>
-      <to>Job Status/job-pages-col</to>
-    </link>
+      <name>job-pages-col</name>
+      <use>Job Status/job-pages-col</use>
+    </subst>
 
-    <link>
-      <! See PWG5100.3-2023, 5.2.1: Job Template/cover-back !>
-      <from>Printer Description/cover-back-default</from>
-      <to>Job Template/cover-back</to>
-    </link>
-
-    <link>
-      <! See PWG5100.3-2023, 5.2.1: Job Template/cover-front !>
-      <from>Printer Description/cover-front-default</from>
-      <to>Job Template/cover-front</to>
-    </link>
-
-    <link>
+    <subst>
       <! See PWG5100.15-2023, 7.2.2: Job Template/cover-sheet-info !>
-      <from>Printer Description/cover-sheet-info-default</from>
-      <to>Job Template/cover-sheet-info</to>
-    </link>
+      <name>cover-sheet-info</name>
+      <use>Job Template/cover-sheet-info</use>
+    </subst>
 
-    <link>
-      <! See PWG5100.1-2022, 5.2: Job Template/finishings-col !>
-      <from>Printer Description/finishings-col-default</from>
-      <to>Job Template/finishings-col</to>
-    </link>
-
-    <link>
-      <! See PWG5100.1-2022, 5.2: Job Template/finishings-col !>
-      <from>Printer Description/finishings-col-ready</from>
-      <to>Job Template/finishings-col</to>
-    </link>
-
-    <link>
-      <! See PWG5100.7-2023, 6.8.1: Job Template/job-sheets-col !>
-      <from>Printer Description/job-sheets-col-default</from>
-      <to>Job Template/job-sheets-col</to>
-    </link>
-
-    <link>
-      <! See PWG5100.7-2023, 6.3.1: Job Template/media-col !>
-      <from>Printer Description/media-col-database</from>
-      <to>Job Template/media-col</to>
-    </link>
-
-    <link>
-      <! See PWG5100.7-2023, 6.3.1: Job Template/media-col !>
-      <from>Printer Description/media-col-default</from>
-      <to>Job Template/media-col</to>
-    </link>
-
-    <link>
-      <! See PWG5100.7-2023, 6.3.1: Job Template/media-col !>
-      <from>Printer Description/media-col-ready</from>
-      <to>Job Template/media-col</to>
-    </link>
-
-    <link>
+    <subst>
       <! See PWG5100.11-2024, 6.2.3 Job Template/proof-print !>
-      <from>Printer Description/proof-print-default</from>
-      <to>Job Template/proof-print</to>
-    </link>
+      <name>proof-print</name>
+      <use>Job Template/proof-print</use>
+    </subst>
 
-    <link>
-      <! See PWG5100.3-2023, 5.2.16: Job Template/separator-sheets !>
-      <from>Printer Description/separator-sheets-default</from>
-      <to>Job Template/separator-sheets</to>
-    </link>
+    <! ----- Missed links ----- !>
   </registry>
 </registry>
