@@ -155,7 +155,7 @@ func (attr Attr) Equal(attr2 Attr) bool {
 // [Attr.Value] of the entire XML tree based on the mapping
 // function and returns rewritten XML tree.
 //
-// It is uses [os.Expand] function for strings substitution.
+// It uses [os.Expand] function for strings substitution.
 func (root Element) Expand(mapping func(string) string) Element {
 	root.Text = os.Expand(root.Text, mapping)
 	root.Attrs = generic.CopySlice(root.Attrs)
