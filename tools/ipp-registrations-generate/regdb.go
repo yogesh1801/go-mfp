@@ -177,6 +177,7 @@ func (db *RegDB) loadRecord(record xmldoc.Element, errata bool) error {
 // between attributes. Links means that one attribute borrows members
 // from the another attribute.
 func (db *RegDB) loadLink(link xmldoc.Element) error {
+	// Lookup fields we are interested in
 	from := xmldoc.Lookup{Name: "from", Required: true}
 	to := xmldoc.Lookup{Name: "to", Required: true}
 
@@ -185,8 +186,15 @@ func (db *RegDB) loadLink(link xmldoc.Element) error {
 		return fmt.Errorf("link: missed %q element", missed.Name)
 	}
 
-	// Create the link
-	return db.newDirectLink(from.Elem.Text, to.Elem.Text)
+	// Link may have multiple "from" elements, roll over all of them
+	for _, from := range link.Children {
+		err := db.newDirectLink(from.Text, to.Elem.Text)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // loadSkip handles the "skip" element, which causes named
@@ -329,9 +337,7 @@ func (db *RegDB) resolveLinksRecursive(attrs map[string]*RegDBAttr) {
 	// Roll over all attributes in collection
 	for _, name := range names {
 		attr := attrs[name]
-		if attr.Link != "" {
-			db.resolveLink(attr)
-		}
+		db.resolveLink(attr)
 	}
 
 	// Visit all children recursively
@@ -346,6 +352,33 @@ func (db *RegDB) resolveLinksRecursive(attrs map[string]*RegDBAttr) {
 //	attr.Link becomes absolute
 //	attr.Borrowed populated
 func (db *RegDB) resolveLink(attr *RegDBAttr) {
+	// Lookup links
+	if attr.Link == "" {
+		attr.Link = db.Links[attr.Path()]
+		if attr.Link == "" {
+			// No link - no problem
+			return
+		}
+
+		// Handle absolute links here
+		attr2 := db.AllAttrs[attr.Link]
+		switch {
+		case attr2 == nil:
+			// Not a problem for now - probably link
+			// is just not absolute.
+
+		case len(attr2.Members) == 0:
+			err := fmt.Errorf("%s->%s: subst target enpty\n",
+				attr.Path(), attr.Link)
+			db.Errors = append(db.Errors, err)
+			return
+
+		default:
+			attr.Borrowed = attr2.Members
+			return
+		}
+	}
+
 	// Lookup substitutions
 	if subst, ok := db.Subst[attr.Link]; ok {
 		attr2 := db.AllAttrs[subst]
