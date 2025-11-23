@@ -71,67 +71,7 @@ func (db *RegDB) Load(xml xmldoc.Element, errata bool) error {
 				continue
 			}
 
-			// Lookup fields we are interested in
-			collection := xmldoc.Lookup{Name: "collection", Required: true}
-			name := xmldoc.Lookup{Name: "name", Required: true}
-			syntax := xmldoc.Lookup{Name: "syntax", Required: true}
-			xref := xmldoc.Lookup{Name: "xref", Required: true}
-			member := xmldoc.Lookup{Name: "member_attribute"}
-			submember := xmldoc.Lookup{Name: "sub-member_attribute"}
-
-			missed := record.Lookup(&collection, &name, &syntax, &xref,
-				&member, &submember)
-
-			// Ignore elements with missed fields
-			if missed != nil {
-				continue
-			}
-
-			// Elements with empty syntax must be links
-			if syntax.Elem.Text == "" {
-				from, to, err := db.newLink(
-					collection.Elem.Text,
-					name.Elem.Text,
-					member.Elem.Text,
-					submember.Elem.Text,
-				)
-				if err == nil && !db.ErrataSkip.Contains(from) {
-					attr := db.AllAttrs[from]
-					if attr == nil {
-						err = fmt.Errorf("%s->%s: broken source", from, to)
-					} else {
-						attr.Link = to
-					}
-				}
-				if err != nil {
-					return err
-				}
-				continue
-			}
-
-			// Create attribute
-			attr, err := db.newRegDBAttr(
-				collection.Elem.Text,
-				name.Elem.Text,
-				member.Elem.Text,
-				submember.Elem.Text,
-				syntax.Elem.Text,
-				xref.Elem.Text,
-			)
-
-			if err != nil {
-				return err
-			}
-
-			// Add to the database
-			if errata {
-				err = db.addErrata(attr)
-			} else {
-				if !db.ErrataSkip.Contains(attr.Path()) {
-					err = db.add(attr)
-				}
-			}
-
+			err := db.loadRecord(record, errata)
 			if err != nil {
 				return err
 			}
@@ -140,44 +80,20 @@ func (db *RegDB) Load(xml xmldoc.Element, errata bool) error {
 		// Process "link", "skip" and "subst" elements; only in errata
 		if errata {
 			for _, chld := range registry.Children {
+				var err error
 				switch chld.Name {
 				case "link":
-					from := xmldoc.Lookup{Name: "from", Required: true}
-					to := xmldoc.Lookup{Name: "to", Required: true}
-
-					missed := chld.Lookup(&from, &to)
-					if missed != nil {
-						err := fmt.Errorf("missed link element %s", missed.Name)
-						return err
-					}
-
-					// Create the link
-					err := db.newDirectLink(from.Elem.Text, to.Elem.Text)
-					if err != nil {
-						return err
-					}
+					err = db.loadLink(chld)
 
 				case "skip":
-					name, ok := chld.ChildByName("name")
-					if ok {
-						db.ErrataSkip.Add(name.Text)
-					}
+					err = db.loadSkip(chld)
 
 				case "subst":
-					name := xmldoc.Lookup{Name: "name", Required: true}
-					use := xmldoc.Lookup{Name: "use", Required: true}
+					err = db.loadSubst(chld)
+				}
 
-					missed := chld.Lookup(&name, &use)
-					if missed != nil {
-						err := fmt.Errorf("missed subst element %s", missed.Name)
-						return err
-					}
-
-					err := db.addSubst(name.Elem.Text, use.Elem.Text)
-					if err != nil {
-						return err
-					}
-
+				if err != nil {
+					return err
 				}
 			}
 		}
@@ -190,6 +106,118 @@ func (db *RegDB) Load(xml xmldoc.Element, errata bool) error {
 	}
 
 	return nil
+}
+
+// loadRecord handles the "record" element, which contains
+// attribute description.
+func (db *RegDB) loadRecord(record xmldoc.Element, errata bool) error {
+	// Lookup fields we are interested in
+	collection := xmldoc.Lookup{Name: "collection", Required: true}
+	name := xmldoc.Lookup{Name: "name", Required: true}
+	syntax := xmldoc.Lookup{Name: "syntax", Required: true}
+	xref := xmldoc.Lookup{Name: "xref", Required: true}
+	member := xmldoc.Lookup{Name: "member_attribute"}
+	submember := xmldoc.Lookup{Name: "sub-member_attribute"}
+
+	missed := record.Lookup(&collection, &name, &syntax, &xref,
+		&member, &submember)
+
+	// Ignore elements with missed fields
+	if missed != nil {
+		return nil
+	}
+
+	// Elements with empty syntax must be links
+	if syntax.Elem.Text == "" {
+		from, to, err := db.newLink(
+			collection.Elem.Text,
+			name.Elem.Text,
+			member.Elem.Text,
+			submember.Elem.Text,
+		)
+		if err == nil && !db.ErrataSkip.Contains(from) {
+			attr := db.AllAttrs[from]
+			if attr == nil {
+				err = fmt.Errorf("%s->%s: broken source", from, to)
+			} else {
+				attr.Link = to
+			}
+		}
+
+		return err
+	}
+
+	// Create attribute
+	attr, err := db.newRegDBAttr(
+		collection.Elem.Text,
+		name.Elem.Text,
+		member.Elem.Text,
+		submember.Elem.Text,
+		syntax.Elem.Text,
+		xref.Elem.Text,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	// Add to the database
+	if errata {
+		err = db.addErrata(attr)
+	} else {
+		if !db.ErrataSkip.Contains(attr.Path()) {
+			err = db.add(attr)
+		}
+	}
+
+	return err
+}
+
+// loadLink handles the "link" element, which adds links
+// between attributes. Links means that one attribute borrows members
+// from the another attribute.
+func (db *RegDB) loadLink(link xmldoc.Element) error {
+	from := xmldoc.Lookup{Name: "from", Required: true}
+	to := xmldoc.Lookup{Name: "to", Required: true}
+
+	missed := link.Lookup(&from, &to)
+	if missed != nil {
+		return fmt.Errorf("link: missed %q element", missed.Name)
+	}
+
+	// Create the link
+	return db.newDirectLink(from.Elem.Text, to.Elem.Text)
+}
+
+// loadSkip handles the "skip" element, which causes named
+// attribute to be ignored.
+func (db *RegDB) loadSkip(skip xmldoc.Element) error {
+	name, ok := skip.ChildByName("name")
+	if !ok {
+		return fmt.Errorf(`skip: missed "name" element`)
+	}
+
+	if !db.ErrataSkip.TestAndAdd(name.Text) {
+		return fmt.Errorf(`skip %s: already added`, name)
+	}
+
+	return nil
+}
+
+// loadSubst handles the "subst" elements, that defines the full path
+// to the link target (for example, media-col->Job Template/media-col).
+//
+// This is useful, when link target is ambiguous.
+func (db *RegDB) loadSubst(subst xmldoc.Element) error {
+	name := xmldoc.Lookup{Name: "name", Required: true}
+	use := xmldoc.Lookup{Name: "use", Required: true}
+
+	missed := subst.Lookup(&name, &use)
+	if missed != nil {
+		return fmt.Errorf(`subst %s: already added`, name)
+	}
+
+	return db.addSubst(name.Elem.Text, use.Elem.Text)
 }
 
 // addErrata adds attribute to the db.Errata
