@@ -160,12 +160,16 @@
     <link>
       <from>Document Status/materials-col-actual</from>
       <from>Job Status/materials-col-actual</from>
+      <from>Printer Description/materials-col-database</from>
+      <from>Printer Description/materials-col-default</from>
+      <from>Printer Description/materials-col-ready</from>
       <to>Document Template/materials-col</to>
     </link>
 
     <link>
       <from>Document Status/output-attributes-actual</from>
       <from>Job Status/output-attributes-actual</from>
+      <from>Printer Description/output-attributes-default</from>
       <to>Operation/output-attributes</to>
     </link>
 
@@ -221,17 +225,48 @@
 
     <link>
       <from>Operation/job-impressions-col</from>
+      <from>Printer Status/printer-impressions-completed-col</from>
       <to>Job Description/job-impressions-col</to>
     </link>
 
     <link>
       <from>Operation/job-media-sheets-col</from>
+      <from>Printer Status/printer-media-sheets-completed-col</from>
+      <from>System Status/system-media-sheets-completed-col</from>
+      <from>System Status/system-impressions-completed-col</from>
       <to>Job Description/job-media-sheets-col</to>
     </link>
 
     <link>
       <from>Printer Description/insert-sheet-default(deprecated)</from>
       <to>insert-sheet</to>
+    </link>
+
+    <link>
+      <from>Printer Description/job-error-sheet-default(extension)</from>
+      <to>job-error-sheet</to>
+    </link>
+
+    <link>
+      <from>Printer Description/media-overprint-default</from>
+      <to>Document Template/media-overprint</to>
+    </link>
+
+    <link>
+      <from>Printer Status/printer-pages-completed-col</from>
+      <from>System Status/system-pages-completed-col</from>
+      <to>Document Status/pages-col</to>
+    </link>
+
+    <link>
+      <from>System Description/system-contact-col</from>
+      <from>System Description/system-service-contact-col</from>
+      <to>Printer Description/printer-contact-col</to>
+    </link>
+
+    <link>
+      <from>System Description/system-xri-supported</from>
+      <to>Printer Description/printer-xri-supported</to>
     </link>
 
     <! ----- Skipped (totally obsoleted) attributes ----- !>
@@ -242,10 +277,18 @@
       <name>Printer Description/pdl-init-file-default(obsolete)</name>
       <name>Printer Description/pdl-init-file-default(obsolete)(extension)</name>
 
+      <! PWG5100.7-2023, 10.3: job-finishings-col* are obsolete !>
       <name>Job Status/job-finishings-col-actual(obsolete)</name>
       <name>Job Template/job-finishings-col(obsolete)</name>
+      <name>Printer Description/job-finishings-col-default(obsolete)</name>
+      <name>Printer Description/job-finishings-col-ready(obsolete)</name>
 
       <name>Job Template/job-save-disposition(obsolete)</name>
+    </skip>
+
+    <skip>
+      <! FIXME - special handling reqired !>
+      <name>Operation/preferred-attributes</name>
     </skip>
 
   </registry>
