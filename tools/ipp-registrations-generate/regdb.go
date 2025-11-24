@@ -99,12 +99,19 @@ func (db *RegDB) Load(xml xmldoc.Element, errata bool) error {
 		}
 	}
 
-	if !errata {
-		db.handleSuffixes()
-		db.resolveLinks()
-		//db.checkEmptyCollections()
-	}
+	return nil
+}
 
+// Finalize must be called after all attribute files are loaded,
+// using the [RegDB.Load] calls.
+//
+// It finalizes the database and performs all needed integrity
+// checks.
+func (db *RegDB) Finalize() error {
+	db.expandErrata()
+	db.handleSuffixes()
+	db.resolveLinks()
+	//db.checkEmptyCollections()
 	return nil
 }
 
@@ -188,9 +195,11 @@ func (db *RegDB) loadLink(link xmldoc.Element) error {
 
 	// Link may have multiple "from" elements, roll over all of them
 	for _, from := range link.Children {
-		err := db.newDirectLink(from.Text, to.Elem.Text)
-		if err != nil {
-			return err
+		if from.Name == "from" {
+			err := db.newDirectLink(from.Text, to.Elem.Text)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -200,13 +209,18 @@ func (db *RegDB) loadLink(link xmldoc.Element) error {
 // loadSkip handles the "skip" element, which causes named
 // attribute to be ignored.
 func (db *RegDB) loadSkip(skip xmldoc.Element) error {
-	name, ok := skip.ChildByName("name")
+	_, ok := skip.ChildByName("name")
 	if !ok {
 		return fmt.Errorf(`skip: missed "name" element`)
 	}
 
-	if !db.ErrataSkip.TestAndAdd(name.Text) {
-		return fmt.Errorf(`skip %s: already added`, name)
+	// There are may be multiple "name" elements, roll over all of them
+	for _, name := range skip.Children {
+		if name.Name == "name" {
+			if !db.ErrataSkip.TestAndAdd(name.Text) {
+				return fmt.Errorf(`skip %s: already added`, name.Text)
+			}
+		}
 	}
 
 	return nil
@@ -368,7 +382,7 @@ func (db *RegDB) resolveLink(attr *RegDBAttr) {
 			// is just not absolute.
 
 		case len(attr2.Members) == 0:
-			err := fmt.Errorf("%s->%s: subst target enpty\n",
+			err := fmt.Errorf("%s->%s: link target enpty\n",
 				attr.Path(), attr.Link)
 			db.Errors = append(db.Errors, err)
 			return
@@ -437,6 +451,28 @@ func (db *RegDB) resolveLink(attr *RegDBAttr) {
 	default:
 		attr.Link = path
 		attr.Borrowed = attr2.Members
+	}
+}
+
+// expandErrata expands db.Errata entries, not used before to
+// replace the existent attributes (i.e., those Errata entries
+// that injects new attributes).
+func (db *RegDB) expandErrata() {
+	// Collect all errata attributes in the sorted by name order
+	names := make([]string, 0, len(db.Errata))
+	for name := range db.Errata {
+		names = append(names, name)
+	}
+
+	sort.Strings(names)
+
+	// Now process one by one
+	for _, name := range names {
+		if attr := db.AllAttrs[name]; attr == nil {
+			errata := db.Errata[name]
+			err := db.add(errata)
+			assert.NoError(err)
+		}
 	}
 }
 
@@ -689,8 +725,11 @@ func (db *RegDB) newRegDBAttr(collection, name, member, submember,
 		panic("internal error")
 	}
 
-	// Check for errata. Do it before we attempt to
-	// parse the syntax.
+	// Check for errata. If attribute is found in errata, it effectively
+	// replaces normal attribute by the errata entry.
+	//
+	// Do it before we attempt to parse the syntax, so broken syntax
+	// can be fixed this way.
 	if errata := db.Errata[attr.Path()]; errata != nil {
 		return errata, nil
 	}

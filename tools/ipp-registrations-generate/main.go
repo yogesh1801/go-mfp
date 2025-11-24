@@ -91,6 +91,9 @@ func commandHandler(ctx context.Context, inv *argv.Invocation) error {
 	if err == nil {
 		err = db.Load(input, false)
 	}
+	if err == nil {
+		err = db.Finalize()
+	}
 
 	if err != nil {
 		return err
