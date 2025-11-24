@@ -45,6 +45,28 @@
       <xref type="uri" data="https://ftp.pwg.org/pub/pwg/candidates/cs-ippprodprint10-20010212-5100.3.pdf">PWG5100.3</xref>
     </record>
 
+    <record>
+      <! PWG5100.22-2025, 7.1.10 !>
+      <collection>Operation</collection>
+      <name>printer-xri-requested</name>
+      <syntax>1setOf collection</syntax>
+      <xref data="https://ftp.pwg.org/pub/pwg/candidates/cs-ippsystem11-20250328-5100.22.pdf" type="uri">PWG5100.22</xref>
+    </record>
+    <record>
+      <collection>Operation</collection>
+      <name>printer-xri-requested</name>
+      <member_attribute>xri-authentication</member_attribute>
+      <syntax>type2 keyword</syntax>
+      <xref data="https://ftp.pwg.org/pub/pwg/candidates/cs-ippsystem11-20250328-5100.22.pdf" type="uri">PWG5100.22</xref>
+    </record>
+    <record>
+      <collection>Operation</collection>
+      <name>printer-xri-requested</name>
+      <member_attribute>xri-security</member_attribute>
+      <syntax>type2 keyword</syntax>
+      <xref data="https://ftp.pwg.org/pub/pwg/candidates/cs-ippsystem11-20250328-5100.22.pdf" type="uri">PWG5100.22</xref>
+    </record>
+
     <! ----- Substitutions for ambiguous links ----- !>
     <subst>
       <! See PWG5100.3-2023, 5.2.1: Job Template/cover-back !>
@@ -124,12 +146,14 @@
       <from>Document Status/document-format-details-detected(deprecated)</from>
       <from>Job Status/document-format-details-detected(deprecated)</from>
       <from>Job Status/document-format-details-supplied</from>
+      <from>Printer Description/document-format-details-default(obsolete)</from>
       <to>Operation/document-format-details</to>
     </link>
 
     <link>
       <from>Document Status/input-attributes-actual</from>
       <from>Job Status/input-attributes-actual</from>
+      <from>Printer Description/input-attributes-default</from>
       <to>Operation/input-attributes</to>
     </link>
 
@@ -159,18 +183,23 @@
 
     <link>
       <from>Job Status/job-cover-back-actual(obsolete)</from>
+      <from>Job Template/job-cover-back(obsolete)</from>
+      <from>Printer Description/job-cover-back-default(obsolete)</from>
       <to>cover-back</to>
     </link>
 
     <link>
       <from>Document Template/cover-front(deprecated)</from>
       <from>Job Status/job-cover-front-actual(obsolete)</from>
+      <from>Job Template/job-cover-front(obsolete)</from>
+      <from>Printer Description/job-cover-front-default(obsolete)</from>
       <to>cover-front</to>
     </link>
 
     <link>
       <from>Document Template/finishings-col(extension)</from>
       <from>Job Template/finishings-col(extension)</from>
+      <from>Printer Description/finishings-col-database</from>
       <to>finishings-col</to>
     </link>
 
@@ -181,12 +210,28 @@
 
     <link>
       <from>Job Status/job-accounting-sheets-actual(deprecated)</from>
+      <from>Printer Description/job-accounting-sheets-default(deprecated)</from>
       <to>Job Template/job-accounting-sheets(deprecated)</to>
     </link>
 
     <link>
       <from>Job Status/job-storage</from>
       <to>Operation/job-storage</to>
+    </link>
+
+    <link>
+      <from>Operation/job-impressions-col</from>
+      <to>Job Description/job-impressions-col</to>
+    </link>
+
+    <link>
+      <from>Operation/job-media-sheets-col</from>
+      <to>Job Description/job-media-sheets-col</to>
+    </link>
+
+    <link>
+      <from>Printer Description/insert-sheet-default(deprecated)</from>
+      <to>insert-sheet</to>
     </link>
 
     <! ----- Skipped (totally obsoleted) attributes ----- !>
@@ -198,9 +243,9 @@
       <name>Printer Description/pdl-init-file-default(obsolete)(extension)</name>
 
       <name>Job Status/job-finishings-col-actual(obsolete)</name>
-      <name>Job Template/job-cover-back(obsolete)</name>
-      <name>Job Template/job-cover-front(obsolete)</name>
       <name>Job Template/job-finishings-col(obsolete)</name>
+
+      <name>Job Template/job-save-disposition(obsolete)</name>
     </skip>
 
   </registry>
