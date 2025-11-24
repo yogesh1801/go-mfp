@@ -17,6 +17,34 @@
       <xref data="https://ftp.pwg.org/pub/pwg/candidates/cs-ippsystem11-20250328-5100.22.pdf" type="uri">PWG5100.22</xref>
     </record>
 
+    <record>
+      <collection>Job Template</collection>
+      <name>job-accounting-sheets(deprecated)</name>
+      <syntax>collection</syntax>
+      <xref type="uri" data="https://ftp.pwg.org/pub/pwg/candidates/cs-ippprodprint10-20010212-5100.3.pdf">PWG5100.3</xref>
+    </record>
+    <record>
+      <collection>Job Template</collection>
+      <name>job-accounting-sheets(deprecated)</name>
+      <member_attribute>job-accounting-sheets-type</member_attribute>
+      <syntax>type2 keyword | name(MAX)</syntax>
+      <xref type="uri" data="https://ftp.pwg.org/pub/pwg/candidates/cs-ippprodprint10-20010212-5100.3.pdf">PWG5100.3</xref>
+    </record>
+    <record>
+      <collection>Job Template</collection>
+      <name>job-accounting-sheets(deprecated)</name>
+      <member_attribute>media</member_attribute>
+      <syntax>type2 keyword | name(MAX)</syntax>
+      <xref type="uri" data="https://ftp.pwg.org/pub/pwg/candidates/cs-ippprodprint10-20010212-5100.3.pdf">PWG5100.3</xref>
+    </record>
+    <record>
+      <collection>Job Template</collection>
+      <name>job-accounting-sheets(deprecated)</name>
+      <member_attribute>media-col</member_attribute>
+      <syntax>collection</syntax>
+      <xref type="uri" data="https://ftp.pwg.org/pub/pwg/candidates/cs-ippprodprint10-20010212-5100.3.pdf">PWG5100.3</xref>
+    </record>
+
     <! ----- Substitutions for ambiguous links ----- !>
     <subst>
       <! See PWG5100.3-2023, 5.2.1: Job Template/cover-back !>
@@ -91,5 +119,89 @@
     </subst>
 
     <! ----- Missed links ----- !>
+    <link>
+      <from>Document Status/document-format-details(deprecated)</from>
+      <from>Document Status/document-format-details-detected(deprecated)</from>
+      <from>Job Status/document-format-details-detected(deprecated)</from>
+      <from>Job Status/document-format-details-supplied</from>
+      <to>Operation/document-format-details</to>
+    </link>
+
+    <link>
+      <from>Document Status/input-attributes-actual</from>
+      <from>Job Status/input-attributes-actual</from>
+      <to>Operation/input-attributes</to>
+    </link>
+
+    <link>
+      <from>Document Status/materials-col-actual</from>
+      <from>Job Status/materials-col-actual</from>
+      <to>Document Template/materials-col</to>
+    </link>
+
+    <link>
+      <from>Document Status/output-attributes-actual</from>
+      <from>Job Status/output-attributes-actual</from>
+      <to>Operation/output-attributes</to>
+    </link>
+
+    <link>
+      <from>Document Status/print-accuracy-actual</from>
+      <from>Job Status/print-accuracy-actual</from>
+      <to>Document Template/print-accuracy</to>
+    </link>
+
+    <link>
+      <from>Document Status/print-objects-actual</from>
+      <from>Job Status/print-objects-actual</from>
+      <to>Document Template/print-objects</to>
+    </link>
+
+    <link>
+      <from>Job Status/job-cover-back-actual(obsolete)</from>
+      <to>cover-back</to>
+    </link>
+
+    <link>
+      <from>Document Template/cover-front(deprecated)</from>
+      <from>Job Status/job-cover-front-actual(obsolete)</from>
+      <to>cover-front</to>
+    </link>
+
+    <link>
+      <from>Document Template/finishings-col(extension)</from>
+      <from>Job Template/finishings-col(extension)</from>
+      <to>finishings-col</to>
+    </link>
+
+    <link>
+      <from>Job Status/client-info</from>
+      <to>Operation/client-info</to>
+    </link>
+
+    <link>
+      <from>Job Status/job-accounting-sheets-actual(deprecated)</from>
+      <to>Job Template/job-accounting-sheets(deprecated)</to>
+    </link>
+
+    <link>
+      <from>Job Status/job-storage</from>
+      <to>Operation/job-storage</to>
+    </link>
+
+    <! ----- Skipped (totally obsoleted) attributes ----- !>
+    <skip>
+      <name>Document Template/pdl-init-file(obsolete)</name>
+      <name>Job Template/pdl-init-file(obsolete)(extension)</name>
+      <name>Job Template/pdl-init-file(obsolete)</name>
+      <name>Printer Description/pdl-init-file-default(obsolete)</name>
+      <name>Printer Description/pdl-init-file-default(obsolete)(extension)</name>
+
+      <name>Job Status/job-finishings-col-actual(obsolete)</name>
+      <name>Job Template/job-cover-back(obsolete)</name>
+      <name>Job Template/job-cover-front(obsolete)</name>
+      <name>Job Template/job-finishings-col(obsolete)</name>
+    </skip>
+
   </registry>
 </registry>
