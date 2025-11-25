@@ -400,13 +400,13 @@ func (db *RegDB) resolveLink(attr *RegDBAttr) {
 		var err error
 		switch {
 		case attr2 == nil:
-			err = fmt.Errorf("%s->%s: broken subst\n",
+			err = fmt.Errorf("%s->%s: subst target missed\n",
 				attr.Path(), subst)
 			db.Errors = append(db.Errors, err)
 
 		case len(attr2.Members) == 0:
 			err = fmt.Errorf("%s->%s: subst target enpty\n",
-				attr.Path(), subst)
+				attr.Path(), attr2.Path())
 			db.Errors = append(db.Errors, err)
 
 		default:
@@ -503,6 +503,7 @@ func (db *RegDB) handleSuffixes() {
 	}
 
 	// Rebuild db.AllAttrs
+	db.rebuildAllAttrs()
 }
 
 // handleSuffixesInCollection does the real work of handling
@@ -546,6 +547,24 @@ func (db *RegDB) handleSuffixesInCollection(attrs map[string]*RegDBAttr) {
 		if attr != nil {
 			attrs[name] = attr
 		}
+	}
+}
+
+// rebuildAllAttrs rebuilds db.AllAttrs, after all aliases are resolved.
+func (db *RegDB) rebuildAllAttrs() {
+	clear(db.AllAttrs)
+
+	collections := db.CollectionNames()
+	for _, col := range collections {
+		db.rebuildAllAttrsRecursive(db.Collections[col])
+	}
+}
+
+// rebuildAllAttrsRecursive does the real work of db.rebuildAllAttrs
+// by visiting all attributes recursive.
+func (db *RegDB) rebuildAllAttrsRecursive(attrs map[string]*RegDBAttr) {
+	for _, attr := range attrs {
+		db.AllAttrs[attr.PurePath()] = attr
 	}
 }
 
@@ -778,5 +797,21 @@ func (attr *RegDBAttr) Path() string {
 	path := []string{attr.Collection}
 	path = append(path, attr.Parents...)
 	path = append(path, attr.Name)
+	return strings.Join(path, "/")
+}
+
+// PurePath returns full path to the attribute with possible
+// suffixes stripped in all path elements.
+func (attr *RegDBAttr) PurePath() string {
+	path := []string{attr.Collection}
+	path = append(path, attr.Parents...)
+	path = append(path, attr.Name)
+
+	for pos, frag := range path {
+		if i := strings.IndexByte(frag, '('); i >= 0 {
+			path[pos] = frag[:i]
+		}
+	}
+
 	return strings.Join(path, "/")
 }

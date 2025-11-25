@@ -89,7 +89,7 @@
     <subst>
       <! See PWG5100.3-2023, 5.2.5: Job Template/insert-sheet !>
       <name>insert-sheet</name>
-      <use>Job Template/insert-sheet(deprecated)</use>
+      <use>Job Template/insert-sheet</use>
     </subst>
 
     <subst>
@@ -215,7 +215,7 @@
     <link>
       <from>Job Status/job-accounting-sheets-actual(deprecated)</from>
       <from>Printer Description/job-accounting-sheets-default(deprecated)</from>
-      <to>Job Template/job-accounting-sheets(deprecated)</to>
+      <to>Job Template/job-accounting-sheets</to>
     </link>
 
     <link>
@@ -284,6 +284,13 @@
       <name>Printer Description/job-finishings-col-ready(obsolete)</name>
 
       <name>Job Template/job-save-disposition(obsolete)</name>
+    </skip>
+
+    <skip>
+      <! Job Template/finishings-col(extension) shadows
+         Job Template/finishings-col and contains no attributes
+	 and no useful update !>
+      <name>Job Template/finishings-col(extension)</name>
     </skip>
 
     <skip>
