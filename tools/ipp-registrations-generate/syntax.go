@@ -12,7 +12,6 @@ import (
 	"fmt"
 	"math"
 	"reflect"
-	"sort"
 	"strconv"
 	"strings"
 	"unicode"
@@ -77,29 +76,7 @@ func ParseSyntax(s string) (syntax Syntax, err error) {
 	}
 
 	// Sort and dedup tags, to make equal syntaxes comparable
-	sort.Slice(syntax.Tags, func(i, j int) bool {
-		t1 := syntax.Tags[i]
-		t2 := syntax.Tags[j]
-
-		switch {
-		case t1.Type() != goipp.TypeVoid && t2.Type() == goipp.TypeVoid:
-			return true
-		case t1.Type() == goipp.TypeVoid && t2.Type() != goipp.TypeVoid:
-			return false
-		default:
-			return t1 < t2
-		}
-	})
-
-	end := 1
-	for i := 1; i < len(syntax.Tags); i++ {
-		if syntax.Tags[i] != syntax.Tags[i-1] {
-			syntax.Tags[end] = syntax.Tags[i]
-			end++
-		}
-	}
-
-	syntax.Tags = syntax.Tags[:end]
+	syntax.sortTags()
 
 	for _, tag := range syntax.Tags {
 		if tag == goipp.TagBeginCollection {
@@ -271,6 +248,63 @@ func (syntax Syntax) tokenize(s string) []string {
 	}
 
 	return strtok
+}
+
+// sortTags sorts syntax.Tags and removes duplicates, so
+// so equality of two Syntax values can easily be checked.
+func (syntax *Syntax) sortTags() {
+	tags := generic.NewSet[goipp.Tag]()
+
+	for _, tag := range syntax.Tags {
+		tags.Add(tag)
+	}
+
+	syntax.Tags = syntax.Tags[:0]
+
+	for _, tag := range tagsSortingOrder {
+		if tags.Contains(tag) {
+			syntax.Tags = append(syntax.Tags, tag)
+		}
+	}
+}
+
+// tagsSortingOrder defines sorting order for the Syntax.sortTags
+var tagsSortingOrder = []goipp.Tag{
+	// Prefer Enum over Integer
+	goipp.TagEnum,
+	goipp.TagInteger,
+
+	// Prefer Keyword, then Name, then NameLang
+	goipp.TagKeyword,
+	goipp.TagName,
+	goipp.TagNameLang,
+
+	// Prefer Text over TextLang
+	goipp.TagText,
+	goipp.TagTextLang,
+
+	// No special order for these tags
+	goipp.TagBoolean,
+	goipp.TagString,
+	goipp.TagDateTime,
+	goipp.TagResolution,
+	goipp.TagRange,
+	goipp.TagBeginCollection,
+	goipp.TagReservedString,
+	goipp.TagURI,
+	goipp.TagURIScheme,
+	goipp.TagCharset,
+	goipp.TagLanguage,
+	goipp.TagMimeType,
+
+	// Put no-value (OOB) tags to the end
+	goipp.TagUnsupportedValue,
+	goipp.TagDefault,
+	goipp.TagUnknown,
+	goipp.TagNoValue,
+	goipp.TagNotSettable,
+	goipp.TagDeleteAttr,
+	goipp.TagAdminDefine,
 }
 
 // tags maps tag names (e.g., "integer") to tag values
