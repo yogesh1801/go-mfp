@@ -63,18 +63,20 @@ func Output(w io.Writer, db *RegDB) error {
 	return err
 }
 
+// outputCollections writes top-level connections.
 func outputCollections(buf *bytes.Buffer, db *RegDB) {
 	for _, name := range db.CollectionNames() {
 		ident := strings.Join(strings.Fields(name), "")
 		fmt.Fprintf(buf, "\n")
 		fmt.Fprintf(buf, "// %s is the %s attributes\n", ident, name)
 		fmt.Fprintf(buf, "var %s = map[string]Attribute{\n", ident)
-		outputAttributes(buf, db.Collections[name])
+		outputAttributes(buf, db.Collections[name], name)
 		fmt.Fprintf(buf, "}")
 	}
 }
 
-func outputAttributes(buf *bytes.Buffer, attrs map[string]*RegDBAttr) {
+// outputAttributes writes set of attributes, recursively.
+func outputAttributes(buf *bytes.Buffer, attrs map[string]*RegDBAttr, path string) {
 	// Sort attributes by name
 	names := make([]string, 0, len(attrs))
 	for name := range attrs {
@@ -85,7 +87,11 @@ func outputAttributes(buf *bytes.Buffer, attrs map[string]*RegDBAttr) {
 	// Write attributes, one by one
 	for _, name := range names {
 		attr := attrs[name]
-		fmt.Fprintf(buf, "%q: Attribute{\n", attr.PureName())
+		purename := attr.PureName()
+		attrpath := path + "/" + purename
+
+		fmt.Fprintf(buf, "// %s\n", attrpath)
+		fmt.Fprintf(buf, "%q: Attribute{\n", purename)
 		fmt.Fprintf(buf, "SetOf: %v,\n", attr.Syntax.SetOf)
 		fmt.Fprintf(buf, "Min: %s,\n", attr.Syntax.FormatMin())
 		fmt.Fprintf(buf, "Max: %s,\n", attr.Syntax.FormatMax())
@@ -96,9 +102,28 @@ func outputAttributes(buf *bytes.Buffer, attrs map[string]*RegDBAttr) {
 		}
 		fmt.Fprintf(buf, "},\n")
 
-		if len(attr.Members) > 0 {
+		cntMembers := len(attr.Members) + len(attr.Borrowed)
+		if cntMembers > 0 {
+			members := make(map[string]*RegDBAttr, cntMembers)
+
+			for mbrame, member := range attr.Members {
+				members[mbrame] = member
+			}
+
+			for mbrame, member := range attr.Borrowed {
+				// Borrowed member may refer to the
+				// top-level collection that includes
+				// the current attribute.
+				//
+				// To prevent looping we skip members
+				// that refer to the current attribute.
+				if members[mbrame] == nil && member != attr {
+					members[mbrame] = member
+				}
+			}
+
 			fmt.Fprintf(buf, "Members: map[string]Attribute{\n")
-			outputAttributes(buf, attr.Members)
+			outputAttributes(buf, members, attrpath)
 			fmt.Fprintf(buf, "},\n")
 
 		}

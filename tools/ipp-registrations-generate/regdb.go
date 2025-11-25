@@ -111,7 +111,7 @@ func (db *RegDB) Finalize() error {
 	db.expandErrata()
 	db.handleSuffixes()
 	db.resolveLinks()
-	//db.checkEmptyCollections()
+	db.checkEmptyCollections()
 	return nil
 }
 
@@ -479,15 +479,35 @@ func (db *RegDB) expandErrata() {
 // handleSuffixes handles attributes, marked by suffixes
 // ("(extension)", "(deprecated)" etc) in their names.
 func (db *RegDB) handleSuffixes() {
-	collections := db.CollectionNames()
-	for _, col := range collections {
-		db.handleSuffixesRecursive(db.Collections[col])
+	// Roll over top-level collections
+	names := db.CollectionNames()
+	for _, name := range names {
+		db.handleSuffixesInCollection(db.Collections[name])
 	}
+
+	// Roll over all attributes.
+	//
+	// Instead of recursive procession, we run over db.AllAttrs,
+	// so dynamic changes in attribute membership doesn't affect
+	// this work
+	names = names[:0]
+	for name := range db.AllAttrs {
+		names = append(names, name)
+	}
+
+	sort.Strings(names)
+
+	for _, name := range names {
+		attr := db.AllAttrs[name]
+		db.handleSuffixesInCollection(attr.Members)
+	}
+
+	// Rebuild db.AllAttrs
 }
 
-// handleSuffixesRecursive does the real work of handling
+// handleSuffixesInCollection does the real work of handling
 // attribute suffixes.
-func (db *RegDB) handleSuffixesRecursive(attrs map[string]*RegDBAttr) {
+func (db *RegDB) handleSuffixesInCollection(attrs map[string]*RegDBAttr) {
 	// Gather aliases.
 	//
 	// Aliases are attributes with the same base name, but different
@@ -525,13 +545,6 @@ func (db *RegDB) handleSuffixesRecursive(attrs map[string]*RegDBAttr) {
 
 		if attr != nil {
 			attrs[name] = attr
-		}
-	}
-
-	for _, name := range names {
-		attr := attrs[name]
-		if attr != nil {
-			db.handleSuffixesRecursive(attr.Members)
 		}
 	}
 }
