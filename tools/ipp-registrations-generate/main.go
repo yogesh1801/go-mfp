@@ -135,5 +135,5 @@ func commandHandler(ctx context.Context, inv *argv.Invocation) error {
 
 // The main function
 func main() {
-	Command.Main(nil)
+	Command.Main(context.Background())
 }

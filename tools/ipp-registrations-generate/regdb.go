@@ -236,7 +236,7 @@ func (db *RegDB) loadSubst(subst xmldoc.Element) error {
 
 	missed := subst.Lookup(&name, &use)
 	if missed != nil {
-		return fmt.Errorf(`subst %s: already added`, name)
+		return fmt.Errorf(`subst %s: already added`, name.Name)
 	}
 
 	return db.addSubst(name.Elem.Text, use.Elem.Text)
@@ -382,7 +382,7 @@ func (db *RegDB) resolveLink(attr *RegDBAttr) {
 			// is just not absolute.
 
 		case len(attr2.Members) == 0:
-			err := fmt.Errorf("%s->%s: link target enpty\n",
+			err := fmt.Errorf("%s->%s: link target enpty",
 				attr.Path(), attr.Link)
 			db.Errors = append(db.Errors, err)
 			return
@@ -400,12 +400,12 @@ func (db *RegDB) resolveLink(attr *RegDBAttr) {
 		var err error
 		switch {
 		case attr2 == nil:
-			err = fmt.Errorf("%s->%s: subst target missed\n",
+			err = fmt.Errorf("%s->%s: subst target missed",
 				attr.Path(), subst)
 			db.Errors = append(db.Errors, err)
 
 		case len(attr2.Members) == 0:
-			err = fmt.Errorf("%s->%s: subst target enpty\n",
+			err = fmt.Errorf("%s->%s: subst target enpty",
 				attr.Path(), attr2.Path())
 			db.Errors = append(db.Errors, err)
 
@@ -434,17 +434,17 @@ func (db *RegDB) resolveLink(attr *RegDBAttr) {
 	var err error
 	switch {
 	case attr2 == nil:
-		err = fmt.Errorf("%s->%s: broken link\n",
+		err = fmt.Errorf("%s->%s: broken link",
 			attr.Path(), attr.Link)
 		db.Errors = append(db.Errors, err)
 
 	case attr2 == attr:
-		err = fmt.Errorf("%s->%s: link to self\n",
+		err = fmt.Errorf("%s->%s: link to self",
 			attr.Path(), attr.Link)
 		db.Errors = append(db.Errors, err)
 
 	case len(attr2.Members) == 0:
-		err = fmt.Errorf("%s->%s: link target enpty\n",
+		err = fmt.Errorf("%s->%s: link target enpty",
 			attr.Path(), attr.Link)
 		db.Errors = append(db.Errors, err)
 
