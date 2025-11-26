@@ -22,14 +22,14 @@ import (
 
 // RegDB represents database of IANA registrations for IPP
 type RegDB struct {
-	Collections map[string]map[string]*RegDBAttr // Attrs by collection
-	AllAttrs    map[string]*RegDBAttr            // All attributes, by path
-	Links       map[string]string                // Src uses target's attrs
-	Subst       map[string]string                // Abs paths for links
-	ErrataSkip  generic.Set[string]              // Errata: ignored attrs
-	Errata      map[string]*RegDBAttr            // Errata: replaced by path
-	Errors      []error                          // Collected errors
-	Borrowings  []RegDBBorrowing                 // Members borrowings
+	Collections   map[string]map[string]*RegDBAttr // Attrs by collection
+	AllAttrs      map[string]*RegDBAttr            // All attrs, by path
+	AddUseMembers map[string]string                // Added attr.UseMembers
+	Subst         map[string]string                // Abs paths for links
+	ErrataSkip    generic.Set[string]              // Errata: ignored attrs
+	Errata        map[string]*RegDBAttr            // Errata: replaced by path
+	Errors        []error                          // Collected errors
+	Borrowings    []RegDBBorrowing                 // Members borrowings
 }
 
 // RegDBBorrowing represents relations between collection attributes,
@@ -48,20 +48,19 @@ type RegDBAttr struct {
 	SyntaxString string                // Syntax string
 	Syntax       Syntax                // Attribute syntax, parsed
 	XRef         string                // Document it is defined in
-	Link         string                // Attr to borrow members from
+	UseMembers   string                // Use members from other attr
 	Members      map[string]*RegDBAttr // Members, by name
-	Borrowed     map[string]*RegDBAttr // Borrowed members
 }
 
 // NewRegDB creates a new RegDB
 func NewRegDB() *RegDB {
 	return &RegDB{
-		Collections: make(map[string]map[string]*RegDBAttr),
-		AllAttrs:    make(map[string]*RegDBAttr),
-		Links:       make(map[string]string),
-		Subst:       make(map[string]string),
-		ErrataSkip:  generic.NewSet[string](),
-		Errata:      make(map[string]*RegDBAttr),
+		Collections:   make(map[string]map[string]*RegDBAttr),
+		AllAttrs:      make(map[string]*RegDBAttr),
+		AddUseMembers: make(map[string]string),
+		Subst:         make(map[string]string),
+		ErrataSkip:    generic.NewSet[string](),
+		Errata:        make(map[string]*RegDBAttr),
 	}
 }
 
@@ -156,7 +155,7 @@ func (db *RegDB) loadRecord(record xmldoc.Element, errata bool) error {
 			if attr == nil {
 				err = fmt.Errorf("%s->%s: broken source", from, to)
 			} else {
-				attr.Link = to
+				attr.UseMembers = to
 			}
 		}
 
@@ -372,45 +371,31 @@ func (db *RegDB) resolveLinksRecursive(attrs map[string]*RegDBAttr) {
 
 // resolveLink resolves link of the single attribute:
 //
-//	attr.Link becomes absolute
+//	attr.UseMembers becomes absolute
 //	attr.Borrowed populated
 func (db *RegDB) resolveLink(attr *RegDBAttr) {
-	defer func() {
-		if attr.Borrowed != nil {
-			db.Borrowings = append(db.Borrowings,
-				RegDBBorrowing{attr.PurePath(), attr.Link})
-		}
-	}()
-
 	// Lookup links
-	if attr.Link == "" {
-		attr.Link = db.Links[attr.Path()]
-		if attr.Link == "" {
+	if attr.UseMembers == "" {
+		attr.UseMembers = db.AddUseMembers[attr.Path()]
+		if attr.UseMembers == "" {
 			// No link - no problem
 			return
 		}
 
 		// Handle absolute links here
-		attr2 := db.AllAttrs[attr.Link]
-		switch {
-		case attr2 == nil:
-			// Not a problem for now - probably link
-			// is just not absolute.
+		if attr2 := db.AllAttrs[attr.UseMembers]; attr2 != nil {
+			if len(attr2.Members) == 0 {
+				err := fmt.Errorf("%s->%s: link target enpty",
+					attr.Path(), attr.UseMembers)
+				db.Errors = append(db.Errors, err)
+			}
 
-		case len(attr2.Members) == 0:
-			err := fmt.Errorf("%s->%s: link target enpty",
-				attr.Path(), attr.Link)
-			db.Errors = append(db.Errors, err)
-			return
-
-		default:
-			attr.Borrowed = attr2.Members
 			return
 		}
 	}
 
 	// Lookup substitutions
-	if subst, ok := db.Subst[attr.Link]; ok {
+	if subst, ok := db.Subst[attr.UseMembers]; ok {
 		attr2 := db.AllAttrs[subst]
 
 		var err error
@@ -426,16 +411,18 @@ func (db *RegDB) resolveLink(attr *RegDBAttr) {
 			db.Errors = append(db.Errors, err)
 
 		default:
-			attr.Link = subst
-			attr.Borrowed = attr2.Members
+			attr.UseMembers = subst
 		}
 
 		return
 	}
 
-	// Lookup top-level collections
-	attr.Borrowed = db.Collections[attr.Link]
-	if attr.Borrowed != nil {
+	// Lookup top-level collections and absolute links
+	if db.Collections[attr.UseMembers] != nil {
+		return
+	}
+
+	if db.AllAttrs[attr.UseMembers] != nil {
 		return
 	}
 
@@ -443,35 +430,29 @@ func (db *RegDB) resolveLink(attr *RegDBAttr) {
 	splitpath := strings.Split(attr.Path(), "/")
 	assert.Must(len(splitpath) > 0)
 
-	splitpath[len(splitpath)-1] = attr.Link
+	splitpath[len(splitpath)-1] = attr.UseMembers
 	path := strings.Join(splitpath, "/")
 	attr2 := db.AllAttrs[path]
-
-	// If still failed, try to resolve link as absolute
-	if attr2 == nil {
-		attr2 = db.AllAttrs[attr.Link]
-	}
 
 	var err error
 	switch {
 	case attr2 == nil:
 		err = fmt.Errorf("%s->%s: broken link",
-			attr.Path(), attr.Link)
+			attr.Path(), attr.UseMembers)
 		db.Errors = append(db.Errors, err)
 
 	case attr2 == attr:
 		err = fmt.Errorf("%s->%s: link to self",
-			attr.Path(), attr.Link)
+			attr.Path(), attr.UseMembers)
 		db.Errors = append(db.Errors, err)
 
 	case len(attr2.Members) == 0:
 		err = fmt.Errorf("%s->%s: link target enpty",
-			attr.Path(), attr.Link)
+			attr.Path(), attr.UseMembers)
 		db.Errors = append(db.Errors, err)
 
 	default:
-		attr.Link = path
-		attr.Borrowed = attr2.Members
+		attr.UseMembers = path
 	}
 }
 
@@ -614,7 +595,7 @@ func (db *RegDB) checkEmptyCollectionsRecursive(attrs map[string]*RegDBAttr) {
 	// Now roll over all names
 	for _, name := range names {
 		attr := attrs[name]
-		if attr.Syntax.Collection && len(attr.Members) == 0 && len(attr.Borrowed) == 0 {
+		if attr.Syntax.Collection && len(attr.Members) == 0 && attr.UseMembers == "" {
 			err := fmt.Errorf("%s: empty collection", attr.Path())
 			db.Errors = append(db.Errors, err)
 		}
@@ -730,13 +711,13 @@ func (db *RegDB) newLink(collection, name, member, submember string) (
 // It allows to create link targeted to the different top-level collection.
 // Used only in the errata.xml with the following syntax:
 func (db *RegDB) newDirectLink(from, to string) error {
-	if db.Links[from] != "" {
+	if db.AddUseMembers[from] != "" {
 		err := fmt.Errorf("%s: duplicated link", from)
 		return err
 	}
 
 	//fmt.Println(from, "->", to)
-	db.Links[from] = to
+	db.AddUseMembers[from] = to
 
 	return nil
 }
