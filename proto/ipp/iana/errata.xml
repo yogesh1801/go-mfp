@@ -266,7 +266,19 @@
 
     <link>
       <from>System Description/system-xri-supported</from>
+      <from>System Status/system-configured-printers/printer-xri-supported</from>
       <to>Printer Description/printer-xri-supported</to>
+    </link>
+
+    <link>
+      <from>Job Template/job-accounting-sheets(deprecated)/media-col</from>
+      <from>Job Template/insert-sheet(deprecated)/media-col</from>
+      <to>media-col</to>
+    </link>
+
+    <link>
+      <from>Job Template/finishings-col/media-size</from>
+      <to>Job Template/media-col/media-size</to>
     </link>
 
     <! ----- Skipped (totally obsoleted) attributes ----- !>
@@ -296,6 +308,8 @@
     <skip>
       <! FIXME - special handling reqired !>
       <name>Operation/preferred-attributes</name>
+      <name>Job Template/destination-uris/destination-attributes</name>
+      <name>Printer Description/destination-uri-ready/destination-attributes</name>
     </skip>
 
   </registry>
