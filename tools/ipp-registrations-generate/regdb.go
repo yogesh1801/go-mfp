@@ -29,6 +29,15 @@ type RegDB struct {
 	ErrataSkip  generic.Set[string]              // Errata: ignored attrs
 	Errata      map[string]*RegDBAttr            // Errata: replaced by path
 	Errors      []error                          // Collected errors
+	Borrowings  []RegDBBorrowing                 // Members borrowings
+}
+
+// RegDBBorrowing represents relations between collection attributes,
+// where the RegDBBorrowing.From attribute borrows members from the
+// RegDBBorrowing.To attribute.
+type RegDBBorrowing struct {
+	From string
+	To   string
 }
 
 // RegDBAttr represents a single attribute
@@ -366,6 +375,13 @@ func (db *RegDB) resolveLinksRecursive(attrs map[string]*RegDBAttr) {
 //	attr.Link becomes absolute
 //	attr.Borrowed populated
 func (db *RegDB) resolveLink(attr *RegDBAttr) {
+	defer func() {
+		if attr.Borrowed != nil {
+			db.Borrowings = append(db.Borrowings,
+				RegDBBorrowing{attr.PurePath(), attr.Link})
+		}
+	}()
+
 	// Lookup links
 	if attr.Link == "" {
 		attr.Link = db.Links[attr.Path()]
@@ -430,6 +446,11 @@ func (db *RegDB) resolveLink(attr *RegDBAttr) {
 	splitpath[len(splitpath)-1] = attr.Link
 	path := strings.Join(splitpath, "/")
 	attr2 := db.AllAttrs[path]
+
+	// If still failed, try to resolve link as absolute
+	if attr2 == nil {
+		attr2 = db.AllAttrs[attr.Link]
+	}
 
 	var err error
 	switch {
@@ -565,6 +586,7 @@ func (db *RegDB) rebuildAllAttrs() {
 func (db *RegDB) rebuildAllAttrsRecursive(attrs map[string]*RegDBAttr) {
 	for _, attr := range attrs {
 		db.AllAttrs[attr.PurePath()] = attr
+		db.rebuildAllAttrsRecursive(attr.Members)
 	}
 }
 
@@ -596,6 +618,8 @@ func (db *RegDB) checkEmptyCollectionsRecursive(attrs map[string]*RegDBAttr) {
 			err := fmt.Errorf("%s: empty collection", attr.Path())
 			db.Errors = append(db.Errors, err)
 		}
+
+		db.checkEmptyCollectionsRecursive(attr.Members)
 	}
 }
 
