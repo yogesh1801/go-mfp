@@ -54,6 +54,14 @@ func testDataIntegrityRecursive(t *testing.T,
 
 		attrpath := path + "/" + name
 
+		// Check that attrpath properly resolves
+		attr2 := LookupAttribute(attrpath)
+		if attr2 != attr {
+			t.Errorf("%q: doesn't resolve", attrpath)
+		}
+
+		// Check that collections do really have members, while
+		// non-collections doesn't
 		switch {
 		case attr.IsCollection() && len(attr.Members) == 0:
 			t.Errorf("%q: empty collection", attrpath)
@@ -62,6 +70,7 @@ func testDataIntegrityRecursive(t *testing.T,
 			t.Errorf("%q: non-collection with members", attrpath)
 		}
 
+		// Recursively visit all collection members
 		if attr.IsCollection() {
 			for _, mbr := range attr.Members {
 				testDataIntegrityRecursive(t, attrpath, mbr, visited)
