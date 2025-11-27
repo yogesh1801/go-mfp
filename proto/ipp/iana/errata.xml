@@ -288,6 +288,17 @@
       <use>Operation</use>
     </use-members>
 
+    <use-members>
+      <name>Job Template/destination-uris/destination-attributes</name>
+      <name>Printer Description/destination-uri-ready/destination-attributes</name>
+      <use>Document Template</use>
+      <use>Job Template</use>
+      <use>Operation</use>
+      <except>document-password</except>
+      <except>job-password</except>
+      <except>job-password-encryption</except>
+    </use-members>
+
     <! ----- Skipped (totally obsoleted) attributes ----- !>
     <skip>
       <name>Document Template/pdl-init-file(obsolete)</name>
@@ -310,12 +321,6 @@
          Job Template/finishings-col and contains no attributes
 	 and no useful update !>
       <name>Job Template/finishings-col(extension)</name>
-    </skip>
-
-    <skip>
-      <! FIXME - special handling reqired !>
-      <name>Job Template/destination-uris/destination-attributes</name>
-      <name>Printer Description/destination-uri-ready/destination-attributes</name>
     </skip>
 
   </registry>

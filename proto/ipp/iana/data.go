@@ -3025,6 +3025,13 @@ var JobTemplate = map[string]*Attribute{
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
+			// Job Template/destination-uris/destination-attributes
+			"destination-attributes": &Attribute{
+				SetOf: true,
+				Min:   MIN,
+				Max:   MAX,
+				Tags:  []goipp.Tag{goipp.TagBeginCollection},
+			},
 			// Job Template/destination-uris/destination-uri
 			"destination-uri": &Attribute{
 				SetOf: false,
@@ -5868,6 +5875,13 @@ var PrinterDescription = map[string]*Attribute{
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
+			// Printer Description/destination-uri-ready/destination-attributes
+			"destination-attributes": &Attribute{
+				SetOf: true,
+				Min:   MIN,
+				Max:   MAX,
+				Tags:  []goipp.Tag{goipp.TagBeginCollection},
+			},
 			// Printer Description/destination-uri-ready/destination-attributes-supported
 			"destination-attributes-supported": &Attribute{
 				SetOf: true,
@@ -11080,6 +11094,9 @@ var borrowings = []borrowing{
 	{"Job Template/overrides", "Job Template"},
 	{"Job Template/cover-back/media-col", "Job Template/media-col"},
 	{"Job Template/cover-front/media-col", "Job Template/media-col"},
+	{"Job Template/destination-uris/destination-attributes", "Document Template"},
+	{"Job Template/destination-uris/destination-attributes", "Job Template"},
+	{"Job Template/destination-uris/destination-attributes", "Operation"},
 	{"Job Template/finishings-col/media-size", "Job Template/media-col/media-size"},
 	{"Job Template/insert-sheet/media-col", "Job Template/media-col"},
 	{"Job Template/job-accounting-sheets/media-col", "Job Template/media-col"},
@@ -11119,6 +11136,9 @@ var borrowings = []borrowing{
 	{"Printer Description/output-attributes-default", "Operation/output-attributes"},
 	{"Printer Description/proof-print-default", "Job Template/proof-print"},
 	{"Printer Description/separator-sheets-default", "Job Template/separator-sheets"},
+	{"Printer Description/destination-uri-ready/destination-attributes", "Document Template"},
+	{"Printer Description/destination-uri-ready/destination-attributes", "Job Template"},
+	{"Printer Description/destination-uri-ready/destination-attributes", "Operation"},
 	{"Printer Status/printer-impressions-completed-col", "Job Description/job-impressions-col"},
 	{"Printer Status/printer-media-sheets-completed-col", "Job Description/job-media-sheets-col"},
 	{"Printer Status/printer-pages-completed-col", "Document Status/pages-col"},
