@@ -11,6 +11,7 @@
 package iana
 
 import (
+	"github.com/OpenPrinting/go-mfp/util/generic"
 	"github.com/OpenPrinting/goipp"
 )
 
@@ -11150,3 +11151,13 @@ var borrowings = []borrowing{
 	{"System Status/system-pages-completed-col", "Document Status/pages-col"},
 	{"System Status/system-configured-printers/printer-xri-supported", "Printer Description/printer-xri-supported"},
 }
+
+// exceptions contains member attributes that doesn't exist even if borrowed.
+var exceptions = generic.NewSetOf(
+	"Job Template/destination-uris/destination-attributes/document-password",
+	"Job Template/destination-uris/destination-attributes/job-password",
+	"Job Template/destination-uris/destination-attributes/job-password-encryption",
+	"Printer Description/destination-uri-ready/destination-attributes/document-password",
+	"Printer Description/destination-uri-ready/destination-attributes/job-password",
+	"Printer Description/destination-uri-ready/destination-attributes/job-password-encryption",
+)

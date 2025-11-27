@@ -70,6 +70,10 @@ func (attr *Attribute) Member(name string) *Attribute {
 //
 //	"Job Template/cover-back/media-col"
 func LookupAttribute(path string) *Attribute {
+	if exceptions.Contains(path) {
+		return nil
+	}
+
 	splitPath := strings.Split(path, "/")
 	if len(splitPath) < 2 {
 		return nil

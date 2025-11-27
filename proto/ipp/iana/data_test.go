@@ -67,7 +67,11 @@ func testDataIntegrityRecursive(t *testing.T,
 		//
 		// FIXME: this place requires more attention.
 		attr2 := LookupAttribute(attrpath)
-		if attr2 != attr && !reflect.DeepEqual(attr, attr2) {
+		if exceptions.Contains(attrpath) {
+			if attr2 != nil {
+				t.Errorf("%q: must not resolve", attrpath)
+			}
+		} else if attr2 != attr && !reflect.DeepEqual(attr, attr2) {
 			switch attrpath {
 			case "Job Template/destination-uris/destination-attributes/finishings-col":
 			case "Job Template/destination-uris/destination-attributes/media-col":
