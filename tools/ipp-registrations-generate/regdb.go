@@ -374,6 +374,15 @@ func (db *RegDB) resolveLinksRecursive(attrs map[string]*RegDBAttr) {
 //	attr.UseMembers becomes absolute
 //	attr.Borrowed populated
 func (db *RegDB) resolveLink(attr *RegDBAttr) {
+	// Append link to db.Borrowings, if there is no new errors
+	errcnt := len(db.Errors)
+	defer func() {
+		if attr.UseMembers != "" && len(db.Errors) == errcnt {
+			db.Borrowings = append(db.Borrowings,
+				RegDBBorrowing{attr.PurePath(), attr.UseMembers})
+		}
+	}()
+
 	// Lookup links
 	if attr.UseMembers == "" {
 		attr.UseMembers = db.AddUseMembers[attr.Path()]
