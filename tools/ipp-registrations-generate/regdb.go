@@ -85,19 +85,20 @@ func (db *RegDB) Load(xml xmldoc.Element, errata bool) error {
 			}
 		}
 
-		// Process "link", "skip" and "subst" elements; only in errata
+		// Process "use-members", "skip" and "subst" elements;
+		// only in errata
 		if errata {
 			for _, chld := range registry.Children {
 				var err error
 				switch chld.Name {
-				case "link":
-					err = db.loadLink(chld)
-
 				case "skip":
 					err = db.loadSkip(chld)
 
 				case "subst":
 					err = db.loadSubst(chld)
+
+				case "use-members":
+					err = db.loadUseMembers(chld)
 				}
 
 				if err != nil {
@@ -188,23 +189,23 @@ func (db *RegDB) loadRecord(record xmldoc.Element, errata bool) error {
 	return err
 }
 
-// loadLink handles the "link" element, which adds links
-// between attributes. Links means that one attribute borrows members
-// from the another attribute.
-func (db *RegDB) loadLink(link xmldoc.Element) error {
+// loadUseMembers handles the "use-members" element, inserts attribute
+// borrowing (so recipient attribute will use members, defined
+// for some other attribute).
+func (db *RegDB) loadUseMembers(link xmldoc.Element) error {
 	// Lookup fields we are interested in
-	from := xmldoc.Lookup{Name: "from", Required: true}
-	to := xmldoc.Lookup{Name: "to", Required: true}
+	name := xmldoc.Lookup{Name: "name", Required: true}
+	use := xmldoc.Lookup{Name: "use", Required: true}
 
-	missed := link.Lookup(&from, &to)
+	missed := link.Lookup(&name, &use)
 	if missed != nil {
 		return fmt.Errorf("link: missed %q element", missed.Name)
 	}
 
-	// Link may have multiple "from" elements, roll over all of them
-	for _, from := range link.Children {
-		if from.Name == "from" {
-			err := db.newDirectLink(from.Text, to.Elem.Text)
+	// Link may have multiple "name" elements, roll over all of them
+	for _, name := range link.Children {
+		if name.Name == "name" {
+			err := db.newDirectLink(name.Text, use.Elem.Text)
 			if err != nil {
 				return err
 			}
@@ -240,14 +241,14 @@ func (db *RegDB) loadSkip(skip xmldoc.Element) error {
 // This is useful, when link target is ambiguous.
 func (db *RegDB) loadSubst(subst xmldoc.Element) error {
 	name := xmldoc.Lookup{Name: "name", Required: true}
-	use := xmldoc.Lookup{Name: "use", Required: true}
+	path := xmldoc.Lookup{Name: "path", Required: true}
 
-	missed := subst.Lookup(&name, &use)
+	missed := subst.Lookup(&name, &path)
 	if missed != nil {
 		return fmt.Errorf(`subst %s: already added`, name.Name)
 	}
 
-	return db.addSubst(name.Elem.Text, use.Elem.Text)
+	return db.addSubst(name.Elem.Text, path.Elem.Text)
 }
 
 // addErrata adds attribute to the db.Errata

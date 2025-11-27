@@ -71,215 +71,215 @@
     <subst>
       <! See PWG5100.3-2023, 5.2.1: Job Template/cover-back !>
       <name>cover-back</name>
-      <use>Job Template/cover-back</use>
+      <path>Job Template/cover-back</path>
     </subst>
 
     <subst>
       <! See PWG5100.3-2023, 5.2.1: Job Template/cover-front !>
       <name>cover-front</name>
-      <use>Job Template/cover-front</use>
+      <path>Job Template/cover-front</path>
     </subst>
 
     <subst>
       <! See PWG5100.1-2022, 5.2: Job Template/finishings-col !>
       <name>finishings-col</name>
-      <use>Job Template/finishings-col</use>
+      <path>Job Template/finishings-col</path>
     </subst>
 
     <subst>
       <! See PWG5100.3-2023, 5.2.5: Job Template/insert-sheet !>
       <name>insert-sheet</name>
-      <use>Job Template/insert-sheet</use>
+      <path>Job Template/insert-sheet</path>
     </subst>
 
     <subst>
       <! See PWG5100.7-2023, 6.3.1: Job Template/media-col!>
       <name>media-col</name>
-      <use>Job Template/media-col</use>
+      <path>Job Template/media-col</path>
     </subst>
 
     <subst>
       <! See PWG5100.3-2023, 5.2.16: Job Template/separator-sheets !>
       <name>separator-sheets</name>
-      <use>Job Template/separator-sheets</use>
+      <path>Job Template/separator-sheets</path>
     </subst>
 
     <subst>
       <! See PWG5100.3-2023, 5.2.9: Job Template/job-error-sheet !>
       <name>job-error-sheet</name>
-      <use>Job Template/job-error-sheet</use>
+      <path>Job Template/job-error-sheet</path>
     </subst>
 
     <subst>
       <! See PWG5100.7-2023, 6.8.1: Job Template/job-sheets-col !>
       <name>job-sheets-col</name>
-      <use>Job Template/job-sheets-col</use>
+      <path>Job Template/job-sheets-col</path>
     </subst>
 
     <subst>
       <! See PWG5100.6-2003, 4.1: Job Template/overrides !>
       <name>overrides</name>
-      <use>Job Template/overrides</use>
+      <path>Job Template/overrides</path>
     </subst>
 
     <subst>
       <! See PWG5100.7-2023, 6.6.4: job-pages-col (collection) !>
       <name>job-pages-col</name>
-      <use>Job Status/job-pages-col</use>
+      <path>Job Status/job-pages-col</path>
     </subst>
 
     <subst>
       <! See PWG5100.15-2023, 7.2.2: Job Template/cover-sheet-info !>
       <name>cover-sheet-info</name>
-      <use>Job Template/cover-sheet-info</use>
+      <path>Job Template/cover-sheet-info</path>
     </subst>
 
     <subst>
       <! See PWG5100.11-2024, 6.2.3 Job Template/proof-print !>
       <name>proof-print</name>
-      <use>Job Template/proof-print</use>
+      <path>Job Template/proof-print</path>
     </subst>
 
     <! ----- Missed links ----- !>
-    <link>
-      <from>Document Status/document-format-details(deprecated)</from>
-      <from>Document Status/document-format-details-detected(deprecated)</from>
-      <from>Job Status/document-format-details-detected(deprecated)</from>
-      <from>Job Status/document-format-details-supplied</from>
-      <from>Printer Description/document-format-details-default(obsolete)</from>
-      <to>Operation/document-format-details</to>
-    </link>
+    <use-members>
+      <name>Document Status/document-format-details(deprecated)</name>
+      <name>Document Status/document-format-details-detected(deprecated)</name>
+      <name>Job Status/document-format-details-detected(deprecated)</name>
+      <name>Job Status/document-format-details-supplied</name>
+      <name>Printer Description/document-format-details-default(obsolete)</name>
+      <use>Operation/document-format-details</use>
+    </use-members>
 
-    <link>
-      <from>Document Status/input-attributes-actual</from>
-      <from>Job Status/input-attributes-actual</from>
-      <from>Printer Description/input-attributes-default</from>
-      <to>Operation/input-attributes</to>
-    </link>
+    <use-members>
+      <name>Document Status/input-attributes-actual</name>
+      <name>Job Status/input-attributes-actual</name>
+      <name>Printer Description/input-attributes-default</name>
+      <use>Operation/input-attributes</use>
+    </use-members>
 
-    <link>
-      <from>Document Status/materials-col-actual</from>
-      <from>Job Status/materials-col-actual</from>
-      <from>Printer Description/materials-col-database</from>
-      <from>Printer Description/materials-col-default</from>
-      <from>Printer Description/materials-col-ready</from>
-      <to>Document Template/materials-col</to>
-    </link>
+    <use-members>
+      <name>Document Status/materials-col-actual</name>
+      <name>Job Status/materials-col-actual</name>
+      <name>Printer Description/materials-col-database</name>
+      <name>Printer Description/materials-col-default</name>
+      <name>Printer Description/materials-col-ready</name>
+      <use>Document Template/materials-col</use>
+    </use-members>
 
-    <link>
-      <from>Document Status/output-attributes-actual</from>
-      <from>Job Status/output-attributes-actual</from>
-      <from>Printer Description/output-attributes-default</from>
-      <to>Operation/output-attributes</to>
-    </link>
+    <use-members>
+      <name>Document Status/output-attributes-actual</name>
+      <name>Job Status/output-attributes-actual</name>
+      <name>Printer Description/output-attributes-default</name>
+      <use>Operation/output-attributes</use>
+    </use-members>
 
-    <link>
-      <from>Document Status/print-accuracy-actual</from>
-      <from>Job Status/print-accuracy-actual</from>
-      <to>Document Template/print-accuracy</to>
-    </link>
+    <use-members>
+      <name>Document Status/print-accuracy-actual</name>
+      <name>Job Status/print-accuracy-actual</name>
+      <use>Document Template/print-accuracy</use>
+    </use-members>
 
-    <link>
-      <from>Document Status/print-objects-actual</from>
-      <from>Job Status/print-objects-actual</from>
-      <to>Document Template/print-objects</to>
-    </link>
+    <use-members>
+      <name>Document Status/print-objects-actual</name>
+      <name>Job Status/print-objects-actual</name>
+      <use>Document Template/print-objects</use>
+    </use-members>
 
-    <link>
-      <from>Job Status/job-cover-back-actual(obsolete)</from>
-      <from>Job Template/job-cover-back(obsolete)</from>
-      <from>Printer Description/job-cover-back-default(obsolete)</from>
-      <to>cover-back</to>
-    </link>
+    <use-members>
+      <name>Job Status/job-cover-back-actual(obsolete)</name>
+      <name>Job Template/job-cover-back(obsolete)</name>
+      <name>Printer Description/job-cover-back-default(obsolete)</name>
+      <use>cover-back</use>
+    </use-members>
 
-    <link>
-      <from>Document Template/cover-front(deprecated)</from>
-      <from>Job Status/job-cover-front-actual(obsolete)</from>
-      <from>Job Template/job-cover-front(obsolete)</from>
-      <from>Printer Description/job-cover-front-default(obsolete)</from>
-      <to>cover-front</to>
-    </link>
+    <use-members>
+      <name>Document Template/cover-front(deprecated)</name>
+      <name>Job Status/job-cover-front-actual(obsolete)</name>
+      <name>Job Template/job-cover-front(obsolete)</name>
+      <name>Printer Description/job-cover-front-default(obsolete)</name>
+      <use>cover-front</use>
+    </use-members>
 
-    <link>
-      <from>Document Template/finishings-col(extension)</from>
-      <from>Job Template/finishings-col(extension)</from>
-      <from>Printer Description/finishings-col-database</from>
-      <to>finishings-col</to>
-    </link>
+    <use-members>
+      <name>Document Template/finishings-col(extension)</name>
+      <name>Job Template/finishings-col(extension)</name>
+      <name>Printer Description/finishings-col-database</name>
+      <use>finishings-col</use>
+    </use-members>
 
-    <link>
-      <from>Job Status/client-info</from>
-      <to>Operation/client-info</to>
-    </link>
+    <use-members>
+      <name>Job Status/client-info</name>
+      <use>Operation/client-info</use>
+    </use-members>
 
-    <link>
-      <from>Job Status/job-accounting-sheets-actual(deprecated)</from>
-      <from>Printer Description/job-accounting-sheets-default(deprecated)</from>
-      <to>Job Template/job-accounting-sheets</to>
-    </link>
+    <use-members>
+      <name>Job Status/job-accounting-sheets-actual(deprecated)</name>
+      <name>Printer Description/job-accounting-sheets-default(deprecated)</name>
+      <use>Job Template/job-accounting-sheets</use>
+    </use-members>
 
-    <link>
-      <from>Job Status/job-storage</from>
-      <to>Operation/job-storage</to>
-    </link>
+    <use-members>
+      <name>Job Status/job-storage</name>
+      <use>Operation/job-storage</use>
+    </use-members>
 
-    <link>
-      <from>Operation/job-impressions-col</from>
-      <from>Printer Status/printer-impressions-completed-col</from>
-      <to>Job Description/job-impressions-col</to>
-    </link>
+    <use-members>
+      <name>Operation/job-impressions-col</name>
+      <name>Printer Status/printer-impressions-completed-col</name>
+      <use>Job Description/job-impressions-col</use>
+    </use-members>
 
-    <link>
-      <from>Operation/job-media-sheets-col</from>
-      <from>Printer Status/printer-media-sheets-completed-col</from>
-      <from>System Status/system-media-sheets-completed-col</from>
-      <from>System Status/system-impressions-completed-col</from>
-      <to>Job Description/job-media-sheets-col</to>
-    </link>
+    <use-members>
+      <name>Operation/job-media-sheets-col</name>
+      <name>Printer Status/printer-media-sheets-completed-col</name>
+      <name>System Status/system-media-sheets-completed-col</name>
+      <name>System Status/system-impressions-completed-col</name>
+      <use>Job Description/job-media-sheets-col</use>
+    </use-members>
 
-    <link>
-      <from>Printer Description/insert-sheet-default(deprecated)</from>
-      <to>insert-sheet</to>
-    </link>
+    <use-members>
+      <name>Printer Description/insert-sheet-default(deprecated)</name>
+      <use>insert-sheet</use>
+    </use-members>
 
-    <link>
-      <from>Printer Description/job-error-sheet-default(extension)</from>
-      <to>job-error-sheet</to>
-    </link>
+    <use-members>
+      <name>Printer Description/job-error-sheet-default(extension)</name>
+      <use>job-error-sheet</use>
+    </use-members>
 
-    <link>
-      <from>Printer Description/media-overprint-default</from>
-      <to>Document Template/media-overprint</to>
-    </link>
+    <use-members>
+      <name>Printer Description/media-overprint-default</name>
+      <use>Document Template/media-overprint</use>
+    </use-members>
 
-    <link>
-      <from>Printer Status/printer-pages-completed-col</from>
-      <from>System Status/system-pages-completed-col</from>
-      <to>Document Status/pages-col</to>
-    </link>
+    <use-members>
+      <name>Printer Status/printer-pages-completed-col</name>
+      <name>System Status/system-pages-completed-col</name>
+      <use>Document Status/pages-col</use>
+    </use-members>
 
-    <link>
-      <from>System Description/system-contact-col</from>
-      <from>System Description/system-service-contact-col</from>
-      <to>Printer Description/printer-contact-col</to>
-    </link>
+    <use-members>
+      <name>System Description/system-contact-col</name>
+      <name>System Description/system-service-contact-col</name>
+      <use>Printer Description/printer-contact-col</use>
+    </use-members>
 
-    <link>
-      <from>System Description/system-xri-supported</from>
-      <from>System Status/system-configured-printers/printer-xri-supported</from>
-      <to>Printer Description/printer-xri-supported</to>
-    </link>
+    <use-members>
+      <name>System Description/system-xri-supported</name>
+      <name>System Status/system-configured-printers/printer-xri-supported</name>
+      <use>Printer Description/printer-xri-supported</use>
+    </use-members>
 
-    <link>
-      <from>Job Template/job-accounting-sheets(deprecated)/media-col</from>
-      <from>Job Template/insert-sheet(deprecated)/media-col</from>
-      <to>media-col</to>
-    </link>
+    <use-members>
+      <name>Job Template/job-accounting-sheets(deprecated)/media-col</name>
+      <name>Job Template/insert-sheet(deprecated)/media-col</name>
+      <use>media-col</use>
+    </use-members>
 
-    <link>
-      <from>Job Template/finishings-col/media-size</from>
-      <to>Job Template/media-col/media-size</to>
-    </link>
+    <use-members>
+      <name>Job Template/finishings-col/media-size</name>
+      <use>Job Template/media-col/media-size</use>
+    </use-members>
 
     <! ----- Skipped (totally obsoleted) attributes ----- !>
     <skip>
