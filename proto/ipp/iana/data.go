@@ -5407,6 +5407,13 @@ var Operation = map[string]*Attribute{
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagText, goipp.TagTextLang},
 	},
+	// Operation/preferred-attributes
+	"preferred-attributes": &Attribute{
+		SetOf: false,
+		Min:   MIN,
+		Max:   MAX,
+		Tags:  []goipp.Tag{goipp.TagBeginCollection},
+	},
 	// Operation/printer-geo-location
 	"printer-geo-location": &Attribute{
 		SetOf: false,
@@ -11083,6 +11090,9 @@ var borrowings = []borrowing{
 	{"Operation/job-impressions-col", "Job Description/job-impressions-col"},
 	{"Operation/job-media-sheets-col", "Job Description/job-media-sheets-col"},
 	{"Operation/job-pages-col", "Job Status/job-pages-col"},
+	{"Operation/preferred-attributes", "Document Template"},
+	{"Operation/preferred-attributes", "Job Template"},
+	{"Operation/preferred-attributes", "Operation"},
 	{"Printer Description/cover-back-default", "Job Template/cover-back"},
 	{"Printer Description/cover-front-default", "Job Template/cover-front"},
 	{"Printer Description/cover-sheet-info-default", "Job Template/cover-sheet-info"},

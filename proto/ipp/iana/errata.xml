@@ -281,6 +281,13 @@
       <use>Job Template/media-col/media-size</use>
     </use-members>
 
+    <use-members>
+      <name>Operation/preferred-attributes</name>
+      <use>Document Template</use>
+      <use>Job Template</use>
+      <use>Operation</use>
+    </use-members>
+
     <! ----- Skipped (totally obsoleted) attributes ----- !>
     <skip>
       <name>Document Template/pdl-init-file(obsolete)</name>
@@ -307,7 +314,6 @@
 
     <skip>
       <! FIXME - special handling reqired !>
-      <name>Operation/preferred-attributes</name>
       <name>Job Template/destination-uris/destination-attributes</name>
       <name>Printer Description/destination-uri-ready/destination-attributes</name>
     </skip>
