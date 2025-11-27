@@ -96,6 +96,21 @@ func outputCollections(buf *bytes.Buffer, db *RegDB) {
 		fmt.Fprintf(buf, "{%q, %q},\n", borrowing.From, borrowing.To)
 	}
 	fmt.Fprintf(buf, "}\n")
+
+	// Output exceptions
+	exceptions := []string{}
+	db.Exceptions.ForEach(func(path string) {
+		exceptions = append(exceptions, path)
+	})
+	sort.Strings(exceptions)
+
+	fmt.Fprintf(buf, "// exceptions contains member attributes that doesn't exist even if borrowed.\n")
+	fmt.Fprintf(buf, "var exceptions = generic.NewSetOf(\n")
+	for _, path := range exceptions {
+		fmt.Fprintf(buf, "%q,\n", path)
+	}
+	fmt.Fprintf(buf, ")\n")
+	fmt.Fprintf(buf, "\n")
 }
 
 // outputAttributes writes set of attributes, recursively.
@@ -148,6 +163,7 @@ const outputTitle = `// MFP - Miulti-Function Printers and scanners toolkit
 package iana
 
 import(
+	"github.com/OpenPrinting/go-mfp/util/generic"
 	"github.com/OpenPrinting/goipp"
 )
 `

@@ -30,6 +30,7 @@ type RegDB struct {
 	Errata        map[string]*RegDBAttr            // Errata: replaced by path
 	Errors        []error                          // Collected errors
 	Borrowings    []RegDBBorrowing                 // Members borrowings
+	Exceptions    generic.Set[string]              // Excluded members
 }
 
 // RegDBBorrowing represents relations between collection attributes,
@@ -61,6 +62,7 @@ func NewRegDB() *RegDB {
 		Subst:         make(map[string]string),
 		ErrataSkip:    generic.NewSet[string](),
 		Errata:        make(map[string]*RegDBAttr),
+		Exceptions:    generic.NewSet[string](),
 	}
 }
 
@@ -193,26 +195,29 @@ func (db *RegDB) loadRecord(record xmldoc.Element, errata bool) error {
 // borrowing (so recipient attribute will use members, defined
 // for some other attribute).
 func (db *RegDB) loadUseMembers(link xmldoc.Element) error {
-	// There are may be multiple <name> and <use> elements.
+	// There are may be multiple <name>, <except> and <use> elements.
 	// Gather them all.
 	names := []string{}
 	uses := []string{}
+	exceptions := []string{}
 
 	for _, chld := range link.Children {
 		switch chld.Name {
 		case "name":
 			names = append(names, chld.Text)
+		case "except":
+			exceptions = append(exceptions, chld.Text)
 		case "use":
 			uses = append(uses, chld.Text)
 		}
 	}
 
 	if len(names) == 0 {
-		return fmt.Errorf("link: missed <name> element")
+		return fmt.Errorf("link: missed <name> elements")
 	}
 
-	if len(uses) == 0 {
-		return fmt.Errorf("link: missed <use> element")
+	if len(uses) == 0 && len(exceptions) == 0 {
+		return fmt.Errorf("link: missed <use> and <except> elements")
 	}
 
 	// Now create links
@@ -220,6 +225,17 @@ func (db *RegDB) loadUseMembers(link xmldoc.Element) error {
 		for _, use := range uses {
 			err := db.newDirectLink(name, use)
 			if err != nil {
+				return err
+			}
+		}
+	}
+
+	// And add exceptions
+	for _, name := range names {
+		for _, except := range exceptions {
+			path := name + "/" + except
+			if !db.Exceptions.TestAndAdd(path) {
+				err := fmt.Errorf("%q: duplicated exception", path)
 				return err
 			}
 		}
