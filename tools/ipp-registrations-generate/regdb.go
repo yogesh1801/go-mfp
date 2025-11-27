@@ -375,95 +375,73 @@ func (db *RegDB) resolveLinksRecursive(attrs map[string]*RegDBAttr) {
 //	attr.UseMembers becomes absolute
 //	attr.Borrowed populated
 func (db *RegDB) resolveLink(attr *RegDBAttr) {
-	// Append link to db.Borrowings, if there is no new errors
-	errcnt := len(db.Errors)
-	defer func() {
-		if attr.UseMembers != "" && len(db.Errors) == errcnt {
-			db.Borrowings = append(db.Borrowings,
-				RegDBBorrowing{attr.PurePath(), attr.UseMembers})
-		}
-	}()
+	// Lookup global db.AddUseMembers
+	use := attr.UseMembers
+	if use == "" {
+		use = db.AddUseMembers[attr.Path()]
+	}
 
-	// Lookup links
-	if attr.UseMembers == "" {
-		attr.UseMembers = db.AddUseMembers[attr.Path()]
-		if attr.UseMembers == "" {
-			// No link - no problem
-			return
-		}
-
-		// Handle absolute links here
-		if attr2 := db.AllAttrs[attr.UseMembers]; attr2 != nil {
-			if len(attr2.Members) == 0 {
-				err := fmt.Errorf("%s->%s: link target enpty",
-					attr.Path(), attr.UseMembers)
-				db.Errors = append(db.Errors, err)
-			}
-
-			return
-		}
+	if use == "" {
+		// No link - no problem
+		return
 	}
 
 	// Lookup substitutions
-	if subst, ok := db.Subst[attr.UseMembers]; ok {
-		attr2 := db.AllAttrs[subst]
+	if subst, ok := db.Subst[use]; ok {
+		use = subst
+	}
+
+	// Resolve link to the absolute path
+	toplevel := false
+
+	switch {
+	case db.Collections[use] != nil:
+		// Nothing to do: link refers the top-level collection.
+		toplevel = true
+
+	case strings.IndexByte(use, '/') >= 0:
+		// Nothing to do: link is already absolute
+
+	default:
+		// Assume link points to the attr's neighbors
+		splitpath := strings.Split(attr.Path(), "/")
+		assert.Must(len(splitpath) > 0)
+
+		splitpath[len(splitpath)-1] = use
+		use = strings.Join(splitpath, "/")
+	}
+
+	// Validate link target
+	if !toplevel {
+		attr2 := db.AllAttrs[use]
 
 		var err error
 		switch {
 		case attr2 == nil:
-			err = fmt.Errorf("%s->%s: subst target missed",
-				attr.Path(), subst)
+			err = fmt.Errorf("%s->%s: broken link",
+				attr.Path(), attr.UseMembers)
+			db.Errors = append(db.Errors, err)
+
+		case attr2 == attr:
+			err = fmt.Errorf("%s->%s: link to self",
+				attr.Path(), attr.UseMembers)
 			db.Errors = append(db.Errors, err)
 
 		case len(attr2.Members) == 0:
-			err = fmt.Errorf("%s->%s: subst target enpty",
-				attr.Path(), attr2.Path())
+			err = fmt.Errorf("%s->%s: link target enpty",
+				attr.Path(), attr.UseMembers)
 			db.Errors = append(db.Errors, err)
-
-		default:
-			attr.UseMembers = subst
 		}
 
-		return
+		if err != nil {
+			return
+		}
 	}
 
-	// Lookup top-level collections and absolute links
-	if db.Collections[attr.UseMembers] != nil {
-		return
-	}
-
-	if db.AllAttrs[attr.UseMembers] != nil {
-		return
-	}
-
-	// Resolve link within attr's neighbors
-	splitpath := strings.Split(attr.Path(), "/")
-	assert.Must(len(splitpath) > 0)
-
-	splitpath[len(splitpath)-1] = attr.UseMembers
-	path := strings.Join(splitpath, "/")
-	attr2 := db.AllAttrs[path]
-
-	var err error
-	switch {
-	case attr2 == nil:
-		err = fmt.Errorf("%s->%s: broken link",
-			attr.Path(), attr.UseMembers)
-		db.Errors = append(db.Errors, err)
-
-	case attr2 == attr:
-		err = fmt.Errorf("%s->%s: link to self",
-			attr.Path(), attr.UseMembers)
-		db.Errors = append(db.Errors, err)
-
-	case len(attr2.Members) == 0:
-		err = fmt.Errorf("%s->%s: link target enpty",
-			attr.Path(), attr.UseMembers)
-		db.Errors = append(db.Errors, err)
-
-	default:
-		attr.UseMembers = path
-	}
+	// Save resolved link
+	attr.UseMembers = use
+	db.Borrowings = append(db.Borrowings,
+		RegDBBorrowing{attr.PurePath(), use})
 }
 
 // expandErrata expands db.Errata entries, not used before to
