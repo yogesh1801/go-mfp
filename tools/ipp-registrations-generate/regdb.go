@@ -24,7 +24,7 @@ import (
 type RegDB struct {
 	Collections   map[string]map[string]*RegDBAttr // Attrs by collection
 	AllAttrs      map[string]*RegDBAttr            // All attrs, by path
-	AddUseMembers map[string]string                // Added attr.UseMembers
+	AddUseMembers map[string][]string              // Added attr.UseMembers
 	Subst         map[string]string                // Abs paths for links
 	ErrataSkip    generic.Set[string]              // Errata: ignored attrs
 	Errata        map[string]*RegDBAttr            // Errata: replaced by path
@@ -48,7 +48,7 @@ type RegDBAttr struct {
 	SyntaxString string                // Syntax string
 	Syntax       Syntax                // Attribute syntax, parsed
 	XRef         string                // Document it is defined in
-	UseMembers   string                // Use members from other attr
+	UseMembers   []string              // Use members from other attr
 	Members      map[string]*RegDBAttr // Members, by name
 }
 
@@ -57,7 +57,7 @@ func NewRegDB() *RegDB {
 	return &RegDB{
 		Collections:   make(map[string]map[string]*RegDBAttr),
 		AllAttrs:      make(map[string]*RegDBAttr),
-		AddUseMembers: make(map[string]string),
+		AddUseMembers: make(map[string][]string),
 		Subst:         make(map[string]string),
 		ErrataSkip:    generic.NewSet[string](),
 		Errata:        make(map[string]*RegDBAttr),
@@ -156,7 +156,7 @@ func (db *RegDB) loadRecord(record xmldoc.Element, errata bool) error {
 			if attr == nil {
 				err = fmt.Errorf("%s->%s: broken source", from, to)
 			} else {
-				attr.UseMembers = to
+				attr.UseMembers = append(attr.UseMembers, to)
 			}
 		}
 
@@ -193,19 +193,32 @@ func (db *RegDB) loadRecord(record xmldoc.Element, errata bool) error {
 // borrowing (so recipient attribute will use members, defined
 // for some other attribute).
 func (db *RegDB) loadUseMembers(link xmldoc.Element) error {
-	// Lookup fields we are interested in
-	name := xmldoc.Lookup{Name: "name", Required: true}
-	use := xmldoc.Lookup{Name: "use", Required: true}
+	// There are may be multiple <name> and <use> elements.
+	// Gather them all.
+	names := []string{}
+	uses := []string{}
 
-	missed := link.Lookup(&name, &use)
-	if missed != nil {
-		return fmt.Errorf("link: missed %q element", missed.Name)
+	for _, chld := range link.Children {
+		switch chld.Name {
+		case "name":
+			names = append(names, chld.Text)
+		case "use":
+			uses = append(uses, chld.Text)
+		}
 	}
 
-	// Link may have multiple "name" elements, roll over all of them
-	for _, name := range link.Children {
-		if name.Name == "name" {
-			err := db.newDirectLink(name.Text, use.Elem.Text)
+	if len(names) == 0 {
+		return fmt.Errorf("link: missed <name> element")
+	}
+
+	if len(uses) == 0 {
+		return fmt.Errorf("link: missed <use> element")
+	}
+
+	// Now create links
+	for _, name := range names {
+		for _, use := range uses {
+			err := db.newDirectLink(name, use)
 			if err != nil {
 				return err
 			}
@@ -220,7 +233,7 @@ func (db *RegDB) loadUseMembers(link xmldoc.Element) error {
 func (db *RegDB) loadSkip(skip xmldoc.Element) error {
 	_, ok := skip.ChildByName("name")
 	if !ok {
-		return fmt.Errorf(`skip: missed "name" element`)
+		return fmt.Errorf(`skip: missed <name> element`)
 	}
 
 	// There are may be multiple "name" elements, roll over all of them
@@ -376,72 +389,69 @@ func (db *RegDB) resolveLinksRecursive(attrs map[string]*RegDBAttr) {
 //	attr.Borrowed populated
 func (db *RegDB) resolveLink(attr *RegDBAttr) {
 	// Lookup global db.AddUseMembers
-	use := attr.UseMembers
-	if use == "" {
-		use = db.AddUseMembers[attr.Path()]
+	if added := db.AddUseMembers[attr.Path()]; added != nil {
+		attr.UseMembers = append(attr.UseMembers, added...)
 	}
 
-	if use == "" {
-		// No link - no problem
-		return
-	}
+	// Roll over all attr.UseMembers
+	for i, use := range attr.UseMembers {
+		// Lookup substitutions
+		if subst, ok := db.Subst[use]; ok {
+			use = subst
+		}
 
-	// Lookup substitutions
-	if subst, ok := db.Subst[use]; ok {
-		use = subst
-	}
+		// Resolve link to the absolute path
+		toplevel := false
 
-	// Resolve link to the absolute path
-	toplevel := false
-
-	switch {
-	case db.Collections[use] != nil:
-		// Nothing to do: link refers the top-level collection.
-		toplevel = true
-
-	case strings.IndexByte(use, '/') >= 0:
-		// Nothing to do: link is already absolute
-
-	default:
-		// Assume link points to the attr's neighbors
-		splitpath := strings.Split(attr.Path(), "/")
-		assert.Must(len(splitpath) > 0)
-
-		splitpath[len(splitpath)-1] = use
-		use = strings.Join(splitpath, "/")
-	}
-
-	// Validate link target
-	if !toplevel {
-		attr2 := db.AllAttrs[use]
-
-		var err error
 		switch {
-		case attr2 == nil:
-			err = fmt.Errorf("%s->%s: broken link",
-				attr.Path(), attr.UseMembers)
-			db.Errors = append(db.Errors, err)
+		case db.Collections[use] != nil:
+			// Nothing to do: link refers the top-level collection.
+			toplevel = true
 
-		case attr2 == attr:
-			err = fmt.Errorf("%s->%s: link to self",
-				attr.Path(), attr.UseMembers)
-			db.Errors = append(db.Errors, err)
+		case strings.IndexByte(use, '/') >= 0:
+			// Nothing to do: link is already absolute
 
-		case len(attr2.Members) == 0:
-			err = fmt.Errorf("%s->%s: link target enpty",
-				attr.Path(), attr.UseMembers)
-			db.Errors = append(db.Errors, err)
+		default:
+			// Assume link points to the attr's neighbors
+			splitpath := strings.Split(attr.Path(), "/")
+			assert.Must(len(splitpath) > 0)
+
+			splitpath[len(splitpath)-1] = use
+			use = strings.Join(splitpath, "/")
 		}
 
-		if err != nil {
-			return
+		// Validate link target
+		if !toplevel {
+			attr2 := db.AllAttrs[use]
+
+			var err error
+			switch {
+			case attr2 == nil:
+				err = fmt.Errorf("%s->%s: broken link",
+					attr.Path(), use)
+				db.Errors = append(db.Errors, err)
+
+			case attr2 == attr:
+				err = fmt.Errorf("%s->%s: link to self",
+					attr.Path(), use)
+				db.Errors = append(db.Errors, err)
+
+			case len(attr2.Members) == 0:
+				err = fmt.Errorf("%s->%s: link target enpty",
+					attr.Path(), use)
+				db.Errors = append(db.Errors, err)
+			}
+
+			if err != nil {
+				continue
+			}
 		}
+
+		// Save resolved link
+		attr.UseMembers[i] = use
+		db.Borrowings = append(db.Borrowings,
+			RegDBBorrowing{attr.PurePath(), use})
 	}
-
-	// Save resolved link
-	attr.UseMembers = use
-	db.Borrowings = append(db.Borrowings,
-		RegDBBorrowing{attr.PurePath(), use})
 }
 
 // expandErrata expands db.Errata entries, not used before to
@@ -583,7 +593,7 @@ func (db *RegDB) checkEmptyCollectionsRecursive(attrs map[string]*RegDBAttr) {
 	// Now roll over all names
 	for _, name := range names {
 		attr := attrs[name]
-		if attr.Syntax.Collection && len(attr.Members) == 0 && attr.UseMembers == "" {
+		if attr.Syntax.Collection && len(attr.Members) == 0 && len(attr.UseMembers) == 0 {
 			err := fmt.Errorf("%s: empty collection", attr.Path())
 			db.Errors = append(db.Errors, err)
 		}
@@ -699,13 +709,15 @@ func (db *RegDB) newLink(collection, name, member, submember string) (
 // It allows to create link targeted to the different top-level collection.
 // Used only in the errata.xml with the following syntax:
 func (db *RegDB) newDirectLink(from, to string) error {
-	if db.AddUseMembers[from] != "" {
-		err := fmt.Errorf("%s: duplicated link", from)
-		return err
+	links := db.AddUseMembers[from]
+	for _, link := range links {
+		if link == to {
+			err := fmt.Errorf("%s->%s: duplicated link", from, to)
+			return err
+		}
 	}
 
-	//fmt.Println(from, "->", to)
-	db.AddUseMembers[from] = to
+	db.AddUseMembers[from] = append(links, to)
 
 	return nil
 }
