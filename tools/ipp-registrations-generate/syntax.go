@@ -255,12 +255,24 @@ func (syntax Syntax) tokenize(s string) []string {
 func (syntax *Syntax) sortTags() {
 	tags := generic.NewSet[goipp.Tag]()
 
+	// Gather all tags into the set
 	for _, tag := range syntax.Tags {
 		tags.Add(tag)
 	}
 
-	syntax.Tags = syntax.Tags[:0]
+	// Drop redundant members
+	if tags.Contains(goipp.TagNameLang) {
+		// goipp.TagNameLang implies goipp.TagName
+		tags.Del(goipp.TagName)
+	}
 
+	if tags.Contains(goipp.TagTextLang) {
+		// goipp.TagTextLang implies goipp.TagText
+		tags.Del(goipp.TagText)
+	}
+
+	// Rebuild syntax.Tags
+	syntax.Tags = syntax.Tags[:0]
 	for _, tag := range tagsSortingOrder {
 		if tags.Contains(tag) {
 			syntax.Tags = append(syntax.Tags, tag)
