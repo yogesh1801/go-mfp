@@ -17,6 +17,20 @@
       <xref data="https://ftp.pwg.org/pub/pwg/candidates/cs-ippsystem11-20250328-5100.22.pdf" type="uri">PWG5100.22</xref>
     </record>
 
+    <! These two attributes has swapped definitions !>
+    <record>
+      <collection>Printer Description</collection>
+      <name>pclm-strip-height-preferred</name>
+      <syntax>integer</syntax>
+      <xref data="https://www.wi-fi.org/file/wi-fi-peer-to-peer-services-technical-specification-package-v12" type="uri">HP20180907</xref>
+    </record>
+    <record>
+      <collection>Printer Description</collection>
+      <name>pclm-strip-height-supported</name>
+      <syntax>1setOf integer</syntax>
+      <xref data="https://www.wi-fi.org/file/wi-fi-peer-to-peer-services-technical-specification-package-v12" type="uri">HP20180907</xref>
+    </record>
+
     <record>
       <collection>Job Template</collection>
       <name>job-accounting-sheets(deprecated)</name>

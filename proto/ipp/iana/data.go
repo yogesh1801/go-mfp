@@ -7919,14 +7919,14 @@ var PrinterDescription = map[string]*Attribute{
 	},
 	// Printer Description/pclm-strip-height-preferred
 	"pclm-strip-height-preferred": &Attribute{
-		SetOf: true,
+		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
 	// Printer Description/pclm-strip-height-supported
 	"pclm-strip-height-supported": &Attribute{
-		SetOf: false,
+		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
