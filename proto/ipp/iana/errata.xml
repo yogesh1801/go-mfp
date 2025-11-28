@@ -31,6 +31,7 @@
       <xref data="https://www.wi-fi.org/file/wi-fi-peer-to-peer-services-technical-specification-package-v12" type="uri">HP20180907</xref>
     </record>
 
+    <! Missed members for Job Template/job-accounting-sheets(deprecated) !>
     <record>
       <collection>Job Template</collection>
       <name>job-accounting-sheets(deprecated)</name>
