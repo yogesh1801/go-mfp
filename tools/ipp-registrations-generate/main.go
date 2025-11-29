@@ -24,23 +24,21 @@ var Command = argv.Command{
 	Help: "Processing tool for IANA IPP registrations database",
 	Options: []argv.Option{
 		argv.Option{
-			Name:      "-i",
-			Aliases:   []string{"--input"},
-			Help:      "input file",
-			HelpArg:   "file",
-			Required:  true,
-			Singleton: true,
-			Validate:  argv.ValidateAny,
-			Complete:  argv.CompleteOSPath,
+			Name:     "-i",
+			Aliases:  []string{"--input"},
+			Help:     "input file",
+			HelpArg:  "file",
+			Required: true,
+			Validate: argv.ValidateAny,
+			Complete: argv.CompleteOSPath,
 		},
 		argv.Option{
-			Name:      "-e",
-			Aliases:   []string{"--errata"},
-			Help:      "errata file (takes precedence over input)",
-			HelpArg:   "file",
-			Singleton: true,
-			Validate:  argv.ValidateAny,
-			Complete:  argv.CompleteOSPath,
+			Name:     "-e",
+			Aliases:  []string{"--errata"},
+			Help:     "errata file (takes precedence over input)",
+			HelpArg:  "file",
+			Validate: argv.ValidateAny,
+			Complete: argv.CompleteOSPath,
 		},
 		argv.Option{
 			Name:      "-o",
@@ -68,34 +66,45 @@ func commandHandler(ctx context.Context, inv *argv.Invocation) error {
 	// Create the database
 	db := NewRegDB()
 
-	var input, errata xmldoc.Element
+	var input, errata []xmldoc.Element
 	var err error
 
-	// Load errata file, if any
-	if file, ok := inv.Get("-e"); ok {
-		errata, err = XMLLoad(file)
+	// Load errata files
+	for _, file := range inv.Values("-e") {
+		xml, err := XMLLoad(file)
+		if err != nil {
+			return err
+		}
+
+		errata = append(errata, xml)
+	}
+
+	// Load input file
+	for _, file := range inv.Values("-i") {
+		xml, err := XMLLoad(file)
+		if err != nil {
+			return err
+		}
+
+		input = append(input, xml)
+	}
+
+	// Process loaded files
+	for _, xml := range errata {
+		err := db.Load(xml, true)
 		if err != nil {
 			return err
 		}
 	}
 
-	// Load input file
-	file, _ := inv.Get("-i")
-	input, err = XMLLoad(file)
-	if err != nil {
-		return err
+	for _, xml := range input {
+		err := db.Load(xml, false)
+		if err != nil {
+			return err
+		}
 	}
 
-	// Process loaded files
-	err = db.Load(errata, true)
-	if err == nil {
-		err = db.Load(input, false)
-	}
-	if err == nil {
-		err = db.Finalize()
-	}
-
-	if err != nil {
+	if err := db.Finalize(); err != nil {
 		return err
 	}
 
@@ -115,7 +124,7 @@ func commandHandler(ctx context.Context, inv *argv.Invocation) error {
 	}
 
 	// Open output file
-	file, _ = inv.Get("-o")
+	file, _ := inv.Get("-o")
 	output, err := os.OpenFile(file, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
