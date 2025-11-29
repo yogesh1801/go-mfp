@@ -123,7 +123,7 @@ func (syntax Syntax) decodeTokens(s string) ([]any, error) {
 		case "1setof":
 			tokens = append(tokens, tok1setOF{})
 		// These are ignored
-		case "type1", "type2":
+		case "type1", "type2", "type3":
 		case "(", ")":
 		case "|":
 		case "'":
