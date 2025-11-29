@@ -128,7 +128,7 @@ func outputAttributes(buf *bytes.Buffer, attrs map[string]*RegDBAttr, path strin
 		purename := attr.PureName()
 		attrpath := path + "/" + purename
 
-		fmt.Fprintf(buf, "// %s\n", attrpath)
+		fmt.Fprintf(buf, "// %s (%s)\n", attrpath, attr.XRef)
 		fmt.Fprintf(buf, "%q: &Attribute{\n", purename)
 		fmt.Fprintf(buf, "SetOf: %v,\n", attr.Syntax.SetOf)
 		fmt.Fprintf(buf, "Min: %s,\n", attr.Syntax.FormatMin())

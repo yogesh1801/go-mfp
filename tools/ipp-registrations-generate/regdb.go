@@ -166,13 +166,19 @@ func (db *RegDB) loadRecord(record xmldoc.Element, errata bool) error {
 	}
 
 	// Create attribute
+	xreftext := xref.Elem.Text
+	if atype, _ := xref.Elem.AttrByName("type"); atype.Value == "rfc" {
+		adata, _ := xref.Elem.AttrByName("data")
+		xreftext = adata.Value
+	}
+
 	attr, err := db.newRegDBAttr(
 		collection.Elem.Text,
 		name.Elem.Text,
 		member.Elem.Text,
 		submember.Elem.Text,
 		syntax.Elem.Text,
-		xref.Elem.Text,
+		xreftext,
 	)
 
 	if err != nil {
