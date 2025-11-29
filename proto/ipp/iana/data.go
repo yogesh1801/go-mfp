@@ -17,7 +17,7 @@ import (
 
 // DocumentDescription is the Document Description attributes
 var DocumentDescription = map[string]*Attribute{
-	// Document Description/document-name
+	// Document Description/document-name (PWG5100.5)
 	"document-name": &Attribute{
 		SetOf: false,
 		Min:   MIN,
@@ -28,385 +28,385 @@ var DocumentDescription = map[string]*Attribute{
 
 // DocumentStatus is the Document Status attributes
 var DocumentStatus = map[string]*Attribute{
-	// Document Status/attributes-charset
+	// Document Status/attributes-charset (PWG5100.5)
 	"attributes-charset": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagCharset},
 	},
-	// Document Status/attributes-natural-language
+	// Document Status/attributes-natural-language (PWG5100.5)
 	"attributes-natural-language": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagLanguage},
 	},
-	// Document Status/chamber-humidity-actual
+	// Document Status/chamber-humidity-actual (PWG5100.21)
 	"chamber-humidity-actual": &Attribute{
 		SetOf: true,
 		Min:   0,
 		Max:   100,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Document Status/chamber-temperature-actual
+	// Document Status/chamber-temperature-actual (PWG5100.21)
 	"chamber-temperature-actual": &Attribute{
 		SetOf: true,
 		Min:   -273,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Document Status/compression
+	// Document Status/compression (PWG5100.5)
 	"compression": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Document Status/copies-actual
+	// Document Status/copies-actual (PWG5100.5)
 	"copies-actual": &Attribute{
 		SetOf: true,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Document Status/cover-back-actual
+	// Document Status/cover-back-actual (PWG5100.5)
 	"cover-back-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Document Status/cover-front-actual
+	// Document Status/cover-front-actual (PWG5100.5)
 	"cover-front-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Document Status/date-time-at-completed
+	// Document Status/date-time-at-completed (PWG5100.5)
 	"date-time-at-completed": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagDateTime},
 	},
-	// Document Status/date-time-at-created
+	// Document Status/date-time-at-created (PWG5100.5)
 	"date-time-at-created": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagDateTime},
 	},
-	// Document Status/date-time-at-creation
+	// Document Status/date-time-at-creation (PWG5100.5)
 	"date-time-at-creation": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagDateTime},
 	},
-	// Document Status/date-time-at-processing
+	// Document Status/date-time-at-processing (PWG5100.5)
 	"date-time-at-processing": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagDateTime},
 	},
-	// Document Status/detailed-status-messages
+	// Document Status/detailed-status-messages (PWG5100.5)
 	"detailed-status-messages": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Document Status/document-access-errors
+	// Document Status/document-access-errors (PWG5100.5)
 	"document-access-errors": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Document Status/document-charset
+	// Document Status/document-charset (PWG5100.5)
 	"document-charset": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagCharset},
 	},
-	// Document Status/document-digital-signature
+	// Document Status/document-digital-signature (PWG5100.5)
 	"document-digital-signature": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Document Status/document-format
+	// Document Status/document-format (PWG5100.5)
 	"document-format": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagMimeType},
 	},
-	// Document Status/document-format-details
+	// Document Status/document-format-details (PWG5100.7)
 	"document-format-details": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Document Status/document-format-details-detected
+	// Document Status/document-format-details-detected (PWG5100.7)
 	"document-format-details-detected": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Document Status/document-format-detected
+	// Document Status/document-format-detected (PWG5100.5)
 	"document-format-detected": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagMimeType},
 	},
-	// Document Status/document-format-ready
+	// Document Status/document-format-ready (PWG5100.18)
 	"document-format-ready": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagMimeType},
 	},
-	// Document Status/document-format-supplied
+	// Document Status/document-format-supplied (PWG5100.7)
 	"document-format-supplied": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagMimeType},
 	},
-	// Document Status/document-format-version
+	// Document Status/document-format-version (PWG5100.5)
 	"document-format-version": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   127,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Document Status/document-format-version-detected
+	// Document Status/document-format-version-detected (PWG5100.5)
 	"document-format-version-detected": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   127,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Document Status/document-format-version-supplied
+	// Document Status/document-format-version-supplied (PWG5100.7)
 	"document-format-version-supplied": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   127,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Document Status/document-job-id
+	// Document Status/document-job-id (PWG5100.5)
 	"document-job-id": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Document Status/document-job-uri
+	// Document Status/document-job-uri (PWG5100.5)
 	"document-job-uri": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Document Status/document-message
+	// Document Status/document-message (PWG5100.5)
 	"document-message": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Document Status/document-message-supplied
+	// Document Status/document-message-supplied (PWG5100.7)
 	"document-message-supplied": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Document Status/document-metadata
+	// Document Status/document-metadata (PWG5100.13)
 	"document-metadata": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagString},
 	},
-	// Document Status/document-name-supplied
+	// Document Status/document-name-supplied (PWG5100.7)
 	"document-name-supplied": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagNameLang},
 	},
-	// Document Status/document-natural-language
+	// Document Status/document-natural-language (PWG5100.5)
 	"document-natural-language": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagLanguage},
 	},
-	// Document Status/document-number
+	// Document Status/document-number (PWG5100.5)
 	"document-number": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Document Status/document-printer-uri
+	// Document Status/document-printer-uri (PWG5100.5)
 	"document-printer-uri": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Document Status/document-resource-ids
+	// Document Status/document-resource-ids (PWG5100.22)
 	"document-resource-ids": &Attribute{
 		SetOf: true,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Document Status/document-state
+	// Document Status/document-state (PWG5100.5)
 	"document-state": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum},
 	},
-	// Document Status/document-state-message
+	// Document Status/document-state-message (PWG5100.5)
 	"document-state-message": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Document Status/document-state-reasons
+	// Document Status/document-state-reasons (PWG5100.5)
 	"document-state-reasons": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Document Status/document-uri
+	// Document Status/document-uri (PWG5100.5)
 	"document-uri": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Document Status/document-uuid
+	// Document Status/document-uuid (PWG5100.13)
 	"document-uuid": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Document Status/errors-count
+	// Document Status/errors-count (PWG5100.7)
 	"errors-count": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Document Status/finishings-actual
+	// Document Status/finishings-actual (PWG5100.5)
 	"finishings-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum},
 	},
-	// Document Status/finishings-col-actual
+	// Document Status/finishings-col-actual (PWG5100.5)
 	"finishings-col-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Document Status/force-front-side-actual
+	// Document Status/force-front-side-actual (PWG5100.5)
 	"force-front-side-actual": &Attribute{
 		SetOf: true,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Document Status/imposition-template-actual
+	// Document Status/imposition-template-actual (PWG5100.5)
 	"imposition-template-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Document Status/impressions
+	// Document Status/impressions (PWG5100.5)
 	"impressions": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Document Status/impressions-col
+	// Document Status/impressions-col (PWG5100.7)
 	"impressions-col": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Document Status/impressions-col/blank
+			// Document Status/impressions-col/blank (PWG5100.7)
 			"blank": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Document Status/impressions-col/blank-two-sided
+			// Document Status/impressions-col/blank-two-sided (PWG5100.7)
 			"blank-two-sided": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Document Status/impressions-col/full-color
+			// Document Status/impressions-col/full-color (PWG5100.7)
 			"full-color": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Document Status/impressions-col/full-color-two-sided
+			// Document Status/impressions-col/full-color-two-sided (PWG5100.7)
 			"full-color-two-sided": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Document Status/impressions-col/highlight-color
+			// Document Status/impressions-col/highlight-color (PWG5100.7)
 			"highlight-color": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Document Status/impressions-col/highlight-color-two-sided
+			// Document Status/impressions-col/highlight-color-two-sided (PWG5100.7)
 			"highlight-color-two-sided": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Document Status/impressions-col/monochrome
+			// Document Status/impressions-col/monochrome (PWG5100.7)
 			"monochrome": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Document Status/impressions-col/monochrome-two-sided
+			// Document Status/impressions-col/monochrome-two-sided (PWG5100.7)
 			"monochrome-two-sided": &Attribute{
 				SetOf: false,
 				Min:   0,
@@ -415,112 +415,112 @@ var DocumentStatus = map[string]*Attribute{
 			},
 		}},
 	},
-	// Document Status/impressions-completed
+	// Document Status/impressions-completed (PWG5100.5)
 	"impressions-completed": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Document Status/impressions-completed-col
+	// Document Status/impressions-completed-col (XEROX20150505)
 	"impressions-completed-col": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Document Status/input-attributes-actual
+	// Document Status/input-attributes-actual (PWG5100.15)
 	"input-attributes-actual": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Document Status/insert-sheet-actual
+	// Document Status/insert-sheet-actual (PWG5100.5)
 	"insert-sheet-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Document Status/k-octets
+	// Document Status/k-octets (PWG5100.5)
 	"k-octets": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Document Status/k-octets-processed
+	// Document Status/k-octets-processed (PWG5100.5)
 	"k-octets-processed": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Document Status/last-document
+	// Document Status/last-document (PWG5100.5)
 	"last-document": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBoolean},
 	},
-	// Document Status/materials-col-actual
+	// Document Status/materials-col-actual (PWG5100.21)
 	"materials-col-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Document Status/media-actual
+	// Document Status/media-actual (PWG5100.5)
 	"media-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Document Status/media-col-actual
+	// Document Status/media-col-actual (PWG5100.5)
 	"media-col-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Document Status/media-sheets
+	// Document Status/media-sheets (PWG5100.5)
 	"media-sheets": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Document Status/media-sheets-col
+	// Document Status/media-sheets-col (PWG5100.7)
 	"media-sheets-col": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Document Status/media-sheets-col/blank
+			// Document Status/media-sheets-col/blank (PWG5100.7)
 			"blank": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Document Status/media-sheets-col/full-color
+			// Document Status/media-sheets-col/full-color (PWG5100.7)
 			"full-color": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Document Status/media-sheets-col/highlight-color
+			// Document Status/media-sheets-col/highlight-color (PWG5100.7)
 			"highlight-color": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Document Status/media-sheets-col/monochrome
+			// Document Status/media-sheets-col/monochrome (XEROX20150505)
 			"monochrome": &Attribute{
 				SetOf: false,
 				Min:   0,
@@ -529,140 +529,140 @@ var DocumentStatus = map[string]*Attribute{
 			},
 		}},
 	},
-	// Document Status/media-sheets-completed
+	// Document Status/media-sheets-completed (PWG5100.5)
 	"media-sheets-completed": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Document Status/media-sheets-completed-col
+	// Document Status/media-sheets-completed-col (PWG5100.5)
 	"media-sheets-completed-col": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Document Status/more-info
+	// Document Status/more-info (PWG5100.5)
 	"more-info": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Document Status/multiple-object-handling-actual
+	// Document Status/multiple-object-handling-actual (PWG5100.21)
 	"multiple-object-handling-actual": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Document Status/number-up-actual
+	// Document Status/number-up-actual (PWG5100.5)
 	"number-up-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Document Status/orientation-requested-actual
+	// Document Status/orientation-requested-actual (PWG5100.5)
 	"orientation-requested-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum},
 	},
-	// Document Status/output-attributes-actual
+	// Document Status/output-attributes-actual (PWG5100.17)
 	"output-attributes-actual": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Document Status/output-bin-actual
+	// Document Status/output-bin-actual (PWG5100.5)
 	"output-bin-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagNameLang},
 	},
-	// Document Status/output-device-actual
+	// Document Status/output-device-actual (PWG5100.7)
 	"output-device-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   127,
 		Tags:  []goipp.Tag{goipp.TagNameLang},
 	},
-	// Document Status/output-device-assigned
+	// Document Status/output-device-assigned (PWG5100.5)
 	"output-device-assigned": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagNameLang},
 	},
-	// Document Status/output-device-document-state
+	// Document Status/output-device-document-state (PWG5100.18)
 	"output-device-document-state": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum},
 	},
-	// Document Status/output-device-document-state-message
+	// Document Status/output-device-document-state-message (PWG5100.18)
 	"output-device-document-state-message": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Document Status/output-device-document-state-reasons
+	// Document Status/output-device-document-state-reasons (PWG5100.18)
 	"output-device-document-state-reasons": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Document Status/page-delivery-actual
+	// Document Status/page-delivery-actual (PWG5100.5)
 	"page-delivery-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Document Status/page-order-received-actual
+	// Document Status/page-order-received-actual (PWG5100.5)
 	"page-order-received-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Document Status/page-ranges-actual
+	// Document Status/page-ranges-actual (PWG5100.5)
 	"page-ranges-actual": &Attribute{
 		SetOf: true,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagRange},
 	},
-	// Document Status/pages
+	// Document Status/pages (PWG5100.13)
 	"pages": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Document Status/pages-col
+	// Document Status/pages-col (PWG5100.7)
 	"pages-col": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Document Status/pages-col/full-color
+			// Document Status/pages-col/full-color (PWG5100.7)
 			"full-color": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Document Status/pages-col/monochrome
+			// Document Status/pages-col/monochrome (PWG5100.7)
 			"monochrome": &Attribute{
 				SetOf: false,
 				Min:   0,
@@ -671,196 +671,196 @@ var DocumentStatus = map[string]*Attribute{
 			},
 		}},
 	},
-	// Document Status/pages-completed
+	// Document Status/pages-completed (PWG5100.13)
 	"pages-completed": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Document Status/pages-completed-col
+	// Document Status/pages-completed-col (PWG5100.7)
 	"pages-completed-col": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Document Status/platform-temperature-actual
+	// Document Status/platform-temperature-actual (PWG5100.21)
 	"platform-temperature-actual": &Attribute{
 		SetOf: true,
 		Min:   -273,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Document Status/presentation-direction-number-up-actual
+	// Document Status/presentation-direction-number-up-actual (PWG5100.5)
 	"presentation-direction-number-up-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Document Status/print-accuracy-actual
+	// Document Status/print-accuracy-actual (PWG5100.21)
 	"print-accuracy-actual": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Document Status/print-base-actual
+	// Document Status/print-base-actual (PWG5100.21)
 	"print-base-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Document Status/print-color-mode-actual
+	// Document Status/print-color-mode-actual (PWG5100.13)
 	"print-color-mode-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Document Status/print-content-optimize-actual
+	// Document Status/print-content-optimize-actual (PWG5100.7)
 	"print-content-optimize-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Document Status/print-objects-actual
+	// Document Status/print-objects-actual (PWG5100.21)
 	"print-objects-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Document Status/print-quality-actual
+	// Document Status/print-quality-actual (PWG5100.5)
 	"print-quality-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum},
 	},
-	// Document Status/print-supports-actual
+	// Document Status/print-supports-actual (PWG5100.21)
 	"print-supports-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Document Status/printer-resolution-actual
+	// Document Status/printer-resolution-actual (PWG5100.5)
 	"printer-resolution-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagResolution},
 	},
-	// Document Status/printer-up-time
+	// Document Status/printer-up-time (PWG5100.5)
 	"printer-up-time": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Document Status/separator-sheets-actual
+	// Document Status/separator-sheets-actual (PWG5100.5)
 	"separator-sheets-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Document Status/sheet-completed-copy-number
+	// Document Status/sheet-completed-copy-number (PWG5100.5)
 	"sheet-completed-copy-number": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Document Status/sides-actual
+	// Document Status/sides-actual (PWG5100.5)
 	"sides-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Document Status/time-at-completed
+	// Document Status/time-at-completed (PWG5100.5)
 	"time-at-completed": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Document Status/time-at-creation
+	// Document Status/time-at-creation (PWG5100.5)
 	"time-at-creation": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Document Status/time-at-processing
+	// Document Status/time-at-processing (PWG5100.5)
 	"time-at-processing": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Document Status/warnings-count
+	// Document Status/warnings-count (PWG5100.7)
 	"warnings-count": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Document Status/x-image-position-actual
+	// Document Status/x-image-position-actual (PWG5100.5)
 	"x-image-position-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Document Status/x-image-shift-actual
+	// Document Status/x-image-shift-actual (PWG5100.5)
 	"x-image-shift-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Document Status/x-side1-image-shift-actual
+	// Document Status/x-side1-image-shift-actual (PWG5100.5)
 	"x-side1-image-shift-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Document Status/x-side2-image-shift-actual
+	// Document Status/x-side2-image-shift-actual (PWG5100.5)
 	"x-side2-image-shift-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Document Status/y-image-position-actual
+	// Document Status/y-image-position-actual (PWG5100.5)
 	"y-image-position-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Document Status/y-image-shift-actual
+	// Document Status/y-image-shift-actual (PWG5100.5)
 	"y-image-shift-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Document Status/y-side1-image-shift-actual
+	// Document Status/y-side1-image-shift-actual (PWG5100.5)
 	"y-side1-image-shift-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Document Status/y-side2-image-shift-actual
+	// Document Status/y-side2-image-shift-actual (PWG5100.5)
 	"y-side2-image-shift-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
@@ -871,196 +871,196 @@ var DocumentStatus = map[string]*Attribute{
 
 // DocumentTemplate is the Document Template attributes
 var DocumentTemplate = map[string]*Attribute{
-	// Document Template/chamber-humidity
+	// Document Template/chamber-humidity (PWG5100.21)
 	"chamber-humidity": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   100,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Document Template/chamber-temperature
+	// Document Template/chamber-temperature (PWG5100.21)
 	"chamber-temperature": &Attribute{
 		SetOf: false,
 		Min:   -273,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Document Template/copies
+	// Document Template/copies (PWG5100.5)
 	"copies": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Document Template/cover-back
+	// Document Template/cover-back (PWG5100.5)
 	"cover-back": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Document Template/cover-front
+	// Document Template/cover-front (PWG5100.5)
 	"cover-front": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Document Template/feed-orientation
+	// Document Template/feed-orientation (PWG5100.5)
 	"feed-orientation": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Document Template/finishings
+	// Document Template/finishings (PWG5100.5)
 	"finishings": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum},
 	},
-	// Document Template/finishings-col
+	// Document Template/finishings-col (PWG5100.5)
 	"finishings-col": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Document Template/force-front-side
+	// Document Template/force-front-side (PWG5100.5)
 	"force-front-side": &Attribute{
 		SetOf: true,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Document Template/imposition-template
+	// Document Template/imposition-template (PWG5100.5)
 	"imposition-template": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Document Template/insert-sheet
+	// Document Template/insert-sheet (PWG5100.5)
 	"insert-sheet": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Document Template/materials-col
+	// Document Template/materials-col (PWG5100.21)
 	"materials-col": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Document Template/materials-col/material-amount
+			// Document Template/materials-col/material-amount (PWG5100.21)
 			"material-amount": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Document Template/materials-col/material-amount-units
+			// Document Template/materials-col/material-amount-units (PWG5100.21)
 			"material-amount-units": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword},
 			},
-			// Document Template/materials-col/material-color
+			// Document Template/materials-col/material-color (PWG5100.21)
 			"material-color": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword},
 			},
-			// Document Template/materials-col/material-diameter
+			// Document Template/materials-col/material-diameter (PWG5100.21)
 			"material-diameter": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Document Template/materials-col/material-diameter-tolerance
+			// Document Template/materials-col/material-diameter-tolerance (PWG5100.21)
 			"material-diameter-tolerance": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Document Template/materials-col/material-fill-density
+			// Document Template/materials-col/material-fill-density (PWG5100.21)
 			"material-fill-density": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   100,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Document Template/materials-col/material-key
+			// Document Template/materials-col/material-key (PWG5100.21)
 			"material-key": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword},
 			},
-			// Document Template/materials-col/material-name
+			// Document Template/materials-col/material-name (PWG5100.21)
 			"material-name": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagNameLang},
 			},
-			// Document Template/materials-col/material-nozzle-diameter
+			// Document Template/materials-col/material-nozzle-diameter (PWG5100.21)
 			"material-nozzle-diameter": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Document Template/materials-col/material-purpose
+			// Document Template/materials-col/material-purpose (PWG5100.21)
 			"material-purpose": &Attribute{
 				SetOf: true,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword},
 			},
-			// Document Template/materials-col/material-rate
+			// Document Template/materials-col/material-rate (PWG5100.21)
 			"material-rate": &Attribute{
 				SetOf: false,
 				Min:   1,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Document Template/materials-col/material-rate-units
+			// Document Template/materials-col/material-rate-units (PWG5100.21)
 			"material-rate-units": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword},
 			},
-			// Document Template/materials-col/material-retraction
+			// Document Template/materials-col/material-retraction (PWG5100.21)
 			"material-retraction": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagBoolean},
 			},
-			// Document Template/materials-col/material-shell-thickness
+			// Document Template/materials-col/material-shell-thickness (PWG5100.21)
 			"material-shell-thickness": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Document Template/materials-col/material-temperature
+			// Document Template/materials-col/material-temperature (PWG5100.21)
 			"material-temperature": &Attribute{
 				SetOf: false,
 				Min:   -273,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger, goipp.TagRange},
 			},
-			// Document Template/materials-col/material-type
+			// Document Template/materials-col/material-type (PWG5100.21)
 			"material-type": &Attribute{
 				SetOf: false,
 				Min:   MIN,
@@ -1069,28 +1069,28 @@ var DocumentTemplate = map[string]*Attribute{
 			},
 		}},
 	},
-	// Document Template/media
+	// Document Template/media (PWG5100.5)
 	"media": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Document Template/media-col
+	// Document Template/media-col (PWG5100.5)
 	"media-col": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Document Template/media-col/media-top-offset
+			// Document Template/media-col/media-top-offset (IPPLABEL)
 			"media-top-offset": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   -2147483648,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Document Template/media-col/media-tracking
+			// Document Template/media-col/media-tracking (IPPLABEL)
 			"media-tracking": &Attribute{
 				SetOf: false,
 				Min:   MIN,
@@ -1099,28 +1099,28 @@ var DocumentTemplate = map[string]*Attribute{
 			},
 		}},
 	},
-	// Document Template/media-input-tray-check
+	// Document Template/media-input-tray-check (PWG5100.5)
 	"media-input-tray-check": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Document Template/media-overprint
+	// Document Template/media-overprint (PWG5100.13)
 	"media-overprint": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Document Template/media-overprint/media-overprint-distance
+			// Document Template/media-overprint/media-overprint-distance (PWG5100.13)
 			"media-overprint-distance": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Document Template/media-overprint/media-overprint-method
+			// Document Template/media-overprint/media-overprint-method (PWG5100.13)
 			"media-overprint-method": &Attribute{
 				SetOf: false,
 				Min:   MIN,
@@ -1129,105 +1129,105 @@ var DocumentTemplate = map[string]*Attribute{
 			},
 		}},
 	},
-	// Document Template/multiple-object-handling
+	// Document Template/multiple-object-handling (PWG5100.21)
 	"multiple-object-handling": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Document Template/number-up
+	// Document Template/number-up (PWG5100.5)
 	"number-up": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Document Template/orientation-requested
+	// Document Template/orientation-requested (PWG5100.5)
 	"orientation-requested": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum},
 	},
-	// Document Template/output-bin
+	// Document Template/output-bin (PWG5100.5)
 	"output-bin": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Document Template/output-device
+	// Document Template/output-device (PWG5100.7)
 	"output-device": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   127,
 		Tags:  []goipp.Tag{goipp.TagNameLang},
 	},
-	// Document Template/page-delivery
+	// Document Template/page-delivery (PWG5100.5)
 	"page-delivery": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Document Template/page-order-received
+	// Document Template/page-order-received (IPP20190509B)
 	"page-order-received": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Document Template/page-ranges
+	// Document Template/page-ranges (PWG5100.5)
 	"page-ranges": &Attribute{
 		SetOf: true,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagRange},
 	},
-	// Document Template/platform-temperature
+	// Document Template/platform-temperature (PWG5100.21)
 	"platform-temperature": &Attribute{
 		SetOf: false,
 		Min:   -273,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Document Template/presentation-direction-number-up
+	// Document Template/presentation-direction-number-up (PWG5100.5)
 	"presentation-direction-number-up": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Document Template/print-accuracy
+	// Document Template/print-accuracy (PWG5100.21)
 	"print-accuracy": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Document Template/print-accuracy/accuracy-units
+			// Document Template/print-accuracy/accuracy-units (PWG5100.21)
 			"accuracy-units": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword},
 			},
-			// Document Template/print-accuracy/x-accuracy
+			// Document Template/print-accuracy/x-accuracy (PWG5100.21)
 			"x-accuracy": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Document Template/print-accuracy/y-accuracy
+			// Document Template/print-accuracy/y-accuracy (PWG5100.21)
 			"y-accuracy": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Document Template/print-accuracy/z-accuracy
+			// Document Template/print-accuracy/z-accuracy (PWG5100.21)
 			"z-accuracy": &Attribute{
 				SetOf: false,
 				Min:   0,
@@ -1236,70 +1236,70 @@ var DocumentTemplate = map[string]*Attribute{
 			},
 		}},
 	},
-	// Document Template/print-base
+	// Document Template/print-base (PWG5100.21)
 	"print-base": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Document Template/print-color-mode
+	// Document Template/print-color-mode (PWG5100.13)
 	"print-color-mode": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Document Template/print-content-optimize
+	// Document Template/print-content-optimize (PWG5100.7)
 	"print-content-optimize": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Document Template/print-darkness
+	// Document Template/print-darkness (IPPLABEL)
 	"print-darkness": &Attribute{
 		SetOf: false,
 		Min:   -100,
 		Max:   100,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Document Template/print-objects
+	// Document Template/print-objects (PWG5100.21)
 	"print-objects": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Document Template/print-objects/document-number
+			// Document Template/print-objects/document-number (PWG5100.21)
 			"document-number": &Attribute{
 				SetOf: false,
 				Min:   1,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Document Template/print-objects/object-offset
+			// Document Template/print-objects/object-offset (PWG5100.21)
 			"object-offset": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagBeginCollection},
 				Members: []map[string]*Attribute{{
-					// Document Template/print-objects/object-offset/x-offset
+					// Document Template/print-objects/object-offset/x-offset (PWG5100.21)
 					"x-offset": &Attribute{
 						SetOf: false,
 						Min:   0,
 						Max:   MAX,
 						Tags:  []goipp.Tag{goipp.TagInteger},
 					},
-					// Document Template/print-objects/object-offset/y-offset
+					// Document Template/print-objects/object-offset/y-offset (PWG5100.21)
 					"y-offset": &Attribute{
 						SetOf: false,
 						Min:   0,
 						Max:   MAX,
 						Tags:  []goipp.Tag{goipp.TagInteger},
 					},
-					// Document Template/print-objects/object-offset/z-offset
+					// Document Template/print-objects/object-offset/z-offset (PWG5100.21)
 					"z-offset": &Attribute{
 						SetOf: false,
 						Min:   0,
@@ -1308,28 +1308,28 @@ var DocumentTemplate = map[string]*Attribute{
 					},
 				}},
 			},
-			// Document Template/print-objects/object-size
+			// Document Template/print-objects/object-size (PWG5100.21)
 			"object-size": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagBeginCollection},
 				Members: []map[string]*Attribute{{
-					// Document Template/print-objects/object-size/x-dimension
+					// Document Template/print-objects/object-size/x-dimension (PWG5100.21)
 					"x-dimension": &Attribute{
 						SetOf: false,
 						Min:   1,
 						Max:   MAX,
 						Tags:  []goipp.Tag{goipp.TagInteger},
 					},
-					// Document Template/print-objects/object-size/y-dimension
+					// Document Template/print-objects/object-size/y-dimension (PWG5100.21)
 					"y-dimension": &Attribute{
 						SetOf: false,
 						Min:   1,
 						Max:   MAX,
 						Tags:  []goipp.Tag{goipp.TagInteger},
 					},
-					// Document Template/print-objects/object-size/z-dimension
+					// Document Template/print-objects/object-size/z-dimension (PWG5100.21)
 					"z-dimension": &Attribute{
 						SetOf: false,
 						Min:   1,
@@ -1338,7 +1338,7 @@ var DocumentTemplate = map[string]*Attribute{
 					},
 				}},
 			},
-			// Document Template/print-objects/object-uuid
+			// Document Template/print-objects/object-uuid (PWG5100.21)
 			"object-uuid": &Attribute{
 				SetOf: false,
 				Min:   MIN,
@@ -1347,119 +1347,119 @@ var DocumentTemplate = map[string]*Attribute{
 			},
 		}},
 	},
-	// Document Template/print-quality
+	// Document Template/print-quality (PWG5100.5)
 	"print-quality": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum},
 	},
-	// Document Template/print-rendering-intent
+	// Document Template/print-rendering-intent (PWG5100.13)
 	"print-rendering-intent": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Document Template/print-scaling
+	// Document Template/print-scaling (PWG5100.13)
 	"print-scaling": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Document Template/print-speed
+	// Document Template/print-speed (IPPLABEL)
 	"print-speed": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Document Template/print-supports
+	// Document Template/print-supports (PWG5100.21)
 	"print-supports": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Document Template/printer-resolution
+	// Document Template/printer-resolution (PWG5100.5)
 	"printer-resolution": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagResolution},
 	},
-	// Document Template/separator-sheets
+	// Document Template/separator-sheets (PWG5100.5)
 	"separator-sheets": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Document Template/sheet-collate
+	// Document Template/sheet-collate (PWG5100.5)
 	"sheet-collate": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Document Template/sides
+	// Document Template/sides (PWG5100.5)
 	"sides": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Document Template/x-image-position
+	// Document Template/x-image-position (PWG5100.5)
 	"x-image-position": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Document Template/x-image-shift
+	// Document Template/x-image-shift (PWG5100.5)
 	"x-image-shift": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Document Template/x-side1-image-shift
+	// Document Template/x-side1-image-shift (PWG5100.5)
 	"x-side1-image-shift": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Document Template/x-side2-image-shift
+	// Document Template/x-side2-image-shift (PWG5100.5)
 	"x-side2-image-shift": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Document Template/y-image-position
+	// Document Template/y-image-position (PWG5100.5)
 	"y-image-position": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Document Template/y-image-shift
+	// Document Template/y-image-shift (PWG5100.5)
 	"y-image-shift": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Document Template/y-side1-image-shift
+	// Document Template/y-side1-image-shift (PWG5100.5)
 	"y-side1-image-shift": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Document Template/y-side2-image-shift
+	// Document Template/y-side2-image-shift (PWG5100.5)
 	"y-side2-image-shift": &Attribute{
 		SetOf: false,
 		Min:   MIN,
@@ -1470,133 +1470,133 @@ var DocumentTemplate = map[string]*Attribute{
 
 // EventNotifications is the Event Notifications attributes
 var EventNotifications = map[string]*Attribute{
-	// Event Notifications/job-id
+	// Event Notifications/job-id (rfc3996)
 	"job-id": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Event Notifications/job-impressions-completed
+	// Event Notifications/job-impressions-completed (rfc3996)
 	"job-impressions-completed": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Event Notifications/job-state
+	// Event Notifications/job-state (rfc3996)
 	"job-state": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum},
 	},
-	// Event Notifications/job-state-reasons
+	// Event Notifications/job-state-reasons (rfc3996)
 	"job-state-reasons": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Event Notifications/job-uuid
+	// Event Notifications/job-uuid (PWG5100.13)
 	"job-uuid": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Event Notifications/notify-charset
+	// Event Notifications/notify-charset (rfc3996)
 	"notify-charset": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagCharset},
 	},
-	// Event Notifications/notify-natural-language
+	// Event Notifications/notify-natural-language (rfc3996)
 	"notify-natural-language": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagLanguage},
 	},
-	// Event Notifications/notify-printer-uri
+	// Event Notifications/notify-printer-uri (rfc3996)
 	"notify-printer-uri": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Event Notifications/notify-sequence-number
+	// Event Notifications/notify-sequence-number (rfc3996)
 	"notify-sequence-number": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Event Notifications/notify-subscribed-event
+	// Event Notifications/notify-subscribed-event (rfc3995)
 	"notify-subscribed-event": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Event Notifications/notify-subscription-id
+	// Event Notifications/notify-subscription-id (rfc3996)
 	"notify-subscription-id": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Event Notifications/notify-subscription-uuid
+	// Event Notifications/notify-subscription-uuid (PWG5100.13)
 	"notify-subscription-uuid": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Event Notifications/notify-text
+	// Event Notifications/notify-text (rfc3995)
 	"notify-text": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Event Notifications/notify-user-data
+	// Event Notifications/notify-user-data (rfc3996)
 	"notify-user-data": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   63,
 		Tags:  []goipp.Tag{goipp.TagString},
 	},
-	// Event Notifications/printer-current-time
+	// Event Notifications/printer-current-time (rfc3996)
 	"printer-current-time": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagDateTime, goipp.TagUnknown},
 	},
-	// Event Notifications/printer-is-accepting-jobs
+	// Event Notifications/printer-is-accepting-jobs (rfc3996)
 	"printer-is-accepting-jobs": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBoolean},
 	},
-	// Event Notifications/printer-state
+	// Event Notifications/printer-state (rfc3996)
 	"printer-state": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum},
 	},
-	// Event Notifications/printer-state-reasons
+	// Event Notifications/printer-state-reasons (rfc3996)
 	"printer-state-reasons": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Event Notifications/printer-up-time
+	// Event Notifications/printer-up-time (rfc3996)
 	"printer-up-time": &Attribute{
 		SetOf: false,
 		Min:   1,
@@ -1607,84 +1607,84 @@ var EventNotifications = map[string]*Attribute{
 
 // JobDescription is the Job Description attributes
 var JobDescription = map[string]*Attribute{
-	// Job Description/current-page-order
+	// Job Description/current-page-order (IPP20190509B)
 	"current-page-order": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Job Description/job-charge-info
+	// Job Description/job-charge-info (PWG5100.16)
 	"job-charge-info": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Job Description/job-collation-type
+	// Job Description/job-collation-type (rfc3381)
 	"job-collation-type": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum},
 	},
-	// Job Description/job-impressions-col
+	// Job Description/job-impressions-col (PWG5100.7)
 	"job-impressions-col": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Job Description/job-impressions-col/blank
+			// Job Description/job-impressions-col/blank (PWG5100.7)
 			"blank": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Description/job-impressions-col/blank-two-sided
+			// Job Description/job-impressions-col/blank-two-sided (PWG5100.7)
 			"blank-two-sided": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Description/job-impressions-col/full-color
+			// Job Description/job-impressions-col/full-color (PWG5100.7)
 			"full-color": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Description/job-impressions-col/full-color-two-sided
+			// Job Description/job-impressions-col/full-color-two-sided (PWG5100.7)
 			"full-color-two-sided": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Description/job-impressions-col/highlight-color
+			// Job Description/job-impressions-col/highlight-color (PWG5100.7)
 			"highlight-color": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Description/job-impressions-col/highlight-color-two-sided
+			// Job Description/job-impressions-col/highlight-color-two-sided (PWG5100.7)
 			"highlight-color-two-sided": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Description/job-impressions-col/monochrome
+			// Job Description/job-impressions-col/monochrome (PWG5100.7)
 			"monochrome": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Description/job-impressions-col/monochrome-two-sided
+			// Job Description/job-impressions-col/monochrome-two-sided (PWG5100.7)
 			"monochrome-two-sided": &Attribute{
 				SetOf: false,
 				Min:   0,
@@ -1693,63 +1693,63 @@ var JobDescription = map[string]*Attribute{
 			},
 		}},
 	},
-	// Job Description/job-media-sheets-col
+	// Job Description/job-media-sheets-col (PWG5100.7)
 	"job-media-sheets-col": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Job Description/job-media-sheets-col/blank
+			// Job Description/job-media-sheets-col/blank (PWG5100.7)
 			"blank": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Description/job-media-sheets-col/blank-two-sided
+			// Job Description/job-media-sheets-col/blank-two-sided (PWG5100.7)
 			"blank-two-sided": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Description/job-media-sheets-col/full-color
+			// Job Description/job-media-sheets-col/full-color (PWG5100.7)
 			"full-color": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Description/job-media-sheets-col/full-color-two-sided
+			// Job Description/job-media-sheets-col/full-color-two-sided (PWG5100.7)
 			"full-color-two-sided": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Description/job-media-sheets-col/highlight-color
+			// Job Description/job-media-sheets-col/highlight-color (PWG5100.7)
 			"highlight-color": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Description/job-media-sheets-col/highlight-color-two-sided
+			// Job Description/job-media-sheets-col/highlight-color-two-sided (PWG5100.7)
 			"highlight-color-two-sided": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Description/job-media-sheets-col/monochrome
+			// Job Description/job-media-sheets-col/monochrome (PWG5100.7)
 			"monochrome": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Description/job-media-sheets-col/monochrome-two-sided
+			// Job Description/job-media-sheets-col/monochrome-two-sided (PWG5100.7)
 			"monochrome-two-sided": &Attribute{
 				SetOf: false,
 				Min:   0,
@@ -1758,28 +1758,28 @@ var JobDescription = map[string]*Attribute{
 			},
 		}},
 	},
-	// Job Description/job-message-from-operator
+	// Job Description/job-message-from-operator (rfc8011)
 	"job-message-from-operator": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   127,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Job Description/job-message-to-operator-actual
+	// Job Description/job-message-to-operator-actual (PWG5100.8)
 	"job-message-to-operator-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Job Description/job-name
+	// Job Description/job-name (rfc8011)
 	"job-name": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagNameLang},
 	},
-	// Job Description/job-save-printer-make-and-model
+	// Job Description/job-save-printer-make-and-model (PWG5100.11)
 	"job-save-printer-make-and-model": &Attribute{
 		SetOf: false,
 		Min:   MIN,
@@ -1790,133 +1790,133 @@ var JobDescription = map[string]*Attribute{
 
 // JobStatus is the Job Status attributes
 var JobStatus = map[string]*Attribute{
-	// Job Status/attributes-charset
+	// Job Status/attributes-charset (rfc8011)
 	"attributes-charset": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagCharset},
 	},
-	// Job Status/attributes-natural-language
+	// Job Status/attributes-natural-language (rfc8011)
 	"attributes-natural-language": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagLanguage},
 	},
-	// Job Status/chamber-humidity-actual
+	// Job Status/chamber-humidity-actual (PWG5100.21)
 	"chamber-humidity-actual": &Attribute{
 		SetOf: true,
 		Min:   0,
 		Max:   100,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Status/chamber-temperature-actual
+	// Job Status/chamber-temperature-actual (PWG5100.21)
 	"chamber-temperature-actual": &Attribute{
 		SetOf: true,
 		Min:   -273,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Status/client-info
+	// Job Status/client-info (PWG5100.7)
 	"client-info": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Job Status/compression-supplied
+	// Job Status/compression-supplied (PWG5100.7)
 	"compression-supplied": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Job Status/copies-actual
+	// Job Status/copies-actual (PWG5100.8)
 	"copies-actual": &Attribute{
 		SetOf: true,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Status/cover-back-actual
+	// Job Status/cover-back-actual (PWG5100.8)
 	"cover-back-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Job Status/cover-front-actual
+	// Job Status/cover-front-actual (PWG5100.8)
 	"cover-front-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Job Status/current-page-order
+	// Job Status/current-page-order (PWG5100.3)
 	"current-page-order": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Job Status/date-time-at-completed
+	// Job Status/date-time-at-completed (rfc8011)
 	"date-time-at-completed": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagDateTime, goipp.TagNoValue},
 	},
-	// Job Status/date-time-at-completed-estimated
+	// Job Status/date-time-at-completed-estimated (PWG5100.3)
 	"date-time-at-completed-estimated": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagDateTime, goipp.TagUnknown},
 	},
-	// Job Status/date-time-at-creation
+	// Job Status/date-time-at-creation (rfc8011)
 	"date-time-at-creation": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagDateTime},
 	},
-	// Job Status/date-time-at-processing
+	// Job Status/date-time-at-processing (rfc8011)
 	"date-time-at-processing": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagDateTime, goipp.TagNoValue},
 	},
-	// Job Status/date-time-at-processing-estimated
+	// Job Status/date-time-at-processing-estimated (PWG5100.3)
 	"date-time-at-processing-estimated": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagDateTime, goipp.TagUnknown},
 	},
-	// Job Status/destination-statuses
+	// Job Status/destination-statuses (PWG5100.15)
 	"destination-statuses": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Job Status/destination-statuses/destination-uri
+			// Job Status/destination-statuses/destination-uri (PWG5100.15)
 			"destination-uri": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagURI},
 			},
-			// Job Status/destination-statuses/images-completed
+			// Job Status/destination-statuses/images-completed (PWG5100.15)
 			"images-completed": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Status/destination-statuses/transmission-status
+			// Job Status/destination-statuses/transmission-status (PWG5100.15)
 			"transmission-status": &Attribute{
 				SetOf: false,
 				Min:   MIN,
@@ -1925,301 +1925,301 @@ var JobStatus = map[string]*Attribute{
 			},
 		}},
 	},
-	// Job Status/document-charset-supplied
+	// Job Status/document-charset-supplied (PWG5100.7)
 	"document-charset-supplied": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagCharset},
 	},
-	// Job Status/document-digital-signature-supplied
+	// Job Status/document-digital-signature-supplied (PWG5100.7)
 	"document-digital-signature-supplied": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Job Status/document-format-details-detected
+	// Job Status/document-format-details-detected (PWG5100.7)
 	"document-format-details-detected": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Job Status/document-format-details-supplied
+	// Job Status/document-format-details-supplied (PWG5100.7-2003)
 	"document-format-details-supplied": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Job Status/document-format-ready
+	// Job Status/document-format-ready (PWG5100.18)
 	"document-format-ready": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagMimeType},
 	},
-	// Job Status/document-format-supplied
+	// Job Status/document-format-supplied (PWG5100.7)
 	"document-format-supplied": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagMimeType},
 	},
-	// Job Status/document-format-version-supplied
+	// Job Status/document-format-version-supplied (PWG5100.7)
 	"document-format-version-supplied": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   127,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Job Status/document-message-supplied
+	// Job Status/document-message-supplied (PWG5100.7)
 	"document-message-supplied": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Job Status/document-metadata
+	// Job Status/document-metadata (PWG5100.13)
 	"document-metadata": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagString},
 	},
-	// Job Status/document-name-supplied
+	// Job Status/document-name-supplied (PWG5100.7)
 	"document-name-supplied": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagNameLang},
 	},
-	// Job Status/document-natural-language-supplied
+	// Job Status/document-natural-language-supplied (PWG5100.7)
 	"document-natural-language-supplied": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagLanguage},
 	},
-	// Job Status/errors-count
+	// Job Status/errors-count (PWG5100.7)
 	"errors-count": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Status/finishings-actual
+	// Job Status/finishings-actual (PWG5100.8)
 	"finishings-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum},
 	},
-	// Job Status/finishings-col-actual
+	// Job Status/finishings-col-actual (PWG5100.8)
 	"finishings-col-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Job Status/force-front-side-actual
+	// Job Status/force-front-side-actual (PWG5100.8)
 	"force-front-side-actual": &Attribute{
 		SetOf: true,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Status/imposition-template-actual
+	// Job Status/imposition-template-actual (PWG5100.8)
 	"imposition-template-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Job Status/impressions-completed-current-copy
+	// Job Status/impressions-completed-current-copy (rfc3381)
 	"impressions-completed-current-copy": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Status/input-attributes-actual
+	// Job Status/input-attributes-actual (PWG5100.15)
 	"input-attributes-actual": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Job Status/insert-sheet-actual
+	// Job Status/insert-sheet-actual (PWG5100.8)
 	"insert-sheet-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Job Status/ipp-attribute-fidelity
+	// Job Status/ipp-attribute-fidelity (PWG5100.7)
 	"ipp-attribute-fidelity": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBoolean},
 	},
-	// Job Status/job-account-id-actual
+	// Job Status/job-account-id-actual (PWG5100.8)
 	"job-account-id-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagNameLang},
 	},
-	// Job Status/job-account-type-actual
+	// Job Status/job-account-type-actual (PWG5100.16)
 	"job-account-type-actual": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Job Status/job-accounting-sheets-actual
+	// Job Status/job-accounting-sheets-actual (PWG5100.8)
 	"job-accounting-sheets-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Job Status/job-accounting-user-id-actual
+	// Job Status/job-accounting-user-id-actual (PWG5100.8)
 	"job-accounting-user-id-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagNameLang},
 	},
-	// Job Status/job-copies-actual
+	// Job Status/job-copies-actual (PWG5100.7)
 	"job-copies-actual": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Status/job-cover-back-actual
+	// Job Status/job-cover-back-actual (PWG5100.7)
 	"job-cover-back-actual": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Job Status/job-cover-front-actual
+	// Job Status/job-cover-front-actual (PWG5100.7)
 	"job-cover-front-actual": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Job Status/job-detailed-status-messages
+	// Job Status/job-detailed-status-messages (rfc8011)
 	"job-detailed-status-messages": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Job Status/job-document-access-errors
+	// Job Status/job-document-access-errors (rfc8011)
 	"job-document-access-errors": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Job Status/job-error-sheet-actual
+	// Job Status/job-error-sheet-actual (PWG5100.8)
 	"job-error-sheet-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Job Status/job-finishings-actual
+	// Job Status/job-finishings-actual (PWG5100.7)
 	"job-finishings-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum},
 	},
-	// Job Status/job-hold-until-actual
+	// Job Status/job-hold-until-actual (PWG5100.8)
 	"job-hold-until-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Job Status/job-id
+	// Job Status/job-id (rfc8011)
 	"job-id": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Status/job-impressions
+	// Job Status/job-impressions (rfc8011)
 	"job-impressions": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Status/job-impressions-col
+	// Job Status/job-impressions-col (XEROX20150505)
 	"job-impressions-col": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Job Status/job-impressions-col/blank
+			// Job Status/job-impressions-col/blank (XEROX20150505)
 			"blank": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Status/job-impressions-col/blank-two-sided
+			// Job Status/job-impressions-col/blank-two-sided (XEROX20150505)
 			"blank-two-sided": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Status/job-impressions-col/full-color
+			// Job Status/job-impressions-col/full-color (XEROX20150505)
 			"full-color": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Status/job-impressions-col/full-color-two-sided
+			// Job Status/job-impressions-col/full-color-two-sided (XEROX20150505)
 			"full-color-two-sided": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Status/job-impressions-col/highlight-color
+			// Job Status/job-impressions-col/highlight-color (XEROX20150505)
 			"highlight-color": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Status/job-impressions-col/highlight-color-two-sided
+			// Job Status/job-impressions-col/highlight-color-two-sided (XEROX20150505)
 			"highlight-color-two-sided": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Status/job-impressions-col/monochrome
+			// Job Status/job-impressions-col/monochrome (XEROX20150505)
 			"monochrome": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Status/job-impressions-col/monochrome-two-sided
+			// Job Status/job-impressions-col/monochrome-two-sided (XEROX20150505)
 			"monochrome-two-sided": &Attribute{
 				SetOf: false,
 				Min:   0,
@@ -2228,77 +2228,77 @@ var JobStatus = map[string]*Attribute{
 			},
 		}},
 	},
-	// Job Status/job-impressions-completed
+	// Job Status/job-impressions-completed (rfc8011)
 	"job-impressions-completed": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Status/job-impressions-completed-col
+	// Job Status/job-impressions-completed-col (PWG5100.7)
 	"job-impressions-completed-col": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Job Status/job-k-octets
+	// Job Status/job-k-octets (rfc8011)
 	"job-k-octets": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Status/job-k-octets-processed
+	// Job Status/job-k-octets-processed (rfc8011)
 	"job-k-octets-processed": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Status/job-mandatory-attributes
+	// Job Status/job-mandatory-attributes (PWG5100.7)
 	"job-mandatory-attributes": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Job Status/job-media-sheets
+	// Job Status/job-media-sheets (rfc8011)
 	"job-media-sheets": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Status/job-media-sheets-col
+	// Job Status/job-media-sheets-col (XEROX20150505)
 	"job-media-sheets-col": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Job Status/job-media-sheets-col/blank
+			// Job Status/job-media-sheets-col/blank (XEROX20150505)
 			"blank": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Status/job-media-sheets-col/full-color
+			// Job Status/job-media-sheets-col/full-color (XEROX20150505)
 			"full-color": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Status/job-media-sheets-col/highlight-color
+			// Job Status/job-media-sheets-col/highlight-color (XEROX20150505)
 			"highlight-color": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Status/job-media-sheets-col/monochrome
+			// Job Status/job-media-sheets-col/monochrome (XEROX20150505)
 			"monochrome": &Attribute{
 				SetOf: false,
 				Min:   0,
@@ -2307,70 +2307,70 @@ var JobStatus = map[string]*Attribute{
 			},
 		}},
 	},
-	// Job Status/job-media-sheets-completed
+	// Job Status/job-media-sheets-completed (rfc8011)
 	"job-media-sheets-completed": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Status/job-media-sheets-completed-col
+	// Job Status/job-media-sheets-completed-col (PWG5100.7)
 	"job-media-sheets-completed-col": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Job Status/job-more-info
+	// Job Status/job-more-info (rfc8011)
 	"job-more-info": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Job Status/job-originating-user-name
+	// Job Status/job-originating-user-name (rfc8011)
 	"job-originating-user-name": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagNameLang},
 	},
-	// Job Status/job-originating-user-uri
+	// Job Status/job-originating-user-uri (PWG5100.13)
 	"job-originating-user-uri": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Job Status/job-pages
+	// Job Status/job-pages (PWG5100.13)
 	"job-pages": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Status/job-pages-col
+	// Job Status/job-pages-col (PWG5100.7)
 	"job-pages-col": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Job Status/job-pages-col/blank
+			// Job Status/job-pages-col/blank (PWG5100.7)
 			"blank": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Status/job-pages-col/full-color
+			// Job Status/job-pages-col/full-color (PWG5100.7)
 			"full-color": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Status/job-pages-col/monochrome
+			// Job Status/job-pages-col/monochrome (PWG5100.7)
 			"monochrome": &Attribute{
 				SetOf: false,
 				Min:   0,
@@ -2379,497 +2379,497 @@ var JobStatus = map[string]*Attribute{
 			},
 		}},
 	},
-	// Job Status/job-pages-completed
+	// Job Status/job-pages-completed (PWG5100.13)
 	"job-pages-completed": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Status/job-pages-completed-col
+	// Job Status/job-pages-completed-col (PWG5100.7)
 	"job-pages-completed-col": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Job Status/job-printer-up-time
+	// Job Status/job-printer-up-time (rfc8011)
 	"job-printer-up-time": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Status/job-printer-uri
+	// Job Status/job-printer-uri (rfc8011)
 	"job-printer-uri": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Job Status/job-priority-actual
+	// Job Status/job-priority-actual (PWG5100.8)
 	"job-priority-actual": &Attribute{
 		SetOf: true,
 		Min:   1,
 		Max:   100,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Status/job-processing-time
+	// Job Status/job-processing-time (PWG5100.7)
 	"job-processing-time": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Status/job-release-action
+	// Job Status/job-release-action (PWG5100.11)
 	"job-release-action": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Job Status/job-resource-ids
+	// Job Status/job-resource-ids (PWG5100.22)
 	"job-resource-ids": &Attribute{
 		SetOf: true,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Status/job-sheet-message-actual
+	// Job Status/job-sheet-message-actual (PWG5100.8)
 	"job-sheet-message-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Job Status/job-sheets-actual
+	// Job Status/job-sheets-actual (PWG5100.8)
 	"job-sheets-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Job Status/job-sheets-col-actual
+	// Job Status/job-sheets-col-actual (PWG5100.8)
 	"job-sheets-col-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Job Status/job-state
+	// Job Status/job-state (rfc8011)
 	"job-state": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum, goipp.TagUnknown},
 	},
-	// Job Status/job-state-message
+	// Job Status/job-state-message (rfc8011)
 	"job-state-message": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Job Status/job-state-reasons
+	// Job Status/job-state-reasons (rfc8011)
 	"job-state-reasons": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Job Status/job-storage
+	// Job Status/job-storage (PWG5100.11)
 	"job-storage": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Job Status/job-uri
+	// Job Status/job-uri (rfc8011)
 	"job-uri": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Job Status/job-uuid
+	// Job Status/job-uuid (PWG5100.13)
 	"job-uuid": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Job Status/materials-col-actual
+	// Job Status/materials-col-actual (PWG5100.21)
 	"materials-col-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Job Status/media-actual
+	// Job Status/media-actual (PWG5100.8)
 	"media-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Job Status/media-col-actual
+	// Job Status/media-col-actual (PWG5100.8)
 	"media-col-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Job Status/media-input-tray-check-actual
+	// Job Status/media-input-tray-check-actual (PWG5100.8)
 	"media-input-tray-check-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Job Status/multiple-document-handling-actual
+	// Job Status/multiple-document-handling-actual (PWG5100.8)
 	"multiple-document-handling-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Job Status/multiple-object-handling-actual
+	// Job Status/multiple-object-handling-actual (PWG5100.21)
 	"multiple-object-handling-actual": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Job Status/number-of-documents
+	// Job Status/number-of-documents (rfc8011)
 	"number-of-documents": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Status/number-of-intervening-jobs
+	// Job Status/number-of-intervening-jobs (rfc8011)
 	"number-of-intervening-jobs": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Status/number-up-actual
+	// Job Status/number-up-actual (PWG5100.8)
 	"number-up-actual": &Attribute{
 		SetOf: true,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Status/orientation-requested-actual
+	// Job Status/orientation-requested-actual (PWG5100.8)
 	"orientation-requested-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum},
 	},
-	// Job Status/original-requesting-user-name
+	// Job Status/original-requesting-user-name (rfc3998)
 	"original-requesting-user-name": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagNameLang},
 	},
-	// Job Status/output-attributes-actual
+	// Job Status/output-attributes-actual (PWG5100.17)
 	"output-attributes-actual": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Job Status/output-bin-actual
+	// Job Status/output-bin-actual (PWG5100.8)
 	"output-bin-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Job Status/output-device-actual
+	// Job Status/output-device-actual (PWG5100.7)
 	"output-device-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   127,
 		Tags:  []goipp.Tag{goipp.TagNameLang},
 	},
-	// Job Status/output-device-assigned
+	// Job Status/output-device-assigned (rfc8011)
 	"output-device-assigned": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   127,
 		Tags:  []goipp.Tag{goipp.TagNameLang},
 	},
-	// Job Status/output-device-job-state
+	// Job Status/output-device-job-state (PWG5100.18)
 	"output-device-job-state": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum},
 	},
-	// Job Status/output-device-job-state-message
+	// Job Status/output-device-job-state-message (PWG5100.18)
 	"output-device-job-state-message": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Job Status/output-device-job-state-reasons
+	// Job Status/output-device-job-state-reasons (PWG5100.18)
 	"output-device-job-state-reasons": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Job Status/output-device-uuid-assigned
+	// Job Status/output-device-uuid-assigned (PWG5100.18)
 	"output-device-uuid-assigned": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Job Status/overrides-actual
+	// Job Status/overrides-actual (PWG5100.6)
 	"overrides-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Job Status/page-delivery-actual
+	// Job Status/page-delivery-actual (PWG5100.8)
 	"page-delivery-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Job Status/page-order-received-actual
+	// Job Status/page-order-received-actual (IPP20190509B)
 	"page-order-received-actual": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Job Status/page-ranges-actual
+	// Job Status/page-ranges-actual (PWG5100.8)
 	"page-ranges-actual": &Attribute{
 		SetOf: true,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagRange},
 	},
-	// Job Status/parent-job-id
+	// Job Status/parent-job-id (PWG5100.11)
 	"parent-job-id": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Status/parent-job-uuid
+	// Job Status/parent-job-uuid (PWG5100.11)
 	"parent-job-uuid": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   45,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Job Status/platform-temperature-actual
+	// Job Status/platform-temperature-actual (PWG5100.21)
 	"platform-temperature-actual": &Attribute{
 		SetOf: true,
 		Min:   -273,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Status/presentation-direction-number-up-actual
+	// Job Status/presentation-direction-number-up-actual (PWG5100.8)
 	"presentation-direction-number-up-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Job Status/print-accuracy-actual
+	// Job Status/print-accuracy-actual (PWG5100.21)
 	"print-accuracy-actual": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Job Status/print-base-actual
+	// Job Status/print-base-actual (PWG5100.21)
 	"print-base-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Job Status/print-color-mode-actual
+	// Job Status/print-color-mode-actual (PWG5100.13)
 	"print-color-mode-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Job Status/print-content-optimize-actual
+	// Job Status/print-content-optimize-actual (PWG5100.7)
 	"print-content-optimize-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Job Status/print-objects-actual
+	// Job Status/print-objects-actual (PWG5100.21)
 	"print-objects-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Job Status/print-quality-actual
+	// Job Status/print-quality-actual (PWG5100.8)
 	"print-quality-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum},
 	},
-	// Job Status/print-supports-actual
+	// Job Status/print-supports-actual (PWG5100.21)
 	"print-supports-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Job Status/printer-resolution-actual
+	// Job Status/printer-resolution-actual (PWG5100.8)
 	"printer-resolution-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagResolution},
 	},
-	// Job Status/separator-sheets-actual
+	// Job Status/separator-sheets-actual (PWG5100.8)
 	"separator-sheets-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Job Status/sheet-collate-actual
+	// Job Status/sheet-collate-actual (PWG5100.8)
 	"sheet-collate-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Job Status/sheet-completed-copy-number
+	// Job Status/sheet-completed-copy-number (rfc3381)
 	"sheet-completed-copy-number": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Status/sheet-completed-document-number
+	// Job Status/sheet-completed-document-number (rfc3381)
 	"sheet-completed-document-number": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Status/sides-actual
+	// Job Status/sides-actual (PWG5100.8)
 	"sides-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Job Status/time-at-completed
+	// Job Status/time-at-completed (rfc8011)
 	"time-at-completed": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger, goipp.TagNoValue},
 	},
-	// Job Status/time-at-completed-estimated
+	// Job Status/time-at-completed-estimated (PWG5100.3)
 	"time-at-completed-estimated": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger, goipp.TagUnknown},
 	},
-	// Job Status/time-at-creation
+	// Job Status/time-at-creation (rfc8011)
 	"time-at-creation": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Status/time-at-processing
+	// Job Status/time-at-processing (rfc8011)
 	"time-at-processing": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger, goipp.TagNoValue},
 	},
-	// Job Status/time-at-processing-estimated
+	// Job Status/time-at-processing-estimated (PWG5100.3)
 	"time-at-processing-estimated": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger, goipp.TagUnknown},
 	},
-	// Job Status/warnings-count
+	// Job Status/warnings-count (PWG5100.7)
 	"warnings-count": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Status/x-image-position-actual
+	// Job Status/x-image-position-actual (PWG5100.8)
 	"x-image-position-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Job Status/x-image-shift-actual
+	// Job Status/x-image-shift-actual (PWG5100.8)
 	"x-image-shift-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Status/x-side1-image-shift-actual
+	// Job Status/x-side1-image-shift-actual (PWG5100.8)
 	"x-side1-image-shift-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Status/x-side2-image-shift-actual
+	// Job Status/x-side2-image-shift-actual (PWG5100.8)
 	"x-side2-image-shift-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Status/y-image-position-actual
+	// Job Status/y-image-position-actual (PWG5100.8)
 	"y-image-position-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Job Status/y-image-shift-actual
+	// Job Status/y-image-shift-actual (PWG5100.8)
 	"y-image-shift-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Status/y-side1-image-shift-actual
+	// Job Status/y-side1-image-shift-actual (PWG5100.8)
 	"y-side1-image-shift-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Status/y-side2-image-shift-actual
+	// Job Status/y-side2-image-shift-actual (PWG5100.8)
 	"y-side2-image-shift-actual": &Attribute{
 		SetOf: true,
 		Min:   MIN,
@@ -2880,56 +2880,56 @@ var JobStatus = map[string]*Attribute{
 
 // JobTemplate is the Job Template attributes
 var JobTemplate = map[string]*Attribute{
-	// Job Template/chamber-humidity
+	// Job Template/chamber-humidity (PWG5100.21)
 	"chamber-humidity": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   100,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Template/chamber-temperature
+	// Job Template/chamber-temperature (PWG5100.21)
 	"chamber-temperature": &Attribute{
 		SetOf: false,
 		Min:   -273,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Template/confirmation-sheet-print
+	// Job Template/confirmation-sheet-print (PWG5100.15)
 	"confirmation-sheet-print": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBoolean},
 	},
-	// Job Template/copies
+	// Job Template/copies (rfc8011)
 	"copies": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Template/cover-back
+	// Job Template/cover-back (PWG5100.3)
 	"cover-back": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Job Template/cover-back/cover-type
+			// Job Template/cover-back/cover-type (PWG5100.3)
 			"cover-type": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword},
 			},
-			// Job Template/cover-back/media
+			// Job Template/cover-back/media (rfc8011)
 			"media": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 			},
-			// Job Template/cover-back/media-col
+			// Job Template/cover-back/media-col (PWG5100.3)
 			"media-col": &Attribute{
 				SetOf: false,
 				Min:   MIN,
@@ -2938,28 +2938,28 @@ var JobTemplate = map[string]*Attribute{
 			},
 		}},
 	},
-	// Job Template/cover-front
+	// Job Template/cover-front (PWG5100.3)
 	"cover-front": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Job Template/cover-front/cover-type
+			// Job Template/cover-front/cover-type (PWG5100.3)
 			"cover-type": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword},
 			},
-			// Job Template/cover-front/media
+			// Job Template/cover-front/media (rfc8011)
 			"media": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 			},
-			// Job Template/cover-front/media-col
+			// Job Template/cover-front/media-col (PWG5100.3)
 			"media-col": &Attribute{
 				SetOf: false,
 				Min:   MIN,
@@ -2968,49 +2968,49 @@ var JobTemplate = map[string]*Attribute{
 			},
 		}},
 	},
-	// Job Template/cover-sheet-info
+	// Job Template/cover-sheet-info (PWG5100.15)
 	"cover-sheet-info": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Job Template/cover-sheet-info/from-name
+			// Job Template/cover-sheet-info/from-name (PWG5100.15)
 			"from-name": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagTextLang},
 			},
-			// Job Template/cover-sheet-info/logo
+			// Job Template/cover-sheet-info/logo (PWG5100.15)
 			"logo": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagURI},
 			},
-			// Job Template/cover-sheet-info/message
+			// Job Template/cover-sheet-info/message (PWG5100.15)
 			"message": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagTextLang},
 			},
-			// Job Template/cover-sheet-info/organization-name
+			// Job Template/cover-sheet-info/organization-name (PWG5100.15)
 			"organization-name": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagTextLang},
 			},
-			// Job Template/cover-sheet-info/subject
+			// Job Template/cover-sheet-info/subject (PWG5100.15)
 			"subject": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagTextLang},
 			},
-			// Job Template/cover-sheet-info/to-name
+			// Job Template/cover-sheet-info/to-name (PWG5100.15)
 			"to-name": &Attribute{
 				SetOf: false,
 				Min:   MIN,
@@ -3019,42 +3019,42 @@ var JobTemplate = map[string]*Attribute{
 			},
 		}},
 	},
-	// Job Template/destination-uris
+	// Job Template/destination-uris (PWG5100.15)
 	"destination-uris": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Job Template/destination-uris/destination-attributes
+			// Job Template/destination-uris/destination-attributes (PWG5100.17)
 			"destination-attributes": &Attribute{
 				SetOf: true,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagBeginCollection},
 			},
-			// Job Template/destination-uris/destination-uri
+			// Job Template/destination-uris/destination-uri (PWG5100.15)
 			"destination-uri": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagURI},
 			},
-			// Job Template/destination-uris/post-dial-string
+			// Job Template/destination-uris/post-dial-string (PWG5100.15)
 			"post-dial-string": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   127,
 				Tags:  []goipp.Tag{goipp.TagTextLang},
 			},
-			// Job Template/destination-uris/pre-dial-string
+			// Job Template/destination-uris/pre-dial-string (PWG5100.15)
 			"pre-dial-string": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   127,
 				Tags:  []goipp.Tag{goipp.TagTextLang},
 			},
-			// Job Template/destination-uris/t33-subaddress
+			// Job Template/destination-uris/t33-subaddress (PWG5100.15)
 			"t33-subaddress": &Attribute{
 				SetOf: false,
 				Min:   0,
@@ -3063,42 +3063,42 @@ var JobTemplate = map[string]*Attribute{
 			},
 		}},
 	},
-	// Job Template/feed-orientation
+	// Job Template/feed-orientation (PWG5100.11)
 	"feed-orientation": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Job Template/finishings
+	// Job Template/finishings (rfc8011)
 	"finishings": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum},
 	},
-	// Job Template/finishings-col
+	// Job Template/finishings-col (PWG5100.1)
 	"finishings-col": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection, goipp.TagNoValue},
 		Members: []map[string]*Attribute{{
-			// Job Template/finishings-col/baling
+			// Job Template/finishings-col/baling (PWG5100.1)
 			"baling": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagBeginCollection},
 				Members: []map[string]*Attribute{{
-					// Job Template/finishings-col/baling/baling-type
+					// Job Template/finishings-col/baling/baling-type (PWG5100.1)
 					"baling-type": &Attribute{
 						SetOf: false,
 						Min:   MIN,
 						Max:   MAX,
 						Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 					},
-					// Job Template/finishings-col/baling/baling-when
+					// Job Template/finishings-col/baling/baling-when (PWG5100.1)
 					"baling-when": &Attribute{
 						SetOf: false,
 						Min:   MIN,
@@ -3107,21 +3107,21 @@ var JobTemplate = map[string]*Attribute{
 					},
 				}},
 			},
-			// Job Template/finishings-col/binding
+			// Job Template/finishings-col/binding (PWG5100.1)
 			"binding": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagBeginCollection},
 				Members: []map[string]*Attribute{{
-					// Job Template/finishings-col/binding/binding-reference-edge
+					// Job Template/finishings-col/binding/binding-reference-edge (PWG5100.1)
 					"binding-reference-edge": &Attribute{
 						SetOf: false,
 						Min:   MIN,
 						Max:   MAX,
 						Tags:  []goipp.Tag{goipp.TagKeyword},
 					},
-					// Job Template/finishings-col/binding/binding-type
+					// Job Template/finishings-col/binding/binding-type (PWG5100.1)
 					"binding-type": &Attribute{
 						SetOf: false,
 						Min:   MIN,
@@ -3130,21 +3130,21 @@ var JobTemplate = map[string]*Attribute{
 					},
 				}},
 			},
-			// Job Template/finishings-col/coating
+			// Job Template/finishings-col/coating (PWG5100.1)
 			"coating": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagBeginCollection},
 				Members: []map[string]*Attribute{{
-					// Job Template/finishings-col/coating/coating-sides
+					// Job Template/finishings-col/coating/coating-sides (PWG5100.1)
 					"coating-sides": &Attribute{
 						SetOf: false,
 						Min:   MIN,
 						Max:   MAX,
 						Tags:  []goipp.Tag{goipp.TagKeyword},
 					},
-					// Job Template/finishings-col/coating/coating-type
+					// Job Template/finishings-col/coating/coating-type (PWG5100.1)
 					"coating-type": &Attribute{
 						SetOf: false,
 						Min:   MIN,
@@ -3153,14 +3153,14 @@ var JobTemplate = map[string]*Attribute{
 					},
 				}},
 			},
-			// Job Template/finishings-col/covering
+			// Job Template/finishings-col/covering (PWG5100.1)
 			"covering": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagBeginCollection},
 				Members: []map[string]*Attribute{{
-					// Job Template/finishings-col/covering/covering-name
+					// Job Template/finishings-col/covering/covering-name (PWG5100.1)
 					"covering-name": &Attribute{
 						SetOf: false,
 						Min:   MIN,
@@ -3169,35 +3169,35 @@ var JobTemplate = map[string]*Attribute{
 					},
 				}},
 			},
-			// Job Template/finishings-col/finishing-template
+			// Job Template/finishings-col/finishing-template (PWG5100.1)
 			"finishing-template": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 			},
-			// Job Template/finishings-col/folding
+			// Job Template/finishings-col/folding (PWG5100.1)
 			"folding": &Attribute{
 				SetOf: true,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagBeginCollection},
 				Members: []map[string]*Attribute{{
-					// Job Template/finishings-col/folding/folding-direction
+					// Job Template/finishings-col/folding/folding-direction (PWG5100.1)
 					"folding-direction": &Attribute{
 						SetOf: false,
 						Min:   MIN,
 						Max:   MAX,
 						Tags:  []goipp.Tag{goipp.TagKeyword},
 					},
-					// Job Template/finishings-col/folding/folding-offset
+					// Job Template/finishings-col/folding/folding-offset (PWG5100.1)
 					"folding-offset": &Attribute{
 						SetOf: false,
 						Min:   0,
 						Max:   MAX,
 						Tags:  []goipp.Tag{goipp.TagInteger},
 					},
-					// Job Template/finishings-col/folding/folding-reference-edge
+					// Job Template/finishings-col/folding/folding-reference-edge (PWG5100.1)
 					"folding-reference-edge": &Attribute{
 						SetOf: false,
 						Min:   MIN,
@@ -3206,28 +3206,28 @@ var JobTemplate = map[string]*Attribute{
 					},
 				}},
 			},
-			// Job Template/finishings-col/imposition-template
+			// Job Template/finishings-col/imposition-template (PWG5100.1)
 			"imposition-template": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 			},
-			// Job Template/finishings-col/laminating
+			// Job Template/finishings-col/laminating (PWG5100.1)
 			"laminating": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagBeginCollection},
 				Members: []map[string]*Attribute{{
-					// Job Template/finishings-col/laminating/laminating-sides
+					// Job Template/finishings-col/laminating/laminating-sides (PWG5100.1)
 					"laminating-sides": &Attribute{
 						SetOf: false,
 						Min:   MIN,
 						Max:   MAX,
 						Tags:  []goipp.Tag{goipp.TagKeyword},
 					},
-					// Job Template/finishings-col/laminating/laminating-type
+					// Job Template/finishings-col/laminating/laminating-type (PWG5100.1)
 					"laminating-type": &Attribute{
 						SetOf: false,
 						Min:   MIN,
@@ -3236,49 +3236,49 @@ var JobTemplate = map[string]*Attribute{
 					},
 				}},
 			},
-			// Job Template/finishings-col/media-sheets-supported
+			// Job Template/finishings-col/media-sheets-supported (PWG5100.1)
 			"media-sheets-supported": &Attribute{
 				SetOf: false,
 				Min:   1,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagRange},
 			},
-			// Job Template/finishings-col/media-size
+			// Job Template/finishings-col/media-size (PWG5100.1)
 			"media-size": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagBeginCollection},
 			},
-			// Job Template/finishings-col/media-size-name
+			// Job Template/finishings-col/media-size-name (PWG5100.1)
 			"media-size-name": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword},
 			},
-			// Job Template/finishings-col/punching
+			// Job Template/finishings-col/punching (PWG5100.1)
 			"punching": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagBeginCollection},
 				Members: []map[string]*Attribute{{
-					// Job Template/finishings-col/punching/punching-locations
+					// Job Template/finishings-col/punching/punching-locations (PWG5100.1)
 					"punching-locations": &Attribute{
 						SetOf: true,
 						Min:   0,
 						Max:   MAX,
 						Tags:  []goipp.Tag{goipp.TagInteger},
 					},
-					// Job Template/finishings-col/punching/punching-offset
+					// Job Template/finishings-col/punching/punching-offset (PWG5100.1)
 					"punching-offset": &Attribute{
 						SetOf: false,
 						Min:   0,
 						Max:   MAX,
 						Tags:  []goipp.Tag{goipp.TagInteger},
 					},
-					// Job Template/finishings-col/punching/punching-reference-edge
+					// Job Template/finishings-col/punching/punching-reference-edge (PWG5100.1)
 					"punching-reference-edge": &Attribute{
 						SetOf: false,
 						Min:   MIN,
@@ -3287,42 +3287,42 @@ var JobTemplate = map[string]*Attribute{
 					},
 				}},
 			},
-			// Job Template/finishings-col/stitching
+			// Job Template/finishings-col/stitching (PWG5100.1)
 			"stitching": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagBeginCollection},
 				Members: []map[string]*Attribute{{
-					// Job Template/finishings-col/stitching/stitching-angle
+					// Job Template/finishings-col/stitching/stitching-angle (PWG5100.1)
 					"stitching-angle": &Attribute{
 						SetOf: false,
 						Min:   0,
 						Max:   359,
 						Tags:  []goipp.Tag{goipp.TagInteger},
 					},
-					// Job Template/finishings-col/stitching/stitching-locations
+					// Job Template/finishings-col/stitching/stitching-locations (PWG5100.1)
 					"stitching-locations": &Attribute{
 						SetOf: true,
 						Min:   0,
 						Max:   MAX,
 						Tags:  []goipp.Tag{goipp.TagInteger},
 					},
-					// Job Template/finishings-col/stitching/stitching-method
+					// Job Template/finishings-col/stitching/stitching-method (PWG5100.1)
 					"stitching-method": &Attribute{
 						SetOf: false,
 						Min:   MIN,
 						Max:   MAX,
 						Tags:  []goipp.Tag{goipp.TagKeyword},
 					},
-					// Job Template/finishings-col/stitching/stitching-offset
+					// Job Template/finishings-col/stitching/stitching-offset (PWG5100.1)
 					"stitching-offset": &Attribute{
 						SetOf: false,
 						Min:   0,
 						Max:   MAX,
 						Tags:  []goipp.Tag{goipp.TagInteger},
 					},
-					// Job Template/finishings-col/stitching/stitching-reference-edge
+					// Job Template/finishings-col/stitching/stitching-reference-edge (PWG5100.1)
 					"stitching-reference-edge": &Attribute{
 						SetOf: false,
 						Min:   MIN,
@@ -3331,35 +3331,35 @@ var JobTemplate = map[string]*Attribute{
 					},
 				}},
 			},
-			// Job Template/finishings-col/trimming
+			// Job Template/finishings-col/trimming (PWG5100.1)
 			"trimming": &Attribute{
 				SetOf: true,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagBeginCollection},
 				Members: []map[string]*Attribute{{
-					// Job Template/finishings-col/trimming/trimming-offset
+					// Job Template/finishings-col/trimming/trimming-offset (PWG5100.1)
 					"trimming-offset": &Attribute{
 						SetOf: false,
 						Min:   0,
 						Max:   MAX,
 						Tags:  []goipp.Tag{goipp.TagInteger},
 					},
-					// Job Template/finishings-col/trimming/trimming-reference-edge
+					// Job Template/finishings-col/trimming/trimming-reference-edge (PWG5100.1)
 					"trimming-reference-edge": &Attribute{
 						SetOf: false,
 						Min:   MIN,
 						Max:   MAX,
 						Tags:  []goipp.Tag{goipp.TagKeyword},
 					},
-					// Job Template/finishings-col/trimming/trimming-type
+					// Job Template/finishings-col/trimming/trimming-type (PWG5100.1)
 					"trimming-type": &Attribute{
 						SetOf: false,
 						Min:   MIN,
 						Max:   MAX,
 						Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 					},
-					// Job Template/finishings-col/trimming/trimming-when
+					// Job Template/finishings-col/trimming/trimming-when (PWG5100.1)
 					"trimming-when": &Attribute{
 						SetOf: false,
 						Min:   MIN,
@@ -3370,56 +3370,56 @@ var JobTemplate = map[string]*Attribute{
 			},
 		}},
 	},
-	// Job Template/force-front-side
+	// Job Template/force-front-side (PWG5100.3)
 	"force-front-side": &Attribute{
 		SetOf: true,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Template/image-orientation
+	// Job Template/image-orientation (PWG5100.3)
 	"image-orientation": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum},
 	},
-	// Job Template/imposition-template
+	// Job Template/imposition-template (PWG5100.3)
 	"imposition-template": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Job Template/insert-sheet
+	// Job Template/insert-sheet (PWG5100.3)
 	"insert-sheet": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Job Template/insert-sheet/insert-after-page-number
+			// Job Template/insert-sheet/insert-after-page-number (PWG5100.3)
 			"insert-after-page-number": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Template/insert-sheet/insert-count
+			// Job Template/insert-sheet/insert-count (PWG5100.3)
 			"insert-count": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Template/insert-sheet/media
+			// Job Template/insert-sheet/media (PWG5100.3)
 			"media": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 			},
-			// Job Template/insert-sheet/media-col
+			// Job Template/insert-sheet/media-col (PWG5100.3)
 			"media-col": &Attribute{
 				SetOf: false,
 				Min:   MIN,
@@ -3428,42 +3428,42 @@ var JobTemplate = map[string]*Attribute{
 			},
 		}},
 	},
-	// Job Template/job-account-id
+	// Job Template/job-account-id (PWG5100.7)
 	"job-account-id": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagNameLang},
 	},
-	// Job Template/job-account-type
+	// Job Template/job-account-type (PWG5100.16)
 	"job-account-type": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Job Template/job-accounting-sheets
+	// Job Template/job-accounting-sheets (PWG5100.3)
 	"job-accounting-sheets": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Job Template/job-accounting-sheets/job-accounting-sheets-type
+			// Job Template/job-accounting-sheets/job-accounting-sheets-type (PWG5100.3)
 			"job-accounting-sheets-type": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 			},
-			// Job Template/job-accounting-sheets/media
+			// Job Template/job-accounting-sheets/media (PWG5100.3)
 			"media": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 			},
-			// Job Template/job-accounting-sheets/media-col
+			// Job Template/job-accounting-sheets/media-col (PWG5100.3)
 			"media-col": &Attribute{
 				SetOf: false,
 				Min:   MIN,
@@ -3472,105 +3472,105 @@ var JobTemplate = map[string]*Attribute{
 			},
 		}},
 	},
-	// Job Template/job-accounting-user-id
+	// Job Template/job-accounting-user-id (PWG5100.7)
 	"job-accounting-user-id": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagNameLang},
 	},
-	// Job Template/job-cancel-after
+	// Job Template/job-cancel-after (PWG5100.11)
 	"job-cancel-after": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Template/job-complete-before
+	// Job Template/job-complete-before (PWG5100.3)
 	"job-complete-before": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Job Template/job-complete-before-time
+	// Job Template/job-complete-before-time (PWG5100.3)
 	"job-complete-before-time": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagDateTime},
 	},
-	// Job Template/job-copies
+	// Job Template/job-copies (PWG5100.7)
 	"job-copies": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Template/job-cover-back
+	// Job Template/job-cover-back (PWG5100.7)
 	"job-cover-back": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Job Template/job-cover-front
+	// Job Template/job-cover-front (PWG5100.7)
 	"job-cover-front": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Job Template/job-delay-output-until
+	// Job Template/job-delay-output-until (PWG5100.7)
 	"job-delay-output-until": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Job Template/job-delay-output-until-time
+	// Job Template/job-delay-output-until-time (PWG5100.7)
 	"job-delay-output-until-time": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagDateTime},
 	},
-	// Job Template/job-error-action
+	// Job Template/job-error-action (PWG5100.13)
 	"job-error-action": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Job Template/job-error-sheet
+	// Job Template/job-error-sheet (PWG5100.3)
 	"job-error-sheet": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Job Template/job-error-sheet/job-error-sheet-type
+			// Job Template/job-error-sheet/job-error-sheet-type (PWG5100.3)
 			"job-error-sheet-type": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 			},
-			// Job Template/job-error-sheet/job-error-sheet-when
+			// Job Template/job-error-sheet/job-error-sheet-when (PWG5100.3)
 			"job-error-sheet-when": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword},
 			},
-			// Job Template/job-error-sheet/media
+			// Job Template/job-error-sheet/media (PWG5100.3)
 			"media": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 			},
-			// Job Template/job-error-sheet/media-col
+			// Job Template/job-error-sheet/media-col (PWG5100.3)
 			"media-col": &Attribute{
 				SetOf: false,
 				Min:   MIN,
@@ -3579,119 +3579,119 @@ var JobTemplate = map[string]*Attribute{
 			},
 		}},
 	},
-	// Job Template/job-finishings
+	// Job Template/job-finishings (PWG5100.7)
 	"job-finishings": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum},
 	},
-	// Job Template/job-hold-until
+	// Job Template/job-hold-until (rfc8011)
 	"job-hold-until": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Job Template/job-hold-until-time
+	// Job Template/job-hold-until-time (PWG5100.7)
 	"job-hold-until-time": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagDateTime},
 	},
-	// Job Template/job-message-to-operator
+	// Job Template/job-message-to-operator (PWG5100.3)
 	"job-message-to-operator": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Job Template/job-pages-per-set
+	// Job Template/job-pages-per-set (PWG5100.1)
 	"job-pages-per-set": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Template/job-phone-number
+	// Job Template/job-phone-number (PWG5100.3)
 	"job-phone-number": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Job Template/job-priority
+	// Job Template/job-priority (rfc8011)
 	"job-priority": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   100,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Template/job-recipient-name
+	// Job Template/job-recipient-name (PWG5100.3)
 	"job-recipient-name": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagNameLang},
 	},
-	// Job Template/job-retain-until
+	// Job Template/job-retain-until (PWG5100.7)
 	"job-retain-until": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Job Template/job-retain-until-interval
+	// Job Template/job-retain-until-interval (PWG5100.7)
 	"job-retain-until-interval": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Template/job-retain-until-time
+	// Job Template/job-retain-until-time (PWG5100.7)
 	"job-retain-until-time": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagDateTime},
 	},
-	// Job Template/job-sheet-message
+	// Job Template/job-sheet-message (PWG5100.3)
 	"job-sheet-message": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Job Template/job-sheets
+	// Job Template/job-sheets (rfc8011)
 	"job-sheets": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Job Template/job-sheets-col
+	// Job Template/job-sheets-col (PWG5100.7)
 	"job-sheets-col": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Job Template/job-sheets-col/job-sheets
+			// Job Template/job-sheets-col/job-sheets (PWG5100.7)
 			"job-sheets": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 			},
-			// Job Template/job-sheets-col/media
+			// Job Template/job-sheets-col/media (PWG5100.7)
 			"media": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 			},
-			// Job Template/job-sheets-col/media-col
+			// Job Template/job-sheets-col/media-col (PWG5100.7)
 			"media-col": &Attribute{
 				SetOf: false,
 				Min:   MIN,
@@ -3700,119 +3700,119 @@ var JobTemplate = map[string]*Attribute{
 			},
 		}},
 	},
-	// Job Template/materials-col
+	// Job Template/materials-col (PWG5100.21)
 	"materials-col": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Job Template/materials-col/material-amount
+			// Job Template/materials-col/material-amount (PWG5100.21)
 			"material-amount": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Template/materials-col/material-amount-units
+			// Job Template/materials-col/material-amount-units (PWG5100.21)
 			"material-amount-units": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword},
 			},
-			// Job Template/materials-col/material-color
+			// Job Template/materials-col/material-color (PWG5100.21)
 			"material-color": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword},
 			},
-			// Job Template/materials-col/material-diameter
+			// Job Template/materials-col/material-diameter (PWG5100.21)
 			"material-diameter": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Template/materials-col/material-diameter-tolerance
+			// Job Template/materials-col/material-diameter-tolerance (PWG5100.21)
 			"material-diameter-tolerance": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Template/materials-col/material-fill-density
+			// Job Template/materials-col/material-fill-density (PWG5100.21)
 			"material-fill-density": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   100,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Template/materials-col/material-key
+			// Job Template/materials-col/material-key (PWG5100.21)
 			"material-key": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword},
 			},
-			// Job Template/materials-col/material-name
+			// Job Template/materials-col/material-name (PWG5100.21)
 			"material-name": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagNameLang},
 			},
-			// Job Template/materials-col/material-nozzle-diameter
+			// Job Template/materials-col/material-nozzle-diameter (PWG5100.21)
 			"material-nozzle-diameter": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Template/materials-col/material-purpose
+			// Job Template/materials-col/material-purpose (PWG5100.21)
 			"material-purpose": &Attribute{
 				SetOf: true,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword},
 			},
-			// Job Template/materials-col/material-rate
+			// Job Template/materials-col/material-rate (PWG5100.21)
 			"material-rate": &Attribute{
 				SetOf: false,
 				Min:   1,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Template/materials-col/material-rate-units
+			// Job Template/materials-col/material-rate-units (PWG5100.21)
 			"material-rate-units": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword},
 			},
-			// Job Template/materials-col/material-retraction
+			// Job Template/materials-col/material-retraction (PWG5100.21)
 			"material-retraction": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagBoolean},
 			},
-			// Job Template/materials-col/material-shell-thickness
+			// Job Template/materials-col/material-shell-thickness (PWG5100.21)
 			"material-shell-thickness": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Template/materials-col/material-temperature
+			// Job Template/materials-col/material-temperature (PWG5100.21)
 			"material-temperature": &Attribute{
 				SetOf: false,
 				Min:   -273,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger, goipp.TagRange},
 			},
-			// Job Template/materials-col/material-type
+			// Job Template/materials-col/material-type (PWG5100.21)
 			"material-type": &Attribute{
 				SetOf: false,
 				Min:   MIN,
@@ -3821,126 +3821,126 @@ var JobTemplate = map[string]*Attribute{
 			},
 		}},
 	},
-	// Job Template/media
+	// Job Template/media (rfc8011)
 	"media": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Job Template/media-col
+	// Job Template/media-col (PWG5100.7)
 	"media-col": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Job Template/media-col/media-back-coating
+			// Job Template/media-col/media-back-coating (PWG5100.7)
 			"media-back-coating": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 			},
-			// Job Template/media-col/media-bottom-margin
+			// Job Template/media-col/media-bottom-margin (PWG5100.7)
 			"media-bottom-margin": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Template/media-col/media-color
+			// Job Template/media-col/media-color (PWG5100.7)
 			"media-color": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 			},
-			// Job Template/media-col/media-front-coating
+			// Job Template/media-col/media-front-coating (PWG5100.7)
 			"media-front-coating": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 			},
-			// Job Template/media-col/media-grain
+			// Job Template/media-col/media-grain (PWG5100.7)
 			"media-grain": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 			},
-			// Job Template/media-col/media-hole-count
+			// Job Template/media-col/media-hole-count (PWG5100.7)
 			"media-hole-count": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Template/media-col/media-info
+			// Job Template/media-col/media-info (PWG5100.7)
 			"media-info": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   255,
 				Tags:  []goipp.Tag{goipp.TagTextLang},
 			},
-			// Job Template/media-col/media-key
+			// Job Template/media-col/media-key (PWG5100.7)
 			"media-key": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 			},
-			// Job Template/media-col/media-left-margin
+			// Job Template/media-col/media-left-margin (PWG5100.7)
 			"media-left-margin": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Template/media-col/media-order-count
+			// Job Template/media-col/media-order-count (PWG5100.7)
 			"media-order-count": &Attribute{
 				SetOf: false,
 				Min:   1,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Template/media-col/media-pre-printed
+			// Job Template/media-col/media-pre-printed (PWG5100.7)
 			"media-pre-printed": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 			},
-			// Job Template/media-col/media-recycled
+			// Job Template/media-col/media-recycled (PWG5100.7)
 			"media-recycled": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 			},
-			// Job Template/media-col/media-right-margin
+			// Job Template/media-col/media-right-margin (PWG5100.7)
 			"media-right-margin": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Template/media-col/media-size
+			// Job Template/media-col/media-size (PWG5100.7)
 			"media-size": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagBeginCollection},
 				Members: []map[string]*Attribute{{
-					// Job Template/media-col/media-size/x-dimension
+					// Job Template/media-col/media-size/x-dimension (PWG5100.7)
 					"x-dimension": &Attribute{
 						SetOf: false,
 						Min:   1,
 						Max:   MAX,
 						Tags:  []goipp.Tag{goipp.TagInteger},
 					},
-					// Job Template/media-col/media-size/y-dimension
+					// Job Template/media-col/media-size/y-dimension (PWG5100.7)
 					"y-dimension": &Attribute{
 						SetOf: false,
 						Min:   1,
@@ -3949,63 +3949,63 @@ var JobTemplate = map[string]*Attribute{
 					},
 				}},
 			},
-			// Job Template/media-col/media-size-name
+			// Job Template/media-col/media-size-name (PWG5100.7)
 			"media-size-name": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 			},
-			// Job Template/media-col/media-source
+			// Job Template/media-col/media-source (PWG5100.7)
 			"media-source": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 			},
-			// Job Template/media-col/media-thickness
+			// Job Template/media-col/media-thickness (PWG5100.7)
 			"media-thickness": &Attribute{
 				SetOf: false,
 				Min:   1,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Template/media-col/media-tooth
+			// Job Template/media-col/media-tooth (PWG5100.7)
 			"media-tooth": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 			},
-			// Job Template/media-col/media-top-margin
+			// Job Template/media-col/media-top-margin (PWG5100.7)
 			"media-top-margin": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Template/media-col/media-top-offset
+			// Job Template/media-col/media-top-offset (IPPLABEL)
 			"media-top-offset": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   -2147483648,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Template/media-col/media-tracking
+			// Job Template/media-col/media-tracking (IPPLABEL)
 			"media-tracking": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword},
 			},
-			// Job Template/media-col/media-type
+			// Job Template/media-col/media-type (PWG5100.7)
 			"media-type": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 			},
-			// Job Template/media-col/media-weight-metric
+			// Job Template/media-col/media-weight-metric (PWG5100.7)
 			"media-weight-metric": &Attribute{
 				SetOf: false,
 				Min:   0,
@@ -4014,28 +4014,28 @@ var JobTemplate = map[string]*Attribute{
 			},
 		}},
 	},
-	// Job Template/media-input-tray-check
+	// Job Template/media-input-tray-check (PWG5100.3)
 	"media-input-tray-check": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Job Template/media-overprint
+	// Job Template/media-overprint (PWG5100.13)
 	"media-overprint": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Job Template/media-overprint/media-overprint-distance
+			// Job Template/media-overprint/media-overprint-distance (PWG5100.13)
 			"media-overprint-distance": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Template/media-overprint/media-overprint-method
+			// Job Template/media-overprint/media-overprint-method (PWG5100.13)
 			"media-overprint-method": &Attribute{
 				SetOf: false,
 				Min:   MIN,
@@ -4044,77 +4044,77 @@ var JobTemplate = map[string]*Attribute{
 			},
 		}},
 	},
-	// Job Template/multiple-document-handling
+	// Job Template/multiple-document-handling (rfc8011)
 	"multiple-document-handling": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Job Template/multiple-object-handling
+	// Job Template/multiple-object-handling (PWG5100.21)
 	"multiple-object-handling": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Job Template/number-of-retries
+	// Job Template/number-of-retries (PWG5100.15)
 	"number-of-retries": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Template/number-up
+	// Job Template/number-up (rfc8011)
 	"number-up": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Template/orientation-requested
+	// Job Template/orientation-requested (rfc8011)
 	"orientation-requested": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum},
 	},
-	// Job Template/output-bin
+	// Job Template/output-bin (PWG5100.2)
 	"output-bin": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Job Template/output-device
+	// Job Template/output-device (PWG5100.7)
 	"output-device": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   127,
 		Tags:  []goipp.Tag{goipp.TagNameLang},
 	},
-	// Job Template/overrides
+	// Job Template/overrides (PWG5100.6)
 	"overrides": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Job Template/overrides/document-copies
+			// Job Template/overrides/document-copies (PWG5100.6)
 			"document-copies": &Attribute{
 				SetOf: true,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagRange},
 			},
-			// Job Template/overrides/document-numbers
+			// Job Template/overrides/document-numbers (PWG5100.6)
 			"document-numbers": &Attribute{
 				SetOf: true,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagRange},
 			},
-			// Job Template/overrides/pages
+			// Job Template/overrides/pages (PWG5100.6)
 			"pages": &Attribute{
 				SetOf: true,
 				Min:   MIN,
@@ -4123,84 +4123,84 @@ var JobTemplate = map[string]*Attribute{
 			},
 		}},
 	},
-	// Job Template/page-delivery
+	// Job Template/page-delivery (PWG5100.3)
 	"page-delivery": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Job Template/page-order-received
+	// Job Template/page-order-received (PWG5100.3)
 	"page-order-received": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Job Template/page-ranges
+	// Job Template/page-ranges (rfc8011)
 	"page-ranges": &Attribute{
 		SetOf: true,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagRange},
 	},
-	// Job Template/pages-per-subset
+	// Job Template/pages-per-subset (PWG5100.13)
 	"pages-per-subset": &Attribute{
 		SetOf: true,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Template/pclm-source-resolution
+	// Job Template/pclm-source-resolution (HP20180907)
 	"pclm-source-resolution": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagResolution},
 	},
-	// Job Template/platform-temperature
+	// Job Template/platform-temperature (PWG5100.21)
 	"platform-temperature": &Attribute{
 		SetOf: false,
 		Min:   -273,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Template/presentation-direction-number-up
+	// Job Template/presentation-direction-number-up (PWG5100.3)
 	"presentation-direction-number-up": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Job Template/print-accuracy
+	// Job Template/print-accuracy (PWG5100.21)
 	"print-accuracy": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Job Template/print-accuracy/accuracy-units
+			// Job Template/print-accuracy/accuracy-units (PWG5100.21)
 			"accuracy-units": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword},
 			},
-			// Job Template/print-accuracy/x-accuracy
+			// Job Template/print-accuracy/x-accuracy (PWG5100.21)
 			"x-accuracy": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Template/print-accuracy/y-accuracy
+			// Job Template/print-accuracy/y-accuracy (PWG5100.21)
 			"y-accuracy": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Template/print-accuracy/z-accuracy
+			// Job Template/print-accuracy/z-accuracy (PWG5100.21)
 			"z-accuracy": &Attribute{
 				SetOf: false,
 				Min:   0,
@@ -4209,70 +4209,70 @@ var JobTemplate = map[string]*Attribute{
 			},
 		}},
 	},
-	// Job Template/print-base
+	// Job Template/print-base (PWG5100.21)
 	"print-base": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Job Template/print-color-mode
+	// Job Template/print-color-mode (PWG5100.13)
 	"print-color-mode": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Job Template/print-content-optimize
+	// Job Template/print-content-optimize (PWG5100.7)
 	"print-content-optimize": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Job Template/print-darkness
+	// Job Template/print-darkness (IPPLABEL)
 	"print-darkness": &Attribute{
 		SetOf: false,
 		Min:   -100,
 		Max:   100,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Template/print-objects
+	// Job Template/print-objects (PWG5100.21)
 	"print-objects": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Job Template/print-objects/document-number
+			// Job Template/print-objects/document-number (PWG5100.21)
 			"document-number": &Attribute{
 				SetOf: false,
 				Min:   1,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Job Template/print-objects/object-offset
+			// Job Template/print-objects/object-offset (PWG5100.21)
 			"object-offset": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagBeginCollection},
 				Members: []map[string]*Attribute{{
-					// Job Template/print-objects/object-offset/x-offset
+					// Job Template/print-objects/object-offset/x-offset (PWG5100.21)
 					"x-offset": &Attribute{
 						SetOf: false,
 						Min:   0,
 						Max:   MAX,
 						Tags:  []goipp.Tag{goipp.TagInteger},
 					},
-					// Job Template/print-objects/object-offset/y-offset
+					// Job Template/print-objects/object-offset/y-offset (PWG5100.21)
 					"y-offset": &Attribute{
 						SetOf: false,
 						Min:   0,
 						Max:   MAX,
 						Tags:  []goipp.Tag{goipp.TagInteger},
 					},
-					// Job Template/print-objects/object-offset/z-offset
+					// Job Template/print-objects/object-offset/z-offset (PWG5100.21)
 					"z-offset": &Attribute{
 						SetOf: false,
 						Min:   0,
@@ -4281,28 +4281,28 @@ var JobTemplate = map[string]*Attribute{
 					},
 				}},
 			},
-			// Job Template/print-objects/object-size
+			// Job Template/print-objects/object-size (PWG5100.21)
 			"object-size": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagBeginCollection},
 				Members: []map[string]*Attribute{{
-					// Job Template/print-objects/object-size/x-dimension
+					// Job Template/print-objects/object-size/x-dimension (PWG5100.21)
 					"x-dimension": &Attribute{
 						SetOf: false,
 						Min:   1,
 						Max:   MAX,
 						Tags:  []goipp.Tag{goipp.TagInteger},
 					},
-					// Job Template/print-objects/object-size/y-dimension
+					// Job Template/print-objects/object-size/y-dimension (PWG5100.21)
 					"y-dimension": &Attribute{
 						SetOf: false,
 						Min:   1,
 						Max:   MAX,
 						Tags:  []goipp.Tag{goipp.TagInteger},
 					},
-					// Job Template/print-objects/object-size/z-dimension
+					// Job Template/print-objects/object-size/z-dimension (PWG5100.21)
 					"z-dimension": &Attribute{
 						SetOf: false,
 						Min:   1,
@@ -4311,7 +4311,7 @@ var JobTemplate = map[string]*Attribute{
 					},
 				}},
 			},
-			// Job Template/print-objects/object-uuid
+			// Job Template/print-objects/object-uuid (PWG5100.21)
 			"object-uuid": &Attribute{
 				SetOf: false,
 				Min:   MIN,
@@ -4320,77 +4320,77 @@ var JobTemplate = map[string]*Attribute{
 			},
 		}},
 	},
-	// Job Template/print-quality
+	// Job Template/print-quality (rfc8011)
 	"print-quality": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum},
 	},
-	// Job Template/print-rendering-intent
+	// Job Template/print-rendering-intent (PWG5100.13)
 	"print-rendering-intent": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Job Template/print-scaling
+	// Job Template/print-scaling (PWG5100.13)
 	"print-scaling": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Job Template/print-speed
+	// Job Template/print-speed (IPPLABEL)
 	"print-speed": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Template/print-supports
+	// Job Template/print-supports (PWG5100.21)
 	"print-supports": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Job Template/printer-resolution
+	// Job Template/printer-resolution (rfc8011)
 	"printer-resolution": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagResolution},
 	},
-	// Job Template/proof-copies
+	// Job Template/proof-copies (PWG5100.11)
 	"proof-copies": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Template/proof-print
+	// Job Template/proof-print (PWG5100.11)
 	"proof-print": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Job Template/proof-print/media
+			// Job Template/proof-print/media (PWG5100.11)
 			"media": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 			},
-			// Job Template/proof-print/media-col
+			// Job Template/proof-print/media-col (PWG5100.11)
 			"media-col": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagBeginCollection},
 			},
-			// Job Template/proof-print/proof-print-copies
+			// Job Template/proof-print/proof-print-copies (PWG5100.11)
 			"proof-print-copies": &Attribute{
 				SetOf: false,
 				Min:   0,
@@ -4399,42 +4399,42 @@ var JobTemplate = map[string]*Attribute{
 			},
 		}},
 	},
-	// Job Template/retry-interval
+	// Job Template/retry-interval (PWG5100.15)
 	"retry-interval": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Template/retry-time-out
+	// Job Template/retry-time-out (PWG5100.15)
 	"retry-time-out": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Template/separator-sheets
+	// Job Template/separator-sheets (PWG5100.3)
 	"separator-sheets": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Job Template/separator-sheets/media
+			// Job Template/separator-sheets/media (rfc8011)
 			"media": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 			},
-			// Job Template/separator-sheets/media-col
+			// Job Template/separator-sheets/media-col (PWG5100.3)
 			"media-col": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagBeginCollection},
 			},
-			// Job Template/separator-sheets/separator-sheets-type
+			// Job Template/separator-sheets/separator-sheets-type (PWG5100.3)
 			"separator-sheets-type": &Attribute{
 				SetOf: false,
 				Min:   MIN,
@@ -4443,70 +4443,70 @@ var JobTemplate = map[string]*Attribute{
 			},
 		}},
 	},
-	// Job Template/sheet-collate
+	// Job Template/sheet-collate (rfc3381)
 	"sheet-collate": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Job Template/sides
+	// Job Template/sides (rfc8011)
 	"sides": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Job Template/x-image-position
+	// Job Template/x-image-position (PWG5100.3)
 	"x-image-position": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Job Template/x-image-shift
+	// Job Template/x-image-shift (PWG5100.3)
 	"x-image-shift": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Template/x-side1-image-shift
+	// Job Template/x-side1-image-shift (PWG5100.3)
 	"x-side1-image-shift": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Template/x-side2-image-shift
+	// Job Template/x-side2-image-shift (PWG5100.3)
 	"x-side2-image-shift": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Template/y-image-position
+	// Job Template/y-image-position (PWG5100.3)
 	"y-image-position": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Job Template/y-image-shift
+	// Job Template/y-image-shift (PWG5100.3)
 	"y-image-shift": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Template/y-side1-image-shift
+	// Job Template/y-side1-image-shift (PWG5100.3)
 	"y-side1-image-shift": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Job Template/y-side2-image-shift
+	// Job Template/y-side2-image-shift (PWG5100.3)
 	"y-side2-image-shift": &Attribute{
 		SetOf: false,
 		Min:   MIN,
@@ -4517,63 +4517,63 @@ var JobTemplate = map[string]*Attribute{
 
 // Operation is the Operation attributes
 var Operation = map[string]*Attribute{
-	// Operation/attributes-charset
+	// Operation/attributes-charset (rfc8011)
 	"attributes-charset": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagCharset},
 	},
-	// Operation/attributes-natural-language
+	// Operation/attributes-natural-language (rfc8011)
 	"attributes-natural-language": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagLanguage},
 	},
-	// Operation/charge-info-message
+	// Operation/charge-info-message (PWG5100.16)
 	"charge-info-message": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Operation/client-info
+	// Operation/client-info (PWG5100.7)
 	"client-info": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Operation/client-info/client-name
+			// Operation/client-info/client-name (PWG5100.7)
 			"client-name": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   127,
 				Tags:  []goipp.Tag{goipp.TagNameLang},
 			},
-			// Operation/client-info/client-patches
+			// Operation/client-info/client-patches (PWG5100.7)
 			"client-patches": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   255,
 				Tags:  []goipp.Tag{goipp.TagTextLang, goipp.TagNoValue},
 			},
-			// Operation/client-info/client-string-version
+			// Operation/client-info/client-string-version (PWG5100.7)
 			"client-string-version": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   127,
 				Tags:  []goipp.Tag{goipp.TagTextLang},
 			},
-			// Operation/client-info/client-type
+			// Operation/client-info/client-type (PWG5100.7)
 			"client-type": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagEnum},
 			},
-			// Operation/client-info/client-version
+			// Operation/client-info/client-version (PWG5100.7)
 			"client-version": &Attribute{
 				SetOf: false,
 				Min:   MIN,
@@ -4582,63 +4582,63 @@ var Operation = map[string]*Attribute{
 			},
 		}},
 	},
-	// Operation/compression
+	// Operation/compression (rfc8011)
 	"compression": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Operation/compression-accepted
+	// Operation/compression-accepted (PWG5100.17)
 	"compression-accepted": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Operation/destination-accesses
+	// Operation/destination-accesses (PWG5100.17)
 	"destination-accesses": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection, goipp.TagNoValue},
 		Members: []map[string]*Attribute{{
-			// Operation/destination-accesses/access-oauth-token
+			// Operation/destination-accesses/access-oauth-token (PWG5100.17)
 			"access-oauth-token": &Attribute{
 				SetOf: true,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagString},
 			},
-			// Operation/destination-accesses/access-oauth-uri
+			// Operation/destination-accesses/access-oauth-uri (PWG5100.17)
 			"access-oauth-uri": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagURI},
 			},
-			// Operation/destination-accesses/access-password
+			// Operation/destination-accesses/access-password (PWG5100.17)
 			"access-password": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagTextLang},
 			},
-			// Operation/destination-accesses/access-pin
+			// Operation/destination-accesses/access-pin (PWG5100.17)
 			"access-pin": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagTextLang},
 			},
-			// Operation/destination-accesses/access-user-name
+			// Operation/destination-accesses/access-user-name (PWG5100.17)
 			"access-user-name": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagTextLang},
 			},
-			// Operation/destination-accesses/access-x509-certificate
+			// Operation/destination-accesses/access-x509-certificate (IPPWG20180620)
 			"access-x509-certificate": &Attribute{
 				SetOf: true,
 				Min:   MIN,
@@ -4647,56 +4647,56 @@ var Operation = map[string]*Attribute{
 			},
 		}},
 	},
-	// Operation/detailed-status-message
+	// Operation/detailed-status-message (rfc8011)
 	"detailed-status-message": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Operation/document-access
+	// Operation/document-access (PWG5100.18)
 	"document-access": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection, goipp.TagNoValue},
 		Members: []map[string]*Attribute{{
-			// Operation/document-access/access-oauth-token
+			// Operation/document-access/access-oauth-token (PWG5100.18)
 			"access-oauth-token": &Attribute{
 				SetOf: true,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagString},
 			},
-			// Operation/document-access/access-oauth-uri
+			// Operation/document-access/access-oauth-uri (PWG5100.18)
 			"access-oauth-uri": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagURI},
 			},
-			// Operation/document-access/access-password
+			// Operation/document-access/access-password (PWG5100.18)
 			"access-password": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagTextLang},
 			},
-			// Operation/document-access/access-pin
+			// Operation/document-access/access-pin (PWG5100.18)
 			"access-pin": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagTextLang},
 			},
-			// Operation/document-access/access-user-name
+			// Operation/document-access/access-user-name (PWG5100.18)
 			"access-user-name": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagTextLang},
 			},
-			// Operation/document-access/access-x509-certificate
+			// Operation/document-access/access-x509-certificate (IPPWG20180620)
 			"access-x509-certificate": &Attribute{
 				SetOf: true,
 				Min:   MIN,
@@ -4705,112 +4705,112 @@ var Operation = map[string]*Attribute{
 			},
 		}},
 	},
-	// Operation/document-access-error
+	// Operation/document-access-error (rfc8011)
 	"document-access-error": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Operation/document-charset
+	// Operation/document-charset (PWG5100.5)
 	"document-charset": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagCharset},
 	},
-	// Operation/document-data-get-interval
+	// Operation/document-data-get-interval (PWG5100.17)
 	"document-data-get-interval": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Operation/document-data-wait
+	// Operation/document-data-wait (PWG5100.17)
 	"document-data-wait": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBoolean},
 	},
-	// Operation/document-digital-signature
+	// Operation/document-digital-signature (PWG5100.7)
 	"document-digital-signature": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Operation/document-format
+	// Operation/document-format (rfc8011)
 	"document-format": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagMimeType},
 	},
-	// Operation/document-format-accepted
+	// Operation/document-format-accepted (PWG5100.18)
 	"document-format-accepted": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagMimeType},
 	},
-	// Operation/document-format-details
+	// Operation/document-format-details (PWG5100.7-2003)
 	"document-format-details": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Operation/document-format-details/document-format
+			// Operation/document-format-details/document-format (PWG5100.7-2003)
 			"document-format": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagMimeType},
 			},
-			// Operation/document-format-details/document-format-device-id
+			// Operation/document-format-details/document-format-device-id (PWG5100.7-2003)
 			"document-format-device-id": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   127,
 				Tags:  []goipp.Tag{goipp.TagTextLang},
 			},
-			// Operation/document-format-details/document-format-version
+			// Operation/document-format-details/document-format-version (PWG5100.7-2003)
 			"document-format-version": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   127,
 				Tags:  []goipp.Tag{goipp.TagTextLang},
 			},
-			// Operation/document-format-details/document-natural-language
+			// Operation/document-format-details/document-natural-language (PWG5100.7-2003)
 			"document-natural-language": &Attribute{
 				SetOf: true,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagLanguage},
 			},
-			// Operation/document-format-details/document-source-application-name
+			// Operation/document-format-details/document-source-application-name (PWG5100.7-2003)
 			"document-source-application-name": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagNameLang},
 			},
-			// Operation/document-format-details/document-source-application-version
+			// Operation/document-format-details/document-source-application-version (PWG5100.7-2003)
 			"document-source-application-version": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   127,
 				Tags:  []goipp.Tag{goipp.TagTextLang},
 			},
-			// Operation/document-format-details/document-source-os-name
+			// Operation/document-format-details/document-source-os-name (PWG5100.7-2003)
 			"document-source-os-name": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   40,
 				Tags:  []goipp.Tag{goipp.TagNameLang},
 			},
-			// Operation/document-format-details/document-source-os-version
+			// Operation/document-format-details/document-source-os-version (PWG5100.7-2003)
 			"document-source-os-version": &Attribute{
 				SetOf: false,
 				Min:   MIN,
@@ -4819,245 +4819,245 @@ var Operation = map[string]*Attribute{
 			},
 		}},
 	},
-	// Operation/document-format-version
+	// Operation/document-format-version (PWG5100.7)
 	"document-format-version": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   127,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Operation/document-message
+	// Operation/document-message (PWG5100.5)
 	"document-message": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Operation/document-metadata
+	// Operation/document-metadata (PWG5100.13)
 	"document-metadata": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagString},
 	},
-	// Operation/document-name
+	// Operation/document-name (rfc8011)
 	"document-name": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagNameLang},
 	},
-	// Operation/document-natural-language
+	// Operation/document-natural-language (rfc8011)
 	"document-natural-language": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagLanguage},
 	},
-	// Operation/document-number
+	// Operation/document-number (PWG5100.5)
 	"document-number": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Operation/document-password
+	// Operation/document-password (PWG5100.13)
 	"document-password": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   1023,
 		Tags:  []goipp.Tag{goipp.TagString},
 	},
-	// Operation/document-preprocessed
+	// Operation/document-preprocessed (PWG5100.18)
 	"document-preprocessed": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBoolean},
 	},
-	// Operation/document-uri
+	// Operation/document-uri (rfc8011)
 	"document-uri": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Operation/encrypted-job-request-format
+	// Operation/encrypted-job-request-format (PWG5100.TRUSTNOONE)
 	"encrypted-job-request-format": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagMimeType},
 	},
-	// Operation/encrypted-job-request-id
+	// Operation/encrypted-job-request-id (PWG5100.TRUSTNOONE)
 	"encrypted-job-request-id": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Operation/fetch-status-code
+	// Operation/fetch-status-code (PWG5100.18)
 	"fetch-status-code": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum},
 	},
-	// Operation/fetch-status-message
+	// Operation/fetch-status-message (PWG5100.18)
 	"fetch-status-message": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Operation/first-index
+	// Operation/first-index (PWG5100.13)
 	"first-index": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Operation/identify-actions
+	// Operation/identify-actions (PWG5100.13)
 	"identify-actions": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Operation/input-attributes
+	// Operation/input-attributes (PWG5100.15)
 	"input-attributes": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Operation/input-attributes/input-auto-scaling
+			// Operation/input-attributes/input-auto-scaling (PWG5100.15)
 			"input-auto-scaling": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagBoolean},
 			},
-			// Operation/input-attributes/input-auto-skew-correction
+			// Operation/input-attributes/input-auto-skew-correction (PWG5100.15)
 			"input-auto-skew-correction": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagBoolean},
 			},
-			// Operation/input-attributes/input-brightness
+			// Operation/input-attributes/input-brightness (PWG5100.15)
 			"input-brightness": &Attribute{
 				SetOf: false,
 				Min:   -100,
 				Max:   100,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Operation/input-attributes/input-color-mode
+			// Operation/input-attributes/input-color-mode (PWG5100.15)
 			"input-color-mode": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword},
 			},
-			// Operation/input-attributes/input-content-type
+			// Operation/input-attributes/input-content-type (PWG5100.15)
 			"input-content-type": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword},
 			},
-			// Operation/input-attributes/input-contrast
+			// Operation/input-attributes/input-contrast (PWG5100.15)
 			"input-contrast": &Attribute{
 				SetOf: false,
 				Min:   -100,
 				Max:   100,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Operation/input-attributes/input-film-scan-mode
+			// Operation/input-attributes/input-film-scan-mode (PWG5100.15)
 			"input-film-scan-mode": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword},
 			},
-			// Operation/input-attributes/input-images-to-transfer
+			// Operation/input-attributes/input-images-to-transfer (PWG5100.15)
 			"input-images-to-transfer": &Attribute{
 				SetOf: false,
 				Min:   1,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Operation/input-attributes/input-media
+			// Operation/input-attributes/input-media (PWG5100.15)
 			"input-media": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 			},
-			// Operation/input-attributes/input-orientation-requested
+			// Operation/input-attributes/input-orientation-requested (PWG5100.15)
 			"input-orientation-requested": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword},
 			},
-			// Operation/input-attributes/input-quality
+			// Operation/input-attributes/input-quality (PWG5100.15)
 			"input-quality": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagEnum},
 			},
-			// Operation/input-attributes/input-resolution
+			// Operation/input-attributes/input-resolution (PWG5100.15)
 			"input-resolution": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagResolution},
 			},
-			// Operation/input-attributes/input-scaling-height
+			// Operation/input-attributes/input-scaling-height (PWG5100.15)
 			"input-scaling-height": &Attribute{
 				SetOf: false,
 				Min:   1,
 				Max:   1000,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Operation/input-attributes/input-scaling-width
+			// Operation/input-attributes/input-scaling-width (PWG5100.15)
 			"input-scaling-width": &Attribute{
 				SetOf: false,
 				Min:   1,
 				Max:   1000,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Operation/input-attributes/input-scan-regions
+			// Operation/input-attributes/input-scan-regions (PWG5100.15)
 			"input-scan-regions": &Attribute{
 				SetOf: true,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagBeginCollection},
 				Members: []map[string]*Attribute{{
-					// Operation/input-attributes/input-scan-regions/x-dimension
+					// Operation/input-attributes/input-scan-regions/x-dimension (PWG5100.15)
 					"x-dimension": &Attribute{
 						SetOf: false,
 						Min:   MIN,
 						Max:   MAX,
 						Tags:  []goipp.Tag{goipp.TagInteger},
 					},
-					// Operation/input-attributes/input-scan-regions/x-origin
+					// Operation/input-attributes/input-scan-regions/x-origin (PWG5100.15)
 					"x-origin": &Attribute{
 						SetOf: false,
 						Min:   MIN,
 						Max:   MAX,
 						Tags:  []goipp.Tag{goipp.TagInteger},
 					},
-					// Operation/input-attributes/input-scan-regions/y-dimension
+					// Operation/input-attributes/input-scan-regions/y-dimension (PWG5100.15)
 					"y-dimension": &Attribute{
 						SetOf: false,
 						Min:   MIN,
 						Max:   MAX,
 						Tags:  []goipp.Tag{goipp.TagInteger},
 					},
-					// Operation/input-attributes/input-scan-regions/y-origin
+					// Operation/input-attributes/input-scan-regions/y-origin (PWG5100.15)
 					"y-origin": &Attribute{
 						SetOf: false,
 						Min:   MIN,
@@ -5066,21 +5066,21 @@ var Operation = map[string]*Attribute{
 					},
 				}},
 			},
-			// Operation/input-attributes/input-sharpness
+			// Operation/input-attributes/input-sharpness (PWG5100.15)
 			"input-sharpness": &Attribute{
 				SetOf: false,
 				Min:   -100,
 				Max:   100,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Operation/input-attributes/input-sides
+			// Operation/input-attributes/input-sides (PWG5100.15)
 			"input-sides": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword},
 			},
-			// Operation/input-attributes/input-source
+			// Operation/input-attributes/input-source (PWG5100.15)
 			"input-source": &Attribute{
 				SetOf: false,
 				Min:   MIN,
@@ -5089,189 +5089,189 @@ var Operation = map[string]*Attribute{
 			},
 		}},
 	},
-	// Operation/ipp-attribute-fidelity
+	// Operation/ipp-attribute-fidelity (rfc8011)
 	"ipp-attribute-fidelity": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBoolean},
 	},
-	// Operation/job-authorization-uri
+	// Operation/job-authorization-uri (PWG5100.16)
 	"job-authorization-uri": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Operation/job-hold-until
+	// Operation/job-hold-until (rfc8011)
 	"job-hold-until": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Operation/job-hold-until-time
+	// Operation/job-hold-until-time (PWG5100.7)
 	"job-hold-until-time": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagDateTime},
 	},
-	// Operation/job-id
+	// Operation/job-id (rfc8011)
 	"job-id": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Operation/job-ids
+	// Operation/job-ids (PWG5100.7)
 	"job-ids": &Attribute{
 		SetOf: true,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Operation/job-impressions
+	// Operation/job-impressions (rfc8011)
 	"job-impressions": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Operation/job-impressions-col
+	// Operation/job-impressions-col (XEROX20150505)
 	"job-impressions-col": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Operation/job-impressions-estimated
+	// Operation/job-impressions-estimated (PWG5100.16)
 	"job-impressions-estimated": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Operation/job-k-octets
+	// Operation/job-k-octets (rfc8011)
 	"job-k-octets": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Operation/job-mandatory-attributes
+	// Operation/job-mandatory-attributes (PWG5100.7)
 	"job-mandatory-attributes": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Operation/job-media-sheets
+	// Operation/job-media-sheets (rfc8011)
 	"job-media-sheets": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Operation/job-media-sheets-col
+	// Operation/job-media-sheets-col (XEROX20150505)
 	"job-media-sheets-col": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Operation/job-message-from-operator
+	// Operation/job-message-from-operator (rfc3380)
 	"job-message-from-operator": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   127,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Operation/job-name
+	// Operation/job-name (rfc8011)
 	"job-name": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagNameLang},
 	},
-	// Operation/job-pages
+	// Operation/job-pages (PWG5100.7)
 	"job-pages": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Operation/job-pages-col
+	// Operation/job-pages-col (PWG5100.7)
 	"job-pages-col": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Operation/job-password
+	// Operation/job-password (PWG5100.11)
 	"job-password": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   255,
 		Tags:  []goipp.Tag{goipp.TagString},
 	},
-	// Operation/job-password-encryption
+	// Operation/job-password-encryption (PWG5100.11)
 	"job-password-encryption": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Operation/job-release-action
+	// Operation/job-release-action (PWG5100.11)
 	"job-release-action": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Operation/job-state
+	// Operation/job-state (rfc8011)
 	"job-state": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum},
 	},
-	// Operation/job-state-message
+	// Operation/job-state-message (rfc8011)
 	"job-state-message": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Operation/job-state-reasons
+	// Operation/job-state-reasons (rfc8011)
 	"job-state-reasons": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Operation/job-storage
+	// Operation/job-storage (PWG5100.11)
 	"job-storage": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Operation/job-storage/job-storage-access
+			// Operation/job-storage/job-storage-access (PWG5100.11)
 			"job-storage-access": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword},
 			},
-			// Operation/job-storage/job-storage-disposition
+			// Operation/job-storage/job-storage-disposition (PWG5100.11)
 			"job-storage-disposition": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword},
 			},
-			// Operation/job-storage/job-storage-group
+			// Operation/job-storage/job-storage-group (PWG5100.11)
 			"job-storage-group": &Attribute{
 				SetOf: false,
 				Min:   MIN,
@@ -5280,105 +5280,105 @@ var Operation = map[string]*Attribute{
 			},
 		}},
 	},
-	// Operation/job-uri
+	// Operation/job-uri (rfc8011)
 	"job-uri": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Operation/last-document
+	// Operation/last-document (rfc8011)
 	"last-document": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBoolean},
 	},
-	// Operation/limit
+	// Operation/limit (rfc8011)
 	"limit": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Operation/message
+	// Operation/message (rfc8011)
 	"message": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   127,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Operation/my-jobs
+	// Operation/my-jobs (rfc8011)
 	"my-jobs": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBoolean},
 	},
-	// Operation/notify-get-interval
+	// Operation/notify-get-interval (rfc3996)
 	"notify-get-interval": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Operation/notify-printer-ids
+	// Operation/notify-printer-ids (PWG5100.22)
 	"notify-printer-ids": &Attribute{
 		SetOf: true,
 		Min:   1,
 		Max:   65535,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Operation/notify-resource-id
+	// Operation/notify-resource-id (PWG5100.22)
 	"notify-resource-id": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Operation/notify-sequence-numbers
+	// Operation/notify-sequence-numbers (rfc3996)
 	"notify-sequence-numbers": &Attribute{
 		SetOf: true,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Operation/notify-subscription-ids
+	// Operation/notify-subscription-ids (rfc3996)
 	"notify-subscription-ids": &Attribute{
 		SetOf: true,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Operation/notify-wait
+	// Operation/notify-wait (rfc3996)
 	"notify-wait": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBoolean},
 	},
-	// Operation/original-requesting-user-name
+	// Operation/original-requesting-user-name (rfc3998)
 	"original-requesting-user-name": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagNameLang},
 	},
-	// Operation/output-attributes
+	// Operation/output-attributes (PWG5100.17)
 	"output-attributes": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Operation/output-attributes/noise-removal
+			// Operation/output-attributes/noise-removal (PWG5100.17)
 			"noise-removal": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   100,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Operation/output-attributes/output-compression-quality-factor
+			// Operation/output-attributes/output-compression-quality-factor (PWG5100.17)
 			"output-compression-quality-factor": &Attribute{
 				SetOf: false,
 				Min:   0,
@@ -5387,112 +5387,112 @@ var Operation = map[string]*Attribute{
 			},
 		}},
 	},
-	// Operation/output-device-job-states
+	// Operation/output-device-job-states (PWG5100.18)
 	"output-device-job-states": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum},
 	},
-	// Operation/output-device-uuid
+	// Operation/output-device-uuid (PWG5100.18)
 	"output-device-uuid": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Operation/output-device-x509-certificate
+	// Operation/output-device-x509-certificate (PWG5100.22)
 	"output-device-x509-certificate": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Operation/output-device-x509-request
+	// Operation/output-device-x509-request (PWG5100.22)
 	"output-device-x509-request": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Operation/preferred-attributes
+	// Operation/preferred-attributes (PWG5100.13)
 	"preferred-attributes": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Operation/printer-geo-location
+	// Operation/printer-geo-location (PWG5100.22)
 	"printer-geo-location": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Operation/printer-id
+	// Operation/printer-id (PWG5100.22)
 	"printer-id": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   65535,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Operation/printer-ids
+	// Operation/printer-ids (PWG5100.22)
 	"printer-ids": &Attribute{
 		SetOf: true,
 		Min:   1,
 		Max:   65535,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Operation/printer-location
+	// Operation/printer-location (PWG5100.22)
 	"printer-location": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   127,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Operation/printer-message-from-operator
+	// Operation/printer-message-from-operator (rfc3380)
 	"printer-message-from-operator": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   127,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Operation/printer-service-type
+	// Operation/printer-service-type (PWG5100.22)
 	"printer-service-type": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Operation/printer-up-time
+	// Operation/printer-up-time (rfc3996)
 	"printer-up-time": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Operation/printer-uri
+	// Operation/printer-uri (rfc8011)
 	"printer-uri": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Operation/printer-xri-requested
+	// Operation/printer-xri-requested (PWG5100.22)
 	"printer-xri-requested": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Operation/printer-xri-requested/xri-authentication
+			// Operation/printer-xri-requested/xri-authentication (PWG5100.22)
 			"xri-authentication": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword},
 			},
-			// Operation/printer-xri-requested/xri-security
+			// Operation/printer-xri-requested/xri-security (PWG5100.22)
 			"xri-security": &Attribute{
 				SetOf: false,
 				Min:   MIN,
@@ -5501,168 +5501,168 @@ var Operation = map[string]*Attribute{
 			},
 		}},
 	},
-	// Operation/profile-uri-actual
+	// Operation/profile-uri-actual (PWG5100.16)
 	"profile-uri-actual": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Operation/requested-attributes
+	// Operation/requested-attributes (rfc8011)
 	"requested-attributes": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Operation/requesting-user-name
+	// Operation/requesting-user-name (rfc8011)
 	"requesting-user-name": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagNameLang},
 	},
-	// Operation/requesting-user-pkcs7-public-key
+	// Operation/requesting-user-pkcs7-public-key (PWG5100.TRUSTNOONE)
 	"requesting-user-pkcs7-public-key": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Operation/requesting-user-uri
+	// Operation/requesting-user-uri (PWG5100.13)
 	"requesting-user-uri": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Operation/resource-format
+	// Operation/resource-format (PWG5100.22)
 	"resource-format": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagMimeType},
 	},
-	// Operation/resource-format-accepted
+	// Operation/resource-format-accepted (PWG5100.22)
 	"resource-format-accepted": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagMimeType},
 	},
-	// Operation/resource-formats
+	// Operation/resource-formats (PWG5100.22)
 	"resource-formats": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagMimeType},
 	},
-	// Operation/resource-id
+	// Operation/resource-id (PWG5100.22)
 	"resource-id": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Operation/resource-ids
+	// Operation/resource-ids (PWG5100.22)
 	"resource-ids": &Attribute{
 		SetOf: true,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Operation/resource-k-octets
+	// Operation/resource-k-octets (PWG5100.22)
 	"resource-k-octets": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Operation/resource-natural-language
+	// Operation/resource-natural-language (PWG5100.22)
 	"resource-natural-language": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagLanguage},
 	},
-	// Operation/resource-patches
+	// Operation/resource-patches (PWG5100.22)
 	"resource-patches": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang, goipp.TagNoValue},
 	},
-	// Operation/resource-signature
+	// Operation/resource-signature (PWG5100.22)
 	"resource-signature": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagString},
 	},
-	// Operation/resource-states
+	// Operation/resource-states (PWG5100.22)
 	"resource-states": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum},
 	},
-	// Operation/resource-string-version
+	// Operation/resource-string-version (PWG5100.22)
 	"resource-string-version": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang, goipp.TagNoValue},
 	},
-	// Operation/resource-type
+	// Operation/resource-type (PWG5100.22)
 	"resource-type": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Operation/resource-types
+	// Operation/resource-types (PWG5100.22)
 	"resource-types": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Operation/resource-version
+	// Operation/resource-version (PWG5100.22)
 	"resource-version": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   64,
 		Tags:  []goipp.Tag{goipp.TagString, goipp.TagNoValue},
 	},
-	// Operation/restart-get-interval
+	// Operation/restart-get-interval (PWG5100.22)
 	"restart-get-interval": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Operation/status-message
+	// Operation/status-message (rfc8011)
 	"status-message": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   255,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Operation/system-uri
+	// Operation/system-uri (PWG5100.22)
 	"system-uri": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Operation/which-jobs
+	// Operation/which-jobs (rfc8011)
 	"which-jobs": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Operation/which-printers
+	// Operation/which-printers (PWG5100.22)
 	"which-printers": &Attribute{
 		SetOf: false,
 		Min:   MIN,
@@ -5673,273 +5673,273 @@ var Operation = map[string]*Attribute{
 
 // PrinterDescription is the Printer Description attributes
 var PrinterDescription = map[string]*Attribute{
-	// Printer Description/accuracy-units-supported
+	// Printer Description/accuracy-units-supported (PWG5100.21)
 	"accuracy-units-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/baling-type-supported
+	// Printer Description/baling-type-supported (PWG5100.1)
 	"baling-type-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Printer Description/baling-when-supported
+	// Printer Description/baling-when-supported (PWG5100.1)
 	"baling-when-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/binding-reference-edge-supported
+	// Printer Description/binding-reference-edge-supported (PWG5100.1)
 	"binding-reference-edge-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/binding-type-supported
+	// Printer Description/binding-type-supported (PWG5100.1)
 	"binding-type-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/chamber-humidity-default
+	// Printer Description/chamber-humidity-default (PWG5100.21)
 	"chamber-humidity-default": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   100,
 		Tags:  []goipp.Tag{goipp.TagInteger, goipp.TagNoValue},
 	},
-	// Printer Description/chamber-humidity-supported
+	// Printer Description/chamber-humidity-supported (PWG5100.21)
 	"chamber-humidity-supported": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBoolean},
 	},
-	// Printer Description/chamber-temperature-default
+	// Printer Description/chamber-temperature-default (PWG5100.21)
 	"chamber-temperature-default": &Attribute{
 		SetOf: false,
 		Min:   -273,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger, goipp.TagNoValue},
 	},
-	// Printer Description/chamber-temperature-supported
+	// Printer Description/chamber-temperature-supported (PWG5100.21)
 	"chamber-temperature-supported": &Attribute{
 		SetOf: true,
 		Min:   -273,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger, goipp.TagRange},
 	},
-	// Printer Description/charset-configured
+	// Printer Description/charset-configured (rfc8011)
 	"charset-configured": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagCharset},
 	},
-	// Printer Description/charset-supported
+	// Printer Description/charset-supported (rfc8011)
 	"charset-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagCharset},
 	},
-	// Printer Description/client-info-supported
+	// Printer Description/client-info-supported (PWG5100.7)
 	"client-info-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/coating-sides-supported
+	// Printer Description/coating-sides-supported (PWG5100.1)
 	"coating-sides-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/coating-type-supported
+	// Printer Description/coating-type-supported (PWG5100.1)
 	"coating-type-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Printer Description/color-supported
+	// Printer Description/color-supported (rfc8011)
 	"color-supported": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBoolean},
 	},
-	// Printer Description/compression-supported
+	// Printer Description/compression-supported (rfc8011)
 	"compression-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/confirmation-sheet-print-default
+	// Printer Description/confirmation-sheet-print-default (PWG5100.15)
 	"confirmation-sheet-print-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBoolean},
 	},
-	// Printer Description/copies-default
+	// Printer Description/copies-default (rfc8011)
 	"copies-default": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Description/copies-supported
+	// Printer Description/copies-supported (rfc8011)
 	"copies-supported": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagRange},
 	},
-	// Printer Description/cover-back-default
+	// Printer Description/cover-back-default (PWG5100.3)
 	"cover-back-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Printer Description/cover-back-supported
+	// Printer Description/cover-back-supported (PWG5100.3)
 	"cover-back-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/cover-front-default
+	// Printer Description/cover-front-default (PWG5100.3)
 	"cover-front-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Printer Description/cover-front-supported
+	// Printer Description/cover-front-supported (PWG5100.3)
 	"cover-front-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/cover-sheet-info-default
+	// Printer Description/cover-sheet-info-default (PWG5100.15)
 	"cover-sheet-info-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Printer Description/cover-sheet-info-supported
+	// Printer Description/cover-sheet-info-supported (PWG5100.15)
 	"cover-sheet-info-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/cover-type-supported
+	// Printer Description/cover-type-supported (PWG5100.3)
 	"cover-type-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/covering-name-supported
+	// Printer Description/covering-name-supported (PWG5100.1)
 	"covering-name-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Printer Description/destination-accesses-supported
+	// Printer Description/destination-accesses-supported (PWG5100.17)
 	"destination-accesses-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/destination-uri-ready
+	// Printer Description/destination-uri-ready (PWG5100.17)
 	"destination-uri-ready": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Printer Description/destination-uri-ready/destination-attributes
+			// Printer Description/destination-uri-ready/destination-attributes (PWG5100.17)
 			"destination-attributes": &Attribute{
 				SetOf: true,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagBeginCollection},
 			},
-			// Printer Description/destination-uri-ready/destination-attributes-supported
+			// Printer Description/destination-uri-ready/destination-attributes-supported (PWG5100.17)
 			"destination-attributes-supported": &Attribute{
 				SetOf: true,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword},
 			},
-			// Printer Description/destination-uri-ready/destination-info
+			// Printer Description/destination-uri-ready/destination-info (PWG5100.17)
 			"destination-info": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagTextLang},
 			},
-			// Printer Description/destination-uri-ready/destination-is-directory
+			// Printer Description/destination-uri-ready/destination-is-directory (PWG5100.17)
 			"destination-is-directory": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagBoolean},
 			},
-			// Printer Description/destination-uri-ready/destination-mandatory-access-attributes
+			// Printer Description/destination-uri-ready/destination-mandatory-access-attributes (PWG5100.17)
 			"destination-mandatory-access-attributes": &Attribute{
 				SetOf: true,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword},
 			},
-			// Printer Description/destination-uri-ready/destination-name
+			// Printer Description/destination-uri-ready/destination-name (PWG5100.17)
 			"destination-name": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagNameLang},
 			},
-			// Printer Description/destination-uri-ready/destination-oauth-scope
+			// Printer Description/destination-uri-ready/destination-oauth-scope (PWG5100.17)
 			"destination-oauth-scope": &Attribute{
 				SetOf: true,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagString},
 			},
-			// Printer Description/destination-uri-ready/destination-oauth-token
+			// Printer Description/destination-uri-ready/destination-oauth-token (PWG5100.17)
 			"destination-oauth-token": &Attribute{
 				SetOf: true,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagString},
 			},
-			// Printer Description/destination-uri-ready/destination-oauth-uri
+			// Printer Description/destination-uri-ready/destination-oauth-uri (PWG5100.17)
 			"destination-oauth-uri": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagURI},
 			},
-			// Printer Description/destination-uri-ready/destination-uri
+			// Printer Description/destination-uri-ready/destination-uri (PWG5100.17)
 			"destination-uri": &Attribute{
 				SetOf: false,
 				Min:   MIN,
@@ -5948,406 +5948,406 @@ var PrinterDescription = map[string]*Attribute{
 			},
 		}},
 	},
-	// Printer Description/destination-uri-schemes-supported
+	// Printer Description/destination-uri-schemes-supported (PWG5100.15)
 	"destination-uri-schemes-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURIScheme},
 	},
-	// Printer Description/destination-uris-supported
+	// Printer Description/destination-uris-supported (PWG5100.15)
 	"destination-uris-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/document-access-supported
+	// Printer Description/document-access-supported (PWG5100.18)
 	"document-access-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/document-charset-default
+	// Printer Description/document-charset-default (PWG5100.7)
 	"document-charset-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagCharset},
 	},
-	// Printer Description/document-charset-supported
+	// Printer Description/document-charset-supported (PWG5100.7)
 	"document-charset-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagCharset},
 	},
-	// Printer Description/document-creation-attributes-supported
+	// Printer Description/document-creation-attributes-supported (PWG5100.5)
 	"document-creation-attributes-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/document-digital-signature-default
+	// Printer Description/document-digital-signature-default (PWG5100.7)
 	"document-digital-signature-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/document-digital-signature-supported
+	// Printer Description/document-digital-signature-supported (PWG5100.7)
 	"document-digital-signature-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/document-format-default
+	// Printer Description/document-format-default (rfc8011)
 	"document-format-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagMimeType},
 	},
-	// Printer Description/document-format-details-default
+	// Printer Description/document-format-details-default (PWG5100.7)
 	"document-format-details-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Printer Description/document-format-details-supported
+	// Printer Description/document-format-details-supported (PWG5100.7)
 	"document-format-details-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/document-format-supported
+	// Printer Description/document-format-supported (rfc8011)
 	"document-format-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagMimeType},
 	},
-	// Printer Description/document-format-version-default
+	// Printer Description/document-format-version-default (PWG5100.7)
 	"document-format-version-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   127,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Printer Description/document-format-version-supported
+	// Printer Description/document-format-version-supported (PWG5100.7)
 	"document-format-version-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   127,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Printer Description/document-natural-language-default
+	// Printer Description/document-natural-language-default (PWG5100.7)
 	"document-natural-language-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagLanguage},
 	},
-	// Printer Description/document-natural-language-supported
+	// Printer Description/document-natural-language-supported (PWG5100.7)
 	"document-natural-language-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagLanguage},
 	},
-	// Printer Description/document-password-supported
+	// Printer Description/document-password-supported (PWG5100.13)
 	"document-password-supported": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   1023,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Description/document-privacy-attributes
+	// Printer Description/document-privacy-attributes (IPPPRIVACY10)
 	"document-privacy-attributes": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/document-privacy-scope
+	// Printer Description/document-privacy-scope (IPPPRIVACY10)
 	"document-privacy-scope": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/feed-orientation-default
+	// Printer Description/feed-orientation-default (PWG5100.11)
 	"feed-orientation-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/feed-orientation-supported
+	// Printer Description/feed-orientation-supported (PWG5100.11)
 	"feed-orientation-supported": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/fetch-document-attributes-supported
+	// Printer Description/fetch-document-attributes-supported (PWG5100.18)
 	"fetch-document-attributes-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/finishing-template-supported
+	// Printer Description/finishing-template-supported (PWG5100.1)
 	"finishing-template-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Printer Description/finishings-col-database
+	// Printer Description/finishings-col-database (PWG5100.1)
 	"finishings-col-database": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Printer Description/finishings-col-default
+	// Printer Description/finishings-col-default (PWG5100.1)
 	"finishings-col-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Printer Description/finishings-col-ready
+	// Printer Description/finishings-col-ready (PWG5100.1)
 	"finishings-col-ready": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Printer Description/finishings-col-supported
+	// Printer Description/finishings-col-supported (PWG5100.1)
 	"finishings-col-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/finishings-default
+	// Printer Description/finishings-default (rfc8011)
 	"finishings-default": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum},
 	},
-	// Printer Description/finishings-ready
+	// Printer Description/finishings-ready (PWG5100.1)
 	"finishings-ready": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum},
 	},
-	// Printer Description/finishings-supported
+	// Printer Description/finishings-supported (rfc8011)
 	"finishings-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum},
 	},
-	// Printer Description/folding-direction-supported
+	// Printer Description/folding-direction-supported (PWG5100.1)
 	"folding-direction-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/folding-offset-supported
+	// Printer Description/folding-offset-supported (PWG5100.1)
 	"folding-offset-supported": &Attribute{
 		SetOf: true,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger, goipp.TagRange},
 	},
-	// Printer Description/folding-reference-edge-supported
+	// Printer Description/folding-reference-edge-supported (PWG5100.1)
 	"folding-reference-edge-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/force-front-side-default
+	// Printer Description/force-front-side-default  (PWG5100.3)
 	"force-front-side-default ": &Attribute{
 		SetOf: true,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Description/force-front-side-supported
+	// Printer Description/force-front-side-supported (PWG5100.3)
 	"force-front-side-supported": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagRange},
 	},
-	// Printer Description/force-front-side-supported
+	// Printer Description/force-front-side-supported  (PWG5100.3)
 	"force-front-side-supported ": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagRange},
 	},
-	// Printer Description/from-name-supported
+	// Printer Description/from-name-supported (PWG5100.15)
 	"from-name-supported": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   1023,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Description/generated-natural-language-supported
+	// Printer Description/generated-natural-language-supported (rfc8011)
 	"generated-natural-language-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagLanguage},
 	},
-	// Printer Description/identify-actions-default
+	// Printer Description/identify-actions-default (PWG5100.13)
 	"identify-actions-default": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/identify-actions-supported
+	// Printer Description/identify-actions-supported (PWG5100.13)
 	"identify-actions-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/image-orientation-default
+	// Printer Description/image-orientation-default (PWG5100.3)
 	"image-orientation-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum},
 	},
-	// Printer Description/image-orientation-supported
+	// Printer Description/image-orientation-supported (PWG5100.3)
 	"image-orientation-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum},
 	},
-	// Printer Description/imposition-template-default
+	// Printer Description/imposition-template-default (PWG5100.3)
 	"imposition-template-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Printer Description/imposition-template-supported
+	// Printer Description/imposition-template-supported (PWG5100.3)
 	"imposition-template-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Printer Description/input-attributes-default
+	// Printer Description/input-attributes-default (PWG5100.15)
 	"input-attributes-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Printer Description/input-attributes-supported
+	// Printer Description/input-attributes-supported (PWG5100.15)
 	"input-attributes-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/input-color-mode-supported
+	// Printer Description/input-color-mode-supported (PWG5100.15)
 	"input-color-mode-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/input-content-type-supported
+	// Printer Description/input-content-type-supported (PWG5100.15)
 	"input-content-type-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/input-film-scan-mode-supported
+	// Printer Description/input-film-scan-mode-supported (PWG5100.15)
 	"input-film-scan-mode-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/input-media-supported
+	// Printer Description/input-media-supported (PWG5100.15)
 	"input-media-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Printer Description/input-orientation-requested-supported
+	// Printer Description/input-orientation-requested-supported (PWG5100.15)
 	"input-orientation-requested-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum},
 	},
-	// Printer Description/input-quality-supported
+	// Printer Description/input-quality-supported (PWG5100.15)
 	"input-quality-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum},
 	},
-	// Printer Description/input-resolution-supported
+	// Printer Description/input-resolution-supported (PWG5100.15)
 	"input-resolution-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagResolution},
 	},
-	// Printer Description/input-scan-regions-supported
+	// Printer Description/input-scan-regions-supported (PWG5100.15)
 	"input-scan-regions-supported": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Printer Description/input-scan-regions-supported/x-dimension
+			// Printer Description/input-scan-regions-supported/x-dimension (PWG5100.15)
 			"x-dimension": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagRange},
 			},
-			// Printer Description/input-scan-regions-supported/x-origin
+			// Printer Description/input-scan-regions-supported/x-origin (PWG5100.15)
 			"x-origin": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagRange},
 			},
-			// Printer Description/input-scan-regions-supported/y-dimension
+			// Printer Description/input-scan-regions-supported/y-dimension (PWG5100.15)
 			"y-dimension": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagRange},
 			},
-			// Printer Description/input-scan-regions-supported/y-origin
+			// Printer Description/input-scan-regions-supported/y-origin (PWG5100.15)
 			"y-origin": &Attribute{
 				SetOf: false,
 				Min:   MIN,
@@ -6356,182 +6356,182 @@ var PrinterDescription = map[string]*Attribute{
 			},
 		}},
 	},
-	// Printer Description/input-sides-supported
+	// Printer Description/input-sides-supported (PWG5100.15)
 	"input-sides-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/input-source-supported
+	// Printer Description/input-source-supported (PWG5100.15)
 	"input-source-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/insert-after-page-number-supported
+	// Printer Description/insert-after-page-number-supported (PWG5100.3)
 	"insert-after-page-number-supported": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagRange},
 	},
-	// Printer Description/insert-count-supported
+	// Printer Description/insert-count-supported (PWG5100.3)
 	"insert-count-supported": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagRange},
 	},
-	// Printer Description/insert-sheet-default
+	// Printer Description/insert-sheet-default (PWG5100.3)
 	"insert-sheet-default": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Printer Description/insert-sheet-supported
+	// Printer Description/insert-sheet-supported (PWG5100.3)
 	"insert-sheet-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/ipp-features-supported
+	// Printer Description/ipp-features-supported (PWG5100.13)
 	"ipp-features-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/ipp-versions-supported
+	// Printer Description/ipp-versions-supported (rfc8011)
 	"ipp-versions-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/ippget-event-life
+	// Printer Description/ippget-event-life (rfc3996)
 	"ippget-event-life": &Attribute{
 		SetOf: false,
 		Min:   15,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Description/job-account-id-default
+	// Printer Description/job-account-id-default (PWG5100.3)
 	"job-account-id-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagNameLang, goipp.TagNoValue},
 	},
-	// Printer Description/job-account-id-supported
+	// Printer Description/job-account-id-supported (PWG5100.3)
 	"job-account-id-supported": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBoolean},
 	},
-	// Printer Description/job-account-type-default
+	// Printer Description/job-account-type-default (PWG5100.16)
 	"job-account-type-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Printer Description/job-account-type-supported
+	// Printer Description/job-account-type-supported (PWG5100.16)
 	"job-account-type-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Printer Description/job-accounting-output-bin-default
+	// Printer Description/job-accounting-output-bin-default (PWG5100.3)
 	"job-accounting-output-bin-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Printer Description/job-accounting-output-bin-supported
+	// Printer Description/job-accounting-output-bin-supported (PWG5100.3)
 	"job-accounting-output-bin-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Printer Description/job-accounting-sheets-default
+	// Printer Description/job-accounting-sheets-default (PWG5100.3)
 	"job-accounting-sheets-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Printer Description/job-accounting-sheets-supported
+	// Printer Description/job-accounting-sheets-supported (PWG5100.3)
 	"job-accounting-sheets-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/job-accounting-sheets-type-supported
+	// Printer Description/job-accounting-sheets-type-supported (PWG5100.3)
 	"job-accounting-sheets-type-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Printer Description/job-accounting-user-id-default
+	// Printer Description/job-accounting-user-id-default (PWG5100.3)
 	"job-accounting-user-id-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagNameLang, goipp.TagNoValue},
 	},
-	// Printer Description/job-accounting-user-id-supported
+	// Printer Description/job-accounting-user-id-supported (PWG5100.3)
 	"job-accounting-user-id-supported": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBoolean},
 	},
-	// Printer Description/job-authorization-uri-supported
+	// Printer Description/job-authorization-uri-supported (PWG5100.16)
 	"job-authorization-uri-supported": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBoolean},
 	},
-	// Printer Description/job-cancel-after-default
+	// Printer Description/job-cancel-after-default (PWG5100.11)
 	"job-cancel-after-default": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Description/job-cancel-after-supported
+	// Printer Description/job-cancel-after-supported (PWG5100.7)
 	"job-cancel-after-supported": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagRange},
 	},
-	// Printer Description/job-complete-before-supported
+	// Printer Description/job-complete-before-supported (PWG5100.3)
 	"job-complete-before-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Printer Description/job-constraints-supported
+	// Printer Description/job-constraints-supported (PWG5100.13)
 	"job-constraints-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Printer Description/job-constraints-supported/resolver-name
+			// Printer Description/job-constraints-supported/resolver-name (PWG5100.13)
 			"resolver-name": &Attribute{
 				SetOf: false,
 				Min:   MIN,
@@ -6540,329 +6540,329 @@ var PrinterDescription = map[string]*Attribute{
 			},
 		}},
 	},
-	// Printer Description/job-copies-supported
+	// Printer Description/job-copies-supported (PWG5100.7)
 	"job-copies-supported": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagRange},
 	},
-	// Printer Description/job-cover-back-default
+	// Printer Description/job-cover-back-default (PWG5100.7)
 	"job-cover-back-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Printer Description/job-cover-back-supported
+	// Printer Description/job-cover-back-supported (PWG5100.7)
 	"job-cover-back-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/job-cover-front-default
+	// Printer Description/job-cover-front-default (PWG5100.7)
 	"job-cover-front-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Printer Description/job-cover-front-supported
+	// Printer Description/job-cover-front-supported (PWG5100.7)
 	"job-cover-front-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/job-creation-attributes-supported
+	// Printer Description/job-creation-attributes-supported (PWG5100.7)
 	"job-creation-attributes-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/job-delay-output-until-default
+	// Printer Description/job-delay-output-until-default (PWG5100.7)
 	"job-delay-output-until-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Printer Description/job-delay-output-until-interval-supported
+	// Printer Description/job-delay-output-until-interval-supported (PWG5100.7)
 	"job-delay-output-until-interval-supported": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagRange},
 	},
-	// Printer Description/job-delay-output-until-supported
+	// Printer Description/job-delay-output-until-supported (PWG5100.7)
 	"job-delay-output-until-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Printer Description/job-delay-output-until-time-supported
+	// Printer Description/job-delay-output-until-time-supported (PWG5100.7)
 	"job-delay-output-until-time-supported": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagRange},
 	},
-	// Printer Description/job-destination-spooling-supported
+	// Printer Description/job-destination-spooling-supported (PWG5100.17)
 	"job-destination-spooling-supported": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/job-error-action-default
+	// Printer Description/job-error-action-default (PWG5100.13)
 	"job-error-action-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/job-error-action-supported
+	// Printer Description/job-error-action-supported (PWG5100.13)
 	"job-error-action-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/job-error-sheet-default
+	// Printer Description/job-error-sheet-default (PWG5100.3)
 	"job-error-sheet-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Printer Description/job-error-sheet-supported
+	// Printer Description/job-error-sheet-supported (PWG5100.3)
 	"job-error-sheet-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/job-error-sheet-type-supported
+	// Printer Description/job-error-sheet-type-supported (PWG5100.3)
 	"job-error-sheet-type-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Printer Description/job-error-sheet-when-supported
+	// Printer Description/job-error-sheet-when-supported (PWG5100.3)
 	"job-error-sheet-when-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/job-finishings-col-supported
+	// Printer Description/job-finishings-col-supported (PWG5100.7)
 	"job-finishings-col-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/job-finishings-default
+	// Printer Description/job-finishings-default (PWG5100.7)
 	"job-finishings-default": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum},
 	},
-	// Printer Description/job-finishings-ready
+	// Printer Description/job-finishings-ready (PWG5100.7)
 	"job-finishings-ready": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum},
 	},
-	// Printer Description/job-finishings-supported
+	// Printer Description/job-finishings-supported (PWG5100.7)
 	"job-finishings-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum},
 	},
-	// Printer Description/job-history-attributes-configured
+	// Printer Description/job-history-attributes-configured (PWG5100.7)
 	"job-history-attributes-configured": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/job-history-attributes-supported
+	// Printer Description/job-history-attributes-supported (PWG5100.7)
 	"job-history-attributes-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/job-history-interval-configured
+	// Printer Description/job-history-interval-configured (PWG5100.7)
 	"job-history-interval-configured": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Description/job-history-interval-supported
+	// Printer Description/job-history-interval-supported (PWG5100.7)
 	"job-history-interval-supported": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagRange},
 	},
-	// Printer Description/job-hold-until-default
+	// Printer Description/job-hold-until-default (rfc8011)
 	"job-hold-until-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Printer Description/job-hold-until-supported
+	// Printer Description/job-hold-until-supported (rfc8011)
 	"job-hold-until-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Printer Description/job-hold-until-time-supported
+	// Printer Description/job-hold-until-time-supported (PWG5100.7)
 	"job-hold-until-time-supported": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBoolean},
 	},
-	// Printer Description/job-ids-supported
+	// Printer Description/job-ids-supported (PWG5100.7)
 	"job-ids-supported": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBoolean},
 	},
-	// Printer Description/job-impressions-supported
+	// Printer Description/job-impressions-supported (rfc8011)
 	"job-impressions-supported": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagRange},
 	},
-	// Printer Description/job-k-octets-supported
+	// Printer Description/job-k-octets-supported (rfc8011)
 	"job-k-octets-supported": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagRange},
 	},
-	// Printer Description/job-mandatory-attributes-supported
+	// Printer Description/job-mandatory-attributes-supported (PWG5100.7)
 	"job-mandatory-attributes-supported": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBoolean},
 	},
-	// Printer Description/job-media-sheets-supported
+	// Printer Description/job-media-sheets-supported (rfc8011)
 	"job-media-sheets-supported": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagRange},
 	},
-	// Printer Description/job-message-to-operator-default
+	// Printer Description/job-message-to-operator-default (PWG5100.3)
 	"job-message-to-operator-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Printer Description/job-message-to-operator-supported
+	// Printer Description/job-message-to-operator-supported (PWG5100.3)
 	"job-message-to-operator-supported": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBoolean},
 	},
-	// Printer Description/job-pages-per-set-supported
+	// Printer Description/job-pages-per-set-supported (PWG5100.1)
 	"job-pages-per-set-supported": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBoolean},
 	},
-	// Printer Description/job-password-encryption-supported
+	// Printer Description/job-password-encryption-supported (PWG5100.11)
 	"job-password-encryption-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/job-password-length-supported
+	// Printer Description/job-password-length-supported (PWG5100.11)
 	"job-password-length-supported": &Attribute{
 		SetOf: false,
 		Min:   4,
 		Max:   765,
 		Tags:  []goipp.Tag{goipp.TagRange},
 	},
-	// Printer Description/job-password-repertoire-configured
+	// Printer Description/job-password-repertoire-configured (PWG5100.11)
 	"job-password-repertoire-configured": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Printer Description/job-password-repertoire-supported
+	// Printer Description/job-password-repertoire-supported (PWG5100.11)
 	"job-password-repertoire-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Printer Description/job-password-supported
+	// Printer Description/job-password-supported (PWG5100.11)
 	"job-password-supported": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   255,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Description/job-phone-number-default
+	// Printer Description/job-phone-number-default (PWG5100.3)
 	"job-phone-number-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI, goipp.TagNoValue},
 	},
-	// Printer Description/job-phone-number-scheme-supported
+	// Printer Description/job-phone-number-scheme-supported (PWG5100.3)
 	"job-phone-number-scheme-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURIScheme},
 	},
-	// Printer Description/job-phone-number-supported
+	// Printer Description/job-phone-number-supported (PWG5100.3)
 	"job-phone-number-supported": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBoolean},
 	},
-	// Printer Description/job-presets-supported
+	// Printer Description/job-presets-supported (PWG5100.13)
 	"job-presets-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Printer Description/job-presets-supported/preset-category
+			// Printer Description/job-presets-supported/preset-category (PWG5100.13)
 			"preset-category": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword},
 			},
-			// Printer Description/job-presets-supported/preset-name
+			// Printer Description/job-presets-supported/preset-name (PWG5100.13)
 			"preset-name": &Attribute{
 				SetOf: false,
 				Min:   MIN,
@@ -6871,70 +6871,70 @@ var PrinterDescription = map[string]*Attribute{
 			},
 		}},
 	},
-	// Printer Description/job-priority-default
+	// Printer Description/job-priority-default (rfc8011)
 	"job-priority-default": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   100,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Description/job-priority-supported
+	// Printer Description/job-priority-supported (rfc8011)
 	"job-priority-supported": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   100,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Description/job-privacy-attributes
+	// Printer Description/job-privacy-attributes (IPPPRIVACY10)
 	"job-privacy-attributes": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/job-privacy-scope
+	// Printer Description/job-privacy-scope (IPPPRIVACY10)
 	"job-privacy-scope": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/job-recipient-name-default
+	// Printer Description/job-recipient-name-default (PWG5100.3)
 	"job-recipient-name-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagNameLang, goipp.TagNoValue},
 	},
-	// Printer Description/job-recipient-name-supported
+	// Printer Description/job-recipient-name-supported (PWG5100.3)
 	"job-recipient-name-supported": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBoolean},
 	},
-	// Printer Description/job-release-action-default
+	// Printer Description/job-release-action-default (PWG5100.11)
 	"job-release-action-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/job-release-action-supported
+	// Printer Description/job-release-action-supported (PWG5100.11)
 	"job-release-action-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/job-resolvers-supported
+	// Printer Description/job-resolvers-supported (PWG5100.13)
 	"job-resolvers-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Printer Description/job-resolvers-supported/resolver-name
+			// Printer Description/job-resolvers-supported/resolver-name (PWG5100.13)
 			"resolver-name": &Attribute{
 				SetOf: false,
 				Min:   MIN,
@@ -6943,119 +6943,119 @@ var PrinterDescription = map[string]*Attribute{
 			},
 		}},
 	},
-	// Printer Description/job-retain-until-default
+	// Printer Description/job-retain-until-default (PWG5100.7)
 	"job-retain-until-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Printer Description/job-retain-until-interval-supported
+	// Printer Description/job-retain-until-interval-supported (PWG5100.7)
 	"job-retain-until-interval-supported": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagRange},
 	},
-	// Printer Description/job-retain-until-supported
+	// Printer Description/job-retain-until-supported (PWG5100.7)
 	"job-retain-until-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Printer Description/job-retain-until-time-supported
+	// Printer Description/job-retain-until-time-supported (PWG5100.7)
 	"job-retain-until-time-supported": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagRange},
 	},
-	// Printer Description/job-sheet-message-default
+	// Printer Description/job-sheet-message-default (PWG5100.3)
 	"job-sheet-message-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Printer Description/job-sheet-message-supported
+	// Printer Description/job-sheet-message-supported (PWG5100.3)
 	"job-sheet-message-supported": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBoolean},
 	},
-	// Printer Description/job-sheets-col-default
+	// Printer Description/job-sheets-col-default (PWG5100.3)
 	"job-sheets-col-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Printer Description/job-sheets-col-supported
+	// Printer Description/job-sheets-col-supported (PWG5100.3)
 	"job-sheets-col-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/job-sheets-default
+	// Printer Description/job-sheets-default (rfc8011)
 	"job-sheets-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Printer Description/job-sheets-supported
+	// Printer Description/job-sheets-supported (rfc8011)
 	"job-sheets-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Printer Description/job-spooling-supported
+	// Printer Description/job-spooling-supported (PWG5100.7)
 	"job-spooling-supported": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/job-storage-access-supported
+	// Printer Description/job-storage-access-supported (PWG5100.11)
 	"job-storage-access-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/job-storage-disposition-supported
+	// Printer Description/job-storage-disposition-supported (PWG5100.11)
 	"job-storage-disposition-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/job-storage-group-supported
+	// Printer Description/job-storage-group-supported (PWG5100.11)
 	"job-storage-group-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagNameLang},
 	},
-	// Printer Description/job-storage-supported
+	// Printer Description/job-storage-supported (PWG5100.11)
 	"job-storage-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/job-triggers-supported
+	// Printer Description/job-triggers-supported (PWG5100.13)
 	"job-triggers-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Printer Description/job-triggers-supported/preset-name
+			// Printer Description/job-triggers-supported/preset-name (PWG5100.13)
 			"preset-name": &Attribute{
 				SetOf: false,
 				Min:   MIN,
@@ -7064,252 +7064,252 @@ var PrinterDescription = map[string]*Attribute{
 			},
 		}},
 	},
-	// Printer Description/jpeg-features-supported
+	// Printer Description/jpeg-features-supported (PWG5100.13)
 	"jpeg-features-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/jpeg-k-octets-supported
+	// Printer Description/jpeg-k-octets-supported (PWG5100.13)
 	"jpeg-k-octets-supported": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagRange},
 	},
-	// Printer Description/jpeg-x-dimension-supported
+	// Printer Description/jpeg-x-dimension-supported (PWG5100.13)
 	"jpeg-x-dimension-supported": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   65535,
 		Tags:  []goipp.Tag{goipp.TagRange},
 	},
-	// Printer Description/jpeg-y-dimension-supported
+	// Printer Description/jpeg-y-dimension-supported (PWG5100.13)
 	"jpeg-y-dimension-supported": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   65535,
 		Tags:  []goipp.Tag{goipp.TagRange},
 	},
-	// Printer Description/label-mode-configured
+	// Printer Description/label-mode-configured (IPPLABEL)
 	"label-mode-configured": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/label-mode-supported
+	// Printer Description/label-mode-supported (IPPLABEL)
 	"label-mode-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/label-tear-offset-configured
+	// Printer Description/label-tear-offset-configured (IPPLABEL)
 	"label-tear-offset-configured": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Description/label-tear-offset-supported
+	// Printer Description/label-tear-offset-supported (IPPLABEL)
 	"label-tear-offset-supported": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagRange},
 	},
-	// Printer Description/laminating-sides-supported
+	// Printer Description/laminating-sides-supported (PWG5100.1)
 	"laminating-sides-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/laminating-type-supported
+	// Printer Description/laminating-type-supported (PWG5100.1)
 	"laminating-type-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Printer Description/logo-uri-formats-supported
+	// Printer Description/logo-uri-formats-supported (PWG5100.15)
 	"logo-uri-formats-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagMimeType},
 	},
-	// Printer Description/logo-uri-schemes-supported
+	// Printer Description/logo-uri-schemes-supported (PWG5100.15)
 	"logo-uri-schemes-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURIScheme},
 	},
-	// Printer Description/material-amount-units-supported
+	// Printer Description/material-amount-units-supported (PWG5100.21)
 	"material-amount-units-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/material-diameter-supported
+	// Printer Description/material-diameter-supported (PWG5100.21)
 	"material-diameter-supported": &Attribute{
 		SetOf: true,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger, goipp.TagRange},
 	},
-	// Printer Description/material-nozzle-diameter-supported
+	// Printer Description/material-nozzle-diameter-supported (PWG5100.21)
 	"material-nozzle-diameter-supported": &Attribute{
 		SetOf: true,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger, goipp.TagRange},
 	},
-	// Printer Description/material-purpose-supported
+	// Printer Description/material-purpose-supported (PWG5100.21)
 	"material-purpose-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/material-rate-supported
+	// Printer Description/material-rate-supported (PWG5100.21)
 	"material-rate-supported": &Attribute{
 		SetOf: true,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger, goipp.TagRange},
 	},
-	// Printer Description/material-rate-units-supported
+	// Printer Description/material-rate-units-supported (PWG5100.21)
 	"material-rate-units-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/material-shell-thickness-supported
+	// Printer Description/material-shell-thickness-supported (PWG5100.21)
 	"material-shell-thickness-supported": &Attribute{
 		SetOf: true,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger, goipp.TagRange},
 	},
-	// Printer Description/material-temperature-supported
+	// Printer Description/material-temperature-supported (PWG5100.21)
 	"material-temperature-supported": &Attribute{
 		SetOf: true,
 		Min:   -273,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger, goipp.TagRange},
 	},
-	// Printer Description/material-type-supported
+	// Printer Description/material-type-supported (PWG5100.21)
 	"material-type-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/materials-col-database
+	// Printer Description/materials-col-database (PWG5100.21)
 	"materials-col-database": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Printer Description/materials-col-default
+	// Printer Description/materials-col-default (PWG5100.21)
 	"materials-col-default": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Printer Description/materials-col-ready
+	// Printer Description/materials-col-ready (PWG5100.21)
 	"materials-col-ready": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Printer Description/materials-col-supported
+	// Printer Description/materials-col-supported (PWG5100.21)
 	"materials-col-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/max-client-info-supported
+	// Printer Description/max-client-info-supported (PWG5100.7)
 	"max-client-info-supported": &Attribute{
 		SetOf: false,
 		Min:   4,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Description/max-materials-col-supported
+	// Printer Description/max-materials-col-supported (PWG5100.21)
 	"max-materials-col-supported": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Description/max-page-ranges-supported
+	// Printer Description/max-page-ranges-supported (PWG5100.7)
 	"max-page-ranges-supported": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Description/max-save-info-supported
+	// Printer Description/max-save-info-supported (PWG5100.11)
 	"max-save-info-supported": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Description/max-stitching-locations-supported
+	// Printer Description/max-stitching-locations-supported (PWG5100.1)
 	"max-stitching-locations-supported": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Description/media-back-coating-supported
+	// Printer Description/media-back-coating-supported (PWG5100.7)
 	"media-back-coating-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Printer Description/media-bottom-margin-supported
+	// Printer Description/media-bottom-margin-supported (PWG5100.7)
 	"media-bottom-margin-supported": &Attribute{
 		SetOf: true,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Description/media-col-database
+	// Printer Description/media-col-database (PWG5100.7)
 	"media-col-database": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Printer Description/media-col-database/media-size
+			// Printer Description/media-col-database/media-size (PWG5100.7)
 			"media-size": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagBeginCollection},
 				Members: []map[string]*Attribute{{
-					// Printer Description/media-col-database/media-size/x-dimension
+					// Printer Description/media-col-database/media-size/x-dimension (PWG5100.7)
 					"x-dimension": &Attribute{
 						SetOf: false,
 						Min:   1,
 						Max:   MAX,
 						Tags:  []goipp.Tag{goipp.TagInteger, goipp.TagRange},
 					},
-					// Printer Description/media-col-database/media-size/y-dimension
+					// Printer Description/media-col-database/media-size/y-dimension (PWG5100.7)
 					"y-dimension": &Attribute{
 						SetOf: false,
 						Min:   1,
@@ -7318,21 +7318,21 @@ var PrinterDescription = map[string]*Attribute{
 					},
 				}},
 			},
-			// Printer Description/media-col-database/media-source-properties
+			// Printer Description/media-col-database/media-source-properties (PWG5100.7)
 			"media-source-properties": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagBeginCollection},
 				Members: []map[string]*Attribute{{
-					// Printer Description/media-col-database/media-source-properties/media-source-feed-direction
+					// Printer Description/media-col-database/media-source-properties/media-source-feed-direction (PWG5100.7)
 					"media-source-feed-direction": &Attribute{
 						SetOf: false,
 						Min:   MIN,
 						Max:   MAX,
 						Tags:  []goipp.Tag{goipp.TagKeyword},
 					},
-					// Printer Description/media-col-database/media-source-properties/media-source-feed-orientation
+					// Printer Description/media-col-database/media-source-properties/media-source-feed-orientation (PWG5100.7)
 					"media-source-feed-orientation": &Attribute{
 						SetOf: false,
 						Min:   MIN,
@@ -7343,35 +7343,35 @@ var PrinterDescription = map[string]*Attribute{
 			},
 		}},
 	},
-	// Printer Description/media-col-default
+	// Printer Description/media-col-default (PWG5100.7)
 	"media-col-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Printer Description/media-col-ready
+	// Printer Description/media-col-ready (PWG5100.7)
 	"media-col-ready": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Printer Description/media-col-ready/media-size
+			// Printer Description/media-col-ready/media-size (PWG5100.7)
 			"media-size": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagBeginCollection},
 				Members: []map[string]*Attribute{{
-					// Printer Description/media-col-ready/media-size/x-dimension
+					// Printer Description/media-col-ready/media-size/x-dimension (PWG5100.7)
 					"x-dimension": &Attribute{
 						SetOf: false,
 						Min:   1,
 						Max:   MAX,
 						Tags:  []goipp.Tag{goipp.TagInteger},
 					},
-					// Printer Description/media-col-ready/media-size/y-dimension
+					// Printer Description/media-col-ready/media-size/y-dimension (PWG5100.7)
 					"y-dimension": &Attribute{
 						SetOf: false,
 						Min:   0,
@@ -7380,21 +7380,21 @@ var PrinterDescription = map[string]*Attribute{
 					},
 				}},
 			},
-			// Printer Description/media-col-ready/media-source-properties
+			// Printer Description/media-col-ready/media-source-properties (PWG5100.7)
 			"media-source-properties": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagBeginCollection},
 				Members: []map[string]*Attribute{{
-					// Printer Description/media-col-ready/media-source-properties/media-source-feed-direction
+					// Printer Description/media-col-ready/media-source-properties/media-source-feed-direction (PWG5100.7)
 					"media-source-feed-direction": &Attribute{
 						SetOf: false,
 						Min:   MIN,
 						Max:   MAX,
 						Tags:  []goipp.Tag{goipp.TagKeyword},
 					},
-					// Printer Description/media-col-ready/media-source-properties/media-source-feed-orientation
+					// Printer Description/media-col-ready/media-source-properties/media-source-feed-orientation (PWG5100.7)
 					"media-source-feed-orientation": &Attribute{
 						SetOf: false,
 						Min:   MIN,
@@ -7405,147 +7405,147 @@ var PrinterDescription = map[string]*Attribute{
 			},
 		}},
 	},
-	// Printer Description/media-col-supported
+	// Printer Description/media-col-supported (PWG5100.7)
 	"media-col-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/media-color-supported
+	// Printer Description/media-color-supported (PWG5100.7)
 	"media-color-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Printer Description/media-default
+	// Printer Description/media-default (rfc8011)
 	"media-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang, goipp.TagNoValue},
 	},
-	// Printer Description/media-front-coating-supported
+	// Printer Description/media-front-coating-supported (PWG5100.7)
 	"media-front-coating-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Printer Description/media-grain-supported
+	// Printer Description/media-grain-supported (PWG5100.7)
 	"media-grain-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Printer Description/media-hole-count-supported
+	// Printer Description/media-hole-count-supported (PWG5100.7)
 	"media-hole-count-supported": &Attribute{
 		SetOf: true,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagRange},
 	},
-	// Printer Description/media-info-supported
+	// Printer Description/media-info-supported (PWG5100.7)
 	"media-info-supported": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBoolean},
 	},
-	// Printer Description/media-key-supported
+	// Printer Description/media-key-supported (PWG5100.7)
 	"media-key-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Printer Description/media-left-margin-supported
+	// Printer Description/media-left-margin-supported (PWG5100.7)
 	"media-left-margin-supported": &Attribute{
 		SetOf: true,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Description/media-order-count-supported
+	// Printer Description/media-order-count-supported (PWG5100.7)
 	"media-order-count-supported": &Attribute{
 		SetOf: true,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagRange},
 	},
-	// Printer Description/media-overprint-default
+	// Printer Description/media-overprint-default (PWG5100.13)
 	"media-overprint-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection, goipp.TagNoValue},
 	},
-	// Printer Description/media-overprint-distance-supported
+	// Printer Description/media-overprint-distance-supported (PWG5100.13)
 	"media-overprint-distance-supported": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagRange},
 	},
-	// Printer Description/media-overprint-method-supported
+	// Printer Description/media-overprint-method-supported (PWG5100.13)
 	"media-overprint-method-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/media-overprint-supported
+	// Printer Description/media-overprint-supported (PWG5100.13)
 	"media-overprint-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/media-pre-printed-supported
+	// Printer Description/media-pre-printed-supported (PWG5100.7)
 	"media-pre-printed-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Printer Description/media-ready
+	// Printer Description/media-ready (rfc8011)
 	"media-ready": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Printer Description/media-recycled-supported
+	// Printer Description/media-recycled-supported (PWG5100.7)
 	"media-recycled-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Printer Description/media-right-margin-supported
+	// Printer Description/media-right-margin-supported (PWG5100.7)
 	"media-right-margin-supported": &Attribute{
 		SetOf: true,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Description/media-size-supported
+	// Printer Description/media-size-supported (PWG5100.7)
 	"media-size-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Printer Description/media-size-supported/x-dimension
+			// Printer Description/media-size-supported/x-dimension (PWG5100.7)
 			"x-dimension": &Attribute{
 				SetOf: false,
 				Min:   1,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger, goipp.TagRange},
 			},
-			// Printer Description/media-size-supported/y-dimension
+			// Printer Description/media-size-supported/y-dimension (PWG5100.7)
 			"y-dimension": &Attribute{
 				SetOf: false,
 				Min:   1,
@@ -7554,532 +7554,532 @@ var PrinterDescription = map[string]*Attribute{
 			},
 		}},
 	},
-	// Printer Description/media-source-supported
+	// Printer Description/media-source-supported (PWG5100.7)
 	"media-source-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Printer Description/media-supported
+	// Printer Description/media-supported (rfc8011)
 	"media-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Printer Description/media-thickness-supported
+	// Printer Description/media-thickness-supported (PWG5100.7)
 	"media-thickness-supported": &Attribute{
 		SetOf: true,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagRange},
 	},
-	// Printer Description/media-tooth-supported
+	// Printer Description/media-tooth-supported (PWG5100.7)
 	"media-tooth-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Printer Description/media-top-margin-supported
+	// Printer Description/media-top-margin-supported (PWG5100.7)
 	"media-top-margin-supported": &Attribute{
 		SetOf: true,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Description/media-top-offset-supported
+	// Printer Description/media-top-offset-supported (IPPLABEL)
 	"media-top-offset-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   -2147483648,
 		Tags:  []goipp.Tag{goipp.TagInteger, goipp.TagRange},
 	},
-	// Printer Description/media-tracking-supported
+	// Printer Description/media-tracking-supported (IPPLABEL)
 	"media-tracking-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/media-type-supported
+	// Printer Description/media-type-supported (PWG5100.7)
 	"media-type-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Printer Description/media-weight-metric-supported
+	// Printer Description/media-weight-metric-supported (PWG5100.7)
 	"media-weight-metric-supported": &Attribute{
 		SetOf: true,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagRange},
 	},
-	// Printer Description/message-supported
+	// Printer Description/message-supported (PWG5100.15)
 	"message-supported": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   1023,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Description/multiple-destination-uris-supported
+	// Printer Description/multiple-destination-uris-supported (PWG5100.15)
 	"multiple-destination-uris-supported": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBoolean},
 	},
-	// Printer Description/multiple-document-handling-default
+	// Printer Description/multiple-document-handling-default (rfc8011)
 	"multiple-document-handling-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/multiple-document-handling-supported
+	// Printer Description/multiple-document-handling-supported (rfc8011)
 	"multiple-document-handling-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/multiple-document-jobs-supported
+	// Printer Description/multiple-document-jobs-supported (rfc8011)
 	"multiple-document-jobs-supported": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBoolean},
 	},
-	// Printer Description/multiple-object-handling-default
+	// Printer Description/multiple-object-handling-default (PWG5100.21)
 	"multiple-object-handling-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/multiple-object-handling-supported
+	// Printer Description/multiple-object-handling-supported (PWG5100.21)
 	"multiple-object-handling-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/multiple-operation-time-out
+	// Printer Description/multiple-operation-time-out (rfc8011)
 	"multiple-operation-time-out": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Description/multiple-operation-time-out-action
+	// Printer Description/multiple-operation-time-out-action (PWG5100.13)
 	"multiple-operation-time-out-action": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/natural-language-configured
+	// Printer Description/natural-language-configured (rfc8011)
 	"natural-language-configured": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagLanguage},
 	},
-	// Printer Description/notify-attributes-supported
+	// Printer Description/notify-attributes-supported (rfc3995)
 	"notify-attributes-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/notify-events-default
+	// Printer Description/notify-events-default (rfc3995)
 	"notify-events-default": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/notify-events-supported
+	// Printer Description/notify-events-supported (rfc3995)
 	"notify-events-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/notify-lease-duration-default
+	// Printer Description/notify-lease-duration-default (rfc3995)
 	"notify-lease-duration-default": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   67108863,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Description/notify-lease-duration-supported
+	// Printer Description/notify-lease-duration-supported (rfc3995)
 	"notify-lease-duration-supported": &Attribute{
 		SetOf: true,
 		Min:   0,
 		Max:   67108863,
 		Tags:  []goipp.Tag{goipp.TagInteger, goipp.TagRange},
 	},
-	// Printer Description/notify-pull-method-supported
+	// Printer Description/notify-pull-method-supported (rfc3995)
 	"notify-pull-method-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/notify-schemes-supported
+	// Printer Description/notify-schemes-supported (rfc3995)
 	"notify-schemes-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURIScheme},
 	},
-	// Printer Description/number-of-retries-default
+	// Printer Description/number-of-retries-default (PWG5100.15)
 	"number-of-retries-default": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Description/number-of-retries-supported
+	// Printer Description/number-of-retries-supported (PWG5100.15)
 	"number-of-retries-supported": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagRange},
 	},
-	// Printer Description/number-up-default
+	// Printer Description/number-up-default (rfc8011)
 	"number-up-default": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Description/number-up-supported
+	// Printer Description/number-up-supported (rfc8011)
 	"number-up-supported": &Attribute{
 		SetOf: true,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger, goipp.TagRange},
 	},
-	// Printer Description/oauth-authorization-scope
+	// Printer Description/oauth-authorization-scope (PWG5100.23)
 	"oauth-authorization-scope": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagNameLang, goipp.TagNoValue},
 	},
-	// Printer Description/oauth-authorization-server-uri
+	// Printer Description/oauth-authorization-server-uri (PWG5100.23)
 	"oauth-authorization-server-uri": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI, goipp.TagNoValue},
 	},
-	// Printer Description/operations-supported
+	// Printer Description/operations-supported (rfc8011)
 	"operations-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum},
 	},
-	// Printer Description/organization-name-supported
+	// Printer Description/organization-name-supported (PWG5100.15)
 	"organization-name-supported": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   1023,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Description/orientation-requested-default
+	// Printer Description/orientation-requested-default (rfc8011)
 	"orientation-requested-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum, goipp.TagNoValue},
 	},
-	// Printer Description/orientation-requested-supported
+	// Printer Description/orientation-requested-supported (rfc8011)
 	"orientation-requested-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum},
 	},
-	// Printer Description/output-attributes-default
+	// Printer Description/output-attributes-default (PWG5100.17)
 	"output-attributes-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection, goipp.TagNoValue},
 	},
-	// Printer Description/output-attributes-supported
+	// Printer Description/output-attributes-supported (PWG5100.17)
 	"output-attributes-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/output-bin-default
+	// Printer Description/output-bin-default (PWG5100.2)
 	"output-bin-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Printer Description/output-bin-supported
+	// Printer Description/output-bin-supported (PWG5100.2)
 	"output-bin-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Printer Description/output-device-supported
+	// Printer Description/output-device-supported (PWG5100.7)
 	"output-device-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   127,
 		Tags:  []goipp.Tag{goipp.TagNameLang},
 	},
-	// Printer Description/output-device-uuid-supported
+	// Printer Description/output-device-uuid-supported (PWG5100.18)
 	"output-device-uuid-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Printer Description/overrides-supported
+	// Printer Description/overrides-supported (PWG5100.6)
 	"overrides-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/page-delivery-default
+	// Printer Description/page-delivery-default (PWG5100.3)
 	"page-delivery-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/page-delivery-supported
+	// Printer Description/page-delivery-supported (PWG5100.3)
 	"page-delivery-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/page-order-received-default
+	// Printer Description/page-order-received-default (PWG5100.3)
 	"page-order-received-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/page-order-received-supported
+	// Printer Description/page-order-received-supported (PWG5100.3)
 	"page-order-received-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/page-ranges-supported
+	// Printer Description/page-ranges-supported (rfc8011)
 	"page-ranges-supported": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBoolean},
 	},
-	// Printer Description/pages-per-subset-supported
+	// Printer Description/pages-per-subset-supported (PWG5100.13)
 	"pages-per-subset-supported": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBoolean},
 	},
-	// Printer Description/parent-printers-supported
+	// Printer Description/parent-printers-supported (rfc3998)
 	"parent-printers-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Printer Description/pclm-raster-back-side
+	// Printer Description/pclm-raster-back-side (HP20180907)
 	"pclm-raster-back-side": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/pclm-source-resolution-supported
+	// Printer Description/pclm-source-resolution-supported (HP20180907)
 	"pclm-source-resolution-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagResolution},
 	},
-	// Printer Description/pclm-strip-height-preferred
+	// Printer Description/pclm-strip-height-preferred (HP20180907)
 	"pclm-strip-height-preferred": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Description/pclm-strip-height-supported
+	// Printer Description/pclm-strip-height-supported (HP20180907)
 	"pclm-strip-height-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Description/pdf-features-supported
+	// Printer Description/pdf-features-supported (PWG5100.21)
 	"pdf-features-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/pdf-k-octets-supported
+	// Printer Description/pdf-k-octets-supported (PWG5100.13)
 	"pdf-k-octets-supported": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagRange},
 	},
-	// Printer Description/pdf-versions-supported
+	// Printer Description/pdf-versions-supported (PWG5100.13)
 	"pdf-versions-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/pdl-init-file-entry-supported
+	// Printer Description/pdl-init-file-entry-supported (PWG5100.11)
 	"pdl-init-file-entry-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagNameLang},
 	},
-	// Printer Description/pdl-init-file-location-supported
+	// Printer Description/pdl-init-file-location-supported (PWG5100.11)
 	"pdl-init-file-location-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Printer Description/pdl-init-file-name-subdirectory-supported
+	// Printer Description/pdl-init-file-name-subdirectory-supported (PWG5100.11)
 	"pdl-init-file-name-subdirectory-supported": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBoolean},
 	},
-	// Printer Description/pdl-init-file-name-supported
+	// Printer Description/pdl-init-file-name-supported (PWG5100.11)
 	"pdl-init-file-name-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagNameLang},
 	},
-	// Printer Description/pdl-init-file-supported
+	// Printer Description/pdl-init-file-supported (PWG5100.11)
 	"pdl-init-file-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/pdl-override-guaranteed-supported
+	// Printer Description/pdl-override-guaranteed-supported (IPPWG20151019)
 	"pdl-override-guaranteed-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/pdl-override-supported
+	// Printer Description/pdl-override-supported (rfc8011)
 	"pdl-override-supported": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/pkcs7-document-format-supported
+	// Printer Description/pkcs7-document-format-supported (PWG5100.TRUSTNOONE)
 	"pkcs7-document-format-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagMimeType},
 	},
-	// Printer Description/platform-shape
+	// Printer Description/platform-shape (PWG5100.21)
 	"platform-shape": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/platform-temperature-default
+	// Printer Description/platform-temperature-default (PWG5100.21)
 	"platform-temperature-default": &Attribute{
 		SetOf: false,
 		Min:   -273,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Description/platform-temperature-supported
+	// Printer Description/platform-temperature-supported (PWG5100.21)
 	"platform-temperature-supported": &Attribute{
 		SetOf: true,
 		Min:   -273,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger, goipp.TagRange},
 	},
-	// Printer Description/preferred-attributes-supported
+	// Printer Description/preferred-attributes-supported (PWG5100.13)
 	"preferred-attributes-supported": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBoolean},
 	},
-	// Printer Description/presentation-direction-number-up-default
+	// Printer Description/presentation-direction-number-up-default (PWG5100.3)
 	"presentation-direction-number-up-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/presentation-direction-number-up-supported
+	// Printer Description/presentation-direction-number-up-supported (PWG5100.3)
 	"presentation-direction-number-up-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/print-accuracy-supported
+	// Printer Description/print-accuracy-supported (PWG5100.21)
 	"print-accuracy-supported": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Printer Description/print-accuracy-supported/accuracy-units
+			// Printer Description/print-accuracy-supported/accuracy-units (PWG5100.21)
 			"accuracy-units": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword},
 			},
-			// Printer Description/print-accuracy-supported/x-accuracy
+			// Printer Description/print-accuracy-supported/x-accuracy (PWG5100.21)
 			"x-accuracy": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Printer Description/print-accuracy-supported/y-accuracy
+			// Printer Description/print-accuracy-supported/y-accuracy (PWG5100.21)
 			"y-accuracy": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Printer Description/print-accuracy-supported/z-accuracy
+			// Printer Description/print-accuracy-supported/z-accuracy (PWG5100.21)
 			"z-accuracy": &Attribute{
 				SetOf: false,
 				Min:   0,
@@ -8088,42 +8088,42 @@ var PrinterDescription = map[string]*Attribute{
 			},
 		}},
 	},
-	// Printer Description/print-base-default
+	// Printer Description/print-base-default (PWG5100.21)
 	"print-base-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/print-base-supported
+	// Printer Description/print-base-supported (PWG5100.21)
 	"print-base-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/print-color-mode-default
+	// Printer Description/print-color-mode-default (PWG5100.13)
 	"print-color-mode-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/print-color-mode-icc-profiles
+	// Printer Description/print-color-mode-icc-profiles (PWG5100.13)
 	"print-color-mode-icc-profiles": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Printer Description/print-color-mode-icc-profiles/print-color-mode
+			// Printer Description/print-color-mode-icc-profiles/print-color-mode (PWG5100.13)
 			"print-color-mode": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword},
 			},
-			// Printer Description/print-color-mode-icc-profiles/profile-uri
+			// Printer Description/print-color-mode-icc-profiles/profile-uri (PWG5100.13)
 			"profile-uri": &Attribute{
 				SetOf: false,
 				Min:   MIN,
@@ -8132,175 +8132,175 @@ var PrinterDescription = map[string]*Attribute{
 			},
 		}},
 	},
-	// Printer Description/print-color-mode-supported
+	// Printer Description/print-color-mode-supported (PWG5100.13)
 	"print-color-mode-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/print-content-optimize-default
+	// Printer Description/print-content-optimize-default (PWG5100.7)
 	"print-content-optimize-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/print-content-optimize-supported
+	// Printer Description/print-content-optimize-supported (PWG5100.7)
 	"print-content-optimize-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/print-darkness-default
+	// Printer Description/print-darkness-default (IPPLABEL)
 	"print-darkness-default": &Attribute{
 		SetOf: false,
 		Min:   -100,
 		Max:   100,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Description/print-darkness-supported
+	// Printer Description/print-darkness-supported (IPPLABEL)
 	"print-darkness-supported": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   100,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Description/print-objects-supported
+	// Printer Description/print-objects-supported (PWG5100.21)
 	"print-objects-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/print-processing-attributes-supported
+	// Printer Description/print-processing-attributes-supported (PWG5100.13)
 	"print-processing-attributes-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/print-quality-default
+	// Printer Description/print-quality-default (rfc8011)
 	"print-quality-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum},
 	},
-	// Printer Description/print-quality-supported
+	// Printer Description/print-quality-supported (rfc8011)
 	"print-quality-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum},
 	},
-	// Printer Description/print-rendering-intent-default
+	// Printer Description/print-rendering-intent-default (PWG5100.13)
 	"print-rendering-intent-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/print-rendering-intent-supported
+	// Printer Description/print-rendering-intent-supported (PWG5100.13)
 	"print-rendering-intent-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/print-scaling-default
+	// Printer Description/print-scaling-default (PWG5100.13)
 	"print-scaling-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/print-scaling-supported
+	// Printer Description/print-scaling-supported (PWG5100.13)
 	"print-scaling-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/print-speed-default
+	// Printer Description/print-speed-default (IPPLABEL)
 	"print-speed-default": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Description/print-speed-supported
+	// Printer Description/print-speed-supported (IPPLABEL)
 	"print-speed-supported": &Attribute{
 		SetOf: true,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger, goipp.TagRange},
 	},
-	// Printer Description/print-supports-default
+	// Printer Description/print-supports-default (PWG5100.21)
 	"print-supports-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/print-supports-supported
+	// Printer Description/print-supports-supported (PWG5100.21)
 	"print-supports-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/printer-asset-tag
+	// Printer Description/printer-asset-tag (PWG5100.11)
 	"printer-asset-tag": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagString},
 	},
-	// Printer Description/printer-camera-image-uri
+	// Printer Description/printer-camera-image-uri (PWG5100.21)
 	"printer-camera-image-uri": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Printer Description/printer-charge-info
+	// Printer Description/printer-charge-info (PWG5100.16)
 	"printer-charge-info": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Printer Description/printer-charge-info-uri
+	// Printer Description/printer-charge-info-uri (PWG5100.16)
 	"printer-charge-info-uri": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Printer Description/printer-contact-col
+	// Printer Description/printer-contact-col (PWG5100.22)
 	"printer-contact-col": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection, goipp.TagUnknown},
 		Members: []map[string]*Attribute{{
-			// Printer Description/printer-contact-col/contact-name
+			// Printer Description/printer-contact-col/contact-name (PWG5100.22)
 			"contact-name": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagNameLang},
 			},
-			// Printer Description/printer-contact-col/contact-uri
+			// Printer Description/printer-contact-col/contact-uri (PWG5100.22)
 			"contact-uri": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagURI},
 			},
-			// Printer Description/printer-contact-col/contact-vcard
+			// Printer Description/printer-contact-col/contact-vcard (PWG5100.22)
 			"contact-vcard": &Attribute{
 				SetOf: true,
 				Min:   MIN,
@@ -8309,112 +8309,112 @@ var PrinterDescription = map[string]*Attribute{
 			},
 		}},
 	},
-	// Printer Description/printer-current-time
+	// Printer Description/printer-current-time (rfc8011)
 	"printer-current-time": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagDateTime, goipp.TagUnknown},
 	},
-	// Printer Description/printer-darkness-configured
+	// Printer Description/printer-darkness-configured (IPPLABEL)
 	"printer-darkness-configured": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   100,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Description/printer-darkness-supported
+	// Printer Description/printer-darkness-supported (IPPLABEL)
 	"printer-darkness-supported": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   100,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Description/printer-detailed-status-messages
+	// Printer Description/printer-detailed-status-messages (PWG5100.11)
 	"printer-detailed-status-messages": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Printer Description/printer-device-id
+	// Printer Description/printer-device-id (PWG5107.2)
 	"printer-device-id": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   1023,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Printer Description/printer-dns-sd-name
+	// Printer Description/printer-dns-sd-name (PWG5100.13)
 	"printer-dns-sd-name": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   63,
 		Tags:  []goipp.Tag{goipp.TagNameLang},
 	},
-	// Printer Description/printer-driver-installer
+	// Printer Description/printer-driver-installer (rfc8011)
 	"printer-driver-installer": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Printer Description/printer-fax-log-uri
+	// Printer Description/printer-fax-log-uri (PWG5100.15)
 	"printer-fax-log-uri": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Printer Description/printer-fax-modem-info
+	// Printer Description/printer-fax-modem-info (PWG5100.15)
 	"printer-fax-modem-info": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Printer Description/printer-fax-modem-name
+	// Printer Description/printer-fax-modem-name (PWG5100.15)
 	"printer-fax-modem-name": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagNameLang},
 	},
-	// Printer Description/printer-fax-modem-number
+	// Printer Description/printer-fax-modem-number (PWG5100.15)
 	"printer-fax-modem-number": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Printer Description/printer-geo-location
+	// Printer Description/printer-geo-location (PWG5100.13)
 	"printer-geo-location": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI, goipp.TagUnknown},
 	},
-	// Printer Description/printer-get-attributes-supported
+	// Printer Description/printer-get-attributes-supported (PWG5100.13)
 	"printer-get-attributes-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/printer-icc-profiles
+	// Printer Description/printer-icc-profiles (PWG5100.13)
 	"printer-icc-profiles": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Printer Description/printer-icc-profiles/profile-name
+			// Printer Description/printer-icc-profiles/profile-name (PWG5100.13)
 			"profile-name": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagNameLang},
 			},
-			// Printer Description/printer-icc-profiles/profile-url
+			// Printer Description/printer-icc-profiles/profile-url (PWG5100.13)
 			"profile-url": &Attribute{
 				SetOf: false,
 				Min:   MIN,
@@ -8423,161 +8423,161 @@ var PrinterDescription = map[string]*Attribute{
 			},
 		}},
 	},
-	// Printer Description/printer-icons
+	// Printer Description/printer-icons (PWG5100.13)
 	"printer-icons": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Printer Description/printer-info
+	// Printer Description/printer-info (rfc8011)
 	"printer-info": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   127,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Printer Description/printer-kind
+	// Printer Description/printer-kind (PWG5100.13)
 	"printer-kind": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Printer Description/printer-location
+	// Printer Description/printer-location (rfc8011)
 	"printer-location": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   127,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Printer Description/printer-make-and-model
+	// Printer Description/printer-make-and-model (rfc8011)
 	"printer-make-and-model": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   127,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Printer Description/printer-mandatory-job-attributes
+	// Printer Description/printer-mandatory-job-attributes (PWG5100.13)
 	"printer-mandatory-job-attributes": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/printer-mode-configured
+	// Printer Description/printer-mode-configured (PWG5100.18)
 	"printer-mode-configured": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/printer-mode-supported
+	// Printer Description/printer-mode-supported (PWG5100.18)
 	"printer-mode-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/printer-more-info-manufacturer
+	// Printer Description/printer-more-info-manufacturer (rfc8011)
 	"printer-more-info-manufacturer": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Printer Description/printer-name
+	// Printer Description/printer-name (rfc8011)
 	"printer-name": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   127,
 		Tags:  []goipp.Tag{goipp.TagNameLang},
 	},
-	// Printer Description/printer-organization
+	// Printer Description/printer-organization (PWG5100.13)
 	"printer-organization": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Printer Description/printer-organizational-unit
+	// Printer Description/printer-organizational-unit (PWG5100.13)
 	"printer-organizational-unit": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Printer Description/printer-pkcs7-public-key
+	// Printer Description/printer-pkcs7-public-key (PWG5100.TRUSTNOONE)
 	"printer-pkcs7-public-key": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Printer Description/printer-pkcs7-repertoire-configured
+	// Printer Description/printer-pkcs7-repertoire-configured (PWG5100.TRUSTNOONE)
 	"printer-pkcs7-repertoire-configured": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/printer-pkcs7-repertoire-supported
+	// Printer Description/printer-pkcs7-repertoire-supported (PWG5100.TRUSTNOONE)
 	"printer-pkcs7-repertoire-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/printer-privacy-policy-uri
+	// Printer Description/printer-privacy-policy-uri (IPPPRIVACY10)
 	"printer-privacy-policy-uri": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Printer Description/printer-requested-job-attributes
+	// Printer Description/printer-requested-job-attributes (PWG5100.16)
 	"printer-requested-job-attributes": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/printer-resolution-default
+	// Printer Description/printer-resolution-default (rfc8011)
 	"printer-resolution-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagResolution},
 	},
-	// Printer Description/printer-resolution-supported
+	// Printer Description/printer-resolution-supported (rfc8011)
 	"printer-resolution-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagResolution},
 	},
-	// Printer Description/printer-service-contact-col
+	// Printer Description/printer-service-contact-col (PWG5100.11)
 	"printer-service-contact-col": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Printer Description/printer-service-contact-col/contact-name
+			// Printer Description/printer-service-contact-col/contact-name (PWG5100.11)
 			"contact-name": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagNameLang},
 			},
-			// Printer Description/printer-service-contact-col/contact-uri
+			// Printer Description/printer-service-contact-col/contact-uri (PWG5100.11)
 			"contact-uri": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagURI},
 			},
-			// Printer Description/printer-service-contact-col/contact-vcard
+			// Printer Description/printer-service-contact-col/contact-vcard (PWG5100.11)
 			"contact-vcard": &Attribute{
 				SetOf: true,
 				Min:   MIN,
@@ -8586,56 +8586,56 @@ var PrinterDescription = map[string]*Attribute{
 			},
 		}},
 	},
-	// Printer Description/printer-static-resource-directory-uri
+	// Printer Description/printer-static-resource-directory-uri (PWG5100.18)
 	"printer-static-resource-directory-uri": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Printer Description/printer-static-resource-k-octets-supported
+	// Printer Description/printer-static-resource-k-octets-supported (PWG5100.18)
 	"printer-static-resource-k-octets-supported": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Description/printer-strings-languages-supported
+	// Printer Description/printer-strings-languages-supported (PWG5100.13)
 	"printer-strings-languages-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagLanguage},
 	},
-	// Printer Description/printer-strings-uri
+	// Printer Description/printer-strings-uri (PWG5100.13)
 	"printer-strings-uri": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI, goipp.TagNoValue},
 	},
-	// Printer Description/printer-volume-supported
+	// Printer Description/printer-volume-supported (PWG5100.21)
 	"printer-volume-supported": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Printer Description/printer-volume-supported/x-dimension
+			// Printer Description/printer-volume-supported/x-dimension (PWG5100.21)
 			"x-dimension": &Attribute{
 				SetOf: false,
 				Min:   1,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Printer Description/printer-volume-supported/y-dimension
+			// Printer Description/printer-volume-supported/y-dimension (PWG5100.21)
 			"y-dimension": &Attribute{
 				SetOf: false,
 				Min:   1,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// Printer Description/printer-volume-supported/z-dimension
+			// Printer Description/printer-volume-supported/z-dimension (PWG5100.21)
 			"z-dimension": &Attribute{
 				SetOf: false,
 				Min:   1,
@@ -8644,42 +8644,42 @@ var PrinterDescription = map[string]*Attribute{
 			},
 		}},
 	},
-	// Printer Description/printer-wifi-password
+	// Printer Description/printer-wifi-password (IPPWIFI)
 	"printer-wifi-password": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagString},
 	},
-	// Printer Description/printer-wifi-ssid
+	// Printer Description/printer-wifi-ssid (IPPWIFI)
 	"printer-wifi-ssid": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagNameLang},
 	},
-	// Printer Description/printer-xri-supported
+	// Printer Description/printer-xri-supported (rfc3380)
 	"printer-xri-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// Printer Description/printer-xri-supported/xri-authentication
+			// Printer Description/printer-xri-supported/xri-authentication (rfc3380)
 			"xri-authentication": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword},
 			},
-			// Printer Description/printer-xri-supported/xri-security
+			// Printer Description/printer-xri-supported/xri-security (rfc3380)
 			"xri-security": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword},
 			},
-			// Printer Description/printer-xri-supported/xri-uri
+			// Printer Description/printer-xri-supported/xri-uri (rfc3380)
 			"xri-uri": &Attribute{
 				SetOf: false,
 				Min:   MIN,
@@ -8688,511 +8688,511 @@ var PrinterDescription = map[string]*Attribute{
 			},
 		}},
 	},
-	// Printer Description/proof-copies-supported
+	// Printer Description/proof-copies-supported (PWG5100.11)
 	"proof-copies-supported": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagRange},
 	},
-	// Printer Description/proof-print-copies-supported
+	// Printer Description/proof-print-copies-supported (PWG5100.11)
 	"proof-print-copies-supported": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagRange},
 	},
-	// Printer Description/proof-print-default
+	// Printer Description/proof-print-default (PWG5100.11)
 	"proof-print-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection, goipp.TagNoValue},
 	},
-	// Printer Description/proof-print-supported
+	// Printer Description/proof-print-supported (PWG5100.11)
 	"proof-print-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/punching-hole-diameter-configured
+	// Printer Description/punching-hole-diameter-configured (PWG5100.1)
 	"punching-hole-diameter-configured": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Description/punching-locations-supported
+	// Printer Description/punching-locations-supported (PWG5100.1)
 	"punching-locations-supported": &Attribute{
 		SetOf: true,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger, goipp.TagRange},
 	},
-	// Printer Description/punching-offset-supported
+	// Printer Description/punching-offset-supported (PWG5100.1)
 	"punching-offset-supported": &Attribute{
 		SetOf: true,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger, goipp.TagRange},
 	},
-	// Printer Description/punching-reference-edge-supported
+	// Printer Description/punching-reference-edge-supported (PWG5100.1)
 	"punching-reference-edge-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/pwg-raster-document-resolution-supported
+	// Printer Description/pwg-raster-document-resolution-supported (PWG5102.4)
 	"pwg-raster-document-resolution-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagResolution},
 	},
-	// Printer Description/pwg-raster-document-sheet-back
+	// Printer Description/pwg-raster-document-sheet-back (PWG5102.4)
 	"pwg-raster-document-sheet-back": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/pwg-raster-document-type-supported
+	// Printer Description/pwg-raster-document-type-supported (PWG5102.4)
 	"pwg-raster-document-type-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/pwg-safe-gcode-supported
+	// Printer Description/pwg-safe-gcode-supported (PWG5199.7)
 	"pwg-safe-gcode-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Printer Description/reference-uri-schemes-supported
+	// Printer Description/reference-uri-schemes-supported (rfc8011)
 	"reference-uri-schemes-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURIScheme},
 	},
-	// Printer Description/repertoire-supported
+	// Printer Description/repertoire-supported (PWG5101.2)
 	"repertoire-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// Printer Description/requesting-user-uri-schemes-supported
+	// Printer Description/requesting-user-uri-schemes-supported (PWG5100.13)
 	"requesting-user-uri-schemes-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURIScheme},
 	},
-	// Printer Description/requesting-user-uri-supported
+	// Printer Description/requesting-user-uri-supported (PWG5100.13)
 	"requesting-user-uri-supported": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBoolean},
 	},
-	// Printer Description/retry-interval-default
+	// Printer Description/retry-interval-default (PWG5100.15)
 	"retry-interval-default": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Description/retry-interval-supported
+	// Printer Description/retry-interval-supported (PWG5100.15)
 	"retry-interval-supported": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagRange},
 	},
-	// Printer Description/retry-time-out-default
+	// Printer Description/retry-time-out-default (PWG5100.15)
 	"retry-time-out-default": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Description/retry-time-out-supported
+	// Printer Description/retry-time-out-supported (PWG5100.15)
 	"retry-time-out-supported": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagRange},
 	},
-	// Printer Description/save-disposition-supported
+	// Printer Description/save-disposition-supported (PWG5100.11)
 	"save-disposition-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/save-document-format-default
+	// Printer Description/save-document-format-default (PWG5100.11)
 	"save-document-format-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagMimeType},
 	},
-	// Printer Description/save-document-format-supported
+	// Printer Description/save-document-format-supported (PWG5100.11)
 	"save-document-format-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagMimeType},
 	},
-	// Printer Description/save-location-default
+	// Printer Description/save-location-default (PWG5100.11)
 	"save-location-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Printer Description/save-location-supported
+	// Printer Description/save-location-supported (PWG5100.11)
 	"save-location-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Printer Description/save-name-subdirectory-supported
+	// Printer Description/save-name-subdirectory-supported (PWG5100.11)
 	"save-name-subdirectory-supported": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBoolean},
 	},
-	// Printer Description/save-name-supported
+	// Printer Description/save-name-supported (PWG5100.11)
 	"save-name-supported": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBoolean},
 	},
-	// Printer Description/separator-sheets-default
+	// Printer Description/separator-sheets-default (PWG5100.3)
 	"separator-sheets-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Printer Description/separator-sheets-supported
+	// Printer Description/separator-sheets-supported (PWG5100.3)
 	"separator-sheets-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/sheet-collate-default
+	// Printer Description/sheet-collate-default (rfc3381)
 	"sheet-collate-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/sheet-collate-supported
+	// Printer Description/sheet-collate-supported (rfc3381)
 	"sheet-collate-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/sides-default
+	// Printer Description/sides-default (rfc8011)
 	"sides-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/sides-supported
+	// Printer Description/sides-supported (rfc8011)
 	"sides-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/smi2699-auth-print-group
+	// Printer Description/smi2699-auth-print-group (IPPSERVER)
 	"smi2699-auth-print-group": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagNameLang},
 	},
-	// Printer Description/smi2699-auth-proxy-group
+	// Printer Description/smi2699-auth-proxy-group (IPPSERVER)
 	"smi2699-auth-proxy-group": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagNameLang},
 	},
-	// Printer Description/smi2699-device-command
+	// Printer Description/smi2699-device-command (IPPSERVER)
 	"smi2699-device-command": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagNameLang},
 	},
-	// Printer Description/smi2699-device-format
+	// Printer Description/smi2699-device-format (IPPSERVER)
 	"smi2699-device-format": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagMimeType},
 	},
-	// Printer Description/smi2699-device-name
+	// Printer Description/smi2699-device-name (IPPSERVER)
 	"smi2699-device-name": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagNameLang},
 	},
-	// Printer Description/smi2699-device-uri
+	// Printer Description/smi2699-device-uri (IPPSERVER)
 	"smi2699-device-uri": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Printer Description/stitching-angle-supported
+	// Printer Description/stitching-angle-supported (PWG5100.1)
 	"stitching-angle-supported": &Attribute{
 		SetOf: true,
 		Min:   0,
 		Max:   359,
 		Tags:  []goipp.Tag{goipp.TagInteger, goipp.TagRange},
 	},
-	// Printer Description/stitching-locations-supported
+	// Printer Description/stitching-locations-supported (PWG5100.1)
 	"stitching-locations-supported": &Attribute{
 		SetOf: true,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger, goipp.TagRange},
 	},
-	// Printer Description/stitching-method-supported
+	// Printer Description/stitching-method-supported (PWG5100.1)
 	"stitching-method-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/stitching-offset-supported
+	// Printer Description/stitching-offset-supported (PWG5100.1)
 	"stitching-offset-supported": &Attribute{
 		SetOf: true,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger, goipp.TagRange},
 	},
-	// Printer Description/stitching-reference-edge-supported
+	// Printer Description/stitching-reference-edge-supported (PWG5100.1)
 	"stitching-reference-edge-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/subject-supported
+	// Printer Description/subject-supported (PWG5100.15)
 	"subject-supported": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   1023,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Description/subordinate-printers-supported
+	// Printer Description/subordinate-printers-supported (rfc3998)
 	"subordinate-printers-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Printer Description/subscription-privacy-attributes
+	// Printer Description/subscription-privacy-attributes (IPPPRIVACY10)
 	"subscription-privacy-attributes": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/subscription-privacy-scope
+	// Printer Description/subscription-privacy-scope (IPPPRIVACY10)
 	"subscription-privacy-scope": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/to-name-supported
+	// Printer Description/to-name-supported (PWG5100.15)
 	"to-name-supported": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   1023,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Description/trimming-offset-supported
+	// Printer Description/trimming-offset-supported (PWG5100.1)
 	"trimming-offset-supported": &Attribute{
 		SetOf: true,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger, goipp.TagRange},
 	},
-	// Printer Description/trimming-reference-edge-supported
+	// Printer Description/trimming-reference-edge-supported (PWG5100.1)
 	"trimming-reference-edge-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/trimming-type-supported
+	// Printer Description/trimming-type-supported (PWG5100.1)
 	"trimming-type-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/trimming-when-supported
+	// Printer Description/trimming-when-supported (PWG5100.1)
 	"trimming-when-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/uri-authentication-supported
+	// Printer Description/uri-authentication-supported (rfc8011)
 	"uri-authentication-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/uri-security-supported
+	// Printer Description/uri-security-supported (rfc8011)
 	"uri-security-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/user-defined-values-supported
+	// Printer Description/user-defined-values-supported (PWG5100.3)
 	"user-defined-values-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/which-jobs-supported
+	// Printer Description/which-jobs-supported (PWG5100.7)
 	"which-jobs-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/x-image-position-default
+	// Printer Description/x-image-position-default (PWG5100.3)
 	"x-image-position-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/x-image-position-supported
+	// Printer Description/x-image-position-supported (PWG5100.3)
 	"x-image-position-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/x-image-shift-default
+	// Printer Description/x-image-shift-default (PWG5100.3)
 	"x-image-shift-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Description/x-image-shift-supported
+	// Printer Description/x-image-shift-supported (PWG5100.3)
 	"x-image-shift-supported": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagRange},
 	},
-	// Printer Description/x-side1-image-shift-default
+	// Printer Description/x-side1-image-shift-default (PWG5100.3)
 	"x-side1-image-shift-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Description/x-side1-image-shift-supported
+	// Printer Description/x-side1-image-shift-supported (PWG5100.3)
 	"x-side1-image-shift-supported": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagRange},
 	},
-	// Printer Description/x-side2-image-shift-default
+	// Printer Description/x-side2-image-shift-default (PWG5100.3)
 	"x-side2-image-shift-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Description/x-side2-image-shift-supported
+	// Printer Description/x-side2-image-shift-supported (PWG5100.3)
 	"x-side2-image-shift-supported": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagRange},
 	},
-	// Printer Description/y-image-position-default
+	// Printer Description/y-image-position-default (PWG5100.3)
 	"y-image-position-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/y-image-position-supported
+	// Printer Description/y-image-position-supported (PWG5100.3)
 	"y-image-position-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/y-image-shift-default
+	// Printer Description/y-image-shift-default (PWG5100.3)
 	"y-image-shift-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Description/y-image-shift-supported
+	// Printer Description/y-image-shift-supported (PWG5100.3)
 	"y-image-shift-supported": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagRange},
 	},
-	// Printer Description/y-side1-image-shift-default
+	// Printer Description/y-side1-image-shift-default (PWG5100.3)
 	"y-side1-image-shift-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Description/y-side1-image-shift-supported
+	// Printer Description/y-side1-image-shift-supported (PWG5100.3)
 	"y-side1-image-shift-supported": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagRange},
 	},
-	// Printer Description/y-side2-image-shift-default
+	// Printer Description/y-side2-image-shift-default (PWG5100.3)
 	"y-side2-image-shift-default": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Description/y-side2-image-shift-supported
+	// Printer Description/y-side2-image-shift-supported (PWG5100.3)
 	"y-side2-image-shift-supported": &Attribute{
 		SetOf: false,
 		Min:   MIN,
@@ -9203,455 +9203,455 @@ var PrinterDescription = map[string]*Attribute{
 
 // PrinterStatus is the Printer Status attributes
 var PrinterStatus = map[string]*Attribute{
-	// Printer Status/chamber-humidity-current
+	// Printer Status/chamber-humidity-current (PWG5100.21)
 	"chamber-humidity-current": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   100,
 		Tags:  []goipp.Tag{goipp.TagInteger, goipp.TagUnknown},
 	},
-	// Printer Status/chamber-temperature-current
+	// Printer Status/chamber-temperature-current (PWG5100.21)
 	"chamber-temperature-current": &Attribute{
 		SetOf: false,
 		Min:   -273,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger, goipp.TagUnknown},
 	},
-	// Printer Status/device-service-count
+	// Printer Status/device-service-count (PWG5100.13)
 	"device-service-count": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Status/device-uuid
+	// Printer Status/device-uuid (PWG5100.13)
 	"device-uuid": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Printer Status/document-format-varying-attributes
+	// Printer Status/document-format-varying-attributes (rfc3380)
 	"document-format-varying-attributes": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Status/job-settable-attributes-supported
+	// Printer Status/job-settable-attributes-supported (rfc3380)
 	"job-settable-attributes-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Status/pages-per-minute
+	// Printer Status/pages-per-minute (rfc8011)
 	"pages-per-minute": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Status/pages-per-minute-color
+	// Printer Status/pages-per-minute-color (rfc8011)
 	"pages-per-minute-color": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Status/printer-alert
+	// Printer Status/printer-alert (PWG5100.9)
 	"printer-alert": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagString},
 	},
-	// Printer Status/printer-alert-description
+	// Printer Status/printer-alert-description (PWG5100.9)
 	"printer-alert-description": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Printer Status/printer-camera-image-uri
+	// Printer Status/printer-camera-image-uri (PWG5100.21)
 	"printer-camera-image-uri": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Printer Status/printer-config-change-date-time
+	// Printer Status/printer-config-change-date-time (PWG5100.13)
 	"printer-config-change-date-time": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagDateTime, goipp.TagUnknown},
 	},
-	// Printer Status/printer-config-change-time
+	// Printer Status/printer-config-change-time (PWG5100.13)
 	"printer-config-change-time": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Status/printer-config-changes
+	// Printer Status/printer-config-changes (PWG5100.22)
 	"printer-config-changes": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Status/printer-console-display
+	// Printer Status/printer-console-display (IPPCONSOLE)
 	"printer-console-display": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Printer Status/printer-console-light
+	// Printer Status/printer-console-light (IPPCONSOLE)
 	"printer-console-light": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagString},
 	},
-	// Printer Status/printer-console-light-description
+	// Printer Status/printer-console-light-description (IPPCONSOLE)
 	"printer-console-light-description": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Printer Status/printer-cover
+	// Printer Status/printer-cover (IPP20210223)
 	"printer-cover": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagString},
 	},
-	// Printer Status/printer-cover-description
+	// Printer Status/printer-cover-description (IPP20210223)
 	"printer-cover-description": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Printer Status/printer-detailed-status-messages
+	// Printer Status/printer-detailed-status-messages (PWG5100.7)
 	"printer-detailed-status-messages": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Printer Status/printer-finisher
+	// Printer Status/printer-finisher (PWG5100.1)
 	"printer-finisher": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagString},
 	},
-	// Printer Status/printer-finisher-description
+	// Printer Status/printer-finisher-description (PWG5100.1)
 	"printer-finisher-description": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Printer Status/printer-finisher-supplies
+	// Printer Status/printer-finisher-supplies (PWG5100.1)
 	"printer-finisher-supplies": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagString},
 	},
-	// Printer Status/printer-finisher-supplies-description
+	// Printer Status/printer-finisher-supplies-description (PWG5100.1)
 	"printer-finisher-supplies-description": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Printer Status/printer-firmware-name
+	// Printer Status/printer-firmware-name (PWG5100.13)
 	"printer-firmware-name": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagNameLang},
 	},
-	// Printer Status/printer-firmware-patches
+	// Printer Status/printer-firmware-patches (PWG5100.13)
 	"printer-firmware-patches": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Printer Status/printer-firmware-string-version
+	// Printer Status/printer-firmware-string-version (PWG5100.13)
 	"printer-firmware-string-version": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Printer Status/printer-firmware-version
+	// Printer Status/printer-firmware-version (PWG5100.13)
 	"printer-firmware-version": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagString},
 	},
-	// Printer Status/printer-home-page-uri
+	// Printer Status/printer-home-page-uri (IPPCONSOLE)
 	"printer-home-page-uri": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Printer Status/printer-id
+	// Printer Status/printer-id (PWG5100.22)
 	"printer-id": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   65535,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Status/printer-impressions-completed
+	// Printer Status/printer-impressions-completed (PWG5100.22)
 	"printer-impressions-completed": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Status/printer-impressions-completed-col
+	// Printer Status/printer-impressions-completed-col (PWG5100.22)
 	"printer-impressions-completed-col": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Printer Status/printer-input-tray
+	// Printer Status/printer-input-tray (PWG5100.13)
 	"printer-input-tray": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagString},
 	},
-	// Printer Status/printer-is-accepting-jobs
+	// Printer Status/printer-is-accepting-jobs (rfc8011)
 	"printer-is-accepting-jobs": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBoolean},
 	},
-	// Printer Status/printer-media-sheets-completed
+	// Printer Status/printer-media-sheets-completed (PWG5100.22)
 	"printer-media-sheets-completed": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Status/printer-media-sheets-completed-col
+	// Printer Status/printer-media-sheets-completed-col (PWG5100.22)
 	"printer-media-sheets-completed-col": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Printer Status/printer-message-date-time
+	// Printer Status/printer-message-date-time (rfc3380)
 	"printer-message-date-time": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagDateTime},
 	},
-	// Printer Status/printer-message-from-operator
+	// Printer Status/printer-message-from-operator (rfc8011)
 	"printer-message-from-operator": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   127,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Printer Status/printer-message-time
+	// Printer Status/printer-message-time (rfc3380)
 	"printer-message-time": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Status/printer-more-info
+	// Printer Status/printer-more-info (rfc8011)
 	"printer-more-info": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Printer Status/printer-output-tray
+	// Printer Status/printer-output-tray (PWG5100.13)
 	"printer-output-tray": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagString},
 	},
-	// Printer Status/printer-pages-completed
+	// Printer Status/printer-pages-completed (PWG5100.22)
 	"printer-pages-completed": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Status/printer-pages-completed-col
+	// Printer Status/printer-pages-completed-col (PWG5100.22)
 	"printer-pages-completed-col": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// Printer Status/printer-serial-number
+	// Printer Status/printer-serial-number (PWG5100.11)
 	"printer-serial-number": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   255,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Printer Status/printer-service-type
+	// Printer Status/printer-service-type (PWG5100.22)
 	"printer-service-type": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Status/printer-settable-attributes-supported
+	// Printer Status/printer-settable-attributes-supported (rfc3380)
 	"printer-settable-attributes-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Status/printer-state
+	// Printer Status/printer-state (rfc8011)
 	"printer-state": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum},
 	},
-	// Printer Status/printer-state-change-date-time
+	// Printer Status/printer-state-change-date-time (rfc3995)
 	"printer-state-change-date-time": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagDateTime},
 	},
-	// Printer Status/printer-state-change-time
+	// Printer Status/printer-state-change-time (rfc3995)
 	"printer-state-change-time": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Status/printer-state-message
+	// Printer Status/printer-state-message (rfc8011)
 	"printer-state-message": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Printer Status/printer-state-reasons
+	// Printer Status/printer-state-reasons (rfc8011)
 	"printer-state-reasons": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Status/printer-static-resource-k-octets-free
+	// Printer Status/printer-static-resource-k-octets-free (PWG5100.18)
 	"printer-static-resource-k-octets-free": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Status/printer-storage
+	// Printer Status/printer-storage (PWG5100.11)
 	"printer-storage": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagString},
 	},
-	// Printer Status/printer-storage-description
+	// Printer Status/printer-storage-description (PWG5100.11)
 	"printer-storage-description": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Printer Status/printer-supply
+	// Printer Status/printer-supply (PWG5100.13)
 	"printer-supply": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagString},
 	},
-	// Printer Status/printer-supply-description
+	// Printer Status/printer-supply-description (PWG5100.13)
 	"printer-supply-description": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Printer Status/printer-supply-info-uri
+	// Printer Status/printer-supply-info-uri (PWG5100.13)
 	"printer-supply-info-uri": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Printer Status/printer-up-time
+	// Printer Status/printer-up-time (rfc8011)
 	"printer-up-time": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Status/printer-uri-supported
+	// Printer Status/printer-uri-supported (rfc8011)
 	"printer-uri-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Printer Status/printer-uuid
+	// Printer Status/printer-uuid (PWG5100.13)
 	"printer-uuid": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Printer Status/printer-wifi-state
+	// Printer Status/printer-wifi-state (IPPWIFI)
 	"printer-wifi-state": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum},
 	},
-	// Printer Status/queued-job-count
+	// Printer Status/queued-job-count (rfc8011)
 	"queued-job-count": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Printer Status/xri-authentication-supported
+	// Printer Status/xri-authentication-supported (rfc3380)
 	"xri-authentication-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Status/xri-security-supported
+	// Printer Status/xri-security-supported (rfc3380)
 	"xri-security-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Status/xri-uri-scheme-supported
+	// Printer Status/xri-uri-scheme-supported (rfc3380)
 	"xri-uri-scheme-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
@@ -9662,14 +9662,14 @@ var PrinterStatus = map[string]*Attribute{
 
 // ResourceDescription is the Resource Description attributes
 var ResourceDescription = map[string]*Attribute{
-	// Resource Description/resource-info
+	// Resource Description/resource-info (PWG5100.22)
 	"resource-info": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Resource Description/resource-name
+	// Resource Description/resource-name (PWG5100.22)
 	"resource-name": &Attribute{
 		SetOf: false,
 		Min:   MIN,
@@ -9680,147 +9680,147 @@ var ResourceDescription = map[string]*Attribute{
 
 // ResourceStatus is the Resource Status attributes
 var ResourceStatus = map[string]*Attribute{
-	// Resource Status/date-time-at-canceled
+	// Resource Status/date-time-at-canceled (PWG5100.22)
 	"date-time-at-canceled": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagDateTime, goipp.TagNoValue},
 	},
-	// Resource Status/date-time-at-creation
+	// Resource Status/date-time-at-creation (PWG5100.22)
 	"date-time-at-creation": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagDateTime},
 	},
-	// Resource Status/date-time-at-installed
+	// Resource Status/date-time-at-installed (PWG5100.22)
 	"date-time-at-installed": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagDateTime, goipp.TagNoValue},
 	},
-	// Resource Status/resource-data-uri
+	// Resource Status/resource-data-uri (PWG5100.22)
 	"resource-data-uri": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI, goipp.TagNoValue},
 	},
-	// Resource Status/resource-format
+	// Resource Status/resource-format (PWG5100.22)
 	"resource-format": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagMimeType},
 	},
-	// Resource Status/resource-id
+	// Resource Status/resource-id (PWG5100.22)
 	"resource-id": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Resource Status/resource-k-octets
+	// Resource Status/resource-k-octets (PWG5100.22)
 	"resource-k-octets": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Resource Status/resource-natural-language
+	// Resource Status/resource-natural-language (PWG5100.22)
 	"resource-natural-language": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagLanguage},
 	},
-	// Resource Status/resource-patches
+	// Resource Status/resource-patches (PWG5100.22)
 	"resource-patches": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang, goipp.TagNoValue},
 	},
-	// Resource Status/resource-signature
+	// Resource Status/resource-signature (PWG5100.22)
 	"resource-signature": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagString},
 	},
-	// Resource Status/resource-state
+	// Resource Status/resource-state (PWG5100.22)
 	"resource-state": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum},
 	},
-	// Resource Status/resource-state-message
+	// Resource Status/resource-state-message (PWG5100.22)
 	"resource-state-message": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// Resource Status/resource-state-reasons
+	// Resource Status/resource-state-reasons (PWG5100.22)
 	"resource-state-reasons": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Resource Status/resource-string-version
+	// Resource Status/resource-string-version (PWG5100.22)
 	"resource-string-version": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang, goipp.TagNoValue},
 	},
-	// Resource Status/resource-type
+	// Resource Status/resource-type (PWG5100.22)
 	"resource-type": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Resource Status/resource-use-count
+	// Resource Status/resource-use-count (PWG5100.22)
 	"resource-use-count": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Resource Status/resource-uuid
+	// Resource Status/resource-uuid (PWG5100.22)
 	"resource-uuid": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   45,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Resource Status/resource-version
+	// Resource Status/resource-version (PWG5100.22)
 	"resource-version": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   64,
 		Tags:  []goipp.Tag{goipp.TagString, goipp.TagNoValue},
 	},
-	// Resource Status/time-at-canceled
+	// Resource Status/time-at-canceled (PWG5100.22)
 	"time-at-canceled": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger, goipp.TagNoValue},
 	},
-	// Resource Status/time-at-creation
+	// Resource Status/time-at-creation (PWG5100.22)
 	"time-at-creation": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Resource Status/time-at-installed
+	// Resource Status/time-at-installed (PWG5100.22)
 	"time-at-installed": &Attribute{
 		SetOf: false,
 		Min:   MIN,
@@ -9831,91 +9831,91 @@ var ResourceStatus = map[string]*Attribute{
 
 // SubscriptionStatus is the Subscription Status attributes
 var SubscriptionStatus = map[string]*Attribute{
-	// Subscription Status/notify-job-id
+	// Subscription Status/notify-job-id (rfc3995)
 	"notify-job-id": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Subscription Status/notify-lease-expiration-time
+	// Subscription Status/notify-lease-expiration-time (rfc3995)
 	"notify-lease-expiration-time": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Subscription Status/notify-printer-up-time
+	// Subscription Status/notify-printer-up-time (rfc3995)
 	"notify-printer-up-time": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Subscription Status/notify-printer-uri
+	// Subscription Status/notify-printer-uri (rfc3995)
 	"notify-printer-uri": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Subscription Status/notify-resource-id
+	// Subscription Status/notify-resource-id (PWG5100.22)
 	"notify-resource-id": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Subscription Status/notify-sequence-number
+	// Subscription Status/notify-sequence-number (rfc3995)
 	"notify-sequence-number": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Subscription Status/notify-status-code
+	// Subscription Status/notify-status-code (rfc3995)
 	"notify-status-code": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum},
 	},
-	// Subscription Status/notify-subscriber-user-name
+	// Subscription Status/notify-subscriber-user-name (rfc3995)
 	"notify-subscriber-user-name": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagNameLang},
 	},
-	// Subscription Status/notify-subscriber-user-uri
+	// Subscription Status/notify-subscriber-user-uri (PWG5100.13)
 	"notify-subscriber-user-uri": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Subscription Status/notify-subscription-id
+	// Subscription Status/notify-subscription-id (rfc3995)
 	"notify-subscription-id": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Subscription Status/notify-subscription-uuid
+	// Subscription Status/notify-subscription-uuid (PWG5100.13)
 	"notify-subscription-uuid": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Subscription Status/notify-system-up-time
+	// Subscription Status/notify-system-up-time (PWG5100.22)
 	"notify-system-up-time": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Subscription Status/notify-system-uri
+	// Subscription Status/notify-system-uri (PWG5100.22)
 	"notify-system-uri": &Attribute{
 		SetOf: false,
 		Min:   MIN,
@@ -9926,70 +9926,70 @@ var SubscriptionStatus = map[string]*Attribute{
 
 // SubscriptionTemplate is the Subscription Template attributes
 var SubscriptionTemplate = map[string]*Attribute{
-	// Subscription Template/notify-attributes
+	// Subscription Template/notify-attributes (rfc3995)
 	"notify-attributes": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Subscription Template/notify-charset
+	// Subscription Template/notify-charset (rfc3995)
 	"notify-charset": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagCharset},
 	},
-	// Subscription Template/notify-events
+	// Subscription Template/notify-events (rfc3995)
 	"notify-events": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Subscription Template/notify-lease-duration
+	// Subscription Template/notify-lease-duration (rfc3995)
 	"notify-lease-duration": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   67108863,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Subscription Template/notify-max-events-supported
+	// Subscription Template/notify-max-events-supported (rfc3995)
 	"notify-max-events-supported": &Attribute{
 		SetOf: false,
 		Min:   2,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Subscription Template/notify-natural-language
+	// Subscription Template/notify-natural-language (rfc3995)
 	"notify-natural-language": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagLanguage},
 	},
-	// Subscription Template/notify-pull-method
+	// Subscription Template/notify-pull-method (rfc3995)
 	"notify-pull-method": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Subscription Template/notify-recipient-uri
+	// Subscription Template/notify-recipient-uri (rfc3995)
 	"notify-recipient-uri": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// Subscription Template/notify-time-interval
+	// Subscription Template/notify-time-interval (rfc3995)
 	"notify-time-interval": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// Subscription Template/notify-user-data
+	// Subscription Template/notify-user-data (rfc3995)
 	"notify-user-data": &Attribute{
 		SetOf: false,
 		Min:   MIN,
@@ -10000,210 +10000,210 @@ var SubscriptionTemplate = map[string]*Attribute{
 
 // SystemDescription is the System Description attributes
 var SystemDescription = map[string]*Attribute{
-	// System Description/charset-configured
+	// System Description/charset-configured (PWG5100.22)
 	"charset-configured": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagCharset},
 	},
-	// System Description/charset-supported
+	// System Description/charset-supported (PWG5100.22)
 	"charset-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagCharset},
 	},
-	// System Description/document-format-supported
+	// System Description/document-format-supported (PWG5100.22)
 	"document-format-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagMimeType},
 	},
-	// System Description/generated-natural-language-supported
+	// System Description/generated-natural-language-supported (PWG5100.22)
 	"generated-natural-language-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagLanguage},
 	},
-	// System Description/ipp-features-supported
+	// System Description/ipp-features-supported (PWG5100.22)
 	"ipp-features-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// System Description/ipp-versions-supported
+	// System Description/ipp-versions-supported (PWG5100.22)
 	"ipp-versions-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// System Description/ippget-event-life
+	// System Description/ippget-event-life (PWG5100.22)
 	"ippget-event-life": &Attribute{
 		SetOf: false,
 		Min:   15,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// System Description/multiple-document-printers-supported
+	// System Description/multiple-document-printers-supported (PWG5100.22)
 	"multiple-document-printers-supported": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBoolean},
 	},
-	// System Description/natural-language-configured
+	// System Description/natural-language-configured (PWG5100.22)
 	"natural-language-configured": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagLanguage},
 	},
-	// System Description/notify-attributes-supported
+	// System Description/notify-attributes-supported (PWG5100.22)
 	"notify-attributes-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// System Description/notify-events-default
+	// System Description/notify-events-default (PWG5100.22)
 	"notify-events-default": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// System Description/notify-events-supported
+	// System Description/notify-events-supported (PWG5100.22)
 	"notify-events-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// System Description/notify-lease-duration-default
+	// System Description/notify-lease-duration-default (PWG5100.22)
 	"notify-lease-duration-default": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   67108863,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// System Description/notify-lease-duration-supported
+	// System Description/notify-lease-duration-supported (PWG5100.22)
 	"notify-lease-duration-supported": &Attribute{
 		SetOf: true,
 		Min:   0,
 		Max:   67108863,
 		Tags:  []goipp.Tag{goipp.TagInteger, goipp.TagRange},
 	},
-	// System Description/notify-max-events-supported
+	// System Description/notify-max-events-supported (PWG5100.22)
 	"notify-max-events-supported": &Attribute{
 		SetOf: false,
 		Min:   2,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// System Description/notify-pull-method-supported
+	// System Description/notify-pull-method-supported (PWG5100.22)
 	"notify-pull-method-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// System Description/notify-schemes-supported
+	// System Description/notify-schemes-supported (PWG5100.22)
 	"notify-schemes-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURIScheme},
 	},
-	// System Description/oauth-authorization-scope
+	// System Description/oauth-authorization-scope (PWG5100.23)
 	"oauth-authorization-scope": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagNameLang, goipp.TagNoValue},
 	},
-	// System Description/oauth-authorization-server-uri
+	// System Description/oauth-authorization-server-uri (PWG5100.23)
 	"oauth-authorization-server-uri": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI, goipp.TagNoValue},
 	},
-	// System Description/operations-supported
+	// System Description/operations-supported (PWG5100.22)
 	"operations-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum},
 	},
-	// System Description/output-device-x509-type-supported
+	// System Description/output-device-x509-type-supported (PWG5100.22)
 	"output-device-x509-type-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// System Description/power-calendar-policy-col
+	// System Description/power-calendar-policy-col (PWG5100.22)
 	"power-calendar-policy-col": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// System Description/power-calendar-policy-col/calendar-id
+			// System Description/power-calendar-policy-col/calendar-id (PWG5100.22)
 			"calendar-id": &Attribute{
 				SetOf: false,
 				Min:   1,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// System Description/power-calendar-policy-col/day-of-month
+			// System Description/power-calendar-policy-col/day-of-month (PWG5100.22)
 			"day-of-month": &Attribute{
 				SetOf: false,
 				Min:   1,
 				Max:   31,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// System Description/power-calendar-policy-col/day-of-week
+			// System Description/power-calendar-policy-col/day-of-week (PWG5100.22)
 			"day-of-week": &Attribute{
 				SetOf: false,
 				Min:   1,
 				Max:   7,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// System Description/power-calendar-policy-col/hour
+			// System Description/power-calendar-policy-col/hour (PWG5100.22)
 			"hour": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   23,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// System Description/power-calendar-policy-col/minute
+			// System Description/power-calendar-policy-col/minute (PWG5100.22)
 			"minute": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   59,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// System Description/power-calendar-policy-col/month
+			// System Description/power-calendar-policy-col/month (PWG5100.22)
 			"month": &Attribute{
 				SetOf: false,
 				Min:   1,
 				Max:   12,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// System Description/power-calendar-policy-col/request-power-state
+			// System Description/power-calendar-policy-col/request-power-state (PWG5100.22)
 			"request-power-state": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword},
 			},
-			// System Description/power-calendar-policy-col/run-once
+			// System Description/power-calendar-policy-col/run-once (PWG5100.22)
 			"run-once": &Attribute{
 				SetOf: false,
 				Min:   MIN,
@@ -10212,28 +10212,28 @@ var SystemDescription = map[string]*Attribute{
 			},
 		}},
 	},
-	// System Description/power-event-policy-col
+	// System Description/power-event-policy-col (PWG5100.22)
 	"power-event-policy-col": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// System Description/power-event-policy-col/event-id
+			// System Description/power-event-policy-col/event-id (PWG5100.22)
 			"event-id": &Attribute{
 				SetOf: false,
 				Min:   1,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// System Description/power-event-policy-col/event-name
+			// System Description/power-event-policy-col/event-name (PWG5100.22)
 			"event-name": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   127,
 				Tags:  []goipp.Tag{goipp.TagNameLang},
 			},
-			// System Description/power-event-policy-col/request-power-state
+			// System Description/power-event-policy-col/request-power-state (PWG5100.22)
 			"request-power-state": &Attribute{
 				SetOf: false,
 				Min:   MIN,
@@ -10242,35 +10242,35 @@ var SystemDescription = map[string]*Attribute{
 			},
 		}},
 	},
-	// System Description/power-timeout-policy-col
+	// System Description/power-timeout-policy-col (PWG5100.22)
 	"power-timeout-policy-col": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// System Description/power-timeout-policy-col/start-power-state
+			// System Description/power-timeout-policy-col/start-power-state (PWG5100.22)
 			"start-power-state": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword},
 			},
-			// System Description/power-timeout-policy-col/timeout-id
+			// System Description/power-timeout-policy-col/timeout-id (PWG5100.22)
 			"timeout-id": &Attribute{
 				SetOf: false,
 				Min:   1,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// System Description/power-timeout-policy-col/timeout-predicate
+			// System Description/power-timeout-policy-col/timeout-predicate (PWG5100.22)
 			"timeout-predicate": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword},
 			},
-			// System Description/power-timeout-policy-col/timeout-seconds
+			// System Description/power-timeout-policy-col/timeout-seconds (PWG5100.22)
 			"timeout-seconds": &Attribute{
 				SetOf: false,
 				Min:   0,
@@ -10279,182 +10279,182 @@ var SystemDescription = map[string]*Attribute{
 			},
 		}},
 	},
-	// System Description/printer-creation-attributes-supported
+	// System Description/printer-creation-attributes-supported (PWG5100.22)
 	"printer-creation-attributes-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// System Description/resource-format-supported
+	// System Description/resource-format-supported (PWG5100.22)
 	"resource-format-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagMimeType},
 	},
-	// System Description/resource-settable-attributes-supported
+	// System Description/resource-settable-attributes-supported (PWG5100.22)
 	"resource-settable-attributes-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// System Description/resource-type-supported
+	// System Description/resource-type-supported (PWG5100.22)
 	"resource-type-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// System Description/smi2699-auth-group-supported
+	// System Description/smi2699-auth-group-supported (IPPSERVER)
 	"smi2699-auth-group-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagNameLang},
 	},
-	// System Description/smi2699-device-command-supported
+	// System Description/smi2699-device-command-supported (IPPSERVER)
 	"smi2699-device-command-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagNameLang},
 	},
-	// System Description/smi2699-device-format-supported
+	// System Description/smi2699-device-format-supported (IPPSERVER)
 	"smi2699-device-format-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagMimeType},
 	},
-	// System Description/smi2699-device-uri-schemes-supported
+	// System Description/smi2699-device-uri-schemes-supported (IPPSERVER)
 	"smi2699-device-uri-schemes-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURIScheme},
 	},
-	// System Description/system-asset-tag
+	// System Description/system-asset-tag (PWG5100.22)
 	"system-asset-tag": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagString},
 	},
-	// System Description/system-contact-col
+	// System Description/system-contact-col (PWG5100.22)
 	"system-contact-col": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection, goipp.TagUnknown},
 	},
-	// System Description/system-current-time
+	// System Description/system-current-time (PWG5100.22)
 	"system-current-time": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagDateTime},
 	},
-	// System Description/system-default-printer-id
+	// System Description/system-default-printer-id (PWG5100.22)
 	"system-default-printer-id": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   65535,
 		Tags:  []goipp.Tag{goipp.TagInteger, goipp.TagNoValue},
 	},
-	// System Description/system-dns-sd-name
+	// System Description/system-dns-sd-name (PWG5100.22)
 	"system-dns-sd-name": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   63,
 		Tags:  []goipp.Tag{goipp.TagNameLang},
 	},
-	// System Description/system-geo-location
+	// System Description/system-geo-location (PWG5100.22)
 	"system-geo-location": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI, goipp.TagUnknown},
 	},
-	// System Description/system-info
+	// System Description/system-info (PWG5100.22)
 	"system-info": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   127,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// System Description/system-location
+	// System Description/system-location (PWG5100.22)
 	"system-location": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   127,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// System Description/system-make-and-model
+	// System Description/system-make-and-model (PWG5100.22)
 	"system-make-and-model": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   127,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// System Description/system-mandatory-printer-attributes
+	// System Description/system-mandatory-printer-attributes (PWG5100.22)
 	"system-mandatory-printer-attributes": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// System Description/system-mandatory-registration-attributes
+	// System Description/system-mandatory-registration-attributes (PWG5100.22)
 	"system-mandatory-registration-attributes": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// System Description/system-message-from-operator
+	// System Description/system-message-from-operator (PWG5100.22)
 	"system-message-from-operator": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   127,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// System Description/system-name
+	// System Description/system-name (PWG5100.22)
 	"system-name": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   127,
 		Tags:  []goipp.Tag{goipp.TagNameLang},
 	},
-	// System Description/system-service-contact-col
+	// System Description/system-service-contact-col (PWG5100.22)
 	"system-service-contact-col": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection, goipp.TagUnknown},
 	},
-	// System Description/system-settable-attributes-supported
+	// System Description/system-settable-attributes-supported (PWG5100.22)
 	"system-settable-attributes-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// System Description/system-strings-languages-supported
+	// System Description/system-strings-languages-supported (PWG5100.22)
 	"system-strings-languages-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagLanguage},
 	},
-	// System Description/system-strings-uri
+	// System Description/system-strings-uri (PWG5100.22)
 	"system-strings-uri": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI, goipp.TagNoValue},
 	},
-	// System Description/system-xri-supported
+	// System Description/system-xri-supported (PWG5100.22)
 	"system-xri-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
@@ -10465,35 +10465,35 @@ var SystemDescription = map[string]*Attribute{
 
 // SystemStatus is the System Status attributes
 var SystemStatus = map[string]*Attribute{
-	// System Status/power-log-col
+	// System Status/power-log-col (PWG5100.22)
 	"power-log-col": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// System Status/power-log-col/log-id
+			// System Status/power-log-col/log-id (PWG5100.22)
 			"log-id": &Attribute{
 				SetOf: false,
 				Min:   1,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// System Status/power-log-col/power-state
+			// System Status/power-log-col/power-state (PWG5100.22)
 			"power-state": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword},
 			},
-			// System Status/power-log-col/power-state-date-time
+			// System Status/power-log-col/power-state-date-time (PWG5100.22)
 			"power-state-date-time": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagDateTime},
 			},
-			// System Status/power-log-col/power-state-message
+			// System Status/power-log-col/power-state-message (PWG5100.22)
 			"power-state-message": &Attribute{
 				SetOf: false,
 				Min:   MIN,
@@ -10502,42 +10502,42 @@ var SystemStatus = map[string]*Attribute{
 			},
 		}},
 	},
-	// System Status/power-state-capabilities-col
+	// System Status/power-state-capabilities-col (PWG5100.22)
 	"power-state-capabilities-col": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// System Status/power-state-capabilities-col/can-accept-jobs
+			// System Status/power-state-capabilities-col/can-accept-jobs (PWG5100.22)
 			"can-accept-jobs": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagBoolean},
 			},
-			// System Status/power-state-capabilities-col/can-process-jobs
+			// System Status/power-state-capabilities-col/can-process-jobs (PWG5100.22)
 			"can-process-jobs": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagBoolean},
 			},
-			// System Status/power-state-capabilities-col/power-active-watts
+			// System Status/power-state-capabilities-col/power-active-watts (PWG5100.22)
 			"power-active-watts": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// System Status/power-state-capabilities-col/power-inactive-watts
+			// System Status/power-state-capabilities-col/power-inactive-watts (PWG5100.22)
 			"power-inactive-watts": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// System Status/power-state-capabilities-col/power-state
+			// System Status/power-state-capabilities-col/power-state (PWG5100.22)
 			"power-state": &Attribute{
 				SetOf: false,
 				Min:   MIN,
@@ -10546,35 +10546,35 @@ var SystemStatus = map[string]*Attribute{
 			},
 		}},
 	},
-	// System Status/power-state-counters-col
+	// System Status/power-state-counters-col (PWG5100.22)
 	"power-state-counters-col": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// System Status/power-state-counters-col/hibernate-transitions
+			// System Status/power-state-counters-col/hibernate-transitions (PWG5100.22)
 			"hibernate-transitions": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// System Status/power-state-counters-col/on-transitions
+			// System Status/power-state-counters-col/on-transitions (PWG5100.22)
 			"on-transitions": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// System Status/power-state-counters-col/standby-transitions
+			// System Status/power-state-counters-col/standby-transitions (PWG5100.22)
 			"standby-transitions": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// System Status/power-state-counters-col/suspend-transitions
+			// System Status/power-state-counters-col/suspend-transitions (PWG5100.22)
 			"suspend-transitions": &Attribute{
 				SetOf: false,
 				Min:   0,
@@ -10583,56 +10583,56 @@ var SystemStatus = map[string]*Attribute{
 			},
 		}},
 	},
-	// System Status/power-state-monitor-col
+	// System Status/power-state-monitor-col (PWG5100.22)
 	"power-state-monitor-col": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// System Status/power-state-monitor-col/current-month-kwh
+			// System Status/power-state-monitor-col/current-month-kwh (PWG5100.22)
 			"current-month-kwh": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// System Status/power-state-monitor-col/current-watts
+			// System Status/power-state-monitor-col/current-watts (PWG5100.22)
 			"current-watts": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// System Status/power-state-monitor-col/lifetime-kwh
+			// System Status/power-state-monitor-col/lifetime-kwh (PWG5100.22)
 			"lifetime-kwh": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// System Status/power-state-monitor-col/meters-are-actual
+			// System Status/power-state-monitor-col/meters-are-actual (PWG5100.22)
 			"meters-are-actual": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagBoolean},
 			},
-			// System Status/power-state-monitor-col/power-state
+			// System Status/power-state-monitor-col/power-state (PWG5100.22)
 			"power-state": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword},
 			},
-			// System Status/power-state-monitor-col/power-state-message
+			// System Status/power-state-monitor-col/power-state-message (PWG5100.22)
 			"power-state-message": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   255,
 				Tags:  []goipp.Tag{goipp.TagTextLang},
 			},
-			// System Status/power-state-monitor-col/power-usage-is-rms-watts
+			// System Status/power-state-monitor-col/power-usage-is-rms-watts (PWG5100.22)
 			"power-usage-is-rms-watts": &Attribute{
 				SetOf: false,
 				Min:   MIN,
@@ -10641,28 +10641,28 @@ var SystemStatus = map[string]*Attribute{
 			},
 		}},
 	},
-	// System Status/power-state-transitions-col
+	// System Status/power-state-transitions-col (PWG5100.22)
 	"power-state-transitions-col": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// System Status/power-state-transitions-col/end-power-state
+			// System Status/power-state-transitions-col/end-power-state (PWG5100.22)
 			"end-power-state": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword},
 			},
-			// System Status/power-state-transitions-col/start-power-state
+			// System Status/power-state-transitions-col/start-power-state (PWG5100.22)
 			"start-power-state": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword},
 			},
-			// System Status/power-state-transitions-col/state-transition-seconds
+			// System Status/power-state-transitions-col/state-transition-seconds (PWG5100.22)
 			"state-transition-seconds": &Attribute{
 				SetOf: false,
 				Min:   0,
@@ -10671,84 +10671,84 @@ var SystemStatus = map[string]*Attribute{
 			},
 		}},
 	},
-	// System Status/system-config-change-date-time
+	// System Status/system-config-change-date-time (PWG5100.22)
 	"system-config-change-date-time": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagDateTime},
 	},
-	// System Status/system-config-change-time
+	// System Status/system-config-change-time (PWG5100.22)
 	"system-config-change-time": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// System Status/system-config-changes
+	// System Status/system-config-changes (PWG5100.22)
 	"system-config-changes": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// System Status/system-configured-printers
+	// System Status/system-configured-printers (PWG5100.22)
 	"system-configured-printers": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// System Status/system-configured-printers/printer-id
+			// System Status/system-configured-printers/printer-id (PWG5100.22)
 			"printer-id": &Attribute{
 				SetOf: false,
 				Min:   0,
 				Max:   65535,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// System Status/system-configured-printers/printer-info
+			// System Status/system-configured-printers/printer-info (PWG5100.22)
 			"printer-info": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   127,
 				Tags:  []goipp.Tag{goipp.TagTextLang},
 			},
-			// System Status/system-configured-printers/printer-is-accepting-jobs
+			// System Status/system-configured-printers/printer-is-accepting-jobs (PWG5100.22)
 			"printer-is-accepting-jobs": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagBoolean},
 			},
-			// System Status/system-configured-printers/printer-name
+			// System Status/system-configured-printers/printer-name (PWG5100.22)
 			"printer-name": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   127,
 				Tags:  []goipp.Tag{goipp.TagNameLang},
 			},
-			// System Status/system-configured-printers/printer-service-type
+			// System Status/system-configured-printers/printer-service-type (PWG5100.22)
 			"printer-service-type": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword},
 			},
-			// System Status/system-configured-printers/printer-state
+			// System Status/system-configured-printers/printer-state (PWG5100.22)
 			"printer-state": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagEnum},
 			},
-			// System Status/system-configured-printers/printer-state-reasons
+			// System Status/system-configured-printers/printer-state-reasons (PWG5100.22)
 			"printer-state-reasons": &Attribute{
 				SetOf: true,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagKeyword},
 			},
-			// System Status/system-configured-printers/printer-xri-supported
+			// System Status/system-configured-printers/printer-xri-supported (PWG5100.22)
 			"printer-xri-supported": &Attribute{
 				SetOf: false,
 				Min:   MIN,
@@ -10757,49 +10757,49 @@ var SystemStatus = map[string]*Attribute{
 			},
 		}},
 	},
-	// System Status/system-configured-resources
+	// System Status/system-configured-resources (PWG5100.22)
 	"system-configured-resources": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*Attribute{{
-			// System Status/system-configured-resources/resource-format
+			// System Status/system-configured-resources/resource-format (PWG5100.22)
 			"resource-format": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagMimeType},
 			},
-			// System Status/system-configured-resources/resource-id
+			// System Status/system-configured-resources/resource-id (PWG5100.22)
 			"resource-id": &Attribute{
 				SetOf: false,
 				Min:   1,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagInteger},
 			},
-			// System Status/system-configured-resources/resource-info
+			// System Status/system-configured-resources/resource-info (PWG5100.22)
 			"resource-info": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   127,
 				Tags:  []goipp.Tag{goipp.TagTextLang},
 			},
-			// System Status/system-configured-resources/resource-name
+			// System Status/system-configured-resources/resource-name (PWG5100.22)
 			"resource-name": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   127,
 				Tags:  []goipp.Tag{goipp.TagNameLang},
 			},
-			// System Status/system-configured-resources/resource-state
+			// System Status/system-configured-resources/resource-state (PWG5100.22)
 			"resource-state": &Attribute{
 				SetOf: false,
 				Min:   MIN,
 				Max:   MAX,
 				Tags:  []goipp.Tag{goipp.TagEnum},
 			},
-			// System Status/system-configured-resources/resource-type
+			// System Status/system-configured-resources/resource-type (PWG5100.22)
 			"resource-type": &Attribute{
 				SetOf: false,
 				Min:   MIN,
@@ -10808,210 +10808,210 @@ var SystemStatus = map[string]*Attribute{
 			},
 		}},
 	},
-	// System Status/system-firmware-name
+	// System Status/system-firmware-name (PWG5100.22)
 	"system-firmware-name": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagNameLang},
 	},
-	// System Status/system-firmware-patches
+	// System Status/system-firmware-patches (PWG5100.22)
 	"system-firmware-patches": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// System Status/system-firmware-string-version
+	// System Status/system-firmware-string-version (PWG5100.22)
 	"system-firmware-string-version": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// System Status/system-firmware-version
+	// System Status/system-firmware-version (PWG5100.22)
 	"system-firmware-version": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   64,
 		Tags:  []goipp.Tag{goipp.TagString},
 	},
-	// System Status/system-impressions-completed
+	// System Status/system-impressions-completed (PWG5100.22)
 	"system-impressions-completed": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// System Status/system-impressions-completed-col
+	// System Status/system-impressions-completed-col (PWG5100.22)
 	"system-impressions-completed-col": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// System Status/system-media-sheets-completed
+	// System Status/system-media-sheets-completed (PWG5100.22)
 	"system-media-sheets-completed": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// System Status/system-media-sheets-completed-col
+	// System Status/system-media-sheets-completed-col (PWG5100.22)
 	"system-media-sheets-completed-col": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// System Status/system-pages-completed
+	// System Status/system-pages-completed (PWG5100.22)
 	"system-pages-completed": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// System Status/system-pages-completed-col
+	// System Status/system-pages-completed-col (PWG5100.22)
 	"system-pages-completed-col": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 	},
-	// System Status/system-resident-application-name
+	// System Status/system-resident-application-name (PWG5100.22)
 	"system-resident-application-name": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagNameLang},
 	},
-	// System Status/system-resident-application-patches
+	// System Status/system-resident-application-patches (PWG5100.22)
 	"system-resident-application-patches": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// System Status/system-resident-application-string-version
+	// System Status/system-resident-application-string-version (PWG5100.22)
 	"system-resident-application-string-version": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// System Status/system-resident-application-version
+	// System Status/system-resident-application-version (PWG5100.22)
 	"system-resident-application-version": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   64,
 		Tags:  []goipp.Tag{goipp.TagString},
 	},
-	// System Status/system-serial-number
+	// System Status/system-serial-number (PWG5100.22)
 	"system-serial-number": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   255,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// System Status/system-state
+	// System Status/system-state (PWG5100.22)
 	"system-state": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagEnum},
 	},
-	// System Status/system-state-change-date-time
+	// System Status/system-state-change-date-time (PWG5100.22)
 	"system-state-change-date-time": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagDateTime},
 	},
-	// System Status/system-state-change-time
+	// System Status/system-state-change-time (PWG5100.22)
 	"system-state-change-time": &Attribute{
 		SetOf: false,
 		Min:   0,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// System Status/system-state-message
+	// System Status/system-state-message (PWG5100.22)
 	"system-state-message": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// System Status/system-state-reasons
+	// System Status/system-state-reasons (PWG5100.22)
 	"system-state-reasons": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// System Status/system-time-source
+	// System Status/system-time-source (PWG5100.22)
 	"system-time-source": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
 	},
-	// System Status/system-up-time
+	// System Status/system-up-time (PWG5100.22)
 	"system-up-time": &Attribute{
 		SetOf: false,
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
-	// System Status/system-user-application-name
+	// System Status/system-user-application-name (PWG5100.22)
 	"system-user-application-name": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagNameLang},
 	},
-	// System Status/system-user-application-patches
+	// System Status/system-user-application-patches (PWG5100.22)
 	"system-user-application-patches": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// System Status/system-user-application-string-version
+	// System Status/system-user-application-string-version (PWG5100.22)
 	"system-user-application-string-version": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
-	// System Status/system-user-application-version
+	// System Status/system-user-application-version (PWG5100.22)
 	"system-user-application-version": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   64,
 		Tags:  []goipp.Tag{goipp.TagString},
 	},
-	// System Status/system-uuid
+	// System Status/system-uuid (PWG5100.22)
 	"system-uuid": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   45,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
-	// System Status/xri-authentication-supported
+	// System Status/xri-authentication-supported (PWG5100.22)
 	"xri-authentication-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// System Status/xri-security-supported
+	// System Status/xri-security-supported (PWG5100.22)
 	"xri-security-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// System Status/xri-uri-scheme-supported
+	// System Status/xri-uri-scheme-supported (PWG5100.22)
 	"xri-uri-scheme-supported": &Attribute{
 		SetOf: true,
 		Min:   MIN,
