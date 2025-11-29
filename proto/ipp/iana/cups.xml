@@ -1,0 +1,398 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<registry xmlns="http://www.iana.org/assignments" id="ipp-registrations">
+  <registry>
+
+    <! CUPS extension -- Operation attributes !>
+
+    <record>
+      <collection>Operation</collection>
+      <name>device-class</name>
+      <syntax>type2 keyword</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+
+    <record>
+      <collection>Operation</collection>
+      <name>exclude-schemes</name>
+      <syntax>1setOf name</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+
+    <record>
+      <collection>Operation</collection>
+      <name>include-schemes</name>
+      <syntax>1setOf name</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+
+    <record>
+      <collection>Operation</collection>
+      <name>first-printer-name</name>
+      <syntax>name(127)</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+    <record>
+      <collection>Operation</collection>
+      <name>printer-type</name>
+      <syntax>type2 enum</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+    <record>
+      <collection>Operation</collection>
+      <name>printer-type-mask</name>
+      <syntax>type2 enum</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+
+    <record>
+      <collection>Operation</collection>
+      <name>timeout</name>
+      <syntax>integer(1:MAX)</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+
+    <! CUPS extension -- Job Attributes !>
+
+    <record>
+      <collection>Job Template</collection>
+      <name>auth-info</name>
+      <syntax>1setOf text(MAX)</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+    <record>
+      <collection>Job Template</collection>
+      <name>job-media-progress</name>
+      <syntax>integer(0:100)</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+    <record>
+      <collection>Job Template</collection>
+      <name>job-printer-state-message</name>
+      <syntax>text(MAX)</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+    <record>
+      <collection>Job Template</collection>
+      <name>job-printer-state-reasons</name>
+      <syntax>1setOf type2 keyword</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+    <record>
+      <collection>Job Template</collection>
+      <name>job-originating-host-name</name>
+      <syntax>name(MAX)</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+    <record>
+      <collection>Job Template</collection>
+      <name>page-border</name>
+      <syntax>type2 keyword</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+    <record>
+      <collection>Job Template</collection>
+      <name>page-set</name>
+      <syntax>type2 keyword</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+
+    <! CUPS extension -- Printer Attributes !>
+
+    <record>
+      <collection>Printer Description</collection>
+      <name>auth-info-required</name>
+      <syntax>1setOf type2 keyword</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+
+    <record>
+      <collection>Printer Description</collection>
+      <name>device-uri</name>
+      <syntax>uri</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+
+    <record>
+      <collection>Printer Description</collection>
+      <name>job-k-limit</name>
+      <syntax>integer</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+    <record>
+      <collection>Printer Description</collection>
+      <name>job-page-limit</name>
+      <syntax>integer</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+    <record>
+      <collection>Printer Description</collection>
+      <name>job-quota-period</name>
+      <syntax>integer</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+
+    <record>
+      <collection>Printer Description</collection>
+      <name>marker-change-time</name>
+      <syntax>integer(0:MAX)</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+    <record>
+      <collection>Printer Description</collection>
+      <name>marker-colors</name>
+      <syntax>1setOf name(MAX)</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+    <record>
+      <collection>Printer Description</collection>
+      <name>marker-high-levels</name>
+      <syntax>1setOf integer(0:100)</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+    <record>
+      <collection>Printer Description</collection>
+      <name>marker-levels</name>
+      <syntax>integer(-3:100)</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+    <record>
+      <collection>Printer Description</collection>
+      <name>marker-low-levels</name>
+      <syntax>1setOf integer(0:100)</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+    <record>
+      <collection>Printer Description</collection>
+      <name>marker-message</name>
+      <syntax>text(MAX)</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+    <record>
+      <collection>Printer Description</collection>
+      <name>marker-names</name>
+      <syntax>1setOf name(MAX)</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+    <record>
+      <collection>Printer Description</collection>
+      <name>marker-types</name>
+      <syntax>1setOf keyword</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+
+    <record>
+      <collection>Printer Description</collection>
+      <name>port-monitor</name>
+      <syntax>name(127)</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+    <record>
+      <collection>Printer Description</collection>
+      <name>port-monitor-supported</name>
+      <syntax>1setOf name(127)</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+
+    <record>
+      <collection>Printer Description</collection>
+      <name>ppd-name</name>
+      <syntax>name(255)</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+
+    <record>
+      <collection>Printer Description</collection>
+      <name>printer-commands</name>
+      <syntax>1setOf keyword</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+    <record>
+      <collection>Printer Description</collection>
+      <name>printer-id</name>
+      <syntax>integer(0:65535)</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+    <record>
+      <collection>Printer Description</collection>
+      <name>printer-is-accepting-jobs</name>
+      <syntax>boolean</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+    <record>
+      <collection>Printer Description</collection>
+      <name>printer-is-shared</name>
+      <syntax>boolean</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+    <record>
+      <collection>Printer Description</collection>
+      <name>printer-is-temporary</name>
+      <syntax>boolean</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+    <record>
+      <collection>Printer Description</collection>
+      <name>printer-more-info</name>
+      <syntax>uri</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+    <record>
+      <collection>Printer Description</collection>
+      <name>printer-type</name>
+      <syntax>type2 enum</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+    <record>
+      <collection>Printer Description</collection>
+      <name>printer-type-mask</name>
+      <syntax>type2 enum</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+    <record>
+      <collection>Printer Description</collection>
+      <name>printer-state</name>
+      <syntax>type1 enum</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+    <record>
+      <collection>Printer Description</collection>
+      <name>printer-state-message</name>
+      <syntax>text(MAX)</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+
+    <record>
+      <collection>Printer Description</collection>
+      <name>requesting-user-name-allowed</name>
+      <syntax>1setof name(127) | delete-attribute</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+    <record>
+      <collection>Printer Description</collection>
+      <name>requesting-user-name-denied</name>
+      <syntax>1setof name(127) | delete-attribute</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+
+    <record>
+      <collection>Printer Description</collection>
+      <name>urf-supported</name>
+      <syntax>keyword</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+
+    <! CUPS extension -- Device Attributes !>
+
+    <record>
+      <collection>CUPS Device Attributes</collection>
+      <name>device-class</name>
+      <syntax>type2 keyword</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+    <record>
+      <collection>CUPS Device Attributes</collection>
+      <name>device-id</name>
+      <syntax>text(1023)</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+    <record>
+      <collection>CUPS Device Attributes</collection>
+      <name>device-info</name>
+      <syntax>text(127)</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+    <record>
+      <collection>CUPS Device Attributes</collection>
+      <name>device-location</name>
+      <syntax>text(127)</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+    <record>
+      <collection>CUPS Device Attributes</collection>
+      <name>device-make-and-model</name>
+      <syntax>text(127)</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+    <record>
+      <collection>CUPS Device Attributes</collection>
+      <name>device-uri</name>
+      <syntax>uri</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+
+    <! CUPS extension -- PPD Attributes !>
+
+    <record>
+      <collection>CUPS PPD Attributes</collection>
+      <name>ppd-device-id</name>
+      <syntax>text(127)</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+
+    <record>
+      <collection>CUPS PPD Attributes</collection>
+      <name>ppd-make</name>
+      <syntax>text(127)</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+    <record>
+      <collection>CUPS PPD Attributes</collection>
+      <name>ppd-make-and-model</name>
+      <syntax>text(127)</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+    <record>
+      <collection>CUPS PPD Attributes</collection>
+      <name>ppd-model-number</name>
+      <syntax>integer</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+    <record>
+      <collection>CUPS PPD Attributes</collection>
+      <name>ppd-name</name>
+      <syntax>name(255)</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+    <record>
+      <collection>CUPS PPD Attributes</collection>
+      <name>ppd-natural-language</name>
+      <syntax>1setOf naturalLanguage</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+    <record>
+      <collection>CUPS PPD Attributes</collection>
+      <name>ppd-product</name>
+      <syntax>1setOf text(127)</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+    <record>
+      <collection>CUPS PPD Attributes</collection>
+      <name>ppd-psversion</name>
+      <syntax>1setOf text(127)</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+    <record>
+      <collection>CUPS PPD Attributes</collection>
+      <name>ppd-type</name>
+      <syntax>type1 keyword</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+
+
+    <! CUPS extension -- Printer Class Attributes !>
+
+    <record>
+      <collection>CUPS Printer Class Attributes</collection>
+      <name>member-names</name>
+      <syntax>1setOf name(127)</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+    <record>
+      <collection>CUPS Printer Class Attributes</collection>
+      <name>member-uris</name>
+      <syntax>1setOf uri</syntax>
+      <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
+    </record>
+
+  </registry>
+</registry>

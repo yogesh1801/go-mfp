@@ -15,6 +15,137 @@ import (
 	"github.com/OpenPrinting/goipp"
 )
 
+// CUPSDeviceAttributes is the CUPS Device Attributes attributes
+var CUPSDeviceAttributes = map[string]*Attribute{
+	// CUPS Device Attributes/device-class (CUPS)
+	"device-class": &Attribute{
+		SetOf: false,
+		Min:   MIN,
+		Max:   MAX,
+		Tags:  []goipp.Tag{goipp.TagKeyword},
+	},
+	// CUPS Device Attributes/device-id (CUPS)
+	"device-id": &Attribute{
+		SetOf: false,
+		Min:   MIN,
+		Max:   1023,
+		Tags:  []goipp.Tag{goipp.TagTextLang},
+	},
+	// CUPS Device Attributes/device-info (CUPS)
+	"device-info": &Attribute{
+		SetOf: false,
+		Min:   MIN,
+		Max:   127,
+		Tags:  []goipp.Tag{goipp.TagTextLang},
+	},
+	// CUPS Device Attributes/device-location (CUPS)
+	"device-location": &Attribute{
+		SetOf: false,
+		Min:   MIN,
+		Max:   127,
+		Tags:  []goipp.Tag{goipp.TagTextLang},
+	},
+	// CUPS Device Attributes/device-make-and-model (CUPS)
+	"device-make-and-model": &Attribute{
+		SetOf: false,
+		Min:   MIN,
+		Max:   127,
+		Tags:  []goipp.Tag{goipp.TagTextLang},
+	},
+	// CUPS Device Attributes/device-uri (CUPS)
+	"device-uri": &Attribute{
+		SetOf: false,
+		Min:   MIN,
+		Max:   MAX,
+		Tags:  []goipp.Tag{goipp.TagURI},
+	},
+}
+
+// CUPSPPDAttributes is the CUPS PPD Attributes attributes
+var CUPSPPDAttributes = map[string]*Attribute{
+	// CUPS PPD Attributes/ppd-device-id (CUPS)
+	"ppd-device-id": &Attribute{
+		SetOf: false,
+		Min:   MIN,
+		Max:   127,
+		Tags:  []goipp.Tag{goipp.TagTextLang},
+	},
+	// CUPS PPD Attributes/ppd-make (CUPS)
+	"ppd-make": &Attribute{
+		SetOf: false,
+		Min:   MIN,
+		Max:   127,
+		Tags:  []goipp.Tag{goipp.TagTextLang},
+	},
+	// CUPS PPD Attributes/ppd-make-and-model (CUPS)
+	"ppd-make-and-model": &Attribute{
+		SetOf: false,
+		Min:   MIN,
+		Max:   127,
+		Tags:  []goipp.Tag{goipp.TagTextLang},
+	},
+	// CUPS PPD Attributes/ppd-model-number (CUPS)
+	"ppd-model-number": &Attribute{
+		SetOf: false,
+		Min:   MIN,
+		Max:   MAX,
+		Tags:  []goipp.Tag{goipp.TagInteger},
+	},
+	// CUPS PPD Attributes/ppd-name (CUPS)
+	"ppd-name": &Attribute{
+		SetOf: false,
+		Min:   MIN,
+		Max:   255,
+		Tags:  []goipp.Tag{goipp.TagNameLang},
+	},
+	// CUPS PPD Attributes/ppd-natural-language (CUPS)
+	"ppd-natural-language": &Attribute{
+		SetOf: true,
+		Min:   MIN,
+		Max:   MAX,
+		Tags:  []goipp.Tag{goipp.TagLanguage},
+	},
+	// CUPS PPD Attributes/ppd-product (CUPS)
+	"ppd-product": &Attribute{
+		SetOf: true,
+		Min:   MIN,
+		Max:   127,
+		Tags:  []goipp.Tag{goipp.TagTextLang},
+	},
+	// CUPS PPD Attributes/ppd-psversion (CUPS)
+	"ppd-psversion": &Attribute{
+		SetOf: true,
+		Min:   MIN,
+		Max:   127,
+		Tags:  []goipp.Tag{goipp.TagTextLang},
+	},
+	// CUPS PPD Attributes/ppd-type (CUPS)
+	"ppd-type": &Attribute{
+		SetOf: false,
+		Min:   MIN,
+		Max:   MAX,
+		Tags:  []goipp.Tag{goipp.TagKeyword},
+	},
+}
+
+// CUPSPrinterClassAttributes is the CUPS Printer Class Attributes attributes
+var CUPSPrinterClassAttributes = map[string]*Attribute{
+	// CUPS Printer Class Attributes/member-names (CUPS)
+	"member-names": &Attribute{
+		SetOf: true,
+		Min:   MIN,
+		Max:   127,
+		Tags:  []goipp.Tag{goipp.TagNameLang},
+	},
+	// CUPS Printer Class Attributes/member-uris (CUPS)
+	"member-uris": &Attribute{
+		SetOf: true,
+		Min:   MIN,
+		Max:   MAX,
+		Tags:  []goipp.Tag{goipp.TagURI},
+	},
+}
+
 // DocumentDescription is the Document Description attributes
 var DocumentDescription = map[string]*Attribute{
 	// Document Description/document-name (PWG5100.5)
@@ -2880,6 +3011,13 @@ var JobStatus = map[string]*Attribute{
 
 // JobTemplate is the Job Template attributes
 var JobTemplate = map[string]*Attribute{
+	// Job Template/auth-info (CUPS)
+	"auth-info": &Attribute{
+		SetOf: true,
+		Min:   MIN,
+		Max:   MAX,
+		Tags:  []goipp.Tag{goipp.TagTextLang},
+	},
 	// Job Template/chamber-humidity (PWG5100.21)
 	"chamber-humidity": &Attribute{
 		SetOf: false,
@@ -3600,12 +3738,26 @@ var JobTemplate = map[string]*Attribute{
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagDateTime},
 	},
+	// Job Template/job-media-progress (CUPS)
+	"job-media-progress": &Attribute{
+		SetOf: false,
+		Min:   0,
+		Max:   100,
+		Tags:  []goipp.Tag{goipp.TagInteger},
+	},
 	// Job Template/job-message-to-operator (PWG5100.3)
 	"job-message-to-operator": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
+	},
+	// Job Template/job-originating-host-name (CUPS)
+	"job-originating-host-name": &Attribute{
+		SetOf: false,
+		Min:   MIN,
+		Max:   MAX,
+		Tags:  []goipp.Tag{goipp.TagNameLang},
 	},
 	// Job Template/job-pages-per-set (PWG5100.1)
 	"job-pages-per-set": &Attribute{
@@ -3620,6 +3772,20 @@ var JobTemplate = map[string]*Attribute{
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
+	},
+	// Job Template/job-printer-state-message (CUPS)
+	"job-printer-state-message": &Attribute{
+		SetOf: false,
+		Min:   MIN,
+		Max:   MAX,
+		Tags:  []goipp.Tag{goipp.TagTextLang},
+	},
+	// Job Template/job-printer-state-reasons (CUPS)
+	"job-printer-state-reasons": &Attribute{
+		SetOf: true,
+		Min:   MIN,
+		Max:   MAX,
+		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
 	// Job Template/job-priority (rfc8011)
 	"job-priority": &Attribute{
@@ -4123,6 +4289,13 @@ var JobTemplate = map[string]*Attribute{
 			},
 		}},
 	},
+	// Job Template/page-border (CUPS)
+	"page-border": &Attribute{
+		SetOf: false,
+		Min:   MIN,
+		Max:   MAX,
+		Tags:  []goipp.Tag{goipp.TagKeyword},
+	},
 	// Job Template/page-delivery (PWG5100.3)
 	"page-delivery": &Attribute{
 		SetOf: false,
@@ -4143,6 +4316,13 @@ var JobTemplate = map[string]*Attribute{
 		Min:   1,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagRange},
+	},
+	// Job Template/page-set (CUPS)
+	"page-set": &Attribute{
+		SetOf: false,
+		Min:   MIN,
+		Max:   MAX,
+		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
 	// Job Template/pages-per-subset (PWG5100.13)
 	"pages-per-subset": &Attribute{
@@ -4654,6 +4834,13 @@ var Operation = map[string]*Attribute{
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
 	},
+	// Operation/device-class (CUPS)
+	"device-class": &Attribute{
+		SetOf: false,
+		Min:   MIN,
+		Max:   MAX,
+		Tags:  []goipp.Tag{goipp.TagKeyword},
+	},
 	// Operation/document-access (PWG5100.18)
 	"document-access": &Attribute{
 		SetOf: false,
@@ -4896,6 +5083,13 @@ var Operation = map[string]*Attribute{
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
+	// Operation/exclude-schemes (CUPS)
+	"exclude-schemes": &Attribute{
+		SetOf: true,
+		Min:   MIN,
+		Max:   MAX,
+		Tags:  []goipp.Tag{goipp.TagNameLang},
+	},
 	// Operation/fetch-status-code (PWG5100.18)
 	"fetch-status-code": &Attribute{
 		SetOf: false,
@@ -4917,12 +5111,26 @@ var Operation = map[string]*Attribute{
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
+	// Operation/first-printer-name (CUPS)
+	"first-printer-name": &Attribute{
+		SetOf: false,
+		Min:   MIN,
+		Max:   127,
+		Tags:  []goipp.Tag{goipp.TagNameLang},
+	},
 	// Operation/identify-actions (PWG5100.13)
 	"identify-actions": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
+	},
+	// Operation/include-schemes (CUPS)
+	"include-schemes": &Attribute{
+		SetOf: true,
+		Min:   MIN,
+		Max:   MAX,
+		Tags:  []goipp.Tag{goipp.TagNameLang},
 	},
 	// Operation/input-attributes (PWG5100.15)
 	"input-attributes": &Attribute{
@@ -5464,6 +5672,20 @@ var Operation = map[string]*Attribute{
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
+	// Operation/printer-type (CUPS)
+	"printer-type": &Attribute{
+		SetOf: false,
+		Min:   MIN,
+		Max:   MAX,
+		Tags:  []goipp.Tag{goipp.TagEnum},
+	},
+	// Operation/printer-type-mask (CUPS)
+	"printer-type-mask": &Attribute{
+		SetOf: false,
+		Min:   MIN,
+		Max:   MAX,
+		Tags:  []goipp.Tag{goipp.TagEnum},
+	},
 	// Operation/printer-up-time (rfc3996)
 	"printer-up-time": &Attribute{
 		SetOf: false,
@@ -5655,6 +5877,13 @@ var Operation = map[string]*Attribute{
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
+	// Operation/timeout (CUPS)
+	"timeout": &Attribute{
+		SetOf: false,
+		Min:   1,
+		Max:   MAX,
+		Tags:  []goipp.Tag{goipp.TagInteger},
+	},
 	// Operation/which-jobs (rfc8011)
 	"which-jobs": &Attribute{
 		SetOf: false,
@@ -5675,6 +5904,13 @@ var Operation = map[string]*Attribute{
 var PrinterDescription = map[string]*Attribute{
 	// Printer Description/accuracy-units-supported (PWG5100.21)
 	"accuracy-units-supported": &Attribute{
+		SetOf: true,
+		Min:   MIN,
+		Max:   MAX,
+		Tags:  []goipp.Tag{goipp.TagKeyword},
+	},
+	// Printer Description/auth-info-required (CUPS)
+	"auth-info-required": &Attribute{
 		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
@@ -5961,6 +6197,13 @@ var PrinterDescription = map[string]*Attribute{
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
+	},
+	// Printer Description/device-uri (CUPS)
+	"device-uri": &Attribute{
+		SetOf: false,
+		Min:   MIN,
+		Max:   MAX,
+		Tags:  []goipp.Tag{goipp.TagURI},
 	},
 	// Printer Description/document-access-supported (PWG5100.18)
 	"document-access-supported": &Attribute{
@@ -6750,6 +6993,13 @@ var PrinterDescription = map[string]*Attribute{
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagRange},
 	},
+	// Printer Description/job-k-limit (CUPS)
+	"job-k-limit": &Attribute{
+		SetOf: false,
+		Min:   MIN,
+		Max:   MAX,
+		Tags:  []goipp.Tag{goipp.TagInteger},
+	},
 	// Printer Description/job-k-octets-supported (rfc8011)
 	"job-k-octets-supported": &Attribute{
 		SetOf: false,
@@ -6784,6 +7034,13 @@ var PrinterDescription = map[string]*Attribute{
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBoolean},
+	},
+	// Printer Description/job-page-limit (CUPS)
+	"job-page-limit": &Attribute{
+		SetOf: false,
+		Min:   MIN,
+		Max:   MAX,
+		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
 	// Printer Description/job-pages-per-set-supported (PWG5100.1)
 	"job-pages-per-set-supported": &Attribute{
@@ -6898,6 +7155,13 @@ var PrinterDescription = map[string]*Attribute{
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
+	},
+	// Printer Description/job-quota-period (CUPS)
+	"job-quota-period": &Attribute{
+		SetOf: false,
+		Min:   MIN,
+		Max:   MAX,
+		Tags:  []goipp.Tag{goipp.TagInteger},
 	},
 	// Printer Description/job-recipient-name-default (PWG5100.3)
 	"job-recipient-name-default": &Attribute{
@@ -7147,6 +7411,62 @@ var PrinterDescription = map[string]*Attribute{
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURIScheme},
+	},
+	// Printer Description/marker-change-time (CUPS)
+	"marker-change-time": &Attribute{
+		SetOf: false,
+		Min:   0,
+		Max:   MAX,
+		Tags:  []goipp.Tag{goipp.TagInteger},
+	},
+	// Printer Description/marker-colors (CUPS)
+	"marker-colors": &Attribute{
+		SetOf: true,
+		Min:   MIN,
+		Max:   MAX,
+		Tags:  []goipp.Tag{goipp.TagNameLang},
+	},
+	// Printer Description/marker-high-levels (CUPS)
+	"marker-high-levels": &Attribute{
+		SetOf: true,
+		Min:   0,
+		Max:   100,
+		Tags:  []goipp.Tag{goipp.TagInteger},
+	},
+	// Printer Description/marker-levels (CUPS)
+	"marker-levels": &Attribute{
+		SetOf: false,
+		Min:   -3,
+		Max:   100,
+		Tags:  []goipp.Tag{goipp.TagInteger},
+	},
+	// Printer Description/marker-low-levels (CUPS)
+	"marker-low-levels": &Attribute{
+		SetOf: true,
+		Min:   0,
+		Max:   100,
+		Tags:  []goipp.Tag{goipp.TagInteger},
+	},
+	// Printer Description/marker-message (CUPS)
+	"marker-message": &Attribute{
+		SetOf: false,
+		Min:   MIN,
+		Max:   MAX,
+		Tags:  []goipp.Tag{goipp.TagTextLang},
+	},
+	// Printer Description/marker-names (CUPS)
+	"marker-names": &Attribute{
+		SetOf: true,
+		Min:   MIN,
+		Max:   MAX,
+		Tags:  []goipp.Tag{goipp.TagNameLang},
+	},
+	// Printer Description/marker-types (CUPS)
+	"marker-types": &Attribute{
+		SetOf: true,
+		Min:   MIN,
+		Max:   MAX,
+		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
 	// Printer Description/material-amount-units-supported (PWG5100.21)
 	"material-amount-units-supported": &Attribute{
@@ -8030,6 +8350,27 @@ var PrinterDescription = map[string]*Attribute{
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagInteger, goipp.TagRange},
 	},
+	// Printer Description/port-monitor (CUPS)
+	"port-monitor": &Attribute{
+		SetOf: false,
+		Min:   MIN,
+		Max:   127,
+		Tags:  []goipp.Tag{goipp.TagNameLang},
+	},
+	// Printer Description/port-monitor-supported (CUPS)
+	"port-monitor-supported": &Attribute{
+		SetOf: true,
+		Min:   MIN,
+		Max:   127,
+		Tags:  []goipp.Tag{goipp.TagNameLang},
+	},
+	// Printer Description/ppd-name (CUPS)
+	"ppd-name": &Attribute{
+		SetOf: false,
+		Min:   MIN,
+		Max:   255,
+		Tags:  []goipp.Tag{goipp.TagNameLang},
+	},
 	// Printer Description/preferred-attributes-supported (PWG5100.13)
 	"preferred-attributes-supported": &Attribute{
 		SetOf: false,
@@ -8279,6 +8620,13 @@ var PrinterDescription = map[string]*Attribute{
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
+	// Printer Description/printer-commands (CUPS)
+	"printer-commands": &Attribute{
+		SetOf: true,
+		Min:   MIN,
+		Max:   MAX,
+		Tags:  []goipp.Tag{goipp.TagKeyword},
+	},
 	// Printer Description/printer-contact-col (PWG5100.22)
 	"printer-contact-col": &Attribute{
 		SetOf: false,
@@ -8430,12 +8778,40 @@ var PrinterDescription = map[string]*Attribute{
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI},
 	},
+	// Printer Description/printer-id (CUPS)
+	"printer-id": &Attribute{
+		SetOf: false,
+		Min:   0,
+		Max:   65535,
+		Tags:  []goipp.Tag{goipp.TagInteger},
+	},
 	// Printer Description/printer-info (rfc8011)
 	"printer-info": &Attribute{
 		SetOf: false,
 		Min:   MIN,
 		Max:   127,
 		Tags:  []goipp.Tag{goipp.TagTextLang},
+	},
+	// Printer Description/printer-is-accepting-jobs (CUPS)
+	"printer-is-accepting-jobs": &Attribute{
+		SetOf: false,
+		Min:   MIN,
+		Max:   MAX,
+		Tags:  []goipp.Tag{goipp.TagBoolean},
+	},
+	// Printer Description/printer-is-shared (CUPS)
+	"printer-is-shared": &Attribute{
+		SetOf: false,
+		Min:   MIN,
+		Max:   MAX,
+		Tags:  []goipp.Tag{goipp.TagBoolean},
+	},
+	// Printer Description/printer-is-temporary (CUPS)
+	"printer-is-temporary": &Attribute{
+		SetOf: false,
+		Min:   MIN,
+		Max:   MAX,
+		Tags:  []goipp.Tag{goipp.TagBoolean},
 	},
 	// Printer Description/printer-kind (PWG5100.13)
 	"printer-kind": &Attribute{
@@ -8478,6 +8854,13 @@ var PrinterDescription = map[string]*Attribute{
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
+	},
+	// Printer Description/printer-more-info (CUPS)
+	"printer-more-info": &Attribute{
+		SetOf: false,
+		Min:   MIN,
+		Max:   MAX,
+		Tags:  []goipp.Tag{goipp.TagURI},
 	},
 	// Printer Description/printer-more-info-manufacturer (rfc8011)
 	"printer-more-info-manufacturer": &Attribute{
@@ -8586,6 +8969,20 @@ var PrinterDescription = map[string]*Attribute{
 			},
 		}},
 	},
+	// Printer Description/printer-state (CUPS)
+	"printer-state": &Attribute{
+		SetOf: false,
+		Min:   MIN,
+		Max:   MAX,
+		Tags:  []goipp.Tag{goipp.TagEnum},
+	},
+	// Printer Description/printer-state-message (CUPS)
+	"printer-state-message": &Attribute{
+		SetOf: false,
+		Min:   MIN,
+		Max:   MAX,
+		Tags:  []goipp.Tag{goipp.TagTextLang},
+	},
 	// Printer Description/printer-static-resource-directory-uri (PWG5100.18)
 	"printer-static-resource-directory-uri": &Attribute{
 		SetOf: false,
@@ -8613,6 +9010,20 @@ var PrinterDescription = map[string]*Attribute{
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagURI, goipp.TagNoValue},
+	},
+	// Printer Description/printer-type (CUPS)
+	"printer-type": &Attribute{
+		SetOf: false,
+		Min:   MIN,
+		Max:   MAX,
+		Tags:  []goipp.Tag{goipp.TagEnum},
+	},
+	// Printer Description/printer-type-mask (CUPS)
+	"printer-type-mask": &Attribute{
+		SetOf: false,
+		Min:   MIN,
+		Max:   MAX,
+		Tags:  []goipp.Tag{goipp.TagEnum},
 	},
 	// Printer Description/printer-volume-supported (PWG5100.21)
 	"printer-volume-supported": &Attribute{
@@ -8785,6 +9196,20 @@ var PrinterDescription = map[string]*Attribute{
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
+	},
+	// Printer Description/requesting-user-name-allowed (CUPS)
+	"requesting-user-name-allowed": &Attribute{
+		SetOf: true,
+		Min:   MIN,
+		Max:   127,
+		Tags:  []goipp.Tag{goipp.TagNameLang, goipp.TagDeleteAttr},
+	},
+	// Printer Description/requesting-user-name-denied (CUPS)
+	"requesting-user-name-denied": &Attribute{
+		SetOf: true,
+		Min:   MIN,
+		Max:   127,
+		Tags:  []goipp.Tag{goipp.TagNameLang, goipp.TagDeleteAttr},
 	},
 	// Printer Description/requesting-user-uri-schemes-supported (PWG5100.13)
 	"requesting-user-uri-schemes-supported": &Attribute{
@@ -9055,6 +9480,13 @@ var PrinterDescription = map[string]*Attribute{
 	// Printer Description/trimming-when-supported (PWG5100.1)
 	"trimming-when-supported": &Attribute{
 		SetOf: true,
+		Min:   MIN,
+		Max:   MAX,
+		Tags:  []goipp.Tag{goipp.TagKeyword},
+	},
+	// Printer Description/urf-supported (CUPS)
+	"urf-supported": &Attribute{
+		SetOf: false,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
@@ -11023,22 +11455,25 @@ var SystemStatus = map[string]*Attribute{
 // Collections contains all top-level collections (groups) of
 // attributes, indexed by name
 var Collections = map[string]map[string]*Attribute{
-	"Document Description":  DocumentDescription,
-	"Document Status":       DocumentStatus,
-	"Document Template":     DocumentTemplate,
-	"Event Notifications":   EventNotifications,
-	"Job Description":       JobDescription,
-	"Job Status":            JobStatus,
-	"Job Template":          JobTemplate,
-	"Operation":             Operation,
-	"Printer Description":   PrinterDescription,
-	"Printer Status":        PrinterStatus,
-	"Resource Description":  ResourceDescription,
-	"Resource Status":       ResourceStatus,
-	"Subscription Status":   SubscriptionStatus,
-	"Subscription Template": SubscriptionTemplate,
-	"System Description":    SystemDescription,
-	"System Status":         SystemStatus,
+	"CUPS Device Attributes":        CUPSDeviceAttributes,
+	"CUPS PPD Attributes":           CUPSPPDAttributes,
+	"CUPS Printer Class Attributes": CUPSPrinterClassAttributes,
+	"Document Description":          DocumentDescription,
+	"Document Status":               DocumentStatus,
+	"Document Template":             DocumentTemplate,
+	"Event Notifications":           EventNotifications,
+	"Job Description":               JobDescription,
+	"Job Status":                    JobStatus,
+	"Job Template":                  JobTemplate,
+	"Operation":                     Operation,
+	"Printer Description":           PrinterDescription,
+	"Printer Status":                PrinterStatus,
+	"Resource Description":          ResourceDescription,
+	"Resource Status":               ResourceStatus,
+	"Subscription Status":           SubscriptionStatus,
+	"Subscription Template":         SubscriptionTemplate,
+	"System Description":            SystemDescription,
+	"System Status":                 SystemStatus,
 }
 
 // borrowings contains a table of attributes borrowing
