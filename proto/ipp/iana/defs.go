@@ -17,10 +17,10 @@ import (
 )
 
 const (
-	// MIN is the minimum bound for attribute value range
+	// MIN is the lower bound for attribute value range
 	MIN = math.MinInt32
 
-	// MAX is the maximum bound for attribute value range
+	// MAX is the upper bound for attribute value range
 	MAX = math.MaxInt32
 )
 
