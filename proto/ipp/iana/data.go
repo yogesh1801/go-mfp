@@ -7263,9 +7263,9 @@ var PrinterDescription = map[string]*Attribute{
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
-	// Printer Description/job-sheets-default (rfc8011)
+	// Printer Description/job-sheets-default (CUPS)
 	"job-sheets-default": &Attribute{
-		SetOf: false,
+		SetOf: true,
 		Min:   MIN,
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagNameLang},
