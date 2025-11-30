@@ -16,6 +16,7 @@ import (
 	"strings"
 	"unicode"
 
+	"github.com/OpenPrinting/go-mfp/internal/assert"
 	"github.com/OpenPrinting/go-mfp/util/generic"
 	"github.com/OpenPrinting/goipp"
 )
@@ -79,6 +80,12 @@ func ParseSyntax(s string) (syntax Syntax, err error) {
 	syntax.sortTags()
 
 	for _, tag := range syntax.Tags {
+		// Apply tag-specific limits
+		min, max := tagLimits(tag)
+		syntax.Min = generic.Max(syntax.Min, min)
+		syntax.Max = generic.Min(syntax.Max, max)
+
+		// Set syntax.Collection flag
 		if tag == goipp.TagBeginCollection {
 			syntax.Collection = true
 			break
@@ -278,6 +285,93 @@ func (syntax *Syntax) sortTags() {
 			syntax.Tags = append(syntax.Tags, tag)
 		}
 	}
+}
+
+// tagLimits returns value limits, implied by the tag type
+func tagLimits(tag goipp.Tag) (min, max int32) {
+	switch tag {
+	case goipp.TagUnsupportedValue,
+		goipp.TagDefault,
+		goipp.TagUnknown,
+		goipp.TagNoValue,
+		goipp.TagNotSettable,
+		goipp.TagDeleteAttr,
+		goipp.TagAdminDefine:
+		// No value - no limits
+		return MIN, MAX
+
+	case goipp.TagText, goipp.TagTextLang:
+		// RFC8011, 5.1.2.
+		return 0, 1023
+
+	case goipp.TagName, goipp.TagNameLang:
+		// RFC8011, 5.1.3.
+		return 0, 255
+
+	case goipp.TagKeyword:
+		// RFC8011, 5.1.4.
+		return 1, 255
+
+	case goipp.TagEnum:
+		// RFC8011, 5.1.5.
+		return 1, MAX
+
+	case goipp.TagURI:
+		// RFC8011, 5.1.6.
+		return 0, 1023
+
+	case goipp.TagURIScheme:
+		// RFC8011, 5.1.7.
+		return 0, 63
+
+	case goipp.TagCharset:
+		// RFC8011, 5.1.8.
+		return 0, 63
+
+	case goipp.TagLanguage:
+		// RFC8011, 5.1.9.
+		return 0, 63
+
+	case goipp.TagMimeType:
+		// RFC8011, 5.1.10.
+		return 0, 255
+
+	case goipp.TagString:
+		// RFC8011, 5.1.11.
+		return 0, 1023
+
+	case goipp.TagBoolean:
+		// RFC8011, 5.1.12.
+		// No implied limit
+		return MIN, MAX
+
+	case goipp.TagInteger, goipp.TagRange:
+		// RFC8011, 5.1.13., 5.1.14.
+		// All 32-bit signed range available
+		return MIN, MAX
+
+	case goipp.TagDateTime:
+		// RFC8011, 5.1.15.
+		// No implied limit
+		return MIN, MAX
+
+	case goipp.TagResolution:
+		// RFC8011, 5.1.16.
+		// Limit not applicable
+		return MIN, MAX
+
+	case goipp.TagBeginCollection:
+		// RFC8011, 5.1.16.
+		// Limit not applicable
+		return MIN, MAX
+
+	case goipp.TagReservedString:
+		// Limit not applicable
+		return MIN, MAX
+	}
+
+	assert.MustMsg(false, "%#v: invalid tag", tag)
+	return MIN, MAX
 }
 
 // tagsSortingOrder defines sorting order for the Syntax.sortTags
