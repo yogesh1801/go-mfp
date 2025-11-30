@@ -31,13 +31,13 @@ type Attribute struct {
 	Min, Max int32       // Allowed range of values
 	Tags     []goipp.Tag // Allowed value tags
 
-	// Members contains reference to the collection member
-	// attributes.
+	// Members used only with collection attributes
+	// and lists its members.
 	//
-	// Collection may either define its own members, or
-	// borrow members from some other collection. Sometimes,
-	// collection may borrow members from multiple donors,
-	// hence the slice of maps.
+	// Attribute may either define its own members, or
+	// borrow members from some other attributes or even
+	// top-level collections. Sometimes, attribute may borrow
+	// members from multiple donors, hence the slice of maps.
 	Members []map[string]*Attribute // Collection members
 }
 
