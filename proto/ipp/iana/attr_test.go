@@ -14,7 +14,7 @@ import (
 	"github.com/OpenPrinting/goipp"
 )
 
-// TestOOBTag tests Attribute.OOBTag method
+// TestOOBTag tests DefAttr.OOBTag method
 func TestOOBTag(t *testing.T) {
 	type testData struct {
 		tags     []goipp.Tag
@@ -57,11 +57,11 @@ func TestOOBTag(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		attr := &Attribute{Tags: test.tags}
-		oob := attr.OOBTag()
+		def := &DefAttr{Tags: test.tags}
+		oob := def.OOBTag()
 
 		if oob != test.expected {
-			t.Errorf("Attribute.OOBTag:\n"+
+			t.Errorf("DefAttr.OOBTag:\n"+
 				"input:    %#v\n"+
 				"expected: %#v\n"+
 				"present:  %#v\n",

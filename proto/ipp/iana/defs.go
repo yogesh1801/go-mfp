@@ -24,8 +24,8 @@ const (
 	MAX = math.MaxInt32
 )
 
-// Attribute defines attribute syntax, range and members.
-type Attribute struct {
+// DefAttr defines attribute syntax, range and members.
+type DefAttr struct {
 	// Syntax definition
 	SetOf    bool        // 1SetOf attribute
 	Min, Max int32       // Allowed range of values
@@ -38,15 +38,15 @@ type Attribute struct {
 	// borrow members from some other attributes or even
 	// top-level collections. Sometimes, attribute may borrow
 	// members from multiple donors, hence the slice of maps.
-	Members []map[string]*Attribute // Collection members
+	Members []map[string]*DefAttr // Collection members
 }
 
 // IsCollection reports if attribute is collection or 1SetOf collection
-func (attr *Attribute) IsCollection() bool {
-	return attr.Tags[0] == goipp.TagBeginCollection
+func (def *DefAttr) IsCollection() bool {
+	return def.Tags[0] == goipp.TagBeginCollection
 }
 
-// OOBTag returns IPP tag that Attribute defines to represent the
+// OOBTag returns IPP tag that attribute defines to represent the
 // Out-of-Band Values.
 //
 // Out-of-Band values, like 'unknown', 'unsupported', and 'no-value',
@@ -59,8 +59,8 @@ func (attr *Attribute) IsCollection() bool {
 // provide an OOB tag.
 //
 // [RFC8011, 5.1.1.]: https://datatracker.ietf.org/doc/html/rfc8011#section-5.1.1
-func (attr *Attribute) OOBTag() goipp.Tag {
-	for _, tag := range attr.Tags {
+func (def *DefAttr) OOBTag() goipp.Tag {
+	for _, tag := range def.Tags {
 		switch tag {
 		case goipp.TagUnsupportedValue,
 			goipp.TagDefault,
@@ -76,30 +76,30 @@ func (attr *Attribute) OOBTag() goipp.Tag {
 	return goipp.TagZero
 }
 
-// Member returns Attribute's member by name.
-func (attr *Attribute) Member(name string) *Attribute {
-	for _, mbr := range attr.Members {
-		if attr2 := mbr[name]; attr2 != nil {
+// Member returns attribute's member by name.
+func (def *DefAttr) Member(name string) *DefAttr {
+	for _, mbr := range def.Members {
+		if def2 := mbr[name]; def2 != nil {
 			// Attribute may donor the entire collection
 			// that it belongs to, but at this case it is
 			// not considered to be member of itself.
 			//
 			// Handle this case here.
-			if attr == attr2 {
+			if def == def2 {
 				return nil
 			}
-			return attr2
+			return def2
 		}
 	}
 
 	return nil
 }
 
-// LookupAttribute returns Attribute by its full path.
+// LookupAttribute returns attribute by its full path.
 // The full path looks as follows:
 //
 //	"Job Template/cover-back/media-col"
-func LookupAttribute(path string) *Attribute {
+func LookupAttribute(path string) *DefAttr {
 	if exceptions.Contains(path) {
 		return nil
 	}
@@ -114,12 +114,12 @@ func LookupAttribute(path string) *Attribute {
 		return nil
 	}
 
-	attr := col[splitPath[1]]
+	def := col[splitPath[1]]
 	for _, next := range splitPath[2:] {
-		attr = attr.Member(next)
+		def = def.Member(next)
 	}
 
-	return attr
+	return def
 }
 
 func init() {
@@ -127,9 +127,9 @@ func init() {
 		rcpt := LookupAttribute(b.recipient)
 		assert.MustMsg(rcpt != nil, "recipient not found: %q", b.recipient)
 
-		var members []map[string]*Attribute
+		var members []map[string]*DefAttr
 		if col := Collections[b.donor]; col != nil {
-			members = []map[string]*Attribute{col}
+			members = []map[string]*DefAttr{col}
 		} else {
 			donor := LookupAttribute(b.donor)
 			assert.MustMsg(donor != nil, "donor not found: %q", b.donor)

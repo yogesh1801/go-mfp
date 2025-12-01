@@ -70,7 +70,7 @@ func outputCollections(buf *bytes.Buffer, db *RegDB) {
 		ident := strings.Join(strings.Fields(name), "")
 		fmt.Fprintf(buf, "\n")
 		fmt.Fprintf(buf, "// %s is the %s attributes\n", ident, name)
-		fmt.Fprintf(buf, "var %s = map[string]*Attribute{\n", ident)
+		fmt.Fprintf(buf, "var %s = map[string]*DefAttr{\n", ident)
 		outputAttributes(buf, db.Collections[name], name)
 		fmt.Fprintf(buf, "}\n")
 	}
@@ -80,7 +80,7 @@ func outputCollections(buf *bytes.Buffer, db *RegDB) {
 	// Output collections index
 	fmt.Fprintf(buf, "// Collections contains all top-level collections (groups) of\n")
 	fmt.Fprintf(buf, "// attributes, indexed by name\n")
-	fmt.Fprintf(buf, "var Collections = map[string]map[string]*Attribute{\n")
+	fmt.Fprintf(buf, "var Collections = map[string]map[string]*DefAttr{\n")
 	for _, name := range db.CollectionNames() {
 		ident := strings.Join(strings.Fields(name), "")
 		fmt.Fprintf(buf, "%q: %s,\n", name, ident)
@@ -129,7 +129,7 @@ func outputAttributes(buf *bytes.Buffer, attrs map[string]*RegDBAttr, path strin
 		attrpath := path + "/" + purename
 
 		fmt.Fprintf(buf, "// %s (%s)\n", attrpath, attr.XRef)
-		fmt.Fprintf(buf, "%q: &Attribute{\n", purename)
+		fmt.Fprintf(buf, "%q: &DefAttr{\n", purename)
 		fmt.Fprintf(buf, "SetOf: %v,\n", attr.Syntax.SetOf)
 		fmt.Fprintf(buf, "Min: %s,\n", attr.Syntax.FormatMin())
 		fmt.Fprintf(buf, "Max: %s,\n", attr.Syntax.FormatMax())
@@ -141,7 +141,7 @@ func outputAttributes(buf *bytes.Buffer, attrs map[string]*RegDBAttr, path strin
 		fmt.Fprintf(buf, "},\n")
 
 		if len(attr.Members) > 0 {
-			fmt.Fprintf(buf, "Members: []map[string]*Attribute{{\n")
+			fmt.Fprintf(buf, "Members: []map[string]*DefAttr{{\n")
 			outputAttributes(buf, attr.Members, attrpath)
 			fmt.Fprintf(buf, "}},\n")
 

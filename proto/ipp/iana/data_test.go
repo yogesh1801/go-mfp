@@ -25,7 +25,7 @@ func TestDataIntegrity(t *testing.T) {
 	}
 	sort.Strings(collections)
 
-	visited := generic.NewSet[*Attribute]()
+	visited := generic.NewSet[*DefAttr]()
 	for _, col := range collections {
 		testDataIntegrityRecursive(t, col, Collections[col], visited)
 	}
@@ -35,8 +35,8 @@ func TestDataIntegrity(t *testing.T) {
 // work of TestDataIntegrity, recursively over all attributes in
 // the set.
 func testDataIntegrityRecursive(t *testing.T,
-	path string, attrs map[string]*Attribute,
-	visited generic.Set[*Attribute]) {
+	path string, attrs map[string]*DefAttr,
+	visited generic.Set[*DefAttr]) {
 
 	// Process all attributes in the predictable way
 	names := make([]string, 0, len(attrs))
@@ -46,8 +46,8 @@ func testDataIntegrityRecursive(t *testing.T,
 	sort.Strings(names)
 
 	for _, name := range names {
-		attr := attrs[name]
-		if !visited.TestAndAdd(attr) {
+		def := attrs[name]
+		if !visited.TestAndAdd(def) {
 			// Skip already visited attributes to prevent
 			// endless recursion
 			continue
@@ -66,12 +66,12 @@ func testDataIntegrityRecursive(t *testing.T,
 		// and even after that there are still few exceptions.
 		//
 		// FIXME: this place requires more attention.
-		attr2 := LookupAttribute(attrpath)
+		def2 := LookupAttribute(attrpath)
 		if exceptions.Contains(attrpath) {
-			if attr2 != nil {
+			if def2 != nil {
 				t.Errorf("%q: must not resolve", attrpath)
 			}
-		} else if attr2 != attr && !reflect.DeepEqual(attr, attr2) {
+		} else if def2 != def && !reflect.DeepEqual(def, def2) {
 			switch attrpath {
 			case "Job Template/destination-uris/destination-attributes/finishings-col":
 			case "Job Template/destination-uris/destination-attributes/media-col":
@@ -84,16 +84,16 @@ func testDataIntegrityRecursive(t *testing.T,
 		// Check that collections do really have members, while
 		// non-collections doesn't
 		switch {
-		case attr.IsCollection() && len(attr.Members) == 0:
+		case def.IsCollection() && len(def.Members) == 0:
 			t.Errorf("%q: empty collection", attrpath)
 
-		case !attr.IsCollection() && len(attr.Members) != 0:
+		case !def.IsCollection() && len(def.Members) != 0:
 			t.Errorf("%q: non-collection with members", attrpath)
 		}
 
 		// Recursively visit all collection members
-		if attr.IsCollection() {
-			for _, mbr := range attr.Members {
+		if def.IsCollection() {
+			for _, mbr := range def.Members {
 				testDataIntegrityRecursive(t, attrpath, mbr, visited)
 			}
 		}

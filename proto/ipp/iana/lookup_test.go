@@ -36,8 +36,8 @@ func TestLookupAttributeNotFound(t *testing.T) {
 
 	// Run tests
 	for _, path := range paths {
-		attr := LookupAttribute(path)
-		if attr != nil {
+		def := LookupAttribute(path)
+		if def != nil {
 			t.Errorf("%q: LookupAttribute must return nil", path)
 		}
 	}
