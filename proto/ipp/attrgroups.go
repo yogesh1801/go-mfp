@@ -16,7 +16,7 @@ import "github.com/OpenPrinting/go-mfp/proto/ipp/iana"
 type CUPSDeviceAttributesGroup struct{}
 
 // Registrations returns attributes that belongs to the group
-func (CUPSDeviceAttributesGroup) Registrations() map[string]*iana.Attribute {
+func (CUPSDeviceAttributesGroup) Registrations() map[string]*iana.DefAttr {
 	return iana.CUPSDeviceAttributes
 }
 
@@ -26,7 +26,7 @@ func (CUPSDeviceAttributesGroup) Registrations() map[string]*iana.Attribute {
 type CUPSPPDAttributesGroup struct{}
 
 // Registrations returns attributes that belongs to the group
-func (CUPSPPDAttributesGroup) Registrations() map[string]*iana.Attribute {
+func (CUPSPPDAttributesGroup) Registrations() map[string]*iana.DefAttr {
 	return iana.CUPSPPDAttributes
 }
 
@@ -36,7 +36,7 @@ func (CUPSPPDAttributesGroup) Registrations() map[string]*iana.Attribute {
 type CUPSPrinterClassAttributesGroup struct{}
 
 // Registrations returns attributes that belongs to the group
-func (CUPSPrinterClassAttributesGroup) Registrations() map[string]*iana.Attribute {
+func (CUPSPrinterClassAttributesGroup) Registrations() map[string]*iana.DefAttr {
 	return iana.CUPSPrinterClassAttributes
 }
 
@@ -46,7 +46,7 @@ func (CUPSPrinterClassAttributesGroup) Registrations() map[string]*iana.Attribut
 type DocumentDescriptionGroup struct{}
 
 // Registrations returns attributes that belongs to the group
-func (DocumentDescriptionGroup) Registrations() map[string]*iana.Attribute {
+func (DocumentDescriptionGroup) Registrations() map[string]*iana.DefAttr {
 	return iana.DocumentDescription
 }
 
@@ -56,7 +56,7 @@ func (DocumentDescriptionGroup) Registrations() map[string]*iana.Attribute {
 type DocumentStatusGroup struct{}
 
 // Registrations returns attributes that belongs to the group
-func (DocumentStatusGroup) Registrations() map[string]*iana.Attribute {
+func (DocumentStatusGroup) Registrations() map[string]*iana.DefAttr {
 	return iana.DocumentStatus
 }
 
@@ -66,7 +66,7 @@ func (DocumentStatusGroup) Registrations() map[string]*iana.Attribute {
 type DocumentTemplateGroup struct{}
 
 // Registrations returns attributes that belongs to the group
-func (DocumentTemplateGroup) Registrations() map[string]*iana.Attribute {
+func (DocumentTemplateGroup) Registrations() map[string]*iana.DefAttr {
 	return iana.DocumentTemplate
 }
 
@@ -76,7 +76,7 @@ func (DocumentTemplateGroup) Registrations() map[string]*iana.Attribute {
 type EventNotificationsGroup struct{}
 
 // Registrations returns attributes that belongs to the group
-func (EventNotificationsGroup) Registrations() map[string]*iana.Attribute {
+func (EventNotificationsGroup) Registrations() map[string]*iana.DefAttr {
 	return iana.EventNotifications
 }
 
@@ -86,7 +86,7 @@ func (EventNotificationsGroup) Registrations() map[string]*iana.Attribute {
 type JobDescriptionGroup struct{}
 
 // Registrations returns attributes that belongs to the group
-func (JobDescriptionGroup) Registrations() map[string]*iana.Attribute {
+func (JobDescriptionGroup) Registrations() map[string]*iana.DefAttr {
 	return iana.JobDescription
 }
 
@@ -96,7 +96,7 @@ func (JobDescriptionGroup) Registrations() map[string]*iana.Attribute {
 type JobStatusGroup struct{}
 
 // Registrations returns attributes that belongs to the group
-func (JobStatusGroup) Registrations() map[string]*iana.Attribute {
+func (JobStatusGroup) Registrations() map[string]*iana.DefAttr {
 	return iana.JobStatus
 }
 
@@ -106,7 +106,7 @@ func (JobStatusGroup) Registrations() map[string]*iana.Attribute {
 type JobTemplateGroup struct{}
 
 // Registrations returns attributes that belongs to the group
-func (JobTemplateGroup) Registrations() map[string]*iana.Attribute {
+func (JobTemplateGroup) Registrations() map[string]*iana.DefAttr {
 	return iana.JobTemplate
 }
 
@@ -116,7 +116,7 @@ func (JobTemplateGroup) Registrations() map[string]*iana.Attribute {
 type OperationGroup struct{}
 
 // Registrations returns attributes that belongs to the group
-func (OperationGroup) Registrations() map[string]*iana.Attribute {
+func (OperationGroup) Registrations() map[string]*iana.DefAttr {
 	return iana.Operation
 }
 
@@ -126,7 +126,7 @@ func (OperationGroup) Registrations() map[string]*iana.Attribute {
 type PrinterDescriptionGroup struct{}
 
 // Registrations returns attributes that belongs to the group
-func (PrinterDescriptionGroup) Registrations() map[string]*iana.Attribute {
+func (PrinterDescriptionGroup) Registrations() map[string]*iana.DefAttr {
 	return iana.PrinterDescription
 }
 
@@ -136,7 +136,7 @@ func (PrinterDescriptionGroup) Registrations() map[string]*iana.Attribute {
 type PrinterStatusGroup struct{}
 
 // Registrations returns attributes that belongs to the group
-func (PrinterStatusGroup) Registrations() map[string]*iana.Attribute {
+func (PrinterStatusGroup) Registrations() map[string]*iana.DefAttr {
 	return iana.PrinterStatus
 }
 
@@ -146,7 +146,7 @@ func (PrinterStatusGroup) Registrations() map[string]*iana.Attribute {
 type ResourceDescriptionGroup struct{}
 
 // Registrations returns attributes that belongs to the group
-func (ResourceDescriptionGroup) Registrations() map[string]*iana.Attribute {
+func (ResourceDescriptionGroup) Registrations() map[string]*iana.DefAttr {
 	return iana.ResourceDescription
 }
 
@@ -156,7 +156,7 @@ func (ResourceDescriptionGroup) Registrations() map[string]*iana.Attribute {
 type ResourceStatusGroup struct{}
 
 // Registrations returns attributes that belongs to the group
-func (ResourceStatusGroup) Registrations() map[string]*iana.Attribute {
+func (ResourceStatusGroup) Registrations() map[string]*iana.DefAttr {
 	return iana.ResourceStatus
 }
 
@@ -166,7 +166,7 @@ func (ResourceStatusGroup) Registrations() map[string]*iana.Attribute {
 type SubscriptionStatusGroup struct{}
 
 // Registrations returns attributes that belongs to the group
-func (SubscriptionStatusGroup) Registrations() map[string]*iana.Attribute {
+func (SubscriptionStatusGroup) Registrations() map[string]*iana.DefAttr {
 	return iana.SubscriptionStatus
 }
 
@@ -176,7 +176,7 @@ func (SubscriptionStatusGroup) Registrations() map[string]*iana.Attribute {
 type SubscriptionTemplateGroup struct{}
 
 // Registrations returns attributes that belongs to the group
-func (SubscriptionTemplateGroup) Registrations() map[string]*iana.Attribute {
+func (SubscriptionTemplateGroup) Registrations() map[string]*iana.DefAttr {
 	return iana.SubscriptionTemplate
 }
 
@@ -186,7 +186,7 @@ func (SubscriptionTemplateGroup) Registrations() map[string]*iana.Attribute {
 type SystemDescriptionGroup struct{}
 
 // Registrations returns attributes that belongs to the group
-func (SystemDescriptionGroup) Registrations() map[string]*iana.Attribute {
+func (SystemDescriptionGroup) Registrations() map[string]*iana.DefAttr {
 	return iana.SystemDescription
 }
 
@@ -196,6 +196,6 @@ func (SystemDescriptionGroup) Registrations() map[string]*iana.Attribute {
 type SystemStatusGroup struct{}
 
 // Registrations returns attributes that belongs to the group
-func (SystemStatusGroup) Registrations() map[string]*iana.Attribute {
+func (SystemStatusGroup) Registrations() map[string]*iana.DefAttr {
 	return iana.SystemStatus
 }
