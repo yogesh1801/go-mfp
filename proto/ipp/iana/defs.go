@@ -46,6 +46,36 @@ func (attr *Attribute) IsCollection() bool {
 	return attr.Tags[0] == goipp.TagBeginCollection
 }
 
+// OOBTag returns IPP tag that Attribute defines to represent the
+// Out-of-Band Values.
+//
+// Out-of-Band values, like 'unknown', 'unsupported', and 'no-value',
+// allow to represent the situation, when attribute is supported by
+// the IPP object, but has no meaningful value.
+//
+// See [RFC8011, 5.1.1.] for details.
+//
+// This function returns goipp.TagZero, if attribute definition doesn't
+// provide an OOB tag.
+//
+// [RFC8011, 5.1.1.]: https://datatracker.ietf.org/doc/html/rfc8011#section-5.1.1
+func (attr *Attribute) OOBTag() goipp.Tag {
+	for _, tag := range attr.Tags {
+		switch tag {
+		case goipp.TagUnsupportedValue,
+			goipp.TagDefault,
+			goipp.TagUnknown,
+			goipp.TagNoValue,
+			goipp.TagNotSettable,
+			goipp.TagDeleteAttr,
+			goipp.TagAdminDefine:
+			return tag
+		}
+	}
+
+	return goipp.TagZero
+}
+
 // Member returns Attribute's member by name.
 func (attr *Attribute) Member(name string) *Attribute {
 	for _, mbr := range attr.Members {
