@@ -268,14 +268,18 @@ func (syntax *Syntax) sortTags() {
 	}
 
 	// Drop redundant members
-	if tags.Contains(goipp.TagNameLang) {
-		// goipp.TagNameLang implies goipp.TagName
-		tags.Del(goipp.TagName)
+	if tags.Contains(goipp.TagName) || tags.Contains(goipp.TagNameLang) {
+		// goipp.TagNameLang implies goipp.TagName and visa versa,
+		// so use just the goipp.TagName
+		tags.Add(goipp.TagName)
+		tags.Del(goipp.TagNameLang)
 	}
 
-	if tags.Contains(goipp.TagTextLang) {
-		// goipp.TagTextLang implies goipp.TagText
-		tags.Del(goipp.TagText)
+	if tags.Contains(goipp.TagText) || tags.Contains(goipp.TagTextLang) {
+		// goipp.TagTextLang implies goipp.TagText and visa versa,
+		// so use just the goipp.TagText
+		tags.Add(goipp.TagText)
+		tags.Del(goipp.TagTextLang)
 	}
 
 	// Rebuild syntax.Tags
