@@ -134,13 +134,11 @@ func (def *DefAttr) String() string {
 	case !def.SetOf:
 		return strings.Join(append(val, noval...), "|")
 	case len(noval) == 0:
-		return "1setOf " + strings.Join(append(val), "|")
+		return "1setOf " + strings.Join(val, "|")
 	}
 
-	return "1setOf (" +
-		strings.Join(append(val), "|") +
-		")|" +
-		strings.Join(append(noval), "|")
+	return "1setOf (" + strings.Join(val, "|") + ")|" +
+		strings.Join(noval, "|")
 }
 
 // LookupAttribute returns attribute by its full path.
