@@ -44,13 +44,7 @@ type Object interface {
 // for the particular [Object] type (but not necessarily present
 // in the particular Object instance).
 func ObjectRegisteredAttrNames(obj Object) []string {
-	known := ippKnownAttrsType(reflect.TypeOf(obj))
-	names := make([]string, len(known))
-	for i := range known {
-		names[i] = known[i].Name
-	}
-
-	return names
+	return ippRegisteredAttrNames(reflect.TypeOf(obj))
 }
 
 // ObjectGetAttr returns [goipp.Attibute] by name

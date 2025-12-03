@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"math"
 	"reflect"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -20,6 +21,7 @@ import (
 	"unsafe"
 
 	"github.com/OpenPrinting/go-mfp/internal/assert"
+	"github.com/OpenPrinting/go-mfp/proto/ipp/iana"
 	"github.com/OpenPrinting/go-mfp/util/generic"
 	"github.com/OpenPrinting/goipp"
 )
@@ -574,21 +576,11 @@ func (dec *ippDecoder) errPush(err error) {
 	dec.errors = append(dec.errors, err)
 }
 
-// ippKnownAttrs returns information about Object's known attributes
-//
-// This function will panic, if codec cannot be generated.
-func ippKnownAttrs(obj Object) []AttrInfo {
-	codec := ippCodecGet(obj)
-	return codec.knownAttrs
-}
-
-// ippKnownAttrsType returns information about known attributes of
-// structure, defined by its type.
-//
-// t must be pointer to structure.
-func ippKnownAttrsType(t reflect.Type) []AttrInfo {
+// ippRegisteredAttrNames returns names of attributes registered
+// for the Object type.
+func ippRegisteredAttrNames(t reflect.Type) []string {
 	codec := ippCodecGetType(t)
-	return codec.knownAttrs
+	return codec.regAttrNames
 }
 
 // ippCodec represents actions required to encode/decode structures
@@ -596,10 +588,12 @@ func ippKnownAttrsType(t reflect.Type) []AttrInfo {
 // then reused, to minimize performance overhead associated with
 // reflection
 type ippCodec struct {
-	t           reflect.Type             // Type of structure
-	steps       []ippCodecStep           // Encoding/decoding steps
-	stepsByName map[string]*ippCodecStep // Steps indexed by attribute name
-	knownAttrs  []AttrInfo               // Known attributes
+	t            reflect.Type             // Type of structure
+	steps        []ippCodecStep           // Encoding/decoding steps
+	stepsByName  map[string]*ippCodecStep // Steps indexed by attribute name
+	regAttrs     map[string]*iana.DefAttr // Registered attributes
+	regAttrNames []string                 // Names of registered attrs
+
 }
 
 // encodeFunc encodes attribute values into the IPP representation
@@ -705,12 +699,19 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 
 	// Build stepsByName and knownAttrs
 	codec.stepsByName = make(map[string]*ippCodecStep, len(codec.steps))
-	codec.knownAttrs = make([]AttrInfo, len(codec.steps))
 
 	for i := range codec.steps {
 		codec.stepsByName[codec.steps[i].attrName] = &codec.steps[i]
-		codec.knownAttrs[i].Name = codec.steps[i].attrName
-		codec.knownAttrs[i].Tag = codec.steps[i].attrTag
+	}
+
+	// Build regAttrNames
+	if codec.regAttrs != nil {
+		// Only for top-level Object structures.
+		codec.regAttrNames = make([]string, 0, len(codec.regAttrs))
+		for name := range codec.regAttrs {
+			codec.regAttrNames = append(codec.regAttrNames, name)
+		}
+		sort.Strings(codec.regAttrNames)
 	}
 
 	// Done for now!
@@ -747,8 +748,14 @@ func ippCodecGenerateInternal(t reflect.Type,
 
 		// Handle embedded structures
 		if fld.Anonymous {
-			if fld.IsExported() &&
-				fld.Type.Kind() == reflect.Struct {
+			switch {
+			case fld.Type.AssignableTo(attributesGroupType):
+				grp := reflect.New(fld.Type).
+					Interface().(attributesGroup)
+				codec.regAttrs = grp.registrations()
+
+			case fld.IsExported() &&
+				fld.Type.Kind() == reflect.Struct:
 
 				nested, err := ippCodecGenerateInternal(
 					fld.Type, attrNames)
