@@ -9,6 +9,7 @@
 package iana
 
 import (
+	"fmt"
 	"math"
 	"strings"
 
@@ -76,6 +77,16 @@ func (def *DefAttr) OOBTag() goipp.Tag {
 	return goipp.TagZero
 }
 
+// HasTag reports if attribute syntax allows the specified tag.
+func (def *DefAttr) HasTag(tag goipp.Tag) bool {
+	for _, tag2 := range def.Tags {
+		if tag == tag2 {
+			return true
+		}
+	}
+	return false
+}
+
 // Member returns attribute's member by name.
 func (def *DefAttr) Member(name string) *DefAttr {
 	for _, mbr := range def.Members {
@@ -93,6 +104,43 @@ func (def *DefAttr) Member(name string) *DefAttr {
 	}
 
 	return nil
+}
+
+// String formats attribute syntax as string, for debugging
+func (def *DefAttr) String() string {
+	val := []string{}
+	noval := []string{}
+
+	for _, tag := range def.Tags {
+		if tag.Type() == goipp.TypeVoid {
+			noval = append(noval, tag.String())
+			continue
+		}
+
+		name := tag.String()
+		min, max := tag.Limits()
+		switch {
+		case min == MIN && max == MAX:
+		case min == def.Min && max == def.Max:
+		case min == def.Min:
+			name = fmt.Sprintf("%s(%d)", name, def.Max)
+		default:
+			name = fmt.Sprintf("%s(%d:%d)", name, def.Min, def.Max)
+		}
+		val = append(val, name)
+	}
+
+	switch {
+	case !def.SetOf:
+		return strings.Join(append(val, noval...), "|")
+	case len(noval) == 0:
+		return "1setOf " + strings.Join(append(val), "|")
+	}
+
+	return "1setOf (" +
+		strings.Join(append(val), "|") +
+		")|" +
+		strings.Join(append(noval), "|")
 }
 
 // LookupAttribute returns attribute by its full path.

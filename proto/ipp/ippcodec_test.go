@@ -64,7 +64,7 @@ func TestIppCodecGenerate(t *testing.T) {
 			data: struct {
 				FldBad int `ipp:""`
 			}{},
-			err: `struct {...}.FldBad: missed attribute name`,
+			err: `struct {...}.FldBad: ipp:missed attribute name`,
 		},
 
 		{
@@ -88,52 +88,45 @@ func TestIppCodecGenerate(t *testing.T) {
 				// ipp: tag contains unknown keyword
 				FldBadTag int `ipp:"fld-bad-tag,unknown"`
 			}{},
-			err: `struct {...}.FldBadTag: unknown keyword: "unknown"`,
-		},
-
-		{
-			data: struct {
-				// ipp: tag contains empty keyword; it's not an error
-				FldGootTag int `ipp:"fld-good-tag,,integer"`
-			}{},
+			err: `struct {...}.FldBadTag: ipp:"unknown": no data tags defined`,
 		},
 
 		{
 			data: struct {
 				// ipp: range constraint syntactically invalid
-				FldBadTag int `ipp:"fld-bad-tag,(0:XXX)"`
+				FldBadTag int `ipp:"fld-bad-tag,integer(0:XXX)"`
 			}{},
-			err: `struct {...}.FldBadTag: range (0:XXX): invalid value`,
+			err: `struct {...}.FldBadTag: ipp:"XXX": invalid limit`,
 		},
 
 		{
 			data: struct {
 				// ipp: range lower bound doesn't fit int32
-				FldGoodTag int `ipp:"fld-good-tag,(4294967296:5)"`
+				FldGoodTag int `ipp:"fld-good-tag,integer(4294967296:5)"`
 			}{},
-			err: `struct {...}.FldGoodTag: range (4294967296:5): invalid value`,
+			err: `struct {...}.FldGoodTag: ipp:"4294967296": invalid limit`,
 		},
 
 		{
 			data: struct {
 				// ipp: range upper bound doesn't fit int32
-				FldGoodTag int `ipp:"fld-good-tag,(5:4294967296)"`
+				FldGoodTag int `ipp:"fld-good-tag,integer(5:4294967296)"`
 			}{},
-			err: `struct {...}.FldGoodTag: range (5:4294967296): invalid value`,
+			err: `struct {...}.FldGoodTag: ipp:"4294967296": invalid limit`,
 		},
 
 		{
 			data: struct {
 				// ipp: range min > max
-				FldGoodTag int `ipp:"fld-good-tag,(10:5)"`
+				FldGoodTag int `ipp:"fld-good-tag,integer(10:5)"`
 			}{},
-			err: `struct {...}.FldGoodTag: range (10:5): min>max`,
+			err: `struct {...}.FldGoodTag: ipp:integer(10:5): min>max`,
 		},
 
 		{
 			data: struct {
 				// ipp: tag contains valid range constraint
-				FldGoodTag int `ipp:"fld-good-tag,(0:100)"`
+				FldGoodTag int `ipp:"fld-good-tag,integer(0:100)"`
 			}{},
 		},
 
@@ -170,7 +163,7 @@ func TestIppCodecGenerate(t *testing.T) {
 			data: struct {
 				unexported int `ipp:"unexported"`
 			}{},
-			err: `struct {...}.unexported: ipp: tag used with unexported field`,
+			err: `struct {...}.unexported: ipp:tag used with unexported field`,
 		},
 
 		{
@@ -206,6 +199,8 @@ func TestIppCodecStandardTypes(t *testing.T) {
 		CUPSGetPrintersRequest{},
 		CUPSGetPrintersResponse{},
 		DeviceAttributes{},
+		GetPrinterAttributesRequest{},
+		GetPrinterAttributesResponse{},
 		PPDAttributes{},
 		PrinterDescription{},
 	}
@@ -218,29 +213,6 @@ func TestIppCodecStandardTypes(t *testing.T) {
 				reflect.TypeOf(test), err)
 		}
 	}
-}
-
-// TestIppCodecGenerateBadTag tests ippCodecGenerate behavior
-// when ipp: tag has invalid syntax
-func TestIppCodecGenerateBadTag(t *testing.T) {
-	// Here we construct a struct type with invalid ipp: tag
-	// and test error detection and reporting by ippCodecGenerate
-	//
-	// Note, if we define such a struct directly, as a type,
-	// go vet complains on invalid struct field tag, which we
-	// want to avoid
-	fields := []reflect.StructField{
-		{
-			Name: "FldBadTag",
-			Type: reflect.TypeOf(0),
-			Tag:  `ipp:"fld-bad-tag`, // missed closing quote (")
-		},
-	}
-
-	stype := reflect.StructOf(fields)
-	_, err := ippCodecGenerate(stype)
-	checkError(t, "TestIppCodecGenerateBadTag", err,
-		errors.New(`struct {...}.FldBadTag: invalid tag "ipp:\"fld-bad-tag"`))
 }
 
 // TestDecodePanic tests panics in (*ippCodec) decode()
@@ -317,7 +289,7 @@ func TestIppEncodeDecodePanic(t *testing.T) {
 // ippTestCollection used to test collection members
 // of ippTestStruct
 type ippTestCollection struct {
-	CollInt    goipp.IntegerOrRange `ipp:"coll-int"`
+	CollInt    goipp.IntegerOrRange `ipp:"coll-int,integer|rangeOfInteger"`
 	CollString string               `ipp:"coll-string"`
 	CollU16    uint16               `ipp:"coll-u16"`
 }
@@ -336,59 +308,59 @@ type ippTestStruct struct {
 	TestEmbedded
 
 	FldBooleanF     bool   `ipp:"fld-boolean-f,boolean"`
-	FldBooleanSlice []bool `ipp:"fld-boolean-slice,boolean"`
+	FldBooleanSlice []bool `ipp:"fld-boolean-slice,1setOf boolean"`
 	FldBooleanT     bool   `ipp:"fld-boolean-t,boolean"`
 
 	FldCharset      string   `ipp:"fld-charset,charset"`
-	FldCharsetSlice []string `ipp:"fld-charset-slice,charset"`
+	FldCharsetSlice []string `ipp:"fld-charset-slice,1setOf charset"`
 
 	FldColl         ippTestCollection   `ipp:"fld-coll"`
 	FldCollSlice    []ippTestCollection `ipp:"fld-coll-slice"`
 	FldCollNilSlice []ippTestCollection `ipp:"fld-coll-nil-slice"`
 
 	FldDateTime      time.Time   `ipp:"fld-datetime,datetime"`
-	FldDateTimeSlice []time.Time `ipp:"fld-datetime-slice,datetime"`
+	FldDateTimeSlice []time.Time `ipp:"fld-datetime-slice,1setOf datetime"`
 
 	FldEnum      int   `ipp:"fld-enum,enum"`
-	FldEnumSlice []int `ipp:"fld-enum-slice,enum"`
+	FldEnumSlice []int `ipp:"fld-enum-slice,1setOf enum"`
 
 	FldInteger      int   `ipp:"fld-integer,integer"`
-	FldIntegerSlice []int `ipp:"fld-integer-slice,integer"`
+	FldIntegerSlice []int `ipp:"fld-integer-slice,1setOf integer"`
 
 	FldKeyword      string   `ipp:"fld-keyword,keyword"`
-	FldKeywordSlice []string `ipp:"fld-keyword-slice,keyword"`
+	FldKeywordSlice []string `ipp:"fld-keyword-slice,1setOf keyword"`
 
 	FldLanguage      string   `ipp:"fld-language,naturalLanguage"`
-	FldLanguageSlice []string `ipp:"fld-language-slice,naturalLanguage"`
+	FldLanguageSlice []string `ipp:"fld-language-slice,1setOf naturalLanguage"`
 
 	FldMime      string   `ipp:"fld-mime,mimemediatype"`
-	FldMimeSlice []string `ipp:"fld-mime-slice,mimemediatype"`
+	FldMimeSlice []string `ipp:"fld-mime-slice,1setOf mimemediatype"`
 
 	FldName      string   `ipp:"fld-name,name"`
-	FldNameSlice []string `ipp:"fld-name-slice,name"`
+	FldNameSlice []string `ipp:"fld-name-slice,1setOf name"`
 
 	FldNilSlice []int `ipp:"fld-nil-slice"`
 
 	FldRange      goipp.Range   `ipp:"fld-range,rangeOfInteger"`
-	FldRangeSlice []goipp.Range `ipp:"fld-range-slice,rangeOfInteger"`
+	FldRangeSlice []goipp.Range `ipp:"fld-range-slice,1setOf rangeOfInteger"`
 
 	FldResolution      goipp.Resolution   `ipp:"fld-resolution,resolution"`
-	FldResolutionSlice []goipp.Resolution `ipp:"fld-resolution-slice,resolution"`
+	FldResolutionSlice []goipp.Resolution `ipp:"fld-resolution-slice,1setOf resolution"`
 
 	FldTextWithLang      goipp.TextWithLang   `ipp:"fld-textwithlang,textwithlanguage"`
-	FldTextWithLangSlice []goipp.TextWithLang `ipp:"fld-textwithlang-slice,textwithlanguage"`
+	FldTextWithLangSlice []goipp.TextWithLang `ipp:"fld-textwithlang-slice,1setOf textwithlanguage"`
 
 	FldString      string   `ipp:"fld-string,string"`
-	FldStringSlice []string `ipp:"fld-string-slice,string"`
+	FldStringSlice []string `ipp:"fld-string-slice,1setOf string"`
 
 	FldText      string   `ipp:"fld-text,text"`
-	FldTextSlice []string `ipp:"fld-text-slice,text"`
+	FldTextSlice []string `ipp:"fld-text-slice,1setOf text"`
 
 	FldURI      string   `ipp:"fld-uri,uri"`
-	FldURISlice []string `ipp:"fld-uri-slice,uri"`
+	FldURISlice []string `ipp:"fld-uri-slice,1setOf uri"`
 
 	FldURIScheme      string   `ipp:"fld-urischeme,urischeme"`
-	FldURISchemeSlice []string `ipp:"fld-urischeme-slice,urischeme"`
+	FldURISchemeSlice []string `ipp:"fld-urischeme-slice,1setOf urischeme"`
 
 	FldUint16      uint16   `ipp:"fld-uint16"`
 	FldUint16Slice []uint16 `ipp:"fld-uint16-slice"`

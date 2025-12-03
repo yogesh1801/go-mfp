@@ -14,6 +14,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 	"unicode"
 
 	"github.com/OpenPrinting/go-mfp/proto/ipp/iana"
@@ -79,6 +80,90 @@ func attrFieldAnalyze(fld reflect.StructField) (
 	return
 }
 
+func attrFieldCompatible(fld reflect.StructField, def *iana.DefAttr) bool {
+	// Handle slices and optional values
+	fldType := fld.Type
+	setof := false
+
+	switch fldType.Kind() {
+	case reflect.Pointer:
+		fldType = fldType.Elem()
+	case reflect.Slice:
+		setof = true
+		fldType = fldType.Elem()
+	}
+
+	if setof != def.SetOf {
+		return false
+	}
+
+	// Check for registered keywords and enums
+	if _, found := kwRegisteredTypes[fldType]; found {
+		return def.HasTag(goipp.TagKeyword)
+	}
+
+	if _, found := enRegisteredTypes[fldType]; found {
+		return def.HasTag(goipp.TagEnum)
+	}
+
+	// Check for known types
+	switch fldType {
+	case reflect.TypeOf((*goipp.IntegerOrRange)(nil)).Elem():
+		return def.HasTag(goipp.TagInteger) && def.HasTag(goipp.TagRange)
+
+	case reflect.TypeOf(goipp.Range{}):
+		return def.HasTag(goipp.TagRange)
+
+	case reflect.TypeOf(goipp.Resolution{}):
+		return def.HasTag(goipp.TagResolution)
+
+	case reflect.TypeOf(goipp.TextWithLang{}):
+		return def.HasTag(goipp.TagName) || def.HasTag(goipp.TagText)
+
+	case reflect.TypeOf(goipp.Version(0)):
+		return def.HasTag(goipp.TagKeyword)
+
+	case reflect.TypeOf(time.Time{}):
+		return def.HasTag(goipp.TagDateTime)
+
+	case reflect.TypeOf(""):
+		for _, tag := range def.Tags {
+			t := tag.Type()
+			if t == goipp.TypeString || t == goipp.TypeBinary {
+				return true
+			}
+		}
+
+	case reflect.TypeOf(0):
+		return def.HasTag(goipp.TagInteger) || def.HasTag(goipp.TagEnum)
+
+	case reflect.TypeOf(false):
+		return def.HasTag(goipp.TagBoolean)
+	}
+
+	// Choose by reflect.Kind
+	switch fldType.Kind() {
+	case reflect.Bool:
+		return def.HasTag(goipp.TagBoolean)
+
+	case reflect.Int, reflect.Uint16:
+		return def.HasTag(goipp.TagInteger) || def.HasTag(goipp.TagEnum)
+
+	case reflect.String:
+		for _, tag := range def.Tags {
+			t := tag.Type()
+			if t == goipp.TypeString || t == goipp.TypeBinary {
+				return true
+			}
+		}
+
+	case reflect.Struct:
+		return def.HasTag(goipp.TagBeginCollection)
+	}
+
+	return false
+}
+
 // attrSyntaxParse parses attribute syntax
 func attrSyntaxParse(s string) (*iana.DefAttr, error) {
 	def := iana.DefAttr{
@@ -88,17 +173,19 @@ func attrSyntaxParse(s string) (*iana.DefAttr, error) {
 	tokens := attrSyntaxTokenize(s)
 	tags := generic.NewSet[goipp.Tag]()
 
-	if len(tokens) > 0 && tokens[0] == "1setof" {
+	if len(tokens) > 0 && strings.ToLower(tokens[0]) == "1setof" {
 		def.SetOf = true
 		tokens = tokens[1:]
 	}
 
+	hasDataTags := false
 	for len(tokens) > 0 {
 		// Parse value tag
 		var tag goipp.Tag
-		var tok string
+		var tok, origTok string
 
-		tok, tokens = tokens[0], tokens[1:]
+		origTok, tokens = tokens[0], tokens[1:]
+		tok = strings.ToLower(origTok)
 
 		switch tok {
 		case "type1", "type2", "type3", "(", ")", "|":
@@ -107,13 +194,15 @@ func attrSyntaxParse(s string) (*iana.DefAttr, error) {
 		default:
 			tag = attrTagsByName[tok]
 			if tag == goipp.TagZero {
-
-				err := fmt.Errorf("ipp:%q: unexpected token", tok)
+				err := fmt.Errorf("ipp:%q: unexpected token", origTok)
 				return nil, err
 			}
 		}
 
 		tags.Add(tag)
+		if tag.Type() != goipp.TypeVoid {
+			hasDataTags = true
+		}
 
 		// Parse limits
 		min := ""
@@ -130,7 +219,7 @@ func attrSyntaxParse(s string) (*iana.DefAttr, error) {
 			tokens = tokens[5:]
 		}
 
-		if min != "" && min != "min" {
+		if min != "" && strings.ToLower(min) != "min" {
 			v, err := strconv.ParseInt(min, 10, 32)
 			if err != nil {
 				err := fmt.Errorf("ipp:%q: invalid limit", min)
@@ -140,7 +229,7 @@ func attrSyntaxParse(s string) (*iana.DefAttr, error) {
 			def.Min = generic.Max(def.Min, int32(v))
 		}
 
-		if max != "" && max != "max" {
+		if max != "" && strings.ToLower(max) != "max" {
 			v, err := strconv.ParseInt(max, 10, 32)
 			if err != nil {
 				err := fmt.Errorf("ipp:%q: invalid limit", max)
@@ -148,6 +237,11 @@ func attrSyntaxParse(s string) (*iana.DefAttr, error) {
 			}
 
 			def.Max = generic.Min(def.Max, int32(v))
+		}
+
+		if def.Min > def.Max {
+			err := fmt.Errorf("ipp:%s(%s:%s): min>max", origTok, min, max)
+			return nil, err
 		}
 
 		tagmin, tagmax := tag.Limits()
@@ -162,8 +256,8 @@ func attrSyntaxParse(s string) (*iana.DefAttr, error) {
 		}
 	}
 
-	if len(def.Tags) == 0 {
-		err := fmt.Errorf("ipp:%q: no tags defined", s)
+	if !hasDataTags {
+		err := fmt.Errorf("ipp:%q: no data tags defined", s)
 		return nil, err
 	}
 
@@ -171,7 +265,6 @@ func attrSyntaxParse(s string) (*iana.DefAttr, error) {
 }
 
 // attrSyntaxTokenize splits syntax string into tokens.
-// Alphanumerical tokens are lowercased.
 func attrSyntaxTokenize(s string) []string {
 	word := false
 	tokens := []string{}
@@ -192,7 +285,7 @@ func attrSyntaxTokenize(s string) []string {
 				word = true
 				tokens = append(tokens, "")
 			}
-			tokens[len(tokens)-1] += string(unicode.ToLower(c))
+			tokens[len(tokens)-1] += string(c)
 		}
 	}
 

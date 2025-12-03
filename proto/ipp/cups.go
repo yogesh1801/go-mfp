@@ -22,7 +22,7 @@ type (
 		OperationGroup
 
 		// Operation attributes
-		RequestedAttributes []string `ipp:"requested-attributes,keyword"`
+		RequestedAttributes []string `ipp:"requested-attributes,1setOf keyword"`
 	}
 
 	// CUPSGetDefaultResponse is the CUPS-Get-Default Response.
@@ -50,7 +50,7 @@ type (
 		PrinterType         optional.Val[int]    `ipp:"printer-type,enum"`
 		PrinterTypeMask     optional.Val[int]    `ipp:"printer-type-mask,enum"`
 		RequestedUserName   optional.Val[string] `ipp:"requested-user-name,name"`
-		RequestedAttributes []string             `ipp:"requested-attributes,keyword"`
+		RequestedAttributes []string             `ipp:"requested-attributes,1setOf keyword"`
 	}
 
 	// CUPSGetPrintersResponse is the CUPS-Get-Printers Response.
@@ -72,11 +72,11 @@ type (
 		OperationGroup
 
 		// Operational attributes
-		ExcludeSchemes      []string          `ipp:"exclude-schemes,name"`
-		IncludeSchemes      []string          `ipp:"include-schemes,name"`
-		Limit               optional.Val[int] `ipp:"limit,(1:MAX)"`
-		RequestedAttributes []string          `ipp:"requested-attributes,keyword"`
-		Timeout             optional.Val[int] `ipp:"timeout,(1:MAX)"`
+		ExcludeSchemes      []string          `ipp:"exclude-schemes,1setOf name"`
+		IncludeSchemes      []string          `ipp:"include-schemes,1setOf name"`
+		Limit               optional.Val[int] `ipp:"limit,integer(1:MAX)"`
+		RequestedAttributes []string          `ipp:"requested-attributes,1setOf keyword"`
+		Timeout             optional.Val[int] `ipp:"timeout,integer(1:MAX)"`
 	}
 
 	// CUPSGetDevicesResponse is the CUPS-Get-Devices Response.

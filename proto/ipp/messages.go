@@ -48,7 +48,7 @@ type (
 
 		// Operation attributes
 		PrinterURI          string               `ipp:"printer-uri,uri"`
-		RequestedAttributes []string             `ipp:"requested-attributes,keyword"`
+		RequestedAttributes []string             `ipp:"requested-attributes,1setOf keyword"`
 		DocumentFormat      optional.Val[string] `ipp:"document-format,mimeMediaType"`
 	}
 

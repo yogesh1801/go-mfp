@@ -605,12 +605,9 @@ type decodeFunc func(dec *ippDecoder, p unsafe.Pointer, v goipp.Values) error
 // ippCodecStep represents a single encoding/decoding step for the
 // ippCodec
 type ippCodecStep struct {
-	offset   uintptr   // Field offset within structure
-	attrName string    // IPP attribute name
-	attrTag  goipp.Tag // IPP attribute tag
-	zeroTag  goipp.Tag // How to encode zero value
-	min, max int       // Range limits for integers
-	isSlice  bool      // Slice output, multiple values expected
+	offset   uintptr       // Field offset within structure
+	attrName string        // IPP attribute name
+	def      *iana.DefAttr // Attribute definition
 
 	// Encode/decode functions
 	encode  func(enc *ippEncoder, p unsafe.Pointer) goipp.Values
@@ -769,40 +766,26 @@ func ippCodecGenerateInternal(t reflect.Type,
 			continue
 		}
 
-		// Fetch ipp: struct tag string. Ignore fields without this tags.
-		tagStr, found := fld.Tag.Lookup("ipp")
-		if !found {
-			if strings.HasPrefix(string(fld.Tag), "ipp:") {
-				err := fmt.Errorf("%s.%s: invalid tag %q",
-					diagTypeName(t), fld.Name, fld.Tag)
-				return nil, err
-			}
-
-			continue
-		}
-
-		// Field with ipp: tag must be exported.
-		if !fld.IsExported() {
-			err := fmt.Errorf("%s.%s: ipp: tag used with unexported field",
-				diagTypeName(t), fld.Name)
-			return nil, err
-		}
-
 		// Parse ipp: struct tag.
-		tag, err := ippStructTagParse(tagStr)
+		name, def, err := attrFieldAnalyze(fld)
 		if err != nil {
 			err := fmt.Errorf("%s.%s: %w",
 				diagTypeName(t), fld.Name, err)
 			return nil, err
 		}
 
+		if name == "" {
+			// Not the IPP attribute field
+			continue
+		}
+
 		// Check attribute name for duplicates.
-		if found := attrNames[tag.name]; found != "" {
+		if found := attrNames[name]; found != "" {
 			err := fmt.Errorf("%s.%s: attribute %q already used by %s",
-				diagTypeName(t), fld.Name, tag.name, found)
+				diagTypeName(t), fld.Name, name, found)
 			return nil, err
 		}
-		attrNames[tag.name] = fld.Name
+		attrNames[name] = fld.Name
 
 		// Obtain fldType.
 		//
@@ -847,16 +830,45 @@ func ippCodecGenerateInternal(t reflect.Type,
 			return nil, err
 		}
 
+		// If the attribute definition is not available,
+		// generate it from the structure field type.
+		//
+		// FIXME -- this is the temporary solution
+		if def == nil {
+			var tag goipp.Tag
+			if _, found := kwRegisteredTypes[fldType]; found {
+				// Underlying type registered as keyword.
+				// Use goipp.TagKeyword.
+				tag = goipp.TagKeyword
+			} else if _, found := enRegisteredTypes[fldType]; found {
+				// Use goipp.TagEnum for registered enum types.
+				tag = goipp.TagEnum
+			} else {
+				// Use tag, default for the underlying value type
+				tag = methods.defaultIppTag
+			}
+
+			if tag == goipp.TagZero {
+				err := fmt.Errorf("%s.%s: can't deduce IPP tag for %s",
+					diagTypeName(t), fld.Name, diagTypeName(fldType))
+				return nil, err
+			}
+
+			min, max := tag.Limits()
+			def = &iana.DefAttr{
+				SetOf: isSlice,
+				Tags:  []goipp.Tag{tag},
+				Min:   min,
+				Max:   max,
+			}
+		}
+
 		// Generate encoding/decoding step for underlying type.
 		zero := reflect.Zero(fldType)
 		step := ippCodecStep{
 			offset:   fld.Offset,
-			attrName: tag.name,
-			attrTag:  tag.ippTag,
-			zeroTag:  tag.zeroTag,
-			min:      tag.min,
-			max:      tag.max,
-			isSlice:  isSlice,
+			attrName: name,
+			def:      def,
 
 			encode: methods.encode,
 			decode: methods.decode,
@@ -864,22 +876,6 @@ func ippCodecGenerateInternal(t reflect.Type,
 			setzero: func(p unsafe.Pointer) {
 				reflect.NewAt(fldType, p).Elem().Set(zero)
 			},
-		}
-
-		// Guess actual attribute Tag.
-		if _, found := kwRegisteredTypes[fldType]; found {
-			// Underlying type registered as keyword.
-			// Use goipp.TagKeyword.
-			step.attrTag = goipp.TagKeyword
-		} else if _, found := enRegisteredTypes[fldType]; found {
-			// Use goipp.TagEnum for registered enum types.
-			step.attrTag = goipp.TagEnum
-		}
-
-		if step.attrTag == 0 {
-			// There is no Tag override from the struct tag.
-			// Use default tag for the data type.
-			step.attrTag = methods.defaultIppTag
 		}
 
 		// Check for compatibility between IPP representation
@@ -891,16 +887,10 @@ func ippCodecGenerateInternal(t reflect.Type,
 		//
 		// The only exception, goipp.TypeString can be converted
 		// into goipp.TypeBinary and visa versa.
-		t1 := step.attrTag.Type()
-		t2 := methods.defaultIppTag.Type()
-
-		ok := t1 == t2 ||
-			t1 == goipp.TypeBinary && t2 == goipp.TypeString ||
-			t2 == goipp.TypeBinary && t1 == goipp.TypeString
-
+		ok := attrFieldCompatible(fld, def)
 		if !ok {
 			err := fmt.Errorf("%s.%s: can't represent %s as %s",
-				diagTypeName(t), fld.Name, fld.Type, step.attrTag)
+				diagTypeName(t), fld.Name, fld.Type, def)
 
 			return nil, err
 		}
@@ -985,9 +975,11 @@ func (codec *ippCodec) encodeAttrs(enc *ippEncoder,
 		ptr := unsafe.Pointer(uintptr(p) + step.offset)
 
 		values := step.encode(enc, ptr)
-
-		if values == nil && step.zeroTag != goipp.TagZero {
-			values = goipp.Values{{step.zeroTag, goipp.Void{}}}
+		if values == nil {
+			oob := step.def.OOBTag()
+			if oob != goipp.TagZero {
+				values = goipp.Values{{oob, goipp.Void{}}}
+			}
 		}
 
 		// If we have value, encode the whole attribute
@@ -995,11 +987,21 @@ func (codec *ippCodec) encodeAttrs(enc *ippEncoder,
 			attr := goipp.Attribute{Name: step.attrName}
 
 			for _, v := range values {
-				// Use default step.attrTag, if value tag
-				// is not set explicitly.
-				tag := step.attrTag
-				if v.T != goipp.TagZero {
-					tag = v.T
+				// If value tag is not set by encoder,
+				// use tag from attribute definition.
+				tag := v.T
+				if tag == goipp.TagZero {
+					tag = step.def.Tags[0] // FIXME
+					if v.V.Type() == goipp.TypeTextWithLang {
+						switch tag {
+						case goipp.TagName:
+							tag = goipp.TagNameLang
+						case goipp.TagText:
+							tag = goipp.TagTextLang
+						default:
+							assert.Must(false)
+						}
+					}
 				}
 
 				attr.Values.Add(tag, v.V)
@@ -1079,7 +1081,7 @@ func (codec ippCodec) doDecodeStep(dec *ippDecoder,
 
 	// If not slice and we have more that 1 value, generate a
 	// warning and continue.
-	if !step.isSlice && len(attr.Values) > 1 {
+	if !step.def.SetOf && len(attr.Values) > 1 {
 		err := fmt.Errorf("1 value expected, %d present", len(attr.Values))
 		dec.errPush(dec.errWrap(err))
 	}

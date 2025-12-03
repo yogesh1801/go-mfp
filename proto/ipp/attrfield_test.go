@@ -40,12 +40,12 @@ func TestAttrSyntaxTokenize(t *testing.T) {
 
 		{
 			in:       "1setof integer(MIN)",
-			expected: []string{"1setof", "integer", "(", "min", ")"},
+			expected: []string{"1setof", "integer", "(", "MIN", ")"},
 		},
 
 		{
 			in:       "1setof integer(MIN:MAX)",
-			expected: []string{"1setof", "integer", "(", "min", ":", "max", ")"},
+			expected: []string{"1setof", "integer", "(", "MIN", ":", "MAX", ")"},
 		},
 
 		{
@@ -66,7 +66,7 @@ func TestAttrSyntaxTokenize(t *testing.T) {
 				"input:    %q\n"+
 				"expected: %#v\n"+
 				"present:  %#v\n",
-				test.in, tokens, test.expected)
+				test.in, test.expected, tokens)
 		}
 	}
 }
@@ -187,12 +187,12 @@ func TestAttrSyntaxParse(t *testing.T) {
 
 		{
 			in:  "",
-			err: `ipp:"": no tags defined`,
+			err: `ipp:"": no data tags defined`,
 		},
 
 		{
 			in:  "1setOf",
-			err: `ipp:"1setOf": no tags defined`,
+			err: `ipp:"1setOf": no data tags defined`,
 		},
 
 		{
@@ -276,7 +276,7 @@ func TestAttrFieldAnalyze(t *testing.T) {
 			},
 			name: "",
 			def:  nil,
-			err:  `ipp:"": no tags defined`,
+			err:  `ipp:"": no data tags defined`,
 		},
 
 		{
