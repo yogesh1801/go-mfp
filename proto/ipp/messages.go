@@ -44,6 +44,7 @@ type (
 	GetPrinterAttributesRequest struct {
 		ObjectRawAttrs
 		RequestHeader
+		OperationGroup
 
 		// Operation attributes
 		PrinterURI          string               `ipp:"printer-uri,uri"`
@@ -55,6 +56,7 @@ type (
 	GetPrinterAttributesResponse struct {
 		ObjectRawAttrs
 		ResponseHeader
+		OperationGroup
 
 		// Other attributes.
 		Printer *PrinterAttributes

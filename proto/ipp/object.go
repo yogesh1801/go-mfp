@@ -34,6 +34,10 @@ type Object interface {
 	// doesn't interrupt decoding but instead saved here (and may
 	// be reported as decode warnings).
 	Errors() []error
+
+	// This is to force embedding of some attributesGroup into
+	// the object
+	attributesGroup
 }
 
 // ObjectRegisteredAttrNames returns names of attributes specific

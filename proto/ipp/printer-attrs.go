@@ -46,6 +46,7 @@ const (
 // PrinterAttributes represents IPP Printer Attributes
 type PrinterAttributes struct {
 	ObjectRawAttrs
+	PrinterDescriptionGroup
 
 	PrinterDescription
 	JobTemplate

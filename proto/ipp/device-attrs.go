@@ -16,6 +16,7 @@ import (
 // the CUPS-Get-Devices request
 type DeviceAttributes struct {
 	ObjectRawAttrs
+	CUPSDeviceAttributesGroup
 
 	DeviceClass        optional.Val[KwDeviceClass] `ipp:"device-class"`
 	DeviceInfo         optional.Val[string]        `ipp:"device-info,text"`

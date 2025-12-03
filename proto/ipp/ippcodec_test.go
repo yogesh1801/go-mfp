@@ -14,6 +14,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/OpenPrinting/go-mfp/proto/ipp/iana"
 	"github.com/OpenPrinting/go-mfp/util/optional"
 	"github.com/OpenPrinting/goipp"
 )
@@ -272,10 +273,11 @@ func TestDecodePanic(t *testing.T) {
 // It is used for testing
 type testFakeObject int
 
-func (testFakeObject) RawAttrs() *ObjectRawAttrs          { return nil }
-func (testFakeObject) Get(string) (goipp.Attribute, bool) { return goipp.Attribute{}, false }
-func (testFakeObject) Set(goipp.Attribute) error          { return nil }
-func (testFakeObject) Errors() []error                    { return nil }
+func (testFakeObject) RawAttrs() *ObjectRawAttrs               { return nil }
+func (testFakeObject) Get(string) (goipp.Attribute, bool)      { return goipp.Attribute{}, false }
+func (testFakeObject) Set(goipp.Attribute) error               { return nil }
+func (testFakeObject) Errors() []error                         { return nil }
+func (testFakeObject) registrations() map[string]*iana.DefAttr { return nil }
 
 // TestIppEncodeDecodeAttrsPanic tests panic in
 // ippEncodeAttrs and ippDecodeAttrs
@@ -329,6 +331,7 @@ type TestEmbedded struct {
 // of the IPP codec
 type ippTestStruct struct {
 	ObjectRawAttrs
+	OperationGroup // FIXME
 
 	TestEmbedded
 

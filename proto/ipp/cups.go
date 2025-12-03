@@ -19,6 +19,7 @@ type (
 	CUPSGetDefaultRequest struct {
 		ObjectRawAttrs
 		RequestHeader
+		OperationGroup
 
 		// Operation attributes
 		RequestedAttributes []string `ipp:"requested-attributes,keyword"`
@@ -28,6 +29,7 @@ type (
 	CUPSGetDefaultResponse struct {
 		ObjectRawAttrs
 		ResponseHeader
+		OperationGroup
 
 		// Other attributes.
 		Printer *PrinterAttributes
@@ -38,6 +40,7 @@ type (
 	CUPSGetPrintersRequest struct {
 		ObjectRawAttrs
 		RequestHeader
+		OperationGroup
 
 		// Operation attributes
 		FirstPrinterName    optional.Val[string] `ipp:"first-printer-name"`
@@ -54,6 +57,7 @@ type (
 	CUPSGetPrintersResponse struct {
 		ObjectRawAttrs
 		ResponseHeader
+		OperationGroup
 
 		// Other attributes.
 		Printer []*PrinterAttributes
@@ -65,6 +69,7 @@ type (
 	CUPSGetDevicesRequest struct {
 		ObjectRawAttrs
 		RequestHeader
+		OperationGroup
 
 		// Operational attributes
 		ExcludeSchemes      []string          `ipp:"exclude-schemes,name"`
@@ -78,6 +83,7 @@ type (
 	CUPSGetDevicesResponse struct {
 		ObjectRawAttrs
 		ResponseHeader
+		OperationGroup
 
 		// Other attributes.
 		Printer []*DeviceAttributes
@@ -87,6 +93,7 @@ type (
 	CUPSGetPPDsRequest struct {
 		ObjectRawAttrs
 		RequestHeader
+		OperationGroup
 
 		// Operational attributes
 		PPDFilter
@@ -96,6 +103,7 @@ type (
 	CUPSGetPPDsResponse struct {
 		ObjectRawAttrs
 		ResponseHeader
+		OperationGroup
 
 		// Other attributes.
 		PPDs []*PPDAttributes
@@ -106,6 +114,7 @@ type (
 	CUPSGetPPDRequest struct {
 		ObjectRawAttrs
 		RequestHeader
+		OperationGroup
 
 		// Operational attributes
 		//
@@ -130,6 +139,7 @@ type (
 	CUPSGetPPDResponse struct {
 		ObjectRawAttrs
 		ResponseHeader
+		OperationGroup
 
 		// Operational attributes
 		PrinterURI optional.Val[string] `ipp:"printer-uri,uri"`

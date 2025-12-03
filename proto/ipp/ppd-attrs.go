@@ -32,4 +32,5 @@ type PPDFilter struct {
 // the CUPS-Get-PPDs request
 type PPDAttributes struct {
 	ObjectRawAttrs
+	CUPSPPDAttributesGroup
 }
