@@ -228,12 +228,6 @@ func DecodePrinterAttributes(attrs goipp.Attributes, opt DecodeOptions) (
 	return pa, nil
 }
 
-// Set sets [goipp.Attibute]. It updates the appropriate structure
-// field and Object's raw attributes.
-func (pa *PrinterAttributes) Set(attr goipp.Attribute) error {
-	return pa.set(attr, pa)
-}
-
 // IsCharsetSupported tells if charset is supported
 func (pa *PrinterAttributes) IsCharsetSupported(cs string) bool {
 	for _, supp := range pa.CharsetSupported {

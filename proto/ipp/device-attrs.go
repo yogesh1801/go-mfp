@@ -10,7 +10,6 @@ package ipp
 
 import (
 	"github.com/OpenPrinting/go-mfp/util/optional"
-	"github.com/OpenPrinting/goipp"
 )
 
 // DeviceAttributes represents device attributes, as returned by
@@ -24,10 +23,4 @@ type DeviceAttributes struct {
 	DeviceURI          optional.Val[string]        `ipp:"device-uri,uri"`
 	DeviceID           optional.Val[string]        `ipp:"device-id,text"`
 	DeviceLocation     optional.Val[string]        `ipp:"device-location,text"`
-}
-
-// Set sets [goipp.Attibute]. It updates the appropriate structure
-// field and Object's raw attributes.
-func (attrs *DeviceAttributes) Set(attr goipp.Attribute) error {
-	return attrs.set(attr, attrs)
 }

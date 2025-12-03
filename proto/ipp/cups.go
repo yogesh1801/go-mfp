@@ -143,12 +143,6 @@ func (rq *CUPSGetDefaultRequest) GetOp() goipp.Op {
 	return goipp.OpCupsGetDefault
 }
 
-// Set sets [goipp.Attibute]. It updates the appropriate structure
-// field and Object's raw attributes.
-func (rq *CUPSGetDefaultRequest) Set(attr goipp.Attribute) error {
-	return rq.set(attr, rq)
-}
-
 // Encode encodes CUPSGetDefaultRequest into the goipp.Message.
 func (rq *CUPSGetDefaultRequest) Encode() *goipp.Message {
 	enc := ippEncoder{}
@@ -180,12 +174,6 @@ func (rq *CUPSGetDefaultRequest) Decode(
 	}
 
 	return nil
-}
-
-// Set sets [goipp.Attibute]. It updates the appropriate structure
-// field and Object's raw attributes.
-func (rsp *CUPSGetDefaultResponse) Set(attr goipp.Attribute) error {
-	return rsp.set(attr, rsp)
 }
 
 // Encode encodes CUPSGetDefaultResponse into goipp.Message.
@@ -243,12 +231,6 @@ func (rq *CUPSGetPrintersRequest) GetOp() goipp.Op {
 	return goipp.OpCupsGetPrinters
 }
 
-// Set sets [goipp.Attibute]. It updates the appropriate structure
-// field and Object's raw attributes.
-func (rq *CUPSGetPrintersRequest) Set(attr goipp.Attribute) error {
-	return rq.set(attr, rq)
-}
-
 // Encode encodes CUPSGetPrintersRequest into the goipp.Message.
 func (rq *CUPSGetPrintersRequest) Encode() *goipp.Message {
 	enc := ippEncoder{}
@@ -280,12 +262,6 @@ func (rq *CUPSGetPrintersRequest) Decode(
 	}
 
 	return nil
-}
-
-// Set sets [goipp.Attibute]. It updates the appropriate structure
-// field and Object's raw attributes.
-func (rsp *CUPSGetPrintersResponse) Set(attr goipp.Attribute) error {
-	return rsp.set(attr, rsp)
 }
 
 // Encode encodes CUPSGetPrintersResponse into goipp.Message.
@@ -347,12 +323,6 @@ func (rq *CUPSGetDevicesRequest) GetOp() goipp.Op {
 	return goipp.OpCupsGetDevices
 }
 
-// Set sets [goipp.Attibute]. It updates the appropriate structure
-// field and Object's raw attributes.
-func (rq *CUPSGetDevicesRequest) Set(attr goipp.Attribute) error {
-	return rq.set(attr, rq)
-}
-
 // Encode encodes CUPSGetDevicesRequest into the goipp.Message.
 func (rq *CUPSGetDevicesRequest) Encode() *goipp.Message {
 	enc := ippEncoder{}
@@ -384,12 +354,6 @@ func (rq *CUPSGetDevicesRequest) Decode(
 	}
 
 	return nil
-}
-
-// Set sets [goipp.Attibute]. It updates the appropriate structure
-// field and Object's raw attributes.
-func (rsp *CUPSGetDevicesResponse) Set(attr goipp.Attribute) error {
-	return rsp.set(attr, rsp)
 }
 
 // Encode encodes CUPSGetDevicesResponse into goipp.Message.
@@ -452,12 +416,6 @@ func (rq *CUPSGetPPDsRequest) GetOp() goipp.Op {
 	return goipp.OpCupsGetPpds
 }
 
-// Set sets [goipp.Attibute]. It updates the appropriate structure
-// field and Object's raw attributes.
-func (rq *CUPSGetPPDsRequest) Set(attr goipp.Attribute) error {
-	return rq.set(attr, rq)
-}
-
 // Encode encodes CUPSGetPPDsRequest into the goipp.Message.
 func (rq *CUPSGetPPDsRequest) Encode() *goipp.Message {
 	enc := ippEncoder{}
@@ -489,12 +447,6 @@ func (rq *CUPSGetPPDsRequest) Decode(
 	}
 
 	return nil
-}
-
-// Set sets [goipp.Attibute]. It updates the appropriate structure
-// field and Object's raw attributes.
-func (rsp *CUPSGetPPDsResponse) Set(attr goipp.Attribute) error {
-	return rsp.set(attr, rsp)
 }
 
 // Encode encodes CUPSGetPPDsResponse into goipp.Message.
@@ -557,12 +509,6 @@ func (rq *CUPSGetPPDRequest) GetOp() goipp.Op {
 	return goipp.OpCupsGetPpd
 }
 
-// Set sets [goipp.Attibute]. It updates the appropriate structure
-// field and Object's raw attributes.
-func (rq *CUPSGetPPDRequest) Set(attr goipp.Attribute) error {
-	return rq.set(attr, rq)
-}
-
 // Encode encodes CUPSGetPPDRequest into the goipp.Message.
 func (rq *CUPSGetPPDRequest) Encode() *goipp.Message {
 	enc := ippEncoder{}
@@ -594,12 +540,6 @@ func (rq *CUPSGetPPDRequest) Decode(
 	}
 
 	return nil
-}
-
-// Set sets [goipp.Attibute]. It updates the appropriate structure
-// field and Object's raw attributes.
-func (rsp *CUPSGetPPDResponse) Set(attr goipp.Attribute) error {
-	return rsp.set(attr, rsp)
 }
 
 // Encode encodes CUPSGetPPDResponse into goipp.Message.

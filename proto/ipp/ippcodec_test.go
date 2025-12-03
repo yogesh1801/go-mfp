@@ -397,10 +397,6 @@ type ippTestStruct struct {
 	FltOptionalPresent optional.Val[int] `ipp:"flt-optional-present"`
 }
 
-func (s *ippTestStruct) Set(attr goipp.Attribute) error {
-	return s.set(attr, s)
-}
-
 // ippDecodeTest represents a single decode test data
 type ippDecodeTest struct {
 	attrs goipp.Attributes // Input attributes

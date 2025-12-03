@@ -34,14 +34,6 @@ type Object interface {
 	// doesn't interrupt decoding but instead saved here (and may
 	// be reported as decode warnings).
 	Errors() []error
-
-	// Get returns [goipp.Attibute] by name
-	Get(name string) (goipp.Attribute, bool)
-
-	// Set sets [goipp.Attibute] by name. It updates both
-	// object raw attributes and the corresponding field
-	// in the object structure (if any).
-	Set(attr goipp.Attribute) error
 }
 
 // ObjectRegisteredAttrNames returns names of attributes specific
@@ -55,6 +47,43 @@ func ObjectRegisteredAttrNames(obj Object) []string {
 	}
 
 	return names
+}
+
+// ObjectGetAttr returns [goipp.Attibute] by name
+func ObjectGetAttr(obj Object, name string) (attr goipp.Attribute, found bool) {
+	rawattrs := obj.RawAttrs()
+
+	i, found := rawattrs.byName[name]
+	if found {
+		attr = rawattrs.attrs[i]
+	}
+
+	return
+}
+
+// ObjectSetAttr sets [goipp.Attibute] by name. It updates both
+// object raw attributes and the corresponding field in the
+// object structure (if any).
+func ObjectSetAttr(obj Object, attr goipp.Attribute) error {
+	// Update the Object's outer structure
+	dec := ippDecoder{}
+	err := dec.DecodeSingle(obj, attr)
+	if err != nil {
+		return err
+	}
+
+	// Update raw attributes
+	rawattrs := obj.RawAttrs()
+	i, found := rawattrs.byName[attr.Name]
+	if !found {
+		i = len(rawattrs.attrs)
+		rawattrs.byName[attr.Name] = i
+		rawattrs.attrs = append(rawattrs.attrs, goipp.Attribute{})
+	}
+
+	rawattrs.attrs[i] = attr
+
+	return nil
 }
 
 // ObjectRawAttrs MUST be embedded into every IPP-encodable structure.
@@ -77,18 +106,6 @@ func (rawattrs *ObjectRawAttrs) All() goipp.Attributes {
 	return rawattrs.attrs
 }
 
-// Get returns [goipp.Attribute] by name.
-func (rawattrs *ObjectRawAttrs) Get(name string) (
-	attr goipp.Attribute, found bool) {
-
-	i, found := rawattrs.byName[name]
-	if found {
-		attr = rawattrs.attrs[i]
-	}
-
-	return
-}
-
 // Errors returns a slice of errors that has occurred during
 // the [Object] decoding.
 //
@@ -97,30 +114,6 @@ func (rawattrs *ObjectRawAttrs) Get(name string) (
 // be reported as decode warnings).
 func (rawattrs *ObjectRawAttrs) Errors() []error {
 	return rawattrs.errors
-}
-
-// set sets attribute by name and updates the outer structure that
-// contains the ObjectRawAttrs (hence the need for ippCodec to
-// obtain information about the attribute).
-func (rawattrs *ObjectRawAttrs) set(attr goipp.Attribute, outer Object) error {
-	// Update the outer structure
-	dec := ippDecoder{}
-	err := dec.DecodeSingle(outer, attr)
-	if err != nil {
-		return err
-	}
-
-	// Update raw attributes
-	i, found := rawattrs.byName[attr.Name]
-	if !found {
-		i = len(rawattrs.attrs)
-		rawattrs.byName[attr.Name] = i
-		rawattrs.attrs = append(rawattrs.attrs, goipp.Attribute{})
-	}
-
-	rawattrs.attrs[i] = attr
-
-	return nil
 }
 
 // save saves all raw IPP attributes and decode errors.

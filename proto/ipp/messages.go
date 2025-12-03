@@ -68,12 +68,6 @@ func (rq *GetPrinterAttributesRequest) GetOp() goipp.Op {
 	return goipp.OpGetPrinterAttributes
 }
 
-// Set sets [goipp.Attibute]. It updates the appropriate structure
-// field and Object's raw attributes.
-func (rq *GetPrinterAttributesRequest) Set(attr goipp.Attribute) error {
-	return rq.set(attr, rq)
-}
-
 // Encode encodes GetPrinterAttributesRequest into the goipp.Message.
 func (rq *GetPrinterAttributesRequest) Encode() *goipp.Message {
 	enc := ippEncoder{}
@@ -105,12 +99,6 @@ func (rq *GetPrinterAttributesRequest) Decode(
 	}
 
 	return nil
-}
-
-// Set sets [goipp.Attibute]. It updates the appropriate structure
-// field and Object's raw attributes.
-func (rsp *GetPrinterAttributesResponse) Set(attr goipp.Attribute) error {
-	return rsp.set(attr, rsp)
 }
 
 // Encode encodes GetPrinterAttributesResponse into goipp.Message.
