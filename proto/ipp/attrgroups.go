@@ -10,7 +10,7 @@ package ipp
 
 import "github.com/OpenPrinting/go-mfp/proto/ipp/iana"
 
-// AttributesGroup one of the following types.
+// attributesGroup one of the following types:
 //
 //	[CUPSDeviceAttributesGroup]
 //	[CUPSPPDAttributesGroup]
@@ -35,7 +35,7 @@ import "github.com/OpenPrinting/go-mfp/proto/ipp/iana"
 // The member of this type needs to be embedded into each structure
 // that implements the [Object] interface to specify which IPP attributes
 // are registered by IANA for that type of Object.
-type AttributesGroup interface {
+type attributesGroup interface {
 	// registrations returns attributes that belongs to the group
 	registrations() map[string]*iana.DefAttr
 }
