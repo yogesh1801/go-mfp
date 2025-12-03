@@ -273,7 +273,6 @@ func TestDecodePanic(t *testing.T) {
 type testFakeObject int
 
 func (testFakeObject) RawAttrs() *ObjectRawAttrs          { return nil }
-func (testFakeObject) KnownAttrs() []AttrInfo             { return nil }
 func (testFakeObject) Get(string) (goipp.Attribute, bool) { return goipp.Attribute{}, false }
 func (testFakeObject) Set(goipp.Attribute) error          { return nil }
 func (testFakeObject) Errors() []error                    { return nil }
@@ -396,10 +395,6 @@ type ippTestStruct struct {
 
 	FltOptionalMissed  optional.Val[int] `ipp:"flt-optional-missed"`
 	FltOptionalPresent optional.Val[int] `ipp:"flt-optional-present"`
-}
-
-func (s *ippTestStruct) KnownAttrs() []AttrInfo {
-	return ippKnownAttrs(s)
 }
 
 func (s *ippTestStruct) Set(attr goipp.Attribute) error {

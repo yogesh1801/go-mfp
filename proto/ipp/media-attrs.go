@@ -9,8 +9,6 @@
 package ipp
 
 import (
-	"reflect"
-
 	"github.com/OpenPrinting/go-mfp/util/optional"
 	"github.com/OpenPrinting/goipp"
 )
@@ -18,12 +16,6 @@ import (
 // MediaColDatabase represents "media-col-database" attribute.
 type MediaColDatabase struct {
 	MediaColDatabase []MediaCol `ipp:"media-col-database"`
-}
-
-// KnownAttrs returns information about all known IPP attributes
-// of the MediaColDatabase
-func (*MediaColDatabase) KnownAttrs() []AttrInfo {
-	return ippKnownAttrsType(reflect.TypeOf((*MediaColDatabase)(nil)))
 }
 
 // MediaCol is the "media-col", "media-col-xxx" collection entry.

@@ -9,6 +9,8 @@
 package ipp
 
 import (
+	"reflect"
+
 	"github.com/OpenPrinting/go-mfp/util/generic"
 	"github.com/OpenPrinting/goipp"
 )
@@ -25,10 +27,6 @@ type Object interface {
 	// RawAttrs returns ObjectRawAttrs embedded into the structure
 	RawAttrs() *ObjectRawAttrs
 
-	// KnownAttributes return information about known
-	// attributes of the Object
-	KnownAttrs() []AttrInfo
-
 	// Errors returns a slice of errors that has occurred during
 	// the [Object] decoding.
 	//
@@ -44,6 +42,19 @@ type Object interface {
 	// object raw attributes and the corresponding field
 	// in the object structure (if any).
 	Set(attr goipp.Attribute) error
+}
+
+// ObjectRegisteredAttrNames returns names of attributes specific
+// for the particular [Object] type (but not necessarily present
+// in the particular Object instance).
+func ObjectRegisteredAttrNames(obj Object) []string {
+	known := ippKnownAttrsType(reflect.TypeOf(obj))
+	names := make([]string, len(known))
+	for i := range known {
+		names[i] = known[i].Name
+	}
+
+	return names
 }
 
 // ObjectRawAttrs MUST be embedded into every IPP-encodable structure.

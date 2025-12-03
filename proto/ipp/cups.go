@@ -143,12 +143,6 @@ func (rq *CUPSGetDefaultRequest) GetOp() goipp.Op {
 	return goipp.OpCupsGetDefault
 }
 
-// KnownAttrs returns information about all known IPP attributes
-// of the CUPSGetDefaultRequest
-func (rq *CUPSGetDefaultRequest) KnownAttrs() []AttrInfo {
-	return ippKnownAttrs(rq)
-}
-
 // Set sets [goipp.Attibute]. It updates the appropriate structure
 // field and Object's raw attributes.
 func (rq *CUPSGetDefaultRequest) Set(attr goipp.Attribute) error {
@@ -186,12 +180,6 @@ func (rq *CUPSGetDefaultRequest) Decode(
 	}
 
 	return nil
-}
-
-// KnownAttrs returns information about all known IPP attributes
-// of the CUPSGetDefaultResponse.
-func (rsp *CUPSGetDefaultResponse) KnownAttrs() []AttrInfo {
-	return ippKnownAttrs(rsp)
 }
 
 // Set sets [goipp.Attibute]. It updates the appropriate structure
@@ -255,12 +243,6 @@ func (rq *CUPSGetPrintersRequest) GetOp() goipp.Op {
 	return goipp.OpCupsGetPrinters
 }
 
-// KnownAttrs returns information about all known IPP attributes
-// of the CUPSGetPrintersRequest
-func (rq *CUPSGetPrintersRequest) KnownAttrs() []AttrInfo {
-	return ippKnownAttrs(rq)
-}
-
 // Set sets [goipp.Attibute]. It updates the appropriate structure
 // field and Object's raw attributes.
 func (rq *CUPSGetPrintersRequest) Set(attr goipp.Attribute) error {
@@ -298,12 +280,6 @@ func (rq *CUPSGetPrintersRequest) Decode(
 	}
 
 	return nil
-}
-
-// KnownAttrs returns information about all known IPP attributes
-// of the CUPSGetPrintersResponse.
-func (rsp *CUPSGetPrintersResponse) KnownAttrs() []AttrInfo {
-	return ippKnownAttrs(rsp)
 }
 
 // Set sets [goipp.Attibute]. It updates the appropriate structure
@@ -371,12 +347,6 @@ func (rq *CUPSGetDevicesRequest) GetOp() goipp.Op {
 	return goipp.OpCupsGetDevices
 }
 
-// KnownAttrs returns information about all known IPP attributes
-// of the CUPSGetDevicesRequest
-func (rq *CUPSGetDevicesRequest) KnownAttrs() []AttrInfo {
-	return ippKnownAttrs(rq)
-}
-
 // Set sets [goipp.Attibute]. It updates the appropriate structure
 // field and Object's raw attributes.
 func (rq *CUPSGetDevicesRequest) Set(attr goipp.Attribute) error {
@@ -414,12 +384,6 @@ func (rq *CUPSGetDevicesRequest) Decode(
 	}
 
 	return nil
-}
-
-// KnownAttrs returns information about all known IPP attributes
-// of the CUPSGetDevicesResponse.
-func (rsp *CUPSGetDevicesResponse) KnownAttrs() []AttrInfo {
-	return ippKnownAttrs(rsp)
 }
 
 // Set sets [goipp.Attibute]. It updates the appropriate structure
@@ -488,12 +452,6 @@ func (rq *CUPSGetPPDsRequest) GetOp() goipp.Op {
 	return goipp.OpCupsGetPpds
 }
 
-// KnownAttrs returns information about all known IPP attributes
-// of the CUPSGetPPDsRequest
-func (rq *CUPSGetPPDsRequest) KnownAttrs() []AttrInfo {
-	return ippKnownAttrs(rq)
-}
-
 // Set sets [goipp.Attibute]. It updates the appropriate structure
 // field and Object's raw attributes.
 func (rq *CUPSGetPPDsRequest) Set(attr goipp.Attribute) error {
@@ -531,12 +489,6 @@ func (rq *CUPSGetPPDsRequest) Decode(
 	}
 
 	return nil
-}
-
-// KnownAttrs returns information about all known IPP attributes
-// of the CUPSGetPPDsResponse.
-func (rsp *CUPSGetPPDsResponse) KnownAttrs() []AttrInfo {
-	return ippKnownAttrs(rsp)
 }
 
 // Set sets [goipp.Attibute]. It updates the appropriate structure
@@ -605,12 +557,6 @@ func (rq *CUPSGetPPDRequest) GetOp() goipp.Op {
 	return goipp.OpCupsGetPpd
 }
 
-// KnownAttrs returns information about all known IPP attributes
-// of the CUPSGetPPDRequest
-func (rq *CUPSGetPPDRequest) KnownAttrs() []AttrInfo {
-	return ippKnownAttrs(rq)
-}
-
 // Set sets [goipp.Attibute]. It updates the appropriate structure
 // field and Object's raw attributes.
 func (rq *CUPSGetPPDRequest) Set(attr goipp.Attribute) error {
@@ -648,12 +594,6 @@ func (rq *CUPSGetPPDRequest) Decode(
 	}
 
 	return nil
-}
-
-// KnownAttrs returns information about all known IPP attributes
-// of the CUPSGetPPDResponse.
-func (rsp *CUPSGetPPDResponse) KnownAttrs() []AttrInfo {
-	return ippKnownAttrs(rsp)
 }
 
 // Set sets [goipp.Attibute]. It updates the appropriate structure

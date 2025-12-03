@@ -47,8 +47,6 @@ func optAttrsGet(inv *argv.Invocation) (attrs []string) {
 
 // optAttrsGet is the completion callback for the --attrs option.
 func optAttrsComplete(arg string) (compl []argv.Completion) {
-	infos := ((*ipp.PrinterAttributes)(nil)).KnownAttrs()
-
 	attrName := arg
 	prefix := ""
 
@@ -57,10 +55,11 @@ func optAttrsComplete(arg string) (compl []argv.Completion) {
 		prefix = arg[:i+1]
 	}
 
-	for _, info := range infos {
-		if strings.HasPrefix(info.Name, attrName) {
+	names := ipp.ObjectRegisteredAttrNames((*ipp.PrinterAttributes)(nil))
+	for _, name := range names {
+		if strings.HasPrefix(name, attrName) {
 			c := argv.Completion{
-				String:  prefix + info.Name + ",",
+				String:  prefix + name + ",",
 				NoSpace: true,
 			}
 			compl = append(compl, c)

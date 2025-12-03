@@ -35,12 +35,6 @@ type PPDAttributes struct {
 	ObjectRawAttrs
 }
 
-// KnownAttrs returns information about all known IPP attributes
-// of the PPDAttributes
-func (attrs *PPDAttributes) KnownAttrs() []AttrInfo {
-	return ippKnownAttrs(attrs)
-}
-
 // Set sets [goipp.Attibute]. It updates the appropriate structure
 // field and Object's raw attributes.
 func (attrs *PPDAttributes) Set(attr goipp.Attribute) error {

@@ -26,12 +26,6 @@ type DeviceAttributes struct {
 	DeviceLocation     optional.Val[string]        `ipp:"device-location,text"`
 }
 
-// KnownAttrs returns information about all known IPP attributes
-// of the DeviceAttributes
-func (attrs *DeviceAttributes) KnownAttrs() []AttrInfo {
-	return ippKnownAttrs(attrs)
-}
-
 // Set sets [goipp.Attibute]. It updates the appropriate structure
 // field and Object's raw attributes.
 func (attrs *DeviceAttributes) Set(attr goipp.Attribute) error {

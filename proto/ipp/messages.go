@@ -68,12 +68,6 @@ func (rq *GetPrinterAttributesRequest) GetOp() goipp.Op {
 	return goipp.OpGetPrinterAttributes
 }
 
-// KnownAttrs returns information about all known IPP attributes
-// of the GetPrinterAttributesRequest
-func (rq *GetPrinterAttributesRequest) KnownAttrs() []AttrInfo {
-	return ippKnownAttrs(rq)
-}
-
 // Set sets [goipp.Attibute]. It updates the appropriate structure
 // field and Object's raw attributes.
 func (rq *GetPrinterAttributesRequest) Set(attr goipp.Attribute) error {
@@ -111,12 +105,6 @@ func (rq *GetPrinterAttributesRequest) Decode(
 	}
 
 	return nil
-}
-
-// KnownAttrs returns information about all known IPP attributes
-// of the GetPrinterAttributesResponse.
-func (rsp *GetPrinterAttributesResponse) KnownAttrs() []AttrInfo {
-	return ippKnownAttrs(rsp)
 }
 
 // Set sets [goipp.Attibute]. It updates the appropriate structure
