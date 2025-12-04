@@ -949,23 +949,6 @@ func ippCodecGenerateInternal(t reflect.Type) (*ippCodec, error) {
 	return codec, nil
 }
 
-// Embed nested codec
-//
-// Embedded structures are handled this way:
-//  1. The separate nested codec is generated for the embedded
-//     structure
-//  2. Its steps are moved to the outer codec, up the stack.
-//     Offsets are corrected.
-//
-// This function does the work of moving nested codec's steps
-// to the outer codec.
-func (codec *ippCodec) embed(offset uintptr, nested *ippCodec) {
-	for _, step := range nested.steps {
-		step.offset += offset
-		codec.steps = append(codec.steps, step)
-	}
-}
-
 // Encode structure into the goipp.Attributes
 func (codec *ippCodec) encodeAttrs(enc *ippEncoder,
 	in interface{}) (attrs goipp.Attributes) {
