@@ -588,11 +588,11 @@ func ippRegisteredAttrNames(t reflect.Type) []string {
 // then reused, to minimize performance overhead associated with
 // reflection
 type ippCodec struct {
-	t            reflect.Type             // Type of structure
-	steps        []ippCodecStep           // Encoding/decoding steps
-	stepsByName  map[string]*ippCodecStep // Steps indexed by attribute name
-	regAttrs     map[string]*iana.DefAttr // Registered attributes
-	regAttrNames []string                 // Names of registered attrs
+	t            reflect.Type               // Type of structure
+	steps        []ippCodecStep             // Encoding/decoding steps
+	stepsByName  map[string]*ippCodecStep   // Steps indexed by attribute name
+	regAttrs     []map[string]*iana.DefAttr // Registered attributes
+	regAttrNames []string                   // Names of registered attrs
 
 }
 
@@ -681,10 +681,7 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 	// Type must either implement the Object interface or
 	// contain at least 1 IPP field.
 	if err == nil && len(codec.steps) == 0 {
-		var obj Object
-		objtype := reflect.TypeOf(&obj).Elem()
-
-		if !reflect.PointerTo(t).AssignableTo(objtype) {
+		if !reflectIsObject(t) {
 			err = fmt.Errorf("%s: contains no IPP fields",
 				diagTypeName(t))
 		}
@@ -704,10 +701,17 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 	// Build regAttrNames
 	if codec.regAttrs != nil {
 		// Only for top-level Object structures.
-		codec.regAttrNames = make([]string, 0, len(codec.regAttrs))
-		for name := range codec.regAttrs {
-			codec.regAttrNames = append(codec.regAttrNames, name)
+		names := generic.NewSet[string]()
+		for _, grp := range codec.regAttrs {
+			for name := range grp {
+				names.Add(name)
+			}
 		}
+
+		codec.regAttrNames = make([]string, 0, names.Count())
+		names.ForEach(func(name string) {
+			codec.regAttrNames = append(codec.regAttrNames, name)
+		})
 		sort.Strings(codec.regAttrNames)
 	}
 
@@ -733,7 +737,8 @@ func ippCodecGenerateInternal(t reflect.Type,
 	}
 
 	codec := &ippCodec{
-		t: t,
+		t:        t,
+		regAttrs: reflecRegistrations(t),
 	}
 
 	// Obtain structure fields.
@@ -767,14 +772,6 @@ func ippCodecGenerateInternal(t reflect.Type,
 		fld.Name = strings.Join(path, ".")
 
 		assert.Must(off+fld.Type.Size() <= t.Size())
-	}
-
-	// Locate embedded attributes groups
-	for _, fld := range fields {
-		grp, ok := reflect.New(fld.Type).Interface().(attributesGroup)
-		if ok {
-			codec.regAttrs = grp.registrations()
-		}
 	}
 
 	// Now process each field
