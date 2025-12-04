@@ -675,8 +675,7 @@ func ippCodecGetType(t reflect.Type) *ippCodec {
 // It manages and uses a cache of successfully generated codecs.
 func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 	// Compile new codec
-	attrNames := make(map[string]string)
-	codec, err := ippCodecGenerateInternal(t, attrNames)
+	codec, err := ippCodecGenerateInternal(t)
 
 	// Type must either implement the Object interface or
 	// contain at least 1 IPP field.
@@ -691,7 +690,7 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 		return nil, err
 	}
 
-	// Build stepsByName and knownAttrs
+	// Build stepsByName
 	codec.stepsByName = make(map[string]*ippCodecStep, len(codec.steps))
 
 	for i := range codec.steps {
@@ -728,9 +727,7 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 // attrNames is the map of IPP attribute names into
 // field names, used for detection and reporting of
 // duplicate usage of attribute names
-func ippCodecGenerateInternal(t reflect.Type,
-	attrNames map[string]string) (*ippCodec, error) {
-
+func ippCodecGenerateInternal(t reflect.Type) (*ippCodec, error) {
 	if t.Kind() != reflect.Struct {
 		err := fmt.Errorf("%s: is not struct", diagTypeName(t))
 		return nil, err
@@ -775,6 +772,7 @@ func ippCodecGenerateInternal(t reflect.Type,
 	}
 
 	// Now process each field
+	attrNames := make(map[string]string)
 	for _, fld := range fields {
 		// Ignore embedded structures, we already processed them
 		if fld.Anonymous {
