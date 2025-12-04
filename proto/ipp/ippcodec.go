@@ -736,33 +736,51 @@ func ippCodecGenerateInternal(t reflect.Type,
 		t: t,
 	}
 
-	for i := 0; i < t.NumField(); i++ {
-		// Fetch field by field
-		//
-		// - Ignore anonymous fields
-		// - Ignore fields without ipp: tag
-		fld := t.Field(i)
+	// Obtain structure fields.
+	//
+	// For members of embedded structures, recompute offset relative
+	// to the upper structure.
+	//
+	// Replace fld.Name with the full path (used for error reporting)
+	fields := reflect.VisibleFields(t)
+	for n := range fields {
+		fld := &fields[n]
 
-		// Handle embedded structures
-		if fld.Anonymous {
-			switch {
-			case fld.Type.AssignableTo(attributesGroupType):
-				grp := reflect.New(fld.Type).
-					Interface().(attributesGroup)
-				codec.regAttrs = grp.registrations()
+		if !fld.IsExported() {
+			continue
+		}
 
-			case fld.IsExported() &&
-				fld.Type.Kind() == reflect.Struct:
+		path := []string{}
+		off := uintptr(0)
 
-				nested, err := ippCodecGenerateInternal(
-					fld.Type, attrNames)
-
-				if err != nil {
-					return nil, err
-				}
-
-				codec.embed(fld.Offset, nested)
+		for i := range fld.Index {
+			fld2 := t.FieldByIndex(fld.Index[:i+1])
+			off += fld2.Offset
+			name := fld2.Name
+			if fld2.Anonymous {
+				name = fld2.Type.Name()
 			}
+			path = append(path, name)
+		}
+
+		fld.Offset = off
+		fld.Name = strings.Join(path, ".")
+
+		assert.Must(off+fld.Type.Size() <= t.Size())
+	}
+
+	// Locate embedded attributes groups
+	for _, fld := range fields {
+		grp, ok := reflect.New(fld.Type).Interface().(attributesGroup)
+		if ok {
+			codec.regAttrs = grp.registrations()
+		}
+	}
+
+	// Now process each field
+	for _, fld := range fields {
+		// Ignore embedded structures, we already processed them
+		if fld.Anonymous {
 			continue
 		}
 

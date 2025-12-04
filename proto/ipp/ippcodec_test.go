@@ -50,7 +50,7 @@ func TestIppCodecGenerate(t *testing.T) {
 				FldOk int `ipp:"fld-ok"`
 				BadEmbedded
 			}{},
-			err: `ipp.BadEmbedded.X: can't represent int as boolean`,
+			err: `struct {...}.BadEmbedded.X: can't represent int as boolean`,
 		},
 
 		{

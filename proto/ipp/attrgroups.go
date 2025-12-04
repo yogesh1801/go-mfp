@@ -9,8 +9,6 @@
 package ipp
 
 import (
-	"reflect"
-
 	"github.com/OpenPrinting/go-mfp/proto/ipp/iana"
 )
 
@@ -42,16 +40,6 @@ import (
 type attributesGroup interface {
 	// registrations returns attributes that belongs to the group
 	registrations() map[string]*iana.DefAttr
-}
-
-var (
-	// attributesGroupType is reflect.Type for attributesGroup
-	attributesGroupType reflect.Type
-)
-
-func init() {
-	var grp attributesGroup
-	attributesGroupType = reflect.TypeOf(&grp).Elem()
 }
 
 // CUPSDeviceAttributesGroup should be embedded into the IPP
