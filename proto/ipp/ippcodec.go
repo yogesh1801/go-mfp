@@ -672,62 +672,8 @@ func ippCodecGetType(t reflect.Type) *ippCodec {
 }
 
 // ippCodecGenerate generates codec for the particular type.
-// It manages and uses a cache of successfully generated codecs.
 func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
-	// Compile new codec
-	codec, err := ippCodecGenerateInternal(t)
-
-	// Type must either implement the Object interface or
-	// contain at least 1 IPP field.
-	if err == nil && len(codec.steps) == 0 {
-		if !reflectIsObject(t) {
-			err = fmt.Errorf("%s: contains no IPP fields",
-				diagTypeName(t))
-		}
-	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	// Build stepsByName
-	codec.stepsByName = make(map[string]*ippCodecStep, len(codec.steps))
-
-	for i := range codec.steps {
-		codec.stepsByName[codec.steps[i].attrName] = &codec.steps[i]
-	}
-
-	// Build regAttrNames
-	if codec.regAttrs != nil {
-		// Only for top-level Object structures.
-		names := generic.NewSet[string]()
-		for _, grp := range codec.regAttrs {
-			for name := range grp {
-				names.Add(name)
-			}
-		}
-
-		codec.regAttrNames = make([]string, 0, names.Count())
-		names.ForEach(func(name string) {
-			codec.regAttrNames = append(codec.regAttrNames, name)
-		})
-		sort.Strings(codec.regAttrNames)
-	}
-
-	// Done for now!
-	return codec, nil
-}
-
-// ippCodecGenerateInternal is the internal function
-// behind the ippCodecGenerate()
-//
-// It calls itself recursively, to implement support of
-// nested (embedded) structures
-//
-// attrNames is the map of IPP attribute names into
-// field names, used for detection and reporting of
-// duplicate usage of attribute names
-func ippCodecGenerateInternal(t reflect.Type) (*ippCodec, error) {
+	// Validate input type
 	if t.Kind() != reflect.Struct {
 		err := fmt.Errorf("%s: is not struct", diagTypeName(t))
 		return nil, err
@@ -774,179 +720,230 @@ func ippCodecGenerateInternal(t reflect.Type) (*ippCodec, error) {
 	// Now process each field
 	attrNames := make(map[string]string)
 	for _, fld := range fields {
-		// Ignore embedded structures, we already processed them
-		if fld.Anonymous {
+		// Generate step for the field.
+		step, err := ippCodecGenerateStep(fld)
+		if step == nil && err == nil {
+			// Non-attribute field. Just do nothing
 			continue
 		}
 
-		// Parse ipp: struct tag.
-		name, def, err := attrFieldAnalyze(fld)
 		if err != nil {
-			err := fmt.Errorf("%s.%s: %w",
-				diagTypeName(t), fld.Name, err)
+			err = fmt.Errorf("%s.%w", diagTypeName(t), err)
 			return nil, err
-		}
-
-		if name == "" {
-			// Not the IPP attribute field
-			continue
 		}
 
 		// Check attribute name for duplicates.
-		if found := attrNames[name]; found != "" {
+		if found := attrNames[step.attrName]; found != "" {
 			err := fmt.Errorf("%s.%s: attribute %q already used by %s",
-				diagTypeName(t), fld.Name, name, found)
+				diagTypeName(t), fld.Name, step.attrName, found)
 			return nil, err
 		}
-		attrNames[name] = fld.Name
-
-		// Obtain fldType.
-		//
-		// Handle special cases: pointers and slices.
-		fldType := fld.Type
-		fldKind := fldType.Kind()
-
-		isOptional := false
-		isSlice := false
-
-		switch fldKind {
-		case reflect.Pointer:
-			isOptional = true
-			fldType = fldType.Elem()
-			fldKind = fldType.Kind()
-
-		case reflect.Slice:
-			isSlice = true
-			fldType = fldType.Elem()
-			fldKind = fldType.Kind()
-		}
-
-		// Now fldType points to the actual type to be encoded and
-		// decoded.  Obtain its ippCodecMethods.
-		methods := ippCodecMethodsByType[fldType]
-		if methods == nil {
-			methods = ippCodecMethodsByKind[fldKind]
-		}
-		if methods == nil && fldKind == reflect.Struct {
-			methods, err = ippCodecMethodsCollection(fldType)
-			if err != nil {
-				err = fmt.Errorf("%s.%s: %w",
-					diagTypeName(t), fld.Name, err)
-				return nil, err
-			}
-		}
-
-		if methods == nil {
-			err := fmt.Errorf("%s.%s: %s type not supported",
-				diagTypeName(t), fld.Name, fldKind)
-
-			return nil, err
-		}
-
-		// If the attribute definition is not available,
-		// generate it from the structure field type.
-		//
-		// FIXME -- this is the temporary solution
-		if def == nil {
-			var tag goipp.Tag
-			if _, found := kwRegisteredTypes[fldType]; found {
-				// Underlying type registered as keyword.
-				// Use goipp.TagKeyword.
-				tag = goipp.TagKeyword
-			} else if _, found := enRegisteredTypes[fldType]; found {
-				// Use goipp.TagEnum for registered enum types.
-				tag = goipp.TagEnum
-			} else {
-				// Use tag, default for the underlying value type
-				tag = methods.defaultIppTag
-			}
-
-			if tag == goipp.TagZero {
-				err := fmt.Errorf("%s.%s: can't deduce IPP tag for %s",
-					diagTypeName(t), fld.Name, diagTypeName(fldType))
-				return nil, err
-			}
-
-			min, max := tag.Limits()
-			def = &iana.DefAttr{
-				SetOf: isSlice,
-				Tags:  []goipp.Tag{tag},
-				Min:   min,
-				Max:   max,
-			}
-		}
-
-		// Generate encoding/decoding step for underlying type.
-		zero := reflect.Zero(fldType)
-		step := ippCodecStep{
-			offset:   fld.Offset,
-			attrName: name,
-			def:      def,
-
-			encode: methods.encode,
-			decode: methods.decode,
-
-			setzero: func(p unsafe.Pointer) {
-				reflect.NewAt(fldType, p).Elem().Set(zero)
-			},
-		}
-
-		// Check for compatibility between IPP representation
-		// for the Tag being chosen and Tag implied by the
-		// underlying field type.
-		//
-		// They must be the same (i.e., both are goipp.TypeInteger or
-		// both are goipp.TypeResolution and so on).
-		//
-		// The only exception, goipp.TypeString can be converted
-		// into goipp.TypeBinary and visa versa.
-		ok := attrFieldCompatible(fld, def)
-		if !ok {
-			err := fmt.Errorf("%s.%s: can't represent %s as %s",
-				diagTypeName(t), fld.Name, fld.Type, def)
-
-			return nil, err
-		}
-
-		// Generate slice wrapper for slice fields.
-		if isSlice {
-			t := reflect.SliceOf(fldType)
-
-			encode := step.encode
-			decode := step.decode
-
-			step.encode = func(enc *ippEncoder, p unsafe.Pointer) goipp.Values {
-				return enc.encSlice(p, t, encode)
-			}
-
-			step.decode = func(dec *ippDecoder, p unsafe.Pointer,
-				vals goipp.Values) error {
-				return dec.decSlice(p, vals, t, decode)
-			}
-		}
-
-		// Generate optional.Val[T] wrapper where appropriate.
-		if isOptional {
-			t := reflect.PointerTo(fldType)
-
-			encode := step.encode
-			decode := step.decode
-
-			step.encode = func(enc *ippEncoder, p unsafe.Pointer) goipp.Values {
-				return enc.encPtr(p, t, encode)
-			}
-
-			step.decode = func(dec *ippDecoder,
-				p unsafe.Pointer, vals goipp.Values) error {
-				return dec.decPtr(p, vals, t, decode)
-			}
-		}
+		attrNames[step.attrName] = fld.Name
 
 		// Append step to the codec
-		codec.steps = append(codec.steps, step)
+		codec.steps = append(codec.steps, *step)
+	}
+
+	// Build stepsByName
+	codec.stepsByName = make(map[string]*ippCodecStep, len(codec.steps))
+	for i := range codec.steps {
+		codec.stepsByName[codec.steps[i].attrName] = &codec.steps[i]
+	}
+
+	// Build regAttrNames
+	if codec.regAttrs != nil {
+		// Only for top-level Object structures.
+		names := generic.NewSet[string]()
+		for _, grp := range codec.regAttrs {
+			for name := range grp {
+				names.Add(name)
+			}
+		}
+
+		codec.regAttrNames = make([]string, 0, names.Count())
+		names.ForEach(func(name string) {
+			codec.regAttrNames = append(codec.regAttrNames, name)
+		})
+		sort.Strings(codec.regAttrNames)
+	}
+
+	// The final sanity check.
+	//
+	// Type must either implement the Object interface or
+	// contain at least 1 IPP field.
+	//
+	// The Object is the special exception here, because
+	// Object may maintain raw attributes without mapping
+	// them to any Go struct field.
+	if len(codec.steps) == 0 && !reflectIsObject(t) {
+		err := fmt.Errorf("%s: contains no IPP fields",
+			diagTypeName(t))
+		return nil, err
 	}
 
 	return codec, nil
+}
+
+// ippCodecGenerateStep generates the ippCodecStep for the field.
+// If field is not an IPP attribute, it returns (nil,nil).
+func ippCodecGenerateStep(fld reflect.StructField) (*ippCodecStep, error) {
+	// Ignore embedded structures, we already processed them
+	if fld.Anonymous {
+		return nil, nil
+	}
+
+	// Parse ipp: struct tag.
+	name, def, err := attrFieldAnalyze(fld)
+	if err != nil {
+		err := fmt.Errorf("%s: %w", fld.Name, err)
+		return nil, err
+	}
+
+	if name == "" {
+		// Not the IPP attribute field
+		return nil, nil
+	}
+
+	// Obtain fldType.
+	//
+	// Handle special cases: pointers and slices.
+	fldType := fld.Type
+	fldKind := fldType.Kind()
+
+	isOptional := false
+	isSlice := false
+
+	switch fldKind {
+	case reflect.Pointer:
+		isOptional = true
+		fldType = fldType.Elem()
+		fldKind = fldType.Kind()
+
+	case reflect.Slice:
+		isSlice = true
+		fldType = fldType.Elem()
+		fldKind = fldType.Kind()
+	}
+
+	// Now fldType points to the actual type to be encoded and
+	// decoded.  Obtain its ippCodecMethods.
+	methods := ippCodecMethodsByType[fldType]
+	if methods == nil {
+		methods = ippCodecMethodsByKind[fldKind]
+	}
+	if methods == nil && fldKind == reflect.Struct {
+		methods, err = ippCodecMethodsCollection(fldType)
+		if err != nil {
+			err = fmt.Errorf("%s: %w", fld.Name, err)
+			return nil, err
+		}
+	}
+
+	if methods == nil {
+		err := fmt.Errorf("%s: %s type not supported", fld.Name, fldKind)
+		return nil, err
+	}
+
+	// If the attribute definition is not available,
+	// generate it from the structure field type.
+	//
+	// FIXME -- this is the temporary solution
+	if def == nil {
+		var tag goipp.Tag
+		if _, found := kwRegisteredTypes[fldType]; found {
+			// Underlying type registered as keyword.
+			// Use goipp.TagKeyword.
+			tag = goipp.TagKeyword
+		} else if _, found := enRegisteredTypes[fldType]; found {
+			// Use goipp.TagEnum for registered enum types.
+			tag = goipp.TagEnum
+		} else {
+			// Use tag, default for the underlying value type
+			tag = methods.defaultIppTag
+		}
+
+		if tag == goipp.TagZero {
+			err := fmt.Errorf("%s: can't deduce IPP tag for %s",
+				fld.Name, diagTypeName(fldType))
+			return nil, err
+		}
+
+		min, max := tag.Limits()
+		def = &iana.DefAttr{
+			SetOf: isSlice,
+			Tags:  []goipp.Tag{tag},
+			Min:   min,
+			Max:   max,
+		}
+	}
+
+	// Generate encoding/decoding step for underlying type.
+	zero := reflect.Zero(fldType)
+	step := &ippCodecStep{
+		offset:   fld.Offset,
+		attrName: name,
+		def:      def,
+
+		encode: methods.encode,
+		decode: methods.decode,
+
+		setzero: func(p unsafe.Pointer) {
+			reflect.NewAt(fldType, p).Elem().Set(zero)
+		},
+	}
+
+	// Check for compatibility between IPP representation
+	// for the Tag being chosen and Tag implied by the
+	// underlying field type.
+	//
+	// They must be the same (i.e., both are goipp.TypeInteger or
+	// both are goipp.TypeResolution and so on).
+	//
+	// The only exception, goipp.TypeString can be converted
+	// into goipp.TypeBinary and visa versa.
+	ok := attrFieldCompatible(fld, def)
+	if !ok {
+		err := fmt.Errorf("%s: can't represent %s as %s",
+			fld.Name, fld.Type, def)
+
+		return nil, err
+	}
+
+	// Generate slice wrapper for slice fields.
+	if isSlice {
+		t := reflect.SliceOf(fldType)
+
+		encode := step.encode
+		decode := step.decode
+
+		step.encode = func(enc *ippEncoder, p unsafe.Pointer) goipp.Values {
+			return enc.encSlice(p, t, encode)
+		}
+
+		step.decode = func(dec *ippDecoder, p unsafe.Pointer,
+			vals goipp.Values) error {
+			return dec.decSlice(p, vals, t, decode)
+		}
+	}
+
+	// Generate optional.Val[T] wrapper where appropriate.
+	if isOptional {
+		t := reflect.PointerTo(fldType)
+
+		encode := step.encode
+		decode := step.decode
+
+		step.encode = func(enc *ippEncoder, p unsafe.Pointer) goipp.Values {
+			return enc.encPtr(p, t, encode)
+		}
+
+		step.decode = func(dec *ippDecoder,
+			p unsafe.Pointer, vals goipp.Values) error {
+			return dec.decPtr(p, vals, t, decode)
+		}
+	}
+
+	return step, nil
 }
 
 // Encode structure into the goipp.Attributes
