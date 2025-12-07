@@ -80,7 +80,7 @@ func TestIppCodecGenerate(t *testing.T) {
 					FldBad float64 `ipp:"flg-bad"`
 				} `ipp:"flg-nested"`
 			}{},
-			err: `struct {...}.Nested: struct {...}.FldBad: float64 type not supported`,
+			err: `struct {...}.Nested: struct {...}.Nested.FldBad: float64 type not supported`,
 		},
 
 		{

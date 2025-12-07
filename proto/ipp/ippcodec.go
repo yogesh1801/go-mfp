@@ -673,9 +673,14 @@ func ippCodecGetType(t reflect.Type) *ippCodec {
 
 // ippCodecGenerate generates codec for the particular type.
 func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
+	return ippCodecGenerateInternal(t, diagTypeName(t))
+}
+
+// ippCodecGenerateInternal is the internal function behind ippCodecGenerate
+func ippCodecGenerateInternal(t reflect.Type, path string) (*ippCodec, error) {
 	// Validate input type
 	if t.Kind() != reflect.Struct {
-		err := fmt.Errorf("%s: is not struct", diagTypeName(t))
+		err := fmt.Errorf("%s: is not struct", path)
 		return nil, err
 	}
 
@@ -721,21 +726,21 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 	attrNames := make(map[string]string)
 	for _, fld := range fields {
 		// Generate step for the field.
-		step, err := ippCodecGenerateStep(fld)
+		step, err := ippCodecGenerateStep(fld, path+"."+fld.Name)
 		if step == nil && err == nil {
 			// Non-attribute field. Just do nothing
 			continue
 		}
 
 		if err != nil {
-			err = fmt.Errorf("%s.%w", diagTypeName(t), err)
+			err = fmt.Errorf("%s.%s: %w", path, fld.Name, err)
 			return nil, err
 		}
 
 		// Check attribute name for duplicates.
 		if found := attrNames[step.attrName]; found != "" {
 			err := fmt.Errorf("%s.%s: attribute %q already used by %s",
-				diagTypeName(t), fld.Name, step.attrName, found)
+				path, fld.Name, step.attrName, found)
 			return nil, err
 		}
 		attrNames[step.attrName] = fld.Name
@@ -776,8 +781,7 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 	// Object may maintain raw attributes without mapping
 	// them to any Go struct field.
 	if len(codec.steps) == 0 && !reflectIsObject(t) {
-		err := fmt.Errorf("%s: contains no IPP fields",
-			diagTypeName(t))
+		err := fmt.Errorf("%s: contains no IPP fields", path)
 		return nil, err
 	}
 
@@ -786,7 +790,7 @@ func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
 
 // ippCodecGenerateStep generates the ippCodecStep for the field.
 // If field is not an IPP attribute, it returns (nil,nil).
-func ippCodecGenerateStep(fld reflect.StructField) (*ippCodecStep, error) {
+func ippCodecGenerateStep(fld reflect.StructField, path string) (*ippCodecStep, error) {
 	// Ignore embedded structures, we already processed them
 	if fld.Anonymous {
 		return nil, nil
@@ -795,7 +799,6 @@ func ippCodecGenerateStep(fld reflect.StructField) (*ippCodecStep, error) {
 	// Parse ipp: struct tag.
 	name, def, err := attrFieldAnalyze(fld)
 	if err != nil {
-		err := fmt.Errorf("%s: %w", fld.Name, err)
 		return nil, err
 	}
 
@@ -832,15 +835,14 @@ func ippCodecGenerateStep(fld reflect.StructField) (*ippCodecStep, error) {
 		methods = ippCodecMethodsByKind[fldKind]
 	}
 	if methods == nil && fldKind == reflect.Struct {
-		methods, err = ippCodecMethodsCollection(fldType)
+		methods, err = ippCodecMethodsCollection(fldType, path)
 		if err != nil {
-			err = fmt.Errorf("%s: %w", fld.Name, err)
 			return nil, err
 		}
 	}
 
 	if methods == nil {
-		err := fmt.Errorf("%s: %s type not supported", fld.Name, fldKind)
+		err := fmt.Errorf("%s type not supported", fldKind)
 		return nil, err
 	}
 
@@ -863,8 +865,8 @@ func ippCodecGenerateStep(fld reflect.StructField) (*ippCodecStep, error) {
 		}
 
 		if tag == goipp.TagZero {
-			err := fmt.Errorf("%s: can't deduce IPP tag for %s",
-				fld.Name, diagTypeName(fldType))
+			err := fmt.Errorf("can't deduce IPP tag for %s",
+				diagTypeName(fldType))
 			return nil, err
 		}
 
@@ -903,9 +905,7 @@ func ippCodecGenerateStep(fld reflect.StructField) (*ippCodecStep, error) {
 	// into goipp.TypeBinary and visa versa.
 	ok := attrFieldCompatible(fld, def)
 	if !ok {
-		err := fmt.Errorf("%s: can't represent %s as %s",
-			fld.Name, fld.Type, def)
-
+		err := fmt.Errorf("can't represent %s as %s", fld.Type, def)
 		return nil, err
 	}
 
@@ -1118,10 +1118,10 @@ type ippCodecMethods struct {
 
 // ippCodecMethodsCollection creates ippCodecMethods for encoding
 // nested structure or slice of structures as IPP Collection
-func ippCodecMethodsCollection(t reflect.Type) (
+func ippCodecMethodsCollection(t reflect.Type, path string) (
 	*ippCodecMethods, error) {
 
-	codec, err := ippCodecGenerate(t)
+	codec, err := ippCodecGenerateInternal(t, path)
 	if err != nil {
 		return nil, err
 	}
