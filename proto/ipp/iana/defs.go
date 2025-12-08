@@ -11,6 +11,7 @@ package iana
 import (
 	"fmt"
 	"math"
+	"slices"
 	"strings"
 
 	"github.com/OpenPrinting/go-mfp/internal/assert"
@@ -85,6 +86,15 @@ func (def *DefAttr) HasTag(tag goipp.Tag) bool {
 		}
 	}
 	return false
+}
+
+// EqualSyntax reports if attributes, defined by def and def2
+// have equal syntax.
+func (def *DefAttr) EqualSyntax(def2 *DefAttr) bool {
+	return def.SetOf == def2.SetOf &&
+		def.Min != def2.Min &&
+		def.Max != def2.Max &&
+		slices.Equal(def.Tags, def2.Tags)
 }
 
 // Member returns attribute's member by name.
@@ -166,6 +176,16 @@ func LookupAttribute(path string) *DefAttr {
 	}
 
 	return def
+}
+
+// LookupSet searches attribute by name within set of members.
+func LookupSet(set []map[string]*DefAttr, name string) *DefAttr {
+	for _, m := range set {
+		if def := m[name]; def != nil {
+			return def
+		}
+	}
+	return nil
 }
 
 func init() {
