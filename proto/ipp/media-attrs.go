@@ -27,26 +27,26 @@ type MediaCol struct {
 	MediaBackCoating  optional.Val[KwMediaBackCoating] `ipp:"media-back-coating"`
 	MediaColor        optional.Val[KwColor]            `ipp:"media-color"`
 	MediaFrontCoating optional.Val[KwMediaBackCoating] `ipp:"media-front-coating"`
-	MediaHoleCount    optional.Val[int]                `ipp:"media-hole-count,integer(0:MAX)"`
-	MediaInfo         optional.Val[string]             `ipp:"media-info,text(255)"`
+	MediaHoleCount    optional.Val[int]                `ipp:"media-hole-count"`
+	MediaInfo         optional.Val[string]             `ipp:"media-info"`
 	MediaKey          optional.Val[KwMedia]            `ipp:"media-key"`
-	MediaOrderCount   optional.Val[int]                `ipp:"media-order-count,integer(1:MAX)"`
-	MediaPrePrinted   optional.Val[string]             `ipp:"media-pre-printed,keyword|name"`
-	MediaRecycled     optional.Val[string]             `ipp:"media-recycled,keyword|name"`
+	MediaOrderCount   optional.Val[int]                `ipp:"media-order-count"`
+	MediaPrePrinted   optional.Val[string]             `ipp:"media-pre-printed"`
+	MediaRecycled     optional.Val[string]             `ipp:"media-recycled"`
 	MediaSize         optional.Val[MediaSize]          `ipp:"media-size"`
-	MediaType         optional.Val[string]             `ipp:"media-type,keyword|name"`
-	MediaWeightMetric optional.Val[int]                `ipp:"media-weight-metric,integer(0:MAX)"`
+	MediaType         optional.Val[string]             `ipp:"media-type"`
+	MediaWeightMetric optional.Val[int]                `ipp:"media-weight-metric"`
 
 	// ----- PWG5100.7 -----
-	MediaBottomMargin optional.Val[int]    `ipp:"media-bottom-margin,integer(0:MAX)"`
-	MediaGrain        optional.Val[string] `ipp:"media-grain,keyword|name"`
-	MediaLeftMargin   optional.Val[int]    `ipp:"media-left-margin,integer(0:MAX)"`
-	MediaRightMargin  optional.Val[int]    `ipp:"media-right-margin,integer(0:MAX)"`
-	MediaSizeName     optional.Val[string] `ipp:"media-size-name,keyword|name"`
-	MediaSource       optional.Val[string] `ipp:"media-source,keyword|name"`
-	MediaThickness    optional.Val[int]    `ipp:"media-thickness,integer(1:MAX)"`
-	MediaTooth        optional.Val[string] `ipp:"media-tooth,keyword|name"`
-	MediaTopMargin    optional.Val[int]    `ipp:"media-top-margin,integer(0:MAX)"`
+	MediaBottomMargin optional.Val[int]    `ipp:"media-bottom-margin"`
+	MediaGrain        optional.Val[string] `ipp:"media-grain"`
+	MediaLeftMargin   optional.Val[int]    `ipp:"media-left-margin"`
+	MediaRightMargin  optional.Val[int]    `ipp:"media-right-margin"`
+	MediaSizeName     optional.Val[string] `ipp:"media-size-name"`
+	MediaSource       optional.Val[string] `ipp:"media-source"`
+	MediaThickness    optional.Val[int]    `ipp:"media-thickness"`
+	MediaTooth        optional.Val[string] `ipp:"media-tooth"`
+	MediaTopMargin    optional.Val[int]    `ipp:"media-top-margin"`
 }
 
 // MediaColEx is the [MediaCol] with some additional data.
@@ -74,13 +74,13 @@ type MediaSizeRange struct {
 // MediaSourceProperties represents "media-source-properties"
 // collectiobn in MediaCol
 type MediaSourceProperties struct {
-	MediaSourceFeedDirection   string `ipp:"media-source-feed-direction,keyword"`
-	MediaSourceFeedOrientation int    `ipp:"media-source-feed-orientation,enum"`
+	MediaSourceFeedDirection   string `ipp:"media-source-feed-direction"`
+	MediaSourceFeedOrientation int    `ipp:"media-source-feed-orientation"`
 }
 
 // MediaOverprint represents "media-overprint" collection entry
 // in JobAttributes
 type MediaOverprint struct {
-	MediaOverprintDistance int    `ipp:"media-overprint-distance,integer(0:MAX)"`
-	MediaOverprintMethod   string `ipp:"media-overprint-method,keyword"`
+	MediaOverprintDistance int    `ipp:"media-overprint-distance"`
+	MediaOverprintMethod   string `ipp:"media-overprint-method"`
 }

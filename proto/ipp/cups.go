@@ -22,7 +22,7 @@ type (
 		OperationGroup
 
 		// Operation attributes
-		RequestedAttributes []string `ipp:"requested-attributes,1setOf keyword"`
+		RequestedAttributes []string `ipp:"requested-attributes"`
 	}
 
 	// CUPSGetDefaultResponse is the CUPS-Get-Default Response.
@@ -46,11 +46,11 @@ type (
 		FirstPrinterName    optional.Val[string] `ipp:"first-printer-name"`
 		Limit               optional.Val[int]    `ipp:"limit"`
 		PrinterID           optional.Val[int]    `ipp:"printer-id"`
-		PrinterLocation     optional.Val[string] `ipp:"printer-location,text(127)"`
-		PrinterType         optional.Val[int]    `ipp:"printer-type,enum"`
-		PrinterTypeMask     optional.Val[int]    `ipp:"printer-type-mask,enum"`
+		PrinterLocation     optional.Val[string] `ipp:"printer-location"`
+		PrinterType         optional.Val[int]    `ipp:"printer-type"`
+		PrinterTypeMask     optional.Val[int]    `ipp:"printer-type-mask"`
+		RequestedAttributes []string             `ipp:"requested-attributes"`
 		RequestedUserName   optional.Val[string] `ipp:"requested-user-name,name"`
-		RequestedAttributes []string             `ipp:"requested-attributes,1setOf keyword"`
 	}
 
 	// CUPSGetPrintersResponse is the CUPS-Get-Printers Response.
@@ -72,11 +72,11 @@ type (
 		OperationGroup
 
 		// Operational attributes
-		ExcludeSchemes      []string          `ipp:"exclude-schemes,1setOf name"`
-		IncludeSchemes      []string          `ipp:"include-schemes,1setOf name"`
-		Limit               optional.Val[int] `ipp:"limit,integer(1:MAX)"`
-		RequestedAttributes []string          `ipp:"requested-attributes,1setOf keyword"`
-		Timeout             optional.Val[int] `ipp:"timeout,integer(1:MAX)"`
+		ExcludeSchemes      []string          `ipp:"exclude-schemes"`
+		IncludeSchemes      []string          `ipp:"include-schemes"`
+		Limit               optional.Val[int] `ipp:"limit"`
+		RequestedAttributes []string          `ipp:"requested-attributes"`
+		Timeout             optional.Val[int] `ipp:"timeout"`
 	}
 
 	// CUPSGetDevicesResponse is the CUPS-Get-Devices Response.
@@ -124,8 +124,8 @@ type (
 		//
 		// Use PrinterURI to specify particular print queue
 		// or PPDName to request PPD file by its name.
-		PrinterURI optional.Val[string] `ipp:"printer-uri,uri"`
-		PPDName    optional.Val[string] `ipp:"ppd-name,name"`
+		PrinterURI optional.Val[string] `ipp:"printer-uri"`
+		PPDName    optional.Val[string] `ipp:"ppd-name"`
 	}
 
 	// CUPSGetPPDResponse is the CUPS-Get-PPD Response.
@@ -146,7 +146,7 @@ type (
 		OperationGroup
 
 		// Operational attributes
-		PrinterURI optional.Val[string] `ipp:"printer-uri,uri"`
+		PrinterURI optional.Val[string] `ipp:"printer-uri"`
 	}
 )
 

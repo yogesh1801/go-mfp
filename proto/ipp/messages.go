@@ -47,9 +47,9 @@ type (
 		OperationGroup
 
 		// Operation attributes
-		PrinterURI          string               `ipp:"printer-uri,uri"`
-		RequestedAttributes []string             `ipp:"requested-attributes,1setOf keyword"`
-		DocumentFormat      optional.Val[string] `ipp:"document-format,mimeMediaType"`
+		PrinterURI          string               `ipp:"printer-uri"`
+		RequestedAttributes []string             `ipp:"requested-attributes"`
+		DocumentFormat      optional.Val[string] `ipp:"document-format"`
 	}
 
 	// GetPrinterAttributesResponse is the CUPS-Get-Default Response.

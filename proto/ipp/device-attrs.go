@@ -19,9 +19,9 @@ type DeviceAttributes struct {
 	CUPSDeviceAttributesGroup
 
 	DeviceClass        optional.Val[KwDeviceClass] `ipp:"device-class"`
-	DeviceInfo         optional.Val[string]        `ipp:"device-info,text(127)"`
-	DeviceMakeAndModel optional.Val[string]        `ipp:"device-make-and-model,text(127)"`
-	DeviceURI          optional.Val[string]        `ipp:"device-uri,uri"`
-	DeviceID           optional.Val[string]        `ipp:"device-id,text"`
-	DeviceLocation     optional.Val[string]        `ipp:"device-location,text(127)"`
+	DeviceInfo         optional.Val[string]        `ipp:"device-info"`
+	DeviceMakeAndModel optional.Val[string]        `ipp:"device-make-and-model"`
+	DeviceURI          optional.Val[string]        `ipp:"device-uri"`
+	DeviceID           optional.Val[string]        `ipp:"device-id"`
+	DeviceLocation     optional.Val[string]        `ipp:"device-location"`
 }

@@ -43,8 +43,8 @@ type RequestHeader struct {
 	RequestID uint32
 
 	// Common Operation attributes
-	AttributesCharset         string `ipp:"attributes-charset,charset"`
-	AttributesNaturalLanguage string `ipp:"attributes-natural-language,naturalLanguage"`
+	AttributesCharset         string `ipp:"attributes-charset"`
+	AttributesNaturalLanguage string `ipp:"attributes-natural-language"`
 
 	// Request body. Sent after IPP message. May be nil
 	Body io.Reader

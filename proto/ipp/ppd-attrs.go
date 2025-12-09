@@ -15,17 +15,17 @@ import (
 // PPDFilter specifies the subset of PPD files and their attributes,
 // returned by the CUPS-Get-PPDs request.
 type PPDFilter struct {
-	ExcludeSchemes      []string             `ipp:"exclude-schemes,1setOf name"`
-	IncludeSchemes      []string             `ipp:"include-schemes,1setOf name"`
-	Limit               optional.Val[int]    `ipp:"limit,integer(1:MAX)"`
-	PpdMake             optional.Val[string] `ipp:"ppd-make,text(127)"`
-	PpdMakeAndModel     optional.Val[string] `ipp:"ppd-make-and-model,text(127)"`
+	ExcludeSchemes      []string             `ipp:"exclude-schemes"`
+	IncludeSchemes      []string             `ipp:"include-schemes"`
+	Limit               optional.Val[int]    `ipp:"limit"`
+	PpdMake             optional.Val[string] `ipp:"ppd-make"`
+	PpdMakeAndModel     optional.Val[string] `ipp:"ppd-make-and-model"`
 	PpdModelNumber      optional.Val[int]    `ipp:"ppd-model-number"`
-	PpdNaturalLanguage  optional.Val[string] `ipp:"ppd-natural-language,naturallanguage"`
-	PpdProduct          optional.Val[string] `ipp:"ppd-product,text(127)"`
-	PpdPsVersion        optional.Val[string] `ipp:"ppd-psversion,text(127)"`
+	PpdNaturalLanguage  optional.Val[string] `ipp:"ppd-natural-language"`
+	PpdProduct          optional.Val[string] `ipp:"ppd-product"`
+	PpdPsVersion        optional.Val[string] `ipp:"ppd-psversion"`
 	PpdType             optional.Val[string] `ipp:"ppd-type,keyword"`
-	RequestedAttributes []string             `ipp:"requested-attributes,1setOf keyword"`
+	RequestedAttributes []string             `ipp:"requested-attributes"`
 }
 
 // PPDAttributes represents PPD file attributes, as returned by
