@@ -83,6 +83,14 @@
       <xref data="https://ftp.pwg.org/pub/pwg/candidates/cs-ippsystem11-20250328-5100.22.pdf" type="uri">PWG5100.22</xref>
     </record>
 
+    <! Missed Printer Description attribytes !>
+    <record>
+      <collection>Printer Description</collection>
+      <name>job-retain-until-interval-default</name>
+      <syntax>integer(0:MAX) | no-value</syntax>
+      <xref data="https://ftp.pwg.org/pub/pwg/candidates/cs-ippjobext21-20230210-5100.7.pdf" type="uri">PWG5100.7</xref>
+    </record>
+
     <! ----- Substitutions for ambiguous links ----- !>
     <subst>
       <! See PWG5100.3-2023, 5.2.1: Job Template/cover-back !>
@@ -313,6 +321,11 @@
       <except>document-password</except>
       <except>job-password</except>
       <except>job-password-encryption</except>
+    </use-members>
+
+    <use-members>
+      <name>Printer Description/job-presets-supported</name>
+      <use>Job Template</use>
     </use-members>
 
     <! ----- Skipped (totally obsoleted) attributes ----- !>

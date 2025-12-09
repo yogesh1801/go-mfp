@@ -673,11 +673,14 @@ func ippCodecGetType(t reflect.Type) *ippCodec {
 
 // ippCodecGenerate generates codec for the particular type.
 func ippCodecGenerate(t reflect.Type) (*ippCodec, error) {
-	return ippCodecGenerateInternal(t, diagTypeName(t))
+	regs := reflecRegistrations(t)
+	return ippCodecGenerateInternal(t, regs, diagTypeName(t))
 }
 
 // ippCodecGenerateInternal is the internal function behind ippCodecGenerate
-func ippCodecGenerateInternal(t reflect.Type, path string) (*ippCodec, error) {
+func ippCodecGenerateInternal(t reflect.Type,
+	regs []map[string]*iana.DefAttr, path string) (*ippCodec, error) {
+
 	// Validate input type
 	if t.Kind() != reflect.Struct {
 		err := fmt.Errorf("%s: is not struct", path)
@@ -726,7 +729,7 @@ func ippCodecGenerateInternal(t reflect.Type, path string) (*ippCodec, error) {
 	attrNames := make(map[string]string)
 	for _, fld := range fields {
 		// Generate step for the field.
-		step, err := ippCodecGenerateStep(fld, path+"."+fld.Name)
+		step, err := ippCodecGenerateStep(fld, regs, path+"."+fld.Name)
 		if step == nil && err == nil {
 			// Non-attribute field. Just do nothing
 			continue
@@ -790,7 +793,8 @@ func ippCodecGenerateInternal(t reflect.Type, path string) (*ippCodec, error) {
 
 // ippCodecGenerateStep generates the ippCodecStep for the field.
 // If field is not an IPP attribute, it returns (nil,nil).
-func ippCodecGenerateStep(fld reflect.StructField, path string) (*ippCodecStep, error) {
+func ippCodecGenerateStep(fld reflect.StructField,
+	regs []map[string]*iana.DefAttr, path string) (*ippCodecStep, error) {
 	// Ignore embedded structures, we already processed them
 	if fld.Anonymous {
 		return nil, nil
@@ -805,6 +809,13 @@ func ippCodecGenerateStep(fld reflect.StructField, path string) (*ippCodecStep, 
 	if name == "" {
 		// Not the IPP attribute field
 		return nil, nil
+	}
+
+	if def == nil {
+		def = iana.LookupSet(regs, name)
+		if def == nil {
+			return nil, fmt.Errorf("unknown attribute: %q", name)
+		}
 	}
 
 	// Obtain fldType.
@@ -835,7 +846,7 @@ func ippCodecGenerateStep(fld reflect.StructField, path string) (*ippCodecStep, 
 		methods = ippCodecMethodsByKind[fldKind]
 	}
 	if methods == nil && fldKind == reflect.Struct {
-		methods, err = ippCodecMethodsCollection(fldType, path)
+		methods, err = ippCodecMethodsCollection(fldType, def.Members, path)
 		if err != nil {
 			return nil, err
 		}
@@ -844,39 +855,6 @@ func ippCodecGenerateStep(fld reflect.StructField, path string) (*ippCodecStep, 
 	if methods == nil {
 		err := fmt.Errorf("%s type not supported", fldKind)
 		return nil, err
-	}
-
-	// If the attribute definition is not available,
-	// generate it from the structure field type.
-	//
-	// FIXME -- this is the temporary solution
-	if def == nil {
-		var tag goipp.Tag
-		if _, found := kwRegisteredTypes[fldType]; found {
-			// Underlying type registered as keyword.
-			// Use goipp.TagKeyword.
-			tag = goipp.TagKeyword
-		} else if _, found := enRegisteredTypes[fldType]; found {
-			// Use goipp.TagEnum for registered enum types.
-			tag = goipp.TagEnum
-		} else {
-			// Use tag, default for the underlying value type
-			tag = methods.defaultIppTag
-		}
-
-		if tag == goipp.TagZero {
-			err := fmt.Errorf("can't deduce IPP tag for %s",
-				diagTypeName(fldType))
-			return nil, err
-		}
-
-		min, max := tag.Limits()
-		def = &iana.DefAttr{
-			SetOf: isSlice,
-			Tags:  []goipp.Tag{tag},
-			Min:   min,
-			Max:   max,
-		}
 	}
 
 	// Generate encoding/decoding step for underlying type.
@@ -1118,10 +1096,10 @@ type ippCodecMethods struct {
 
 // ippCodecMethodsCollection creates ippCodecMethods for encoding
 // nested structure or slice of structures as IPP Collection
-func ippCodecMethodsCollection(t reflect.Type, path string) (
-	*ippCodecMethods, error) {
+func ippCodecMethodsCollection(t reflect.Type,
+	regs []map[string]*iana.DefAttr, path string) (*ippCodecMethods, error) {
 
-	codec, err := ippCodecGenerateInternal(t, path)
+	codec, err := ippCodecGenerateInternal(t, regs, path)
 	if err != nil {
 		return nil, err
 	}

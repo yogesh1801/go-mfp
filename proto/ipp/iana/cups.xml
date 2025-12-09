@@ -159,7 +159,7 @@
     <record>
       <collection>Printer Description</collection>
       <name>marker-levels</name>
-      <syntax>integer(-3:100)</syntax>
+      <syntax>1setOf integer(-3:100)</syntax>
       <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
     </record>
     <record>
@@ -277,14 +277,14 @@
     <record>
       <collection>Printer Description</collection>
       <name>requesting-user-name-denied</name>
-      <syntax>1setof name(127) | delete-attribute</syntax>
+      <syntax>1setOf name(127) | delete-attribute</syntax>
       <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
     </record>
 
     <record>
       <collection>Printer Description</collection>
       <name>urf-supported</name>
-      <syntax>keyword</syntax>
+      <syntax>1setOf keyword</syntax>
       <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
     </record>
 
@@ -363,19 +363,19 @@
     <record>
       <collection>CUPS PPD Attributes</collection>
       <name>ppd-natural-language</name>
-      <syntax>1setOf naturalLanguage</syntax>
+      <syntax>naturalLanguage</syntax>
       <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
     </record>
     <record>
       <collection>CUPS PPD Attributes</collection>
       <name>ppd-product</name>
-      <syntax>1setOf text(127)</syntax>
+      <syntax>text(127)</syntax>
       <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
     </record>
     <record>
       <collection>CUPS PPD Attributes</collection>
       <name>ppd-psversion</name>
-      <syntax>1setOf text(127)</syntax>
+      <syntax>text(127)</syntax>
       <xref data="https://www.cups.org/doc/spec-ipp.html" type="uri">CUPS</xref>
     </record>
     <record>

@@ -39,7 +39,7 @@ func TestIppCodecGenerate(t *testing.T) {
 	tests := []testData{
 		{
 			data: struct {
-				FldOk      int `ipp:"fld-ok"`
+				FldOk      int `ipp:"fld-ok,integer"`
 				unexported string
 				GoodEmbedded
 			}{},
@@ -47,7 +47,7 @@ func TestIppCodecGenerate(t *testing.T) {
 
 		{
 			data: struct {
-				FldOk int `ipp:"fld-ok"`
+				FldOk int `ipp:"fld-ok,integer"`
 				BadEmbedded
 			}{},
 			err: `struct {...}.BadEmbedded.X: can't represent int as boolean`,
@@ -69,7 +69,7 @@ func TestIppCodecGenerate(t *testing.T) {
 
 		{
 			data: struct {
-				FldBad float64 `ipp:"flg-bad"`
+				FldBad float64 `ipp:"flg-bad,integer"`
 			}{},
 			err: `struct {...}.FldBad: float64 type not supported`,
 		},
@@ -77,8 +77,8 @@ func TestIppCodecGenerate(t *testing.T) {
 		{
 			data: struct {
 				Nested struct {
-					FldBad float64 `ipp:"flg-bad"`
-				} `ipp:"flg-nested"`
+					FldBad float64 `ipp:"flg-bad,integer"`
+				} `ipp:"flg-nested,collection"`
 			}{},
 			err: `struct {...}.Nested: struct {...}.Nested.FldBad: float64 type not supported`,
 		},
@@ -153,8 +153,8 @@ func TestIppCodecGenerate(t *testing.T) {
 
 		{
 			data: struct {
-				Fld1 int `ipp:"fld"`
-				Fld2 int `ipp:"fld"`
+				Fld1 int `ipp:"fld,integer"`
+				Fld2 int `ipp:"fld,integer"`
 			}{},
 			err: `struct {...}.Fld2: attribute "fld" already used by Fld1`,
 		},
@@ -187,26 +187,26 @@ func TestIppCodecGenerate(t *testing.T) {
 // TestIppCodecStandardTypes tests that ippCodecGenerate() successfully
 // generates codecs for  the standard types.
 func TestIppCodecStandardTypes(t *testing.T) {
-	tests := []any{
-		CUPSGetDefaultRequest{},
-		CUPSGetDefaultResponse{},
-		CUPSGetDevicesRequest{},
-		CUPSGetDevicesResponse{},
-		CUPSGetPPDRequest{},
-		CUPSGetPPDResponse{},
-		CUPSGetPPDsRequest{},
-		CUPSGetPPDsResponse{},
-		CUPSGetPrintersRequest{},
-		CUPSGetPrintersResponse{},
-		DeviceAttributes{},
-		GetPrinterAttributesRequest{},
-		GetPrinterAttributesResponse{},
-		PPDAttributes{},
-		PrinterDescription{},
+	tests := []Object{
+		&CUPSGetDefaultRequest{},
+		&CUPSGetDefaultResponse{},
+		&CUPSGetDevicesRequest{},
+		&CUPSGetDevicesResponse{},
+		&CUPSGetPPDRequest{},
+		&CUPSGetPPDResponse{},
+		&CUPSGetPPDsRequest{},
+		&CUPSGetPPDsResponse{},
+		&CUPSGetPrintersRequest{},
+		&CUPSGetPrintersResponse{},
+		&DeviceAttributes{},
+		&GetPrinterAttributesRequest{},
+		&GetPrinterAttributesResponse{},
+		&PPDAttributes{},
+		&PrinterAttributes{},
 	}
 
 	for _, test := range tests {
-		ty := reflect.TypeOf(test)
+		ty := reflect.TypeOf(test).Elem()
 		_, err := ippCodecGenerate(ty)
 		if err != nil {
 			t.Errorf("ippCodecGenerate: %s: %s",
@@ -290,13 +290,13 @@ func TestIppEncodeDecodePanic(t *testing.T) {
 // of ippTestStruct
 type ippTestCollection struct {
 	CollInt    goipp.IntegerOrRange `ipp:"coll-int,integer|rangeOfInteger"`
-	CollString string               `ipp:"coll-string"`
-	CollU16    uint16               `ipp:"coll-u16"`
+	CollString string               `ipp:"coll-string,text"`
+	CollU16    uint16               `ipp:"coll-u16,integer"`
 }
 
 // TestEmbedded used to test embedding
 type TestEmbedded struct {
-	FldEmbedded int `ipp:"fld-embedded"`
+	FldEmbedded int `ipp:"fld-embedded,integer"`
 }
 
 // ippTestStruct is the structure, intended for testing
@@ -314,9 +314,9 @@ type ippTestStruct struct {
 	FldCharset      string   `ipp:"fld-charset,charset"`
 	FldCharsetSlice []string `ipp:"fld-charset-slice,1setOf charset"`
 
-	FldColl         ippTestCollection   `ipp:"fld-coll"`
-	FldCollSlice    []ippTestCollection `ipp:"fld-coll-slice"`
-	FldCollNilSlice []ippTestCollection `ipp:"fld-coll-nil-slice"`
+	FldColl         ippTestCollection   `ipp:"fld-coll,collection"`
+	FldCollSlice    []ippTestCollection `ipp:"fld-coll-slice,1setOf collection"`
+	FldCollNilSlice []ippTestCollection `ipp:"fld-coll-nil-slice,1setOf collection"`
 
 	FldDateTime      time.Time   `ipp:"fld-datetime,datetime"`
 	FldDateTimeSlice []time.Time `ipp:"fld-datetime-slice,1setOf datetime"`
@@ -339,7 +339,7 @@ type ippTestStruct struct {
 	FldName      string   `ipp:"fld-name,name"`
 	FldNameSlice []string `ipp:"fld-name-slice,1setOf name"`
 
-	FldNilSlice []int `ipp:"fld-nil-slice"`
+	FldNilSlice []int `ipp:"fld-nil-slice,1setOf integer"`
 
 	FldRange      goipp.Range   `ipp:"fld-range,rangeOfInteger"`
 	FldRangeSlice []goipp.Range `ipp:"fld-range-slice,1setOf rangeOfInteger"`
@@ -362,14 +362,14 @@ type ippTestStruct struct {
 	FldURIScheme      string   `ipp:"fld-urischeme,urischeme"`
 	FldURISchemeSlice []string `ipp:"fld-urischeme-slice,1setOf urischeme"`
 
-	FldUint16      uint16   `ipp:"fld-uint16"`
-	FldUint16Slice []uint16 `ipp:"fld-uint16-slice"`
+	FldUint16      uint16   `ipp:"fld-uint16,integer"`
+	FldUint16Slice []uint16 `ipp:"fld-uint16-slice,1setOf integer"`
 
-	FldVersion      goipp.Version   `ipp:"fld-version"`
-	FldVersionSlice []goipp.Version `ipp:"fld-version-slice"`
+	FldVersion      goipp.Version   `ipp:"fld-version,keyword"`
+	FldVersionSlice []goipp.Version `ipp:"fld-version-slice,1setOf keyword"`
 
-	FltOptionalMissed  optional.Val[int] `ipp:"flt-optional-missed"`
-	FltOptionalPresent optional.Val[int] `ipp:"flt-optional-present"`
+	FltOptionalMissed  optional.Val[int] `ipp:"flt-optional-missed,integer"`
+	FltOptionalPresent optional.Val[int] `ipp:"flt-optional-present,integer"`
 }
 
 // ippDecodeTest represents a single decode test data
@@ -1197,7 +1197,7 @@ var testdataPrinterAttributes = PrinterAttributes{
 			"airprint-1.4",
 		},
 		IppVersionsSupported: DefaultIppVersionsSupported,
-		MediaSizeSupported: []MediaSize{
+		MediaSizeSupported: []MediaSizeRange{
 			{
 				XDimension: goipp.Integer(21590),
 				YDimension: goipp.Integer(27940),

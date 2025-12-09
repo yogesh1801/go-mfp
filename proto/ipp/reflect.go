@@ -11,7 +11,6 @@ package ipp
 import (
 	"reflect"
 
-	"github.com/OpenPrinting/go-mfp/internal/assert"
 	"github.com/OpenPrinting/go-mfp/proto/ipp/iana"
 )
 
@@ -31,8 +30,7 @@ func reflectIsObject(t reflect.Type) bool {
 // If t doesn't implement the Object interface, this function
 // returns nil.
 func reflecRegistrations(t reflect.Type) []map[string]*iana.DefAttr {
-	assert.Must(t.Kind() == reflect.Struct)
-	if !reflectIsObject(t) {
+	if t.Kind() != reflect.Struct || !reflectIsObject(t) {
 		return nil
 	}
 

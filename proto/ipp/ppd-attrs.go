@@ -18,12 +18,12 @@ type PPDFilter struct {
 	ExcludeSchemes      []string             `ipp:"exclude-schemes,1setOf name"`
 	IncludeSchemes      []string             `ipp:"include-schemes,1setOf name"`
 	Limit               optional.Val[int]    `ipp:"limit,integer(1:MAX)"`
-	PpdMake             optional.Val[string] `ipp:"ppd-make,text"`
-	PpdMakeAndModel     optional.Val[string] `ipp:"ppd-make-and-model,text"`
-	ModelNumber         optional.Val[int]    `ipp:"ppd-model-number"`
-	PpdNaturalLanguage  optional.Val[string] `ipp:"ppd-natural-language,text"`
-	PpdProduct          optional.Val[string] `ipp:"ppd-product,text"`
-	PpdPsversion        optional.Val[string] `ipp:"ppd-psversion,text"`
+	PpdMake             optional.Val[string] `ipp:"ppd-make,text(127)"`
+	PpdMakeAndModel     optional.Val[string] `ipp:"ppd-make-and-model,text(127)"`
+	PpdModelNumber      optional.Val[int]    `ipp:"ppd-model-number"`
+	PpdNaturalLanguage  optional.Val[string] `ipp:"ppd-natural-language,naturallanguage"`
+	PpdProduct          optional.Val[string] `ipp:"ppd-product,text(127)"`
+	PpdPsVersion        optional.Val[string] `ipp:"ppd-psversion,text(127)"`
 	PpdType             optional.Val[string] `ipp:"ppd-type,keyword"`
 	RequestedAttributes []string             `ipp:"requested-attributes,1setOf keyword"`
 }

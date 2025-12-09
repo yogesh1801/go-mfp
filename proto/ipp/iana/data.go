@@ -100,21 +100,21 @@ var CUPSPPDAttributes = map[string]*DefAttr{
 	},
 	// CUPS PPD Attributes/ppd-natural-language (CUPS)
 	"ppd-natural-language": &DefAttr{
-		SetOf: true,
+		SetOf: false,
 		Min:   0,
 		Max:   63,
 		Tags:  []goipp.Tag{goipp.TagLanguage},
 	},
 	// CUPS PPD Attributes/ppd-product (CUPS)
 	"ppd-product": &DefAttr{
-		SetOf: true,
+		SetOf: false,
 		Min:   0,
 		Max:   127,
 		Tags:  []goipp.Tag{goipp.TagText},
 	},
 	// CUPS PPD Attributes/ppd-psversion (CUPS)
 	"ppd-psversion": &DefAttr{
-		SetOf: true,
+		SetOf: false,
 		Min:   0,
 		Max:   127,
 		Tags:  []goipp.Tag{goipp.TagText},
@@ -7214,6 +7214,13 @@ var PrinterDescription = map[string]*DefAttr{
 		Max:   255,
 		Tags:  []goipp.Tag{goipp.TagKeyword, goipp.TagName},
 	},
+	// Printer Description/job-retain-until-interval-default (PWG5100.7)
+	"job-retain-until-interval-default": &DefAttr{
+		SetOf: false,
+		Min:   0,
+		Max:   MAX,
+		Tags:  []goipp.Tag{goipp.TagInteger, goipp.TagNoValue},
+	},
 	// Printer Description/job-retain-until-interval-supported (PWG5100.7)
 	"job-retain-until-interval-supported": &DefAttr{
 		SetOf: false,
@@ -7435,7 +7442,7 @@ var PrinterDescription = map[string]*DefAttr{
 	},
 	// Printer Description/marker-levels (CUPS)
 	"marker-levels": &DefAttr{
-		SetOf: false,
+		SetOf: true,
 		Min:   -3,
 		Max:   100,
 		Tags:  []goipp.Tag{goipp.TagInteger},
@@ -9486,7 +9493,7 @@ var PrinterDescription = map[string]*DefAttr{
 	},
 	// Printer Description/urf-supported (CUPS)
 	"urf-supported": &DefAttr{
-		SetOf: false,
+		SetOf: true,
 		Min:   1,
 		Max:   255,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
@@ -11560,6 +11567,7 @@ var borrowings = []borrowing{
 	{"Printer Description/job-cover-back-default", "Job Template/cover-back"},
 	{"Printer Description/job-cover-front-default", "Job Template/cover-front"},
 	{"Printer Description/job-error-sheet-default", "Job Template/job-error-sheet"},
+	{"Printer Description/job-presets-supported", "Job Template"},
 	{"Printer Description/job-resolvers-supported", "Job Template"},
 	{"Printer Description/job-sheets-col-default", "Job Template/job-sheets-col"},
 	{"Printer Description/materials-col-database", "Document Template/materials-col"},

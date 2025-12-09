@@ -46,7 +46,7 @@ type (
 		FirstPrinterName    optional.Val[string] `ipp:"first-printer-name"`
 		Limit               optional.Val[int]    `ipp:"limit"`
 		PrinterID           optional.Val[int]    `ipp:"printer-id"`
-		PrinterLocation     optional.Val[string] `ipp:"printer-location,text"`
+		PrinterLocation     optional.Val[string] `ipp:"printer-location,text(127)"`
 		PrinterType         optional.Val[int]    `ipp:"printer-type,enum"`
 		PrinterTypeMask     optional.Val[int]    `ipp:"printer-type-mask,enum"`
 		RequestedUserName   optional.Val[string] `ipp:"requested-user-name,name"`
@@ -93,7 +93,9 @@ type (
 	CUPSGetPPDsRequest struct {
 		ObjectRawAttrs
 		RequestHeader
+
 		OperationGroup
+		CUPSPPDAttributesGroup
 
 		// Operational attributes
 		PPDFilter
@@ -114,7 +116,9 @@ type (
 	CUPSGetPPDRequest struct {
 		ObjectRawAttrs
 		RequestHeader
+
 		OperationGroup
+		CUPSPPDAttributesGroup
 
 		// Operational attributes
 		//

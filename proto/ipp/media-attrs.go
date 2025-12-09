@@ -15,7 +15,7 @@ import (
 
 // MediaColDatabase represents "media-col-database" attribute.
 type MediaColDatabase struct {
-	MediaColDatabase []MediaCol `ipp:"media-col-database"`
+	MediaColDatabase []MediaColEx `ipp:"media-col-database"`
 }
 
 // MediaCol is the "media-col", "media-col-xxx" collection entry.
@@ -28,33 +28,47 @@ type MediaCol struct {
 	MediaColor        optional.Val[KwColor]            `ipp:"media-color"`
 	MediaFrontCoating optional.Val[KwMediaBackCoating] `ipp:"media-front-coating"`
 	MediaHoleCount    optional.Val[int]                `ipp:"media-hole-count,integer(0:MAX)"`
-	MediaInfo         optional.Val[string]             `ipp:"media-info,text"`
+	MediaInfo         optional.Val[string]             `ipp:"media-info,text(255)"`
 	MediaKey          optional.Val[KwMedia]            `ipp:"media-key"`
 	MediaOrderCount   optional.Val[int]                `ipp:"media-order-count,integer(1:MAX)"`
-	MediaPrePrinted   optional.Val[string]             `ipp:"media-pre-printed,keyword"`
-	MediaRecycled     optional.Val[string]             `ipp:"media-recycled,keyword"`
+	MediaPrePrinted   optional.Val[string]             `ipp:"media-pre-printed,keyword|name"`
+	MediaRecycled     optional.Val[string]             `ipp:"media-recycled,keyword|name"`
 	MediaSize         optional.Val[MediaSize]          `ipp:"media-size"`
-	MediaType         optional.Val[string]             `ipp:"media-type,keyword"`
+	MediaType         optional.Val[string]             `ipp:"media-type,keyword|name"`
 	MediaWeightMetric optional.Val[int]                `ipp:"media-weight-metric,integer(0:MAX)"`
 
 	// ----- PWG5100.7 -----
-	MediaBottomMargin     optional.Val[int]                   `ipp:"media-bottom-margin,integer(0:MAX)"`
-	MediaGrain            optional.Val[string]                `ipp:"media-grain,keyword"`
-	MediaLeftMargin       optional.Val[int]                   `ipp:"media-left-margin,integer(0:MAX)"`
-	MediaRightMargin      optional.Val[int]                   `ipp:"media-right-margin,integer(0:MAX)"`
-	MediaSizeName         optional.Val[string]                `ipp:"media-size-name,keyword"`
-	MediaSourceProperties optional.Val[MediaSourceProperties] `ipp:"media-source-properties"`
-	MediaSource           optional.Val[string]                `ipp:"media-source,keyword"`
-	MediaThickness        optional.Val[int]                   `ipp:"media-thickness,integer(1:MAX)"`
-	MediaTooth            optional.Val[string]                `ipp:"media-tooth,keyword"`
-	MediaTopMargin        optional.Val[int]                   `ipp:"media-top-margin,integer(0:MAX)"`
+	MediaBottomMargin optional.Val[int]    `ipp:"media-bottom-margin,integer(0:MAX)"`
+	MediaGrain        optional.Val[string] `ipp:"media-grain,keyword|name"`
+	MediaLeftMargin   optional.Val[int]    `ipp:"media-left-margin,integer(0:MAX)"`
+	MediaRightMargin  optional.Val[int]    `ipp:"media-right-margin,integer(0:MAX)"`
+	MediaSizeName     optional.Val[string] `ipp:"media-size-name,keyword|name"`
+	MediaSource       optional.Val[string] `ipp:"media-source,keyword|name"`
+	MediaThickness    optional.Val[int]    `ipp:"media-thickness,integer(1:MAX)"`
+	MediaTooth        optional.Val[string] `ipp:"media-tooth,keyword|name"`
+	MediaTopMargin    optional.Val[int]    `ipp:"media-top-margin,integer(0:MAX)"`
 }
 
-// MediaSize represents media size parameters (which may be either
-// pair of integers or pair of ranges) and used in many places
+// MediaColEx is the [MediaCol] with some additional data.
+// It is only used for "media-col-database" and "media-col-ready"
+// Printer Description attributes.
+type MediaColEx struct {
+	MediaCol
+	MediaSourceProperties optional.Val[MediaSourceProperties] `ipp:"media-source-properties"`
+}
+
+// MediaSize represents media size parameter, defined by a pair of
+// integer dimensions.
 type MediaSize struct {
-	XDimension goipp.IntegerOrRange `ipp:"x-dimension,integer(1:MAX)|rangeOfInteger(1:MAX)"`
-	YDimension goipp.IntegerOrRange `ipp:"y-dimension,integer(1:MAX)|rangeOfInteger(1:MAX)"`
+	XDimension int `ipp:"x-dimension"`
+	YDimension int `ipp:"y-dimension"`
+}
+
+// MediaSizeRange represents media size parameter, defined by a pair
+// if integer or range of integer dimensions.
+type MediaSizeRange struct {
+	XDimension goipp.IntegerOrRange `ipp:"x-dimension"`
+	YDimension goipp.IntegerOrRange `ipp:"y-dimension"`
 }
 
 // MediaSourceProperties represents "media-source-properties"

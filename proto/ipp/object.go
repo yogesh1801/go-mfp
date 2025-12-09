@@ -37,7 +37,7 @@ type Object interface {
 
 	// This is to force embedding of some attributesGroup into
 	// the object
-	attributesGroup
+	//attributesGroup
 }
 
 // ObjectRegisteredAttrNames returns names of attributes specific

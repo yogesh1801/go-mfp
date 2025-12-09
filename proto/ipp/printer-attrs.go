@@ -46,7 +46,10 @@ const (
 // PrinterAttributes represents IPP Printer Attributes
 type PrinterAttributes struct {
 	ObjectRawAttrs
+
 	PrinterDescriptionGroup
+	PrinterStatusGroup
+	JobTemplateGroup
 
 	PrinterDescription
 	JobTemplate
@@ -67,7 +70,7 @@ type PrinterDescription struct {
 	JobImpressionsSupported           optional.Val[goipp.Range]   `ipp:"job-impressions-supported"`
 	JobKOctetsSupported               optional.Val[goipp.Range]   `ipp:"job-k-octets-supported"`
 	JobMediaSheetsSupported           optional.Val[goipp.Range]   `ipp:"job-media-sheets-supported"`
-	MediaSizeSupported                []MediaSize                 `ipp:"media-size-supported"`
+	MediaSizeSupported                []MediaSizeRange            `ipp:"media-size-supported"`
 	MultipleDocumentJobsSupported     optional.Val[bool]          `ipp:"multiple-document-jobs-supported"`
 	MultipleOperationTimeOut          optional.Val[int]           `ipp:"multiple-operation-time-out"`
 	NaturalLanguageConfigured         optional.Val[string]        `ipp:"natural-language-configured,naturalLanguage"`
@@ -77,14 +80,14 @@ type PrinterDescription struct {
 	PdlOverrideSupported              optional.Val[KwPdlOverride] `ipp:"pdl-override-supported"`
 	PrinterDriverInstaller            optional.Val[string]        `ipp:"printer-driver-installer,uri"`
 	PrinterDeviceID                   optional.Val[string]        `ipp:"printer-device-id,text"`
-	PrinterInfo                       optional.Val[string]        `ipp:"printer-info,text"`
+	PrinterInfo                       optional.Val[string]        `ipp:"printer-info,text(127)"`
 	PrinterIsAcceptingJobs            optional.Val[bool]          `ipp:"printer-is-accepting-jobs"`
-	PrinterLocation                   optional.Val[string]        `ipp:"printer-location,text"`
-	PrinterMakeAndModel               optional.Val[string]        `ipp:"printer-make-and-model,text"`
-	PrinterMessageFromOperator        optional.Val[string]        `ipp:"printer-message-from-operator,text"`
+	PrinterLocation                   optional.Val[string]        `ipp:"printer-location,text(127)"`
+	PrinterMakeAndModel               optional.Val[string]        `ipp:"printer-make-and-model,text(127)"`
+	PrinterMessageFromOperator        optional.Val[string]        `ipp:"printer-message-from-operator,text(127)"`
 	PrinterMoreInfoManufacturer       optional.Val[string]        `ipp:"printer-more-info-manufacturer,uri"`
 	PrinterMoreInfo                   optional.Val[string]        `ipp:"printer-more-info,uri"`
-	PrinterName                       optional.Val[string]        `ipp:"printer-name,name"`
+	PrinterName                       optional.Val[string]        `ipp:"printer-name,name(127)"`
 	PrinterStateMessage               optional.Val[string]        `ipp:"printer-state-message,text"`
 	PrinterState                      optional.Val[int]           `ipp:"printer-state,enum"`
 	PrinterStateReasons               []KwPrinterStateReasons     `ipp:"printer-state-reasons"`
@@ -113,23 +116,23 @@ type PrinterDescription struct {
 	MediaBackCoatingSupported        []KwMediaBackCoating        `ipp:"media-back-coating-supported"`
 	MediaBottomMarginSupported       []int                       `ipp:"media-bottom-margin-supported,1setOf integer(0:MAX)"`
 	MediaColDefault                  optional.Val[MediaCol]      `ipp:"media-col-default"`
-	MediaColorSupported              []string                    `ipp:"media-color-supported,1setOf keyword"`
-	MediaColReady                    []MediaCol                  `ipp:"media-col-ready"`
+	MediaColorSupported              []string                    `ipp:"media-color-supported,1setOf keyword|name"`
+	MediaColReady                    []MediaColEx                `ipp:"media-col-ready"`
 	MediaColSupported                []string                    `ipp:"media-col-supported,1setOf keyword"`
 	MediaFrontCoatingSupported       []KwMediaBackCoating        `ipp:"media-front-coating-supported"`
-	MediaGrainSupported              []string                    `ipp:"media-grain-supported,1setOf keyword"`
+	MediaGrainSupported              []string                    `ipp:"media-grain-supported,1setOf keyword|name"`
 	MediaHoleCountSupported          []goipp.Range               `ipp:"media-hole-count-supported,1setOf rangeOfInteger(0:MAX)"`
 	MediaKeySupported                []KwMedia                   `ipp:"media-key-supported"`
 	MediaLeftMarginSupported         []int                       `ipp:"media-left-margin-supported,1setOf integer(0:MAX)"`
 	MediaOrderCountSupported         []goipp.Range               `ipp:"media-order-count-supported,1setOf rangeOfInteger(1:MAX)"`
-	MediaPrePrintedSupported         []string                    `ipp:"media-pre-printed-supported,1setOf keyword"`
-	MediaRecycledSupported           []string                    `ipp:"media-recycled-supported,1setOf keyword"`
+	MediaPrePrintedSupported         []string                    `ipp:"media-pre-printed-supported,1setOf keyword|name"`
+	MediaRecycledSupported           []string                    `ipp:"media-recycled-supported"`
 	MediaRightMarginSupported        []int                       `ipp:"media-right-margin-supported,1setOf integer(0:MAX)"`
-	MediaSourceSupported             []string                    `ipp:"media-source-supported,1setOf keyword"`
+	MediaSourceSupported             []string                    `ipp:"media-source-supported"`
 	MediaThicknessSupported          []goipp.Range               `ipp:"media-thickness-supported,1setOf rangeOfInteger(1:MAX)"`
-	MediaToothSupported              []string                    `ipp:"media-tooth-supported,1setOf keyword"`
+	MediaToothSupported              []string                    `ipp:"media-tooth-supported"`
 	MediaTopMarginSupported          []int                       `ipp:"media-top-margin-supported,1setOf integer(0:MAX)"`
-	MediaTypeSupported               []string                    `ipp:"media-type-supported,1setOf keyword"`
+	MediaTypeSupported               []string                    `ipp:"media-type-supported"`
 	MediaWeightMetricSupported       []goipp.Range               `ipp:"media-weight-metric-supported,1setOf rangeOfInteger(1:MAX)"`
 
 	// PWG5100.13: IPP Driver Replacement Extensions v2.0 (NODRIVER)
@@ -141,23 +144,23 @@ type PrinterDescription struct {
 	JobPresetsSupported               []JobPresets              `ipp:"job-presets-supported"`
 	JpegFeaturesSupported             []string                  `ipp:"jpeg-features-supported,1setOf keyword"`
 	JpegKOctetsSupported              optional.Val[goipp.Range] `ipp:"jpeg-k-octets-supported,rangeOfinteger(0:MAX)"`
-	JpegXDimensionSupported           optional.Val[goipp.Range] `ipp:"jpeg-x-dimension-supported,rangeOfinteger(0:65535)"`
-	JpegYDimensionSupported           optional.Val[goipp.Range] `ipp:"jpeg-y-dimension-supported,rangeOfinteger(0:65535)"`
+	JpegXDimensionSupported           optional.Val[goipp.Range] `ipp:"jpeg-x-dimension-supported"`
+	JpegYDimensionSupported           optional.Val[goipp.Range] `ipp:"jpeg-y-dimension-supported"`
 	MultipleOperationTimeOutAction    optional.Val[string]      `ipp:"multiple-operation-time-out-action,keyword"`
 	PdfKOctetsSupported               optional.Val[goipp.Range] `ipp:"pdf-k-octets-supported,rangeOfinteger(0:MAX)"`
 	PdfVersionsSupported              []string                  `ipp:"pdf-versions-supported,1setOf keyword"`
 	PreferredAttributesSupported      optional.Val[bool]        `ipp:"preferred-attributes-supported"`
-	PrinterDNSSdName                  optional.Val[string]      `ipp:"printer-dns-sd-name,name"`
+	PrinterDNSSdName                  optional.Val[string]      `ipp:"printer-dns-sd-name"`
 	PrinterGeoLocation                optional.Val[string]      `ipp:"printer-geo-location,uri|unknown"`
 	PrinterGetAttributesSupported     []string                  `ipp:"printer-get-attributes-supported,1setOf keyword"`
 	PrinterIcons                      []string                  `ipp:"printer-icons,1setOf uri"`
-	PrinterKind                       []string                  `ipp:"printer-kind,1setOf keyword"`
+	PrinterKind                       []string                  `ipp:"printer-kind"`
 	PrinterOrganization               []string                  `ipp:"printer-organization,1setOf text"`
 	PrinterOrganizationalUnit         []string                  `ipp:"printer-organizational-unit,1setOf text"`
 	PrinterStringsLanguagesSupported  []string                  `ipp:"printer-strings-languages-supported,1setOf naturalLanguage"`
-	PrinterStringsURI                 optional.Val[string]      `ipp:"printer-strings-uri,uri"`
+	PrinterStringsURI                 optional.Val[string]      `ipp:"printer-strings-uri"`
 	RequestingUserURISupported        optional.Val[bool]        `ipp:"requesting-user-uri-supported"`
-	RequestingUserURISchemesSupported optional.Val[string]      `ipp:"requesting-user-uri-schemes-supported,uriScheme"`
+	RequestingUserURISchemesSupported []string                  `ipp:"requesting-user-uri-schemes-supported"`
 
 	// PWG5100.13: IPP Driver Replacement Extensions v2.0 (NODRIVER)
 	// 6.6 Printer Status Attributes
@@ -165,7 +168,7 @@ type PrinterDescription struct {
 	DeviceUUID                   optional.Val[string]    `ipp:"device-uuid,uri"`
 	PrinterConfigChangeDateTime  optional.Val[time.Time] `ipp:"printer-config-change-date-time"`
 	PrinterConfigChangeTime      optional.Val[int]       `ipp:"printer-config-change-time,integer(1:MAX)"`
-	PrinterFirmwareName          optional.Val[string]    `ipp:"printer-firmware-name,name"`
+	PrinterFirmwareName          []string                `ipp:"printer-firmware-name"`
 	PrinterFirmwarePatches       []string                `ipp:"printer-firmware-patches,1setOf text"`
 	PrinterFirmwareStringVersion []string                `ipp:"printer-firmware-string-version,1setOf text"`
 	PrinterFirmwareVersion       []string                `ipp:"printer-firmware-version,1setOf string"`
@@ -184,7 +187,7 @@ type PrinterDescription struct {
 	PclmStripHeightSupported []int                `ipp:"pclm-strip-height-supported"`
 
 	// CUPS extensions
-	DeviceURI          []string                    `ipp:"device-uri,1setOf uri"`
+	DeviceURI          string                      `ipp:"device-uri"`
 	MarkerChangeTime   optional.Val[int]           `ipp:"marker-change-time,integer(0:MAX)"`
 	MarkerColors       []string                    `ipp:"marker-colors,1setOf name"`
 	MarkerHighLevels   []int                       `ipp:"marker-high-levels,1setOf integer(0:100)"`

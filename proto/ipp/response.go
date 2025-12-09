@@ -44,7 +44,7 @@ type ResponseHeader struct {
 	// Common Operation attributes.
 	AttributesCharset         string `ipp:"attributes-charset,charset"`
 	AttributesNaturalLanguage string `ipp:"attributes-natural-language,naturalLanguage"`
-	StatusMessage             string `ipp:"status-message,text"`
+	StatusMessage             string `ipp:"status-message,text(255)"`
 
 	// Raw IPP message.
 	//
