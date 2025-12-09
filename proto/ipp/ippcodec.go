@@ -588,11 +588,10 @@ func ippRegisteredAttrNames(t reflect.Type) []string {
 // then reused, to minimize performance overhead associated with
 // reflection
 type ippCodec struct {
-	t            reflect.Type               // Type of structure
-	steps        []ippCodecStep             // Encoding/decoding steps
-	stepsByName  map[string]*ippCodecStep   // Steps indexed by attribute name
-	regAttrs     []map[string]*iana.DefAttr // Registered attributes
-	regAttrNames []string                   // Names of registered attrs
+	t            reflect.Type             // Type of structure
+	steps        []ippCodecStep           // Encoding/decoding steps
+	stepsByName  map[string]*ippCodecStep // Steps indexed by attribute name
+	regAttrNames []string                 // Names of registered attrs
 
 }
 
@@ -687,10 +686,7 @@ func ippCodecGenerateInternal(t reflect.Type,
 		return nil, err
 	}
 
-	codec := &ippCodec{
-		t:        t,
-		regAttrs: reflecRegistrations(t),
-	}
+	codec := &ippCodec{t: t}
 
 	// Obtain structure fields.
 	//
@@ -758,11 +754,10 @@ func ippCodecGenerateInternal(t reflect.Type,
 		codec.stepsByName[codec.steps[i].attrName] = &codec.steps[i]
 	}
 
-	// Build regAttrNames
-	if codec.regAttrs != nil {
-		// Only for top-level Object structures.
+	// Build regAttrNames (only for top-level Object structures).
+	if reflectIsObject(t) {
 		names := generic.NewSet[string]()
-		for _, grp := range codec.regAttrs {
+		for _, grp := range regs {
 			for name := range grp {
 				names.Add(name)
 			}
