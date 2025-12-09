@@ -92,8 +92,8 @@ func (def *DefAttr) HasTag(tag goipp.Tag) bool {
 // have equal syntax.
 func (def *DefAttr) EqualSyntax(def2 *DefAttr) bool {
 	return def.SetOf == def2.SetOf &&
-		def.Min != def2.Min &&
-		def.Max != def2.Max &&
+		def.Min == def2.Min &&
+		def.Max == def2.Max &&
 		slices.Equal(def.Tags, def2.Tags)
 }
 
@@ -128,12 +128,19 @@ func (def *DefAttr) String() string {
 		}
 
 		name := tag.String()
+		if tag == goipp.TagName {
+			name = "name"
+		}
+
 		min, max := tag.Limits()
+
 		switch {
-		case min == MIN && max == MAX:
-		case min == def.Min && max == def.Max:
-		case min == def.Min:
+		case def.Min == min && def.Max == max:
+		case def.Min == MIN && def.Max == MAX:
+		case def.Min == min || def.Min == MIN:
 			name = fmt.Sprintf("%s(%d)", name, def.Max)
+		case def.Max == max || def.Max == MAX:
+			name = fmt.Sprintf("%s(%d:MAX)", name, def.Min)
 		default:
 			name = fmt.Sprintf("%s(%d:%d)", name, def.Min, def.Max)
 		}
@@ -142,13 +149,17 @@ func (def *DefAttr) String() string {
 
 	switch {
 	case !def.SetOf:
-		return strings.Join(append(val, noval...), "|")
-	case len(noval) == 0:
-		return "1setOf " + strings.Join(val, "|")
+		return strings.Join(append(val, noval...), " | ")
+	case len(val) == 1:
+		return "1setOf " + strings.Join(append(val, noval...), " | ")
 	}
 
-	return "1setOf (" + strings.Join(val, "|") + ")|" +
-		strings.Join(noval, "|")
+	s := "1setOf (" + strings.Join(val, " | ") + ")"
+	if len(noval) > 0 {
+		s += " | " + strings.Join(noval, " | ")
+	}
+
+	return s
 }
 
 // LookupAttribute returns attribute by its full path.
