@@ -64,6 +64,11 @@ type JobAttributes struct {
 	PrintColorMode       optional.Val[string] `ipp:"print-color-mode"`
 	PrintRenderingIntent optional.Val[string] `ipp:"print-rendering-intent"`
 	PrintScaling         optional.Val[string] `ipp:"print-scaling"`
+
+	// Wi-Fi Peer-to-Peer Services Print (P2Ps-Print)
+	// Technical Specification
+	// (for Wi-Fi Direct® services certification)
+	PclmSourceResolution optional.Val[goipp.Resolution] `ipp:"pclm-source-resolution"`
 }
 
 // JobTemplate are attributes, included into the Printer Description and
@@ -165,7 +170,7 @@ type JobTemplate struct {
 	// Wi-Fi Peer-to-Peer Services Print (P2Ps-Print)
 	// Technical Specification
 	// (for Wi-Fi Direct® services certification)
-	PclmSourceResolution          optional.Val[goipp.Resolution] `ipp:"pclm-source-resolution"`
+	PclmSourceResolutionDefault   optional.Val[goipp.Resolution] `ipp:"pclm-source-resolution-default"`
 	PclmSourceResolutionSupported []goipp.Resolution             `ipp:"pclm-source-resolution-supported"`
 }
 

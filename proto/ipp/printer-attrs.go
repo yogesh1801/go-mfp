@@ -49,7 +49,6 @@ type PrinterAttributes struct {
 
 	PrinterDescriptionGroup
 	PrinterStatusGroup
-	JobTemplateGroup
 
 	PrinterDescription
 	JobTemplate
