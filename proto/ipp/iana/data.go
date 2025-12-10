@@ -8238,6 +8238,13 @@ var PrinterDescription = map[string]*DefAttr{
 		Max:   255,
 		Tags:  []goipp.Tag{goipp.TagKeyword},
 	},
+	// Printer Description/pclm-source-resolution-default (HP20180907)
+	"pclm-source-resolution-default": &DefAttr{
+		SetOf: false,
+		Min:   MIN,
+		Max:   MAX,
+		Tags:  []goipp.Tag{goipp.TagResolution},
+	},
 	// Printer Description/pclm-source-resolution-supported (HP20180907)
 	"pclm-source-resolution-supported": &DefAttr{
 		SetOf: true,
