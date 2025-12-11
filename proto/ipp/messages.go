@@ -58,7 +58,10 @@ type (
 		ResponseHeader
 		OperationGroup
 
-		// Other attributes.
+		// Names of unsupported attributes
+		UnsupportedAttributes []string
+
+		// Returned printer attributes
 		Printer *PrinterAttributes
 	}
 )
@@ -112,6 +115,23 @@ func (rsp *GetPrinterAttributesResponse) Encode() *goipp.Message {
 			Tag:   goipp.TagOperationGroup,
 			Attrs: enc.Encode(rsp),
 		},
+	}
+
+	if len(rsp.UnsupportedAttributes) > 0 {
+		names := make(goipp.Values, 0, len(rsp.UnsupportedAttributes))
+		for _, name := range rsp.UnsupportedAttributes {
+			names.Add(goipp.TagKeyword, goipp.String(name))
+		}
+
+		attr := goipp.Attribute{
+			Name:   "requested-attributes",
+			Values: names,
+		}
+
+		groups.Add(goipp.Group{
+			Tag:   goipp.TagUnsupportedGroup,
+			Attrs: goipp.Attributes{attr},
+		})
 	}
 
 	if rsp.Printer != nil {
