@@ -36,6 +36,15 @@ func NewSetOf[T comparable](elements ...T) Set[T] {
 	return s
 }
 
+// Clone creates a shallow copy of the set.
+func (s Set[T]) Clone() Set[T] {
+	s2 := NewSet[T]()
+	for member := range s.members {
+		s2.Add(member)
+	}
+	return s2
+}
+
 // Clear purges the set
 func (s Set[T]) Clear() {
 	for member := range s.members {
