@@ -45,6 +45,13 @@ func (s Set[T]) Clone() Set[T] {
 	return s2
 }
 
+// Merge adds into the set s all members of the set s2.
+func (s Set[T]) Merge(s2 Set[T]) {
+	for member := range s2.members {
+		s.Add(member)
+	}
+}
+
 // Clear purges the set
 func (s Set[T]) Clear() {
 	for member := range s.members {
