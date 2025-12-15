@@ -36,7 +36,7 @@ func (model *Model) pyExportIPPAttrs(attrs goipp.Attributes) (
 
 	// Roll over all IPP attributes
 	for _, attr := range attrs {
-		vals, err := model.pyExportIPPValues(attr.Values)
+		vals, err := model.pyExportIPPValues(attr)
 		if err != nil {
 			return nil, err
 		}
@@ -51,12 +51,12 @@ func (model *Model) pyExportIPPAttrs(attrs goipp.Attributes) (
 }
 
 // pyExportIPPValues exports IPP attribute values into the [cpython.Object].
-func (model *Model) pyExportIPPValues(vals goipp.Values) (
+func (model *Model) pyExportIPPValues(attr goipp.Attribute) (
 	*cpython.Object, error) {
 
-	objs := make([]*cpython.Object, 0, len(vals))
-	for _, v := range vals {
-		obj, err := model.pyExportIPPValue(v.T, v.V)
+	objs := make([]*cpython.Object, 0, len(attr.Values))
+	for _, v := range attr.Values {
+		obj, err := model.pyExportIPPValue(attr.Name, v.T, v.V)
 		if err != nil {
 			return nil, err
 		}
@@ -71,15 +71,34 @@ func (model *Model) pyExportIPPValues(vals goipp.Values) (
 }
 
 // pyExportIPPValue exports IPP value as [cpython.Object].
-func (model *Model) pyExportIPPValue(tag goipp.Tag, val goipp.Value) (
-	*cpython.Object, error) {
+func (model *Model) pyExportIPPValue(attrname string,
+	tag goipp.Tag, val goipp.Value) (*cpython.Object, error) {
 
 	// Collections handled the special way
 	if v, ok := val.(goipp.Collection); ok {
 		return model.pyExportIPPAttrs(goipp.Attributes(v))
 	}
 
-	// Obtain name of the Python type
+	// Some Enums are handled the special way
+	if tag == goipp.TagEnum {
+		switch attrname {
+		case "operations-supported":
+			op := goipp.Op(val.(goipp.Integer))
+			obj, err := model.py.Eval(fmt.Sprintf("ipp.OP(0x%.2x)", int(op)))
+			if err == nil {
+				// If we got an error here, just continue and
+				// handle the value as the regular Enum
+				return obj, nil
+			}
+		}
+	}
+
+	// We represent IPP tag+value at the Python side by wrapping
+	// value into the tag-specific Python type:
+	//   ipp.ENUM(5)
+	//   ipp.KEYWORD('auto')
+	//
+	// Here we obtain Python type name for the IPP tag
 	pytypename := pyIPPTagName[tag]
 	if pytypename == "" {
 		return nil, fmt.Errorf("invalid IPP tag %d", int(tag))
@@ -218,7 +237,14 @@ func (model *Model) pyImportIPPValue(obj *cpython.Object) (
 
 	if obj.TypeModuleName() == "ipp" {
 		typename := obj.TypeName()
+
 		tag = pyIPPTagByName[typename]
+		if tag == goipp.TagZero {
+			switch typename {
+			case "OP":
+				tag = goipp.TagEnum
+			}
+		}
 
 		switch tag.Type() {
 		case goipp.TypeVoid:
