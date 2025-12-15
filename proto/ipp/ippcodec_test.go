@@ -201,8 +201,11 @@ func TestIppCodecStandardTypes(t *testing.T) {
 		&DeviceAttributes{},
 		&GetPrinterAttributesRequest{},
 		&GetPrinterAttributesResponse{},
+		&ValidateJobRequest{},
+		&ValidateJobResponse{},
 		&PPDAttributes{},
 		&PrinterAttributes{},
+		&JobAttributes{},
 	}
 
 	for _, test := range tests {

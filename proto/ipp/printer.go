@@ -68,6 +68,7 @@ func NewPrinter(attrs *PrinterAttributes, options ServerOptions) *Printer {
 
 	// Install request handlers
 	server.RegisterHandler(NewHandler(printer.handleGetPrinterAttributes))
+	server.RegisterHandler(NewHandler(printer.handleValidateJob))
 
 	return printer
 }
@@ -150,4 +151,15 @@ func (printer *Printer) handleGetPrinterAttributes(
 	msg.Groups = msg.AttrGroups()
 
 	return msg
+}
+
+// handleValidateJob handles Validate-Job request.
+func (printer *Printer) handleValidateJob(
+	rq *ValidateJobRequest) *goipp.Message {
+
+	rsp := ValidateJobResponse{
+		ResponseHeader: rq.ResponseHeader(goipp.StatusOk),
+	}
+
+	return rsp.Encode()
 }

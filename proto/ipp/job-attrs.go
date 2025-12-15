@@ -17,6 +17,9 @@ import (
 
 // JobAttributes are attributes, supplied with Job creation request
 type JobAttributes struct {
+	ObjectRawAttrs
+	JobTemplateGroup
+
 	// RFC8011, Internet Printing Protocol/1.1: Model and Semantics
 	// 5.2 Job Template Attributes
 	Copies                   optional.Val[int]                        `ipp:"copies"`
@@ -69,6 +72,20 @@ type JobAttributes struct {
 	// Technical Specification
 	// (for Wi-Fi Direct® services certification)
 	PclmSourceResolution optional.Val[goipp.Resolution] `ipp:"pclm-source-resolution"`
+}
+
+// DecodeJobAttributes decodes [JobAttributes] from
+// [goipp.Attributes].
+func DecodeJobAttributes(attrs goipp.Attributes, opt DecodeOptions) (
+	*JobAttributes, error) {
+
+	job := &JobAttributes{}
+	dec := ippDecoder{opt: opt}
+	err := dec.Decode(job, attrs)
+	if err != nil {
+		return nil, err
+	}
+	return job, nil
 }
 
 // JobTemplate are attributes, included into the Printer Description and

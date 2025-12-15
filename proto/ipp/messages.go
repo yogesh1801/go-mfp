@@ -64,6 +64,32 @@ type (
 		// Returned printer attributes
 		Printer *PrinterAttributes
 	}
+
+	// ValidateJobRequest operation (0x0004) performs the print job
+	// validation as if the document was actually printed, bypassing
+	// the actual fetching and printing of the document data.
+	ValidateJobRequest struct {
+		ObjectRawAttrs
+		RequestHeader
+
+		OperationGroup
+
+		// Operation attributes
+		PrinterURI         string `ipp:"printer-uri"`
+		RequestingUserName string `ipp:"requesting-user-name"`
+
+		Job *JobAttributes
+	}
+
+	// ValidateJobResponse is the Validate-Job response.
+	ValidateJobResponse struct {
+		ObjectRawAttrs
+		ResponseHeader
+		OperationGroup
+
+		// Unsupported attributes, if any
+		UnsupportedAttributes goipp.Attributes
+	}
 )
 
 // ----- Get-Printer-Attributes methods -----
@@ -170,6 +196,93 @@ func (rsp *GetPrinterAttributesResponse) Decode(
 	if err != nil {
 		return err
 	}
+
+	return nil
+}
+
+// ----- Validate-Job methods -----
+
+// GetOp returns ValidateJobRequest IPP Operation code.
+func (rq *ValidateJobRequest) GetOp() goipp.Op {
+	return goipp.OpValidateJob
+}
+
+// Encode encodes ValidateJobRequest into the goipp.Message.
+func (rq *ValidateJobRequest) Encode() *goipp.Message {
+	enc := ippEncoder{}
+
+	groups := goipp.Groups{
+		{
+			Tag:   goipp.TagOperationGroup,
+			Attrs: enc.Encode(rq),
+		},
+
+		{
+			Tag:   goipp.TagJobGroup,
+			Attrs: enc.Encode(rq.Job),
+		},
+	}
+
+	msg := goipp.NewMessageWithGroups(rq.Version, goipp.Code(rq.GetOp()),
+		rq.RequestID, groups)
+
+	return msg
+}
+
+// Decode decodes ValidateJobRequest from goipp.Message.
+func (rq *ValidateJobRequest) Decode(
+	msg *goipp.Message, opt DecodeOptions) error {
+
+	rq.Version = msg.Version
+	rq.RequestID = msg.RequestID
+
+	dec := ippDecoder{opt: opt}
+
+	err := dec.Decode(rq, msg.Operation)
+	if err != nil {
+		return err
+	}
+
+	rq.Job, err = DecodeJobAttributes(msg.Printer, opt)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Encode encodes ValidateJobResponse into goipp.Message.
+func (rsp *ValidateJobResponse) Encode() *goipp.Message {
+	enc := ippEncoder{}
+
+	groups := goipp.Groups{
+		{
+			Tag:   goipp.TagOperationGroup,
+			Attrs: enc.Encode(rsp),
+		},
+	}
+
+	if len(rsp.UnsupportedAttributes) > 0 {
+		groups = append(groups, goipp.Group{
+			Tag:   goipp.TagUnsupportedGroup,
+			Attrs: rsp.UnsupportedAttributes,
+		})
+	}
+
+	msg := goipp.NewMessageWithGroups(rsp.Version, goipp.Code(rsp.Status),
+		rsp.RequestID, groups)
+
+	return msg
+}
+
+// Decode decodes ValidateJobResponse from goipp.Message.
+func (rsp *ValidateJobResponse) Decode(
+	msg *goipp.Message, opt DecodeOptions) error {
+
+	rsp.Version = msg.Version
+	rsp.RequestID = msg.RequestID
+	rsp.Status = goipp.Status(msg.Code)
+	rsp.UnsupportedAttributes = msg.Unsupported
 
 	return nil
 }
