@@ -138,6 +138,12 @@ func (printer *Printer) handleGetPrinterAttributes(
 	rsp.Printer = nil
 	msg := rsp.Encode()
 
+	// Set status code
+	msg.Code = goipp.Code(goipp.StatusOk)
+	if len(unsupportedNames) > 0 {
+		msg.Code = goipp.Code(goipp.StatusOkIgnoredOrSubstituted)
+	}
+
 	// Rebuild msg.Groups
 	msg.Printer = returnedAttrs
 	msg.Groups = nil // Forces Groups to be rebuilt
