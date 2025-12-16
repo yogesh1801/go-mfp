@@ -4,7 +4,7 @@
 // Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
 // See LICENSE for license terms and conditions
 //
-// Get-Printer-Attributes
+// Get-Printer-Attributes request
 
 package ipp
 
