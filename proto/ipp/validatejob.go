@@ -9,6 +9,7 @@
 package ipp
 
 import (
+	"github.com/OpenPrinting/go-mfp/util/optional"
 	"github.com/OpenPrinting/goipp"
 )
 
@@ -22,8 +23,8 @@ type ValidateJobRequest struct {
 	OperationGroup
 
 	// Operation attributes
-	PrinterURI         string `ipp:"printer-uri"`
-	RequestingUserName string `ipp:"requesting-user-name"`
+	PrinterURI         string               `ipp:"printer-uri"`
+	RequestingUserName optional.Val[string] `ipp:"requesting-user-name"`
 
 	Job *JobAttributes
 }
