@@ -198,14 +198,19 @@ func TestIppCodecStandardTypes(t *testing.T) {
 		&CUPSGetPPDsResponse{},
 		&CUPSGetPrintersRequest{},
 		&CUPSGetPrintersResponse{},
+
+		&CreateJobRequest{},
+		&CreateJobResponse{},
+		&JobAttributes{},
+		&PPDAttributes{},
+		&PrinterAttributes{},
+		&ValidateJobRequest{},
+		&ValidateJobResponse{},
+
 		&DeviceAttributes{},
 		&GetPrinterAttributesRequest{},
 		&GetPrinterAttributesResponse{},
-		&ValidateJobRequest{},
-		&ValidateJobResponse{},
-		&PPDAttributes{},
-		&PrinterAttributes{},
-		&JobAttributes{},
+		&JobStatus{},
 	}
 
 	for _, test := range tests {

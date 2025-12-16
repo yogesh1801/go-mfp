@@ -21,6 +21,7 @@ type Printer struct {
 	server        *Server                        // Underlying IPP server
 	attrs         *PrinterAttributes             // Printer attributes
 	attrSelection map[string]generic.Set[string] // Attr groups
+	q             *queue                         // Job queue
 }
 
 // NewPrinter creates a new [Printer], which facilities and
@@ -32,6 +33,7 @@ func NewPrinter(attrs *PrinterAttributes, options ServerOptions) *Printer {
 		server:        server,
 		attrs:         attrs,
 		attrSelection: make(map[string]generic.Set[string]),
+		q:             newQueue(),
 	}
 
 	// Populate Printer.attrSelection
@@ -69,6 +71,7 @@ func NewPrinter(attrs *PrinterAttributes, options ServerOptions) *Printer {
 	// Install request handlers
 	server.RegisterHandler(NewHandler(printer.handleGetPrinterAttributes))
 	server.RegisterHandler(NewHandler(printer.handleValidateJob))
+	server.RegisterHandler(NewHandler(printer.handleCreateJob))
 
 	return printer
 }
@@ -160,6 +163,22 @@ func (printer *Printer) handleValidateJob(
 	rsp := ValidateJobResponse{
 		ResponseHeader: rq.ResponseHeader(goipp.StatusOk),
 	}
+
+	return rsp.Encode()
+}
+
+// handleCreateJob handles Create-Job request.
+func (printer *Printer) handleCreateJob(
+	rq *CreateJobRequest) *goipp.Message {
+
+	rsp := CreateJobResponse{
+		ResponseHeader: rq.ResponseHeader(goipp.StatusOk),
+	}
+
+	j := newJob(&rq.JobCreateOperation, rq.Job)
+	printer.q.Push(j)
+
+	rsp.Job = &j.JobStatus
 
 	return rsp.Encode()
 }

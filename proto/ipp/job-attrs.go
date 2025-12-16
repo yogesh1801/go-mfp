@@ -15,6 +15,50 @@ import (
 	"github.com/OpenPrinting/goipp"
 )
 
+// JobCreateOperation contains operation attributes common for
+// the job creation requests.
+type JobCreateOperation struct {
+	OperationGroup
+
+	PrinterURI              string               `ipp:"printer-uri"`
+	RequestingUserName      optional.Val[string] `ipp:"requesting-user-name"`
+	Compression             optional.Val[string] `ipp:"compression"`
+	DocumentFormat          optional.Val[string] `ipp:"document-format"`
+	DocumentName            optional.Val[string] `ipp:"document-name"`
+	DocumentNaturalLanguage optional.Val[string] `ipp:"document-natural-language"`
+	IppAttributeFidelity    optional.Val[bool]   `ipp:"ipp-attribute-fidelity"`
+	JobImpressions          optional.Val[int]    `ipp:"job-impressions"`
+	JobKOctets              optional.Val[int]    `ipp:"job-k-octets"`
+	JobMediaSheets          optional.Val[int]    `ipp:"job-media-sheets"`
+	JobName                 optional.Val[string] `ipp:"job-name"`
+}
+
+// JobStatus contains Job status attributes
+type JobStatus struct {
+	ObjectRawAttrs
+	JobStatusGroup
+
+	JobID           int                  `ipp:"job-id"`
+	JobURI          string               `ipp:"job-uri"`
+	JobState        EnJobState           `ipp:"job-state"`
+	JobStateMessage optional.Val[string] `ipp:"job-state-message"`
+	JobStateReasons []KwJobStateReasons  `ipp:"job-state-reasons"`
+}
+
+// DecodeJobStatusAttributes decodes [JobStatus] from
+// [goipp.Attributes].
+func DecodeJobStatusAttributes(attrs goipp.Attributes, opt DecodeOptions) (
+	*JobStatus, error) {
+
+	job := &JobStatus{}
+	dec := ippDecoder{opt: opt}
+	err := dec.Decode(job, attrs)
+	if err != nil {
+		return nil, err
+	}
+	return job, nil
+}
+
 // JobAttributes are attributes, supplied with Job creation request
 type JobAttributes struct {
 	ObjectRawAttrs

@@ -4,7 +4,7 @@
 // Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
 // See LICENSE for license terms and conditions
 //
-// Validate-Job request
+// Create-Job request
 
 package ipp
 
@@ -12,36 +12,41 @@ import (
 	"github.com/OpenPrinting/goipp"
 )
 
-// ValidateJobRequest operation (0x0004) performs the print job
-// validation as if the document was actually printed, bypassing
-// the actual fetching and printing of the document data.
-type ValidateJobRequest struct {
+// CreateJobRequest operation (0x0005) creates a new print Job.
+// This operation requires that the document data is supplied
+// by the client separately, using Send-Document or Send-URI
+// operations.
+type CreateJobRequest struct {
 	ObjectRawAttrs
 	RequestHeader
 
 	// Operation attributes
 	JobCreateOperation
 
+	// Job attributes
 	Job *JobAttributes
 }
 
-// ValidateJobResponse is the Validate-Job response.
-type ValidateJobResponse struct {
+// CreateJobResponse is the Create-Job response.
+type CreateJobResponse struct {
 	ObjectRawAttrs
 	ResponseHeader
 	OperationGroup
 
 	// Unsupported attributes, if any
 	UnsupportedAttributes goipp.Attributes
+
+	// Job status
+	Job *JobStatus
 }
 
-// GetOp returns ValidateJobRequest IPP Operation code.
-func (rq *ValidateJobRequest) GetOp() goipp.Op {
-	return goipp.OpValidateJob
+// GetOp returns CreateJobRequest IPP Operation code.
+func (rq *CreateJobRequest) GetOp() goipp.Op {
+	return goipp.OpCreateJob
 }
 
-// Encode encodes ValidateJobRequest into the goipp.Message.
-func (rq *ValidateJobRequest) Encode() *goipp.Message {
+// Encode encodes CreateJobRequest into the goipp.Message.
+func (rq *CreateJobRequest) Encode() *goipp.Message {
 	enc := ippEncoder{}
 
 	groups := goipp.Groups{
@@ -62,8 +67,8 @@ func (rq *ValidateJobRequest) Encode() *goipp.Message {
 	return msg
 }
 
-// Decode decodes ValidateJobRequest from goipp.Message.
-func (rq *ValidateJobRequest) Decode(
+// Decode decodes CreateJobRequest from goipp.Message.
+func (rq *CreateJobRequest) Decode(
 	msg *goipp.Message, opt DecodeOptions) error {
 
 	rq.Version = msg.Version
@@ -84,8 +89,8 @@ func (rq *ValidateJobRequest) Decode(
 	return nil
 }
 
-// Encode encodes ValidateJobResponse into goipp.Message.
-func (rsp *ValidateJobResponse) Encode() *goipp.Message {
+// Encode encodes CreateJobResponse into goipp.Message.
+func (rsp *CreateJobResponse) Encode() *goipp.Message {
 	enc := ippEncoder{}
 
 	groups := goipp.Groups{
@@ -95,10 +100,10 @@ func (rsp *ValidateJobResponse) Encode() *goipp.Message {
 		},
 	}
 
-	if len(rsp.UnsupportedAttributes) > 0 {
+	if rsp.Job != nil {
 		groups = append(groups, goipp.Group{
-			Tag:   goipp.TagUnsupportedGroup,
-			Attrs: rsp.UnsupportedAttributes,
+			Tag:   goipp.TagJobGroup,
+			Attrs: enc.Encode(rsp.Job),
 		})
 	}
 
@@ -108,14 +113,20 @@ func (rsp *ValidateJobResponse) Encode() *goipp.Message {
 	return msg
 }
 
-// Decode decodes ValidateJobResponse from goipp.Message.
-func (rsp *ValidateJobResponse) Decode(
+// Decode decodes CreateJobResponse from goipp.Message.
+func (rsp *CreateJobResponse) Decode(
 	msg *goipp.Message, opt DecodeOptions) error {
 
 	rsp.Version = msg.Version
 	rsp.RequestID = msg.RequestID
 	rsp.Status = goipp.Status(msg.Code)
 	rsp.UnsupportedAttributes = msg.Unsupported
+
+	var err error
+	rsp.Job, err = DecodeJobStatusAttributes(msg.Printer, opt)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
