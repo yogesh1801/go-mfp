@@ -171,14 +171,20 @@ func (printer *Printer) handleValidateJob(
 func (printer *Printer) handleCreateJob(
 	rq *CreateJobRequest) *goipp.Message {
 
-	rsp := CreateJobResponse{
-		ResponseHeader: rq.ResponseHeader(goipp.StatusOk),
-	}
-
+	// Create new job
 	j := newJob(&rq.JobCreateOperation, rq.Job)
 	printer.q.Push(j)
 
-	rsp.Job = &j.JobStatus
+	// Prepare the CreateJobResponse
+	rsp := CreateJobResponse{
+		ResponseHeader: rq.ResponseHeader(goipp.StatusOk),
+		Job: &JobStatus{
+			JobID:           j.JobID,
+			JobState:        j.JobState,
+			JobStateReasons: j.JobStateReasons,
+			JobURI:          j.JobURI,
+		},
+	}
 
 	return rsp.Encode()
 }

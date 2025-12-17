@@ -36,13 +36,19 @@ type JobCreateOperation struct {
 // JobStatus contains Job status attributes
 type JobStatus struct {
 	ObjectRawAttrs
+
+	JobDescriptionGroup
 	JobStatusGroup
 
-	JobID           int                  `ipp:"job-id"`
-	JobURI          string               `ipp:"job-uri"`
-	JobState        EnJobState           `ipp:"job-state"`
-	JobStateMessage optional.Val[string] `ipp:"job-state-message"`
-	JobStateReasons []KwJobStateReasons  `ipp:"job-state-reasons"`
+	JobID                   int                  `ipp:"job-id"`
+	JobImpressionsCompleted optional.Val[int]    `ipp:"job-impressions-completed"`
+	JobMediaSheetsCompleted optional.Val[int]    `ipp:"job-media-sheets-completed"`
+	JobName                 optional.Val[string] `ipp:"job-name"`
+	JobOriginatingUserName  optional.Val[string] `ipp:"job-originating-user-name"`
+	JobState                EnJobState           `ipp:"job-state"`
+	JobStateMessage         optional.Val[string] `ipp:"job-state-message"`
+	JobStateReasons         []KwJobStateReasons  `ipp:"job-state-reasons"`
+	JobURI                  string               `ipp:"job-uri"`
 }
 
 // DecodeJobStatusAttributes decodes [JobStatus] from

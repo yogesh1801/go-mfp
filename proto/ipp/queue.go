@@ -13,6 +13,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/OpenPrinting/go-mfp/util/optional"
 	"github.com/OpenPrinting/go-mfp/util/uuid"
 )
 
@@ -79,9 +80,13 @@ func newJob(ops *JobCreateOperation, attrs *JobAttributes) *job {
 
 	j := &job{
 		JobStatus: JobStatus{
-			JobURI:          uri,
-			JobState:        EnJobStatePendingHeld,
-			JobStateReasons: []KwJobStateReasons{KwJobStateReasonsJobIncoming},
+			JobImpressionsCompleted: optional.New(0),
+			JobMediaSheetsCompleted: optional.New(0),
+			JobName:                 ops.JobName,
+			JobOriginatingUserName:  ops.RequestingUserName,
+			JobState:                EnJobStatePendingHeld,
+			JobStateReasons:         []KwJobStateReasons{KwJobStateReasonsJobIncoming},
+			JobURI:                  uri,
 		},
 		JobCreateOperation: *ops,
 		JobAttributes:      *attrs,
