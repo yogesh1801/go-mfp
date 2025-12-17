@@ -68,3 +68,8 @@ func (rqh *RequestHeader) ResponseHeader(status goipp.Status) ResponseHeader {
 		AttributesNaturalLanguage: DefaultNaturalLanguage,
 	}
 }
+
+// setBody sets the RequestHeader.Body
+func (rqh *RequestHeader) setBody(body io.Reader) {
+	rqh.Body = body
+}
