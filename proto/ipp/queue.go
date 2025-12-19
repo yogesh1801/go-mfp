@@ -45,6 +45,20 @@ func (q *queue) Push(j *job) {
 	q.byURI[j.JobURI] = j
 }
 
+// JobByID returns job by its ID
+func (q *queue) JobByID(id int) *job {
+	q.lock.Lock()
+	defer q.lock.Unlock()
+	return q.byID[id]
+}
+
+// JobByID returns job by its URI
+func (q *queue) JobByURI(uri string) *job {
+	q.lock.Lock()
+	defer q.lock.Unlock()
+	return q.byURI[uri]
+}
+
 // allocJobID allocates the next JobID.
 // It must be called under q.lock.
 func (q *queue) allocJobID() int {

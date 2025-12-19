@@ -11,6 +11,7 @@ package ipp
 import (
 	"fmt"
 
+	"github.com/OpenPrinting/go-mfp/util/generic"
 	"github.com/OpenPrinting/goipp"
 )
 
@@ -19,7 +20,9 @@ var (
 // HTTPErrorMethodNotAllowed = NewHTTPError(http.StatusMethodNotAllowed, "")
 )
 
-// ErrIPP represents IPP error.
+// ErrIPP represents IPP error that can be returned to the IPP client
+// as the IPP error response.
+//
 // It consist of the IPP status and optional message text.
 // Implements [error] interface.
 type ErrIPP struct {
@@ -29,19 +32,33 @@ type ErrIPP struct {
 	StatusMessage string        // Optional error message
 }
 
-// NewErrIPP creates a new IPP error.
-// If msg is "", [http.StatusText] used instead.
-func NewErrIPP(rq *goipp.Message, code goipp.Status, msg string) *ErrIPP {
-	ver := rq.Version
-	if ver > goipp.DefaultVersion {
-		ver = goipp.DefaultVersion
-	}
+// NewErrIPPFromMessage creates a new IPP error that can be sent as
+// response to the [goipp.Message].
+func NewErrIPPFromMessage(rq *goipp.Message, code goipp.Status,
+	format string, args ...any) *ErrIPP {
 
+	ver := generic.Min(rq.Version, MaxVersion)
 	return &ErrIPP{
 		Version:       ver,
 		RequestID:     rq.RequestID,
 		Status:        code,
-		StatusMessage: msg,
+		StatusMessage: fmt.Sprintf(format, args...),
+	}
+}
+
+// NewErrIPPFromRequest creates a new IPP error that can be sent as
+// response to the decoded [Request].
+func NewErrIPPFromRequest(rq Request, code goipp.Status,
+	format string, args ...any) *ErrIPP {
+
+	hdr := rq.Header()
+
+	ver := generic.Min(hdr.Version, MaxVersion)
+	return &ErrIPP{
+		Version:       ver,
+		RequestID:     hdr.RequestID,
+		Status:        code,
+		StatusMessage: fmt.Sprintf(format, args...),
 	}
 }
 

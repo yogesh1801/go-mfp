@@ -120,9 +120,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 
 	// Check IPP parameters
 	if msg.RequestID == 0 {
-		err := NewErrIPP(msg,
+		err := NewErrIPPFromMessage(msg,
 			goipp.StatusErrorBadRequest,
-			fmt.Sprintf("bad request ID %d", msg.RequestID))
+			"bad request ID %d", msg.RequestID)
 
 		s.httpError(query, err)
 		return
@@ -130,9 +130,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 
 	if msg.Version < goipp.MakeVersion(1, 0) ||
 		msg.Version > goipp.DefaultVersion {
-		err := NewErrIPP(msg,
+		err := NewErrIPPFromMessage(msg,
 			goipp.StatusErrorVersionNotSupported,
-			fmt.Sprintf("bad request version %s", msg.Version))
+			"bad request version %s", msg.Version)
 
 		s.httpError(query, err)
 		return
@@ -141,9 +141,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	handler := s.ops[goipp.Op(msg.Code)]
 	if handler == nil {
 		op := goipp.Op(msg.Code)
-		err := NewErrIPP(msg,
+		err := NewErrIPPFromMessage(msg,
 			goipp.StatusErrorOperationNotSupported,
-			fmt.Sprintf("unsupported operation %s", op))
+			"unsupported operation %s", op)
 
 		s.httpError(query, err)
 		return

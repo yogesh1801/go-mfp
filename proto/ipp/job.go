@@ -10,6 +10,7 @@ package ipp
 
 import (
 	"strings"
+	"sync"
 
 	"github.com/OpenPrinting/go-mfp/util/optional"
 	"github.com/OpenPrinting/go-mfp/util/uuid"
@@ -17,9 +18,11 @@ import (
 
 // job represents state of the job
 type job struct {
-	JobStatus          // Job status attributes
-	JobCreateOperation // Job create-time operation attributes
-	JobAttributes      // Job creation attributes
+	JobStatus                     // Job status attributes
+	JobCreateOperation            // Job create-time operation attributes
+	JobAttributes                 // Job creation attributes
+	SendDocumentActive bool       // Send-Document in progress
+	lock               sync.Mutex // Access lock
 }
 
 // newJob creates a new job.
@@ -42,4 +45,14 @@ func newJob(ops *JobCreateOperation, attrs *JobAttributes) *job {
 	}
 
 	return j
+}
+
+// Lock acquires the job's mutex
+func (j *job) Lock() {
+	j.lock.Lock()
+}
+
+// Unlock releases the job's mutex
+func (j *job) Unlock() {
+	j.lock.Unlock()
 }

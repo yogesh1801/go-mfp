@@ -32,7 +32,7 @@ func NewHandler[RQT any,
 	RQ interface {
 		*RQT
 		Request
-	}](f func(rq RQ) *goipp.Message) *Handler {
+	}](f func(rq RQ) (*goipp.Message, error)) *Handler {
 
 	callback := func(rqMsg *goipp.Message, body io.Reader) (
 		*goipp.Message, error) {
@@ -45,9 +45,7 @@ func NewHandler[RQT any,
 			return nil, err
 		}
 
-		msg := f(rq)
-
-		return msg, nil
+		return f(rq)
 	}
 
 	return &Handler{

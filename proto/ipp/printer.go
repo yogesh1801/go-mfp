@@ -9,6 +9,7 @@
 package ipp
 
 import (
+	"io"
 	"net/http"
 
 	"github.com/OpenPrinting/go-mfp/proto/ipp/iana"
@@ -72,6 +73,7 @@ func NewPrinter(attrs *PrinterAttributes, options ServerOptions) *Printer {
 	server.RegisterHandler(NewHandler(printer.handleGetPrinterAttributes))
 	server.RegisterHandler(NewHandler(printer.handleValidateJob))
 	server.RegisterHandler(NewHandler(printer.handleCreateJob))
+	server.RegisterHandler(NewHandler(printer.handleSendDocument))
 
 	return printer
 }
@@ -84,7 +86,7 @@ func (printer *Printer) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 
 // handleGetPrinterAttributes handles Get-Printer-Attributes request.
 func (printer *Printer) handleGetPrinterAttributes(
-	rq *GetPrinterAttributesRequest) *goipp.Message {
+	rq *GetPrinterAttributesRequest) (*goipp.Message, error) {
 
 	rsp := GetPrinterAttributesResponse{
 		ResponseHeader: rq.ResponseHeader(goipp.StatusOk),
@@ -153,26 +155,29 @@ func (printer *Printer) handleGetPrinterAttributes(
 	msg.Groups = nil // Forces Groups to be rebuilt
 	msg.Groups = msg.AttrGroups()
 
-	return msg
+	return msg, nil
 }
 
 // handleValidateJob handles Validate-Job request.
 func (printer *Printer) handleValidateJob(
-	rq *ValidateJobRequest) *goipp.Message {
+	rq *ValidateJobRequest) (*goipp.Message, error) {
 
 	rsp := ValidateJobResponse{
 		ResponseHeader: rq.ResponseHeader(goipp.StatusOk),
 	}
 
-	return rsp.Encode()
+	return rsp.Encode(), nil
 }
 
 // handleCreateJob handles Create-Job request.
 func (printer *Printer) handleCreateJob(
-	rq *CreateJobRequest) *goipp.Message {
+	rq *CreateJobRequest) (*goipp.Message, error) {
 
 	// Create new job
 	j := newJob(&rq.JobCreateOperation, rq.Job)
+	j.Lock()
+	defer j.Unlock()
+
 	printer.q.Push(j)
 
 	// Prepare the CreateJobResponse
@@ -186,5 +191,78 @@ func (printer *Printer) handleCreateJob(
 		},
 	}
 
-	return rsp.Encode()
+	return rsp.Encode(), nil
+}
+
+// handleCreateJob handles Send-Document request.
+func (printer *Printer) handleSendDocument(
+	rq *SendDocumentRequest) (*goipp.Message, error) {
+
+	// Lookup the job
+	var j *job
+
+	switch {
+	case rq.PrinterURI != nil && rq.JobID != nil:
+		j = printer.q.JobByID(*rq.JobID)
+		if j == nil {
+			err := NewErrIPPFromRequest(rq,
+				goipp.StatusErrorNotFound,
+				"job not found (job-id=%d)", *rq.JobID)
+			return nil, err
+		}
+
+	case rq.JobURI != nil:
+		j = printer.q.JobByURI(*rq.JobURI)
+		if j == nil {
+			err := NewErrIPPFromRequest(rq,
+				goipp.StatusErrorNotFound,
+				"job not found (job-uri=%q)", *rq.JobURI)
+			return nil, err
+		}
+
+	default:
+		err := NewErrIPPFromRequest(rq,
+			goipp.StatusErrorBadRequest,
+			"missed job-id and job-uri attributes")
+		return nil, err
+	}
+
+	j.Lock()
+	defer j.Unlock()
+
+	// Check job state
+	if j.JobState != EnJobStatePendingHeld {
+		err := NewErrIPPFromRequest(rq,
+			goipp.StatusErrorNotPossible,
+			"job is not in pending-held state")
+		return nil, err
+	}
+
+	if j.SendDocumentActive {
+		err := NewErrIPPFromRequest(rq,
+			goipp.StatusErrorNotPossible,
+			"Send-Document already in progress")
+		return nil, err
+	}
+
+	// Consume the document body
+	//
+	// FIXME -- this is just stub
+	j.SendDocumentActive = true
+	j.Unlock()
+	io.Copy(io.Discard, rq.Body)
+	j.Lock()
+	j.SendDocumentActive = false
+
+	// Generate response
+	rsp := &SendDocumentResponse{
+		Job: &JobStatus{
+			JobID:           j.JobID,
+			JobState:        j.JobState,
+			JobStateReasons: j.JobStateReasons,
+			JobURI:          j.JobURI,
+		},
+	}
+
+	return rsp.Encode(), nil
 }
