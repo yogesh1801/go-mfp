@@ -156,7 +156,7 @@ func (proxy *Proxy) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	// Translate IPP response
 	ct := strings.ToLower(rsp.Header.Get("Content-Type"))
 	if ct == "application/ipp" {
-		err = proxy.doResponse(rsp, xlat, seqnum)
+		err = proxy.doResponse(query, rsp, xlat, seqnum)
 		if err != nil {
 			log.Debug(ctx, "IPP: %s", err)
 			query.Reject(http.StatusBadGateway, err)
@@ -166,17 +166,17 @@ func (proxy *Proxy) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 
 	// Copy response headers and status to the client
 	transport.HTTPRemoveHopByHopHeaders(rsp.Header)
-	transport.HTTPCopyHeaders(w.Header(), rsp.Header)
+	transport.HTTPCopyHeaders(query.ResponseHeader(), rsp.Header)
 
 	if rsp.ContentLength >= 0 {
 		rsp.Header.Set("Content-Length",
 			strconv.FormatInt(rsp.ContentLength, 10))
 	}
 
-	w.WriteHeader(rsp.StatusCode)
+	query.WriteHeader(rsp.StatusCode)
 
 	// Forward response body
-	io.Copy(w, rsp.Body)
+	io.Copy(query, rsp.Body)
 }
 
 // doRequest performs (client->server) part of the IPP request handling
@@ -221,7 +221,7 @@ func (proxy *Proxy) doRequest(query *transport.ServerQuery,
 		rpipe, wpipe := io.Pipe()
 		body = transport.TeeReadCloser(body, wpipe)
 		skip := transport.SkipReader(rpipe, len(msg2bytes))
-		proxy.sniffer.Request(seqnum, query.Request(), &msg, skip)
+		proxy.sniffer.Request(seqnum, query, &msg, skip)
 	}
 
 	// Setup outgoing request
@@ -236,8 +236,8 @@ func (proxy *Proxy) doRequest(query *transport.ServerQuery,
 }
 
 // doResponse performs (client->server) part of the IPP request handling
-func (proxy *Proxy) doResponse(rsp *http.Response,
-	xlat *proxyMsgXlat, seqnum uint64) error {
+func (proxy *Proxy) doResponse(query *transport.ServerQuery,
+	rsp *http.Response, xlat *proxyMsgXlat, seqnum uint64) error {
 
 	// Fetch IPP response message
 	peeker := transport.NewPeeker(rsp.Body)
@@ -276,7 +276,7 @@ func (proxy *Proxy) doResponse(rsp *http.Response,
 		rpipe, wpipe := io.Pipe()
 		body = transport.TeeReadCloser(body, wpipe)
 		skip := transport.SkipReader(rpipe, len(msg2bytes))
-		proxy.sniffer.Response(seqnum, rsp, msg2, skip)
+		proxy.sniffer.Response(seqnum, query, msg2, skip)
 	}
 
 	rsp.Body = body

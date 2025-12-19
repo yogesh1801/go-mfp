@@ -13,12 +13,12 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"net/http"
 	"os"
 	"sync"
 	"time"
 
 	"github.com/OpenPrinting/go-mfp/log"
+	"github.com/OpenPrinting/go-mfp/transport"
 	"github.com/OpenPrinting/goipp"
 )
 
@@ -79,7 +79,7 @@ func (writer *Writer) Close() {
 
 // IPPRequest is the [ipp.Sniffer.Request] callback.
 func (writer *Writer) IPPRequest(seqnum uint64,
-	rq *http.Request, msg *goipp.Message, body io.Reader) {
+	query *transport.ServerQuery, msg *goipp.Message, body io.Reader) {
 
 	name := fmt.Sprintf("%8.8d/00-%s.ipp",
 		seqnum, goipp.Op(msg.Code))
@@ -104,7 +104,7 @@ func (writer *Writer) IPPRequest(seqnum uint64,
 
 // IPPResponse is the [ipp.Sniffer.Response] callback.
 func (writer *Writer) IPPResponse(seqnum uint64,
-	rsp *http.Response, msg *goipp.Message, body io.Reader) {
+	query *transport.ServerQuery, msg *goipp.Message, body io.Reader) {
 
 	name := fmt.Sprintf("%8.8d/02-%s.ipp",
 		seqnum, goipp.Status(msg.Code))

@@ -10,8 +10,8 @@ package ipp
 
 import (
 	"io"
-	"net/http"
 
+	"github.com/OpenPrinting/go-mfp/transport"
 	"github.com/OpenPrinting/goipp"
 )
 
@@ -23,14 +23,14 @@ type Sniffer struct {
 	//
 	// The sequence number is incremented for each new
 	// request.
-	Request func(seqnum uint64,
-		rq *http.Request, msg *goipp.Message, body io.Reader)
+	Request func(seqnum uint64, query *transport.ServerQuery,
+		msg *goipp.Message, body io.Reader)
 
 	// Response, if not nil, is called when IPP response has been
 	// being received from the destination.
 	//
 	// The sequence number of the response matches the sequence
 	// number of the request.
-	Response func(seqnum uint64,
-		rsp *http.Response, msg *goipp.Message, body io.Reader)
+	Response func(seqnum uint64, query *transport.ServerQuery,
+		msg *goipp.Message, body io.Reader)
 }
