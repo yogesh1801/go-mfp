@@ -11,9 +11,11 @@ package ipp
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"mime"
 	"net/http"
 	"net/http/httputil"
+	"sync/atomic"
 
 	"github.com/OpenPrinting/go-mfp/log"
 	"github.com/OpenPrinting/go-mfp/transport"
@@ -22,8 +24,9 @@ import (
 
 // Server represents the IPP server.
 type Server struct {
-	options ServerOptions
-	ops     map[goipp.Op]*Handler
+	options ServerOptions         // Server options
+	ops     map[goipp.Op]*Handler // Installed handlers
+	seqnum  atomic.Uint64         // Sequence number, for sniffer
 }
 
 // ServerOptions allows to specify options that can modify
@@ -42,6 +45,9 @@ type ServerOptions struct {
 	// Hooks defines IPP server hooks. See [ServerHooks]
 	// for details.
 	Hooks ServerHooks
+
+	// Sniffer callbacks
+	Sniffer Sniffer
 }
 
 // NewServer returns a new Sever.
@@ -118,6 +124,15 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	log.Debug(ctx, "IPP request message:")
 	log.Debug(ctx, buf.String())
 
+	// Notify sniffer, if present
+	seqnum := s.seqnum.Add(1)
+	body := query.RequestBody()
+	if s.options.Sniffer.Request != nil {
+		rpipe, wpipe := io.Pipe()
+		body = transport.TeeReadCloser(body, wpipe)
+		s.options.Sniffer.Request(seqnum, query, msg, rpipe)
+	}
+
 	// Check IPP parameters
 	if msg.RequestID == 0 {
 		err := NewErrIPPFromMessage(msg,
@@ -150,10 +165,15 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	// Handle the message
-	rsp, err := handler.handle(msg, query.RequestBody())
+	rsp, err := handler.handle(msg, body)
 	if err != nil {
 		s.httpError(query, err)
 		return
+	}
+
+	// Notify sniffer, if present
+	if s.options.Sniffer.Response != nil {
+		s.options.Sniffer.Response(seqnum, query, rsp, &bytes.Reader{})
 	}
 
 	// Call the OnIPPResponse hook
