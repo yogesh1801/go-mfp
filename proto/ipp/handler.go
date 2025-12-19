@@ -9,6 +9,7 @@
 package ipp
 
 import (
+	"context"
 	"io"
 
 	"github.com/OpenPrinting/goipp"
@@ -17,7 +18,8 @@ import (
 // Handler is the IPP request handler. It implements http.Handler interface.
 type Handler struct {
 	Op       goipp.Op
-	callback func(*goipp.Message, io.Reader) (*goipp.Message, error)
+	callback func(context.Context, *goipp.Message, io.Reader) (
+		*goipp.Message, error)
 }
 
 // NewHandler creates a new IPP handler from the function that
@@ -32,9 +34,11 @@ func NewHandler[RQT any,
 	RQ interface {
 		*RQT
 		Request
-	}](f func(rq RQ) (*goipp.Message, error)) *Handler {
+	}](f func(ctx context.Context, rq RQ) (*goipp.Message, error)) *Handler {
 
-	callback := func(rqMsg *goipp.Message, body io.Reader) (
+	callback := func(ctx context.Context,
+		rqMsg *goipp.Message, body io.Reader) (
+
 		*goipp.Message, error) {
 
 		rq := RQ(new(RQT))
@@ -45,7 +49,7 @@ func NewHandler[RQT any,
 			return nil, err
 		}
 
-		return f(rq)
+		return f(ctx, rq)
 	}
 
 	return &Handler{
@@ -55,7 +59,7 @@ func NewHandler[RQT any,
 }
 
 // handle handles the received request.
-func (h *Handler) handle(rq *goipp.Message, body io.Reader) (
+func (h *Handler) handle(ctx context.Context, rq *goipp.Message, body io.Reader) (
 	*goipp.Message, error) {
-	return h.callback(rq, body)
+	return h.callback(ctx, rq, body)
 }

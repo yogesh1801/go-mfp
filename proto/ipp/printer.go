@@ -9,9 +9,11 @@
 package ipp
 
 import (
+	"context"
 	"io"
 	"net/http"
 
+	"github.com/OpenPrinting/go-mfp/log"
 	"github.com/OpenPrinting/go-mfp/proto/ipp/iana"
 	"github.com/OpenPrinting/go-mfp/util/generic"
 	"github.com/OpenPrinting/goipp"
@@ -86,6 +88,7 @@ func (printer *Printer) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 
 // handleGetPrinterAttributes handles Get-Printer-Attributes request.
 func (printer *Printer) handleGetPrinterAttributes(
+	ctx context.Context,
 	rq *GetPrinterAttributesRequest) (*goipp.Message, error) {
 
 	rsp := GetPrinterAttributesResponse{
@@ -160,6 +163,7 @@ func (printer *Printer) handleGetPrinterAttributes(
 
 // handleValidateJob handles Validate-Job request.
 func (printer *Printer) handleValidateJob(
+	ctx context.Context,
 	rq *ValidateJobRequest) (*goipp.Message, error) {
 
 	rsp := ValidateJobResponse{
@@ -171,6 +175,7 @@ func (printer *Printer) handleValidateJob(
 
 // handleCreateJob handles Create-Job request.
 func (printer *Printer) handleCreateJob(
+	ctx context.Context,
 	rq *CreateJobRequest) (*goipp.Message, error) {
 
 	// Create new job
@@ -196,6 +201,7 @@ func (printer *Printer) handleCreateJob(
 
 // handleCreateJob handles Send-Document request.
 func (printer *Printer) handleSendDocument(
+	ctx context.Context,
 	rq *SendDocumentRequest) (*goipp.Message, error) {
 
 	// Lookup the job
@@ -250,7 +256,14 @@ func (printer *Printer) handleSendDocument(
 	// FIXME -- this is just stub
 	j.SendDocumentActive = true
 	j.Unlock()
-	io.Copy(io.Discard, rq.Body)
+
+	n, err := io.Copy(io.Discard, rq.Body)
+	if err == nil {
+		log.Debug(ctx, "Send-Document: %d bytes received", n)
+	} else {
+		log.Error(ctx, "Send-Document: %s", err)
+	}
+
 	j.Lock()
 	j.SendDocumentActive = false
 

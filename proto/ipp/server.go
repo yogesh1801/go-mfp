@@ -165,7 +165,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	// Handle the message
-	rsp, err := handler.handle(msg, body)
+	rsp, err := handler.handle(ctx, msg, body)
 	if err != nil {
 		s.httpError(query, err)
 		return
