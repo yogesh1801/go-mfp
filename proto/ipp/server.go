@@ -26,6 +26,7 @@ import (
 type Server struct {
 	options ServerOptions         // Server options
 	ops     map[goipp.Op]*Handler // Installed handlers
+	sniffer Sniffer               // Sniffer callbacks
 	seqnum  atomic.Uint64         // Sequence number, for sniffer
 }
 
@@ -45,9 +46,6 @@ type ServerOptions struct {
 	// Hooks defines IPP server hooks. See [ServerHooks]
 	// for details.
 	Hooks ServerHooks
-
-	// Sniffer callbacks
-	Sniffer Sniffer
 }
 
 // NewServer returns a new Sever.
@@ -57,6 +55,14 @@ func NewServer(options ServerOptions) *Server {
 		ops:     make(map[goipp.Op]*Handler),
 	}
 	return s
+}
+
+// Sniff installs the sniffer callback.
+//
+// Don't use this function when proxy is already active (i.e., concurrently
+// with the [Proxy.ServeHTTP], it can cause race conditions.
+func (s *Server) Sniff(sniffer Sniffer) {
+	s.sniffer = sniffer
 }
 
 // ServeHTTP handles incoming HTTP request. It implements
@@ -127,10 +133,10 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	// Notify sniffer, if present
 	seqnum := s.seqnum.Add(1)
 	body := query.RequestBody()
-	if s.options.Sniffer.Request != nil {
+	if s.sniffer.Request != nil {
 		rpipe, wpipe := io.Pipe()
 		body = transport.TeeReadCloser(body, wpipe)
-		s.options.Sniffer.Request(seqnum, query, msg, rpipe)
+		s.sniffer.Request(seqnum, query, msg, rpipe)
 	}
 
 	// Check IPP parameters
@@ -172,8 +178,8 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	// Notify sniffer, if present
-	if s.options.Sniffer.Response != nil {
-		s.options.Sniffer.Response(seqnum, query, rsp, &bytes.Reader{})
+	if s.sniffer.Response != nil {
+		s.sniffer.Response(seqnum, query, rsp, &bytes.Reader{})
 	}
 
 	// Call the OnIPPResponse hook

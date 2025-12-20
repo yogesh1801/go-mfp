@@ -80,6 +80,14 @@ func NewPrinter(attrs *PrinterAttributes, options ServerOptions) *Printer {
 	return printer
 }
 
+// Sniff installs the sniffer callback.
+//
+// Don't use this function when proxy is already active (i.e., concurrently
+// with the [Proxy.ServeHTTP], it can cause race conditions.
+func (printer *Printer) Sniff(sniffer Sniffer) {
+	printer.server.Sniff(sniffer)
+}
+
 // ServeHTTP handles incoming HTTP request. It implements
 // [http.Handler] interface.
 func (printer *Printer) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
