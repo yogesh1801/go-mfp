@@ -22,7 +22,7 @@ type teeReadCloser struct {
 	io.Reader           // Underlying io.TeeReader
 	rCloser   io.Closer // Closer part of original io.ReadCloser
 	wCloser   io.Closer // Closer part of original io.Writer
-	closefunc func()    // Called by tee.Close() under sync.OnceFunc
+	closefunc func()    // sync.OnceFunc wrapper for tee.doClose
 	closeerr  error     // Error that tee.Close() returns
 }
 
