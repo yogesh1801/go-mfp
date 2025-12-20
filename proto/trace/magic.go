@@ -32,6 +32,6 @@ var magicTable = []struct {
 	{[]byte{'I', 'I', '*', 0}, "tiff"},
 	{[]byte{'M', 'M', 0, '*'}, "tiff"},
 	{[]byte("%PDF"), "pdf"},
-	{[]byte("%!PS"), "pdf"},
+	{[]byte("%!PS"), "ps"},
 	{[]byte{'U', 'N', 'I', 'R', 'A', 'S', 'T', 0}, "urf"},
 }
