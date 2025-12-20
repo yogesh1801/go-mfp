@@ -19,6 +19,8 @@ import (
 	"github.com/OpenPrinting/go-mfp/internal/testutils"
 	"github.com/OpenPrinting/go-mfp/log"
 	"github.com/OpenPrinting/go-mfp/modeling"
+	"github.com/OpenPrinting/go-mfp/proto/ipp"
+	"github.com/OpenPrinting/go-mfp/proto/trace"
 	"github.com/OpenPrinting/go-mfp/transport"
 )
 
@@ -26,7 +28,7 @@ import (
 //
 // If argv is not empty, it specifies the external command that will
 // be run under the simulator.
-func simulate(ctx context.Context, model *modeling.Model,
+func simulate(ctx context.Context, model *modeling.Model, tracer *trace.Writer,
 	port int, argv []string) error {
 
 	// Create a virtual server
@@ -62,6 +64,13 @@ func simulate(ctx context.Context, model *modeling.Model,
 
 	// Add IPP handler
 	if handler := model.NewIPPServer(); handler != nil {
+		if tracer != nil {
+			sniffer := ipp.Sniffer{
+				Request:  tracer.IPPRequest,
+				Response: tracer.IPPResponse,
+			}
+			handler.Sniff(sniffer)
+		}
 		pathmux.Add("/ipp/print", handler)
 	}
 

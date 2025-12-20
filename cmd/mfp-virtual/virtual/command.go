@@ -18,6 +18,7 @@ import (
 	"github.com/OpenPrinting/go-mfp/modeling"
 	"github.com/OpenPrinting/go-mfp/modeling/defaults"
 	"github.com/OpenPrinting/go-mfp/proto/escl"
+	"github.com/OpenPrinting/go-mfp/proto/trace"
 )
 
 // DefaultTCPPort is the default TCP port for the MFP simulator
@@ -50,6 +51,14 @@ var Command = argv.Command{
 			Singleton: true,
 			Validate:  argv.ValidateAny,
 			Complete:  argv.CompleteOSPath,
+		},
+		argv.Option{
+			Name:     "-t",
+			Aliases:  []string{"--trace"},
+			Help:     "write trace to file.log and file.tar",
+			HelpArg:  "file",
+			Validate: argv.ValidateAny,
+			Complete: argv.CompleteOSPath,
 		},
 		argv.Option{
 			Name:    "-d",
@@ -139,6 +148,18 @@ func cmdVirtualHandler(ctx context.Context, inv *argv.Invocation) error {
 		argv = append(argv, inv.Values("args")...)
 	}
 
+	// Setup tracer
+	var tracer *trace.Writer
+	if traceName, _ := inv.Get("-t"); traceName != "" {
+		var err error
+		tracer, err = trace.NewWriter(ctx, traceName)
+		if err != nil {
+			return err
+		}
+
+		defer tracer.Close()
+	}
+
 	// Run the simulator
-	return simulate(ctx, model, port, argv)
+	return simulate(ctx, model, tracer, port, argv)
 }
