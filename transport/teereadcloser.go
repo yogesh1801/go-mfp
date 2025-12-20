@@ -21,15 +21,15 @@ import (
 type teeReadCloser struct {
 	io.Reader           // Underlying io.TeeReader
 	rCloser   io.Closer // Closer part of original io.ReadCloser
-	wCloser   io.Closer // Closer part of original io.ReadCloser
-	closefunc func()
-	closeerr  error
+	wCloser   io.Closer // Closer part of original io.Writer
+	closefunc func()    // Called by tee.Close() under sync.OnceFunc
+	closeerr  error     // Error that tee.Close() returns
 }
 
 // TeeReadCloser is like [io.TeeReader] but for [io.ReadCloser]s.
 //
 // If the supplied [io.Writer] supports Close method, it will
-// be called as well.
+// be closed as well.
 func TeeReadCloser(r io.ReadCloser, w io.Writer) io.ReadCloser {
 	tee := &teeReadCloser{
 		Reader:  io.TeeReader(r, w),
