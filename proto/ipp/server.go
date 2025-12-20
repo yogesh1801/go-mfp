@@ -139,6 +139,14 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 		s.sniffer.Request(seqnum, query, msg, rpipe)
 	}
 
+	// Make sure the body is closed, so sniffer will notice that
+	// body reading is done and will finish with saving it.
+	defer func() {
+		if body != nil {
+			body.Close()
+		}
+	}()
+
 	// Check IPP parameters
 	if msg.RequestID == 0 {
 		err := NewErrIPPFromMessage(msg,
@@ -176,6 +184,11 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 		s.httpError(query, err)
 		return
 	}
+
+	// Close the body. It will notify sniffer that request is
+	// fully consumed, so sniffer can finish writing it.
+	body.Close()
+	body = nil
 
 	// Notify sniffer, if present
 	if s.sniffer.Response != nil {
