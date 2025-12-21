@@ -76,6 +76,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	query := transport.NewServerQuery(w, rq)
 	query.SetLogPrefix("IPP")
 	ctx := query.RequestContext()
+	seqnum := s.seqnum.Add(1)
 
 	// Dump request HTTP headers
 	dump, _ := httputil.DumpRequest(query.Request(), false)
@@ -92,7 +93,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 
 	// Check HTTP parameters
 	if query.RequestMethod() != "POST" {
-		s.httpError(query, ErrHTTPMethodNotAllowed)
+		s.httpError(seqnum, query, ErrHTTPMethodNotAllowed)
 		return
 	}
 
@@ -101,7 +102,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	if mediatype != goipp.ContentType {
 		err := NewErrHTTP(http.StatusUnsupportedMediaType,
 			fmt.Sprintf("unsupported media type: %q", ctype))
-		s.httpError(query, err)
+		s.httpError(seqnum, query, err)
 		return
 	}
 
@@ -109,7 +110,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	msg := &goipp.Message{}
 	err := msg.Decode(query.RequestBody())
 	if err != nil {
-		s.httpError(query, err)
+		s.httpError(seqnum, query, err)
 		return
 	}
 
@@ -131,7 +132,6 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	log.Debug(ctx, buf.String())
 
 	// Notify sniffer, if present
-	seqnum := s.seqnum.Add(1)
 	body := query.RequestBody()
 	if s.sniffer.Request != nil {
 		rpipe, wpipe := io.Pipe()
@@ -153,7 +153,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 			goipp.StatusErrorBadRequest,
 			"bad request ID %d", msg.RequestID)
 
-		s.httpError(query, err)
+		s.httpError(seqnum, query, err)
 		return
 	}
 
@@ -163,7 +163,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 			goipp.StatusErrorVersionNotSupported,
 			"bad request version %s", msg.Version)
 
-		s.httpError(query, err)
+		s.httpError(seqnum, query, err)
 		return
 	}
 
@@ -174,14 +174,14 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 			goipp.StatusErrorOperationNotSupported,
 			"unsupported operation %s", op)
 
-		s.httpError(query, err)
+		s.httpError(seqnum, query, err)
 		return
 	}
 
 	// Handle the message
 	rsp, err := handler.handle(ctx, msg, body)
 	if err != nil {
-		s.httpError(query, err)
+		s.httpError(seqnum, query, err)
 		return
 	}
 
@@ -228,7 +228,11 @@ func (s *Server) RegisterHandler(handler *Handler) {
 }
 
 // httpError finishes HTTP request with an error.
-func (s *Server) httpError(query *transport.ServerQuery, err error) {
+//
+// seqnum parameter is only used for Sniffer.
+func (s *Server) httpError(seqnum uint64,
+	query *transport.ServerQuery, err error) {
+
 	switch err := err.(type) {
 	case *ErrHTTP:
 		query.Reject(err.Status, err)
@@ -236,6 +240,11 @@ func (s *Server) httpError(query *transport.ServerQuery, err error) {
 	case *ErrIPP:
 		// Create the IPP response
 		rsp := err.Encode()
+
+		// Notify snifferm if present
+		if s.sniffer.Response != nil {
+			s.sniffer.Response(seqnum, query, rsp, &bytes.Reader{})
+		}
 
 		// Call OnIPPResponse hook
 		if s.options.Hooks.OnIPPResponse != nil {
