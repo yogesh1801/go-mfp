@@ -18,9 +18,7 @@ import (
 )
 
 // testUUID contains a parsed UUID
-var testUUID = uuid.Must(
-	uuid.Parse("418b75ab-1bd7-4d01-8178-75a84450a11c"),
-)
+var testUUID = uuid.MustParse("418b75ab-1bd7-4d01-8178-75a84450a11c")
 
 // testIntents contains initialized set of Intents
 var testIntents = generic.MakeBitset(

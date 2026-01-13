@@ -66,8 +66,7 @@ func ScannerCapabilities() *abstract.ScannerCapabilities {
 	}
 
 	caps := &abstract.ScannerCapabilities{
-		UUID: uuid.Must(uuid.Parse(
-			"169e8d94-9a17-4f14-ae81-52b9176ee9be")),
+		UUID:             uuid.MustParse("169e8d94-9a17-4f14-ae81-52b9176ee9be"),
 		MakeAndModel:     "OpenPrinting eSCL scanner",
 		SerialNumber:     "OP-0000223321",
 		Manufacturer:     "OpenPrinting",

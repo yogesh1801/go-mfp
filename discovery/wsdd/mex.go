@@ -183,7 +183,7 @@ func (mg *mexGetter) fetchHTTP(ctx context.Context,
 	target wsd.AnyURI, xaddr *url.URL) (meta mexData, err error) {
 
 	// Create a request
-	msgid := wsd.AnyURI(uuid.Must(uuid.Random()).URN())
+	msgid := wsd.AnyURI(uuid.Random().URN())
 	msg := wsd.Msg{
 		Header: wsd.Header{
 			Action:    wsd.ActGet,

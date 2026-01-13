@@ -363,7 +363,7 @@ func TestVerVar(t *testing.T) {
 
 		// Random
 		{
-			uuid: Must(Random()),
+			uuid: Random(),
 			ver:  VersionRandom,
 			vrnt: VariantRFC4122,
 		},
@@ -427,8 +427,8 @@ func TestNameBased(t *testing.T) {
 	}
 }
 
-// TestMust tests how Must panics in a case of error
-func TestMust(t *testing.T) {
+// TestMustParse tests how MustParse panics in a case of error
+func TestMustParse(t *testing.T) {
 	defer func() {
 		reason := recover()
 		if reason == nil {
@@ -441,6 +441,6 @@ func TestMust(t *testing.T) {
 		}
 	}()
 
-	Must(Parse(""))
-	t.Errorf("Must didn't panic!")
+	MustParse("")
+	t.Errorf("MustParse didn't panic!")
 }

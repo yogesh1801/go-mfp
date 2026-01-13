@@ -55,7 +55,7 @@ func TestScannerStatusPushJobInfo(t *testing.T) {
 
 	// Prepare array of JobInfo, for testing
 	for i := range jobs {
-		jobuuid := uuid.Must(uuid.Random()).URN()
+		jobuuid := uuid.Random().URN()
 		joburi := "/eSCL/ScanJobs/" + strconv.Itoa(i)
 		jobs[i] = JobInfo{
 			JobURI:   joburi,

@@ -26,7 +26,7 @@ var testScannerCapabilities = &ScannerCapabilities{
 	SerialNumber: optional.New("00-123456"),
 	Manufacturer: optional.New("Example printers, LTD"),
 	UUID: optional.New(
-		uuid.Must(uuid.Parse("00000000-1111-2222-3333-333333333333"))),
+		uuid.MustParse("00000000-1111-2222-3333-333333333333")),
 	AdminURI:                     optional.New("http://example.com"),
 	IconURI:                      optional.New("http://example.com/p.jpg"),
 	SettingProfiles:              []SettingProfile{testSettingProfile},

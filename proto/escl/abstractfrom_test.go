@@ -67,9 +67,7 @@ var testAbstractSettingsProfiles = []abstract.SettingsProfile{
 }
 
 // testAbstractUUID contains a parsed UUID
-var testAbstractUUID = uuid.Must(
-	uuid.Parse("418b75ab-1bd7-4d01-8178-75a84450a11c"),
-)
+var testAbstractUUID = uuid.MustParse("418b75ab-1bd7-4d01-8178-75a84450a11c")
 
 // testAbstractInputCapabilities contains initialized
 // abstract.InputCapabilities structure

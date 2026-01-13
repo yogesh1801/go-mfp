@@ -306,7 +306,7 @@ func (l *link) procReader() {
 
 // updateProbeMsg updates l.probeMsg
 func (l *link) updateProbeMsg() {
-	msgid := wsd.AnyURI(uuid.Must(uuid.Random()).URN())
+	msgid := wsd.AnyURI(uuid.Random().URN())
 	msg := wsd.Msg{
 		Header: wsd.Header{
 			Action:    wsd.ActProbe,

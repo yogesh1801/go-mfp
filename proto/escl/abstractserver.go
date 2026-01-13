@@ -264,15 +264,6 @@ func (srv *AbstractServer) postScanJobs(query *transport.ServerQuery) {
 	// Convert it into the abstract.ScannerRequest and validate
 	absreq := ss.ToAbstract()
 
-	// Generate a new Job UUID. Do it now, because in theory
-	// it can fail (though very unlikely), so do it before
-	// the job is created
-	uu, err := uuid.Random()
-	if err != nil {
-		query.Reject(http.StatusServiceUnavailable, err)
-		return
-	}
-
 	// Send request to the underlying abstract.Scanner
 	ctx := query.RequestContext()
 	document, err := srv.options.Scanner.Scan(ctx, absreq)
@@ -285,7 +276,7 @@ func (srv *AbstractServer) postScanJobs(query *transport.ServerQuery) {
 	srv.document = document
 	srv.status.State = ScannerProcessing
 
-	jobuuid := uu.URN()
+	jobuuid := uuid.Random().URN()
 	joburi := path.Join(srv.options.BasePath, "ScanJobs", jobuuid)
 
 	info := JobInfo{

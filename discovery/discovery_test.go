@@ -104,10 +104,10 @@ func TestClient_Discovery(t *testing.T) {
 	defer client.Close()
 
 	backend := NewMockBackend("mock-backend")
-	
+
 	uid := UnitID{
 		DNSSDName: "Test Printer",
-		UUID:      uuid.Must(uuid.Random()),
+		UUID:      uuid.Random(),
 		SvcType:   ServicePrinter,
 		SvcProto:  ServiceIPP,
 	}
@@ -162,10 +162,10 @@ func TestClient_InvalidEvents(t *testing.T) {
 	defer client.Close()
 
 	backend := NewMockBackend("mock-backend")
-	
+
 	uid := UnitID{
 		DNSSDName: "Test Printer",
-		UUID:      uuid.Must(uuid.Random()),
+		UUID:      uuid.Random(),
 		SvcType:   ServicePrinter,
 		SvcProto:  ServiceIPP,
 	}
@@ -175,7 +175,7 @@ func TestClient_InvalidEvents(t *testing.T) {
 	backend.AddEvent(&EventAddUnit{ID: uid}) // Should be handled gracefully (logged error)
 
 	// 2. EventPrinterParameters for unknown unit
-	unknownUID := UnitID{DNSSDName: "Unknown", UUID: uuid.Must(uuid.Random())}
+	unknownUID := UnitID{DNSSDName: "Unknown", UUID: uuid.Random()}
 	backend.AddEvent(&EventPrinterParameters{
 		ID:        unknownUID,
 		MakeModel: "Unknown",
@@ -191,7 +191,7 @@ func TestClient_InvalidEvents(t *testing.T) {
 	if err != nil {
 		t.Fatalf("GetDevices failed: %v", err)
 	}
-	
+
 	if len(devices) != 0 {
 		t.Errorf("Expected 0 devices, got %d", len(devices))
 	}
@@ -255,10 +255,10 @@ func TestClient_MissingFields(t *testing.T) {
 	defer client.Close()
 
 	backend := NewMockBackend("mock-backend")
-	
+
 	uid := UnitID{
 		DNSSDName: "Test Printer",
-		UUID:      uuid.Must(uuid.Random()),
+		UUID:      uuid.Random(),
 		SvcType:   ServicePrinter,
 		SvcProto:  ServiceIPP,
 	}

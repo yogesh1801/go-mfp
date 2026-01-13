@@ -15,20 +15,22 @@ import (
 	"fmt"
 	"io"
 	"strings"
+
+	"github.com/OpenPrinting/go-mfp/internal/assert"
 )
 
 // Predefined UUID values:
 var (
 	NilUUID = UUID{}
-	MaxUUID = Must(Parse("ffffffff-ffff-ffff-ffff-ffffffffffff"))
+	MaxUUID = MustParse("ffffffff-ffff-ffff-ffff-ffffffffffff")
 )
 
 // Well-known namespaces:
 var (
-	NameSpaceDNS  = Must(Parse("6ba7b810-9dad-11d1-80b4-00c04fd430c8")) // [RFC9499]
-	NameSpaceURL  = Must(Parse("6ba7b811-9dad-11d1-80b4-00c04fd430c8")) // [RFC1738]
-	NameSpaceOID  = Must(Parse("6ba7b812-9dad-11d1-80b4-00c04fd430c8")) // [X660]
-	NameSpaceX500 = Must(Parse("6ba7b814-9dad-11d1-80b4-00c04fd430c8")) // [X500]
+	NameSpaceDNS  = MustParse("6ba7b810-9dad-11d1-80b4-00c04fd430c8") // [RFC9499]
+	NameSpaceURL  = MustParse("6ba7b811-9dad-11d1-80b4-00c04fd430c8") // [RFC1738]
+	NameSpaceOID  = MustParse("6ba7b812-9dad-11d1-80b4-00c04fd430c8") // [X660]
+	NameSpaceX500 = MustParse("6ba7b814-9dad-11d1-80b4-00c04fd430c8") // [X500]
 )
 
 // UUID represents a parsed UUID. This type is comparable and can be
@@ -111,8 +113,10 @@ func Parse(s string) (UUID, error) {
 
 // Random generates a random UUID.
 // It uses [rand.Reader] as the source of entropy.
-func Random() (UUID, error) {
-	return RandomFrom(rand.Reader)
+func Random() UUID {
+	uuid, err := RandomFrom(rand.Reader)
+	assert.NoError(err)
+	return uuid
 }
 
 // RandomFrom generates a random UUID.
@@ -209,14 +213,8 @@ func SHA1(space UUID, name string) UUID {
 
 // MustParse calls [Parse] and panics in a case of any error.
 func MustParse(s string) UUID {
-	return Must(Parse(s))
-}
-
-// Must returns UUID if err is nil and panics otherwise.
-func Must(uuid UUID, err error) UUID {
-	if err != nil {
-		panic(err)
-	}
+	uuid, err := Parse(s)
+	assert.NoError(err)
 	return uuid
 }
 

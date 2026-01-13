@@ -44,7 +44,7 @@ func TestKyoceraECOSYSM2040dnScannerCapabilities(t *testing.T) {
 		MakeAndModel: optional.New("Kyocera ECOSYS M2040dn"),
 		SerialNumber: optional.New("VCF9192281"),
 		UUID: optional.New(
-			uuid.Must(uuid.Parse("4509a320-00a0-008f-00b6-002507510eca"))),
+			uuid.MustParse("4509a320-00a0-008f-00b6-002507510eca")),
 		AdminURI: optional.New("https://KM7B6A91.local/airprint"),
 		IconURI:  optional.New("https://KM7B6A91.local/printer-icon/machine_128.png"),
 		Platen: &Platen{

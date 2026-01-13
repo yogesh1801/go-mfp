@@ -27,7 +27,7 @@ type job struct {
 
 // newJob creates a new job.
 func newJob(ops *JobCreateOperation, attrs *JobAttributes) *job {
-	uu := uuid.Must(uuid.Random())
+	uu := uuid.Random()
 	uri := strings.Join([]string{ops.PrinterURI, "jobs", uu.String()}, "/")
 
 	j := &job{
