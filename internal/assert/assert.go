@@ -17,7 +17,9 @@ func Must(cond bool) {
 
 // NoError panics if error is not nil.
 func NoError(err error) {
-	MustMsg(err == nil, "%s", err)
+	if err != nil {
+		panic(err)
+	}
 }
 
 // MustMsg panics if condition is not true.
