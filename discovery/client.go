@@ -59,6 +59,20 @@ func NewClient(ctx context.Context) *Client {
 // Close closes all attached backends and then closes the Client
 // and releases all resources it holds.
 func (clnt *Client) Close() {
+	// Close attached backends
+	clnt.lock.Lock()
+	backents := make([]Backend, 0, len(clnt.backends))
+	for bk := range clnt.backends {
+		backents = append(backents, bk)
+	}
+	clear(clnt.backends)
+	clnt.lock.Unlock()
+
+	for _, bk := range backents {
+		bk.Close()
+	}
+
+	// Close the client itself
 	clnt.cancel()
 	clnt.done.Wait()
 }
