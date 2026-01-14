@@ -37,8 +37,8 @@ func NewClient(ctx context.Context) *Client {
 	return NewClientTm(ctx, WarmUpTime, StabilizationTime)
 }
 
-// NewClientTm creates a new discovery [Client] with
-// warm-up time and stabilization time are explicitly set.
+// NewClientTm creates a new discovery [Client] with the
+// warm-up time and stabilization time explicitly set.
 //
 // This interface is primary intended for testing but exported due
 // to its general usability in some cases.
