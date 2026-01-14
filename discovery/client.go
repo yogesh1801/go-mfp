@@ -34,6 +34,20 @@ type Client struct {
 //   - For logging
 //   - Client will terminate its operations, if context is canceled.
 func NewClient(ctx context.Context) *Client {
+	return NewClientTm(ctx, WarmUpTime, StabilizationTime)
+}
+
+// NewClientTm creates a new discovery [Client] with
+// warm-up time and stabilization time are explicitly set.
+//
+// This interface is primary intended for testing but exported due
+// to its general usability in some cases.
+//
+// Think carefully when choosing the time intervals, or use the
+// simplified [NewClient] if not sure.
+func NewClientTm(ctx context.Context,
+	warmUpTime, stabilizationTime time.Duration) *Client {
+
 	// Set log prefix
 	ctx = log.WithPrefix(ctx, "discovery")
 
@@ -45,7 +59,7 @@ func NewClient(ctx context.Context) *Client {
 		ctx:      ctx,
 		cancel:   cancel,
 		queue:    NewEventqueue(),
-		cache:    newCache(),
+		cache:    newCache(warmUpTime, stabilizationTime),
 		backends: make(map[Backend]struct{}),
 	}
 

@@ -25,9 +25,3 @@ const (
 	// like discovery-based command-line auto completion.
 	FastDiscoveryTime = 2500 * time.Millisecond
 )
-
-// Unexported variables for tests only
-var (
-	warmUpTime        = WarmUpTime
-	stabilizationTime = StabilizationTime
-)

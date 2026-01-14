@@ -60,18 +60,8 @@ func (mb *MockBackend) AddEvent(e Event) {
 
 // TestClient_NoDevices verifies that GetDevices returns an empty list when no devices are discovered.
 func TestClient_NoDevices(t *testing.T) {
-	// Reduce WarmUpTime for testing to speed up execution
-	originalWarmUpTime := warmUpTime
-	originalStabilizationTime := stabilizationTime
-	warmUpTime = 100 * time.Millisecond
-	stabilizationTime = 100 * time.Millisecond
-	defer func() {
-		warmUpTime = originalWarmUpTime
-		stabilizationTime = originalStabilizationTime
-	}()
-
 	ctx := context.Background()
-	client := NewClient(ctx)
+	client := NewClientTm(ctx, 100*time.Millisecond, 100*time.Millisecond)
 	defer client.Close()
 
 	backend := NewMockBackend("mock-backend")
@@ -90,17 +80,8 @@ func TestClient_NoDevices(t *testing.T) {
 // TestClient_Discovery verifies the successful discovery of a printer device
 // when a backend emits valid AddUnit, PrinterParameters, and AddEndpoint events.
 func TestClient_Discovery(t *testing.T) {
-	originalWarmUpTime := warmUpTime
-	originalStabilizationTime := stabilizationTime
-	warmUpTime = 100 * time.Millisecond
-	stabilizationTime = 100 * time.Millisecond
-	defer func() {
-		warmUpTime = originalWarmUpTime
-		stabilizationTime = originalStabilizationTime
-	}()
-
 	ctx := context.Background()
-	client := NewClient(ctx)
+	client := NewClientTm(ctx, 100*time.Millisecond, 100*time.Millisecond)
 	defer client.Close()
 
 	backend := NewMockBackend("mock-backend")
@@ -148,17 +129,8 @@ func TestClient_Discovery(t *testing.T) {
 // TestClient_InvalidEvents verifies the client's robustness against duplicate or unknown events.
 // It checks that such events do not cause panics or incorrect device listings.
 func TestClient_InvalidEvents(t *testing.T) {
-	originalWarmUpTime := warmUpTime
-	originalStabilizationTime := stabilizationTime
-	warmUpTime = 100 * time.Millisecond
-	stabilizationTime = 100 * time.Millisecond
-	defer func() {
-		warmUpTime = originalWarmUpTime
-		stabilizationTime = originalStabilizationTime
-	}()
-
 	ctx := context.Background()
-	client := NewClient(ctx)
+	client := NewClientTm(ctx, 100*time.Millisecond, 100*time.Millisecond)
 	defer client.Close()
 
 	backend := NewMockBackend("mock-backend")
@@ -199,12 +171,8 @@ func TestClient_InvalidEvents(t *testing.T) {
 
 // TestClient_ContextCancel verifies that the client handles context cancellation appropriately.
 func TestClient_ContextCancel(t *testing.T) {
-	originalWarmUpTime := warmUpTime
-	warmUpTime = 5 * time.Second // Long enough to block
-	defer func() { warmUpTime = originalWarmUpTime }()
-
 	ctx, cancel := context.WithCancel(context.Background())
-	client := NewClient(ctx)
+	client := NewClientTm(ctx, 5*time.Second, StabilizationTime)
 	defer client.Close()
 
 	// Cancel context immediately
@@ -219,12 +187,8 @@ func TestClient_ContextCancel(t *testing.T) {
 // TestClient_Timeout verifies that the client returns a deadline exceeded error
 // when the context times out before discovery completes.
 func TestClient_Timeout(t *testing.T) {
-	originalWarmUpTime := warmUpTime
-	warmUpTime = 5 * time.Second // Long enough to block
-	defer func() { warmUpTime = originalWarmUpTime }()
-
 	ctx := context.Background()
-	client := NewClient(ctx)
+	client := NewClientTm(ctx, 5*time.Second, StabilizationTime)
 	defer client.Close()
 
 	// Create a context with a short timeout
@@ -241,17 +205,8 @@ func TestClient_Timeout(t *testing.T) {
 
 // TestClient_MissingFields verifies behavior when events are missing optional fields (like MakeModel).
 func TestClient_MissingFields(t *testing.T) {
-	originalWarmUpTime := warmUpTime
-	originalStabilizationTime := stabilizationTime
-	warmUpTime = 100 * time.Millisecond
-	stabilizationTime = 100 * time.Millisecond
-	defer func() {
-		warmUpTime = originalWarmUpTime
-		stabilizationTime = originalStabilizationTime
-	}()
-
 	ctx := context.Background()
-	client := NewClient(ctx)
+	client := NewClientTm(ctx, 100*time.Millisecond, 100*time.Millisecond)
 	defer client.Close()
 
 	backend := NewMockBackend("mock-backend")
@@ -297,17 +252,8 @@ func TestClient_MissingFields(t *testing.T) {
 // TestClient_Unreachable verifies that no devices are returned if the backend
 // is unresponsive or provides no events, resulting in an empty discovery.
 func TestClient_Unreachable(t *testing.T) {
-	originalWarmUpTime := warmUpTime
-	originalStabilizationTime := stabilizationTime
-	warmUpTime = 100 * time.Millisecond
-	stabilizationTime = 100 * time.Millisecond
-	defer func() {
-		warmUpTime = originalWarmUpTime
-		stabilizationTime = originalStabilizationTime
-	}()
-
 	ctx := context.Background()
-	client := NewClient(ctx)
+	client := NewClientTm(ctx, 100*time.Millisecond, 100*time.Millisecond)
 	defer client.Close()
 
 	// Backend that sends nothing

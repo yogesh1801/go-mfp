@@ -18,9 +18,10 @@ import (
 //
 // Note, cache API is not reentrant and requires external locking.
 type cache struct {
-	readyAt time.Time            // Time when cache is warmed up and ready
-	entries map[UnitID]*cacheEnt // Cache entries
-	out     output               // Cached output
+	readyAt           time.Time            // When cache is warmed up and ready
+	entries           map[UnitID]*cacheEnt // Cache entries
+	out               output               // Cached output
+	stabilizationTime time.Duration        // Stabilization time for new data
 }
 
 // cacheEnt is the cache entry for print/scan/faxout units.
@@ -32,10 +33,11 @@ type cacheEnt struct {
 }
 
 // newCache creates the new discovery cache
-func newCache() *cache {
+func newCache(warmUpTime, stabilizationTime time.Duration) *cache {
 	return &cache{
-		readyAt: time.Now().Add(warmUpTime),
-		entries: make(map[UnitID]*cacheEnt),
+		readyAt:           time.Now().Add(warmUpTime),
+		entries:           make(map[UnitID]*cacheEnt),
+		stabilizationTime: stabilizationTime,
 	}
 }
 
@@ -239,7 +241,7 @@ func (c *cache) AddEndpoint(evnt *EventAddEndpoint) error {
 		return errors.New("endpoint already added")
 	}
 
-	ent.stagingBegin()
+	ent.stagingBegin(c.stabilizationTime)
 	ent.stagingEndpoints, _ = endpointsAdd(ent.stagingEndpoints, endpoint)
 
 	c.out.Invalidate()
@@ -307,7 +309,7 @@ func (ent *cacheEnt) snapshot() (un unit, ok bool) {
 // endpoints are added to the staging area, but already running timer is
 // not restarted. When the timer expires, all endpoints collected at
 // the staging area is published.
-func (ent *cacheEnt) stagingBegin() {
+func (ent *cacheEnt) stagingBegin(stabilizationTime time.Duration) {
 	if !ent.stagingInProgress() {
 		ent.stagingDoneAt = time.Now().Add(stabilizationTime)
 	}
