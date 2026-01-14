@@ -69,12 +69,13 @@ func (rq *CreateJobRequest) Encode() *goipp.Message {
 
 // Decode decodes CreateJobRequest from goipp.Message.
 func (rq *CreateJobRequest) Decode(
-	msg *goipp.Message, opt DecodeOptions) error {
+	msg *goipp.Message, opt *DecoderOptions) error {
 
 	rq.Version = msg.Version
 	rq.RequestID = msg.RequestID
 
-	dec := ippDecoder{opt: opt}
+	dec := NewDecoder(opt)
+	defer dec.Free()
 
 	err := dec.Decode(rq, msg.Operation)
 	if err != nil {
@@ -115,7 +116,7 @@ func (rsp *CreateJobResponse) Encode() *goipp.Message {
 
 // Decode decodes CreateJobResponse from goipp.Message.
 func (rsp *CreateJobResponse) Decode(
-	msg *goipp.Message, opt DecodeOptions) error {
+	msg *goipp.Message, opt *DecoderOptions) error {
 
 	rsp.Version = msg.Version
 	rsp.RequestID = msg.RequestID

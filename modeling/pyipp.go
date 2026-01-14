@@ -146,7 +146,7 @@ func (model *Model) pyImportPrinterAppributes(obj *cpython.Object) (
 		return nil, err
 	}
 
-	opt := ipp.DecodeOptions{
+	opt := &ipp.DecoderOptions{
 		KeepTrying: true,
 	}
 

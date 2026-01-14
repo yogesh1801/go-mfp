@@ -64,7 +64,9 @@ func ObjectGetAttr(obj Object, name string) (attr goipp.Attribute, found bool) {
 // object structure (if any).
 func ObjectSetAttr(obj Object, attr goipp.Attribute) error {
 	// Update the Object's outer structure
-	dec := ippDecoder{}
+	dec := NewDecoder(nil)
+	defer dec.Free()
+
 	err := dec.DecodeSingle(obj, attr)
 	if err != nil {
 		return err

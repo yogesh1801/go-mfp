@@ -88,12 +88,14 @@ func (rq *GetPrinterAttributesRequest) Encode() *goipp.Message {
 
 // Decode decodes GetPrinterAttributesRequest from goipp.Message.
 func (rq *GetPrinterAttributesRequest) Decode(
-	msg *goipp.Message, opt DecodeOptions) error {
+	msg *goipp.Message, opt *DecoderOptions) error {
 
 	rq.Version = msg.Version
 	rq.RequestID = msg.RequestID
 
-	dec := ippDecoder{opt: opt}
+	dec := NewDecoder(opt)
+	defer dec.Free()
+
 	err := dec.Decode(rq, msg.Operation)
 	if err != nil {
 		return err
@@ -145,13 +147,15 @@ func (rsp *GetPrinterAttributesResponse) Encode() *goipp.Message {
 
 // Decode decodes GetPrinterAttributesResponse from goipp.Message.
 func (rsp *GetPrinterAttributesResponse) Decode(
-	msg *goipp.Message, opt DecodeOptions) error {
+	msg *goipp.Message, opt *DecoderOptions) error {
 
 	rsp.Version = msg.Version
 	rsp.RequestID = msg.RequestID
 	rsp.Status = goipp.Status(msg.Code)
 
-	dec := ippDecoder{opt: opt}
+	dec := NewDecoder(opt)
+	defer dec.Free()
+
 	err := dec.Decode(rsp, msg.Operation)
 	if err != nil {
 		return err

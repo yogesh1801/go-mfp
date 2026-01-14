@@ -11,10 +11,8 @@ package ipp
 import (
 	"errors"
 	"fmt"
-	"math"
 	"reflect"
 	"sort"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -176,406 +174,6 @@ func (enc *ippEncoder) encPtr(
 	return encode(enc, unsafe.Pointer(ptr.Pointer()))
 }
 
-// ippDecoder maintains context for decocing Object from the
-// goipp.Attributes.
-type ippDecoder struct {
-	opt      DecodeOptions // Decoder options
-	codec    *ippCodec     // Codec for the object
-	typename string        // Type name being decoding
-	path     []any         // Path to current attr (string/int indices)
-	errors   []error       // Decode errors
-}
-
-// begin initializes ippDecoder before decoding the object.
-func (dec *ippDecoder) begin(obj Object) {
-	dec.codec = ippCodecGet(obj)
-	dec.typename = diagTypeName(dec.codec.t)
-	dec.errors = nil
-
-	// Reserve path slots.
-	// 8 should be enough in most cases to avoid re-allocation.
-	dec.path = make([]any, 0, 8)
-}
-
-// Decode decodes Object from the goipp.Attributes.
-//
-// The obj parameter must be pointer to structure that implements
-// the Object interface. Its codec will be generated on demand.
-//
-// This function will panic, if codec cannot be generated.
-func (dec *ippDecoder) Decode(obj Object, attrs goipp.Attributes) error {
-	dec.begin(obj)
-
-	err := dec.codec.decodeAttrs(dec, obj, attrs)
-	if err == nil {
-		obj.RawAttrs().save(attrs, dec.errors)
-	}
-
-	return err
-}
-
-// DecodeSingle decodes (updates) a single attribute of the Object.
-func (dec *ippDecoder) DecodeSingle(obj Object, attr goipp.Attribute) error {
-	dec.begin(obj)
-	return dec.codec.decodeAttrs(dec, obj, goipp.Attributes{attr})
-}
-
-// Decode: goipp.IntegerOrRange
-func (dec *ippDecoder) decIntegerOrRange(p unsafe.Pointer, vals goipp.Values) error {
-	res, ok := vals[0].V.(goipp.IntegerOrRange)
-	if !ok {
-		err := fmt.Errorf("can't convert %s to Integer or RangeOfInteger",
-			vals[0].T)
-		return dec.errWrap(err)
-	}
-
-	*(*goipp.IntegerOrRange)(p) = res
-	return nil
-}
-
-// Decode: goipp.Range
-func (dec *ippDecoder) decRange(p unsafe.Pointer, vals goipp.Values) error {
-	res, ok := vals[0].V.(goipp.Range)
-	if !ok {
-		return dec.errConvert(vals[0], goipp.TypeRange)
-	}
-
-	*(*goipp.Range)(p) = res
-	return nil
-}
-
-// Decode: goipp.Resolution
-func (dec *ippDecoder) decResolution(p unsafe.Pointer, vals goipp.Values) error {
-	res, ok := vals[0].V.(goipp.Resolution)
-	if !ok {
-		return dec.errConvert(vals[0], goipp.TypeResolution)
-	}
-
-	*(*goipp.Resolution)(p) = res
-	return nil
-}
-
-// Decode: goipp.TextWithLang
-func (dec *ippDecoder) decTextWithLang(p unsafe.Pointer, vals goipp.Values) error {
-	res, ok := vals[0].V.(goipp.TextWithLang)
-	if !ok {
-		return dec.errConvert(vals[0], goipp.TypeTextWithLang)
-	}
-
-	*(*goipp.TextWithLang)(p) = res
-	return nil
-}
-
-// Decode: goipp.Version
-func (dec *ippDecoder) decVersion(p unsafe.Pointer, vals goipp.Values) error {
-	s, ok := vals[0].V.(goipp.String)
-	if !ok {
-		return dec.errConvert(vals[0], goipp.TypeString)
-	}
-
-	ver, err := dec.decVersionString(string(s))
-	if err != nil {
-		return err
-	}
-
-	*(*goipp.Version)(p) = ver
-	return nil
-}
-
-// Decode: IPP version string (X.Y).
-func (dec *ippDecoder) decVersionString(s string) (goipp.Version, error) {
-	var major, minor uint64
-	var err error
-
-	ss := strings.Split(s, ".")
-	if len(ss) != 2 {
-		goto ERROR
-	}
-
-	major, err = strconv.ParseUint(ss[0], 10, 8)
-	if err != nil {
-		goto ERROR
-	}
-
-	minor, err = strconv.ParseUint(ss[1], 10, 8)
-	if err != nil {
-		goto ERROR
-	}
-
-	return goipp.MakeVersion(uint8(major), uint8(minor)), nil
-
-ERROR:
-	return 0, dec.errWrap(fmt.Errorf("%q: invalid version string", s))
-}
-
-// Decode: time.Time
-func (dec *ippDecoder) decDateTime(p unsafe.Pointer, vals goipp.Values) error {
-	res, ok := vals[0].V.(goipp.Time)
-	if !ok {
-		return dec.errConvert(vals[0], goipp.TypeDateTime)
-	}
-
-	*(*time.Time)(p) = res.Time
-	return nil
-
-}
-
-// Decode: bool
-func (dec *ippDecoder) decBool(p unsafe.Pointer, vals goipp.Values) error {
-	res, ok := vals[0].V.(goipp.Boolean)
-	if !ok {
-		return dec.errConvert(vals[0], goipp.TypeBoolean)
-	}
-
-	*(*bool)(p) = bool(res)
-	return nil
-}
-
-// Decode: int
-func (dec *ippDecoder) decInt(p unsafe.Pointer, vals goipp.Values) error {
-	res, ok := vals[0].V.(goipp.Integer)
-	if !ok {
-		return dec.errConvert(vals[0], goipp.TypeInteger)
-	}
-
-	*(*int)(p) = int(res)
-	return nil
-}
-
-// Decode: string
-func (dec *ippDecoder) decString(p unsafe.Pointer, vals goipp.Values) error {
-	switch res := vals[0].V.(type) {
-	case goipp.String:
-		*(*string)(p) = string(res)
-
-	case goipp.Binary:
-		*(*string)(p) = string(res)
-
-	default:
-		return dec.errConvert(vals[0], goipp.TypeString)
-	}
-
-	return nil
-}
-
-// Decode: uint16
-func (dec *ippDecoder) decUint16(p unsafe.Pointer, vals goipp.Values) error {
-	res, ok := vals[0].V.(goipp.Integer)
-	if !ok {
-		return dec.errConvert(vals[0], goipp.TypeInteger)
-	}
-
-	if res < 0 || res > math.MaxUint16 {
-		return dec.errWrap(fmt.Errorf("Value %d out of range", res))
-	}
-
-	*(*uint16)(p) = uint16(res)
-	return nil
-}
-
-// Decode: single nested structure from collection
-func (dec *ippDecoder) decCollection(
-	p unsafe.Pointer, vals goipp.Values,
-	codec *ippCodec) error {
-
-	slice, err := dec.decCollectionInternal(p, vals, codec)
-	if err != nil {
-		return err
-	}
-
-	ss := reflect.NewAt(codec.t, p)
-	ss.Elem().Set(slice.Index(0))
-
-	return nil
-}
-
-// decCollectionInternal decodes collection as a slice
-// of decoded structures of type codec.t
-//
-// It returns slice of decodes structures, represented
-// as reflect.Value.
-func (dec *ippDecoder) decCollectionInternal(
-	p unsafe.Pointer, vals goipp.Values,
-	codec *ippCodec) (reflect.Value, error) {
-
-	slice := reflect.Zero(reflect.SliceOf(codec.t))
-	for i := range vals {
-		coll, ok := vals[i].V.(goipp.Collection)
-		if !ok {
-			err := dec.errConvert(vals[i], goipp.TypeCollection)
-			return reflect.Value{}, err
-		}
-
-		attrs := goipp.Attributes(coll)
-		ss := reflect.New(codec.t)
-
-		err := codec.decodeAttrs(dec, ss.Interface(), attrs)
-		if err != nil {
-			return reflect.Value{}, err
-		}
-
-		slice = reflect.Append(slice, ss.Elem())
-	}
-
-	return slice, nil
-}
-
-// ippDecSlice decodes slice of values
-func (dec *ippDecoder) decSlice(
-	p unsafe.Pointer, vals goipp.Values, t reflect.Type, decode decodeFunc) error {
-
-	// Update current path
-	dec.pathEnter()
-	defer dec.pathLeave()
-
-	// Setup things
-	slice := reflect.MakeSlice(t, 0, len(vals))
-	tmp := reflect.New(t.Elem())
-	zero := reflect.Zero(t.Elem())
-
-	// Handle OOB
-	//
-	// See RFC8010, 3.5.2. for details
-	// https://datatracker.ietf.org/doc/html/rfc8010#section-3.5.2
-	if vals[0].T.Type() == goipp.TypeVoid {
-		reflect.NewAt(t, p).Elem().Set(reflect.Zero(t))
-		return nil
-	}
-
-	// Now decode, step by step
-	for i := range vals {
-		dec.pathSet(i)
-
-		tmp.Elem().Set(zero)
-		err := decode(dec, unsafe.Pointer(tmp.Pointer()), vals[i:i+1])
-		if err != nil {
-			if dec.opt.KeepTrying {
-				// Skip the value
-				dec.errPush(err)
-				continue
-			}
-
-			return err
-		}
-
-		slice = reflect.Append(slice, tmp.Elem())
-	}
-
-	out := reflect.NewAt(t, p)
-	out.Elem().Set(slice)
-
-	return nil
-}
-
-// ippDecSlice decodes pointer to value.
-func (dec *ippDecoder) decPtr(
-	p unsafe.Pointer, vals goipp.Values, t reflect.Type, decode decodeFunc) error {
-
-	assert.Must(len(vals) > 0)
-
-	// Handle OOB
-	//
-	// See RFC8010, 3.5.2. for details
-	// https://datatracker.ietf.org/doc/html/rfc8010#section-3.5.2
-	if vals[0].T.Type() == goipp.TypeVoid {
-		reflect.NewAt(t, p).Elem().Set(reflect.Zero(t))
-		return nil
-	}
-
-	// Decode the value
-	tmp := reflect.New(t.Elem())
-	err := decode(dec, unsafe.Pointer(tmp.Pointer()), vals[:1])
-
-	if err != nil {
-		if dec.opt.KeepTrying {
-			dec.errPush(err)
-			reflect.NewAt(t, p).Elem().Set(reflect.Zero(t))
-			return nil
-		}
-
-		return err
-	}
-
-	ptr := reflect.NewAt(t, p).Elem()
-	ptr.Set(tmp)
-
-	return nil
-}
-
-// pathEnter advises the path to the next nesting level.
-func (dec *ippDecoder) pathEnter() {
-	dec.path = append(dec.path, nil)
-}
-
-// pathLeave shrinks the path to reflect leaving the current nesting level.
-func (dec *ippDecoder) pathLeave() {
-	dec.path = dec.path[:len(dec.path)-1]
-}
-
-// Set attribute name or index at the current path level
-func (dec *ippDecoder) pathSet(p any) {
-	dec.path[len(dec.path)-1] = p
-}
-
-// pathString returns the current path as a string.
-func (dec *ippDecoder) pathString() string {
-	// Estimate buffer size
-	sz := 0
-	for _, p := range dec.path {
-		switch p := p.(type) {
-		case string:
-			sz += len(p) + 1
-		case int:
-			sz += 4 // "[NN]"
-		}
-	}
-
-	// Format the path
-	path := make([]byte, 0, sz)
-	for _, p := range dec.path {
-		switch p := p.(type) {
-		case string:
-			path = append(path, '/')
-			path = append(path, ([]byte)(p)...)
-		case int:
-			path = append(path, '[')
-			path = append(path, ([]byte)(strconv.Itoa(p))...)
-			path = append(path, ']')
-		}
-	}
-
-	// Strip leading '/' and convert path to the string
-	return string(path[1:])
-}
-
-// errWrap wraps the decode error so it includes common information,
-// like path to the problematic attribute.
-func (dec *ippDecoder) errWrap(err error) error {
-	err = fmt.Errorf("IPP decode %s: %q: %w",
-		dec.typename, dec.pathString(), err)
-	return err
-}
-
-// errConvert returns type conversion error
-func (dec *ippDecoder) errConvert(fromval struct {
-	T goipp.Tag
-	V goipp.Value
-}, to goipp.Type) error {
-
-	var err error = ippErrConvert{
-		fromTag: fromval.T,
-		from:    fromval.V.Type(),
-		to:      to,
-	}
-
-	return dec.errWrap(err)
-}
-
-// errPush adds the error into the ippDecoder.errors slice.
-func (dec *ippDecoder) errPush(err error) {
-	dec.errors = append(dec.errors, err)
-}
-
 // ippRegisteredAttrNames returns names of attributes registered
 // for the Object type.
 func ippRegisteredAttrNames(t reflect.Type) []string {
@@ -599,7 +197,7 @@ type ippCodec struct {
 type encodeFunc func(enc *ippEncoder, p unsafe.Pointer) goipp.Values
 
 // decodeFunc decodes attribute values from the IPP representation
-type decodeFunc func(dec *ippDecoder, p unsafe.Pointer, v goipp.Values) error
+type decodeFunc func(dec *Decoder, p unsafe.Pointer, v goipp.Values) error
 
 // ippCodecStep represents a single encoding/decoding step for the
 // ippCodec
@@ -610,7 +208,7 @@ type ippCodecStep struct {
 
 	// Encode/decode functions
 	encode  func(enc *ippEncoder, p unsafe.Pointer) goipp.Values
-	decode  func(dec *ippDecoder, p unsafe.Pointer, v goipp.Values) error
+	decode  func(dec *Decoder, p unsafe.Pointer, v goipp.Values) error
 	setzero func(p unsafe.Pointer)
 }
 
@@ -893,7 +491,7 @@ func ippCodecGenerateStep(fld reflect.StructField,
 			return enc.encSlice(p, t, encode)
 		}
 
-		step.decode = func(dec *ippDecoder, p unsafe.Pointer,
+		step.decode = func(dec *Decoder, p unsafe.Pointer,
 			vals goipp.Values) error {
 			return dec.decSlice(p, vals, t, decode)
 		}
@@ -910,7 +508,7 @@ func ippCodecGenerateStep(fld reflect.StructField,
 			return enc.encPtr(p, t, encode)
 		}
 
-		step.decode = func(dec *ippDecoder,
+		step.decode = func(dec *Decoder,
 			p unsafe.Pointer, vals goipp.Values) error {
 			return dec.decPtr(p, vals, t, decode)
 		}
@@ -981,7 +579,7 @@ func (codec *ippCodec) encodeAttrs(enc *ippEncoder,
 }
 
 // Decode structure from the goipp.Attributes
-func (codec *ippCodec) decodeAttrs(dec *ippDecoder,
+func (codec *ippCodec) decodeAttrs(dec *Decoder,
 	out interface{}, attrs goipp.Attributes) error {
 
 	// Update path
@@ -1025,7 +623,7 @@ func (codec *ippCodec) decodeAttrs(dec *ippDecoder,
 
 // doDecodeStep decodes a single attribute.
 // p is the unsafe.Pointer to the outer structure.
-func (codec ippCodec) doDecodeStep(dec *ippDecoder,
+func (codec ippCodec) doDecodeStep(dec *Decoder,
 	p unsafe.Pointer, step *ippCodecStep, attr goipp.Attribute) error {
 
 	// Update path
@@ -1106,7 +704,7 @@ func ippCodecMethodsCollection(t reflect.Type,
 			return enc.encCollection(p, codec)
 		},
 
-		decode: func(dec *ippDecoder, p unsafe.Pointer, v goipp.Values) error {
+		decode: func(dec *Decoder, p unsafe.Pointer, v goipp.Values) error {
 			return dec.decCollection(p, v, codec)
 		},
 	}
@@ -1120,37 +718,37 @@ var ippCodecMethodsByType = map[reflect.Type]*ippCodecMethods{
 	reflect.TypeOf((*goipp.IntegerOrRange)(nil)).Elem(): &ippCodecMethods{
 		defaultIppTag: goipp.TagZero,
 		encode:        (*ippEncoder).encIntegerOrRange,
-		decode:        (*ippDecoder).decIntegerOrRange,
+		decode:        (*Decoder).decIntegerOrRange,
 	},
 
 	reflect.TypeOf(goipp.Range{}): &ippCodecMethods{
 		defaultIppTag: goipp.TagRange,
 		encode:        (*ippEncoder).encRange,
-		decode:        (*ippDecoder).decRange,
+		decode:        (*Decoder).decRange,
 	},
 
 	reflect.TypeOf(goipp.Resolution{}): &ippCodecMethods{
 		defaultIppTag: goipp.TagResolution,
 		encode:        (*ippEncoder).encResolution,
-		decode:        (*ippDecoder).decResolution,
+		decode:        (*Decoder).decResolution,
 	},
 
 	reflect.TypeOf(goipp.TextWithLang{}): &ippCodecMethods{
 		defaultIppTag: goipp.TagTextLang,
 		encode:        (*ippEncoder).encTextWithLang,
-		decode:        (*ippDecoder).decTextWithLang,
+		decode:        (*Decoder).decTextWithLang,
 	},
 
 	reflect.TypeOf(goipp.Version(0)): &ippCodecMethods{
 		defaultIppTag: goipp.TagKeyword,
 		encode:        (*ippEncoder).encVersion,
-		decode:        (*ippDecoder).decVersion,
+		decode:        (*Decoder).decVersion,
 	},
 
 	reflect.TypeOf(time.Time{}): &ippCodecMethods{
 		defaultIppTag: goipp.TagDateTime,
 		encode:        (*ippEncoder).encDateTime,
-		decode:        (*ippDecoder).decDateTime,
+		decode:        (*Decoder).decDateTime,
 	},
 }
 
@@ -1160,25 +758,25 @@ var ippCodecMethodsByKind = map[reflect.Kind]*ippCodecMethods{
 	reflect.Bool: &ippCodecMethods{
 		defaultIppTag: goipp.TagBoolean,
 		encode:        (*ippEncoder).encBool,
-		decode:        (*ippDecoder).decBool,
+		decode:        (*Decoder).decBool,
 	},
 
 	reflect.Int: &ippCodecMethods{
 		defaultIppTag: goipp.TagInteger,
 		encode:        (*ippEncoder).encInt,
-		decode:        (*ippDecoder).decInt,
+		decode:        (*Decoder).decInt,
 	},
 
 	reflect.String: &ippCodecMethods{
 		defaultIppTag: goipp.TagText,
 		encode:        (*ippEncoder).encString,
-		decode:        (*ippDecoder).decString,
+		decode:        (*Decoder).decString,
 	},
 
 	reflect.Uint16: &ippCodecMethods{
 		defaultIppTag: goipp.TagInteger,
 		encode:        (*ippEncoder).encUint16,
-		decode:        (*ippDecoder).decUint16,
+		decode:        (*Decoder).decUint16,
 	},
 }
 

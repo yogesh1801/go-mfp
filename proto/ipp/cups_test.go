@@ -158,7 +158,7 @@ func TestCupsRequests(t *testing.T) {
 		// Decode test
 		rq := reflect.New(rqType).Interface().(Request)
 
-		err := rq.Decode(test.msg, DecodeOptions{})
+		err := rq.Decode(test.msg, nil)
 		if err == nil {
 			err = errors.New("")
 		}
@@ -294,7 +294,7 @@ func TestCupsRequesponses(t *testing.T) {
 		// Decode test
 		rsp := reflect.New(rspType).Interface().(Response)
 
-		err := rsp.Decode(test.msg, DecodeOptions{})
+		err := rsp.Decode(test.msg, nil)
 		if err == nil {
 			err = errors.New("")
 		}

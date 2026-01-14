@@ -29,7 +29,7 @@ type Request interface {
 	//   - Decode decodes Request from the goipp.Message.
 	GetOp() goipp.Op
 	Encode() *goipp.Message
-	Decode(*goipp.Message, DecodeOptions) error
+	Decode(*goipp.Message, *DecoderOptions) error
 }
 
 // RequestHeader is the common [Request] header. It contains common

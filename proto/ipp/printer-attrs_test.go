@@ -21,7 +21,7 @@ func TestKyoceraM2040dnPrinterAttributes(t *testing.T) {
 
 	// Decode printer attributes from real printer
 	var pa PrinterAttributes
-	decoder := ippDecoder{}
+	decoder := NewDecoder(nil)
 	err := decoder.Decode(&pa, msg.Printer)
 
 	if err != nil {

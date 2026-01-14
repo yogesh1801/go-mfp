@@ -53,11 +53,13 @@ type JobStatus struct {
 
 // DecodeJobStatusAttributes decodes [JobStatus] from
 // [goipp.Attributes].
-func DecodeJobStatusAttributes(attrs goipp.Attributes, opt DecodeOptions) (
+func DecodeJobStatusAttributes(attrs goipp.Attributes, opt *DecoderOptions) (
 	*JobStatus, error) {
 
 	job := &JobStatus{}
-	dec := ippDecoder{opt: opt}
+	dec := NewDecoder(opt)
+	defer dec.Free()
+
 	err := dec.Decode(job, attrs)
 	if err != nil {
 		return nil, err
@@ -126,11 +128,13 @@ type JobAttributes struct {
 
 // DecodeJobAttributes decodes [JobAttributes] from
 // [goipp.Attributes].
-func DecodeJobAttributes(attrs goipp.Attributes, opt DecodeOptions) (
+func DecodeJobAttributes(attrs goipp.Attributes, opt *DecoderOptions) (
 	*JobAttributes, error) {
 
 	job := &JobAttributes{}
-	dec := ippDecoder{opt: opt}
+	dec := NewDecoder(opt)
+	defer dec.Free()
+
 	err := dec.Decode(job, attrs)
 	if err != nil {
 		return nil, err

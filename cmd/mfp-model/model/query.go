@@ -81,8 +81,8 @@ func queryIPPPrinterAttributes(ctx context.Context,
 		}
 
 		clnt := ipp.NewClient(u, nil)
-		clnt.SetDecodeOptions(
-			ipp.DecodeOptions{KeepTrying: true},
+		clnt.SetDecoderOptions(
+			&ipp.DecoderOptions{KeepTrying: true},
 		)
 
 		caps, err2 := clnt.GetPrinterAttributes(ctx,

@@ -79,12 +79,13 @@ func (rq *SendDocumentRequest) Encode() *goipp.Message {
 
 // Decode decodes SendDocumentRequest from goipp.Message.
 func (rq *SendDocumentRequest) Decode(
-	msg *goipp.Message, opt DecodeOptions) error {
+	msg *goipp.Message, opt *DecoderOptions) error {
 
 	rq.Version = msg.Version
 	rq.RequestID = msg.RequestID
 
-	dec := ippDecoder{opt: opt}
+	dec := NewDecoder(opt)
+	defer dec.Free()
 
 	err := dec.Decode(rq, msg.Operation)
 	if err != nil {
@@ -125,7 +126,7 @@ func (rsp *SendDocumentResponse) Encode() *goipp.Message {
 
 // Decode decodes SendDocumentResponse from goipp.Message.
 func (rsp *SendDocumentResponse) Decode(
-	msg *goipp.Message, opt DecodeOptions) error {
+	msg *goipp.Message, opt *DecoderOptions) error {
 
 	rsp.Version = msg.Version
 	rsp.RequestID = msg.RequestID

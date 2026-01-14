@@ -247,8 +247,8 @@ func TestDecodePanic(t *testing.T) {
 		checkError(t, "TestDecodePanic", err, errExpected)
 	}()
 
-	dec := ippDecoder{}
-	codec.decodeAttrs(&dec, &p, attrs)
+	dec := NewDecoder(nil)
+	codec.decodeAttrs(dec, &p, attrs)
 }
 
 // testFakeObject implements Object interface, but it is not structure.
@@ -283,7 +283,7 @@ func TestIppEncodeDecodePanic(t *testing.T) {
 	}
 
 	enc := ippEncoder{}
-	dec := ippDecoder{}
+	dec := NewDecoder(nil)
 
 	doTest(func() {}, nil)
 
@@ -1025,7 +1025,7 @@ func (test ippDecodeTest) exec(t *testing.T) {
 	codec := ippCodecMustGenerate(ttype)
 
 	// Decode IPP attributes
-	dec := ippDecoder{}
+	dec := NewDecoder(nil)
 
 	out := &ippTestStruct{}
 	err := dec.Decode(out, test.attrs)
@@ -1130,9 +1130,9 @@ func (test ippEncodeDecodeTest) exec(t *testing.T) {
 	attrs := codec.encodeAttrs(&enc, test.data)
 
 	// Test decoding
-	dec := ippDecoder{}
+	dec := NewDecoder(nil)
 	out := reflect.New(test.t).Interface()
-	err := codec.decodeAttrs(&dec, out, attrs)
+	err := codec.decodeAttrs(dec, out, attrs)
 
 	checkError(t, test.name, err, test.err)
 	if err != nil {

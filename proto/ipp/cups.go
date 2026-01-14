@@ -176,12 +176,14 @@ func (rq *CUPSGetDefaultRequest) Encode() *goipp.Message {
 
 // Decode decodes CUPSGetDefaultRequest from goipp.Message.
 func (rq *CUPSGetDefaultRequest) Decode(
-	msg *goipp.Message, opt DecodeOptions) error {
+	msg *goipp.Message, opt *DecoderOptions) error {
 
 	rq.Version = msg.Version
 	rq.RequestID = msg.RequestID
 
-	dec := ippDecoder{opt: opt}
+	dec := NewDecoder(opt)
+	defer dec.Free()
+
 	err := dec.Decode(rq, msg.Operation)
 	if err != nil {
 		return err
@@ -216,13 +218,15 @@ func (rsp *CUPSGetDefaultResponse) Encode() *goipp.Message {
 
 // Decode decodes CUPSGetDefaultResponse from goipp.Message.
 func (rsp *CUPSGetDefaultResponse) Decode(
-	msg *goipp.Message, opt DecodeOptions) error {
+	msg *goipp.Message, opt *DecoderOptions) error {
 
 	rsp.Version = msg.Version
 	rsp.RequestID = msg.RequestID
 	rsp.Status = goipp.Status(msg.Code)
 
-	dec := ippDecoder{opt: opt}
+	dec := NewDecoder(opt)
+	defer dec.Free()
+
 	err := dec.Decode(rsp, msg.Operation)
 	if err != nil {
 		return err
@@ -264,12 +268,14 @@ func (rq *CUPSGetPrintersRequest) Encode() *goipp.Message {
 
 // Decode decodes CUPSGetPrintersRequest from goipp.Message.
 func (rq *CUPSGetPrintersRequest) Decode(
-	msg *goipp.Message, opt DecodeOptions) error {
+	msg *goipp.Message, opt *DecoderOptions) error {
 
 	rq.Version = msg.Version
 	rq.RequestID = msg.RequestID
 
-	dec := ippDecoder{opt: opt}
+	dec := NewDecoder(opt)
+	defer dec.Free()
+
 	err := dec.Decode(rq, msg.Operation)
 	if err != nil {
 		return err
@@ -304,13 +310,15 @@ func (rsp *CUPSGetPrintersResponse) Encode() *goipp.Message {
 
 // Decode decodes CUPSGetPrintersResponse from goipp.Message.
 func (rsp *CUPSGetPrintersResponse) Decode(
-	msg *goipp.Message, opt DecodeOptions) error {
+	msg *goipp.Message, opt *DecoderOptions) error {
 
 	rsp.Version = msg.Version
 	rsp.RequestID = msg.RequestID
 	rsp.Status = goipp.Status(msg.Code)
 
-	dec := ippDecoder{opt: opt}
+	dec := NewDecoder(opt)
+	defer dec.Free()
+
 	err := dec.Decode(rsp, msg.Operation)
 	if err != nil {
 		return err
@@ -356,12 +364,14 @@ func (rq *CUPSGetDevicesRequest) Encode() *goipp.Message {
 
 // Decode decodes CUPSGetDevicesRequest from goipp.Message.
 func (rq *CUPSGetDevicesRequest) Decode(
-	msg *goipp.Message, opt DecodeOptions) error {
+	msg *goipp.Message, opt *DecoderOptions) error {
 
 	rq.Version = msg.Version
 	rq.RequestID = msg.RequestID
 
-	dec := ippDecoder{opt: opt}
+	dec := NewDecoder(opt)
+	defer dec.Free()
+
 	err := dec.Decode(rq, msg.Operation)
 	if err != nil {
 		return err
@@ -396,13 +406,15 @@ func (rsp *CUPSGetDevicesResponse) Encode() *goipp.Message {
 
 // Decode decodes CUPSGetDevicesResponse from goipp.Message.
 func (rsp *CUPSGetDevicesResponse) Decode(
-	msg *goipp.Message, opt DecodeOptions) error {
+	msg *goipp.Message, opt *DecoderOptions) error {
 
 	rsp.Version = msg.Version
 	rsp.RequestID = msg.RequestID
 	rsp.Status = goipp.Status(msg.Code)
 
-	dec := ippDecoder{opt: opt}
+	dec := NewDecoder(opt)
+	defer dec.Free()
+
 	err := dec.Decode(rsp, msg.Operation)
 	if err != nil {
 		return err
@@ -449,12 +461,14 @@ func (rq *CUPSGetPPDsRequest) Encode() *goipp.Message {
 
 // Decode decodes CUPSGetPPDsRequest from goipp.Message.
 func (rq *CUPSGetPPDsRequest) Decode(
-	msg *goipp.Message, opt DecodeOptions) error {
+	msg *goipp.Message, opt *DecoderOptions) error {
 
 	rq.Version = msg.Version
 	rq.RequestID = msg.RequestID
 
-	dec := ippDecoder{opt: opt}
+	dec := NewDecoder(opt)
+	defer dec.Free()
+
 	err := dec.Decode(rq, msg.Operation)
 	if err != nil {
 		return err
@@ -489,13 +503,15 @@ func (rsp *CUPSGetPPDsResponse) Encode() *goipp.Message {
 
 // Decode decodes CUPSGetPPDsResponse from goipp.Message.
 func (rsp *CUPSGetPPDsResponse) Decode(
-	msg *goipp.Message, opt DecodeOptions) error {
+	msg *goipp.Message, opt *DecoderOptions) error {
 
 	rsp.Version = msg.Version
 	rsp.RequestID = msg.RequestID
 	rsp.Status = goipp.Status(msg.Code)
 
-	dec := ippDecoder{opt: opt}
+	dec := NewDecoder(opt)
+	defer dec.Free()
+
 	err := dec.Decode(rsp, msg.Operation)
 	if err != nil {
 		return err
@@ -542,12 +558,14 @@ func (rq *CUPSGetPPDRequest) Encode() *goipp.Message {
 
 // Decode decodes CUPSGetPPDRequest from goipp.Message.
 func (rq *CUPSGetPPDRequest) Decode(
-	msg *goipp.Message, opt DecodeOptions) error {
+	msg *goipp.Message, opt *DecoderOptions) error {
 
 	rq.Version = msg.Version
 	rq.RequestID = msg.RequestID
 
-	dec := ippDecoder{opt: opt}
+	dec := NewDecoder(opt)
+	defer dec.Free()
+
 	err := dec.Decode(rq, msg.Operation)
 	if err != nil {
 		return err
@@ -575,13 +593,15 @@ func (rsp *CUPSGetPPDResponse) Encode() *goipp.Message {
 
 // Decode decodes CUPSGetPPDResponse from goipp.Message.
 func (rsp *CUPSGetPPDResponse) Decode(
-	msg *goipp.Message, opt DecodeOptions) error {
+	msg *goipp.Message, opt *DecoderOptions) error {
 
 	rsp.Version = msg.Version
 	rsp.RequestID = msg.RequestID
 	rsp.Status = goipp.Status(msg.Code)
 
-	dec := ippDecoder{opt: opt}
+	dec := NewDecoder(opt)
+	defer dec.Free()
+
 	err := dec.Decode(rsp, msg.Operation)
 	if err != nil {
 		return err

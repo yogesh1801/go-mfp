@@ -219,11 +219,13 @@ type PrinterSaveInfo struct {
 
 // DecodePrinterAttributes decodes [PrinterAttributes] from
 // [goipp.Attributes].
-func DecodePrinterAttributes(attrs goipp.Attributes, opt DecodeOptions) (
+func DecodePrinterAttributes(attrs goipp.Attributes, opt *DecoderOptions) (
 	*PrinterAttributes, error) {
 
 	pa := &PrinterAttributes{}
-	dec := ippDecoder{opt: opt}
+	dec := NewDecoder(opt)
+	defer dec.Free()
+
 	err := dec.Decode(pa, attrs)
 	if err != nil {
 		return nil, err

@@ -30,7 +30,7 @@ type Client struct {
 	URL        *url.URL          // Destination URL (ipp://...)
 	HTTPClient *transport.Client // HTTP Client
 	RequestID  uint32            // RequestID of the next request
-	decodeOpt  DecodeOptions     // Options for message decoder
+	decoderOpt *DecoderOptions   // Options for message decoder
 }
 
 // NewClient creates a new IPP client.
@@ -46,10 +46,10 @@ func NewClient(u *url.URL, tr *transport.Transport) *Client {
 	return c
 }
 
-// SetDecodeOptions updates the [DecodeOptions] that affect decoding
+// SetDecoderOptions updates the [DecoderrOptions] that affect decoding
 // of the received IPP messages
-func (c *Client) SetDecodeOptions(opt DecodeOptions) {
-	c.decodeOpt = opt
+func (c *Client) SetDecoderOptions(opt *DecoderOptions) {
+	c.decoderOpt = opt
 }
 
 // requestid generates a next RequestID
@@ -168,7 +168,7 @@ func (c *Client) DoWithBody(ctx context.Context,
 	log.Debug(ctx, "IPP response:\n%s", f.Bytes())
 
 	// Decode Response
-	err = rsp.Decode(msg, c.decodeOpt)
+	err = rsp.Decode(msg, c.decoderOpt)
 	if err != nil {
 		goto ERROR
 	}

@@ -50,6 +50,6 @@ var (
 		StatusMessage:             "success",
 	}
 
-	// DefaultDecodeOptions is the default value for [DecodeOptions]
-	DefaultDecodeOptions = DecodeOptions{}
+	// DefaultDecoderOptions is the default value for [DecoderOptions]
+	DefaultDecoderOptions = DecoderOptions{}
 )

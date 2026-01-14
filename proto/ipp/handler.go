@@ -44,7 +44,7 @@ func NewHandler[RQT any,
 		rq := RQ(new(RQT))
 		rq.Header().setBody(body)
 
-		err := rq.Decode(rqMsg, DecodeOptions{})
+		err := rq.Decode(rqMsg, nil)
 		if err != nil {
 			return nil, err
 		}
