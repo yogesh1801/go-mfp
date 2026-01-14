@@ -32,21 +32,25 @@ type Eventqueue struct {
 func NewEventqueue() *Eventqueue {
 	return &Eventqueue{
 		events:    make([]Event, 0, 32),
-		readychan: make(chan struct{}),
+		readychan: make(chan struct{}, 1),
 	}
 }
 
 // Push pushes event into the queue.
 func (q *Eventqueue) Push(e Event) {
 	q.lock.Lock()
-	defer q.lock.Unlock()
-
 	q.events = append(q.events, e)
+	q.lock.Unlock()
 
 	select {
 	case q.readychan <- struct{}{}:
 	default:
 	}
+}
+
+// Count returns the current queue length.
+func (q *Eventqueue) Count() int {
+	return len(q.events)
 }
 
 // pull returns next event out of the queue.

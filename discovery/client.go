@@ -218,3 +218,25 @@ func (clnt *Client) nextEvent() error {
 
 	return err
 }
+
+// flush waits until all queued events are processed.
+//
+// This is the testing interface and it is not recommended
+// for the general use
+func (clnt *Client) flush() {
+	clnt.lock.Lock()
+	defer clnt.lock.Unlock()
+
+	for {
+		switch {
+		case clnt.queue.Count() == 0:
+			return
+		case clnt.ctx.Err() != nil:
+			return
+		}
+
+		clnt.lock.Unlock()
+		time.Sleep(10 * time.Millisecond)
+		clnt.lock.Lock()
+	}
+}

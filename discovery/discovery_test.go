@@ -41,11 +41,9 @@ func (mb *MockBackend) Name() string {
 // to the event queue.
 func (mb *MockBackend) Start(q *Eventqueue) {
 	mb.queue = q
-	go func() {
-		for _, e := range mb.events {
-			mb.queue.Push(e)
-		}
-	}()
+	for _, e := range mb.events {
+		mb.queue.Push(e)
+	}
 }
 
 // Close cleans up backend resources. For the mock, this is a no-op.
@@ -109,7 +107,7 @@ func TestClient_Discovery(t *testing.T) {
 	client.AddBackend(backend)
 
 	// Wait for discovery to complete (WarmUpTime + processing)
-	time.Sleep(200 * time.Millisecond)
+	client.flush()
 
 	devices, err := client.GetDevices(ctx, ModeNormal)
 	if err != nil {
@@ -157,7 +155,7 @@ func TestClient_InvalidEvents(t *testing.T) {
 	backend.AddEvent(&EventDelUnit{ID: unknownUID})
 
 	client.AddBackend(backend)
-	time.Sleep(200 * time.Millisecond)
+	client.flush()
 
 	devices, err := client.GetDevices(ctx, ModeNormal)
 	if err != nil {
@@ -233,7 +231,7 @@ func TestClient_MissingFields(t *testing.T) {
 	})
 
 	client.AddBackend(backend)
-	time.Sleep(200 * time.Millisecond)
+	client.flush()
 
 	devices, err := client.GetDevices(ctx, ModeNormal)
 	if err != nil {
@@ -260,7 +258,7 @@ func TestClient_Unreachable(t *testing.T) {
 	backend := NewMockBackend("mock-backend")
 	client.AddBackend(backend)
 
-	time.Sleep(200 * time.Millisecond)
+	client.flush()
 
 	devices, err := client.GetDevices(ctx, ModeNormal)
 	if err != nil {
