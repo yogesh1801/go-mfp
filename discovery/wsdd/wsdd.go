@@ -26,5 +26,5 @@ var (
 
 	// Response size limit for the metadata Get request (to mitigate
 	// possible DOS attack)
-	wsddMetadataGetMaxResponse = 64536
+	wsddMetadataGetMaxResponse = 65536
 )
