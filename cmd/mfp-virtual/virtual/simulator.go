@@ -29,21 +29,14 @@ import (
 // If argv is not empty, it specifies the external command that will
 // be run under the simulator.
 func simulate(ctx context.Context, model *modeling.Model, tracer *trace.Writer,
-	port int, argv []string) error {
+	portnum int, usbip bool, argv []string) error {
 
-	// Create a virtual server
-	pathmux := transport.NewPathMux()
-	server := transport.NewServer(ctx, nil, pathmux)
-
-	addr := fmt.Sprintf("localhost:%d", port)
-	ln, err := net.Listen("tcp", addr)
-	if err != nil {
-		return err
-	}
+	// Create the PathMux
+	mux := transport.NewPathMux()
+	runner := env.Runner{}
 
 	// Add eSCL handler
 	if esclcaps := model.GetESCLScanCaps(); esclcaps != nil {
-
 		s := &abstract.VirtualScanner{
 			ScanCaps: esclcaps.ToAbstract(),
 			Resolution: abstract.Resolution{
@@ -59,7 +52,11 @@ func simulate(ctx context.Context, model *modeling.Model, tracer *trace.Writer,
 		}
 
 		handler := model.NewESCLServer(s)
-		pathmux.Add("/eSCL", handler)
+		mux.Add("/eSCL", handler)
+
+		runner.ESCLName = "Virtual MFP Scanner"
+		runner.ESCLPort = portnum
+		runner.ESCLPath = "/eSCL"
 	}
 
 	// Add IPP handler
@@ -71,37 +68,52 @@ func simulate(ctx context.Context, model *modeling.Model, tracer *trace.Writer,
 			}
 			handler.Sniff(sniffer)
 		}
-		pathmux.Add("/ipp/print", handler)
+		mux.Add("/ipp/print", handler)
+
+		runner.CUPSPort = portnum
 	}
 
 	// Check that we have added at least something
-	if pathmux.Empty() {
+	if mux.Empty() {
 		return errors.New("model is emoty")
+	}
+
+	// Create server for incoming connections.
+	if !usbip {
+		addr := fmt.Sprintf("localhost:%d", portnum)
+
+		ln, err := net.Listen("tcp", addr)
+		if err != nil {
+			return err
+		}
+
+		srvr := transport.NewServer(ctx, nil, mux)
+		log.Info(ctx, "starting virtual MFP at http://%s", addr)
+		go srvr.Serve(ln)
+
+		defer srvr.Close()
+	} else {
+		addr := &net.TCPAddr{
+			IP:   net.IPv4(127, 0, 0, 1),
+			Port: 3240,
+		}
+
+		log.Info(ctx, "starting USBIP server at %s", addr)
+		log.Info(ctx, "to connect the USB printer, run the following commands:")
+		log.Info(ctx, "  sudo modprobe vhci-hcd")
+		log.Info(ctx, "  sudo usbip attach -r localhost -b 1-1")
+
+		newUsbipServer(ctx, addr, mux)
 	}
 
 	// Run external command if specified
 	if len(argv) != 0 {
-		runner := env.Runner{
-			ESCLPort: port,
-			ESCLPath: "/eSCL",
-			ESCLName: "Virtual MFP Scanner",
-		}
-
-		go func() {
-			err = runner.Run(ctx, argv[0], argv[1:]...)
-			server.Close()
-		}()
+		return runner.Run(ctx, argv[0], argv[1:]...)
 	}
 
-	// Make sure the program terminates when ctx is canceled.
-	go func() {
-		<-ctx.Done()
-		server.Close()
-	}()
+	// Wait for termination signal
+	<-ctx.Done()
+	log.Info(ctx, "Exiting...")
 
-	// Serve requests
-	log.Info(ctx, "starting virtual MFP at %s", addr)
-	server.Serve(ln)
-
-	return err
+	return nil
 }

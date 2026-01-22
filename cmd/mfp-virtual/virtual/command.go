@@ -52,6 +52,13 @@ var Command = argv.Command{
 			Validate: argv.ValidateUint16,
 		},
 		argv.Option{
+			Name:      "-U",
+			Aliases:   []string{"--usbip"},
+			Help:      "USBIP mode",
+			Singleton: true,
+			Conflicts: []string{"-P"},
+		},
+		argv.Option{
 			Name:      "-m",
 			Aliases:   []string{"--model"},
 			Help:      "read model from file",
@@ -161,5 +168,6 @@ func cmdVirtualHandler(ctx context.Context, inv *argv.Invocation) error {
 	}
 
 	// Run the simulator
-	return simulate(ctx, model, tracer, port, argv)
+	usbip := inv.Flag("-U")
+	return simulate(ctx, model, tracer, port, usbip, argv)
 }
