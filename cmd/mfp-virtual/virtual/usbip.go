@@ -27,7 +27,7 @@ import (
 // address and forwards incoming IPP over USB requests (which
 // are essentially the HTTP requests) to the provided http.Handler.
 func newUsbipServer(ctx context.Context,
-	addr net.Addr, handler http.Handler) *usbip.Server {
+	addr net.Addr, handler http.Handler) (*usbip.Server, error) {
 
 	// Obtain device descriptor
 	desc := defaults.USBIPPDescriptor()
@@ -49,11 +49,16 @@ func newUsbipServer(ctx context.Context,
 	assert.NoError(err)
 
 	// Create USBIP server
+	l, err := net.Listen("tcp", addr.String())
+	if err != nil {
+		return nil, err
+	}
+
 	usbipSrv := usbip.NewServer(ctx)
 	err = usbipSrv.AddDevice(dev)
 	assert.NoError(err)
 
-	go usbipSrv.ListenAndServe(addr)
+	go usbipSrv.Serve(l)
 
-	return usbipSrv
+	return usbipSrv, err
 }

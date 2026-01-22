@@ -103,7 +103,10 @@ func simulate(ctx context.Context, model *modeling.Model, tracer *trace.Writer,
 		log.Info(ctx, "  sudo modprobe vhci-hcd")
 		log.Info(ctx, "  sudo usbip attach -r localhost -b 1-1")
 
-		newUsbipServer(ctx, addr, mux)
+		_, err := newUsbipServer(ctx, addr, mux)
+		if err != nil {
+			return err
+		}
 	}
 
 	// Run external command if specified
