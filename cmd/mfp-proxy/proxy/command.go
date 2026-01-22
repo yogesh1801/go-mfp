@@ -25,6 +25,9 @@ import (
 	"github.com/OpenPrinting/go-mfp/transport"
 )
 
+// DefaultTCPPort is the default TCP port for the MFP proxy
+const DefaultTCPPort = 50000
+
 // description is printed as a command description text
 const description = "" +
 	"This command runs the IPP/eSCL/WSD proxy\n" +
@@ -50,9 +53,10 @@ var Command = argv.Command{
 	NoOptionsAfterParameters: true,
 	Options: []argv.Option{
 		argv.Option{
-			Name:      "-P",
-			Aliases:   []string{"--port"},
-			Help:      "TCP port to listen",
+			Name:    "-P",
+			Aliases: []string{"--port"},
+			Help: fmt.Sprintf("TCP port. Default: %d",
+				DefaultTCPPort),
 			HelpArg:   "port",
 			Singleton: true,
 			Validate:  argv.ValidateUint16,
@@ -148,18 +152,10 @@ func cmdProxyHandler(ctx context.Context, inv *argv.Invocation) error {
 	}
 
 	// Validate parameters
-	port, portOK := inv.Get("--port")
-	_, usbip := inv.Get("--usbip")
-
-	if !portOK && !usbip {
-		err := errors.New("option required: --port or --usbip")
-		return err
-	}
-
-	var portnum int
-	if portOK {
+	portnum := DefaultTCPPort
+	if portname, ok := inv.Get("-P"); ok {
 		var err error
-		portnum, err = strconv.Atoi(port)
+		portnum, err = strconv.Atoi(portname)
 		assert.NoError(err)
 	}
 
@@ -242,6 +238,7 @@ func cmdProxyHandler(ctx context.Context, inv *argv.Invocation) error {
 		}
 
 		srvr := transport.NewServer(ctx, nil, mux)
+		log.Info(ctx, "starting MFP proxy at localhost:%d", portnum)
 		go srvr.Serve(l)
 
 		defer srvr.Close()

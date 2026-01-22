@@ -44,6 +44,14 @@ var Command = argv.Command{
 	NoOptionsAfterParameters: true,
 	Options: []argv.Option{
 		argv.Option{
+			Name:    "-P",
+			Aliases: []string{"--port"},
+			HelpArg: "port",
+			Help: fmt.Sprintf("TCP port. Default: %d",
+				DefaultTCPPort),
+			Validate: argv.ValidateUint16,
+		},
+		argv.Option{
 			Name:      "-m",
 			Aliases:   []string{"--model"},
 			Help:      "read model from file",
@@ -69,14 +77,6 @@ var Command = argv.Command{
 			Name:    "-v",
 			Aliases: []string{"--verbose"},
 			Help:    "Enable verbose debug output",
-		},
-		argv.Option{
-			Name:    "-p",
-			Aliases: []string{"--port"},
-			HelpArg: "port",
-			Help: fmt.Sprintf("TCP port. Default: %d",
-				DefaultTCPPort),
-			Validate: argv.ValidateUint16,
 		},
 		argv.HelpOption,
 	},
@@ -135,7 +135,7 @@ func cmdVirtualHandler(ctx context.Context, inv *argv.Invocation) error {
 
 	// Obtain remaining parameters
 	port := DefaultTCPPort
-	if portname, ok := inv.Get("-p"); ok {
+	if portname, ok := inv.Get("-P"); ok {
 		port, err = strconv.Atoi(portname)
 		if err != nil {
 			return err
