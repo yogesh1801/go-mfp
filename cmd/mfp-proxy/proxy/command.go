@@ -231,14 +231,15 @@ func cmdProxyHandler(ctx context.Context, inv *argv.Invocation) error {
 	}
 
 	// Create server for incoming connections.
-	if portnum != 0 {
+	if !inv.Flag("-U") {
 		l, err := newListener(ctx, portnum)
 		if err != nil {
 			return err
 		}
 
 		srvr := transport.NewServer(ctx, nil, mux)
-		log.Info(ctx, "starting MFP proxy at localhost:%d", portnum)
+		log.Info(ctx, "starting MFP proxy at http://localhost:%d",
+			portnum)
 		go srvr.Serve(l)
 
 		defer srvr.Close()
@@ -248,6 +249,7 @@ func cmdProxyHandler(ctx context.Context, inv *argv.Invocation) error {
 			Port: 3240,
 		}
 
+		log.Info(ctx, "starting USBIP server at %s", addr)
 		newUsbipServer(ctx, addr, mux)
 	}
 
