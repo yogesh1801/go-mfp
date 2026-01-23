@@ -10,6 +10,7 @@ package cpython
 
 import (
 	"errors"
+	"os/exec"
 	"runtime"
 	"sync"
 	"unsafe"
@@ -62,6 +63,21 @@ func pyInterpDelete(interp pyInterp) {
 	C.py_interp_close(interp)
 }
 
+// pyLocateLibPython locates the full path to the libpython3.XX.so library
+func pyLocateLibPython() (string, error) {
+	script := ""
+	script += "import sysconfig;"
+	script += "import os;"
+	script += "dir=sysconfig.get_config_var('LIBDIR');"
+	script += "lib=sysconfig.get_config_var('LDLIBRARY');"
+	script += "print(os.path.join(dir,lib),end='');"
+
+	cmd := exec.Command("python3", "-c", script)
+	out, err := cmd.CombinedOutput()
+
+	return string(out), err
+}
+
 // pyInterpThread runs Python dedicated thread.
 //
 // We need this thread, because CPython pollutes the thread local
@@ -76,9 +92,18 @@ func pyInterpThread(initilized *sync.WaitGroup) {
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 
-	// Initialize Python library
-	msg := C.py_init()
-	pyInitErrorCheck(msg)
+	// Locate and initialize Python library
+	var lib string
+	lib, pyInitError = pyLocateLibPython()
+	if pyInitError == nil {
+		clib := C.CString(lib)
+		msg := C.py_init(clib)
+		C.free(unsafe.Pointer(clib))
+
+		pyInitErrorCheck(msg)
+	}
+
+	// Notify caller that initialization is completed
 	initilized.Done()
 
 	// If no error, serve incoming requests

@@ -18,9 +18,13 @@
 #include <stdlib.h>
 
 // py_init initializes Python stuff.
+// libpython3 must be a full path to the libpython3.XX.so library.
+//
 // It returns NULL on success or an error message in a case of errors.
 // This function needs to be called only once.
-const char *py_init (void);
+//
+// This function MUST be called by the main Python thread only.
+const char *py_init (const char *libpython3);
 
 // py_new_interp returns a new Python interpreter.
 PyInterpreterState *py_new_interp (void);

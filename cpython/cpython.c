@@ -204,46 +204,17 @@ static void *py_load_ptr (const char *name) {
 }
 
 // py_load_library loads the libpython3.so library
-static void py_load_library (void) {
-    char libname[128];
-
-    // Most of the distros comes with the libpython3.so library.
-    // This library is empty by itself, but via the ELF NEEDED
-    // it loads the proper libpython3.NN.MM.so as its dependency.
-    py_libpython3 = dlopen("libpython3.so", RTLD_NOW | RTLD_GLOBAL);
-    if (py_libpython3 != NULL) {
-        return;
-    }
-
-    // This is the Debian way. Debian comes with the libpython3.NN.so
-    // library instead of the libpython3.so.
-    sprintf(libname, "libpython3.%d.so", PY_MINOR_VERSION);
-    py_libpython3 = dlopen(libname, RTLD_NOW | RTLD_GLOBAL);
-    if (py_libpython3 != NULL) {
-        return;
-    }
-
-    // Try to be even more specific and use PY_MINOR_VERSION and
-    // PY_MICRO_VERSION of the Python we have build against.
-    sprintf(libname, "libpython3.%d.%d.so", PY_MINOR_VERSION, PY_MICRO_VERSION);
-    py_libpython3 = dlopen(libname, RTLD_NOW | RTLD_GLOBAL);
-    if (py_libpython3 != NULL) {
-        return;
-    }
-
-    // And now retry the generic libpython3.so just in order to
-    // obtain the proper error string.
-    py_libpython3 = dlopen("libpython3.so", RTLD_NOW | RTLD_GLOBAL);
+static void py_load_library (const char *libpython3) {
+    py_libpython3 = dlopen(libpython3, RTLD_NOW | RTLD_GLOBAL);
     if (py_libpython3 == NULL) {
         py_set_error("%s", dlerror());
-        return;
     }
 }
 
 // py_load_all loads all Python symbols.
-static void py_load_all (void) {
+static void py_load_all (const char *libpython3) {
     // Load the libpython3.so library
-    py_load_library();
+    py_load_library(libpython3);
 
     // Load all required symbols
     PyBool_FromLong_p = py_load("PyBool_FromLong");
@@ -349,12 +320,14 @@ static void py_load_all (void) {
 }
 
 // py_init initializes Python stuff.
+// libpython3 must be a full path to the libpython3.XX.so library.
+//
 // It returns NULL on success or an error message in a case of errors.
 // This function needs to be called only once.
 //
 // This function MUST be called by the main Python thread only.
-const char *py_init (void) {
-    py_load_all();
+const char *py_init (const char *libpython3) {
+    py_load_all(libpython3);
 
     if (py_error != NULL) {
         return py_error;
