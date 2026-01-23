@@ -121,7 +121,7 @@ func (obj *Object) Get(key any) (*Object, error) {
 	gate := obj.py.gate()
 	defer gate.release()
 
-	// Obtain *C.PyIbject references for all relevant objects.
+	// Obtain *C.PyObject references for all relevant objects.
 	pyobj := obj.py.lookupObjID(gate, obj.oid)
 
 	pykey, err := obj.py.newPyObject(gate, key)
