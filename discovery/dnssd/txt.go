@@ -262,7 +262,7 @@ func txtAuth(value string) (discovery.AuthMode, error) {
 		return discovery.AuthKerberos, nil
 	case "oauth":
 		return discovery.AuthOAuth2, nil
-	case "username,passwor":
+	case "username,password":
 		return discovery.AuthPasswd, nil
 	}
 
