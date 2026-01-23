@@ -14,7 +14,7 @@ import (
 	"github.com/OpenPrinting/go-mfp/util/optional"
 )
 
-// ScannerParameters represents the discoverable information about the printer.
+// ScannerParameters represents the discoverable information about the scanner.
 type ScannerParameters struct {
 	// Scanner capabilities
 	Duplex  optional.Val[bool]                 // Duplex mode supported
