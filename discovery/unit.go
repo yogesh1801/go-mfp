@@ -126,6 +126,7 @@ type UnitID struct {
 	SvcType   ServiceType  // Service type
 	SvcProto  ServiceProto // Service protocol
 	USBSerial string       // "" if not avaliable
+	USBHWID   string       // "" if not avaliable
 }
 
 // SameDevice reports if two [UnitID]s belong to the same device.
@@ -192,6 +193,11 @@ func (id UnitID) MarshalLog() []byte {
 
 	if id.USBSerial != "" {
 		line = fmt.Sprintf("Serial:    %s", id.USBSerial)
+		lines = append(lines, line)
+	}
+
+	if id.USBHWID != "" {
+		line = fmt.Sprintf("HWID:      %s", id.USBHWID)
 		lines = append(lines, line)
 	}
 

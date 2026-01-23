@@ -48,6 +48,7 @@ type Device struct {
 
 	// USBSerial may be available for the ipp-usb devices too.
 	USBSerial string // USB serial number, "" if n/a
+	USBHWID   string // USB hardware ID, "" if n/a
 
 	// Connectivity
 	Addrs []netip.Addr // Device's IP addresses
@@ -236,6 +237,10 @@ func (dev device) Export() Device {
 
 		if un.ID.USBSerial != "" {
 			out.USBSerial = un.ID.USBSerial
+		}
+
+		if un.ID.USBHWID != "" {
+			out.USBHWID = un.ID.USBHWID
 		}
 	}
 

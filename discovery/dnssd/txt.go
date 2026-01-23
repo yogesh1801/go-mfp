@@ -31,6 +31,8 @@ type txtPrinter struct {
 	iconURL   string                       // Device icon URL
 	usbMFG    string                       // I.e., "Hewlett Packard"
 	usbMDL    string                       // Model name
+	usbSerial string                       // usb_SER, "" if none
+	usbHWID   string                       // usb_HWID, "" if none
 	params    *discovery.PrinterParameters // Printer parameters
 }
 
@@ -43,7 +45,9 @@ type txtScanner struct {
 	location  string                       // E.g., "2nd Floor Computer Lab"
 	adminURL  string                       // Device administration URL
 	iconURL   string                       // Device icon URL
-	params    *discovery.ScannerParameters // Printer parameters
+	usbSerial string                       // usb_SER, "" if none
+	usbHWID   string                       // usb_HWID, "" if none
+	params    *discovery.ScannerParameters // Scanner parameters
 }
 
 // txtPrinter decodes record for printer
@@ -151,6 +155,12 @@ func decodeTxtPrinter(svcType, svcInstance string,
 		case "uuid":
 			p.uuid, err = uuid.Parse(value)
 
+		// ipp-usb extensions
+		case "usb_ser":
+			p.usbSerial = value
+		case "usb_hwid":
+			p.usbHWID = value
+
 		// These parameters are ignored so far, but it may change
 		// in the future.
 		//
@@ -239,6 +249,12 @@ func decodeTxtScanner(svcType, svcInstance string,
 			s.makeModel = value
 		case "uuid":
 			s.uuid, err = uuid.Parse(value)
+
+		// ipp-usb extensions
+		case "usb_ser":
+			s.usbSerial = value
+		case "usb_hwid":
+			s.usbHWID = value
 		}
 
 		// Check for error

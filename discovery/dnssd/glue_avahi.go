@@ -443,6 +443,8 @@ func (key avahiServiceKey) PrinterUnitID(txt txtPrinter) discovery.UnitID {
 	id.UUID = txt.uuid
 	id.Queue = txt.params.Queue
 	id.SvcType = discovery.ServicePrinter
+	id.USBSerial = txt.usbSerial
+	id.USBHWID = txt.usbHWID
 
 	return id
 }
@@ -453,6 +455,8 @@ func (key avahiServiceKey) ScannerUnitID(txt txtScanner) discovery.UnitID {
 
 	id.UUID = txt.uuid
 	id.SvcType = discovery.ServiceScanner
+	id.USBSerial = txt.usbSerial
+	id.USBHWID = txt.usbHWID
 
 	return id
 }

@@ -117,13 +117,14 @@ func cmdDiscoverHandler(ctx context.Context, inv *argv.Invocation) error {
 		pager.Printf("  Icon URL:         %s", dev.IconURL)
 		pager.Printf("  PPD Manufacturer: %q", dev.PPDManufacturer)
 		pager.Printf("  PPD Model:        %q", dev.PPDModel)
-		pager.Printf("  USB serial:       %q", dev.USBSerial)
+		pager.Printf("  USB Serial:       %q", dev.USBSerial)
+		pager.Printf("  USB HWID:         %q", dev.USBHWID)
 
 		s := []string{}
 		for _, addr := range dev.Addrs {
 			s = append(s, addr.String())
 		}
-		pager.Printf("  IP addresses: %s", strings.Join(s, ", "))
+		pager.Printf("  IP addresses:     %s", strings.Join(s, ", "))
 		pager.Printf("")
 
 		if len(dev.PrintUnits) != 0 {
