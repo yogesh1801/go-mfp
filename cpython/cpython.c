@@ -739,7 +739,7 @@ bool py_obj_delitem(PyObject *x, PyObject *key) {
 }
 
 // py_obj_getitem retrieves the item with the specified key.
-// The returned answer, on success, contains a string reference to PyObject.
+// The returned answer, on success, contains a strong reference to PyObject.
 // It returns true on success, false on error.
 bool py_obj_getitem(PyObject *x, PyObject *key, PyObject **answer) {
     *answer = PyObject_GetItem_p(x, key);
