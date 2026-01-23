@@ -11,12 +11,13 @@ package discovery
 import (
 	"github.com/OpenPrinting/go-mfp/abstract"
 	"github.com/OpenPrinting/go-mfp/util/generic"
+	"github.com/OpenPrinting/go-mfp/util/optional"
 )
 
 // ScannerParameters represents the discoverable information about the printer.
 type ScannerParameters struct {
 	// Scanner capabilities
-	Duplex  Option                             // Duplex mode supported
+	Duplex  optional.Val[bool]                 // Duplex mode supported
 	Sources ScanSource                         // Supported sources
 	Colors  generic.Bitset[abstract.ColorMode] // Supported color modes
 	PDL     []string                           // Supported MIME types

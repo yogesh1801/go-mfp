@@ -8,7 +8,11 @@
 
 package discovery
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/OpenPrinting/go-mfp/util/optional"
+)
 
 // PrinterParameters represents the discoverable information about the printer.
 //
@@ -24,14 +28,14 @@ type PrinterParameters struct {
 	Media MediaKind // Kind of output media
 
 	// Printer capabilities
-	Bind    Option // Printer can bind output
-	Collate Option // Printer can collate copies
-	Color   Option // Printer can print in color
-	Copies  Option // Printer can make copies in hardware
-	Duplex  Option // Printer supports duplex printing
-	Punch   Option // Printer can punch output
-	Sort    Option // Printer can sort output
-	Staple  Option // Printer can staple output
+	Bind    optional.Val[bool] // Printer can bind output
+	Collate optional.Val[bool] // Printer can collate copies
+	Color   optional.Val[bool] // Printer can print in color
+	Copies  optional.Val[bool] // Printer can make copies in hardware
+	Duplex  optional.Val[bool] // Printer supports duplex printing
+	Punch   optional.Val[bool] // Printer can punch output
+	Sort    optional.Val[bool] // Printer can sort output
+	Staple  optional.Val[bool] // Printer can staple output
 
 	// Operational parameters
 	PSProduct string   // PS Product name (helps PPD location)
@@ -55,28 +59,28 @@ func (p *PrinterParameters) fixup() {
 func (p PrinterParameters) Flags() string {
 	s := []string{}
 
-	if p.Bind == OptTrue {
+	if optional.Get(p.Bind) {
 		s = append(s, "bind")
 	}
-	if p.Collate == OptTrue {
+	if optional.Get(p.Collate) {
 		s = append(s, "collate")
 	}
-	if p.Color == OptTrue {
+	if optional.Get(p.Color) {
 		s = append(s, "color")
 	}
-	if p.Copies == OptTrue {
+	if optional.Get(p.Copies) {
 		s = append(s, "copies")
 	}
-	if p.Duplex == OptTrue {
+	if optional.Get(p.Duplex) {
 		s = append(s, "duplex")
 	}
-	if p.Punch == OptTrue {
+	if optional.Get(p.Punch) {
 		s = append(s, "punch")
 	}
-	if p.Sort == OptTrue {
+	if optional.Get(p.Sort) {
 		s = append(s, "sort")
 	}
-	if p.Staple == OptTrue {
+	if optional.Get(p.Staple) {
 		s = append(s, "staple")
 	}
 

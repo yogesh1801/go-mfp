@@ -17,6 +17,7 @@ import (
 	"github.com/OpenPrinting/go-mfp/abstract"
 	"github.com/OpenPrinting/go-mfp/discovery"
 	"github.com/OpenPrinting/go-mfp/util/generic"
+	"github.com/OpenPrinting/go-mfp/util/optional"
 	"github.com/OpenPrinting/go-mfp/util/uuid"
 )
 
@@ -129,7 +130,7 @@ func decodeTxtPrinter(svcType, svcInstance string,
 			// "4" and "U", according to the number of holes
 			// the puncher can make. "0" means "no punching"
 			if value != "0" && txToLower(value) != "u" {
-				p.params.Punch = discovery.OptTrue
+				p.params.Punch = optional.New(true)
 			}
 		case "rp":
 			p.params.Queue = value
@@ -269,14 +270,14 @@ func txtAuth(value string) (discovery.AuthMode, error) {
 }
 
 // txtOption decodes an Option value value
-func txtOption(value string) (discovery.Option, error) {
+func txtOption(value string) (optional.Val[bool], error) {
 	switch txToLower(value) {
 	case "f":
-		return discovery.OptFalse, nil
+		return optional.New(false), nil
 	case "t":
-		return discovery.OptTrue, nil
+		return optional.New(true), nil
 	}
-	return discovery.OptUnknown, nil
+	return nil, nil
 }
 
 // txtColors decodes discovery.ColorMode bits

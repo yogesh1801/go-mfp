@@ -175,9 +175,9 @@ func cmdDiscoverHandler(ctx context.Context, inv *argv.Invocation) error {
 				p := un.Params
 				pager.Printf("    Type:       %s scanner",
 					un.Proto)
-				if p.Duplex != discovery.OptUnknown {
+				if p.Duplex != nil {
 					pager.Printf("    Duplex:     %v",
-						p.Duplex == discovery.OptTrue)
+						*p.Duplex)
 				}
 				if p.Sources != 0 {
 					pager.Printf("    Sources:    %s",
