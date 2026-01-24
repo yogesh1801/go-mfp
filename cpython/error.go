@@ -49,5 +49,14 @@ type ErrClosed struct{}
 
 // Error returns error message. It implements the [error] interface.
 func (e ErrClosed) Error() string {
-	return "use of closed Python interpreter"
+	return "use Python interpreter after Python.Close"
+}
+
+// ErrInvalidObject represents the error that occurs when [Object]
+// accessed after call to [Object.Invalidate]
+type ErrInvalidObject struct{}
+
+// Error returns error message. It implements the [error] interface.
+func (e ErrInvalidObject) Error() string {
+	return "use Object after Object.Invalidate"
 }
