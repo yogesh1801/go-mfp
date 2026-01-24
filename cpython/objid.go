@@ -50,7 +50,7 @@ func (omap *objmap) get(gate pyGate, oid objid) pyObject {
 	return omap.mapped[oid]
 }
 
-// del removes the *C.PyObject from the map and deletes its strong referenced.
+// del removes the *C.PyObject from the map and deletes its strong reference.
 func (omap *objmap) del(gate pyGate, oid objid) {
 	obj := omap.mapped[oid]
 	delete(omap.mapped, oid)
