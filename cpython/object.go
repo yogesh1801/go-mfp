@@ -47,11 +47,18 @@ func newObjectFromPython(py *Python, gate pyGate, pyobj pyObject) *Object {
 // It released *C.PyObject, associated with the Object.
 func (obj *Object) finalizer() {
 	if !obj.py.closed() {
-		gate := obj.py.gate()
-		defer gate.release()
+		gate, err := obj.py.gate()
+		if err == nil {
+			obj.py.delObjID(gate, obj.oid)
+			gate.release()
+		}
 
-		obj.py.delObjID(gate, obj.oid)
 	}
+}
+
+// gate calls obj.py.gate
+func (obj *Object) gate() (pyGate, error) {
+	return obj.py.gate()
 }
 
 // Py returns the [Python] interpreter Object belongs to.
@@ -83,7 +90,10 @@ func (obj *Object) Len() (int, error) {
 //   - (false, nil) if item was not found
 //   - (false, error) in a case of error
 func (obj *Object) Del(key any) (bool, error) {
-	gate := obj.py.gate()
+	gate, err := obj.gate()
+	if err != nil {
+		return false, err
+	}
 	defer gate.release()
 
 	// Obtain *C.PyIbject references for all relevant objects.
@@ -118,7 +128,10 @@ func (obj *Object) Del(key any) (bool, error) {
 //   - (nil, nil) if item was not found
 //   - (nil, error) in a case of error
 func (obj *Object) Get(key any) (*Object, error) {
-	gate := obj.py.gate()
+	gate, err := obj.gate()
+	if err != nil {
+		return nil, err
+	}
 	defer gate.release()
 
 	// Obtain *C.PyObject references for all relevant objects.
@@ -154,7 +167,10 @@ func (obj *Object) Get(key any) (*Object, error) {
 // The Object must be container (array, dict, etc).
 // The key may be any value that [Python.NewObject] accepts.
 func (obj *Object) Contains(key any) (bool, error) {
-	gate := obj.py.gate()
+	gate, err := obj.gate()
+	if err != nil {
+		return false, err
+	}
 	defer gate.release()
 
 	// Obtain *C.PyIbject references for all relevant objects.
@@ -179,7 +195,10 @@ func (obj *Object) Contains(key any) (bool, error) {
 // The Object must be container (array, dict, etc).
 // The key and val may be any value that [Python.NewObject] accepts.
 func (obj *Object) Set(key, val any) error {
-	gate := obj.py.gate()
+	gate, err := obj.gate()
+	if err != nil {
+		return err
+	}
 	defer gate.release()
 
 	// Obtain *C.PyIbject references for all relevant objects.
@@ -212,7 +231,10 @@ func (obj *Object) Set(key, val any) error {
 //   - (false, nil) if attribute was not found
 //   - (false, error) in a case of error
 func (obj *Object) DelAttr(name string) (bool, error) {
-	gate := obj.py.gate()
+	gate, err := obj.gate()
+	if err != nil {
+		return false, err
+	}
 	defer gate.release()
 
 	// Check for attribute existence, then delete
@@ -236,7 +258,10 @@ func (obj *Object) DelAttr(name string) (bool, error) {
 //   - (nil, nil) if attribute was not found
 //   - (nil, error) in a case of error
 func (obj *Object) GetAttr(name string) (*Object, error) {
-	gate := obj.py.gate()
+	gate, err := obj.gate()
+	if err != nil {
+		return nil, err
+	}
 	defer gate.release()
 
 	// Check if attribute exists
@@ -262,7 +287,10 @@ func (obj *Object) GetAttr(name string) (*Object, error) {
 //
 //	hasattr(obj, name)
 func (obj *Object) HasAttr(name string) (bool, error) {
-	gate := obj.py.gate()
+	gate, err := obj.gate()
+	if err != nil {
+		return false, err
+	}
 	defer gate.release()
 
 	pyobj := obj.py.lookupObjID(gate, obj.oid)
@@ -277,7 +305,10 @@ func (obj *Object) HasAttr(name string) (bool, error) {
 //
 // The val may be any value that [Python.NewObject] accepts.
 func (obj *Object) SetAttr(name string, val any) error {
-	gate := obj.py.gate()
+	gate, err := obj.gate()
+	if err != nil {
+		return err
+	}
 	defer gate.release()
 
 	// Obtain *C.PyIbject references for all relevant objects.
@@ -314,7 +345,10 @@ func (obj *Object) Call(args ...any) (*Object, error) {
 //
 // It returns the function's return value.
 func (obj *Object) CallKW(kw map[string]any, args ...any) (*Object, error) {
-	gate := obj.py.gate()
+	gate, err := obj.gate()
+	if err != nil {
+		return nil, err
+	}
 	defer gate.release()
 
 	// Convert positional arguments
@@ -405,7 +439,10 @@ func (obj *Object) Bool() (bool, error) {
 // fastBool returns Object value as bool or an error.
 // This is the fast path for Obkect.Bool.
 func (obj *Object) fastBool() (bool, error) {
-	gate := obj.py.gate()
+	gate, err := obj.gate()
+	if err != nil {
+		return false, err
+	}
 	defer gate.release()
 
 	pyobj := obj.py.lookupObjID(gate, obj.oid)
@@ -442,7 +479,10 @@ func (obj *Object) Int() (int64, error) {
 // Keys returns Object mapping keys as the []*Object slice.
 // The Object must support mapping.
 func (obj *Object) Keys() ([]*Object, error) {
-	gate := obj.py.gate()
+	gate, err := obj.gate()
+	if err != nil {
+		return nil, err
+	}
 	defer gate.release()
 
 	// Obtain keys as a list (or tuple)
@@ -461,7 +501,10 @@ func (obj *Object) Keys() ([]*Object, error) {
 // Slice returns Object value as []*Object slice or an error.
 // It works with sequence objects (lists, tuples, ...).
 func (obj *Object) Slice() ([]*Object, error) {
-	gate := obj.py.gate()
+	gate, err := obj.gate()
+	if err != nil {
+		return nil, err
+	}
 	defer gate.release()
 
 	pyobj := obj.py.lookupObjID(gate, obj.oid)
@@ -480,7 +523,10 @@ func (obj *Object) Unicode() (string, error) {
 
 // TypeName returns name of the Object's Python type
 func (obj *Object) TypeName() string {
-	gate := obj.py.gate()
+	gate, err := obj.gate()
+	if err != nil {
+		return ""
+	}
 	defer gate.release()
 
 	pyobj := obj.py.lookupObjID(gate, obj.oid)
@@ -490,7 +536,10 @@ func (obj *Object) TypeName() string {
 // TypeModuleName returns name of the module where Object's Python type
 // is defined.
 func (obj *Object) TypeModuleName() string {
-	gate := obj.py.gate()
+	gate, err := obj.gate()
+	if err != nil {
+		return ""
+	}
 	defer gate.release()
 
 	pyobj := obj.py.lookupObjID(gate, obj.oid)
@@ -543,7 +592,10 @@ func (obj *Object) IsLong() bool {
 
 // IsNone reports if Object is Python None.
 func (obj *Object) IsNone() bool {
-	gate := obj.py.gate()
+	gate, err := obj.gate()
+	if err != nil {
+		return false
+	}
 	defer gate.release()
 
 	pyobj := obj.py.lookupObjID(gate, obj.oid)
@@ -569,14 +621,18 @@ func (obj *Object) IsUnicode() bool {
 // the Object, calls the method, releases the gate and return
 // result.
 func objDo[T any](obj *Object, f func(pyGate, pyObject) (T, error)) (T, error) {
-	gate := obj.py.gate()
+	gate, err := obj.gate()
+	if err != nil {
+		var t T
+		return t, err
+	}
 	defer gate.release()
 
 	pyobj := obj.py.lookupObjID(gate, obj.oid)
 	return f(gate, pyobj)
 }
 
-// objDo is the convenience wrapper for the pyGate methods
+// objDoNoError is the convenience wrapper for the pyGate methods
 // with the following signature:
 //
 //	pyGate.method(pyObject) T
@@ -585,7 +641,11 @@ func objDo[T any](obj *Object, f func(pyGate, pyObject) (T, error)) (T, error) {
 // the Object, calls the method, releases the gate and return
 // result.
 func objDoNoError[T any](obj *Object, f func(pyGate, pyObject) T) T {
-	gate := obj.py.gate()
+	gate, err := obj.gate()
+	if err != nil {
+		var t T
+		return t
+	}
 	defer gate.release()
 
 	pyobj := obj.py.lookupObjID(gate, obj.oid)

@@ -41,3 +41,13 @@ type ErrOverflow struct {
 func (e ErrOverflow) Error() string {
 	return fmt.Sprintf("integer overflow: %s", e.val)
 }
+
+// ErrClosed represent the error that occurs when [Python]
+// interpreter or [Object] that it owns accessed after call
+// to [Python.Close].
+type ErrClosed struct{}
+
+// Error returns error message. It implements the [error] interface.
+func (e ErrClosed) Error() string {
+	return "use of closed Python interpreter"
+}

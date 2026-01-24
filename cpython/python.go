@@ -42,7 +42,8 @@ func NewPython() (py *Python, err error) {
 		}
 
 		// Load None, True and False singletons
-		gate := py.gate()
+		gate, err := py.gate()
+		assert.NoError(err)
 
 		py.pyNone, err = gate.eval("None", "", true)
 		assert.NoError(err)
@@ -71,12 +72,19 @@ func NewPython() (py *Python, err error) {
 // Close closes the [Python] interpreter and releases all
 // resources it holds.
 func (py *Python) Close() {
-	gate := py.gate()
+	gate, err := py.gate()
+	if err != nil {
+		return
+	}
+
 	py.objects.purge(gate)
+
+	interp := py.interp
+	py.interp = nil
+
 	gate.release()
 
-	pyInterpDelete(py.interp)
-	py.interp = nil
+	pyInterpDelete(interp)
 }
 
 // closed reports if interpreter is closed.
@@ -174,7 +182,10 @@ func (py *Python) Bool(v bool) *Object {
 //
 //	[cmp.Ordered or bool]any        PyDict_Type
 func (py *Python) NewObject(val any) (*Object, error) {
-	gate := py.gate()
+	gate, err := py.gate()
+	if err != nil {
+		return nil, err
+	}
 	defer gate.release()
 
 	pyobj, err := py.newPyObject(gate, val)
@@ -369,7 +380,10 @@ func (py *Python) Exec(s, filename string) error {
 //
 // On success it returns the module [Object].
 func (py *Python) Load(s, name, file string) (*Object, error) {
-	gate := py.gate()
+	gate, err := py.gate()
+	if err != nil {
+		return nil, err
+	}
 	defer gate.release()
 
 	pyobj, err := gate.load(s, name, file)
@@ -395,7 +409,10 @@ func (py *Python) eval(s, filename string, expr bool) (*Object, error) {
 	}
 
 	// Obtain pyGate
-	gate := py.gate()
+	gate, err := py.gate()
+	if err != nil {
+		return nil, err
+	}
 	defer gate.release()
 
 	// Call interpreter
@@ -409,8 +426,12 @@ func (py *Python) eval(s, filename string, expr bool) (*Object, error) {
 }
 
 // gate is the convenience wrapper for pyGateAcquire(py.interp)
-func (py *Python) gate() pyGate {
-	return pyGateAcquire(py.interp)
+func (py *Python) gate() (pyGate, error) {
+	if py.interp == nil {
+		return pyGate{}, ErrClosed{}
+	}
+
+	return pyGateAcquire(py.interp), nil
 }
 
 // newObjID allocates new objiD for the *C.PyObject.
