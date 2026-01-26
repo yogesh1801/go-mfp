@@ -62,8 +62,8 @@ func NewPython() (py *Python, err error) {
 
 		// Load global dictionary.
 		// It is more convenient to use it as the Object
-		py.globals, err = py.Eval("globals()")
-		assert.NoError(err)
+		py.globals = py.Eval("globals()")
+		assert.NoError(py.globals.Err())
 	}
 
 	return
@@ -97,12 +97,7 @@ func (py *Python) closed() bool {
 // In Python:
 //
 //	globals()[name]
-//
-// It returns:
-//   - (*Object, nil) if item was found
-//   - (nil, nil) if item was not found
-//   - (nil, error) in a case of error
-func (py *Python) GetGlobal(name string) (*Object, error) {
+func (py *Python) GetGlobal(name string) *Object {
 	return py.globals.Get(name)
 }
 
@@ -181,21 +176,24 @@ func (py *Python) Bool(v bool) *Object {
 //	[]any, [...]any                 PyList_Type
 //
 //	[cmp.Ordered or bool]any        PyDict_Type
-func (py *Python) NewObject(val any) (*Object, error) {
+func (py *Python) NewObject(val any) *Object {
 	gate, err := py.gate()
 	if err != nil {
-		return nil, err
+		return newErrorObject(py, err)
 	}
 	defer gate.release()
 
 	pyobj, err := py.newPyObject(gate, val)
 	if err != nil {
-		return nil, err
+		return newErrorObject(py, err)
 	}
 
-	obj := newObjectFromPython(py, gate, pyobj)
+	return newObjectFromPython(py, gate, pyobj)
+}
 
-	return obj, nil
+// NewError creates a new Error object
+func (py *Python) NewError(err error) *Object {
+	return newErrorObject(py, err)
 }
 
 // newPyObject is the internal function behind the [Python.NewObject]
@@ -211,9 +209,15 @@ func (py *Python) newPyObject(gate pyGate, val any) (pyObject, error) {
 	case *big.Int:
 		return gate.makeBigint(v)
 	case *Object:
-		pyobj := py.lookupObjID(gate, v.oid)
+		if v.err != nil {
+			return nil, v.err
+		}
+
+		pyobj, err := py.lookupObjID(gate, v.oid)
 		gate.ref(pyobj)
-		return pyobj, nil
+		return pyobj, err
+	case error:
+		return nil, v
 	}
 
 	// Generic conversions
@@ -289,7 +293,7 @@ func (py *Python) newPyList(gate pyGate, val any) (pyObject, error) {
 	for i := 0; i < sz; i++ {
 		item := rv.Index(i).Interface()
 		pyobj, err := py.newPyObject(gate, item)
-		if pyobj == nil {
+		if err != nil {
 			return nil, err
 		}
 
@@ -361,7 +365,7 @@ func (py *Python) newPyDict(gate pyGate, val any) (pyObject, error) {
 }
 
 // Eval evaluates string as a Python expression and returns its value.
-func (py *Python) Eval(s string) (*Object, error) {
+func (py *Python) Eval(s string) *Object {
 	return py.eval(s, "", true)
 }
 
@@ -371,32 +375,31 @@ func (py *Python) Eval(s string) (*Object, error) {
 // and used only for diagnostic. If set to the empty string (""),
 // the reasonable default is provided.
 func (py *Python) Exec(s, filename string) error {
-	_, err := py.eval(s, filename, false)
-	return err
+	obj := py.eval(s, filename, false)
+	return obj.Err()
 }
 
 // Load loads (imports) string as a Python module with name 'name' as if
 // it was loaded from the file 'file'.
 //
-// On success it returns the module [Object].
-func (py *Python) Load(s, name, file string) (*Object, error) {
+// It returns the module [Object] or error Object on failure.
+func (py *Python) Load(s, name, file string) *Object {
 	gate, err := py.gate()
 	if err != nil {
-		return nil, err
+		return newErrorObject(py, err)
 	}
 	defer gate.release()
 
 	pyobj, err := gate.load(s, name, file)
 	if err != nil {
-		return nil, err
+		return newErrorObject(py, err)
 	}
 
-	obj := newObjectFromPython(py, gate, pyobj)
-	return obj, nil
+	return newObjectFromPython(py, gate, pyobj)
 }
 
 // eval is the common body for Python.Eval and Python.Exec
-func (py *Python) eval(s, filename string, expr bool) (*Object, error) {
+func (py *Python) eval(s, filename string, expr bool) *Object {
 	// Adjust filename to point to the Go file:line position
 	// of the called, if filename is not specified
 	if filename == "" {
@@ -411,18 +414,21 @@ func (py *Python) eval(s, filename string, expr bool) (*Object, error) {
 	// Obtain pyGate
 	gate, err := py.gate()
 	if err != nil {
-		return nil, err
+		return newErrorObject(py, err)
 	}
 	defer gate.release()
 
 	// Call interpreter
 	pyobj, err := gate.eval(s, filename, expr)
-	if pyobj == nil {
-		return nil, err
+	if err != nil {
+		return newErrorObject(py, err)
 	}
 
-	obj := newObjectFromPython(py, gate, pyobj)
-	return obj, err
+	if pyobj == nil {
+		return py.objNone
+	}
+
+	return newObjectFromPython(py, gate, pyobj)
 }
 
 // gate is the convenience wrapper for pyGateAcquire(py.interp)
@@ -445,8 +451,12 @@ func (py *Python) delObjID(gate pyGate, oid objid) {
 }
 
 // lookupObjID return *C.PyObject by objid.
-func (py *Python) lookupObjID(gate pyGate, oid objid) pyObject {
-	return py.objects.get(gate, oid)
+func (py *Python) lookupObjID(gate pyGate, oid objid) (pyObject, error) {
+	pyobj := py.objects.get(gate, oid)
+	if pyobj != nil {
+		return pyobj, nil
+	}
+	return nil, ErrInvalidObject{}
 }
 
 // countObjID returns count of active objid mappings.

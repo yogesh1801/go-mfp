@@ -82,47 +82,50 @@ func (model *Model) GetESCLScanCaps() *escl.ScannerCapabilities {
 // be preloaded into the Model's Python interpreter (model.py).
 func (model *Model) esclLoad() error {
 	// Load and decode ScannerCapabilities
-	obj, err := model.py.Eval("escl.caps")
-	if err != nil {
-		err = fmt.Errorf("escl.caps: %s", err)
+	obj := model.py.Eval("escl.caps")
+	if err := obj.Err(); err != nil {
+		err = fmt.Errorf("escl.caps: %w", err)
 		return err
 	}
 
 	if !obj.IsNone() {
 		var caps *escl.ScannerCapabilities
-		err = model.pyImportStruct(&caps, obj)
+		err := model.pyImportStruct(&caps, obj)
 		if err != nil {
-			err = fmt.Errorf("escl.caps: %s", err)
+			err = fmt.Errorf("escl.caps: %w", err)
 			return err
 		}
 
 		model.esclScanCaps = caps
 	}
 
-	// Load eSCL hooks
-	obj, err = model.py.GetGlobal(esclOnScanJobsRequestName)
-	if err != nil {
-		return err
-	}
-
-	if obj != nil && !obj.IsCallable() {
+	// Load eSCL hooks -- escl_onScanJobsRequest
+	obj = model.py.GetGlobal(esclOnScanJobsRequestName)
+	switch {
+	case obj.NotFound():
+	case obj.Err() != nil:
+		err := obj.Err()
+		return fmt.Errorf("%s: %w", esclOnScanJobsRequestName, err)
+	case !obj.IsCallable():
 		return fmt.Errorf("%s is not function",
 			esclOnScanJobsRequestName)
+	default:
+		model.esclOnScanJobsRequestScriptlet = obj
 	}
 
-	model.esclOnScanJobsRequestScriptlet = obj
-
-	obj, err = model.py.GetGlobal(esclOnNextDocumentResponseName)
-	if err != nil {
-		return err
-	}
-
-	if obj != nil && !obj.IsCallable() {
+	// Load eSCL hooks -- escl_onNextDocumentResponse
+	obj = model.py.GetGlobal(esclOnNextDocumentResponseName)
+	switch {
+	case obj.NotFound():
+	case obj.Err() != nil:
+		err := obj.Err()
+		return fmt.Errorf("%s: %w", esclOnNextDocumentResponseName, err)
+	case !obj.IsCallable():
 		return fmt.Errorf("%s is not function",
 			esclOnNextDocumentResponseName)
+	default:
+		model.esclOnNextDocumentResponseScriptlet = obj
 	}
-
-	model.esclOnNextDocumentResponseScriptlet = obj
 
 	return nil
 }
@@ -203,20 +206,20 @@ func (model *Model) esclOnScanJobsRequest(
 	}()
 
 	// Export request to Python
-	q, err := model.queryToPython(query)
-	if err != nil {
+	q := model.queryToPython(query)
+	if err := q.Err(); err != nil {
 		query.Reject(http.StatusServiceUnavailable, err)
 		return nil
 	}
 
-	rq, err := model.pyExportStruct(ss)
-	if err != nil {
+	rq := model.pyExportStruct(ss)
+	if err := rq.Err(); err != nil {
 		query.Reject(http.StatusServiceUnavailable, err)
 		return nil
 	}
 
 	// Call the hook
-	_, err = model.esclOnScanJobsRequestScriptlet.Call(q, rq)
+	err = model.esclOnScanJobsRequestScriptlet.Call(q, rq).Err()
 	if err != nil {
 		query.Reject(http.StatusServiceUnavailable, err)
 		return nil
@@ -284,20 +287,20 @@ func (model *Model) esclOnNextDocumentResponse(
 	}()
 
 	// Export request to Python
-	q, err := model.queryToPython(query)
+	q := model.queryToPython(query)
 	if err != nil {
 		query.Reject(http.StatusServiceUnavailable, err)
 		return nil
 	}
 
-	flt, err := model.py.NewObject(map[any]any(nil))
-	if err != nil {
+	flt := model.py.NewObject(map[any]any(nil))
+	if err := flt.Err(); err != nil {
 		query.Reject(http.StatusServiceUnavailable, err)
 		return nil
 	}
 
 	// Call the hook
-	_, err = model.esclOnNextDocumentResponseScriptlet.Call(q, flt)
+	err = model.esclOnNextDocumentResponseScriptlet.Call(q, flt).Err()
 	if err != nil {
 		query.Reject(http.StatusServiceUnavailable, err)
 		return nil

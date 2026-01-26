@@ -11,28 +11,39 @@ package cpython
 import (
 	"math/big"
 	"runtime"
+
+	"github.com/OpenPrinting/go-mfp/internal/assert"
 )
 
-// Object represents a Python value.
+// Object represents a Python value or Python error.
 //
-// Normally, Object lifetime is managed by the Go garbage collector.
-// and there is no need to explicitly release the Objects. However,
-// for optimization purpose, Python value may be released early
-// by calling the [Object.Invalidate] function.
+// All Python interpreter calls that return values encapsulate them
+// into an Object. If a Python call fails, the error is also returned
+// encapsulated into an Object (referred to as an "error Object").
+//
+// Any operation performed on an error Object will return the same error
+// as the error Object contains. If an operation involves multiple
+// Objects (e.g., [Object.Call]), the error is inherited from the first
+// Object used, starting with the receiver.
+//
+// This enables chaining operations with error propagation through the chain.
+//
+// The error contained in an error Object is finally exposed when attempting
+// to convert the Object into a Go value (using functions like [Object.Int])
+// or can be inspected directly via the [Object.Err] method.
+//
+// Normally, Object lifetime is managed by Go's garbage collector,
+// so explicit release is unnecessary. However, Python values may be
+// released early for optimization by calling [Object.Invalidate].
 type Object struct {
-	py  *Python // Interpreter that owns the Object
-	oid objid   // Object ID of the underlying *C.PyObject
+	py  *Python // interpreter that owns this Object
+	err error   // error value for error Object
+	oid objid   // object ID of the underlying *C.PyObject
 }
 
 // newObjectFromPython constructs new Object, decoded from PyObject.
-//
-// If pyObject is nil, returned *Object is nil as well. This is
-// convenient for functions like dictionary retrieval.
 func newObjectFromPython(py *Python, gate pyGate, pyobj pyObject) *Object {
-	if pyobj == nil {
-		return nil
-	}
-
+	assert.Must(pyobj != nil)
 	obj := &Object{
 		py:  py,
 		oid: py.newObjID(gate, pyobj),
@@ -43,6 +54,15 @@ func newObjectFromPython(py *Python, gate pyGate, pyobj pyObject) *Object {
 	})
 
 	return obj
+}
+
+// newErrorObject constructs new Object, that represents the error
+func newErrorObject(py *Python, err error) *Object {
+	return &Object{
+		py:  py,
+		err: err,
+		oid: 0,
+	}
 }
 
 // finalizer is called when Object is garbage-collected.
@@ -62,16 +82,20 @@ func (obj *Object) finalizer() {
 // and *C.PyObject reference to the Object's value at the
 // cpython side.
 func (obj *Object) begin() (pyGate, pyObject, error) {
+	if obj.err != nil {
+		return pyGate{}, nil, obj.err
+	}
+
 	gate, err := obj.py.gate()
 
 	if err == nil {
-		pyobj := obj.py.lookupObjID(gate, obj.oid)
+		var pyobj pyObject
+		pyobj, err = obj.py.lookupObjID(gate, obj.oid)
 		if pyobj != nil {
 			return gate, pyobj, nil
 		}
 
 		gate.release()
-		err = ErrInvalidObject{}
 	}
 
 	return pyGate{}, nil, err
@@ -101,6 +125,18 @@ func (obj *Object) Py() *Python {
 	return obj.py
 }
 
+// Err returns error for the error Object, or nil if there
+// is no error.
+func (obj *Object) Err() error {
+	return obj.err
+}
+
+// NotFound returns true, if [Object] is the error object
+// and error type is [ErrNotFound].
+func (obj *Object) NotFound() bool {
+	return obj.err == ErrNotFound{}
+}
+
 // Len returns Object length, in items. It works with container
 // objects (lists, tuples, dict, ...).
 //
@@ -119,11 +155,6 @@ func (obj *Object) Len() (int, error) {
 //
 // The Object must be container (array, dict, etc).
 // The key may be any value that [Python.NewObject] accepts.
-//
-// It returns:
-//   - (true, nil) if item was found and deleted
-//   - (false, nil) if item was not found
-//   - (false, error) in a case of error
 func (obj *Object) Del(key any) (bool, error) {
 	gate, pyobj, err := obj.begin()
 	if err != nil {
@@ -131,7 +162,7 @@ func (obj *Object) Del(key any) (bool, error) {
 	}
 	defer gate.release()
 
-	// Obtain *C.PyIbject references for key
+	// Obtain *C.PyObject reference for key
 	pykey, err := obj.py.newPyObject(gate, key)
 	if err != nil {
 		return false, err
@@ -139,6 +170,7 @@ func (obj *Object) Del(key any) (bool, error) {
 	defer gate.unref(pykey)
 
 	// Check for item existence, then delete, if found.
+	// Check if attribute exists, then retrieve
 	found, err := gate.hasitem(pyobj, pykey)
 	if found {
 		err = gate.delitem(pyobj, pykey)
@@ -155,38 +187,35 @@ func (obj *Object) Del(key any) (bool, error) {
 //
 // The Object must be container (array, dict, etc).
 // The key may be any value that [Python.NewObject] accepts.
-//
-// It returns:
-//   - (*Object, nil) if item was found
-//   - (nil, nil) if item was not found
-//   - (nil, error) in a case of error
-func (obj *Object) Get(key any) (*Object, error) {
+func (obj *Object) Get(key any) *Object {
 	gate, pyobj, err := obj.begin()
 	if err != nil {
-		return nil, err
+		return newErrorObject(obj.py, err)
 	}
 	defer gate.release()
 
 	// Obtain *C.PyObject references for key
 	pykey, err := obj.py.newPyObject(gate, key)
 	if err != nil {
-		return nil, err
+		return newErrorObject(obj.py, err)
 	}
 	defer gate.unref(pykey)
 
-	// Check for item existence, then retrieve, if found.
+	// Check if item exists, then retrieve
 	found, err := gate.hasitem(pyobj, pykey)
 	var pyitem pyObject
 	if found {
 		pyitem, err = gate.getitem(pyobj, pykey)
+	} else if err == nil {
+		err = ErrNotFound{}
 	}
 
 	if err != nil {
-		return nil, err
+		return newErrorObject(obj.py, err)
 	}
 
 	// Create the item object
-	return newObjectFromPython(obj.py, gate, pyitem), nil
+	return newObjectFromPython(obj.py, gate, pyitem)
 }
 
 // Contains reports if Object has the item with the specified key.
@@ -278,32 +307,28 @@ func (obj *Object) DelAttr(name string) (bool, error) {
 // In Python:
 //
 //	obj.name
-//
-// It returns:
-//   - (*Object, nil) if attribute was found
-//   - (nil, nil) if attribute was not found
-//   - (nil, error) in a case of error
-func (obj *Object) GetAttr(name string) (*Object, error) {
+func (obj *Object) GetAttr(name string) *Object {
 	gate, pyobj, err := obj.begin()
 	if err != nil {
-		return nil, err
+		return newErrorObject(obj.py, err)
 	}
 	defer gate.release()
 
-	// Check if attribute exists
+	// Check if attribute exists, then retrieve
 	found, err := gate.hasattr(pyobj, name)
-	if !found {
-		return nil, err
+	var pyattr pyObject
+	if found {
+		pyattr, err = gate.getattr(pyobj, name)
+	} else if err == nil {
+		err = ErrNotFound{}
 	}
 
-	// Try to get
-	pyattr, err := gate.getattr(pyobj, name)
 	if err != nil {
-		return nil, err
+		return newErrorObject(obj.py, err)
 	}
 
 	// Create the attribute object
-	return newObjectFromPython(obj.py, gate, pyattr), nil
+	return newObjectFromPython(obj.py, gate, pyattr)
 }
 
 // HasAttr reports if Object has the attribute with the specified name.
@@ -352,7 +377,7 @@ func (obj *Object) SetAttr(name string, val any) error {
 // See [Python.NewObject] for details.
 //
 // Use [Object.CallKW] for call with keyword arguments.
-func (obj *Object) Call(args ...any) (*Object, error) {
+func (obj *Object) Call(args ...any) *Object {
 	return obj.CallKW(nil, args...)
 }
 
@@ -366,17 +391,17 @@ func (obj *Object) Call(args ...any) (*Object, error) {
 // If keyword arguments are not used, kw may be nil.
 //
 // It returns the function's return value.
-func (obj *Object) CallKW(kw map[string]any, args ...any) (*Object, error) {
+func (obj *Object) CallKW(kw map[string]any, args ...any) *Object {
 	gate, pyobj, err := obj.begin()
 	if err != nil {
-		return nil, err
+		return newErrorObject(obj.py, err)
 	}
 	defer gate.release()
 
 	// Convert positional arguments
 	pyargs, err := gate.makeTuple(len(args))
 	if err != nil {
-		return nil, err
+		return newErrorObject(obj.py, err)
 	}
 
 	defer gate.unref(pyargs)
@@ -384,13 +409,13 @@ func (obj *Object) CallKW(kw map[string]any, args ...any) (*Object, error) {
 	for i, arg := range args {
 		pyarg, err := obj.py.newPyObject(gate, arg)
 		if err != nil {
-			return nil, err
+			return newErrorObject(obj.py, err)
 		}
 
 		err = gate.setTupleItem(pyargs, pyarg, i)
 		if err != nil {
 			gate.unref(pyarg)
-			return nil, err
+			return newErrorObject(obj.py, err)
 		}
 	}
 
@@ -400,7 +425,7 @@ func (obj *Object) CallKW(kw map[string]any, args ...any) (*Object, error) {
 		var err error
 		pykwargs, err = obj.py.newPyObject(gate, kw)
 		if err != nil {
-			return nil, err
+			return newErrorObject(obj.py, err)
 		}
 
 		defer gate.unref(pykwargs)
@@ -409,11 +434,11 @@ func (obj *Object) CallKW(kw map[string]any, args ...any) (*Object, error) {
 	// Perform a call
 	pyret, err := gate.call(pyobj, pyargs, pykwargs)
 	if err != nil {
-		return nil, err
+		return newErrorObject(obj.py, err)
 	}
 
 	// Create response Object
-	return newObjectFromPython(obj.py, gate, pyret), nil
+	return newObjectFromPython(obj.py, gate, pyret)
 }
 
 // Str returns string representation of the Object.
@@ -442,14 +467,11 @@ func (obj *Object) Bool() (bool, error) {
 	}
 
 	// Try to call the __bool__ method
-	toBool, _ := obj.GetAttr("__bool__")
-	if toBool != nil {
-		answer, _ := toBool.Call()
-		if answer != nil {
-			val, err2 := answer.fastBool()
-			if err2 == nil {
-				return val, nil
-			}
+	toBool := obj.GetAttr("__bool__")
+	if toBool.Err() == nil {
+		val, err2 := toBool.Call().fastBool()
+		if err2 == nil {
+			return val, nil
 		}
 	}
 

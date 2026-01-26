@@ -60,3 +60,13 @@ type ErrInvalidObject struct{}
 func (e ErrInvalidObject) Error() string {
 	return "use Object after Object.Invalidate"
 }
+
+// ErrNotFound represents the error that occurs when retrieving
+// value from container (dict, array, ...) fails because key was
+// not found in the container
+type ErrNotFound struct{}
+
+// Error returns error message. It implements the [error] interface.
+func (e ErrNotFound) Error() string {
+	return "item not found"
+}

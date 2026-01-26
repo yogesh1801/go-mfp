@@ -134,10 +134,10 @@ func TestObjectFromPython(t *testing.T) {
 	defer py.Close()
 
 	for _, test := range tests {
-		obj, err := py.Eval(test.expr)
+		obj := py.Eval(test.expr)
 
 		// Check errors vs expectations
-		if err != nil {
+		if err := obj.Err(); err != nil {
 			t.Errorf("%s: unexpected error: %s",
 				test.expr, err)
 			continue
@@ -206,8 +206,8 @@ func TestObjectIsMapSeq(t *testing.T) {
 	defer py.Close()
 
 	for _, test := range tests {
-		obj, err := py.Eval(test.expr)
-		assert.NoError(err)
+		obj := py.Eval(test.expr)
+		assert.NoError(obj.Err())
 
 		isbool := obj.IsBool()
 		if isbool != test.isbool {
@@ -318,8 +318,8 @@ func TestNewObject(t *testing.T) {
 	}
 
 	eval := func(s string) *Object {
-		obj, err := py.Eval(s)
-		assert.NoError(err)
+		obj := py.Eval(s)
+		assert.NoError(obj.Err())
 		return obj
 	}
 
@@ -422,8 +422,8 @@ func TestNewObject(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		obj, err := py.NewObject(test.in)
-		if err != nil {
+		obj := py.NewObject(test.in)
+		if err := obj.Err(); err != nil {
 			t.Errorf("%v: Python.NewObject: %s", test.in, err)
 			continue
 		}
@@ -468,8 +468,8 @@ dog = Dog("Archi", 4)
 	err = py.Exec(script, "")
 	assert.NoError(err)
 
-	obj, err := py.Eval("dog")
-	assert.NoError(err)
+	obj := py.Eval("dog")
+	assert.NoError(obj.Err())
 
 	found, err := obj.HasAttr("name")
 	if err != nil {
@@ -489,8 +489,8 @@ dog = Dog("Archi", 4)
 		t.Errorf("Attribute not %q expected but found", "unknown")
 	}
 
-	attr, err := obj.GetAttr("name")
-	if err != nil {
+	attr := obj.GetAttr("name")
+	if err := attr.Err(); err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	} else {
 		s, err := attr.Unicode()
@@ -529,8 +529,8 @@ func TestObjectItems(t *testing.T) {
 	defer py.Close()
 
 	// Create test object
-	obj, err := py.Eval(`{1:"1", 2:"2", 3:"3"}`)
-	assert.NoError(err)
+	obj := py.Eval(`{1:"1", 2:"2", 3:"3"}`)
+	assert.NoError(obj.Err())
 	_ = obj
 
 	// Items 1, 2, 3 must exist and have proper value
@@ -545,8 +545,8 @@ func TestObjectItems(t *testing.T) {
 			t.Errorf("Object.Contains(%v): item not found", i)
 		}
 
-		item, err := obj.Get(i)
-		if err != nil {
+		item := obj.Get(i)
+		if err := item.Err(); err != nil {
 			t.Errorf("Object.Get(%v): %s", i, err)
 			return
 		}
@@ -575,12 +575,13 @@ func TestObjectItems(t *testing.T) {
 			t.Errorf("Object.Contains(%v): item found", i)
 		}
 
-		item, err := obj.Get(i)
-		if item != nil || err != nil {
+		item := obj.Get(i)
+		err = item.Err()
+		if err != (ErrNotFound{}) {
 			t.Errorf("Object.Get(%v):\n"+
-				"expected: (%v, %v)\n"+
-				"present:  (%v, %v)\n",
-				i, nil, nil, item, err)
+				"expected: (%s)\n"+
+				"present:  (%s)\n",
+				i, ErrNotFound{}, err)
 		}
 	}
 
@@ -596,8 +597,8 @@ func TestObjectItems(t *testing.T) {
 
 	// Now all objects must be present
 	for i := 1; i <= 6; i++ {
-		item, err := obj.Get(i)
-		if err != nil {
+		item := obj.Get(i)
+		if err := item.Err(); err != nil {
 			t.Errorf("Object.Get(%v): %s", i, err)
 			return
 		}
@@ -679,8 +680,8 @@ func TestObjectLen(t *testing.T) {
 
 	// Run tests
 	for _, test := range tests {
-		obj, err := py.Eval(test.expr)
-		assert.NoError(err)
+		obj := py.Eval(test.expr)
+		assert.NoError(obj.Err())
 
 		l, err := obj.Len()
 		switch {
@@ -741,8 +742,8 @@ func TestObjectSlice(t *testing.T) {
 
 	// Run tests
 	for _, test := range tests {
-		obj, err := py.Eval(test.expr)
-		assert.NoError(err)
+		obj := py.Eval(test.expr)
+		assert.NoError(obj.Err())
 
 		slice, err := obj.Slice()
 		if err != nil {
@@ -813,8 +814,8 @@ func TestObjectKeys(t *testing.T) {
 
 	// Run tests
 	for _, test := range tests {
-		obj, err := py.Eval(test.expr)
-		assert.NoError(err)
+		obj := py.Eval(test.expr)
+		assert.NoError(obj.Err())
 
 		slice, err := obj.Keys()
 		if err != nil {
@@ -851,8 +852,8 @@ func TestObjectCallable(t *testing.T) {
 	defer py.Close()
 
 	// Obtain non-callable object
-	obj, err := py.Eval("5")
-	assert.NoError(err)
+	obj := py.Eval("5")
+	assert.NoError(obj.Err())
 
 	callable := obj.IsCallable()
 	if callable {
@@ -860,8 +861,8 @@ func TestObjectCallable(t *testing.T) {
 	}
 
 	// Obtain callable object
-	obj, err = py.Eval("min")
-	assert.NoError(err)
+	obj = py.Eval("min")
+	assert.NoError(obj.Err())
 
 	callable = obj.IsCallable()
 	if !callable {
@@ -877,12 +878,12 @@ func TestObjectCall(t *testing.T) {
 	defer py.Close()
 
 	// Obtain callable object
-	obj, err := py.Eval("min")
-	assert.NoError(err)
+	obj := py.Eval("min")
+	assert.NoError(obj.Err())
 
 	// Perform simple call
-	res, err := obj.Call(1, 2)
-	if err != nil {
+	res := obj.Call(1, 2)
+	if err := res.Err(); err != nil {
 		t.Errorf("Object.Call (positional args): %s", err)
 		return
 	}
@@ -901,8 +902,8 @@ func TestObjectCall(t *testing.T) {
 	}
 
 	// Call with keyword arguments
-	res, err = obj.CallKW(map[string]any{"default": 5}, []int{})
-	if err != nil {
+	res = obj.CallKW(map[string]any{"default": 5}, []int{})
+	if err := res.Err(); err != nil {
 		t.Errorf("Object.Call (keyword args): %s", err)
 		return
 	}
@@ -928,7 +929,7 @@ func TestObjectGC(t *testing.T) {
 
 	base := py.countObjID()
 
-	_, err = py.Eval("5")
+	err = py.Eval("5").Err()
 	assert.NoError(err)
 
 	if len(py.objects.mapped) != base+1 {

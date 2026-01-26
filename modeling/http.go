@@ -17,7 +17,7 @@ import (
 
 // httpHeaderToPython converts [http.Header] to [cpython.Object].
 // The returned object will be of the http.client.HTTPMessage type.
-func (model *Model) httpHeaderToPython(h http.Header) (*cpython.Object, error) {
+func (model *Model) httpHeaderToPython(h http.Header) *cpython.Object {
 	// Obtain and sort header lines.
 	//
 	// Note, Go maps are unordered and map iteration order is
@@ -39,19 +39,15 @@ func (model *Model) httpHeaderToPython(h http.Header) (*cpython.Object, error) {
 	})
 
 	// Create and populate the target Python Object
-	obj, err := model.clsHTTPMessage.Call()
-	if err != nil {
-		return nil, err
-	}
-
+	obj := model.clsHTTPMessage.Call()
 	for _, line := range hdrlines {
-		err = obj.Set(line.name, line.val)
+		err := obj.Set(line.name, line.val)
 		if err != nil {
-			return nil, err
+			return model.py.NewError(err)
 		}
 	}
 
-	return obj, nil
+	return obj
 }
 
 // httpHeaderToPython converts [cpython.Object] into [http.Header].
@@ -73,8 +69,8 @@ func (model *Model) httpHeaderFromPython(obj *cpython.Object) (
 			continue
 		}
 
-		val, err := obj.Get(key)
-		if err != nil {
+		val := obj.Get(key)
+		if err := val.Err(); err != nil {
 			return nil, err
 		}
 

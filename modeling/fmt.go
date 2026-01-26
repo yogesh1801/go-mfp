@@ -39,6 +39,11 @@ func (f *formatter) format(obj *cpython.Object) error {
 // formatValue writes Python value into the io.Writer.
 // It's a helper function for the formatter.Format
 func (f *formatter) formatValue(obj *cpython.Object, indent int) {
+	// Check for error object
+	if f.err == nil {
+		f.err = obj.Err()
+	}
+
 	// Check for the sticky error
 	if f.err != nil {
 		return
@@ -80,7 +85,8 @@ func (f *formatter) formatDict(dict *cpython.Object, indent int) {
 	for i := range keyobjs {
 		keys[i], f.err = keyobjs[i].Repr()
 		if f.err == nil {
-			vals[i], f.err = dict.Get(keyobjs[i])
+			vals[i] = dict.Get(keyobjs[i])
+			f.err = vals[i].Err()
 		}
 
 		if f.err != nil {
@@ -168,7 +174,8 @@ func (f *formatter) formatArray(obj *cpython.Object, indent int) {
 	width := 0
 	for i := 0; i < length; i++ {
 		// Fill array of values
-		vals[i], f.err = obj.Get(i)
+		vals[i] = obj.Get(i)
+		f.err = vals[i].Err()
 		if f.err != nil {
 			return
 		}

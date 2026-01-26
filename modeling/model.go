@@ -74,44 +74,44 @@ func NewModel() (*Model, error) {
 	}
 
 	// Load modules
-	model.modQuery, err = py.Load(embedPyQuery, "query", "query.py")
-	if err != nil {
+	model.modQuery = py.Load(embedPyQuery, "query", "query.py")
+	if err := model.modQuery.Err(); err != nil {
 		return nil, err
 	}
 
-	model.modEscl, err = py.Load(embedPyEscl, "escl", "escl.py")
-	if err != nil {
+	model.modEscl = py.Load(embedPyEscl, "escl", "escl.py")
+	if err := model.modEscl.Err(); err != nil {
 		return nil, err
 	}
 
-	model.modIPP, err = py.Load(embedPyIPP, "ipp", "ipp.py")
-	if err != nil {
+	model.modIPP = py.Load(embedPyIPP, "ipp", "ipp.py")
+	if err := model.modIPP.Err(); err != nil {
 		return nil, err
 	}
 
 	// Load commonly used class constructors
-	model.clsDict, err = py.Eval("dict")
+	model.clsDict = py.Eval("dict")
 	if err != nil {
 		return nil, err
 	}
 
-	model.clsQuery, err = py.Eval("query.Query")
-	if err != nil {
+	model.clsQuery = py.Eval("query.Query")
+	if err := model.clsQuery.Err(); err != nil {
 		return nil, err
 	}
 
-	model.clsHTTPMessage, err = py.Eval("query.HTTPMessage")
-	if err != nil {
+	model.clsHTTPMessage = py.Eval("query.HTTPMessage")
+	if err := model.clsHTTPMessage.Err(); err != nil {
 		return nil, err
 	}
 
-	model.clsUUID, err = py.Eval("UUID")
-	if err != nil {
+	model.clsUUID = py.Eval("UUID")
+	if err := model.clsUUID.Err(); err != nil {
 		return nil, err
 	}
 
-	model.clsDateTimeFromISO, err = py.Eval("datetime.fromisoformat")
-	if err != nil {
+	model.clsDateTimeFromISO = py.Eval("datetime.fromisoformat")
+	if err := model.clsDateTimeFromISO.Err(); err != nil {
 		return nil, err
 	}
 
@@ -120,6 +120,7 @@ func NewModel() (*Model, error) {
 	assert.Must(model.clsHTTPMessage.IsCallable())
 	assert.Must(model.clsQuery.IsCallable())
 	assert.Must(model.clsUUID.IsCallable())
+	assert.Must(model.clsDateTimeFromISO.IsCallable())
 
 	return model, nil
 }
@@ -144,31 +145,23 @@ func (model *Model) Reset() error {
 }
 
 // Write writes model into the [io.Writer]
-func (model *Model) Write(w io.Writer) error {
+func (model *Model) Write(w io.Writer) (err error) {
 	var escl, ipp string
 
 	// Format parts
 	if model.esclScanCaps != nil {
-		obj, err := model.pyExportStruct(model.esclScanCaps)
-		if err != nil {
-			return err
-		}
-
+		obj := model.pyExportStruct(model.esclScanCaps)
 		escl, err = formatPython(obj)
 		if err != nil {
-			return err
+			return
 		}
 	}
 
 	if model.ippPrinterAttrs != nil {
-		obj, err := model.pyExportIPP(model.ippPrinterAttrs)
-		if err != nil {
-			return err
-		}
-
+		obj := model.pyExportIPP(model.ippPrinterAttrs)
 		ipp, err = formatPython(obj)
 		if err != nil {
-			return err
+			return
 		}
 	}
 

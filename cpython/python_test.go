@@ -27,8 +27,8 @@ func TestPython(t *testing.T) {
 			return
 		}
 
-		res, err := py.Eval(`"hello"`)
-		if err != nil {
+		res := py.Eval(`"hello"`)
+		if err := res.Err(); err != nil {
 			t.Errorf("py.Eval: unexpected error: %s", err)
 			py.Close()
 			return
@@ -65,8 +65,8 @@ func TestPython(t *testing.T) {
 		return
 	}
 
-	res, err := py.Eval(`x`)
-	if err != nil {
+	res := py.Eval(`x`)
+	if err := res.Err(); err != nil {
 		t.Errorf("py.Eval: unexpected error: %s", err)
 		return
 	}
@@ -120,14 +120,14 @@ func TestPythonLoad(t *testing.T) {
 		"i = 5\n" +
 		""
 
-	_, err = py.Load(mod, "mymodule", "modulefile.py")
+	err = py.Load(mod, "mymodule", "modulefile.py").Err()
 	if err != nil {
 		t.Errorf("Python.Import: %s", err)
 		return
 	}
 
-	obj, err := py.Eval("mymodule.i")
-	if err != nil {
+	obj := py.Eval("mymodule.i")
+	if err := obj.Err(); err != nil {
 		t.Errorf("Python.Import: can't access module variable: %s", err)
 		return
 	}

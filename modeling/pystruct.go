@@ -22,12 +22,9 @@ import (
 // structure or pointer to structure, into the Python dictionary.
 //
 // s MUST be struct or pointer to struct.
-func (model *Model) pyExportStruct(s any) (*cpython.Object, error) {
+func (model *Model) pyExportStruct(s any) *cpython.Object {
 	// Create output cpython.Object (the empty dict).
-	dict, err := model.py.NewObject(map[any]any(nil))
-	if err != nil {
-		return nil, err
-	}
+	dict := model.py.NewObject(map[any]any(nil))
 
 	// Normalize input parameter and obtain the reflect.Value for it.
 	v := reflect.ValueOf(s)
@@ -61,37 +58,30 @@ func (model *Model) pyExportStruct(s any) (*cpython.Object, error) {
 		}
 
 		// Convert into the Python Object and add to the dict,
-		item, err := model.pyExportValue(f)
-		if err == nil {
-			err = dict.Set(keywordNormalize(fld.Name), item)
-		}
+		item := model.pyExportValue(f)
+		err := dict.Set(keywordNormalize(fld.Name), item)
 
 		if err != nil {
-			return nil, err
+			return model.py.NewError(err)
 		}
 	}
 
-	return dict, nil
+	return dict
 }
 
 // pyExportSlice exports slice of values as the Python object.
-func (model *Model) pyExportSlice(v reflect.Value) (*cpython.Object, error) {
+func (model *Model) pyExportSlice(v reflect.Value) *cpython.Object {
 	list := make([]*cpython.Object, v.Len())
-	var err error
-	for i := 0; i < v.Len() && err == nil; i++ {
+	for i := 0; i < v.Len(); i++ {
 		elem := v.Index(i)
-		list[i], err = model.pyExportValue(elem)
-	}
-
-	if err != nil {
-		return nil, err
+		list[i] = model.pyExportValue(elem)
 	}
 
 	return model.py.NewObject(list)
 }
 
 // pyExportValue exports a value as the Python object.
-func (model *Model) pyExportValue(v reflect.Value) (*cpython.Object, error) {
+func (model *Model) pyExportValue(v reflect.Value) *cpython.Object {
 	// Handle known types
 	data := v.Interface()
 	switch v := data.(type) {
@@ -125,7 +115,6 @@ func (model *Model) pyExportValue(v reflect.Value) (*cpython.Object, error) {
 //
 // p MUST be pointer to struct or pointer to pointer to struct.
 func (model *Model) pyImportStruct(p any, obj *cpython.Object) error {
-
 	// Validate argument
 	t := reflect.TypeOf(p)
 
@@ -146,19 +135,20 @@ func (model *Model) pyImportStruct(p any, obj *cpython.Object) error {
 	for _, fld := range reflect.VisibleFields(t) {
 		// Lookup python dictionary
 		kw := keywordNormalize(fld.Name)
-		item, err := obj.Get(kw)
-		if err != nil {
-			err = fmt.Errorf("%s: %s", fld.Name, err)
-			return err
+		item := obj.Get(kw)
+
+		if err := item.Err(); err != nil {
+			if item.NotFound() {
+				continue
+			}
+			return fmt.Errorf("%s: %s", fld.Name, item.Err())
 		}
 
 		// Decode the item, if found
-		if item != nil {
-			fldval := v.FieldByIndex(fld.Index)
-			err := model.pyImportValue(fldval, item)
-			if err != nil {
-				return err
-			}
+		fldval := v.FieldByIndex(fld.Index)
+		err := model.pyImportValue(fldval, item)
+		if err != nil {
+			return err
 		}
 	}
 

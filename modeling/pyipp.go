@@ -19,52 +19,37 @@ import (
 )
 
 // pyExportIPP converts the [ipp.Object] into the [cpython.Object].
-func (model *Model) pyExportIPP(s ipp.Object) (*cpython.Object, error) {
-	obj, err := model.pyExportIPPAttrs(s.RawAttrs().All())
-	return obj, err
+func (model *Model) pyExportIPP(s ipp.Object) *cpython.Object {
+	return model.pyExportIPPAttrs(s.RawAttrs().All())
 }
 
 // pyExportIPPAttrs exports IPP attributes into the [cpython.Object].
-func (model *Model) pyExportIPPAttrs(attrs goipp.Attributes) (
-	*cpython.Object, error) {
-
+func (model *Model) pyExportIPPAttrs(attrs goipp.Attributes) *cpython.Object {
 	// Create output cpython.Object (the empty dict).
-	dict, err := model.py.NewObject(map[any]any(nil))
-	if err != nil {
-		return nil, err
-	}
+	dict := model.py.NewObject(map[any]any(nil))
 
 	// Roll over all IPP attributes
 	for _, attr := range attrs {
-		vals, err := model.pyExportIPPValues(attr)
+		vals := model.pyExportIPPValues(attr)
+		err := dict.Set(keywordNormalize(attr.Name), vals)
 		if err != nil {
-			return nil, err
-		}
-
-		err = dict.Set(keywordNormalize(attr.Name), vals)
-		if err != nil {
-			return nil, err
+			return model.py.NewError(err)
 		}
 	}
 
-	return dict, nil
+	return dict
 }
 
 // pyExportIPPValues exports IPP attribute values into the [cpython.Object].
-func (model *Model) pyExportIPPValues(attr goipp.Attribute) (
-	*cpython.Object, error) {
-
+func (model *Model) pyExportIPPValues(attr goipp.Attribute) *cpython.Object {
 	objs := make([]*cpython.Object, 0, len(attr.Values))
 	for _, v := range attr.Values {
-		obj, err := model.pyExportIPPValue(attr.Name, v.T, v.V)
-		if err != nil {
-			return nil, err
-		}
+		obj := model.pyExportIPPValue(attr.Name, v.T, v.V)
 		objs = append(objs, obj)
 	}
 
 	if len(objs) == 1 {
-		return objs[0], nil
+		return objs[0]
 	}
 
 	return model.py.NewObject(objs)
@@ -72,7 +57,7 @@ func (model *Model) pyExportIPPValues(attr goipp.Attribute) (
 
 // pyExportIPPValue exports IPP value as [cpython.Object].
 func (model *Model) pyExportIPPValue(attrname string,
-	tag goipp.Tag, val goipp.Value) (*cpython.Object, error) {
+	tag goipp.Tag, val goipp.Value) *cpython.Object {
 
 	// Collections handled the special way
 	if v, ok := val.(goipp.Collection); ok {
@@ -84,12 +69,13 @@ func (model *Model) pyExportIPPValue(attrname string,
 		switch attrname {
 		case "operations-supported":
 			op := goipp.Op(val.(goipp.Integer))
-			obj, err := model.py.Eval(fmt.Sprintf("ipp.OP(0x%.2x)", int(op)))
-			if err == nil {
-				// If we got an error here, just continue and
-				// handle the value as the regular Enum
-				return obj, nil
+			obj := model.py.Eval(fmt.Sprintf("ipp.OP(0x%.2x)", int(op)))
+			if obj.Err() == nil {
+				return obj
 			}
+
+			// If we got an error here, just continue and
+			// handle the value as the regular Enum
 		}
 	}
 
@@ -101,16 +87,14 @@ func (model *Model) pyExportIPPValue(attrname string,
 	// Here we obtain Python type name for the IPP tag
 	pytypename := pyIPPTagName[tag]
 	if pytypename == "" {
-		return nil, fmt.Errorf("invalid IPP tag %d", int(tag))
+		err := fmt.Errorf("invalid IPP tag %d", int(tag))
+		return model.py.NewError(err)
 	}
 
 	pytypename = "ipp." + pytypename
 
 	// Obtain constructor
-	pytype, err := model.py.Eval(pytypename)
-	if err != nil {
-		return nil, err
-	}
+	pytype := model.py.Eval(pytypename)
 
 	// Encode the value
 	switch v := val.(type) {
@@ -134,7 +118,7 @@ func (model *Model) pyExportIPPValue(attrname string,
 		return pytype.Call(string(v))
 	}
 
-	return model.py.None(), nil
+	return model.py.None()
 }
 
 // pyImportPrinterAppributes imports IPP printer attributes from the
@@ -171,7 +155,8 @@ func (model *Model) pyImportIPPAttrs(obj *cpython.Object) (
 		// Obtain key name and value
 		key, err = keyobjs[i].Str()
 		if err == nil {
-			valobj, err = obj.Get(keyobjs[i])
+			valobj = obj.Get(keyobjs[i])
+			err = valobj.Err()
 		}
 
 		if err != nil {
@@ -207,10 +192,7 @@ func (model *Model) pyImportIPPValues(obj *cpython.Object) (
 
 		objs = make([]*cpython.Object, sz)
 		for i := 0; i < sz; i++ {
-			objs[i], err = obj.Get(i)
-			if err != nil {
-				return nil, err
-			}
+			objs[i] = obj.Get(i)
 		}
 	} else {
 		objs = []*cpython.Object{obj}
@@ -308,46 +290,33 @@ func (model *Model) pyImportIPPResolution(obj *cpython.Object) (
 	var units goipp.Units
 
 	// Load Xres
-	obj2, err := obj.GetAttr("X")
-	if err == nil {
-		x, err = obj2.Int()
-	}
-
+	x, err = obj.GetAttr("X").Int()
 	if err != nil {
 		err = pyIPPImportErrorWrap("X", err)
 		return
 	}
 
 	// Load Yres
-	obj2, err = obj.GetAttr("Y")
-	if err == nil {
-		y, err = obj2.Int()
-	}
-
+	y, err = obj.GetAttr("Y").Int()
 	if err != nil {
 		err = pyIPPImportErrorWrap("Y", err)
 		return
 	}
 
 	// Load Units
-	obj2, err = obj.GetAttr("Units")
+	unitsName, err := obj.GetAttr("Units").Str()
 	if err == nil {
-		var s string
-		s, err = obj2.Str()
-
-		switch {
-		case err != nil:
-		case s == "dpi":
+		switch unitsName {
+		case "dpi":
 			units = goipp.UnitsDpi
-		case s == "dpcm":
+		case "dpcm":
 			units = goipp.UnitsDpcm
 		default:
-			err = fmt.Errorf("%s: invalid resolution units", s)
+			err = fmt.Errorf("%s: invalid resolution units", unitsName)
 		}
 	}
 
 	if err != nil {
-		err = pyIPPImportErrorWrap("Units", err)
 		return
 	}
 
@@ -367,22 +336,14 @@ func (model *Model) pyImportIPPRange(obj *cpython.Object) (
 	var lower, upper int64
 
 	// Load Lower
-	obj2, err := obj.GetAttr("Lower")
-	if err == nil {
-		lower, err = obj2.Int()
-	}
-
+	lower, err = obj.GetAttr("Lower").Int()
 	if err != nil {
 		err = pyIPPImportErrorWrap("Lower", err)
 		return
 	}
 
 	// Load Upper
-	obj2, err = obj.GetAttr("Upper")
-	if err == nil {
-		upper, err = obj2.Int()
-	}
-
+	upper, err = obj.GetAttr("Upper").Int()
 	if err != nil {
 		err = pyIPPImportErrorWrap("Upper", err)
 		return
@@ -403,11 +364,7 @@ func (model *Model) pyImportIPPTextWithLang(obj *cpython.Object, tag goipp.Tag) 
 	var lang, text string
 
 	// Load lang
-	obj2, err := obj.GetAttr("Lang")
-	if err == nil {
-		lang, err = obj2.Str()
-	}
-
+	lang, err = obj.GetAttr("Lang").Str()
 	if err != nil {
 		err = pyIPPImportErrorWrap("Lang", err)
 		return
@@ -419,11 +376,7 @@ func (model *Model) pyImportIPPTextWithLang(obj *cpython.Object, tag goipp.Tag) 
 		nm = "Name"
 	}
 
-	obj2, err = obj.GetAttr(nm)
-	if err == nil {
-		text, err = obj2.Str()
-	}
-
+	text, err = obj.GetAttr(nm).Str()
 	if err != nil {
 		err = pyIPPImportErrorWrap(nm, err)
 		return

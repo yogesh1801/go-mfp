@@ -35,8 +35,8 @@ func TestKyoceraESCLScannerCapabilities(t *testing.T) {
 	defer model.Close()
 
 	// Roll over Model.pyExportStruct/Model.pyImportStruct
-	obj, err := model.pyExportStruct(scancaps)
-	if err != nil {
+	obj := model.pyExportStruct(scancaps)
+	if err := obj.Err(); err != nil {
 		t.Errorf("Model.pyExportStruct: %s", err)
 		return
 	}
