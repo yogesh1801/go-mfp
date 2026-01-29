@@ -26,9 +26,7 @@ import "C"
 //
 // It works as a call gate into the interpreter and implements
 // all interpreter operations that require locking.
-type pyGate struct {
-	prev *C.PyThreadState // Previous current thread state
-}
+type pyGate struct{}
 
 // pyGateAcquire temporary attaches the calling thread to the
 // Python interpreter.
@@ -37,14 +35,14 @@ type pyGate struct {
 // use with the [pyGate.release] call.
 func pyGateAcquire(interp pyInterp) pyGate {
 	runtime.LockOSThread()
-	prev := C.py_enter(interp)
-	return pyGate{prev}
+	C.py_enter(interp)
+	return pyGate{}
 }
 
 // release detaches the calling thread from the Python interpreter.
 func (gate pyGate) release() {
 	gate.lastError() // Reset pending error condition, if any
-	C.py_leave(gate.prev)
+	C.py_leave()
 	runtime.UnlockOSThread()
 }
 

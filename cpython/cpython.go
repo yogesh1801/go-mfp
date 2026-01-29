@@ -23,8 +23,8 @@ import (
 import "C"
 
 type (
-	// pyInterp is the Go name for the *C.PyInterpreterState
-	pyInterp = *C.PyInterpreterState
+	// pyInterp is the Go name for the *C.PyThreadState
+	pyInterp = *C.PyThreadState
 
 	// pyObject is the Go name for the *C.PyObject
 	pyObject = *C.PyObject
@@ -43,7 +43,7 @@ var (
 //
 // These requests are handled by the dedicated thread. The request
 // itself is the channel of pyInterp, where response is sent.
-var pyInterpNewRequestChan = make(chan chan *C.PyInterpreterState)
+var pyInterpNewRequestChan = make(chan chan pyInterp)
 
 // pyNewInterp creates a new pyInterp.
 func pyNewInterp() (pyInterp, error) {
@@ -51,7 +51,7 @@ func pyNewInterp() (pyInterp, error) {
 		return nil, pyInitError
 	}
 
-	rsp := make(chan *C.PyInterpreterState)
+	rsp := make(chan pyInterp)
 	pyInterpNewRequestChan <- rsp
 	interp := <-rsp
 

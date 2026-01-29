@@ -59,11 +59,12 @@ static __typeof__(PyComplex_RealAsDouble)       *PyComplex_RealAsDouble_p;
 static __typeof__(Py_DecRef)                    *Py_DecRef_p;
 static __typeof__(PyDict_New)                   *PyDict_New_p;
 static __typeof__(PyDict_SetItemString)         *PyDict_SetItemString_p;
+static __typeof__(Py_EndInterpreter)            *Py_EndInterpreter_p;
 static __typeof__(PyErr_Clear)                  *PyErr_Clear_p;
 static __typeof__(PyErr_Fetch)                  *PyErr_Fetch_p;
-static __typeof__(PyErr_Restore)                *PyErr_Restore_p;
 static __typeof__(PyErr_NormalizeException)     *PyErr_NormalizeException_p;
 static __typeof__(PyErr_Occurred)               *PyErr_Occurred_p;
+static __typeof__(PyErr_Restore)                *PyErr_Restore_p;
 static __typeof__(PyEval_EvalCode)              *PyEval_EvalCode_p;
 static __typeof__(PyEval_RestoreThread)         *PyEval_RestoreThread_p;
 static __typeof__(PyEval_SaveThread)            *PyEval_SaveThread_p;
@@ -73,8 +74,6 @@ static __typeof__(PyImport_AddModule)           *PyImport_AddModule_p;
 static __typeof__(PyImport_ExecCodeModule)      *PyImport_ExecCodeModule_p;
 static __typeof__(Py_IncRef)                    *Py_IncRef_p;
 static __typeof__(Py_InitializeEx)              *Py_InitializeEx_p;
-static __typeof__(PyInterpreterState_Clear)     *PyInterpreterState_Clear_p;
-static __typeof__(PyInterpreterState_Delete)    *PyInterpreterState_Delete_p;
 static __typeof__(PyList_GetItem)               *PyList_GetItem_p;
 static __typeof__(PyList_New)                   *PyList_New_p;
 static __typeof__(PyList_SetItem)               *PyList_SetItem_p;
@@ -101,9 +100,6 @@ static __typeof__(PyObject_Type)                *PyObject_Type_p;
 static __typeof__(PySequence_Check)             *PySequence_Check_p;
 static __typeof__(PySequence_GetItem)           *PySequence_GetItem_p;
 static __typeof__(PyThreadState_Clear)          *PyThreadState_Clear_p;
-static __typeof__(PyThreadState_Delete)         *PyThreadState_Delete_p;
-static __typeof__(PyThreadState_Get)            *PyThreadState_Get_p;
-static __typeof__(PyThreadState_New)            *PyThreadState_New_p;
 static __typeof__(PyThreadState_Swap)           *PyThreadState_Swap_p;
 static __typeof__(PyTuple_GetItem)              *PyTuple_GetItem_p;
 static __typeof__(PyTuple_New)                  *PyTuple_New_p;
@@ -112,10 +108,6 @@ static __typeof__(*PyType_GetFlags)             *PyType_GetFlags_p;
 static __typeof__(PyType_IsSubtype)             *PyType_IsSubtype_p;
 static __typeof__(PyUnicode_AsUCS4)             *PyUnicode_AsUCS4_p;
 static __typeof__(PyUnicode_FromStringAndSize)  *PyUnicode_FromStringAndSize_p;
-
-// PyInterpreterState_Get is not officially exposed on Python 3.8,
-// so it needs the special care.
-static PyInterpreterState *(*PyInterpreterState_Get_p) (void);
 
 // Python exceptions (some of them):
 static PyObject *PyExc_KeyError_p;
@@ -173,25 +165,6 @@ static void *py_load (const char *name) {
     return p;
 }
 
-// py_load2 loads Python symbol by name, trying two variants
-// of the name
-static void *py_load2 (const char *name1, const char *name2) {
-    void *p = NULL;
-
-    if (py_error == NULL) {
-        p = dlsym(py_libpython3, name1);
-        if (p == NULL) {
-            p = dlsym(py_libpython3, name2);
-        }
-
-        if (p == NULL) {
-            py_set_error("%s", dlerror());
-        }
-    }
-
-    return p;
-}
-
 // py_load loads and dereferences pointer from the libpython3.so.
 static void *py_load_ptr (const char *name) {
     void **pp = py_load(name);
@@ -230,6 +203,7 @@ static void py_load_all (const char *libpython3) {
     Py_DecRef_p = py_load("Py_DecRef");
     PyDict_New_p = py_load("PyDict_New");
     PyDict_SetItemString_p = py_load("PyDict_SetItemString");
+    Py_EndInterpreter_p = py_load("Py_EndInterpreter");
     PyErr_Clear_p = py_load("PyErr_Clear");
     PyErr_Fetch_p = py_load("PyErr_Fetch");
     PyErr_Restore_p = py_load("PyErr_Restore");
@@ -244,8 +218,6 @@ static void py_load_all (const char *libpython3) {
     PyImport_ExecCodeModule_p = py_load("PyImport_ExecCodeModule");
     Py_IncRef_p = py_load("Py_IncRef");
     Py_InitializeEx_p = py_load("Py_InitializeEx");
-    PyInterpreterState_Clear_p = py_load("PyInterpreterState_Clear");
-    PyInterpreterState_Delete_p = py_load("PyInterpreterState_Delete");
     PyList_GetItem_p = py_load("PyList_GetItem");
     PyList_New_p = py_load("PyList_New");
     PyList_SetItem_p = py_load("PyList_SetItem");
@@ -272,9 +244,6 @@ static void py_load_all (const char *libpython3) {
     PySequence_Check_p = py_load("PySequence_Check");
     PySequence_GetItem_p = py_load("PySequence_GetItem");
     PyThreadState_Clear_p = py_load("PyThreadState_Clear");
-    PyThreadState_Delete_p = py_load("PyThreadState_Delete");
-    PyThreadState_Get_p = py_load("PyThreadState_Get");
-    PyThreadState_New_p = py_load("PyThreadState_New");
     PyThreadState_Swap_p = py_load("PyThreadState_Swap");
     PyTuple_GetItem_p = py_load("PyTuple_GetItem");
     PyTuple_New_p = py_load("PyTuple_New");
@@ -283,16 +252,6 @@ static void py_load_all (const char *libpython3) {
     PyType_IsSubtype_p = py_load("PyType_IsSubtype");
     PyUnicode_AsUCS4_p = py_load("PyUnicode_AsUCS4");
     PyUnicode_FromStringAndSize_p = py_load("PyUnicode_FromStringAndSize");
-
-    // Python 3.8 "unoficcially" exposes this symbol as
-    // _PyInterpreterState_Get.
-    //
-    // Python 3.9 and up exposes it as PyInterpreterState_Get, and
-    // now it's a part of the stable API.
-    //
-    // So this trickery is safe.
-    PyInterpreterState_Get_p = py_load2(
-        "_PyInterpreterState_Get", "PyInterpreterState_Get");
 
     PyExc_KeyError_p = py_load_ptr("PyExc_KeyError");
     PyExc_OverflowError_p = py_load_ptr("PyExc_OverflowError");
@@ -342,36 +301,33 @@ const char *py_init (const char *libpython3) {
 // py_new_interp returns a new Python interpreter.
 //
 // This function MUST be called by the main Python thread only.
-PyInterpreterState *py_new_interp (void) {
-    PyThreadState      *tstate, *prev;
-    PyInterpreterState *interp;
+PyThreadState *py_new_interp (void) {
+    PyThreadState      *tstate;
 
-    // This stuff is very tricky.
-    //
-    // We first use PyEval_RestoreThread(py_main_thread), to obtain
-    // the global interpreter lock.
-    //
-    // Then Py_NewInterpreter() creates a new PyInterpreterState
-    // together with the new PyThreadState, detaches the calling
-    // thread from the py_main_thread and attaches it to the
-    // newly created PyThreadState.
-    //
-    // This thread state is actually embedded into the
-    // PyInterpreterState structure, so we don't need to
-    // free it (actually, attempt to free it causes Python
-    // 3.11 and 3.12 to crash, although other versions
-    // tolerate it).
-    //
-    // Finally we need to PyEval_SaveThread() to release detach
-    // the system thread from the newly created thread and release
-    // the the global interpreter lock.
+    // This attaches the current OS thread to py_main_thread and
+    // locks the GIL
     PyEval_RestoreThread_p(py_main_thread);
 
+    // This creates an interpreter and the new thread state for it
+    // and switches the current OS thread to the newly created
+    // thread state
     tstate = Py_NewInterpreter_p();
-    interp = PyInterpreterState_Get_p();
+
+    // Here we switch back to the py_main_thread, which detaches
+    // the newly created thread state from the OS thread
+    PyThreadState_Swap_p(py_main_thread);
+
+    // And now we finally release the GIL
     PyEval_SaveThread_p();
 
-    return interp;
+    return tstate;
+}
+
+// py_interp_close closes the Python interpreter.
+void py_interp_close (PyThreadState *tstate) {
+    PyThreadState *prev = PyThreadState_Swap_p(tstate);
+    Py_EndInterpreter_p(tstate);
+    PyThreadState_Swap_p(prev);
 }
 
 // py_enter temporary attaches the calling thread to the
@@ -379,34 +335,13 @@ PyInterpreterState *py_new_interp (void) {
 //
 // It must be called before any operations with the interpreter
 // are performed and must be paired with the py_leave.
-//
-// The value it returns must be passed to the corresponding
-// py_leave call.
-PyThreadState *py_enter (PyInterpreterState *interp) {
-    PyThreadState *prev = PyThreadState_Swap_p(NULL);
-    PyThreadState *t = PyThreadState_New_p(interp);
-    PyEval_RestoreThread_p(t);
-    return prev;
+void py_enter (PyThreadState *tstate) {
+    PyEval_RestoreThread_p(tstate);
 }
 
 // py_leave detaches the calling thread from the Python interpreter.
-//
-// Its parameter must be the value, previously returned by the
-// corresponding py_enter call.
-void py_leave (PyThreadState *prev) {
-    PyThreadState *t = PyThreadState_Get_p();
-    PyThreadState_Clear_p(t);
+void py_leave (void) {
     PyEval_SaveThread_p();
-    PyThreadState_Delete_p(t);
-    PyThreadState_Swap_p(prev);
-}
-
-// py_interp_close closes the Python interpreter.
-void py_interp_close (PyInterpreterState *interp) {
-    PyThreadState *prev = py_enter(interp);
-    PyInterpreterState_Clear_p(interp);
-    py_leave(prev);
-    PyInterpreterState_Delete_p(interp);
 }
 
 // py_interp_eval evaluates string as a Python statement or expression.
