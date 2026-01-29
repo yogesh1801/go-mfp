@@ -21,15 +21,15 @@ import (
 // There are may be many interpreters within a single process.
 // Each has its own namespace and isolated from others.
 type Python struct {
-	interp   pyInterp // Underlying *C.PyInterpreterState
-	objects  *objmap  // Objects owned by the interpreter
-	pyNone   pyObject // Cached None pyObject
-	pyTrue   pyObject // Cached True pyObject
-	pyFalse  pyObject // Cached False pyObject
-	objNone  *Object  // Cached None Object
-	objTrue  *Object  // Cached True Object
-	objFalse *Object  // Cached False Object
-	globals  *Object  // Global dictionary
+	interp   pyThreadState // Python sub-interpreter (its main thread state)
+	objects  *objmap       // Objects owned by the interpreter
+	pyNone   pyObject      // Cached None pyObject
+	pyTrue   pyObject      // Cached True pyObject
+	pyFalse  pyObject      // Cached False pyObject
+	objNone  *Object       // Cached None Object
+	objTrue  *Object       // Cached True Object
+	objFalse *Object       // Cached False Object
+	globals  *Object       // Global dictionary
 }
 
 // NewPython creates a new Python interpreter.

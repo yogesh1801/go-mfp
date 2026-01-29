@@ -31,9 +31,12 @@ type pyGate struct{}
 // pyGateAcquire temporary attaches the calling thread to the
 // Python interpreter.
 //
+// The interpreter is represented by the reference to its
+// main thread state.
+//
 // It returns the pyGate object, that must be released after
 // use with the [pyGate.release] call.
-func pyGateAcquire(interp pyInterp) pyGate {
+func pyGateAcquire(interp pyThreadState) pyGate {
 	runtime.LockOSThread()
 	C.py_enter(interp)
 	return pyGate{}

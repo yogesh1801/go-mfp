@@ -23,8 +23,8 @@ import (
 import "C"
 
 type (
-	// pyInterp is the Go name for the *C.PyThreadState
-	pyInterp = *C.PyThreadState
+	// pyThreadState is the Go name for the *C.PyThreadState
+	pyThreadState = *C.PyThreadState
 
 	// pyObject is the Go name for the *C.PyObject
 	pyObject = *C.PyObject
@@ -39,27 +39,28 @@ var (
 )
 
 // pyInterpNewRequestChan is the channel where requests to create
-// new pyInterp are sent to.
+// new Python sub-interpretes are sent to.
 //
 // These requests are handled by the dedicated thread. The request
-// itself is the channel of pyInterp, where response is sent.
-var pyInterpNewRequestChan = make(chan chan pyInterp)
+// itself is the channel of pyThreadState, where response is sent.
+var pyInterpNewRequestChan = make(chan chan pyThreadState)
 
-// pyNewInterp creates a new pyInterp.
-func pyNewInterp() (pyInterp, error) {
+// pyNewInterp creates a new Python sub-interpreter and returns
+// pointer to its main thread state.
+func pyNewInterp() (pyThreadState, error) {
 	if pyInitError != nil {
 		return nil, pyInitError
 	}
 
-	rsp := make(chan pyInterp)
+	rsp := make(chan pyThreadState)
 	pyInterpNewRequestChan <- rsp
 	interp := <-rsp
 
 	return interp, nil
 }
 
-// pyInterpDelete releases the pyInterp.
-func pyInterpDelete(interp pyInterp) {
+// pyInterpDelete releases the Python sub-interpreter
+func pyInterpDelete(interp pyThreadState) {
 	C.py_interp_close(interp)
 }
 
