@@ -10,6 +10,11 @@ package cpython
 
 import "math"
 
+// The following variables define ranges of the float64
+// values that can be correctly converted into int64/uint64
+//
+// These ranges are machine-specific and guessed dynamically
+// at the initialization time
 var (
 	// maxInt64Float is the maximum float64 value that can be
 	// correctly converted into the int64
