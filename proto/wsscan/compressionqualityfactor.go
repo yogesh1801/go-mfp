@@ -4,7 +4,8 @@
 // Copyright (C) 2024 and up by Yogesh Singla (yogeshsingla481@gmail.com)
 // See LICENSE for license terms and conditions
 //
-// CompressionQualityFactor: specifies an idealized integer amount of image quality
+// CompressionQualityFactor:
+// specifies an idealized integer amount of image quality
 
 package wsscan
 
@@ -15,27 +16,27 @@ import (
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
-// CompressionQualityFactor specifies an idealized integer amount of image quality,
-// on a scale from 0 through 100.
-// The optional attributes MustHonor, Override, and UsedDefault are Boolean values.
-type CompressionQualityFactor struct {
-	TextWithBoolAttrs[int]
-}
+// CompressionQualityFactor specifies an idealized integer amount of
+// image quality, on a scale from 0 through 100.
+type CompressionQualityFactor ValWithBoolAttr[int]
 
-// decodeCompressionQualityFactor decodes a CompressionQualityFactor from an XML element.
-func decodeCompressionQualityFactor(root xmldoc.Element) (CompressionQualityFactor, error) {
-	var cqf CompressionQualityFactor
-	decoded, err := cqf.TextWithBoolAttrs.decodeTextWithBoolAttrs(root, compressionQualityFactorDecoder)
+// decodeCompressionQualityFactor decodes
+// CompressionQualityFactor from an XML element.
+func decodeCompressionQualityFactor(root xmldoc.Element) (
+	CompressionQualityFactor, error) {
+	var base ValWithBoolAttr[int]
+	decoded, err := base.decodeValWithBoolAttr(
+		root, compressionQualityFactorDecoder)
 	if err != nil {
-		return cqf, err
+		return CompressionQualityFactor{}, err
 	}
-	cqf.TextWithBoolAttrs = decoded
-	return cqf, nil
+	return CompressionQualityFactor(decoded), nil
 }
 
 // toXML converts a CompressionQualityFactor to an XML element.
 func (cqf CompressionQualityFactor) toXML(name string) xmldoc.Element {
-	return cqf.TextWithBoolAttrs.toXML(name, compressionQualityFactorEncoder)
+	return ValWithBoolAttr[int](cqf).toXML(name,
+		compressionQualityFactorEncoder)
 }
 
 // compressionQualityFactorDecoder converts a string to an integer.

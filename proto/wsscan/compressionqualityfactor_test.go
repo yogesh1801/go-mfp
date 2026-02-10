@@ -17,24 +17,28 @@ import (
 )
 
 func TestCompressionQualityFactor_RoundTrip_AllAttributes(t *testing.T) {
-	orig := CompressionQualityFactor{
-		TextWithBoolAttrs: TextWithBoolAttrs[int]{
-			Text:        85,
-			MustHonor:   optional.New(BooleanElement("true")),
-			Override:    optional.New(BooleanElement("false")),
-			UsedDefault: optional.New(BooleanElement("1")),
-		},
-	}
+	orig := CompressionQualityFactor(ValWithBoolAttr[int]{
+		Text:        85,
+		MustHonor:   optional.New(BooleanElement("true")),
+		Override:    optional.New(BooleanElement("false")),
+		UsedDefault: optional.New(BooleanElement("1")),
+	})
 
 	elm := orig.toXML("wscn:CompressionQualityFactor")
 	if elm.Name != "wscn:CompressionQualityFactor" {
-		t.Errorf("expected element name 'wscn:CompressionQualityFactor', got '%s'", elm.Name)
+		t.Errorf(
+			"expected element name 'wscn:CompressionQualityFactor', got '%s'",
+			elm.Name)
 	}
 	if elm.Text != "85" {
 		t.Errorf("expected text '85', got '%s'", elm.Text)
 	}
 	if len(elm.Attrs) != 3 {
-		t.Errorf("expected 3 attributes, got %d: %+v", len(elm.Attrs), elm.Attrs)
+		t.Errorf(
+			"expected 3 attributes, got %d: %+v",
+			len(elm.Attrs),
+			elm.Attrs,
+		)
 	}
 
 	decoded, err := decodeCompressionQualityFactor(elm)
@@ -47,15 +51,16 @@ func TestCompressionQualityFactor_RoundTrip_AllAttributes(t *testing.T) {
 }
 
 func TestCompressionQualityFactor_RoundTrip_NoAttributes(t *testing.T) {
-	orig := CompressionQualityFactor{
-		TextWithBoolAttrs: TextWithBoolAttrs[int]{
-			Text: 50,
-		},
-	}
+	orig := CompressionQualityFactor(ValWithBoolAttr[int]{
+		Text: 50,
+	})
 
 	elm := orig.toXML("wscn:CompressionQualityFactor")
 	if len(elm.Attrs) != 0 {
-		t.Errorf("expected no attributes, got %+v", elm.Attrs)
+		t.Errorf(
+			"expected no attributes, got %+v",
+			elm.Attrs,
+		)
 	}
 
 	decoded, err := decodeCompressionQualityFactor(elm)
@@ -79,19 +84,25 @@ func TestCompressionQualityFactor_BoundaryValues(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			cqf := CompressionQualityFactor{
-				TextWithBoolAttrs: TextWithBoolAttrs[int]{
-					Text: c.value,
-				},
-			}
+			cqf := CompressionQualityFactor(ValWithBoolAttr[int]{
+				Text: c.value,
+			})
 			elm := cqf.toXML("wscn:CompressionQualityFactor")
 
 			decoded, err := decodeCompressionQualityFactor(elm)
 			if err != nil {
-				t.Errorf("expected no error for value %d, got: %v", c.value, err)
+				t.Errorf(
+					"expected no error for value %d, got: %v",
+					c.value,
+					err,
+				)
 			}
 			if decoded.Text != c.value {
-				t.Errorf("expected value %d, got %d", c.value, decoded.Text)
+				t.Errorf(
+					"expected value %d, got %d",
+					c.value,
+					decoded.Text,
+				)
 			}
 		})
 	}
@@ -105,7 +116,9 @@ func TestCompressionQualityFactor_InvalidText(t *testing.T) {
 
 	_, err := decodeCompressionQualityFactor(elm)
 	if err == nil {
-		t.Error("expected error for invalid integer text, got nil")
+		t.Error(
+			"expected error for invalid integer text, got nil",
+		)
 	}
 }
 
@@ -120,26 +133,33 @@ func TestCompressionQualityFactor_InvalidBooleanAttribute(t *testing.T) {
 
 	_, err := decodeCompressionQualityFactor(elm)
 	if err == nil {
-		t.Error("expected error for invalid boolean attribute, got nil")
+		t.Error(
+			"expected error for invalid boolean attribute, got nil",
+		)
 	}
 }
 
 func TestCompressionQualityFactor_WithMustHonor(t *testing.T) {
-	orig := CompressionQualityFactor{
-		TextWithBoolAttrs: TextWithBoolAttrs[int]{
-			Text:      100,
-			MustHonor: optional.New(BooleanElement("true")),
-		},
-	}
+	orig := CompressionQualityFactor(ValWithBoolAttr[int]{
+		Text:      100,
+		MustHonor: optional.New(BooleanElement("true")),
+	})
 
 	elm := orig.toXML("wscn:CompressionQualityFactor")
 	decoded, err := decodeCompressionQualityFactor(elm)
 	if err != nil {
-		t.Fatalf("decode returned error: %v", err)
+		t.Fatalf(
+			"decode returned error: %v",
+			err,
+		)
 	}
 
 	if !reflect.DeepEqual(orig, decoded) {
-		t.Errorf("expected %+v, got %+v", orig, decoded)
+		t.Errorf(
+			"expected %+v, got %+v",
+			orig,
+			decoded,
+		)
 	}
 
 	// Verify MustHonor attribute is present
@@ -152,12 +172,10 @@ func TestCompressionQualityFactor_WithMustHonor(t *testing.T) {
 }
 
 func TestCompressionQualityFactor_WithOverride(t *testing.T) {
-	orig := CompressionQualityFactor{
-		TextWithBoolAttrs: TextWithBoolAttrs[int]{
-			Text:     25,
-			Override: optional.New(BooleanElement("false")),
-		},
-	}
+	orig := CompressionQualityFactor(ValWithBoolAttr[int]{
+		Text:     25,
+		Override: optional.New(BooleanElement("false")),
+	})
 
 	elm := orig.toXML("wscn:CompressionQualityFactor")
 	decoded, err := decodeCompressionQualityFactor(elm)
@@ -179,12 +197,10 @@ func TestCompressionQualityFactor_WithOverride(t *testing.T) {
 }
 
 func TestCompressionQualityFactor_WithUsedDefault(t *testing.T) {
-	orig := CompressionQualityFactor{
-		TextWithBoolAttrs: TextWithBoolAttrs[int]{
-			Text:        75,
-			UsedDefault: optional.New(BooleanElement("1")),
-		},
-	}
+	orig := CompressionQualityFactor(ValWithBoolAttr[int]{
+		Text:        75,
+		UsedDefault: optional.New(BooleanElement("1")),
+	})
 
 	elm := orig.toXML("wscn:CompressionQualityFactor")
 	decoded, err := decodeCompressionQualityFactor(elm)
