@@ -17,14 +17,14 @@ import (
 )
 
 func TestContentType_RoundTrip_AllAttributes(t *testing.T) {
-	orig := ContentType{
-		TextWithBoolAttrs: TextWithBoolAttrs[ContentTypeValue]{
+	orig := ContentType(
+		ValWithOptions[ContentTypeValue]{
 			Text:        Photo,
 			MustHonor:   optional.New(BooleanElement("true")),
 			Override:    optional.New(BooleanElement("false")),
 			UsedDefault: optional.New(BooleanElement("1")),
 		},
-	}
+	)
 
 	elm := orig.toXML("wscn:ContentType")
 	if elm.Name != "wscn:ContentType" {
@@ -47,11 +47,11 @@ func TestContentType_RoundTrip_AllAttributes(t *testing.T) {
 }
 
 func TestContentType_RoundTrip_NoAttributes(t *testing.T) {
-	orig := ContentType{
-		TextWithBoolAttrs: TextWithBoolAttrs[ContentTypeValue]{
+	orig := ContentType(
+		ValWithOptions[ContentTypeValue]{
 			Text: Auto,
 		},
-	}
+	)
 
 	elm := orig.toXML("wscn:ContentType")
 	if len(elm.Attrs) != 0 {
@@ -82,11 +82,11 @@ func TestContentType_AllValues(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			ct := ContentType{
-				TextWithBoolAttrs: TextWithBoolAttrs[ContentTypeValue]{
+			ct := ContentType(
+				ValWithOptions[ContentTypeValue]{
 					Text: c.value,
 				},
-			}
+			)
 			elm := ct.toXML("wscn:ContentType")
 
 			if elm.Text != c.expected {
@@ -120,12 +120,12 @@ func TestContentType_UnknownValue(t *testing.T) {
 }
 
 func TestContentType_WithMustHonor(t *testing.T) {
-	orig := ContentType{
-		TextWithBoolAttrs: TextWithBoolAttrs[ContentTypeValue]{
+	orig := ContentType(
+		ValWithOptions[ContentTypeValue]{
 			Text:      Text,
 			MustHonor: optional.New(BooleanElement("true")),
 		},
-	}
+	)
 
 	elm := orig.toXML("wscn:ContentType")
 	decoded, err := decodeContentType(elm)
@@ -147,12 +147,12 @@ func TestContentType_WithMustHonor(t *testing.T) {
 }
 
 func TestContentType_WithOverride(t *testing.T) {
-	orig := ContentType{
-		TextWithBoolAttrs: TextWithBoolAttrs[ContentTypeValue]{
+	orig := ContentType(
+		ValWithOptions[ContentTypeValue]{
 			Text:     Halftone,
 			Override: optional.New(BooleanElement("0")),
 		},
-	}
+	)
 
 	elm := orig.toXML("wscn:ContentType")
 	decoded, err := decodeContentType(elm)
@@ -174,12 +174,12 @@ func TestContentType_WithOverride(t *testing.T) {
 }
 
 func TestContentType_WithUsedDefault(t *testing.T) {
-	orig := ContentType{
-		TextWithBoolAttrs: TextWithBoolAttrs[ContentTypeValue]{
+	orig := ContentType(
+		ValWithOptions[ContentTypeValue]{
 			Text:        Mixed,
 			UsedDefault: optional.New(BooleanElement("true")),
 		},
-	}
+	)
 
 	elm := orig.toXML("wscn:ContentType")
 	decoded, err := decodeContentType(elm)

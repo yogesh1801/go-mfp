@@ -17,24 +17,26 @@ import (
 )
 
 func TestFilmScanModeElement_RoundTrip_AllAttributes(t *testing.T) {
-	orig := FilmScanModeElement{
-		TextWithBoolAttrs: TextWithBoolAttrs[string]{
+	orig := FilmScanModeElement(
+		ValWithOptions[string]{
 			Text:        "ColorSlideFilm",
 			MustHonor:   optional.New(BooleanElement("true")),
 			Override:    optional.New(BooleanElement("false")),
 			UsedDefault: optional.New(BooleanElement("1")),
 		},
-	}
+	)
 
 	elm := orig.toXML("wscn:FilmScanMode")
 	if elm.Name != "wscn:FilmScanMode" {
-		t.Errorf("expected element name 'wscn:FilmScanMode', got '%s'", elm.Name)
+		t.Errorf("expected element name 'wscn:FilmScanMode', got '%s'",
+			elm.Name)
 	}
 	if elm.Text != "ColorSlideFilm" {
 		t.Errorf("expected text 'ColorSlideFilm', got '%s'", elm.Text)
 	}
 	if len(elm.Attrs) != 3 {
-		t.Errorf("expected 3 attributes, got %d: %+v", len(elm.Attrs), elm.Attrs)
+		t.Errorf("expected 3 attributes, got %d: %+v", len(elm.Attrs),
+			elm.Attrs)
 	}
 
 	decoded, err := decodeFilmScanModeElement(elm)
@@ -47,11 +49,11 @@ func TestFilmScanModeElement_RoundTrip_AllAttributes(t *testing.T) {
 }
 
 func TestFilmScanModeElement_RoundTrip_NoAttributes(t *testing.T) {
-	orig := FilmScanModeElement{
-		TextWithBoolAttrs: TextWithBoolAttrs[string]{
+	orig := FilmScanModeElement(
+		ValWithOptions[string]{
 			Text: "NotApplicable",
 		},
-	}
+	)
 
 	elm := orig.toXML("wscn:FilmScanMode")
 	if len(elm.Attrs) != 0 {
@@ -77,11 +79,11 @@ func TestFilmScanModeElement_StandardValues(t *testing.T) {
 
 	for _, value := range cases {
 		t.Run(value, func(t *testing.T) {
-			fsm := FilmScanModeElement{
-				TextWithBoolAttrs: TextWithBoolAttrs[string]{
+			fsm := FilmScanModeElement(
+				ValWithOptions[string]{
 					Text: value,
 				},
-			}
+			)
 			elm := fsm.toXML("wscn:FilmScanMode")
 
 			if elm.Text != value {
@@ -101,11 +103,11 @@ func TestFilmScanModeElement_StandardValues(t *testing.T) {
 
 func TestFilmScanModeElement_CustomValue(t *testing.T) {
 	// Test that custom/extended values are supported
-	orig := FilmScanModeElement{
-		TextWithBoolAttrs: TextWithBoolAttrs[string]{
+	orig := FilmScanModeElement(
+		ValWithOptions[string]{
 			Text: "CustomFilmType",
 		},
-	}
+	)
 
 	elm := orig.toXML("wscn:FilmScanMode")
 	decoded, err := decodeFilmScanModeElement(elm)
@@ -113,17 +115,18 @@ func TestFilmScanModeElement_CustomValue(t *testing.T) {
 		t.Fatalf("decode returned error: %v", err)
 	}
 	if decoded.Text != "CustomFilmType" {
-		t.Errorf("expected custom value 'CustomFilmType', got %s", decoded.Text)
+		t.Errorf("expected custom value 'CustomFilmType', got %s",
+			decoded.Text)
 	}
 }
 
 func TestFilmScanModeElement_WithMustHonor(t *testing.T) {
-	orig := FilmScanModeElement{
-		TextWithBoolAttrs: TextWithBoolAttrs[string]{
+	orig := FilmScanModeElement(
+		ValWithOptions[string]{
 			Text:      "ColorNegativeFilm",
 			MustHonor: optional.New(BooleanElement("true")),
 		},
-	}
+	)
 
 	elm := orig.toXML("wscn:FilmScanMode")
 	decoded, err := decodeFilmScanModeElement(elm)
@@ -145,12 +148,12 @@ func TestFilmScanModeElement_WithMustHonor(t *testing.T) {
 }
 
 func TestFilmScanModeElement_WithOverride(t *testing.T) {
-	orig := FilmScanModeElement{
-		TextWithBoolAttrs: TextWithBoolAttrs[string]{
+	orig := FilmScanModeElement(
+		ValWithOptions[string]{
 			Text:     "BlackandWhiteNegativeFilm",
 			Override: optional.New(BooleanElement("0")),
 		},
-	}
+	)
 
 	elm := orig.toXML("wscn:FilmScanMode")
 	decoded, err := decodeFilmScanModeElement(elm)

@@ -13,26 +13,25 @@ import (
 )
 
 // ContentType specifies the main characteristics of the original document.
-// The optional attributes MustHonor, Override, and UsedDefault are Boolean values.
 // The text value is one of: Auto, Text, Photo, Halftone, Mixed.
-type ContentType struct {
-	TextWithBoolAttrs[ContentTypeValue]
-}
+type ContentType ValWithOptions[ContentTypeValue]
 
 // decodeContentType decodes a ContentType from an XML element.
 func decodeContentType(root xmldoc.Element) (ContentType, error) {
-	var ct ContentType
-	decoded, err := ct.TextWithBoolAttrs.decodeTextWithBoolAttrs(root, contentTypeDecoder)
+	var base ValWithOptions[ContentTypeValue]
+	decoded, err := base.decodeValWithOptions(
+		root,
+		contentTypeDecoder,
+	)
 	if err != nil {
-		return ct, err
+		return ContentType{}, err
 	}
-	ct.TextWithBoolAttrs = decoded
-	return ct, nil
+	return ContentType(decoded), nil
 }
 
 // toXML converts a ContentType to an XML element.
 func (ct ContentType) toXML(name string) xmldoc.Element {
-	return ct.TextWithBoolAttrs.toXML(name, contentTypeEncoder)
+	return ValWithOptions[ContentTypeValue](ct).toXML(name, contentTypeEncoder)
 }
 
 // contentTypeDecoder converts a string to a ContentTypeValue.

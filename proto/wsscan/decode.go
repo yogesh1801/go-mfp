@@ -153,3 +153,23 @@ func decodeTime(root xmldoc.Element) (v time.Time, err error) {
 	}
 	return
 }
+
+// intValueDecoder converts a string to an int.
+func intValueDecoder(s string) (int, error) {
+	return strconv.Atoi(s)
+}
+
+// intValueEncoder converts an int to a string.
+func intValueEncoder(i int) string {
+	return strconv.Itoa(i)
+}
+
+// stringValueDecoder is a pass-through decoder for string values.
+func stringValueDecoder(s string) (string, error) {
+	return s, nil
+}
+
+// stringValueEncoder is a pass-through encoder for string values.
+func stringValueEncoder(s string) string {
+	return s
+}

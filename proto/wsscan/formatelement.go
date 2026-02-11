@@ -12,27 +12,24 @@ import (
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
-// Format indicates a single file format and compression type supported by the scanner.
-// The optional attributes Override and UsedDefault are Boolean values.
+// Format indicates a single file format and compression type
+// supported by the scanner.
 // The text value can be standard values or vendor-defined values.
-type Format struct {
-	TextWithBoolAttrs[FormatValue]
-}
+type Format ValWithOptions[FormatValue]
 
 // decodeFormat decodes a Format from an XML element.
 func decodeFormat(root xmldoc.Element) (Format, error) {
-	var f Format
-	decoded, err := f.TextWithBoolAttrs.decodeTextWithBoolAttrs(root, formatValueDecoder)
+	var base ValWithOptions[FormatValue]
+	decoded, err := base.decodeValWithOptions(root, formatValueDecoder)
 	if err != nil {
-		return f, err
+		return Format{}, err
 	}
-	f.TextWithBoolAttrs = decoded
-	return f, nil
+	return Format(decoded), nil
 }
 
 // toXML converts a Format to an XML element.
 func (f Format) toXML(name string) xmldoc.Element {
-	return f.TextWithBoolAttrs.toXML(name, formatValueEncoder)
+	return ValWithOptions[FormatValue](f).toXML(name, formatValueEncoder)
 }
 
 // formatValueDecoder converts a string to a FormatValue.

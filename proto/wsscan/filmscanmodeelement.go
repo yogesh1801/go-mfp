@@ -13,28 +13,21 @@ import (
 )
 
 // FilmScanModeElement specifies the exposure type of the film to be scanned.
-// The optional attributes MustHonor, Override, and UsedDefault are Boolean values.
 // The text value can be extended and subset.
-type FilmScanModeElement struct {
-	TextWithBoolAttrs[string]
-}
+type FilmScanModeElement ValWithOptions[string]
 
 // decodeFilmScanModeElement decodes a FilmScanModeElement from an XML element.
-func decodeFilmScanModeElement(root xmldoc.Element) (FilmScanModeElement, error) {
-	var fsm FilmScanModeElement
-	decoded, err := fsm.TextWithBoolAttrs.decodeTextWithBoolAttrs(root, func(s string) (string, error) {
-		return s, nil
-	})
+func decodeFilmScanModeElement(root xmldoc.Element) (
+	FilmScanModeElement, error) {
+	var base ValWithOptions[string]
+	decoded, err := base.decodeValWithOptions(root, stringValueDecoder)
 	if err != nil {
-		return fsm, err
+		return FilmScanModeElement{}, err
 	}
-	fsm.TextWithBoolAttrs = decoded
-	return fsm, nil
+	return FilmScanModeElement(decoded), nil
 }
 
 // toXML converts a FilmScanModeElement to an XML element.
 func (fsm FilmScanModeElement) toXML(name string) xmldoc.Element {
-	return fsm.TextWithBoolAttrs.toXML(name, func(s string) string {
-		return s
-	})
+	return ValWithOptions[string](fsm).toXML(name, stringValueEncoder)
 }

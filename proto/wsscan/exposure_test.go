@@ -46,16 +46,16 @@ func TestExposure_RoundTrip_WithExposureSettings(t *testing.T) {
 	orig := Exposure{
 		MustHonor: optional.New(BooleanElement("false")),
 		ExposureSettings: optional.New(ExposureSettings{
-			Brightness: optional.New(Brightness{
-				TextWithBoolAttrs: TextWithBoolAttrs[int]{
+			Brightness: optional.New(Brightness(
+				ValWithOptions[int]{
 					Text: 50,
 				},
-			}),
-			Contrast: optional.New(Contrast{
-				TextWithBoolAttrs: TextWithBoolAttrs[int]{
+			)),
+			Contrast: optional.New(Contrast(
+				ValWithOptions[int]{
 					Text: 75,
 				},
-			}),
+			)),
 		}),
 	}
 
@@ -97,11 +97,11 @@ func TestExposure_RoundTrip_BothChildren(t *testing.T) {
 	orig := Exposure{
 		AutoExposure: optional.New(BooleanElement("true")),
 		ExposureSettings: optional.New(ExposureSettings{
-			Sharpness: optional.New(Sharpness{
-				TextWithBoolAttrs: TextWithBoolAttrs[int]{
+			Sharpness: optional.New(Sharpness(
+				ValWithOptions[int]{
 					Text: 90,
 				},
-			}),
+			)),
 		}),
 	}
 
