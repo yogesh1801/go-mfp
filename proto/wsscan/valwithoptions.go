@@ -4,8 +4,8 @@
 // Copyright (C) 2024 and up by Yogesh Singla (yogeshsingla481@gmail.com)
 // See LICENSE for license terms and conditions
 //
-// TextWithBoolAttrs: reusable type for elements with
-// text and optional boolean attributes (MustHonor, Override, UsedDefault)
+// ValWithOptions: reusable type for elements with
+// a value and optional boolean attributes (MustHonor, Override, UsedDefault)
 
 package wsscan
 
@@ -14,23 +14,30 @@ import (
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
-// TextWithBoolAttrs holds a text value and optional boolean attributes.
+// ValWithOptions holds a value and optional boolean attributes.
 // This is a generic element for patterns like:
-// <wscn:Element wscn:MustHonor="true" wscn:Override="false" wscn:UsedDefault="true">text</wscn:Element>
-// The type parameter T allows the text value to be any type (string, int, etc.)
-type TextWithBoolAttrs[T any] struct {
+// <wscn:Element
+//
+//	wscn:MustHonor="true"
+//	wscn:Override="false"
+//	wscn:UsedDefault="true">
+//	    value
+//
+// </wscn:Element>
+// The type parameter T allows the value to be any type (string, int, etc.)
+type ValWithOptions[T any] struct {
 	Text        T
 	MustHonor   optional.Val[BooleanElement]
 	Override    optional.Val[BooleanElement]
 	UsedDefault optional.Val[BooleanElement]
 }
 
-// decodeTextWithBoolAttrs fills the struct from an XML element.
+// decodeValWithOptions fills the struct from an XML element.
 // The decoder function converts the XML text to the desired type T.
-func (t *TextWithBoolAttrs[T]) decodeTextWithBoolAttrs(
+func (t *ValWithOptions[T]) decodeValWithOptions(
 	root xmldoc.Element,
 	decoder func(string) (T, error),
-) (TextWithBoolAttrs[T], error) {
+) (ValWithOptions[T], error) {
 	// Decode the text value using the provided decoder
 	val, err := decoder(root.Text)
 	if err != nil {
@@ -70,7 +77,10 @@ func (t *TextWithBoolAttrs[T]) decodeTextWithBoolAttrs(
 
 // toXML creates an XML element from the struct.
 // The encoder function converts the value of type T to a string.
-func (t TextWithBoolAttrs[T]) toXML(name string, encoder func(T) string) xmldoc.Element {
+func (t ValWithOptions[T]) toXML(
+	name string,
+	encoder func(T) string,
+) xmldoc.Element {
 	elm := xmldoc.Element{Name: name, Text: encoder(t.Text)}
 	var attrs []xmldoc.Attr
 

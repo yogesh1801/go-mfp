@@ -18,15 +18,17 @@ import (
 
 // CompressionQualityFactor specifies an idealized integer amount of
 // image quality, on a scale from 0 through 100.
-type CompressionQualityFactor ValWithBoolAttr[int]
+type CompressionQualityFactor ValWithOptions[int]
 
-// decodeCompressionQualityFactor decodes
-// CompressionQualityFactor from an XML element.
+// decodeCompressionQualityFactor decodes a CompressionQualityFactor
+// from an XML element.
 func decodeCompressionQualityFactor(root xmldoc.Element) (
 	CompressionQualityFactor, error) {
-	var base ValWithBoolAttr[int]
-	decoded, err := base.decodeValWithBoolAttr(
-		root, compressionQualityFactorDecoder)
+	var base ValWithOptions[int]
+	decoded, err := base.decodeValWithOptions(
+		root,
+		compressionQualityFactorDecoder,
+	)
 	if err != nil {
 		return CompressionQualityFactor{}, err
 	}
@@ -35,8 +37,7 @@ func decodeCompressionQualityFactor(root xmldoc.Element) (
 
 // toXML converts a CompressionQualityFactor to an XML element.
 func (cqf CompressionQualityFactor) toXML(name string) xmldoc.Element {
-	return ValWithBoolAttr[int](cqf).toXML(name,
-		compressionQualityFactorEncoder)
+	return ValWithOptions[int](cqf).toXML(name, compressionQualityFactorEncoder)
 }
 
 // compressionQualityFactorDecoder converts a string to an integer.

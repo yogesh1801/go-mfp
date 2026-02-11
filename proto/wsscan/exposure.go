@@ -84,12 +84,14 @@ func (exp Exposure) toXML(name string) xmldoc.Element {
 
 	// Add AutoExposure if present
 	if exp.AutoExposure != nil {
-		children = append(children, optional.Get(exp.AutoExposure).toXML(NsWSCN+":AutoExposure"))
+		children = append(children, optional.Get(exp.AutoExposure).toXML(
+			NsWSCN+":AutoExposure"))
 	}
 
 	// Add ExposureSettings if present
 	if exp.ExposureSettings != nil {
-		children = append(children, optional.Get(exp.ExposureSettings).toXML(NsWSCN+":ExposureSettings"))
+		children = append(children, optional.Get(exp.ExposureSettings).toXML(
+			NsWSCN+":ExposureSettings"))
 	}
 
 	elm.Children = children

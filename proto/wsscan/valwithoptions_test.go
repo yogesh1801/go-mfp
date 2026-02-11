@@ -4,7 +4,7 @@
 // Copyright (C) 2024 and up by Yogesh Singla (yogeshsingla481@gmail.com)
 // See LICENSE for license terms and conditions
 //
-// Test for TextWithBoolAttrs
+// Test for ValWithOptions
 
 package wsscan
 
@@ -36,8 +36,8 @@ func intEncoder(i int) string {
 	return strconv.Itoa(i)
 }
 
-func TestTextWithBoolAttrs_String_RoundTrip_AllAttributes(t *testing.T) {
-	orig := TextWithBoolAttrs[string]{
+func TestValWithOptions_String_RoundTrip_AllAttributes(t *testing.T) {
+	orig := ValWithOptions[string]{
 		Text:        "100",
 		MustHonor:   optional.New(BooleanElement("true")),
 		Override:    optional.New(BooleanElement("false")),
@@ -45,17 +45,28 @@ func TestTextWithBoolAttrs_String_RoundTrip_AllAttributes(t *testing.T) {
 	}
 	elm := orig.toXML("wscn:CompressionQualityFactor", stringEncoder)
 	if elm.Name != "wscn:CompressionQualityFactor" {
-		t.Errorf("expected element name 'wscn:CompressionQualityFactor', got '%s'", elm.Name)
+		t.Errorf(
+			"expected element name 'wscn:CompressionQualityFactor', got '%s'",
+			elm.Name,
+		)
 	}
 	if elm.Text != orig.Text {
-		t.Errorf("expected text '%s', got '%s'", orig.Text, elm.Text)
+		t.Errorf(
+			"expected text '%s', got '%s'",
+			orig.Text,
+			elm.Text,
+		)
 	}
 	if len(elm.Attrs) != 3 {
-		t.Errorf("expected 3 attributes, got %d: %+v", len(elm.Attrs), elm.Attrs)
+		t.Errorf(
+			"expected 3 attributes, got %d: %+v",
+			len(elm.Attrs),
+			elm.Attrs,
+		)
 	}
 
-	var decoded TextWithBoolAttrs[string]
-	decoded, err := decoded.decodeTextWithBoolAttrs(elm, stringDecoder)
+	var decoded ValWithOptions[string]
+	decoded, err := decoded.decodeValWithOptions(elm, stringDecoder)
 	if err != nil {
 		t.Fatalf("decode returned error: %v", err)
 	}
@@ -64,8 +75,8 @@ func TestTextWithBoolAttrs_String_RoundTrip_AllAttributes(t *testing.T) {
 	}
 }
 
-func TestTextWithBoolAttrs_String_RoundTrip_NoAttributes(t *testing.T) {
-	orig := TextWithBoolAttrs[string]{
+func TestValWithOptions_String_RoundTrip_NoAttributes(t *testing.T) {
+	orig := ValWithOptions[string]{
 		Text: "50",
 	}
 	elm := orig.toXML("wscn:CompressionQualityFactor", stringEncoder)
@@ -73,8 +84,8 @@ func TestTextWithBoolAttrs_String_RoundTrip_NoAttributes(t *testing.T) {
 		t.Errorf("expected no attributes, got %+v", elm.Attrs)
 	}
 
-	var decoded TextWithBoolAttrs[string]
-	decoded, err := decoded.decodeTextWithBoolAttrs(elm, stringDecoder)
+	var decoded ValWithOptions[string]
+	decoded, err := decoded.decodeValWithOptions(elm, stringDecoder)
 	if err != nil {
 		t.Fatalf("decode returned error: %v", err)
 	}
@@ -83,19 +94,23 @@ func TestTextWithBoolAttrs_String_RoundTrip_NoAttributes(t *testing.T) {
 	}
 }
 
-func TestTextWithBoolAttrs_String_RoundTrip_PartialAttributes(t *testing.T) {
-	orig := TextWithBoolAttrs[string]{
+func TestValWithOptions_String_RoundTrip_PartialAttributes(t *testing.T) {
+	orig := ValWithOptions[string]{
 		Text:      "75",
 		MustHonor: optional.New(BooleanElement("true")),
 		Override:  optional.New(BooleanElement("0")),
 	}
 	elm := orig.toXML("wscn:CompressionQualityFactor", stringEncoder)
 	if len(elm.Attrs) != 2 {
-		t.Errorf("expected 2 attributes, got %d: %+v", len(elm.Attrs), elm.Attrs)
+		t.Errorf(
+			"expected 2 attributes, got %d: %+v",
+			len(elm.Attrs),
+			elm.Attrs,
+		)
 	}
 
-	var decoded TextWithBoolAttrs[string]
-	decoded, err := decoded.decodeTextWithBoolAttrs(elm, stringDecoder)
+	var decoded ValWithOptions[string]
+	decoded, err := decoded.decodeValWithOptions(elm, stringDecoder)
 	if err != nil {
 		t.Fatalf("decode returned error: %v", err)
 	}
@@ -104,22 +119,25 @@ func TestTextWithBoolAttrs_String_RoundTrip_PartialAttributes(t *testing.T) {
 	}
 }
 
-func TestTextWithBoolAttrs_Int_RoundTrip(t *testing.T) {
-	orig := TextWithBoolAttrs[int]{
+func TestValWithOptions_Int_RoundTrip(t *testing.T) {
+	orig := ValWithOptions[int]{
 		Text:        100,
 		MustHonor:   optional.New(BooleanElement("true")),
 		UsedDefault: optional.New(BooleanElement("false")),
 	}
 	elm := orig.toXML("wscn:CompressionQualityFactor", intEncoder)
 	if elm.Name != "wscn:CompressionQualityFactor" {
-		t.Errorf("expected element name 'wscn:CompressionQualityFactor', got '%s'", elm.Name)
+		t.Errorf(
+			"expected element name 'wscn:CompressionQualityFactor', got '%s'",
+			elm.Name,
+		)
 	}
 	if elm.Text != "100" {
 		t.Errorf("expected text '100', got '%s'", elm.Text)
 	}
 
-	var decoded TextWithBoolAttrs[int]
-	decoded, err := decoded.decodeTextWithBoolAttrs(elm, intDecoder)
+	var decoded ValWithOptions[int]
+	decoded, err := decoded.decodeValWithOptions(elm, intDecoder)
 	if err != nil {
 		t.Fatalf("decode returned error: %v", err)
 	}
@@ -128,20 +146,20 @@ func TestTextWithBoolAttrs_Int_RoundTrip(t *testing.T) {
 	}
 }
 
-func TestTextWithBoolAttrs_InvalidBooleanAttribute(t *testing.T) {
-	var elem TextWithBoolAttrs[string]
+func TestValWithOptions_InvalidBooleanAttribute(t *testing.T) {
+	var elem ValWithOptions[string]
 	root := elem.toXML("wscn:Test", stringEncoder)
 	root.Attrs = []xmldoc.Attr{
 		{Name: NsWSCN + ":MustHonor", Value: "invalid"},
 	}
 
-	_, err := elem.decodeTextWithBoolAttrs(root, stringDecoder)
+	_, err := elem.decodeValWithOptions(root, stringDecoder)
 	if err == nil {
 		t.Error("expected error for invalid boolean attribute, got nil")
 	}
 }
 
-func TestTextWithBoolAttrs_BooleanVariations(t *testing.T) {
+func TestValWithOptions_BooleanVariations(t *testing.T) {
 	cases := []struct {
 		name  string
 		value BooleanElement
@@ -156,13 +174,13 @@ func TestTextWithBoolAttrs_BooleanVariations(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			orig := TextWithBoolAttrs[string]{
+			orig := ValWithOptions[string]{
 				Text:      "test",
 				MustHonor: optional.New(c.value),
 			}
 			elm := orig.toXML("wscn:Test", stringEncoder)
-			var decoded TextWithBoolAttrs[string]
-			decoded, err := decoded.decodeTextWithBoolAttrs(elm, stringDecoder)
+			var decoded ValWithOptions[string]
+			decoded, err := decoded.decodeValWithOptions(elm, stringDecoder)
 			if err != nil {
 				t.Fatalf("decode returned error: %v", err)
 			}
@@ -173,20 +191,20 @@ func TestTextWithBoolAttrs_BooleanVariations(t *testing.T) {
 	}
 }
 
-func TestTextWithBoolAttrs_Int_InvalidValue(t *testing.T) {
-	var elem TextWithBoolAttrs[int]
+func TestValWithOptions_Int_InvalidValue(t *testing.T) {
+	var elem ValWithOptions[int]
 	root := elem.toXML("wscn:Test", intEncoder)
 	root.Text = "not-a-number"
 
-	_, err := elem.decodeTextWithBoolAttrs(root, intDecoder)
+	_, err := elem.decodeValWithOptions(root, intDecoder)
 	if err == nil {
 		t.Error("expected error for invalid int value, got nil")
 	}
 }
 
 // Example usage demonstrating the generic type
-func ExampleTextWithBoolAttrs_string() {
-	elem := TextWithBoolAttrs[string]{
+func ExampleValWithOptions_string() {
+	elem := ValWithOptions[string]{
 		Text:      "high",
 		MustHonor: optional.New(BooleanElement("true")),
 	}
@@ -195,8 +213,8 @@ func ExampleTextWithBoolAttrs_string() {
 	// Output: Name: wscn:Quality, Text: high
 }
 
-func ExampleTextWithBoolAttrs_int() {
-	elem := TextWithBoolAttrs[int]{
+func ExampleValWithOptions_int() {
+	elem := ValWithOptions[int]{
 		Text:     85,
 		Override: optional.New(BooleanElement("false")),
 	}
