@@ -10,9 +10,6 @@
 package wsscan
 
 import (
-	"errors"
-	"strconv"
-
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
@@ -25,10 +22,7 @@ type CompressionQualityFactor ValWithOptions[int]
 func decodeCompressionQualityFactor(root xmldoc.Element) (
 	CompressionQualityFactor, error) {
 	var base ValWithOptions[int]
-	decoded, err := base.decodeValWithOptions(
-		root,
-		compressionQualityFactorDecoder,
-	)
+	decoded, err := base.decodeValWithOptions(root, intValueDecoder)
 	if err != nil {
 		return CompressionQualityFactor{}, err
 	}
@@ -37,19 +31,5 @@ func decodeCompressionQualityFactor(root xmldoc.Element) (
 
 // toXML converts a CompressionQualityFactor to an XML element.
 func (cqf CompressionQualityFactor) toXML(name string) xmldoc.Element {
-	return ValWithOptions[int](cqf).toXML(name, compressionQualityFactorEncoder)
-}
-
-// compressionQualityFactorDecoder converts a string to an integer.
-func compressionQualityFactorDecoder(s string) (int, error) {
-	val, err := strconv.Atoi(s)
-	if err != nil {
-		return 0, errors.New("CompressionQualityFactor must be a valid integer")
-	}
-	return val, nil
-}
-
-// compressionQualityFactorEncoder converts an integer to a string.
-func compressionQualityFactorEncoder(i int) string {
-	return strconv.Itoa(i)
+	return ValWithOptions[int](cqf).toXML(name, intValueEncoder)
 }
