@@ -14,31 +14,20 @@ import (
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
-// CreateScanJobRequest prepares a scan device to scan.
-// All child elements are required.
+// CreateScanJobRequest prepares a scan device to scan (host-initiated mode).
+// Only host-initiated scan is supported: the client starts the application and
+// acquires an image. This mode uses only the ScanTicket parameter.
+// Device-initiated scan (user pushes button on device; requires ScanIdentifier
+// and DestinationToken) is not supported.
 type CreateScanJobRequest struct {
-	DestinationToken string
-	ScanIdentifier   string
-	ScanTicket       ScanTicket
+	ScanTicket ScanTicket
 }
 
 // toXML generates XML tree for the CreateScanJobRequest.
 func (csjr CreateScanJobRequest) toXML(name string) xmldoc.Element {
-	children := []xmldoc.Element{
-		{
-			Name: NsWSCN + ":DestinationToken",
-			Text: csjr.DestinationToken,
-		},
-		{
-			Name: NsWSCN + ":ScanIdentifier",
-			Text: csjr.ScanIdentifier,
-		},
-		csjr.ScanTicket.toXML(NsWSCN + ":ScanTicket"),
-	}
-
 	return xmldoc.Element{
 		Name:     name,
-		Children: children,
+		Children: []xmldoc.Element{csjr.ScanTicket.toXML(NsWSCN + ":ScanTicket")},
 	}
 }
 
@@ -49,38 +38,16 @@ func decodeCreateScanJobRequest(root xmldoc.Element) (
 ) {
 	defer func() { err = xmldoc.XMLErrWrap(root, err) }()
 
-	destinationToken := xmldoc.Lookup{
-		Name:     NsWSCN + ":DestinationToken",
-		Required: true,
-	}
-	scanIdentifier := xmldoc.Lookup{
-		Name:     NsWSCN + ":ScanIdentifier",
-		Required: true,
-	}
 	scanTicket := xmldoc.Lookup{
 		Name:     NsWSCN + ":ScanTicket",
 		Required: true,
 	}
 
-	missed := root.Lookup(
-		&destinationToken,
-		&scanIdentifier,
-		&scanTicket,
-	)
-	if missed != nil && missed.Required {
+	if missed := root.Lookup(&scanTicket); missed != nil && missed.Required {
 		return csjr, xmldoc.XMLErrMissed(missed.Name)
 	}
 
-	// Decode DestinationToken (required)
-	csjr.DestinationToken = destinationToken.Elem.Text
-
-	// Decode ScanIdentifier (required)
-	csjr.ScanIdentifier = scanIdentifier.Elem.Text
-
-	// Decode ScanTicket (required)
-	if csjr.ScanTicket, err = decodeScanTicket(
-		scanTicket.Elem,
-	); err != nil {
+	if csjr.ScanTicket, err = decodeScanTicket(scanTicket.Elem); err != nil {
 		return csjr, fmt.Errorf("ScanTicket: %w", err)
 	}
 
