@@ -156,9 +156,24 @@ func cmdModelHandler(ctx context.Context, inv *argv.Invocation) error {
 			return err
 		}
 
+		defer model.Close()
+
 		file, _ := inv.Get("-m")
 		err = model.Load(file)
-		model.Close()
+		if err != nil {
+			return err
+		}
+
+		caps := model.GetIPPPrinterAttrs()
+		if caps != nil {
+			errors := caps.Errors()
+			if errors != nil {
+				log.Warning(ctx, "ipp: printer attributes decoded with warnings:")
+				for _, err := range errors {
+					log.Warning(ctx, "  %s", err)
+				}
+			}
+		}
 
 		return err
 	}
