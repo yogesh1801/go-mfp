@@ -10,10 +10,13 @@ package wsscan
 
 import "testing"
 
-var testFormatValue = testEnum[FormatValue]{
-	decodeStr: DecodeFormatValue,
-	decodeXML: decodeFormatValue,
-	dataset: []testEnumData[FormatValue]{
+// TestFormatValue_KnownConstants verifies that known constants map to the
+// expected string representations and round-trip through DecodeFormatValue.
+func TestFormatValue_KnownConstants(t *testing.T) {
+	cases := []struct {
+		v       FormatValue
+		strRepr string
+	}{
 		{DIB, "dib"},
 		{EXIF, "exif"},
 		{JBIG, "jbig"},
@@ -30,10 +33,32 @@ var testFormatValue = testEnum[FormatValue]{
 		{TIFFMultiG3MH, "tiff-multi-g3mh"},
 		{TIFFMultiJPEGTN2, "tiff-multi-jpeg-tn2"},
 		{XPS, "xps"},
-	},
+	}
+
+	for _, c := range cases {
+		if got := c.v.String(); got != c.strRepr {
+			t.Errorf("FormatValue(%q).String(): expected %q, got %q",
+				string(c.v), c.strRepr, got)
+		}
+
+		if decoded := DecodeFormatValue(c.strRepr); decoded != c.v {
+			t.Errorf("DecodeFormatValue(%q): expected %v, got %v",
+				c.strRepr, c.v, decoded)
+		}
+	}
 }
 
-// TestFormatValue tests [FormatValue] common methods and functions.
-func TestFormatValue(t *testing.T) {
-	testFormatValue.run(t)
+// TestFormatValue_VendorDefined verifies that arbitrary vendor-defined values
+// are preserved, rather than collapsed into UnknownFormatValue.
+func TestFormatValue_VendorDefined(t *testing.T) {
+	const vendor = "vendor/foo-format"
+
+	fv := DecodeFormatValue(vendor)
+	if string(fv) != vendor {
+		t.Fatalf("expected underlying value %q, got %q", vendor, string(fv))
+	}
+
+	if fv.String() != vendor {
+		t.Fatalf("String(): expected %q, got %q", vendor, fv.String())
+	}
 }
