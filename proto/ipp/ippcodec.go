@@ -186,11 +186,11 @@ func ippRegisteredAttrNames(t reflect.Type) []string {
 // then reused, to minimize performance overhead associated with
 // reflection
 type ippCodec struct {
-	t            reflect.Type             // Type of structure
-	steps        []ippCodecStep           // Encoding/decoding steps
-	stepsByName  map[string]*ippCodecStep // Steps indexed by attribute name
-	regAttrNames []string                 // Names of registered attrs
-
+	t            reflect.Type               // Type of structure
+	steps        []ippCodecStep             // Encoding/decoding steps
+	stepsByName  map[string]*ippCodecStep   // Steps indexed by attr name
+	regAttrNames []string                   // Names of registered attrs
+	regs         []map[string]*iana.DefAttr // Registered attributes
 }
 
 // encodeFunc encodes attribute values into the IPP representation
@@ -284,7 +284,7 @@ func ippCodecGenerateInternal(t reflect.Type,
 		return nil, err
 	}
 
-	codec := &ippCodec{t: t}
+	codec := &ippCodec{t: t, regs: regs}
 
 	// Obtain structure fields.
 	//
@@ -599,15 +599,31 @@ func (codec *ippCodec) decodeAttrs(dec *Decoder,
 	// Now decode, attribute by attribute
 	attersSeen := generic.NewSet[string]()
 	for _, attr := range attrs {
+		// Update path
+		dec.pathSet(attr.Name)
+
+		// Check for duplicates
 		if !attersSeen.TestAndAdd(attr.Name) {
 			// If we see the same attribute, the second occurrence
 			// is silently ignored. Note, CUPS does the same
 			//
 			// For details, see discussion here:
 			//   https://lore.kernel.org/printing-architecture/84EEF38C-152E-4779-B1E8-578D6BB896E6@msweet.org/
+			err := fmt.Errorf("%s: duplicated attribute",
+				dec.pathString())
+			dec.errPush(err)
 			continue
 		}
 
+		// Lookup registration database
+		def := iana.LookupSet(codec.regs, attr.Name)
+		if def == nil {
+			err := dec.errWrap(errors.New("unknown attribute"))
+			dec.errPush(err)
+			continue
+		}
+
+		// Lookup decode step
 		step, found := codec.stepsByName[attr.Name]
 		if found {
 			err := codec.doDecodeStep(dec, p, step, attr)
@@ -625,9 +641,6 @@ func (codec *ippCodec) decodeAttrs(dec *Decoder,
 // p is the unsafe.Pointer to the outer structure.
 func (codec ippCodec) doDecodeStep(dec *Decoder,
 	p unsafe.Pointer, step *ippCodecStep, attr goipp.Attribute) error {
-
-	// Update path
-	dec.pathSet(step.attrName)
 
 	// At least one attribute value must be present.
 	//

@@ -67,6 +67,9 @@ func attrFieldAnalyze(fld reflect.StructField) (
 		name = strings.TrimSpace(tag[:i])
 		syntax := strings.TrimSpace(tag[i+1:])
 		def, err = attrSyntaxParse(syntax)
+		if def != nil && def.IsCollection() {
+			def.Members = reflecRegistrations(fld.Type)
+		}
 	}
 
 	if name == "" {

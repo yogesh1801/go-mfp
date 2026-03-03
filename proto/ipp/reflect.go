@@ -25,27 +25,43 @@ func reflectIsObject(t reflect.Type) bool {
 // reflecRegistrations extracts attribute registrations from
 // the Object of type t.
 //
-// t.Kind must be reflect.Struct.
+// It understands attribute registrations defined by including
+// of attributesGroup as well as attribute registrations, defined
+// inline, using the appropriate syntax of the ipp: struct tags.
 //
-// If t doesn't implement the Object interface, this function
-// returns nil.
+// t.Kind must be reflect.Struct.
 func reflecRegistrations(t reflect.Type) []map[string]*iana.DefAttr {
-	if t.Kind() != reflect.Struct || !reflectIsObject(t) {
+	switch t.Kind() {
+	case reflect.Slice, reflect.Array, reflect.Pointer:
+		t = t.Elem()
+	}
+
+	if t.Kind() != reflect.Struct {
 		return nil
 	}
 
 	regs := []map[string]*iana.DefAttr{}
+	defs := make(map[string]*iana.DefAttr)
 
-	n := t.NumField()
-	for i := 0; i < n; i++ {
-		fld := t.Field(i)
+	for _, fld := range reflect.VisibleFields(t) {
 		if !fld.IsExported() {
 			continue
 		}
 
 		if grp, ok := reflect.New(fld.Type).Interface().(attributesGroup); ok {
+			// Handle attributesGroup
 			regs = append(regs, grp.registrations())
+		} else if name, def, _ := attrFieldAnalyze(fld); def != nil {
+			// Handle ipp: tag, if any
+			if defs[name] == nil {
+				defs[name] = def
+			}
 		}
+	}
+
+	if len(defs) != 0 {
+		// Prepend inline registrations, if any
+		regs = append([]map[string]*iana.DefAttr{defs}, regs...)
 	}
 
 	return regs

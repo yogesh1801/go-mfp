@@ -1031,7 +1031,7 @@ func (test ippDecodeTest) exec(t *testing.T) {
 	err := dec.Decode(out, test.attrs)
 
 	checkError(t, "TestIppDecode", err, test.err)
-	if err != nil {
+	if err != nil || test.err != nil {
 		return
 	}
 
