@@ -70,16 +70,42 @@ func (fv FormatValue) toXML(name string) xmldoc.Element {
 
 // String returns a string representation of the [FormatValue].
 func (fv FormatValue) String() string {
-	if fv == UnknownFormatValue {
-		return "Unknown"
-	}
 	return string(fv)
+}
+
+// MimeType returns MIME type string for the value, or
+// empty string for the unknown or vendor-defined value.
+func (fv FormatValue) MimeType() string {
+	switch fv {
+	case DIB:
+		return "image/bmp"
+	case EXIF, JFIF:
+		return "image/jpeg"
+	case JBIG:
+		return "image/jbig"
+	case JPEG2K:
+		return "image/jp2"
+	case PDFA:
+		return "application/pdf"
+	case PNG:
+		return "image/png"
+	case TIFFSingleUncompressed,
+		TIFFSingleG4,
+		TIFFSingleG3MH,
+		TIFFSingleJPEGTN2,
+		TIFFMultiUncompressed,
+		TIFFMultiG4,
+		TIFFMultiG3MH,
+		TIFFMultiJPEGTN2:
+		return "image/tiff"
+	case XPS:
+		return "application/vnd.ms-xpsdocument"
+	default:
+		return ""
+	}
 }
 
 // DecodeFormatValue decodes [FormatValue] out of its XML string representation.
 func DecodeFormatValue(s string) FormatValue {
-	if s == "" {
-		return UnknownFormatValue
-	}
 	return FormatValue(s)
 }
