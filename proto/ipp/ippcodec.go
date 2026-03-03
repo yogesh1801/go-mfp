@@ -609,8 +609,7 @@ func (codec *ippCodec) decodeAttrs(dec *Decoder,
 			//
 			// For details, see discussion here:
 			//   https://lore.kernel.org/printing-architecture/84EEF38C-152E-4779-B1E8-578D6BB896E6@msweet.org/
-			err := fmt.Errorf("%s: duplicated attribute",
-				dec.pathString())
+			err := dec.errWrap(errors.New("duplicated attribute"))
 			dec.errPush(err)
 			continue
 		}
