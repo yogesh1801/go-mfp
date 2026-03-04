@@ -9,6 +9,7 @@
 package cpython
 
 import (
+	"bytes"
 	"errors"
 	"os/exec"
 	"runtime"
@@ -70,11 +71,17 @@ func pyLocateLibPython() (string, error) {
 	script += "import sysconfig;"
 	script += "import os;"
 	script += "dir=sysconfig.get_config_var('LIBDIR');"
-	script += "lib=sysconfig.get_config_var('LDLIBRARY');"
+	script += "lib=sysconfig.get_config_var('INSTSONAME');"
 	script += "print(os.path.join(dir,lib),end='');"
 
 	cmd := exec.Command("python3", "-c", script)
-	out, err := cmd.CombinedOutput()
+	out, err := cmd.Output()
+
+	if err != nil {
+		if ee, ok := err.(*exec.ExitError); ok && len(ee.Stderr) > 0 {
+			err = errors.New(string(bytes.TrimSpace(ee.Stderr)))
+		}
+	}
 
 	return string(out), err
 }
