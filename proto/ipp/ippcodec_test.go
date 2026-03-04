@@ -398,7 +398,7 @@ var ippDecodeTestData = []ippDecodeTest{
 				goipp.TagInteger, goipp.Integer(12345)),
 		},
 
-		err: errors.New(`IPP decode ipp.ippTestStruct: "fld-boolean-f": can't convert integer to Boolean`),
+		err: errors.New(`IPP decode ipp.ippTestStruct: "fld-boolean-f": can't use integer as boolean`),
 	},
 
 	{
@@ -413,7 +413,7 @@ var ippDecodeTestData = []ippDecodeTest{
 			},
 		},
 
-		err: errors.New(`IPP decode ipp.ippTestStruct: "fld-boolean-slice[2]": can't convert octetString to Boolean`),
+		err: errors.New(`IPP decode ipp.ippTestStruct: "fld-boolean-slice[2]": can't use octetString as 1setOf boolean`),
 	},
 
 	{
@@ -422,7 +422,7 @@ var ippDecodeTestData = []ippDecodeTest{
 				goipp.TagInteger, goipp.Integer(12345)),
 		},
 
-		err: errors.New(`IPP decode ipp.ippTestStruct: "fld-datetime": can't convert integer to DateTime`),
+		err: errors.New(`IPP decode ipp.ippTestStruct: "fld-datetime": can't use integer as dateTime`),
 	},
 
 	{
@@ -431,7 +431,7 @@ var ippDecodeTestData = []ippDecodeTest{
 				goipp.TagInteger, goipp.Integer(12345)),
 		},
 
-		err: errors.New(`IPP decode ipp.ippTestStruct: "fld-coll": can't convert integer to Collection`),
+		err: errors.New(`IPP decode ipp.ippTestStruct: "fld-coll": can't use integer as collection`),
 	},
 
 	{
@@ -449,7 +449,7 @@ var ippDecodeTestData = []ippDecodeTest{
 			),
 		},
 
-		err: errors.New(`IPP decode ipp.ippTestStruct: "fld-coll/coll-int": can't convert boolean to Integer or RangeOfInteger`),
+		err: errors.New(`IPP decode ipp.ippTestStruct: "fld-coll/coll-int": can't use boolean as integer | rangeOfInteger`),
 	},
 
 	{
@@ -467,7 +467,7 @@ var ippDecodeTestData = []ippDecodeTest{
 			),
 		},
 
-		err: errors.New(`IPP decode ipp.ippTestStruct: "fld-coll-slice[0]/coll-int": can't convert boolean to Integer or RangeOfInteger`),
+		err: errors.New(`IPP decode ipp.ippTestStruct: "fld-coll-slice[0]/coll-int": can't use boolean as integer | rangeOfInteger`),
 	},
 
 	{
@@ -513,7 +513,7 @@ var ippDecodeTestData = []ippDecodeTest{
 				goipp.TagText, goipp.String("12345")),
 		},
 
-		err: errors.New(`IPP decode ipp.ippTestStruct: "fld-enum": can't convert textWithoutLanguage to Integer`),
+		err: errors.New(`IPP decode ipp.ippTestStruct: "fld-enum": can't use textWithoutLanguage as enum`),
 	},
 
 	{
@@ -532,7 +532,7 @@ var ippDecodeTestData = []ippDecodeTest{
 				goipp.TagText, goipp.String("12345")),
 		},
 
-		err: errors.New(`IPP decode ipp.ippTestStruct: "fld-range": can't convert textWithoutLanguage to Range`),
+		err: errors.New(`IPP decode ipp.ippTestStruct: "fld-range": can't use textWithoutLanguage as rangeOfInteger`),
 	},
 
 	{
@@ -541,7 +541,7 @@ var ippDecodeTestData = []ippDecodeTest{
 				goipp.TagInteger, goipp.Integer(12345)),
 		},
 
-		err: errors.New(`IPP decode ipp.ippTestStruct: "fld-resolution": can't convert integer to Resolution`),
+		err: errors.New(`IPP decode ipp.ippTestStruct: "fld-resolution": can't use integer as resolution`),
 	},
 
 	{
@@ -550,7 +550,7 @@ var ippDecodeTestData = []ippDecodeTest{
 				goipp.TagInteger, goipp.Integer(12345)),
 		},
 
-		err: errors.New(`IPP decode ipp.ippTestStruct: "fld-textwithlang": can't convert integer to TextWithLang`),
+		err: errors.New(`IPP decode ipp.ippTestStruct: "fld-textwithlang": can't use integer as text`),
 	},
 
 	{
@@ -559,7 +559,7 @@ var ippDecodeTestData = []ippDecodeTest{
 				goipp.TagInteger, goipp.Integer(12345)),
 		},
 
-		err: errors.New(`IPP decode ipp.ippTestStruct: "fld-string": can't convert integer to String`),
+		err: errors.New(`IPP decode ipp.ippTestStruct: "fld-string": can't use integer as octetString`),
 	},
 
 	{
@@ -586,13 +586,13 @@ var ippDecodeTestData = []ippDecodeTest{
 				goipp.TagText, goipp.String("12345")),
 		},
 
-		err: errors.New(`IPP decode ipp.ippTestStruct: "fld-uint16": can't convert textWithoutLanguage to Integer`),
+		err: errors.New(`IPP decode ipp.ippTestStruct: "fld-uint16": can't use textWithoutLanguage as integer`),
 	},
 
 	{
 		attrs: goipp.Attributes{
 			goipp.MakeAttribute("fld-version",
-				goipp.TagText, goipp.String("12345")),
+				goipp.TagKeyword, goipp.String("12345")),
 		},
 
 		err: errors.New(`IPP decode ipp.ippTestStruct: "fld-version": "12345": invalid version string`),
@@ -601,7 +601,7 @@ var ippDecodeTestData = []ippDecodeTest{
 	{
 		attrs: goipp.Attributes{
 			goipp.MakeAttribute("fld-version",
-				goipp.TagText, goipp.String("aaa.bbb")),
+				goipp.TagKeyword, goipp.String("aaa.bbb")),
 		},
 
 		err: errors.New(`IPP decode ipp.ippTestStruct: "fld-version": "aaa.bbb": invalid version string`),
@@ -610,7 +610,7 @@ var ippDecodeTestData = []ippDecodeTest{
 	{
 		attrs: goipp.Attributes{
 			goipp.MakeAttribute("fld-version",
-				goipp.TagText, goipp.String("123.bbb")),
+				goipp.TagKeyword, goipp.String("123.bbb")),
 		},
 
 		err: errors.New(`IPP decode ipp.ippTestStruct: "fld-version": "123.bbb": invalid version string`),
@@ -622,7 +622,7 @@ var ippDecodeTestData = []ippDecodeTest{
 				goipp.TagInteger, goipp.Integer(12345)),
 		},
 
-		err: errors.New(`IPP decode ipp.ippTestStruct: "fld-version": can't convert integer to String`),
+		err: errors.New(`IPP decode ipp.ippTestStruct: "fld-version": can't use integer as keyword`),
 	},
 
 	// ----- Big test of successful decoding -----

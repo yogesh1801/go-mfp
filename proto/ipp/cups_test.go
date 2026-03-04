@@ -117,7 +117,7 @@ func TestCupsRequests(t *testing.T) {
 				},
 			),
 
-			err: `IPP decode ipp.CUPSGetDefaultRequest: "attributes-charset": can't convert integer to String`,
+			err: `IPP decode ipp.CUPSGetDefaultRequest: "attributes-charset": can't use integer as charset`,
 		},
 	}
 
@@ -258,7 +258,7 @@ func TestCupsRequesponses(t *testing.T) {
 				},
 			),
 
-			err: `IPP decode ipp.CUPSGetDefaultResponse: "attributes-natural-language": can't convert boolean to String`,
+			err: `IPP decode ipp.CUPSGetDefaultResponse: "attributes-natural-language": can't use boolean as naturalLanguage`,
 		},
 	}
 

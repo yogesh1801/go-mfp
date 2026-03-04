@@ -596,8 +596,13 @@ func (codec *ippCodec) decodeAttrs(dec *Decoder,
 
 	p := unsafe.Pointer(v.Pointer())
 
-	// Now decode, attribute by attribute
+	// Now decode, attribute by attribute.
+	//
+	// Use pre-allocated slice of sanitized values to avoid
+	// slice allocation for each attribute.
 	attersSeen := generic.NewSet[string]()
+	values := make(goipp.Values, 0, 8)
+
 	for _, attr := range attrs {
 		// Update path
 		dec.pathSet(attr.Name)
@@ -622,7 +627,65 @@ func (codec *ippCodec) decodeAttrs(dec *Decoder,
 			continue
 		}
 
-		// Lookup decode step
+		// At least one attribute value must be present.
+		if len(attr.Values) == 0 {
+			// IPP protocol doesn't allow attributes without values
+			// and github.com/OpenPrinting/goipp will never returns
+			// them.
+			//
+			// So if Values slice is empty, this is artificial
+			// construct. Reject it in this case.
+			err := dec.errWrap(errors.New("at least 1 value required"))
+			dec.errPush(err)
+			return err
+		}
+
+		// If not slice and we have more that 1 value, generate a
+		// warning and continue.
+		if !def.SetOf && len(attr.Values) > 1 {
+			err := fmt.Errorf("1 value expected, %d present", len(attr.Values))
+			dec.errPush(dec.errWrap(err))
+		}
+
+		// Validate and sanitize values
+		values = values[:0]
+		for i, val := range attr.Values {
+			var err error
+
+			allows, warnOnly := def.AllowsTag(val.T)
+			if !allows {
+				err = fmt.Errorf("can't use %s as %s",
+					val.T, def)
+			}
+
+			if err == nil || warnOnly {
+				values = append(values, val)
+			}
+
+			if err != nil {
+				if def.SetOf {
+					dec.pathEnter()
+					dec.pathSet(i)
+					err = dec.errWrap(err)
+					dec.pathLeave()
+				} else {
+					err = dec.errWrap(err)
+				}
+
+				dec.errPush(err)
+				if !warnOnly && !dec.opt.KeepTrying {
+					return err
+				}
+			}
+		}
+
+		if len(values) == 0 {
+			continue
+		}
+
+		attr.Values = values
+
+		// Lookup decode step and apply if found
 		step, found := codec.stepsByName[attr.Name]
 		if found {
 			err := codec.doDecodeStep(dec, p, step, attr)
@@ -640,27 +703,6 @@ func (codec *ippCodec) decodeAttrs(dec *Decoder,
 // p is the unsafe.Pointer to the outer structure.
 func (codec ippCodec) doDecodeStep(dec *Decoder,
 	p unsafe.Pointer, step *ippCodecStep, attr goipp.Attribute) error {
-
-	// At least one attribute value must be present.
-	//
-	// IPP protocol doesn't allow attributes without values
-	// and github.com/OpenPrinting/goipp will never returns
-	// them.
-	//
-	// So if Values slice is empty, this is artificial construct.
-	// Reject it in this case.
-	if len(attr.Values) == 0 {
-		err := dec.errWrap(errors.New("at least 1 value required"))
-		dec.errPush(err)
-		return err
-	}
-
-	// If not slice and we have more that 1 value, generate a
-	// warning and continue.
-	if !step.def.SetOf && len(attr.Values) > 1 {
-		err := fmt.Errorf("1 value expected, %d present", len(attr.Values))
-		dec.errPush(dec.errWrap(err))
-	}
 
 	// Call decoder
 	err := step.decode(dec,

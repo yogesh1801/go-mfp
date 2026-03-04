@@ -78,7 +78,7 @@ func (def *DefAttr) OOBTag() goipp.Tag {
 	return goipp.TagZero
 }
 
-// HasTag reports if attribute syntax allows the specified tag.
+// HasTag reports if attribute syntax contains the specified tag.
 func (def *DefAttr) HasTag(tag goipp.Tag) bool {
 	for _, tag2 := range def.Tags {
 		if tag == tag2 {
@@ -86,6 +86,33 @@ func (def *DefAttr) HasTag(tag goipp.Tag) bool {
 		}
 	}
 	return false
+}
+
+// AllowsTag reports if attribute syntax allows the specified tag.
+//
+// The second return value indicates if the attribute value
+// can be promoted to the tag, explicitly allowed by the definition.
+func (def *DefAttr) AllowsTag(tag goipp.Tag) (allows, promotion bool) {
+	for _, deftag := range def.Tags {
+		switch {
+		// Exact match
+		case tag == deftag:
+			return true, false
+
+		// goipp.TagName in definition implies goipp.TagNameLang
+		case deftag == goipp.TagName && tag == goipp.TagNameLang:
+			return true, false
+
+		// goipp.TagText in definition implies goipp.TagTextLang
+		case deftag == goipp.TagText && tag == goipp.TagTextLang:
+			return true, false
+
+		case promotionAllowed(tag, deftag):
+			return false, true
+		}
+
+	}
+	return false, false
 }
 
 // EqualSyntax reports if attributes, defined by def and def2
@@ -128,8 +155,11 @@ func (def *DefAttr) String() string {
 		}
 
 		name := tag.String()
-		if tag == goipp.TagName {
+		switch tag {
+		case goipp.TagName:
 			name = "name"
+		case goipp.TagText:
+			name = "text"
 		}
 
 		min, max := tag.Limits()
