@@ -54,6 +54,15 @@ func prnAttrsFormat(w io.Writer, prn *ipp.PrinterAttributes) {
 	}
 	fmt.Fprintf(w, "\n")
 
+	errors := prn.Errors()
+	if len(errors) != 0 {
+		fmt.Fprintf(w, "  Warnings:\n")
+		for _, err := range errors {
+			fmt.Fprintf(w, "    %s\n", err)
+		}
+		fmt.Fprintf(w, "\n")
+	}
+
 	fmt.Fprintf(w, "  Printer attributes:\n")
 
 	f := goipp.NewFormatter()

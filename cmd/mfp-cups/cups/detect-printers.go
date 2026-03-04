@@ -14,6 +14,7 @@ import (
 	"github.com/OpenPrinting/go-mfp/argv"
 	"github.com/OpenPrinting/go-mfp/cups"
 	"github.com/OpenPrinting/go-mfp/internal/env"
+	"github.com/OpenPrinting/go-mfp/proto/ipp"
 )
 
 // cmdDetectPrinters defines the "detect-printers" sub-command.
@@ -44,6 +45,8 @@ func cmdDetectPrintersHandler(ctx context.Context, inv *argv.Invocation) error {
 
 	// Perform the query
 	clnt := cups.NewClient(dest, nil)
+	clnt.SetDecoderOptions(&ipp.DecoderOptions{KeepTrying: true})
+
 	devices, err := clnt.CUPSGetDevices(ctx, sel, []string{"all"})
 	if err != nil {
 		return err

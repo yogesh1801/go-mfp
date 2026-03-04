@@ -14,6 +14,7 @@ import (
 	"github.com/OpenPrinting/go-mfp/argv"
 	"github.com/OpenPrinting/go-mfp/cups"
 	"github.com/OpenPrinting/go-mfp/internal/env"
+	"github.com/OpenPrinting/go-mfp/proto/ipp"
 )
 
 // cmdGetPrinters defines the "list-printers" sub-command.
@@ -48,6 +49,8 @@ func cmdListPrintersHandler(ctx context.Context, inv *argv.Invocation) error {
 
 	// Perform the query
 	clnt := cups.NewClient(dest, nil)
+	clnt.SetDecoderOptions(&ipp.DecoderOptions{KeepTrying: true})
+
 	printers, err := clnt.CUPSGetPrinters(ctx, sel, attrList)
 	if err != nil {
 		return err

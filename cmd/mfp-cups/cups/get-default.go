@@ -14,6 +14,7 @@ import (
 	"github.com/OpenPrinting/go-mfp/argv"
 	"github.com/OpenPrinting/go-mfp/cups"
 	"github.com/OpenPrinting/go-mfp/internal/env"
+	"github.com/OpenPrinting/go-mfp/proto/ipp"
 )
 
 // cmdDefaultPrinter defines the "default-printer" sub-command
@@ -36,6 +37,8 @@ func cmdDefaultPrinterHandler(ctx context.Context, inv *argv.Invocation) error {
 
 	// Perform the query
 	clnt := cups.NewClient(dest, nil)
+	clnt.SetDecoderOptions(&ipp.DecoderOptions{KeepTrying: true})
+
 	prn, err := clnt.CUPSGetDefault(ctx, attrList)
 	if err != nil {
 		return err
