@@ -36,6 +36,12 @@ func NewClient(u *url.URL, tr *transport.Transport) *Client {
 	}
 }
 
+// SetDecoderOptions updates the [DecoderrOptions] that affect decoding
+// of the received IPP messages
+func (c *Client) SetDecoderOptions(opt *ipp.DecoderOptions) {
+	c.IPPClient.SetDecoderOptions(opt)
+}
+
 // CUPSGetDefault returns information on default printer.
 // The attrs attribute allows to specify list of requested attributes.
 func (c *Client) CUPSGetDefault(ctx context.Context,

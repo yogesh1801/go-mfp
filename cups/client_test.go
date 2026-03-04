@@ -11,10 +11,13 @@ package cups
 import (
 	"context"
 	"testing"
+
+	"github.com/OpenPrinting/go-mfp/proto/ipp"
 )
 
 func TestCUPS(t *testing.T) {
 	c := NewClient(DefaultUNIXURL, nil)
+	c.SetDecoderOptions(&ipp.DecoderOptions{KeepTrying: true})
 	rsp, err := c.CUPSGetDefault(context.Background(), []string{"all"})
 
 	if err != nil {
