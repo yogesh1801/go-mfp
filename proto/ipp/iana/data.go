@@ -8711,7 +8711,7 @@ var PrinterDescription = map[string]*DefAttr{
 		SetOf: false,
 		Min:   0,
 		Max:   63,
-		Tags:  []goipp.Tag{goipp.TagName},
+		Tags:  []goipp.Tag{goipp.TagName, goipp.TagNoValue},
 	},
 	// Printer Description/printer-driver-installer (rfc8011)
 	"printer-driver-installer": &DefAttr{

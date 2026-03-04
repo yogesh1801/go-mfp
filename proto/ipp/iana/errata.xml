@@ -99,6 +99,13 @@
       <xref data="https://ftp.pwg.org/pub/pwg/candidates/cs-ippjobext21-20230210-5100.7.pdf" type="uri">PWG5100.7</xref>
     </record>
 
+    <record>
+      <collection>Printer Description</collection>
+      <name>printer-dns-sd-name</name>
+      <syntax>name(63) | no-value</syntax>
+      <xref data="https://ftp.pwg.org/pub/pwg/candidates/cs-ippnodriver20-20230301-5100.13.pdf" type="uri">PWG5100.13</xref>
+    </record>
+
     <! ----- Substitutions for ambiguous links ----- !>
     <subst>
       <! See PWG5100.3-2023, 5.2.1: Job Template/cover-back !>
