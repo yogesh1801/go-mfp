@@ -9,27 +9,34 @@
 package wsscan
 
 import (
+	"errors"
+
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
 // GetScannerElementsRequest enables a client to request information
 // about the scanner from the WSD Scan Service.
 type GetScannerElementsRequest struct {
-	RequestedElements RequestedElements
+	RequestedElements []RequestedElement // At least one required
 }
 
 // toXML generates XML tree for the GetScannerElementsRequest.
 func (gser GetScannerElementsRequest) toXML(name string) xmldoc.Element {
+	nameElems := make([]xmldoc.Element, len(gser.RequestedElements))
+	for i, re := range gser.RequestedElements {
+		nameElems[i] = re.toXML(NsWSCN + ":Name")
+	}
+
 	return xmldoc.Element{
 		Name: name,
 		Children: []xmldoc.Element{
-			gser.RequestedElements.toXML(NsWSCN + ":RequestedElements"),
+			{Name: NsWSCN + ":RequestedElements", Children: nameElems},
 		},
 	}
 }
 
-// decodeGetScannerElementsRequest
-// decodes GetScannerElementsRequest from the XML tree.
+// decodeGetScannerElementsRequest decodes GetScannerElementsRequest from
+// the XML tree.
 func decodeGetScannerElementsRequest(root xmldoc.Element) (
 	gser GetScannerElementsRequest,
 	err error,
@@ -46,10 +53,18 @@ func decodeGetScannerElementsRequest(root xmldoc.Element) (
 		return gser, xmldoc.XMLErrMissed(missed.Name)
 	}
 
-	if gser.RequestedElements, err = decodeRequestedElements(
-		requestedElements.Elem,
-	); err != nil {
-		return gser, err
+	for _, child := range requestedElements.Elem.Children {
+		if child.Name == NsWSCN+":Name" {
+			re, decErr := decodeRequestedElement(child)
+			if decErr != nil {
+				return gser, decErr
+			}
+			gser.RequestedElements = append(gser.RequestedElements, re)
+		}
+	}
+
+	if len(gser.RequestedElements) == 0 {
+		return gser, errors.New("at least one Name is required")
 	}
 
 	return gser, nil

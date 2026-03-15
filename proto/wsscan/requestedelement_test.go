@@ -14,79 +14,78 @@ import (
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
-// TestScannerRequestedElementNames_String checks that each known
-// ScannerRequestedElementNames produces the correct QName string.
-func TestScannerRequestedElementNames_String(t *testing.T) {
+// TestRequestedElement_String checks that each known RequestedElement
+// produces the correct QName string.
+func TestRequestedElement_String(t *testing.T) {
 	tests := []struct {
 		name     string
-		sren     ScannerRequestedElementNames
+		re       RequestedElement
 		expected string
 	}{
-		{"Unknown", UnknownScannerRequestedElementNames, "Unknown"},
-		{"Description", ScannerRequestedElementDescription,
+		{"Unknown", UnknownRequestedElement, "Unknown"},
+		{"Description", RequestedElementDescription,
 			NsWSCN + ":ScannerDescription"},
-		{"Configuration", ScannerRequestedElementConfiguration,
+		{"Configuration", RequestedElementConfiguration,
 			NsWSCN + ":ScannerConfiguration"},
-		{"Status", ScannerRequestedElementStatus,
+		{"Status", RequestedElementStatus,
 			NsWSCN + ":ScannerStatus"},
-		{"VendorSection", ScannerRequestedElementVendorSection,
+		{"VendorSection", RequestedElementVendorSection,
 			NsXML + ":VendorSection"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.sren.String(); got != tt.expected {
-				t.Errorf("ScannerRequestedElementNames.String() = %v, want %v",
+			if got := tt.re.String(); got != tt.expected {
+				t.Errorf("RequestedElement.String() = %v, want %v",
 					got, tt.expected)
 			}
 		})
 	}
 }
 
-// TestDecodeScannerRequestedElementNames checks that valid QName strings
-// decode to the correct constant and invalid ones return Unknown.
-func TestDecodeScannerRequestedElementNames(t *testing.T) {
+// TestDecodeRequestedElement checks that valid QName strings decode to the
+// correct constant and invalid ones return Unknown.
+func TestDecodeRequestedElement(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    string
-		expected ScannerRequestedElementNames
+		expected RequestedElement
 	}{
 		{"Description", NsWSCN + ":ScannerDescription",
-			ScannerRequestedElementDescription},
+			RequestedElementDescription},
 		{"Configuration", NsWSCN + ":ScannerConfiguration",
-			ScannerRequestedElementConfiguration},
+			RequestedElementConfiguration},
 		{"Status", NsWSCN + ":ScannerStatus",
-			ScannerRequestedElementStatus},
+			RequestedElementStatus},
 		{"VendorSection", NsXML + ":VendorSection",
-			ScannerRequestedElementVendorSection},
-		{"Empty", "", UnknownScannerRequestedElementNames},
-		{"Invalid", "InvalidName", UnknownScannerRequestedElementNames},
+			RequestedElementVendorSection},
+		{"Empty", "", UnknownRequestedElement},
+		{"Invalid", "InvalidName", UnknownRequestedElement},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := DecodeScannerRequestedElementNames(
-				tt.input); got != tt.expected {
-				t.Errorf("DecodeScannerRequestedElementNames() = %v, want %v",
+			if got := DecodeRequestedElement(tt.input); got != tt.expected {
+				t.Errorf("DecodeRequestedElement() = %v, want %v",
 					got, tt.expected)
 			}
 		})
 	}
 }
 
-// TestScannerRequestedElementNames_toXML checks that toXML produces an
-// element with the correct name and QName text value.
-func TestScannerRequestedElementNames_toXML(t *testing.T) {
+// TestRequestedElement_toXML checks that toXML produces an element with
+// the correct name and QName text value.
+func TestRequestedElement_toXML(t *testing.T) {
 	tests := []struct {
 		name     string
-		sren     ScannerRequestedElementNames
+		re       RequestedElement
 		xmlName  string
 		expected xmldoc.Element
 	}{
 		{
 			// Verify Description produces wscn:ScannerDescription text.
 			name:    "Description",
-			sren:    ScannerRequestedElementDescription,
+			re:      RequestedElementDescription,
 			xmlName: NsWSCN + ":Name",
 			expected: xmldoc.Element{
 				Name: NsWSCN + ":Name",
@@ -96,7 +95,7 @@ func TestScannerRequestedElementNames_toXML(t *testing.T) {
 		{
 			// Verify Configuration produces wscn:ScannerConfiguration text.
 			name:    "Configuration",
-			sren:    ScannerRequestedElementConfiguration,
+			re:      RequestedElementConfiguration,
 			xmlName: NsWSCN + ":Name",
 			expected: xmldoc.Element{
 				Name: NsWSCN + ":Name",
@@ -106,7 +105,7 @@ func TestScannerRequestedElementNames_toXML(t *testing.T) {
 		{
 			// Verify Status produces wscn:ScannerStatus text.
 			name:    "Status",
-			sren:    ScannerRequestedElementStatus,
+			re:      RequestedElementStatus,
 			xmlName: NsWSCN + ":Name",
 			expected: xmldoc.Element{
 				Name: NsWSCN + ":Name",
@@ -116,7 +115,7 @@ func TestScannerRequestedElementNames_toXML(t *testing.T) {
 		{
 			// Verify VendorSection produces xmlns:VendorSection text.
 			name:    "VendorSection",
-			sren:    ScannerRequestedElementVendorSection,
+			re:      RequestedElementVendorSection,
 			xmlName: NsWSCN + ":Name",
 			expected: xmldoc.Element{
 				Name: NsWSCN + ":Name",
@@ -127,7 +126,7 @@ func TestScannerRequestedElementNames_toXML(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := tt.sren.toXML(tt.xmlName)
+			got := tt.re.toXML(tt.xmlName)
 			if got.Name != tt.expected.Name {
 				t.Errorf("toXML().Name = %v, want %v",
 					got.Name, tt.expected.Name)
@@ -140,13 +139,13 @@ func TestScannerRequestedElementNames_toXML(t *testing.T) {
 	}
 }
 
-// Test_decodeScannerRequestedElementNames checks that decoding from XML
-// elements works for valid values and returns an error for invalid ones.
-func Test_decodeScannerRequestedElementNames(t *testing.T) {
+// Test_decodeRequestedElement checks that decoding from XML elements works
+// for valid values and returns an error for invalid ones.
+func Test_decodeRequestedElement(t *testing.T) {
 	tests := []struct {
 		name     string
 		element  xmldoc.Element
-		expected ScannerRequestedElementNames
+		expected RequestedElement
 		wantErr  bool
 	}{
 		{
@@ -156,7 +155,7 @@ func Test_decodeScannerRequestedElementNames(t *testing.T) {
 				Name: NsWSCN + ":Name",
 				Text: NsWSCN + ":ScannerDescription",
 			},
-			expected: ScannerRequestedElementDescription,
+			expected: RequestedElementDescription,
 			wantErr:  false,
 		},
 		{
@@ -166,7 +165,7 @@ func Test_decodeScannerRequestedElementNames(t *testing.T) {
 				Name: NsWSCN + ":Name",
 				Text: NsWSCN + ":ScannerConfiguration",
 			},
-			expected: ScannerRequestedElementConfiguration,
+			expected: RequestedElementConfiguration,
 			wantErr:  false,
 		},
 		{
@@ -176,7 +175,7 @@ func Test_decodeScannerRequestedElementNames(t *testing.T) {
 				Name: NsWSCN + ":Name",
 				Text: NsWSCN + ":ScannerStatus",
 			},
-			expected: ScannerRequestedElementStatus,
+			expected: RequestedElementStatus,
 			wantErr:  false,
 		},
 		{
@@ -186,7 +185,7 @@ func Test_decodeScannerRequestedElementNames(t *testing.T) {
 				Name: NsWSCN + ":Name",
 				Text: NsXML + ":VendorSection",
 			},
-			expected: ScannerRequestedElementVendorSection,
+			expected: RequestedElementVendorSection,
 			wantErr:  false,
 		},
 		{
@@ -196,22 +195,21 @@ func Test_decodeScannerRequestedElementNames(t *testing.T) {
 				Name: NsWSCN + ":Name",
 				Text: "InvalidName",
 			},
-			expected: UnknownScannerRequestedElementNames,
+			expected: UnknownRequestedElement,
 			wantErr:  true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := decodeScannerRequestedElementNames(tt.element)
+			got, err := decodeRequestedElement(tt.element)
 			if (err != nil) != tt.wantErr {
-				t.Errorf(
-					"decodeScannerRequestedElementNames() error = %v, wantErr %v",
+				t.Errorf("decodeRequestedElement() error = %v, wantErr %v",
 					err, tt.wantErr)
 				return
 			}
 			if got != tt.expected {
-				t.Errorf("decodeScannerRequestedElementNames() = %v, want %v",
+				t.Errorf("decodeRequestedElement() = %v, want %v",
 					got, tt.expected)
 			}
 		})
