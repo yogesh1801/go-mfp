@@ -16,6 +16,7 @@ import (
 // DocFormat represents a detected document format.
 type DocFormat int
 
+// DocFormat possible values.
 const (
 	DocFormatUnknown    DocFormat = iota // Unknown format
 	DocFormatPostScript                  // PostScript
