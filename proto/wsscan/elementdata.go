@@ -90,19 +90,23 @@ func (ed ElementData) toXML(name string) xmldoc.Element {
 
 	if ed.DefaultScanTicket != nil {
 		elm.Children = append(elm.Children,
-			optional.Get(ed.DefaultScanTicket).toXML(NsWSCN+":DefaultScanTicket"))
+			optional.Get(ed.DefaultScanTicket).toXML(
+				NsWSCN+":DefaultScanTicket"))
 	}
 	if ed.ScannerConfiguration != nil {
 		elm.Children = append(elm.Children,
-			optional.Get(ed.ScannerConfiguration).toXML(NsWSCN+":ScannerConfiguration"))
+			optional.Get(ed.ScannerConfiguration).toXML(
+				NsWSCN+":ScannerConfiguration"))
 	}
 	if ed.ScannerDescription != nil {
 		elm.Children = append(elm.Children,
-			optional.Get(ed.ScannerDescription).toXML(NsWSCN+":ScannerDescription"))
+			optional.Get(ed.ScannerDescription).toXML(
+				NsWSCN+":ScannerDescription"))
 	}
 	if ed.ScannerStatus != nil {
 		elm.Children = append(elm.Children,
-			optional.Get(ed.ScannerStatus).toXML(NsWSCN+":ScannerStatus"))
+			optional.Get(ed.ScannerStatus).toXML(
+				NsWSCN+":ScannerStatus"))
 	}
 
 	return elm
@@ -122,7 +126,8 @@ func decodeElementData(root xmldoc.Element) (ElementData, error) {
 
 	ed.Name = decodeElementDataName(nameAttr.Attr.Value)
 	if ed.Name == UnknownElementDataName {
-		return ed, fmt.Errorf("ElementData: unknown Name %q", nameAttr.Attr.Value)
+		return ed, fmt.Errorf("ElementData: unknown Name %q",
+			nameAttr.Attr.Value)
 	}
 
 	ed.Valid = BooleanElement(validAttr.Attr.Value)
@@ -131,10 +136,14 @@ func decodeElementData(root xmldoc.Element) (ElementData, error) {
 	}
 
 	// Decode optional child elements
-	defaultScanTicket := xmldoc.Lookup{Name: NsWSCN + ":DefaultScanTicket"}
-	scannerConfiguration := xmldoc.Lookup{Name: NsWSCN + ":ScannerConfiguration"}
-	scannerDescription := xmldoc.Lookup{Name: NsWSCN + ":ScannerDescription"}
-	scannerStatus := xmldoc.Lookup{Name: NsWSCN + ":ScannerStatus"}
+	defaultScanTicket := xmldoc.Lookup{
+		Name: NsWSCN + ":DefaultScanTicket"}
+	scannerConfiguration := xmldoc.Lookup{
+		Name: NsWSCN + ":ScannerConfiguration"}
+	scannerDescription := xmldoc.Lookup{
+		Name: NsWSCN + ":ScannerDescription"}
+	scannerStatus := xmldoc.Lookup{
+		Name: NsWSCN + ":ScannerStatus"}
 
 	root.Lookup(&defaultScanTicket, &scannerConfiguration,
 		&scannerDescription, &scannerStatus)
