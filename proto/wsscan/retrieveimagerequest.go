@@ -46,7 +46,7 @@ func decodeRetrieveImageRequest(root xmldoc.Element) (
 		Name:     NsWSCN + ":DocumentDescription",
 		Required: true,
 	}
-	jobId := xmldoc.Lookup{
+	jobID := xmldoc.Lookup{
 		Name:     NsWSCN + ":JobId",
 		Required: true,
 	}
@@ -56,7 +56,7 @@ func decodeRetrieveImageRequest(root xmldoc.Element) (
 	}
 
 	if missed := root.Lookup(
-		&documentDescription, &jobId, &jobToken,
+		&documentDescription, &jobID, &jobToken,
 	); missed != nil {
 		return r, xmldoc.XMLErrMissed(missed.Name)
 	}
@@ -68,7 +68,7 @@ func decodeRetrieveImageRequest(root xmldoc.Element) (
 		return r, fmt.Errorf("DocumentDescription: %w", err)
 	}
 
-	if r.JobID, err = decodeNonNegativeInt(jobId.Elem); err != nil {
+	if r.JobID, err = decodeNonNegativeInt(jobID.Elem); err != nil {
 		return r, fmt.Errorf("JobId: %w", err)
 	}
 	if r.JobID < 1 {

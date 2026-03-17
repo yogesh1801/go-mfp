@@ -53,7 +53,7 @@ func decodeCreateScanJobResponse(root xmldoc.Element) (
 		Name:     NsWSCN + ":ImageInformation",
 		Required: true,
 	}
-	jobId := xmldoc.Lookup{
+	jobID := xmldoc.Lookup{
 		Name:     NsWSCN + ":JobId",
 		Required: true,
 	}
@@ -64,7 +64,7 @@ func decodeCreateScanJobResponse(root xmldoc.Element) (
 
 	if missed := root.Lookup(
 		&documentFinalParameters, &imageInformation,
-		&jobId, &jobToken,
+		&jobID, &jobToken,
 	); missed != nil {
 		return r, xmldoc.XMLErrMissed(missed.Name)
 	}
@@ -81,7 +81,7 @@ func decodeCreateScanJobResponse(root xmldoc.Element) (
 		return r, fmt.Errorf("ImageInformation: %w", err)
 	}
 
-	if r.JobID, err = decodeNonNegativeInt(jobId.Elem); err != nil {
+	if r.JobID, err = decodeNonNegativeInt(jobID.Elem); err != nil {
 		return r, fmt.Errorf("JobId: %w", err)
 	}
 	if r.JobID < 1 {
