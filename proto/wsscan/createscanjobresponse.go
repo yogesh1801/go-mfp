@@ -20,7 +20,7 @@ import (
 type CreateScanJobResponse struct {
 	DocumentFinalParameters DocumentParameters
 	ImageInformation        ImageInformation
-	JobId                   int
+	JobID                   int
 	JobToken                string
 }
 
@@ -32,7 +32,7 @@ func (r CreateScanJobResponse) toXML(name string) xmldoc.Element {
 			r.DocumentFinalParameters.toXML(NsWSCN +
 				":DocumentFinalParameters"),
 			r.ImageInformation.toXML(NsWSCN + ":ImageInformation"),
-			{Name: NsWSCN + ":JobId", Text: strconv.Itoa(r.JobId)},
+			{Name: NsWSCN + ":JobId", Text: strconv.Itoa(r.JobID)},
 			{Name: NsWSCN + ":JobToken", Text: r.JobToken},
 		},
 	}
@@ -81,11 +81,11 @@ func decodeCreateScanJobResponse(root xmldoc.Element) (
 		return r, fmt.Errorf("ImageInformation: %w", err)
 	}
 
-	if r.JobId, err = decodeNonNegativeInt(jobId.Elem); err != nil {
+	if r.JobID, err = decodeNonNegativeInt(jobId.Elem); err != nil {
 		return r, fmt.Errorf("JobId: %w", err)
 	}
-	if r.JobId < 1 {
-		return r, fmt.Errorf("JobId: must be at least 1, got %d", r.JobId)
+	if r.JobID < 1 {
+		return r, fmt.Errorf("JobId: must be at least 1, got %d", r.JobID)
 	}
 
 	r.JobToken = jobToken.Elem.Text

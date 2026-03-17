@@ -26,7 +26,7 @@ func createValidCreateScanJobResponse() CreateScanJobResponse {
 	return CreateScanJobResponse{
 		DocumentFinalParameters: createValidDocumentFinalParameters(),
 		ImageInformation:        ImageInformation{},
-		JobId:                   42,
+		JobID:                   42,
 		JobToken:                "token-abc-123",
 	}
 }
@@ -60,7 +60,7 @@ func TestCreateScanJobResponse_RoundTrip_WithImageInformation(t *testing.T) {
 		ImageInformation: ImageInformation{
 			MediaFrontImageInfo: optional.New(createValidMediaSideImageInfo()),
 		},
-		JobId:    1,
+		JobID:    1,
 		JobToken: "scan-job-token-xyz",
 	}
 	elm := orig.toXML(NsWSCN + ":CreateScanJobResponse")
@@ -108,7 +108,7 @@ func TestCreateScanJobResponse_MissingJobToken(t *testing.T) {
 // allowed minimum of 1) is rejected.
 func TestCreateScanJobResponse_ZeroJobId(t *testing.T) {
 	orig := createValidCreateScanJobResponse()
-	orig.JobId = 0
+	orig.JobID = 0
 	elm := orig.toXML(NsWSCN + ":CreateScanJobResponse")
 
 	_, err := decodeCreateScanJobResponse(elm)
