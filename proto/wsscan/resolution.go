@@ -58,7 +58,7 @@ func decodeResolution(root xmldoc.Element) (Resolution, error) {
 			return decodeInt(xmldoc.Element{Text: s})
 		})
 	if err != nil {
-		return r, fmt.Errorf("Height: %w", err)
+		return r, fmt.Errorf("height: %w", err)
 	}
 	r.Height = h
 
@@ -68,7 +68,7 @@ func decodeResolution(root xmldoc.Element) (Resolution, error) {
 			return decodeInt(xmldoc.Element{Text: s})
 		})
 	if err != nil {
-		return r, fmt.Errorf("Width: %w", err)
+		return r, fmt.Errorf("width: %w", err)
 	}
 	r.Width = w
 

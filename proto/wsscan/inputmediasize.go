@@ -45,7 +45,7 @@ func decodeInputMediaSize(root xmldoc.Element) (InputMediaSize, error) {
 	height, err := ims.Height.decodeValWithOptions(
 		heightLookup.Elem, intValueDecoder)
 	if err != nil {
-		return ims, fmt.Errorf("Height: %w", err)
+		return ims, fmt.Errorf("height: %w", err)
 	}
 	ims.Height = height
 
@@ -53,7 +53,7 @@ func decodeInputMediaSize(root xmldoc.Element) (InputMediaSize, error) {
 	width, err := ims.Width.decodeValWithOptions(
 		widthLookup.Elem, intValueDecoder)
 	if err != nil {
-		return ims, fmt.Errorf("Width: %w", err)
+		return ims, fmt.Errorf("width: %w", err)
 	}
 	ims.Width = width
 
