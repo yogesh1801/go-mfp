@@ -90,29 +90,38 @@ func (def *DefAttr) HasTag(tag goipp.Tag) bool {
 
 // AllowsTag reports if attribute syntax allows the specified tag.
 //
-// The second return value indicates if the attribute value
-// can be promoted to the tag, explicitly allowed by the definition.
-func (def *DefAttr) AllowsTag(tag goipp.Tag) (allows, promotion bool) {
+// The second return value indicates the actual IPP tag the
+// value needs to be promoted to (goipp.TagZero if value is
+// not allowed).
+//
+// Possible combinations return values:
+//   - true, some           - value is OK
+//   - false, some          - value can be accepted with warning
+//   - false, goipp.TagZero - value cannot be accepted
+//
+// Please notice that if returned tag differs from the input tag,
+// it doesn't necessarily indicates that warning is required.
+func (def *DefAttr) AllowsTag(tag goipp.Tag) (ok bool, promote goipp.Tag) {
 	for _, deftag := range def.Tags {
 		switch {
 		// Exact match
 		case tag == deftag:
-			return true, false
+			return true, deftag
 
 		// goipp.TagName in definition implies goipp.TagNameLang
 		case deftag == goipp.TagName && tag == goipp.TagNameLang:
-			return true, false
+			return true, deftag
 
 		// goipp.TagText in definition implies goipp.TagTextLang
 		case deftag == goipp.TagText && tag == goipp.TagTextLang:
-			return true, false
+			return true, deftag
 
 		case promotionAllowed(tag, deftag):
-			return false, true
+			return false, deftag
 		}
 
 	}
-	return false, false
+	return false, goipp.TagZero
 }
 
 // EqualSyntax reports if attributes, defined by def and def2

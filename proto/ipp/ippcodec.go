@@ -652,22 +652,19 @@ func (codec *ippCodec) decodeAttrs(dec *Decoder,
 		for i, val := range attr.Values {
 			var err error
 
-			allows, warnOnly := def.AllowsTag(val.T)
-			if !allows {
+			ok, promote := def.AllowsTag(val.T)
+			if !ok {
 				err = fmt.Errorf("can't use %s as %s",
 					val.T, def)
-			}
-
-			if err == nil || warnOnly {
-				values = append(values, val)
-			}
-
-			if err != nil {
 				err = dec.errWrapAtSmart(err, i, attr, def)
 				dec.errPush(err)
-				if !warnOnly && !dec.opt.KeepTrying {
+				if promote == goipp.TagZero && !dec.opt.KeepTrying {
 					return err
 				}
+			}
+
+			if ok || promote != goipp.TagZero {
+				values = append(values, val)
 			}
 		}
 
