@@ -19,6 +19,7 @@ import (
 	"unsafe"
 
 	"github.com/OpenPrinting/go-mfp/internal/assert"
+	"github.com/OpenPrinting/go-mfp/proto/ipp/iana"
 	"github.com/OpenPrinting/goipp"
 )
 
@@ -426,6 +427,34 @@ func (dec *Decoder) errWrap(err error) error {
 	err = fmt.Errorf("IPP decode %s: %q: %w",
 		dec.typename, dec.pathString(), err)
 	return err
+}
+
+// errWrapAt works like errWrap but additionally adds the
+// value index within the array to the path.
+func (dec *Decoder) errWrapAt(err error, i int) error {
+	dec.pathEnter()
+	dec.pathSet(i)
+	err = dec.errWrap(err)
+	dec.pathLeave()
+	return err
+}
+
+// errWrapAtSmart selectively uses dec.errWrap or dec.errWrapAt
+// depending on the attribute value and definition.
+//
+// Currently it uses errWrapAt (adds value index) if at least
+// one of the following is true:
+//   - Attribute has multiple values
+//   - according to the definition, Attribute may have
+//     multiple values (1setOf attribute)
+func (dec *Decoder) errWrapAtSmart(err error, i int,
+	attr goipp.Attribute, def *iana.DefAttr) error {
+
+	if len(attr.Values) > 1 || def.SetOf {
+		return dec.errWrapAt(err, i)
+	}
+
+	return dec.errWrap(err)
 }
 
 // errConvert returns type conversion error

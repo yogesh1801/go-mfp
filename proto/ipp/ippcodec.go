@@ -663,15 +663,7 @@ func (codec *ippCodec) decodeAttrs(dec *Decoder,
 			}
 
 			if err != nil {
-				if def.SetOf {
-					dec.pathEnter()
-					dec.pathSet(i)
-					err = dec.errWrap(err)
-					dec.pathLeave()
-				} else {
-					err = dec.errWrap(err)
-				}
-
+				err = dec.errWrapAtSmart(err, i, attr, def)
 				dec.errPush(err)
 				if !warnOnly && !dec.opt.KeepTrying {
 					return err
