@@ -93,6 +93,99 @@ func (dec *Decoder) Errors() []error {
 	return dec.errors
 }
 
+// validate validates n-th (zero-based) attribute value against the definition.
+//
+// All found errors and warnings are reported via dec.errPush.
+//
+// It returns either the n-th value (possibly modified/sanitized) and
+// or non-nil error, if value cannot be accepted.
+func (dec *Decoder) validate(attr goipp.Attribute, n int,
+	def *iana.DefAttr) (goipp.TaggedValue, error) {
+
+	tv := attr.Values[n]
+
+	// Validate attribute tag
+	ok, promote := def.AllowsTag(tv.T)
+	if !ok {
+		err := fmt.Errorf("can't use %s as %s", tv.T, def)
+		err = dec.errWrapAtSmart(err, n, attr, def)
+		dec.errPush(err)
+		if promote == goipp.TagZero {
+			return goipp.TaggedValue{}, err
+		}
+	}
+
+	// Now perform the range check
+	switch v := tv.V.(type) {
+	case goipp.Binary:
+		l := len(v)
+		if l < int(def.Min) || l > int(def.Max) {
+			err := fmt.Errorf("length(%d) out of range: %s",
+				l, def)
+			err = dec.errWrapAtSmart(err, n, attr, def)
+			dec.errPush(err)
+		}
+
+	case goipp.Integer:
+		if int(v) < int(def.Min) || int(v) > int(def.Max) {
+			err := fmt.Errorf("value(%d) out of range: %s",
+				v, def)
+			err = dec.errWrapAtSmart(err, n, attr, def)
+			dec.errPush(err)
+		}
+
+	case goipp.Range:
+		if int(v.Lower) < int(def.Min) || int(v.Lower) > int(def.Max) {
+			err := fmt.Errorf("range.lower(%d) out of range: %s",
+				v.Lower, def)
+			err = dec.errWrapAtSmart(err, n, attr, def)
+			dec.errPush(err)
+		}
+
+		if int(v.Upper) < int(def.Min) || int(v.Upper) > int(def.Max) {
+			err := fmt.Errorf("range.upper(%d) out of range: %s",
+				v.Upper, def)
+			err = dec.errWrapAtSmart(err, n, attr, def)
+			dec.errPush(err)
+		}
+
+	case goipp.Resolution:
+		if v.Xres < 1 || v.Yres < 1 {
+			err := fmt.Errorf("resolution.x(%s) out of range", v)
+			err = dec.errWrapAtSmart(err, n, attr, def)
+			dec.errPush(err)
+		}
+
+	case goipp.String:
+		l := len(v)
+		if l < int(def.Min) || l > int(def.Max) {
+			err := fmt.Errorf("length(%d) out of range: %s",
+				l, def)
+			err = dec.errWrapAtSmart(err, n, attr, def)
+			dec.errPush(err)
+		}
+
+	case goipp.TextWithLang:
+		l := len(v.Lang)
+		if l > 63 {
+			err := fmt.Errorf("lang length(%d) out of range: %s",
+				l, def)
+			err = dec.errWrapAtSmart(err, n, attr, def)
+			dec.errPush(err)
+		}
+
+		l = len(v.Text)
+		if l < int(def.Min) || l > int(def.Max) {
+			err := fmt.Errorf("text length(%d) out of range: %s",
+				l, def)
+			err = dec.errWrapAtSmart(err, n, attr, def)
+			dec.errPush(err)
+		}
+	}
+
+	return tv, nil
+}
+
 // Decode: goipp.IntegerOrRange
 func (dec *Decoder) decIntegerOrRange(p unsafe.Pointer, vals goipp.Values) error {
 	res, ok := vals[0].V.(goipp.IntegerOrRange)

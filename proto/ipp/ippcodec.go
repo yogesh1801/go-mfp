@@ -52,70 +52,70 @@ func (enc *ippEncoder) encIntegerOrRange(p unsafe.Pointer) goipp.Values {
 	default:
 		return nil
 	}
-	out := goipp.Values{{tag, in}}
+	out := goipp.Values{{T: tag, V: in}}
 	return out
 }
 
 // Encode: goipp.Range
 func (enc *ippEncoder) encRange(p unsafe.Pointer) goipp.Values {
 	in := *(*goipp.Range)(p)
-	out := goipp.Values{{goipp.TagZero, goipp.Range(in)}}
+	out := goipp.Values{{T: goipp.TagZero, V: goipp.Range(in)}}
 	return out
 }
 
 // Encode: goipp.Resolution
 func (enc *ippEncoder) encResolution(p unsafe.Pointer) goipp.Values {
 	in := *(*goipp.Resolution)(p)
-	out := goipp.Values{{goipp.TagZero, goipp.Resolution(in)}}
+	out := goipp.Values{{T: goipp.TagZero, V: goipp.Resolution(in)}}
 	return out
 }
 
 // Encode: goipp.TextWithLang
 func (enc *ippEncoder) encTextWithLang(p unsafe.Pointer) goipp.Values {
 	in := *(*goipp.TextWithLang)(p)
-	out := goipp.Values{{goipp.TagZero, goipp.TextWithLang(in)}}
+	out := goipp.Values{{T: goipp.TagZero, V: goipp.TextWithLang(in)}}
 	return out
 }
 
 // Encode: goipp.Version
 func (enc *ippEncoder) encVersion(p unsafe.Pointer) goipp.Values {
 	in := *(*goipp.Version)(p)
-	out := goipp.Values{{goipp.TagZero, goipp.String(in.String())}}
+	out := goipp.Values{{T: goipp.TagZero, V: goipp.String(in.String())}}
 	return out
 }
 
 // Encode: time.Time
 func (enc *ippEncoder) encDateTime(p unsafe.Pointer) goipp.Values {
 	in := *(*time.Time)(p)
-	out := goipp.Values{{goipp.TagZero, goipp.Time{Time: in}}}
+	out := goipp.Values{{T: goipp.TagZero, V: goipp.Time{Time: in}}}
 	return out
 }
 
 // Encode: bool
 func (enc *ippEncoder) encBool(p unsafe.Pointer) goipp.Values {
 	in := *(*bool)(p)
-	out := goipp.Values{{goipp.TagZero, goipp.Boolean(in)}}
+	out := goipp.Values{{T: goipp.TagZero, V: goipp.Boolean(in)}}
 	return out
 }
 
 // Encode: int
 func (enc *ippEncoder) encInt(p unsafe.Pointer) goipp.Values {
 	in := *(*int)(p)
-	out := goipp.Values{{goipp.TagZero, goipp.Integer(in)}}
+	out := goipp.Values{{T: goipp.TagZero, V: goipp.Integer(in)}}
 	return out
 }
 
 // Encode: string
 func (enc *ippEncoder) encString(p unsafe.Pointer) goipp.Values {
 	in := *(*string)(p)
-	out := goipp.Values{{goipp.TagZero, goipp.String(in)}}
+	out := goipp.Values{{T: goipp.TagZero, V: goipp.String(in)}}
 	return out
 }
 
 // Encode: uint16
 func (enc *ippEncoder) encUint16(p unsafe.Pointer) goipp.Values {
 	in := *(*uint16)(p)
-	out := goipp.Values{{goipp.TagZero, goipp.Integer(in)}}
+	out := goipp.Values{{T: goipp.TagZero, V: goipp.Integer(in)}}
 	return out
 }
 
@@ -126,7 +126,10 @@ func (enc *ippEncoder) encCollection(p unsafe.Pointer, codec *ippCodec) goipp.Va
 
 	attrs := codec.encodeAttrs(enc, ss)
 
-	return goipp.Values{{goipp.TagBeginCollection, goipp.Collection(attrs)}}
+	return goipp.Values{{
+		T: goipp.TagBeginCollection,
+		V: goipp.Collection(attrs),
+	}}
 }
 
 // encSlice encodes slice of values
@@ -542,7 +545,7 @@ func (codec *ippCodec) encodeAttrs(enc *ippEncoder,
 		if values == nil {
 			oob := step.def.OOBTag()
 			if oob != goipp.TagZero {
-				values = goipp.Values{{oob, goipp.Void{}}}
+				values = goipp.Values{{T: oob, V: goipp.Void{}}}
 			}
 		}
 
@@ -649,21 +652,12 @@ func (codec *ippCodec) decodeAttrs(dec *Decoder,
 
 		// Validate and sanitize values
 		values = values[:0]
-		for i, val := range attr.Values {
-			var err error
-
-			ok, promote := def.AllowsTag(val.T)
-			if !ok {
-				err = fmt.Errorf("can't use %s as %s",
-					val.T, def)
-				err = dec.errWrapAtSmart(err, i, attr, def)
-				dec.errPush(err)
-				if promote == goipp.TagZero && !dec.opt.KeepTrying {
-					return err
-				}
-			}
-
-			if ok || promote != goipp.TagZero {
+		for n := range attr.Values {
+			val, err := dec.validate(attr, n, def)
+			switch {
+			case err != nil && !dec.opt.KeepTrying:
+				return err
+			case err == nil:
 				values = append(values, val)
 			}
 		}

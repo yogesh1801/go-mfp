@@ -406,9 +406,18 @@ var ippDecodeTestData = []ippDecodeTest{
 			goipp.Attribute{
 				Name: "fld-boolean-slice",
 				Values: goipp.Values{
-					{goipp.TagBoolean, goipp.Boolean(true)},
-					{goipp.TagBoolean, goipp.Boolean(false)},
-					{goipp.TagString, goipp.String("hello")},
+					{
+						T: goipp.TagBoolean,
+						V: goipp.Boolean(true),
+					},
+					{
+						T: goipp.TagBoolean,
+						V: goipp.Boolean(false),
+					},
+					{
+						T: goipp.TagString,
+						V: goipp.String("hello"),
+					},
 				},
 			},
 		},
@@ -639,8 +648,14 @@ var ippDecodeTestData = []ippDecodeTest{
 			goipp.Attribute{
 				Name: "fld-boolean-slice",
 				Values: goipp.Values{
-					{goipp.TagBoolean, goipp.Boolean(true)},
-					{goipp.TagBoolean, goipp.Boolean(false)},
+					{
+						T: goipp.TagBoolean,
+						V: goipp.Boolean(true),
+					},
+					{
+						T: goipp.TagBoolean,
+						V: goipp.Boolean(false),
+					},
 				},
 			},
 
@@ -649,9 +664,18 @@ var ippDecodeTestData = []ippDecodeTest{
 			goipp.Attribute{
 				Name: "fld-charset-slice",
 				Values: goipp.Values{
-					{goipp.TagCharset, goipp.String("ibm866")},
-					{goipp.TagCharset, goipp.String("iso-8859-5")},
-					{goipp.TagCharset, goipp.String("windows-1251")},
+					{
+						T: goipp.TagCharset,
+						V: goipp.String("ibm866"),
+					},
+					{
+						T: goipp.TagCharset,
+						V: goipp.String("iso-8859-5"),
+					},
+					{
+						T: goipp.TagCharset,
+						V: goipp.String("windows-1251"),
+					},
 				},
 			},
 
@@ -671,8 +695,8 @@ var ippDecodeTestData = []ippDecodeTest{
 				Name: "fld-coll-slice",
 				Values: goipp.Values{
 					{
-						goipp.TagBeginCollection,
-						goipp.Collection{
+						T: goipp.TagBeginCollection,
+						V: goipp.Collection{
 							goipp.MakeAttribute("coll-int",
 								goipp.TagInteger, goipp.Integer(1)),
 							goipp.MakeAttribute("coll-string",
@@ -682,8 +706,8 @@ var ippDecodeTestData = []ippDecodeTest{
 						},
 					},
 					{
-						goipp.TagBeginCollection,
-						goipp.Collection{
+						T: goipp.TagBeginCollection,
+						V: goipp.Collection{
 							goipp.MakeAttribute("coll-int",
 								goipp.TagInteger, goipp.Integer(2)),
 							goipp.MakeAttribute("coll-string",
@@ -693,8 +717,8 @@ var ippDecodeTestData = []ippDecodeTest{
 						},
 					},
 					{
-						goipp.TagBeginCollection,
-						goipp.Collection{
+						T: goipp.TagBeginCollection,
+						V: goipp.Collection{
 							goipp.MakeAttribute("coll-int",
 								goipp.TagRange,
 								goipp.Range{Lower: 5, Upper: 7}),
@@ -722,9 +746,18 @@ var ippDecodeTestData = []ippDecodeTest{
 			goipp.Attribute{
 				Name: "fld-datetime-slice",
 				Values: goipp.Values{
-					{goipp.TagDateTime, goipp.Time{Time: testTime2}},
-					{goipp.TagDateTime, goipp.Time{Time: testTime3}},
-					{goipp.TagDateTime, goipp.Time{Time: testTime4}},
+					{
+						T: goipp.TagDateTime,
+						V: goipp.Time{Time: testTime2},
+					},
+					{
+						T: goipp.TagDateTime,
+						V: goipp.Time{Time: testTime3},
+					},
+					{
+						T: goipp.TagDateTime,
+						V: goipp.Time{Time: testTime4},
+					},
 				},
 			},
 
@@ -733,9 +766,18 @@ var ippDecodeTestData = []ippDecodeTest{
 			goipp.Attribute{
 				Name: "fld-enum-slice",
 				Values: goipp.Values{
-					{goipp.TagEnum, goipp.Integer(3)},
-					{goipp.TagEnum, goipp.Integer(2)},
-					{goipp.TagEnum, goipp.Integer(1)},
+					{
+						T: goipp.TagEnum,
+						V: goipp.Integer(3),
+					},
+					{
+						T: goipp.TagEnum,
+						V: goipp.Integer(2),
+					},
+					{
+						T: goipp.TagEnum,
+						V: goipp.Integer(1),
+					},
 				},
 			},
 
@@ -744,9 +786,18 @@ var ippDecodeTestData = []ippDecodeTest{
 			goipp.Attribute{
 				Name: "fld-integer-slice",
 				Values: goipp.Values{
-					{goipp.TagInteger, goipp.Integer(1)},
-					{goipp.TagInteger, goipp.Integer(2)},
-					{goipp.TagInteger, goipp.Integer(3)},
+					{
+						T: goipp.TagInteger,
+						V: goipp.Integer(1),
+					},
+					{
+						T: goipp.TagInteger,
+						V: goipp.Integer(2),
+					},
+					{
+						T: goipp.TagInteger,
+						V: goipp.Integer(3),
+					},
 				},
 			},
 
@@ -755,9 +806,18 @@ var ippDecodeTestData = []ippDecodeTest{
 			goipp.Attribute{
 				Name: "fld-keyword-slice",
 				Values: goipp.Values{
-					{goipp.TagKeyword, goipp.String("one-sided")},
-					{goipp.TagKeyword, goipp.String("two-sided-short-edge")},
-					{goipp.TagKeyword, goipp.String("two-sided-long-edge")},
+					{
+						T: goipp.TagKeyword,
+						V: goipp.String("one-sided"),
+					},
+					{
+						T: goipp.TagKeyword,
+						V: goipp.String("two-sided-short-edge"),
+					},
+					{
+						T: goipp.TagKeyword,
+						V: goipp.String("two-sided-long-edge"),
+					},
 				},
 			},
 
@@ -766,9 +826,18 @@ var ippDecodeTestData = []ippDecodeTest{
 			goipp.Attribute{
 				Name: "fld-language-slice",
 				Values: goipp.Values{
-					{goipp.TagLanguage, goipp.String("be-BY")},
-					{goipp.TagLanguage, goipp.String("ru-RU")},
-					{goipp.TagLanguage, goipp.String("uk-UA")},
+					{
+						T: goipp.TagLanguage,
+						V: goipp.String("be-BY"),
+					},
+					{
+						T: goipp.TagLanguage,
+						V: goipp.String("ru-RU"),
+					},
+					{
+						T: goipp.TagLanguage,
+						V: goipp.String("uk-UA"),
+					},
 				},
 			},
 
@@ -777,9 +846,18 @@ var ippDecodeTestData = []ippDecodeTest{
 			goipp.Attribute{
 				Name: "fld-mime-slice",
 				Values: goipp.Values{
-					{goipp.TagMimeType, goipp.String("image/tiff")},
-					{goipp.TagMimeType, goipp.String("image/jpeg")},
-					{goipp.TagMimeType, goipp.String("image/urf")},
+					{
+						T: goipp.TagMimeType,
+						V: goipp.String("image/tiff"),
+					},
+					{
+						T: goipp.TagMimeType,
+						V: goipp.String("image/jpeg"),
+					},
+					{
+						T: goipp.TagMimeType,
+						V: goipp.String("image/urf"),
+					},
 				},
 			},
 
@@ -788,9 +866,18 @@ var ippDecodeTestData = []ippDecodeTest{
 			goipp.Attribute{
 				Name: "fld-name-slice",
 				Values: goipp.Values{
-					{goipp.TagName, goipp.String("Job0001")},
-					{goipp.TagName, goipp.String("Job0002")},
-					{goipp.TagName, goipp.String("Job0003")},
+					{
+						T: goipp.TagName,
+						V: goipp.String("Job0001"),
+					},
+					{
+						T: goipp.TagName,
+						V: goipp.String("Job0002"),
+					},
+					{
+						T: goipp.TagName,
+						V: goipp.String("Job0003"),
+					},
 				},
 			},
 
@@ -799,8 +886,14 @@ var ippDecodeTestData = []ippDecodeTest{
 			goipp.Attribute{
 				Name: "fld-range-slice",
 				Values: goipp.Values{
-					{goipp.TagRange, goipp.Range{Lower: 10000, Upper: 14800}},
-					{goipp.TagRange, goipp.Range{Lower: 21600, Upper: 35600}},
+					{
+						T: goipp.TagRange,
+						V: goipp.Range{Lower: 10000, Upper: 14800},
+					},
+					{
+						T: goipp.TagRange,
+						V: goipp.Range{Lower: 21600, Upper: 35600},
+					},
 				},
 			},
 
@@ -810,10 +903,20 @@ var ippDecodeTestData = []ippDecodeTest{
 			goipp.Attribute{
 				Name: "fld-resolution-slice",
 				Values: goipp.Values{
-					{goipp.TagResolution, goipp.Resolution{Xres: 200, Yres: 300,
-						Units: goipp.UnitsDpi}},
-					{goipp.TagResolution, goipp.Resolution{Xres: 400, Yres: 500,
-						Units: goipp.UnitsDpcm}},
+					{
+						T: goipp.TagResolution,
+						V: goipp.Resolution{
+							Xres:  200,
+							Yres:  300,
+							Units: goipp.UnitsDpi,
+						},
+					},
+					{T: goipp.TagResolution,
+						V: goipp.Resolution{
+							Xres:  400,
+							Yres:  500,
+							Units: goipp.UnitsDpcm,
+						}},
 				},
 			},
 
@@ -823,9 +926,25 @@ var ippDecodeTestData = []ippDecodeTest{
 			goipp.Attribute{
 				Name: "fld-textwithlang-slice",
 				Values: goipp.Values{
-					{goipp.TagTextLang, goipp.TextWithLang{Lang: "be-BY", Text: "Прывітанне"}},
-					{goipp.TagTextLang, goipp.TextWithLang{Lang: "ru-RU", Text: "Привет"}},
-					{goipp.TagTextLang, goipp.TextWithLang{Lang: "uk-UA", Text: "Привіт"}},
+					{
+						T: goipp.TagTextLang,
+						V: goipp.TextWithLang{
+							Lang: "be-BY",
+							Text: "Прывітанне",
+						},
+					},
+					{
+						T: goipp.TagTextLang,
+						V: goipp.TextWithLang{
+							Lang: "ru-RU",
+							Text: "Привет"},
+					},
+					{
+						T: goipp.TagTextLang,
+						V: goipp.TextWithLang{
+							Lang: "uk-UA",
+							Text: "Привіт"},
+					},
 				},
 			},
 
@@ -834,9 +953,18 @@ var ippDecodeTestData = []ippDecodeTest{
 			goipp.Attribute{
 				Name: "fld-string-slice",
 				Values: goipp.Values{
-					{goipp.TagString, goipp.String("A")},
-					{goipp.TagString, goipp.String("B")},
-					{goipp.TagString, goipp.String("C")},
+					{
+						T: goipp.TagString,
+						V: goipp.String("A"),
+					},
+					{
+						T: goipp.TagString,
+						V: goipp.String("B"),
+					},
+					{
+						T: goipp.TagString,
+						V: goipp.String("C"),
+					},
 				},
 			},
 
@@ -845,9 +973,18 @@ var ippDecodeTestData = []ippDecodeTest{
 			goipp.Attribute{
 				Name: "fld-text-slice",
 				Values: goipp.Values{
-					{goipp.TagText, goipp.String("X")},
-					{goipp.TagText, goipp.String("Y")},
-					{goipp.TagText, goipp.String("Z")},
+					{
+						T: goipp.TagText,
+						V: goipp.String("X"),
+					},
+					{
+						T: goipp.TagText,
+						V: goipp.String("Y"),
+					},
+					{
+						T: goipp.TagText,
+						V: goipp.String("Z"),
+					},
 				},
 			},
 
@@ -856,8 +993,14 @@ var ippDecodeTestData = []ippDecodeTest{
 			goipp.Attribute{
 				Name: "fld-uri-slice",
 				Values: goipp.Values{
-					{goipp.TagURI, goipp.String("http://example.com/print")},
-					{goipp.TagURI, goipp.String("http://example.com/scan")},
+					{
+						T: goipp.TagURI,
+						V: goipp.String("http://example.com/print"),
+					},
+					{
+						T: goipp.TagURI,
+						V: goipp.String("http://example.com/scan"),
+					},
 				},
 			},
 
@@ -866,8 +1009,14 @@ var ippDecodeTestData = []ippDecodeTest{
 			goipp.Attribute{
 				Name: "fld-urischeme-slice",
 				Values: goipp.Values{
-					{goipp.TagURIScheme, goipp.String("tel")},
-					{goipp.TagURIScheme, goipp.String("mailto")},
+					{
+						T: goipp.TagURIScheme,
+						V: goipp.String("tel"),
+					},
+					{
+						T: goipp.TagURIScheme,
+						V: goipp.String("mailto"),
+					},
 				},
 			},
 
@@ -876,9 +1025,18 @@ var ippDecodeTestData = []ippDecodeTest{
 			goipp.Attribute{
 				Name: "fld-uint16-slice",
 				Values: goipp.Values{
-					{goipp.TagInteger, goipp.Integer(11)},
-					{goipp.TagInteger, goipp.Integer(22)},
-					{goipp.TagInteger, goipp.Integer(33)},
+					{
+						T: goipp.TagInteger,
+						V: goipp.Integer(11),
+					},
+					{
+						T: goipp.TagInteger,
+						V: goipp.Integer(22),
+					},
+					{
+						T: goipp.TagInteger,
+						V: goipp.Integer(33),
+					},
 				},
 			},
 
@@ -887,9 +1045,18 @@ var ippDecodeTestData = []ippDecodeTest{
 			goipp.Attribute{
 				Name: "fld-version-slice",
 				Values: goipp.Values{
-					{goipp.TagKeyword, goipp.String("2.0")},
-					{goipp.TagKeyword, goipp.String("1.1")},
-					{goipp.TagKeyword, goipp.String("1.0")},
+					{
+						T: goipp.TagKeyword,
+						V: goipp.String("2.0"),
+					},
+					{
+						T: goipp.TagKeyword,
+						V: goipp.String("1.1"),
+					},
+					{
+						T: goipp.TagKeyword,
+						V: goipp.String("1.0"),
+					},
 				},
 			},
 
@@ -897,15 +1064,24 @@ var ippDecodeTestData = []ippDecodeTest{
 				// Note: "fld-version-slice" purposely duplicated
 				Name: "fld-version-slice",
 				Values: goipp.Values{
-					{goipp.TagKeyword, goipp.String("0.0")},
-					{goipp.TagKeyword, goipp.String("0.1")},
+					{
+						T: goipp.TagKeyword,
+						V: goipp.String("0.0"),
+					},
+					{
+						T: goipp.TagKeyword,
+						V: goipp.String("0.1"),
+					},
 				},
 			},
 
 			goipp.Attribute{
 				Name: "flt-optional-present",
 				Values: goipp.Values{
-					{goipp.TagInteger, goipp.Integer(5)},
+					{
+						T: goipp.TagInteger,
+						V: goipp.Integer(5),
+					},
 				},
 			},
 		},
