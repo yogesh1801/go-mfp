@@ -30,7 +30,7 @@ func (dc DeviceCondition) toXML(name string) xmldoc.Element {
 		dc.Component.toXML(NsWSCN + ":Component"),
 		dc.Name.toXML(NsWSCN + ":Name"),
 		dc.Severity.toXML(NsWSCN + ":Severity"),
-		xmldoc.Element{
+		{
 			Name: NsWSCN + ":Time",
 			Text: dc.Time.Format(time.RFC3339),
 		},

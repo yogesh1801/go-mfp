@@ -12,6 +12,7 @@ import (
 	"sort"
 
 	"github.com/OpenPrinting/go-mfp/abstract"
+	"github.com/OpenPrinting/go-mfp/util/generic"
 	"github.com/OpenPrinting/go-mfp/util/optional"
 )
 
@@ -19,6 +20,18 @@ import (
 // dimensions. WS-Scan uses thousandths of an inch (1/1000"),
 // so we treat dimensions as dots at 1000 DPI.
 const wsscanDPI = 1000
+
+// FromAbstractScannerDescription translates
+// [abstract.ScannerCapabilities] into a [ScannerDescription].
+func FromAbstractScannerDescription(
+	caps *abstract.ScannerCapabilities) ScannerDescription {
+
+	sd := ScannerDescription{
+		ScannerName: TextWithLangElement{Text: caps.MakeAndModel},
+	}
+
+	return sd
+}
 
 // FromAbstractScannerConfiguration translates
 // [abstract.ScannerCapabilities] into a [ScannerConfiguration].
@@ -185,7 +198,7 @@ func fromAbstractMaxDimensions(inp *abstract.InputCapabilities) Dimensions {
 }
 
 // fromAbstractOpticalResolution extracts optical resolution as
-// WS-Scan [Dimensions]. Defaults to 300 DPI if unset.
+// WS-Scan [Dimensions].
 func fromAbstractOpticalResolution(
 	inp *abstract.InputCapabilities) Dimensions {
 
@@ -198,23 +211,23 @@ func fromAbstractOpticalResolution(
 func fromAbstractResolutions(
 	profiles []abstract.SettingsProfile) Resolutions {
 
-	widthSet := make(map[int]bool)
-	heightSet := make(map[int]bool)
+	widthSet := generic.NewSet[int]()
+	heightSet := generic.NewSet[int]()
 
 	for _, prof := range profiles {
 		for _, res := range prof.Resolutions {
-			widthSet[res.XResolution] = true
-			heightSet[res.YResolution] = true
+			widthSet.Add(res.XResolution)
+			heightSet.Add(res.YResolution)
 		}
 	}
 
 	var r Resolutions
-	for w := range widthSet {
+	widthSet.ForEach(func(w int) {
 		r.Widths = append(r.Widths, w)
-	}
-	for h := range heightSet {
+	})
+	heightSet.ForEach(func(h int) {
 		r.Heights = append(r.Heights, h)
-	}
+	})
 
 	sort.Ints(r.Widths)
 	sort.Ints(r.Heights)
@@ -227,12 +240,11 @@ func fromAbstractResolutions(
 func fromAbstractColorEntries(
 	profiles []abstract.SettingsProfile) []ColorEntry {
 
-	seen := make(map[ColorEntry]bool)
+	seen := generic.NewSet[ColorEntry]()
 	var out []ColorEntry
 
 	add := func(e ColorEntry) {
-		if !seen[e] {
-			seen[e] = true
+		if seen.TestAndAdd(e) {
 			out = append(out, e)
 		}
 	}
