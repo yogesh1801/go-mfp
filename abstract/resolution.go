@@ -8,7 +8,10 @@
 
 package abstract
 
-import "fmt"
+import (
+	"fmt"
+	"math"
+)
 
 // Resolution specifies a discrete scanner resolution.
 type Resolution struct {
@@ -33,6 +36,42 @@ func (res Resolution) Valid() bool {
 	}
 
 	return res.XResolution > 0 && res.YResolution > 0
+}
+
+// euclideanDistance returns Euclidean distance (actually, the
+// square of the Euclidean distance) between two resolutions
+func (res Resolution) euclideanDistance(res2 Resolution) int {
+	dx := res.XResolution - res2.XResolution
+	dy := res.YResolution - res2.YResolution
+
+	return dx*dx + dy*dy
+}
+
+// lessSquare returns true if res is less square than res2.
+func (res Resolution) lessSquare(res2 Resolution) bool {
+	ratio1 := res.aspectRatio()
+	ratio2 := res2.aspectRatio()
+
+	return ratio1 < ratio2
+}
+
+// aspectRatio returns the ratio of the larger side to the smaller side
+// Higher value means less square resolution.
+//
+// For invalid resolutions (zero values), returns maximum possible value.
+func (res Resolution) aspectRatio() float64 {
+	// Edge cases: if either side is <= 0, treat as maximally non-square
+	if res.XResolution <= 0 || res.YResolution <= 0 {
+		return math.MaxFloat64
+	}
+
+	x := float64(res.XResolution)
+	y := float64(res.YResolution)
+
+	if x >= y {
+		return x / y
+	}
+	return y / x
 }
 
 // ResolutionRange specifies a range of scanner resolutions.

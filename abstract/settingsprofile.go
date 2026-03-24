@@ -64,7 +64,7 @@ func (prof SettingsProfile) AllowsResolution(res Resolution) bool {
 		}
 	}
 
-	// FIXME -- chech ResolutionRange
+	// FIXME -- check ResolutionRange
 
 	return false
 }

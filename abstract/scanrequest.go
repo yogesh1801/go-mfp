@@ -108,6 +108,191 @@ func (req *ScannerRequest) MarshalLog() []byte {
 	return buf.Bytes()
 }
 
+// DefaultScannerRequest returns a reasonable default ScannerRequest,
+// based on a supplied ScannerCapabilities.
+//
+// It may return nil, if ScannerCapabilities is sadly broken (for example,
+// contains no inputs, no available resolutions etc).
+func DefaultScannerRequest(scancaps *ScannerCapabilities) *ScannerRequest {
+	req := &ScannerRequest{}
+
+	// Choose input
+	var inpcaps *InputCapabilities
+	switch {
+	case scancaps.Platen != nil:
+		inpcaps = scancaps.Platen
+		req.Input = InputPlaten
+
+	case scancaps.ADFSimplex != nil:
+		inpcaps = scancaps.ADFSimplex
+		req.Input = InputADF
+		req.ADFMode = ADFModeSimplex
+
+	case scancaps.ADFDuplex != nil:
+		inpcaps = scancaps.ADFDuplex
+		req.Input = InputADF
+		req.ADFMode = ADFModeDuplex
+
+	default:
+		return nil
+	}
+
+	// Choose the most appropriate SettingsProfile
+	prof, res, ok := defaultSettingsProfile(inpcaps)
+	if !ok {
+		return nil
+	}
+
+	// Now build scan request parameters
+	switch {
+	case prof.ColorModes.Contains(ColorModeColor):
+		req.ColorMode = ColorModeColor
+	case prof.ColorModes.Contains(ColorModeMono):
+		req.ColorMode = ColorModeMono
+	case prof.ColorModes.Contains(ColorModeBinary):
+		req.ColorMode = ColorModeBinary
+	default:
+		return nil
+	}
+
+	if req.ColorMode != ColorModeBinary {
+		switch {
+		case prof.Depths.Contains(ColorDepth8):
+			req.ColorDepth = ColorDepth8
+		case prof.Depths.Contains(ColorDepth16):
+			req.ColorDepth = ColorDepth16
+		default:
+			return nil
+		}
+	} else {
+		switch {
+		case prof.BinaryRenderings.Contains(BinaryRenderingThreshold):
+			req.BinaryRendering = BinaryRenderingThreshold
+		case prof.BinaryRenderings.Contains(BinaryRenderingHalftone):
+			req.BinaryRendering = BinaryRenderingHalftone
+		default:
+			return nil
+		}
+	}
+
+	// Fill remaining parameters
+	if len(scancaps.DocumentFormats) == 0 {
+		return nil
+	}
+	req.DocumentFormat = scancaps.DocumentFormats[0] //FIXME
+
+	req.Region = Region{
+		XOffset: 0,
+		YOffset: 0,
+		Width:   inpcaps.MaxWidth,
+		Height:  inpcaps.MaxHeight,
+	}
+	req.Resolution = res
+
+	return req
+}
+
+// defaultSettingsProfile chooses the appropriate SettingsProfile
+// for the DefaultScannerRequest.
+func defaultSettingsProfile(inpcaps *InputCapabilities) (
+	SettingsProfile, Resolution, bool) {
+
+	// Choose profiles that allows the desired resolution
+	desiredRes := Resolution{300, 300}
+	bestRes := desiredRes
+
+	profs := make([]SettingsProfile, 0, len(inpcaps.Profiles))
+	for _, prof := range inpcaps.Profiles {
+		if prof.AllowsResolution(desiredRes) {
+			profs = append(profs, prof)
+		}
+	}
+
+	// If nothing found, choose the best resolution and use
+	// profiles that allows it
+	if len(profs) == 0 {
+		// Prefer square resolutions if available with fallback
+		// to all possible resolutions
+		resolutions := inpcaps.SquareResolutions()
+		if len(resolutions) == 0 {
+			resolutions = inpcaps.Resolutions()
+		}
+
+		// Try to use only resolutions that exceeds the desired, if any
+		use := make([]Resolution, 0, len(resolutions))
+		for _, res := range resolutions {
+			if res.XResolution >= desiredRes.XResolution &&
+				res.YResolution >= desiredRes.YResolution {
+				use = append(use, res)
+			}
+		}
+
+		// If nothing found, use all available resolutions
+		if len(use) == 0 {
+			use = resolutions
+		}
+
+		// Locate nearest resolution from available ones.
+		//
+		// We range resolutions by the euclidean distance,
+		// and prefer more square resolution, if euclidean
+		// distances are equal.
+		if len(use) == 0 {
+			return SettingsProfile{}, Resolution{}, false
+		}
+
+		bestRes = resolutions[0]
+		bestDest := bestRes.euclideanDistance(desiredRes)
+
+		for _, res := range use {
+			dest := res.euclideanDistance(desiredRes)
+			if dest < bestDest ||
+				dest == bestDest && bestRes.lessSquare(res) {
+				bestRes, bestDest = res, dest
+			}
+		}
+
+		// Choose profiles that supports it
+		profs = profs[:0]
+		for _, prof := range inpcaps.Profiles {
+			if prof.AllowsResolution(bestRes) {
+				profs = append(profs, prof)
+			}
+		}
+	}
+
+	// Use 8-bit color, if available
+	for _, prof := range profs {
+		if prof.AllowsColorMode(ColorModeColor, ColorDepth8, 0) {
+			return prof, bestRes, true
+		}
+	}
+
+	// Otherwise use any color
+	for _, prof := range profs {
+		if prof.AllowsColorMode(ColorModeColor, ColorDepthUnset, 0) {
+			return prof, bestRes, true
+		}
+	}
+
+	// Otherwise, use 8-bit grayscale
+	for _, prof := range profs {
+		if prof.AllowsColorMode(ColorModeMono, ColorDepth8, 0) {
+			return prof, bestRes, true
+		}
+	}
+
+	// Otherwise, use any grayscale
+	for _, prof := range profs {
+		if prof.AllowsColorMode(ColorModeMono, ColorDepthUnset, 0) {
+			return prof, bestRes, true
+		}
+	}
+
+	// Otherwise, use first available profile
+	return profs[0], bestRes, true
+}
+
 // Validate checks request validity against the [ScannerCapabilities]
 // and reports found error, if any.
 func (req *ScannerRequest) Validate(scancaps *ScannerCapabilities) error {
