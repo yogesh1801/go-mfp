@@ -8,7 +8,11 @@
 
 package abstract
 
-import "github.com/OpenPrinting/go-mfp/util/generic"
+import (
+	"sort"
+
+	"github.com/OpenPrinting/go-mfp/util/generic"
+)
 
 // InputCapabilities defines scanning capabilities of the
 // particular [Input].
@@ -38,4 +42,60 @@ type InputCapabilities struct {
 func (inpcaps *InputCapabilities) Clone() *InputCapabilities {
 	clone := *inpcaps
 	return &clone
+}
+
+// Resolutions returns all supported resolutions, taking
+// in account all [InputCapabilities.Profiles].
+//
+// Returned resolutions are sorted in some deterministic but
+// unspecified order, duplicates are removed.
+func (inpcaps *InputCapabilities) Resolutions() []Resolution {
+	var resolutions []Resolution
+
+	// Gather all resolutions. Remove duplicates
+	seen := make(map[Resolution]struct{})
+	for _, prof := range inpcaps.Profiles {
+		for _, res := range prof.Resolutions {
+			if _, dup := seen[res]; !dup {
+				resolutions = append(resolutions, res)
+				seen[res] = struct{}{}
+			}
+		}
+	}
+
+	// Sort the response
+	sort.Slice(resolutions, func(i, j int) bool {
+		r1 := resolutions[i]
+		r2 := resolutions[j]
+
+		switch {
+		case r1.XResolution < r2.XResolution:
+			return true
+		case r1.XResolution > r2.XResolution:
+			return false
+		}
+
+		return r1.YResolution < r2.YResolution
+	})
+
+	return resolutions
+}
+
+// SquareResolutions is like [InputCapabilities.Resolutions],
+// but it reports only square resolutions (i.e., resolutions
+// with XResolution == YResolution)
+func (inpcaps *InputCapabilities) SquareResolutions() []Resolution {
+	resolutions := inpcaps.Resolutions()
+
+	var i, o int
+	for i = range resolutions {
+		res := resolutions[i]
+		if res.XResolution == res.YResolution {
+			resolutions[o] = res
+			o++
+		}
+	}
+
+	resolutions = resolutions[:o]
+	return resolutions
 }
