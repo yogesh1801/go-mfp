@@ -86,7 +86,7 @@ func (srv *AbstractServer) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	// Dispatch by SOAP Action
-	switch msg.Header.Action.Type {
+	switch msg.Header.Action {
 	case ActGetScannerElements:
 		srv.getScannerElementsResponse(query, msg)
 	default:
@@ -158,20 +158,15 @@ func (srv *AbstractServer) getScannerElementsResponse(
 }
 
 // sendSOAPResponse wraps a response body in a SOAP envelope and sends it.
-// It reuses the base URL from the request's action so the response
-// matches the client's URL scheme.
 func (srv *AbstractServer) sendSOAPResponse(
 	query *transport.ServerQuery,
 	req Message,
-	actionType ActionType,
+	action Action,
 	body xmldoc.Element) {
 
 	rsp := Message{
 		Header: Header{
-			Action: Action{
-				Type:    actionType,
-				BaseURL: req.Header.Action.BaseURL,
-			},
+			Action:    action,
 			MessageID: AnyURI(uuid.Random().URN()),
 			To:        optional.New(AnyURI(AddrAnonymous)),
 			RelatesTo: optional.New(req.Header.MessageID),

@@ -8,37 +8,27 @@
 
 package wsscan
 
-import (
-	"strings"
+import "github.com/OpenPrinting/go-mfp/util/xmldoc"
 
-	"github.com/OpenPrinting/go-mfp/util/xmldoc"
-)
+// Action represents a WS-Scan message action (message type).
+//
+// Each action is represented on the wire by a constant URL string
+// in the SOAP header's wsa:Action element.
+type Action int
 
-// ActionType identifies a WS-Scan message action (message type).
-type ActionType int
-
-// WS-Scan action types:
+// WS-Scan actions:
 const (
-	ActUnknown                    ActionType = iota
-	ActGetScannerElements                    // GetScannerElements request
-	ActGetScannerElementsResponse            // GetScannerElements response
+	ActUnknown                    Action = iota
+	ActGetScannerElements                // GetScannerElements request
+	ActGetScannerElementsResponse        // GetScannerElements response
 )
 
-// Action represents a WS-Scan message action, combining the
-// action type with the base URL received on the wire.
-type Action struct {
-	Type    ActionType // The action type
-	BaseURL string     // Base URL from the wire
-}
+// actionBaseURL is the common prefix for all WS-Scan action URLs.
+const actionBaseURL = "https://schemas.microsoft.com/windows/2006/01/wdp/scan/"
 
 // String returns a short string representation for debugging.
 func (act Action) String() string {
-	return act.Type.String()
-}
-
-// String returns the suffix string for the action type.
-func (at ActionType) String() string {
-	switch at {
+	switch act {
 	case ActGetScannerElements:
 		return "GetScannerElements"
 	case ActGetScannerElementsResponse:
@@ -49,39 +39,30 @@ func (at ActionType) String() string {
 
 // Encode returns the wire representation (URL string) of the action.
 func (act Action) Encode() string {
-	s := act.Type.String()
+	s := act.String()
 	if s == "Unknown" {
 		return ""
 	}
-	return act.BaseURL + s
+	return actionBaseURL + s
 }
 
 // decodeAction decodes an [Action] from an XML element's text.
 func decodeAction(root xmldoc.Element) (Action, error) {
 	act := actDecode(root.Text)
-	if act.Type != ActUnknown {
+	if act != ActUnknown {
 		return act, nil
 	}
-	return act, xmldoc.XMLErrNew(root, "unknown action")
+	return ActUnknown, xmldoc.XMLErrNew(root, "unknown action")
 }
 
 // actDecode decodes the wire representation of an action into
-// an [Action] value. It matches by suffix so the base URL can
-// vary between implementations.
+// the [Action] value.
 func actDecode(s string) Action {
-	i := strings.LastIndex(s, "/")
-	if i < 0 {
-		return Action{}
+	switch s {
+	case actionBaseURL + "GetScannerElements":
+		return ActGetScannerElements
+	case actionBaseURL + "GetScannerElementsResponse":
+		return ActGetScannerElementsResponse
 	}
-
-	baseURL := s[:i+1]
-	suffix := s[i+1:]
-
-	switch suffix {
-	case "GetScannerElementsRequest":
-		return Action{Type: ActGetScannerElements, BaseURL: baseURL}
-	case "GetScannerElementsResponse":
-		return Action{Type: ActGetScannerElementsResponse, BaseURL: baseURL}
-	}
-	return Action{}
+	return ActUnknown
 }
