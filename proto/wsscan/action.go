@@ -21,6 +21,8 @@ const (
 	ActUnknown                    Action = iota
 	ActGetScannerElements                // GetScannerElements request
 	ActGetScannerElementsResponse        // GetScannerElements response
+	ActCreateScanJob                     // CreateScanJob request
+	ActCreateScanJobResponse             // CreateScanJob response
 )
 
 // actionBaseURL is the common prefix for all WS-Scan action URLs.
@@ -33,6 +35,10 @@ func (act Action) String() string {
 		return "GetScannerElements"
 	case ActGetScannerElementsResponse:
 		return "GetScannerElementsResponse"
+	case ActCreateScanJob:
+		return "CreateScanJob"
+	case ActCreateScanJobResponse:
+		return "CreateScanJobResponse"
 	}
 	return "Unknown"
 }
@@ -63,6 +69,10 @@ func actDecode(s string) Action {
 		return ActGetScannerElements
 	case actionBaseURL + "GetScannerElementsResponse":
 		return ActGetScannerElementsResponse
+	case actionBaseURL + "CreateScanJob":
+		return ActCreateScanJob
+	case actionBaseURL + "CreateScanJobResponse":
+		return ActCreateScanJobResponse
 	}
 	return ActUnknown
 }

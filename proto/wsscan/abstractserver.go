@@ -21,6 +21,9 @@ type AbstractServer struct {
 	caps              *abstract.ScannerCapabilities
 	status            ScannerStatus
 	defaultScanTicket *ScanTicket
+	document          abstract.Document
+	jobID             int
+	jobToken          string
 	lock              sync.Mutex
 }
 
@@ -89,6 +92,8 @@ func (srv *AbstractServer) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	switch msg.Header.Action {
 	case ActGetScannerElements:
 		srv.getScannerElementsResponse(query, msg)
+	case ActCreateScanJob:
+		srv.createScanJobResponse(query, msg)
 	default:
 		query.Reject(http.StatusBadRequest, nil)
 	}
@@ -155,6 +160,64 @@ func (srv *AbstractServer) getScannerElementsResponse(
 	// Send SOAP response
 	srv.sendSOAPResponse(query, msg, ActGetScannerElementsResponse,
 		rsp.toXML(NsWSCN+":GetScannerElementsResponse"))
+}
+
+// createScanJobResponse handles CreateScanJob requests.
+func (srv *AbstractServer) createScanJobResponse(
+	query *transport.ServerQuery, msg Message) {
+
+	// Find the CreateScanJobRequest child in the SOAP body
+	child, ok := msg.Body.ChildByName(
+		NsWSCN + ":CreateScanJobRequest")
+	if !ok {
+		query.Reject(http.StatusBadRequest, nil)
+		return
+	}
+
+	// Decode the request
+	req, err := decodeCreateScanJobRequest(child)
+	if err != nil {
+		query.Reject(http.StatusBadRequest, err)
+		return
+	}
+
+	srv.lock.Lock()
+	defer srv.lock.Unlock()
+
+	// Check if previous scan is still in progress
+	if srv.document != nil {
+		query.Reject(http.StatusServiceUnavailable, nil)
+		return
+	}
+
+	// Convert ScanTicket to abstract.ScannerRequest
+	absreq := req.ScanTicket.ToAbstract()
+
+	// Send request to the underlying abstract.Scanner
+	ctx := query.RequestContext()
+	document, err := srv.options.Scanner.Scan(ctx, absreq)
+	if err != nil {
+		query.Reject(http.StatusConflict, err)
+		return
+	}
+
+	// Store document and update status
+	srv.document = document
+	srv.status.ScannerState = Processing
+
+	// Send SOAP response
+	srv.jobID++
+	srv.jobToken = uuid.Random().URN()
+
+	rsp := CreateScanJobResponse{
+		DocumentFinalParameters: optional.Get(
+			req.ScanTicket.DocumentParameters),
+		JobID:    srv.jobID,
+		JobToken: srv.jobToken,
+	}
+
+	srv.sendSOAPResponse(query, msg, ActCreateScanJobResponse,
+		rsp.toXML(NsWSCN+":CreateScanJobResponse"))
 }
 
 // sendSOAPResponse wraps a response body in a SOAP envelope and sends it.
