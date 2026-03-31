@@ -30,15 +30,15 @@ func (vscan *VirtualScanner) Capabilities() *ScannerCapabilities {
 }
 
 // Scan supplies the scan request.
-func (vscan *VirtualScanner) Scan(ctx context.Context, req ScannerRequest) (
+func (vscan *VirtualScanner) Scan(ctx context.Context, rawreq ScannerRequest) (
 	Document, error) {
 
 	log.Begin(ctx).
 		Debug("VSCAN: scan requested:").
-		Object(log.LevelDebug, 4, &req).
+		Object(log.LevelDebug, 4, &rawreq).
 		Commit()
 
-	err := req.Validate(vscan.ScanCaps)
+	req, err := vscan.ScanCaps.FillRequest(&rawreq)
 	if err != nil {
 		log.Debug(ctx, "VSCAN: %s", err)
 		return nil, err

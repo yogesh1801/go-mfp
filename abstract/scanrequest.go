@@ -106,11 +106,3 @@ func (req *ScannerRequest) MarshalLog() []byte {
 
 	return buf.Bytes()
 }
-
-// Validate checks request validity against the [ScannerCapabilities]
-// and reports found error, if any.
-//
-// Deprecated. Use [ScannerCapabilities.ValidateRequest] instead.
-func (req *ScannerRequest) Validate(scancaps *ScannerCapabilities) error {
-	return scancaps.ValidateRequest(req)
-}

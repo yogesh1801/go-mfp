@@ -887,7 +887,7 @@ func TestScannerRequestValidate(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		err := test.req.Validate(test.scancaps)
+		err := test.scancaps.ValidateRequest(test.req)
 		diff := testutils.Diff(test.err, err)
 		if diff != "" {
 			t.Errorf("failed: %q:\n%s", test.comment, diff)
