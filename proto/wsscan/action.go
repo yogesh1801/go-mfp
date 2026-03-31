@@ -23,6 +23,8 @@ const (
 	ActGetScannerElementsResponse        // GetScannerElements response
 	ActCreateScanJob                     // CreateScanJob request
 	ActCreateScanJobResponse             // CreateScanJob response
+	ActRetrieveImage                     // RetrieveImage request
+	ActRetrieveImageResponse             // RetrieveImage response
 )
 
 // actionBaseURL is the common prefix for all WS-Scan action URLs.
@@ -39,6 +41,10 @@ func (act Action) String() string {
 		return "CreateScanJob"
 	case ActCreateScanJobResponse:
 		return "CreateScanJobResponse"
+	case ActRetrieveImage:
+		return "RetrieveImage"
+	case ActRetrieveImageResponse:
+		return "RetrieveImageResponse"
 	}
 	return "Unknown"
 }
@@ -73,6 +79,10 @@ func actDecode(s string) Action {
 		return ActCreateScanJob
 	case actionBaseURL + "CreateScanJobResponse":
 		return ActCreateScanJobResponse
+	case actionBaseURL + "RetrieveImage":
+		return ActRetrieveImage
+	case actionBaseURL + "RetrieveImageResponse":
+		return ActRetrieveImageResponse
 	}
 	return ActUnknown
 }

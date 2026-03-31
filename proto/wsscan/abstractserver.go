@@ -93,7 +93,9 @@ func (srv *AbstractServer) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	case ActGetScannerElements:
 		srv.getScannerElementsResponse(query, msg)
 	case ActCreateScanJob:
-		srv.createScanJobResponse(query, msg)
+		srv.getScanJobResponse(query, msg)
+	case ActRetrieveImage:
+		srv.getRetrieveImageResponse(query, msg)
 	default:
 		query.Reject(http.StatusBadRequest, nil)
 	}
@@ -163,7 +165,7 @@ func (srv *AbstractServer) getScannerElementsResponse(
 }
 
 // createScanJobResponse handles CreateScanJob requests.
-func (srv *AbstractServer) createScanJobResponse(
+func (srv *AbstractServer) getScanJobResponse(
 	query *transport.ServerQuery, msg Message) {
 
 	// Find the CreateScanJobRequest child in the SOAP body
@@ -218,6 +220,106 @@ func (srv *AbstractServer) createScanJobResponse(
 
 	srv.sendSOAPResponse(query, msg, ActCreateScanJobResponse,
 		rsp.toXML(NsWSCN+":CreateScanJobResponse"))
+}
+
+// getRetrieveImageResponse handles RetrieveImage requests.
+func (srv *AbstractServer) getRetrieveImageResponse(
+	query *transport.ServerQuery, msg Message) {
+
+	// Find the RetrieveImageRequest child in the SOAP body
+	child, ok := msg.Body.ChildByName(
+		NsWSCN + ":RetrieveImageRequest")
+	if !ok {
+		query.Reject(http.StatusBadRequest, nil)
+		return
+	}
+
+	// Decode the request
+	req, err := decodeRetrieveImageRequest(child)
+	if err != nil {
+		query.Reject(http.StatusBadRequest, err)
+		return
+	}
+
+	// Validate job credentials
+	srv.lock.Lock()
+
+	if srv.document == nil || req.JobID != srv.jobID ||
+		req.JobToken != srv.jobToken {
+		srv.lock.Unlock()
+		query.Reject(http.StatusNotFound, nil)
+		return
+	}
+
+	// Get next document file
+	file, err := srv.document.Next()
+	srv.lock.Unlock()
+
+	switch {
+	case err == io.EOF:
+		srv.finish()
+		query.Reject(http.StatusNotFound, nil)
+		return
+	case err != nil:
+		srv.finish()
+		query.Reject(http.StatusServiceUnavailable, err)
+		return
+	}
+
+	// Build response with xop:Include reference
+	imageCID := uuid.Random().String()
+	rsp := RetrieveImageResponse{
+		ScanData: ScanData{ContentID: imageCID},
+	}
+
+	srv.sendMTOMResponse(query, msg, ActRetrieveImageResponse,
+		rsp.toXML(NsWSCN+":RetrieveImageResponse"),
+		imageCID, file)
+}
+
+// finish closes the current document and resets the server state.
+func (srv *AbstractServer) finish() {
+	srv.lock.Lock()
+	defer srv.lock.Unlock()
+
+	srv.document.Close()
+	srv.document = nil
+	srv.status.ScannerState = Idle
+}
+
+// sendMTOMResponse wraps a response body in a SOAP envelope and
+// sends it as an MTOM/XOP multipart message with a file attachment.
+func (srv *AbstractServer) sendMTOMResponse(
+	query *transport.ServerQuery,
+	req Message,
+	action Action,
+	body xmldoc.Element,
+	fileCID string,
+	file abstract.DocumentFile) {
+
+	rsp := Message{
+		Header: Header{
+			Action:    action,
+			MessageID: AnyURI(uuid.Random().URN()),
+			To:        optional.New(AnyURI(AddrAnonymous)),
+			RelatesTo: optional.New(req.Header.MessageID),
+		},
+		Body:    body,
+		File:    file,
+		FileCID: fileCID,
+	}
+
+	// Generate boundary and envelope CID for the multipart message
+	boundary := uuid.Random().String()
+	envelopeCID := uuid.Random().String()
+
+	// Set headers before writing body
+	query.ResponseHeader().Set("Content-Type",
+		MTOMContentType(boundary, envelopeCID))
+	query.WriteHeader(http.StatusOK)
+
+	// Write the MTOM multipart body
+	rsp.WriteMTOM(query, boundary, envelopeCID)
 }
 
 // sendSOAPResponse wraps a response body in a SOAP envelope and sends it.

@@ -15,6 +15,7 @@ const (
 	NsSOAP       = "soap"
 	NsAddressing = "wsa"
 	NsWSCN       = "wscn"
+	NsXOP        = "xop"
 	NsXML        = "xmlns"
 )
 
@@ -38,4 +39,8 @@ var NsMap = xmldoc.Namespace{
 	// WS-Scan
 	{Prefix: NsWSCN,
 		URL: "http://schemas.microsoft.com/windows/2006/01/wdp/scan"},
+
+	// XOP (XML-binary Optimized Packaging)
+	{Prefix: NsXOP,
+		URL: "http://www.w3.org/2004/08/xop/include"},
 }
