@@ -9,6 +9,7 @@
 package abstract
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/OpenPrinting/go-mfp/internal/testutils"
@@ -121,6 +122,7 @@ var testScannerCapabilities = &ScannerCapabilities{
 	MakeAndModel:      "Abstract Scanner",
 	SerialNumber:      "AS-12345",
 	Manufacturer:      "Abstract Corp.",
+	DocumentFormats:   []string{"image/jpeg"},
 	CompressionRange:  Range{Min: 1, Max: 5, Normal: 1},
 	ADFCapacity:       75,
 	BrightnessRange:   Range{Min: -100, Max: 100, Normal: 0},
@@ -222,9 +224,7 @@ func TestScannerRequestValidate(t *testing.T) {
 			comment:  "all-default request, no input supported",
 			scancaps: testScannerCapabilitiesNoInput,
 			req:      &ScannerRequest{},
-			err: ErrParam{
-				ErrUnsupportedParam, "Input", InputUnset,
-			},
+			err:      errors.New("ScannerCapabilities: no inputs"),
 		},
 
 		// InputPlaten tests
@@ -444,19 +444,6 @@ func TestScannerRequestValidate(t *testing.T) {
 		},
 
 		{
-			comment:  "ColorModeUnset+BinaryRenderingHalftone, unsupported",
-			scancaps: testScannerCapabilitiesNoHalftone,
-			req: &ScannerRequest{
-				ColorMode:       ColorModeUnset,
-				BinaryRendering: BinaryRenderingHalftone,
-			},
-			err: ErrParam{
-				ErrUnsupportedParam, "BinaryRendering",
-				BinaryRenderingHalftone,
-			},
-		},
-
-		{
 			comment:  "ColorModeBinary+BinaryRenderingHalftone, unsupported",
 			scancaps: testScannerCapabilitiesNoHalftone,
 			req: &ScannerRequest{
@@ -590,10 +577,10 @@ func TestScannerRequestValidate(t *testing.T) {
 		},
 
 		{
-			comment:  "ColorModeUnset+CCDChannelGrayCcd, unsupported",
+			comment:  "ColorModeMono+CCDChannelGrayCcd, unsupported",
 			scancaps: testScannerCapabilities,
 			req: &ScannerRequest{
-				ColorMode:  ColorModeUnset,
+				ColorMode:  ColorModeMono,
 				CCDChannel: CCDChannelGrayCcd,
 			},
 			err: ErrParam{
@@ -773,11 +760,15 @@ func TestScannerRequestValidate(t *testing.T) {
 		},
 
 		{
-			comment:  "Resolution: 2400x2400, color=unset: OK",
+			comment:  "Resolution: 2400x2400, color=unset: not OK",
 			scancaps: testScannerCapabilities,
 			req: &ScannerRequest{
 				Input:      InputUnset,
 				Resolution: Resolution{2400, 2400},
+			},
+			err: ErrParam{
+				ErrUnsupportedParam, "Resolution",
+				Resolution{2400, 2400},
 			},
 		},
 

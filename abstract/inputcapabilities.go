@@ -99,3 +99,24 @@ func (inpcaps *InputCapabilities) SquareResolutions() []Resolution {
 	resolutions = resolutions[:o]
 	return resolutions
 }
+
+// preferredIntent returns the default Intent
+func (inpcaps *InputCapabilities) defaultIntent() Intent {
+	switch {
+	case inpcaps.Intents.IsEmpty():
+		return IntentUnset
+	case inpcaps.Intents.Contains(IntentTextAndGraphic):
+		return IntentTextAndGraphic
+	case inpcaps.Intents.Contains(IntentDocument):
+		return IntentDocument
+	case inpcaps.Intents.Contains(IntentPhoto):
+		return IntentPhoto
+	case inpcaps.Intents.Contains(IntentObject):
+		return IntentObject
+	case inpcaps.Intents.Contains(IntentBusinessCard):
+		return IntentBusinessCard
+	case inpcaps.Intents.Contains(IntentPreview):
+		return IntentPreview
+	}
+	return IntentUnset
+}

@@ -22,6 +22,11 @@ const (
 	inputMax
 )
 
+// Valid reports if Input is valid
+func (in Input) Valid() bool {
+	return InputUnset <= in && in < inputMax
+}
+
 // String returns the string representation of the [Input], for logging
 func (in Input) String() string {
 	switch in {

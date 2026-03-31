@@ -49,14 +49,27 @@ func (r Range) Within(v int) bool {
 	}
 }
 
-// validate returns ErrParam error if parameter is not within the Range.
-func (r Range) validate(name string, param optional.Val[int]) error {
-	if param != nil {
-		v := *param
-		if !r.Within(v) {
-			return ErrParam{ErrUnsupportedParam, name, v}
-		}
+// resolve validates a parameter value against the Range.
+//
+// The input parameter may be nil (missing).
+//
+// It returns either:
+//   - a valid parameter (comes from Range.Normal if the input is missing), or
+//   - an error.
+func (r Range) resolve(name string,
+	param optional.Val[int]) (optional.Val[int], error) {
+
+	switch {
+	case r.IsZero():
+		return nil, nil
+	case param == nil:
+		return optional.New(r.Normal), nil
 	}
 
-	return nil
+	v := *param
+	if !r.Within(v) {
+		return nil, ErrParam{ErrUnsupportedParam, name, v}
+	}
+
+	return param, nil
 }

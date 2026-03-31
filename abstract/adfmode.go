@@ -21,6 +21,11 @@ const (
 	adfModeMax
 )
 
+// Valid reports if ADFMode is valid
+func (mode ADFMode) Valid() bool {
+	return ADFModeUnset <= mode && mode < adfModeMax
+}
+
 // String returns the string representation of the [ADFMode], for logging.
 func (mode ADFMode) String() string {
 	switch mode {

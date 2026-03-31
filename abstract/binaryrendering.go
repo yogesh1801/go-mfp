@@ -22,6 +22,11 @@ const (
 	binaryRenderingMax
 )
 
+// Valid reports if BinaryRendering is valid
+func (rend BinaryRendering) Valid() bool {
+	return BinaryRenderingUnset <= rend && rend < binaryRenderingMax
+}
+
 // String returns the string representation of the [BinaryRendering],
 // for logging.
 func (rend BinaryRendering) String() string {

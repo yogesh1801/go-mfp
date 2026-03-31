@@ -22,6 +22,11 @@ const (
 	colorModeMax
 )
 
+// Valid reports if ColorMode is valid
+func (mode ColorMode) Valid() bool {
+	return ColorModeUnset <= mode && mode < colorModeMax
+}
+
 // String returns string representation of the [ColorMode], for logging.
 func (mode ColorMode) String() string {
 	switch mode {

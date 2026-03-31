@@ -26,6 +26,11 @@ const (
 	ccdChannelMax
 )
 
+// Valid reports if CCDChannel is valid
+func (ccd CCDChannel) Valid() bool {
+	return CCDChannelUnset <= ccd && ccd < ccdChannelMax
+}
+
 // String returns the string representation of the [CCDChannel],
 // for logging.
 func (ccd CCDChannel) String() string {

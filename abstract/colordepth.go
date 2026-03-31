@@ -21,6 +21,11 @@ const (
 	colorDepthMax
 )
 
+// Valid reports if ColorDepth is valid
+func (depth ColorDepth) Valid() bool {
+	return ColorDepthUnset <= depth && depth < colorDepthMax
+}
+
 // String returns the string representation of the [ColorDepth], for logging.
 func (depth ColorDepth) String() string {
 	switch depth {

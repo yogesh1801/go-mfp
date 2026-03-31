@@ -26,6 +26,11 @@ const (
 	intentMax
 )
 
+// Valid reports if Intent is valid
+func (intent Intent) Valid() bool {
+	return IntentUnset <= intent && intent < intentMax
+}
+
 // String returns the string representation of the [Intent], for logging.
 func (intent Intent) String() string {
 	switch intent {
