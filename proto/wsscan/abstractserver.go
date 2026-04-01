@@ -11,7 +11,6 @@ import (
 	"github.com/OpenPrinting/go-mfp/transport"
 	"github.com/OpenPrinting/go-mfp/util/optional"
 	"github.com/OpenPrinting/go-mfp/util/uuid"
-	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
 // AbstractServer implements a WS-Scan server on top of
@@ -101,24 +100,11 @@ func (srv *AbstractServer) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	}
 }
 
-// getScannerElements handles GetScannerElements requests.
+// getScannerElementsResponse handles GetScannerElements requests.
 func (srv *AbstractServer) getScannerElementsResponse(
 	query *transport.ServerQuery, msg Message) {
 
-	// Find the GetScannerElements child in the SOAP body
-	child, ok := msg.Body.ChildByName(
-		NsWSCN + ":GetScannerElementsRequest")
-	if !ok {
-		query.Reject(http.StatusBadRequest, nil)
-		return
-	}
-
-	// Decode the request
-	req, err := decodeGetScannerElementsRequest(child)
-	if err != nil {
-		query.Reject(http.StatusBadRequest, err)
-		return
-	}
+	req := msg.Body.(GetScannerElementsRequest)
 
 	// Build ElementData for each requested element
 	var elements []ElementData
@@ -160,28 +146,14 @@ func (srv *AbstractServer) getScannerElementsResponse(
 	}
 
 	// Send SOAP response
-	srv.sendSOAPResponse(query, msg, ActGetScannerElementsResponse,
-		rsp.toXML(NsWSCN+":GetScannerElementsResponse"))
+	srv.sendSOAPResponse(query, msg, rsp)
 }
 
-// createScanJobResponse handles CreateScanJob requests.
+// getScanJobResponse handles CreateScanJob requests.
 func (srv *AbstractServer) getScanJobResponse(
 	query *transport.ServerQuery, msg Message) {
 
-	// Find the CreateScanJobRequest child in the SOAP body
-	child, ok := msg.Body.ChildByName(
-		NsWSCN + ":CreateScanJobRequest")
-	if !ok {
-		query.Reject(http.StatusBadRequest, nil)
-		return
-	}
-
-	// Decode the request
-	req, err := decodeCreateScanJobRequest(child)
-	if err != nil {
-		query.Reject(http.StatusBadRequest, err)
-		return
-	}
+	req := msg.Body.(CreateScanJobRequest)
 
 	srv.lock.Lock()
 	defer srv.lock.Unlock()
@@ -218,28 +190,14 @@ func (srv *AbstractServer) getScanJobResponse(
 		JobToken: srv.jobToken,
 	}
 
-	srv.sendSOAPResponse(query, msg, ActCreateScanJobResponse,
-		rsp.toXML(NsWSCN+":CreateScanJobResponse"))
+	srv.sendSOAPResponse(query, msg, rsp)
 }
 
 // getRetrieveImageResponse handles RetrieveImage requests.
 func (srv *AbstractServer) getRetrieveImageResponse(
 	query *transport.ServerQuery, msg Message) {
 
-	// Find the RetrieveImageRequest child in the SOAP body
-	child, ok := msg.Body.ChildByName(
-		NsWSCN + ":RetrieveImageRequest")
-	if !ok {
-		query.Reject(http.StatusBadRequest, nil)
-		return
-	}
-
-	// Decode the request
-	req, err := decodeRetrieveImageRequest(child)
-	if err != nil {
-		query.Reject(http.StatusBadRequest, err)
-		return
-	}
+	req := msg.Body.(RetrieveImageRequest)
 
 	// Validate job credentials
 	srv.lock.Lock()
@@ -267,14 +225,13 @@ func (srv *AbstractServer) getRetrieveImageResponse(
 	}
 
 	// Build response with xop:Include reference
-	imageCID := uuid.Random().String()
 	rsp := RetrieveImageResponse{
-		ScanData: ScanData{ContentID: imageCID},
+		ScanData:    ScanData{ContentID: uuid.Random().String()},
+		Image:       io.NopCloser(file),
+		ContentType: file.Format(),
 	}
 
-	srv.sendMTOMResponse(query, msg, ActRetrieveImageResponse,
-		rsp.toXML(NsWSCN+":RetrieveImageResponse"),
-		imageCID, file)
+	srv.sendMTOMResponse(query, msg, rsp)
 }
 
 // finish closes the current document and resets the server state.
@@ -292,21 +249,16 @@ func (srv *AbstractServer) finish() {
 func (srv *AbstractServer) sendMTOMResponse(
 	query *transport.ServerQuery,
 	req Message,
-	action Action,
-	body xmldoc.Element,
-	fileCID string,
-	file abstract.DocumentFile) {
+	body RetrieveImageResponse) {
 
 	rsp := Message{
 		Header: Header{
-			Action:    action,
+			Action:    body.Action(),
 			MessageID: AnyURI(uuid.Random().URN()),
 			To:        optional.New(AnyURI(AddrAnonymous)),
 			RelatesTo: optional.New(req.Header.MessageID),
 		},
-		Body:    body,
-		File:    file,
-		FileCID: fileCID,
+		Body: body,
 	}
 
 	// Generate boundary and envelope CID for the multipart message
@@ -326,12 +278,11 @@ func (srv *AbstractServer) sendMTOMResponse(
 func (srv *AbstractServer) sendSOAPResponse(
 	query *transport.ServerQuery,
 	req Message,
-	action Action,
-	body xmldoc.Element) {
+	body Body) {
 
 	rsp := Message{
 		Header: Header{
-			Action:    action,
+			Action:    body.Action(),
 			MessageID: AnyURI(uuid.Random().URN()),
 			To:        optional.New(AnyURI(AddrAnonymous)),
 			RelatesTo: optional.New(req.Header.MessageID),

@@ -58,6 +58,26 @@ func (act Action) Encode() string {
 	return actionBaseURL + s
 }
 
+// bodyElementName returns the expected XML element name for the
+// SOAP body child corresponding to this action.
+func (act Action) bodyElementName() string {
+	switch act {
+	case ActGetScannerElements:
+		return NsWSCN + ":GetScannerElementsRequest"
+	case ActGetScannerElementsResponse:
+		return NsWSCN + ":GetScannerElementsResponse"
+	case ActCreateScanJob:
+		return NsWSCN + ":CreateScanJobRequest"
+	case ActCreateScanJobResponse:
+		return NsWSCN + ":CreateScanJobResponse"
+	case ActRetrieveImage:
+		return NsWSCN + ":RetrieveImageRequest"
+	case ActRetrieveImageResponse:
+		return NsWSCN + ":RetrieveImageResponse"
+	}
+	return ""
+}
+
 // decodeAction decodes an [Action] from an XML element's text.
 func decodeAction(root xmldoc.Element) (Action, error) {
 	act := actDecode(root.Text)

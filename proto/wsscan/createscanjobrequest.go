@@ -25,6 +25,14 @@ type CreateScanJobRequest struct {
 	ScanTicket       ScanTicket
 }
 
+// Action returns the [Action] associated with this body.
+func (CreateScanJobRequest) Action() Action { return ActCreateScanJob }
+
+// ToXML encodes the body into an XML tree.
+func (csjr CreateScanJobRequest) ToXML() xmldoc.Element {
+	return csjr.toXML(NsWSCN + ":CreateScanJobRequest")
+}
+
 // toXML generates XML tree for the CreateScanJobRequest.
 func (csjr CreateScanJobRequest) toXML(name string) xmldoc.Element {
 	children := []xmldoc.Element{}

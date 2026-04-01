@@ -24,6 +24,14 @@ type RetrieveImageRequest struct {
 	JobToken            string
 }
 
+// Action returns the [Action] associated with this body.
+func (RetrieveImageRequest) Action() Action { return ActRetrieveImage }
+
+// ToXML encodes the body into an XML tree.
+func (r RetrieveImageRequest) ToXML() xmldoc.Element {
+	return r.toXML(NsWSCN + ":RetrieveImageRequest")
+}
+
 // toXML generates XML tree for the [RetrieveImageRequest].
 func (r RetrieveImageRequest) toXML(name string) xmldoc.Element {
 	return xmldoc.Element{

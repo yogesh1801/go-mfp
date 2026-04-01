@@ -20,6 +20,16 @@ type GetScannerElementsRequest struct {
 	RequestedElements []RequestedElement // At least one required
 }
 
+// Action returns the [Action] associated with this body.
+func (GetScannerElementsRequest) Action() Action {
+	return ActGetScannerElements
+}
+
+// ToXML encodes the body into an XML tree.
+func (gser GetScannerElementsRequest) ToXML() xmldoc.Element {
+	return gser.toXML(NsWSCN + ":GetScannerElementsRequest")
+}
+
 // toXML generates XML tree for the GetScannerElementsRequest.
 func (gser GetScannerElementsRequest) toXML(name string) xmldoc.Element {
 	nameElems := make([]xmldoc.Element, len(gser.RequestedElements))

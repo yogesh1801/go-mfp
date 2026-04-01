@@ -22,6 +22,14 @@ type GetScannerElementsResponse struct {
 	ScannerElements []ElementData
 }
 
+// Action returns the [Action] associated with this body.
+func (GetScannerElementsResponse) Action() Action { return ActGetScannerElementsResponse }
+
+// ToXML encodes the body into an XML tree.
+func (r GetScannerElementsResponse) ToXML() xmldoc.Element {
+	return r.toXML(NsWSCN + ":GetScannerElementsResponse")
+}
+
 // toXML generates XML tree for the [GetScannerElementsResponse].
 func (r GetScannerElementsResponse) toXML(name string) xmldoc.Element {
 	edChildren := make([]xmldoc.Element, len(r.ScannerElements))

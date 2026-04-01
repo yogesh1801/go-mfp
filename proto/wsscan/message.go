@@ -15,23 +15,15 @@ import (
 	"mime/multipart"
 	"net/textproto"
 
-	"github.com/OpenPrinting/go-mfp/abstract"
 	"github.com/OpenPrinting/go-mfp/util/generic"
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
 // Message represents a WS-Scan SOAP message, consisting of
-// a [Header] and a body XML element.
-//
-// When File is set, the message carries a binary attachment
-// and must be encoded as MTOM/XOP multipart using
-// [Message.WriteMTOM]. The FileCID links the xop:Include
-// reference in the SOAP body to the file part.
+// a [Header] and a [Body].
 type Message struct {
-	Header  Header
-	Body    xmldoc.Element
-	File    abstract.DocumentFile
-	FileCID string
+	Header Header
+	Body   Body
 }
 
 // DecodeMessage decodes a [Message] from the wire representation.
@@ -75,8 +67,35 @@ func decodeMessageXML(root xmldoc.Element) (msg Message, err error) {
 		return
 	}
 
-	// Body is just the raw XML element
-	msg.Body = body.Elem
+	// Find the body child element by action
+	bodyChildName := msg.Header.Action.bodyElementName()
+	if bodyChildName == "" {
+		err = fmt.Errorf("unknown action: %s", msg.Header.Action)
+		return
+	}
+
+	child, ok := body.Elem.ChildByName(bodyChildName)
+	if !ok {
+		err = xmldoc.XMLErrMissed(bodyChildName)
+		err = xmldoc.XMLErrWrap(body.Elem, err)
+		return
+	}
+
+	// Decode message body by action
+	switch msg.Header.Action {
+	case ActGetScannerElements:
+		msg.Body, err = decodeGetScannerElementsRequest(child)
+	case ActGetScannerElementsResponse:
+		msg.Body, err = decodeGetScannerElementsResponse(child)
+	case ActCreateScanJob:
+		msg.Body, err = decodeCreateScanJobRequest(child)
+	case ActCreateScanJobResponse:
+		msg.Body, err = decodeCreateScanJobResponse(child)
+	case ActRetrieveImage:
+		msg.Body, err = decodeRetrieveImageRequest(child)
+	default:
+		err = fmt.Errorf("unhandled action: %s", msg.Header.Action)
+	}
 
 	return
 }
@@ -97,13 +116,18 @@ func (msg Message) Format() string {
 
 // toXML generates the XML tree for the SOAP envelope.
 func (msg Message) toXML() xmldoc.Element {
+	var bodyChildren []xmldoc.Element
+	if msg.Body != nil {
+		bodyChildren = []xmldoc.Element{msg.Body.ToXML()}
+	}
+
 	return xmldoc.Element{
 		Name: NsSOAP + ":" + "Envelope",
 		Children: []xmldoc.Element{
 			msg.Header.toXML(),
 			{
 				Name:     NsSOAP + ":" + "Body",
-				Children: []xmldoc.Element{msg.Body},
+				Children: bodyChildren,
 			},
 		},
 	}
@@ -123,8 +147,8 @@ func MTOMContentType(boundary, envelopeCID string) string {
 }
 
 // WriteMTOM encodes the message as an MTOM/XOP multipart response,
-// with the SOAP envelope as the first part and the binary data from
-// [Message.File] as the second part.
+// with the SOAP envelope as the first part and the binary
+// attachment from [RetrieveImageResponse] as the second part.
 //
 // The caller must set HTTP headers (using [MTOMContentType]) and
 // call WriteHeader before invoking WriteMTOM, because WriteMTOM
@@ -133,6 +157,8 @@ func MTOMContentType(boundary, envelopeCID string) string {
 // The boundary and envelopeCID must match the values used in the
 // Content-Type header.
 func (msg Message) WriteMTOM(w io.Writer, boundary, envelopeCID string) error {
+	body := msg.Body.(RetrieveImageResponse)
+
 	// Encode the SOAP envelope
 	soapData := msg.Encode()
 
@@ -157,16 +183,16 @@ func (msg Message) WriteMTOM(w io.Writer, boundary, envelopeCID string) error {
 		return err
 	}
 
-	// Part 2: File data (streamed)
-	filePart, err := mw.CreatePart(textproto.MIMEHeader{
-		"Content-Type":              {msg.File.Format()},
+	// Part 2: Image data (streamed)
+	imagePart, err := mw.CreatePart(textproto.MIMEHeader{
+		"Content-Type":              {body.ContentType},
 		"Content-Transfer-Encoding": {"binary"},
-		"Content-Id":                {"<" + msg.FileCID + ">"},
+		"Content-Id":                {"<" + body.ScanData.ContentID + ">"},
 	})
 	if err != nil {
 		return err
 	}
-	if _, err = io.Copy(filePart, msg.File); err != nil {
+	if _, err = io.Copy(imagePart, body.Image); err != nil {
 		return err
 	}
 
