@@ -87,21 +87,21 @@ func (srv *AbstractServer) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	// Dispatch by SOAP Action
-	switch msg.Header.Action {
-	case ActGetScannerElements:
-		srv.getScannerElementsResponse(query, msg)
-	case ActCreateScanJob:
-		srv.getScanJobResponse(query, msg)
-	case ActRetrieveImage:
-		srv.getRetrieveImageResponse(query, msg)
+	// Dispatch by body type
+	switch msg.Body.(type) {
+	case GetScannerElementsRequest:
+		srv.handleGetScannerElementsRequest(query, msg)
+	case CreateScanJobRequest:
+		srv.handleCreateScanJobRequest(query, msg)
+	case RetrieveImageRequest:
+		srv.handleRetrieveImageRequest(query, msg)
 	default:
 		query.Reject(http.StatusBadRequest, nil)
 	}
 }
 
-// getScannerElementsResponse handles GetScannerElements requests.
-func (srv *AbstractServer) getScannerElementsResponse(
+// handleGetScannerElementsRequest handles GetScannerElements requests.
+func (srv *AbstractServer) handleGetScannerElementsRequest(
 	query *transport.ServerQuery, msg Message) {
 
 	req := msg.Body.(GetScannerElementsRequest)
@@ -149,8 +149,8 @@ func (srv *AbstractServer) getScannerElementsResponse(
 	srv.sendSOAPResponse(query, msg, rsp)
 }
 
-// getScanJobResponse handles CreateScanJob requests.
-func (srv *AbstractServer) getScanJobResponse(
+// handleCreateScanJobRequest handles CreateScanJob requests.
+func (srv *AbstractServer) handleCreateScanJobRequest(
 	query *transport.ServerQuery, msg Message) {
 
 	req := msg.Body.(CreateScanJobRequest)
@@ -193,8 +193,8 @@ func (srv *AbstractServer) getScanJobResponse(
 	srv.sendSOAPResponse(query, msg, rsp)
 }
 
-// getRetrieveImageResponse handles RetrieveImage requests.
-func (srv *AbstractServer) getRetrieveImageResponse(
+// handleRetrieveImageRequest handles RetrieveImage requests.
+func (srv *AbstractServer) handleRetrieveImageRequest(
 	query *transport.ServerQuery, msg Message) {
 
 	req := msg.Body.(RetrieveImageRequest)
