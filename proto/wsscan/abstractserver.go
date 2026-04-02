@@ -1,6 +1,7 @@
 package wsscan
 
 import (
+	"errors"
 	"io"
 	"net/http"
 	"strings"
@@ -11,6 +12,11 @@ import (
 	"github.com/OpenPrinting/go-mfp/transport"
 	"github.com/OpenPrinting/go-mfp/util/optional"
 	"github.com/OpenPrinting/go-mfp/util/uuid"
+)
+
+var (
+	ErrBusy       = errors.New("scanner busy")
+	ErrInvalidJob = errors.New("invalid job")
 )
 
 // AbstractServer implements a WS-Scan server on top of
@@ -88,13 +94,28 @@ func (srv *AbstractServer) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	// Dispatch by body type
-	switch msg.Body.(type) {
+	switch body := msg.Body.(type) {
 	case GetScannerElementsRequest:
-		srv.handleGetScannerElementsRequest(query, msg)
+		rsp, err := srv.handleGetScannerElementsRequest(query, body)
+		if err != nil {
+			return
+		}
+		srv.sendSOAPResponse(query, msg, rsp)
+
 	case CreateScanJobRequest:
-		srv.handleCreateScanJobRequest(query, msg)
+		rsp, err := srv.handleCreateScanJobRequest(query, body)
+		if err != nil {
+			return
+		}
+		srv.sendSOAPResponse(query, msg, rsp)
+
 	case RetrieveImageRequest:
-		srv.handleRetrieveImageRequest(query, msg)
+		rsp, err := srv.handleRetrieveImageRequest(query, body)
+		if err != nil {
+			return
+		}
+		srv.sendMTOMResponse(query, msg, rsp)
+
 	default:
 		query.Reject(http.StatusBadRequest, nil)
 	}
@@ -102,9 +123,9 @@ func (srv *AbstractServer) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 
 // handleGetScannerElementsRequest handles GetScannerElements requests.
 func (srv *AbstractServer) handleGetScannerElementsRequest(
-	query *transport.ServerQuery, msg Message) {
-
-	req := msg.Body.(GetScannerElementsRequest)
+	query *transport.ServerQuery,
+	req GetScannerElementsRequest,
+) (GetScannerElementsResponse, error) {
 
 	// Build ElementData for each requested element
 	var elements []ElementData
@@ -140,20 +161,16 @@ func (srv *AbstractServer) handleGetScannerElementsRequest(
 		}
 	}
 
-	// Build response
-	rsp := GetScannerElementsResponse{
+	return GetScannerElementsResponse{
 		ScannerElements: elements,
-	}
-
-	// Send SOAP response
-	srv.sendSOAPResponse(query, msg, rsp)
+	}, nil
 }
 
 // handleCreateScanJobRequest handles CreateScanJob requests.
 func (srv *AbstractServer) handleCreateScanJobRequest(
-	query *transport.ServerQuery, msg Message) {
-
-	req := msg.Body.(CreateScanJobRequest)
+	query *transport.ServerQuery,
+	req CreateScanJobRequest,
+) (CreateScanJobResponse, error) {
 
 	srv.lock.Lock()
 	defer srv.lock.Unlock()
@@ -161,7 +178,7 @@ func (srv *AbstractServer) handleCreateScanJobRequest(
 	// Check if previous scan is still in progress
 	if srv.document != nil {
 		query.Reject(http.StatusServiceUnavailable, nil)
-		return
+		return CreateScanJobResponse{}, ErrBusy
 	}
 
 	// Convert ScanTicket to abstract.ScannerRequest
@@ -172,32 +189,29 @@ func (srv *AbstractServer) handleCreateScanJobRequest(
 	document, err := srv.options.Scanner.Scan(ctx, absreq)
 	if err != nil {
 		query.Reject(http.StatusConflict, err)
-		return
+		return CreateScanJobResponse{}, err
 	}
 
 	// Store document and update status
 	srv.document = document
 	srv.status.ScannerState = Processing
 
-	// Send SOAP response
 	srv.jobID++
 	srv.jobToken = uuid.Random().URN()
 
-	rsp := CreateScanJobResponse{
+	return CreateScanJobResponse{
 		DocumentFinalParameters: optional.Get(
 			req.ScanTicket.DocumentParameters),
 		JobID:    srv.jobID,
 		JobToken: srv.jobToken,
-	}
-
-	srv.sendSOAPResponse(query, msg, rsp)
+	}, nil
 }
 
 // handleRetrieveImageRequest handles RetrieveImage requests.
 func (srv *AbstractServer) handleRetrieveImageRequest(
-	query *transport.ServerQuery, msg Message) {
-
-	req := msg.Body.(RetrieveImageRequest)
+	query *transport.ServerQuery,
+	req RetrieveImageRequest,
+) (RetrieveImageResponse, error) {
 
 	// Validate job credentials
 	srv.lock.Lock()
@@ -206,7 +220,7 @@ func (srv *AbstractServer) handleRetrieveImageRequest(
 		req.JobToken != srv.jobToken {
 		srv.lock.Unlock()
 		query.Reject(http.StatusNotFound, nil)
-		return
+		return RetrieveImageResponse{}, ErrInvalidJob
 	}
 
 	// Get next document file
@@ -217,21 +231,18 @@ func (srv *AbstractServer) handleRetrieveImageRequest(
 	case err == io.EOF:
 		srv.finish()
 		query.Reject(http.StatusNotFound, nil)
-		return
+		return RetrieveImageResponse{}, err
 	case err != nil:
 		srv.finish()
 		query.Reject(http.StatusServiceUnavailable, err)
-		return
+		return RetrieveImageResponse{}, err
 	}
 
-	// Build response with xop:Include reference
-	rsp := RetrieveImageResponse{
+	return RetrieveImageResponse{
 		ScanData:    ScanData{ContentID: uuid.Random().String()},
 		Image:       io.NopCloser(file),
 		ContentType: file.Format(),
-	}
-
-	srv.sendMTOMResponse(query, msg, rsp)
+	}, nil
 }
 
 // finish closes the current document and resets the server state.
