@@ -23,7 +23,7 @@ const wsscanDPI = 1000
 
 // FromAbstractScannerDescription translates
 // [abstract.ScannerCapabilities] into a [ScannerDescription].
-func FromAbstractScannerDescription(
+func fromAbstractScannerDescription(
 	caps *abstract.ScannerCapabilities) ScannerDescription {
 
 	sd := ScannerDescription{
@@ -35,7 +35,7 @@ func FromAbstractScannerDescription(
 
 // FromAbstractScannerConfiguration translates
 // [abstract.ScannerCapabilities] into a [ScannerConfiguration].
-func FromAbstractScannerConfiguration(
+func fromAbstractScannerConfiguration(
 	caps *abstract.ScannerCapabilities) ScannerConfiguration {
 
 	sc := ScannerConfiguration{

@@ -15,8 +15,8 @@ import (
 )
 
 var (
-	ErrBusy       = errors.New("scanner busy")
-	ErrInvalidJob = errors.New("invalid job")
+	errBusy       = errors.New("scanner busy")
+	errInvalidJob = errors.New("invalid job")
 )
 
 // AbstractServer implements a WS-Scan server on top of
@@ -133,7 +133,7 @@ func (srv *AbstractServer) handleGetScannerElementsRequest(
 	for _, re := range req.RequestedElements {
 		switch re {
 		case RequestedElementDescription:
-			desc := FromAbstractScannerDescription(srv.caps)
+			desc := fromAbstractScannerDescription(srv.caps)
 			elements = append(elements, ElementData{
 				Name:               ElementDataScannerDescription,
 				Valid:              BooleanElement("true"),
@@ -141,7 +141,7 @@ func (srv *AbstractServer) handleGetScannerElementsRequest(
 			})
 
 		case RequestedElementConfiguration:
-			conf := FromAbstractScannerConfiguration(srv.caps)
+			conf := fromAbstractScannerConfiguration(srv.caps)
 			elements = append(elements, ElementData{
 				Name:                 ElementDataScannerConfiguration,
 				Valid:                BooleanElement("true"),
@@ -178,7 +178,7 @@ func (srv *AbstractServer) handleCreateScanJobRequest(
 	// Check if previous scan is still in progress
 	if srv.document != nil {
 		query.Reject(http.StatusServiceUnavailable, nil)
-		return CreateScanJobResponse{}, ErrBusy
+		return CreateScanJobResponse{}, errBusy
 	}
 
 	// Convert ScanTicket to abstract.ScannerRequest
@@ -220,7 +220,7 @@ func (srv *AbstractServer) handleRetrieveImageRequest(
 		req.JobToken != srv.jobToken {
 		srv.lock.Unlock()
 		query.Reject(http.StatusNotFound, nil)
-		return RetrieveImageResponse{}, ErrInvalidJob
+		return RetrieveImageResponse{}, errInvalidJob
 	}
 
 	// Get next document file
@@ -278,11 +278,11 @@ func (srv *AbstractServer) sendMTOMResponse(
 
 	// Set headers before writing body
 	query.ResponseHeader().Set("Content-Type",
-		MTOMContentType(boundary, envelopeCID))
+		mtomContentType(boundary, envelopeCID))
 	query.WriteHeader(http.StatusOK)
 
 	// Write the MTOM multipart body
-	rsp.WriteMTOM(query, boundary, envelopeCID)
+	rsp.writeMTOM(query, boundary, envelopeCID)
 }
 
 // sendSOAPResponse wraps a response body in a SOAP envelope and sends it.

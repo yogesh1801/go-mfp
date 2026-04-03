@@ -133,10 +133,10 @@ func (msg Message) toXML() xmldoc.Element {
 	}
 }
 
-// MTOMContentType returns the Content-Type header value for the
+// mtomContentType returns the Content-Type header value for the
 // MTOM/XOP multipart encoding using the given boundary and
 // envelope Content-ID.
-func MTOMContentType(boundary, envelopeCID string) string {
+func mtomContentType(boundary, envelopeCID string) string {
 	return fmt.Sprintf(
 		`multipart/related;`+
 			` type="application/xop+xml";`+
@@ -146,17 +146,17 @@ func MTOMContentType(boundary, envelopeCID string) string {
 		boundary, envelopeCID)
 }
 
-// WriteMTOM encodes the message as an MTOM/XOP multipart response,
+// writeMTOM encodes the message as an MTOM/XOP multipart response,
 // with the SOAP envelope as the first part and the binary
 // attachment from [RetrieveImageResponse] as the second part.
 //
-// The caller must set HTTP headers (using [MTOMContentType]) and
-// call WriteHeader before invoking WriteMTOM, because WriteMTOM
+// The caller must set HTTP headers (using [mtomContentType]) and
+// call WriteHeader before invoking writeMTOM, because writeMTOM
 // writes directly to w.
 //
 // The boundary and envelopeCID must match the values used in the
 // Content-Type header.
-func (msg Message) WriteMTOM(w io.Writer, boundary, envelopeCID string) error {
+func (msg Message) writeMTOM(w io.Writer, boundary, envelopeCID string) error {
 	body := msg.Body.(RetrieveImageResponse)
 
 	// Encode the SOAP envelope
