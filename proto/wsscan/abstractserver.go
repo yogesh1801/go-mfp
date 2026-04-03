@@ -94,30 +94,24 @@ func (srv *AbstractServer) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	// Dispatch by body type
+	var rsp Body
 	switch body := msg.Body.(type) {
 	case GetScannerElementsRequest:
-		rsp, err := srv.handleGetScannerElementsRequest(query, body)
-		if err != nil {
-			return
-		}
-		srv.sendSOAPResponse(query, msg, rsp)
+		rsp, err = srv.handleGetScannerElementsRequest(query, body)
 
 	case CreateScanJobRequest:
-		rsp, err := srv.handleCreateScanJobRequest(query, body)
-		if err != nil {
-			return
-		}
-		srv.sendSOAPResponse(query, msg, rsp)
+		rsp, err = srv.handleCreateScanJobRequest(query, body)
 
 	case RetrieveImageRequest:
-		rsp, err := srv.handleRetrieveImageRequest(query, body)
-		if err != nil {
-			return
-		}
-		srv.sendMTOMResponse(query, msg, rsp)
+		rsp, err = srv.handleRetrieveImageRequest(query, body)
 
 	default:
 		query.Reject(http.StatusBadRequest, nil)
+		return
+	}
+
+	if err == nil {
+		srv.sendSOAPResponse(query, msg, rsp)
 	}
 }
 
@@ -255,37 +249,9 @@ func (srv *AbstractServer) finish() {
 	srv.status.ScannerState = Idle
 }
 
-// sendMTOMResponse wraps a response body in a SOAP envelope and
-// sends it as an MTOM/XOP multipart message with a file attachment.
-func (srv *AbstractServer) sendMTOMResponse(
-	query *transport.ServerQuery,
-	req Message,
-	body RetrieveImageResponse) {
-
-	rsp := Message{
-		Header: Header{
-			Action:    body.Action(),
-			MessageID: AnyURI(uuid.Random().URN()),
-			To:        optional.New(AnyURI(AddrAnonymous)),
-			RelatesTo: optional.New(req.Header.MessageID),
-		},
-		Body: body,
-	}
-
-	// Generate boundary and envelope CID for the multipart message
-	boundary := uuid.Random().String()
-	envelopeCID := uuid.Random().String()
-
-	// Set headers before writing body
-	query.ResponseHeader().Set("Content-Type",
-		mtomContentType(boundary, envelopeCID))
-	query.WriteHeader(http.StatusOK)
-
-	// Write the MTOM multipart body
-	rsp.writeMTOM(query, boundary, envelopeCID)
-}
-
 // sendSOAPResponse wraps a response body in a SOAP envelope and sends it.
+// If the body is a [RetrieveImageResponse], it sends an MTOM/XOP
+// multipart message with the image as a binary attachment.
 func (srv *AbstractServer) sendSOAPResponse(
 	query *transport.ServerQuery,
 	req Message,
@@ -299,6 +265,19 @@ func (srv *AbstractServer) sendSOAPResponse(
 			RelatesTo: optional.New(req.Header.MessageID),
 		},
 		Body: body,
+	}
+
+	// RetrieveImageResponse requires MTOM/XOP multipart encoding
+	if _, ok := body.(RetrieveImageResponse); ok {
+		boundary := uuid.Random().String()
+		envelopeCID := uuid.Random().String()
+
+		query.ResponseHeader().Set("Content-Type",
+			mtomContentType(boundary, envelopeCID))
+		query.WriteHeader(http.StatusOK)
+
+		rsp.writeMTOM(query, boundary, envelopeCID)
+		return
 	}
 
 	query.SendXML(http.StatusOK, NsMap, rsp.toXML())
