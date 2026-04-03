@@ -119,7 +119,7 @@ func (srv *AbstractServer) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 func (srv *AbstractServer) handleGetScannerElementsRequest(
 	query *transport.ServerQuery,
 	req GetScannerElementsRequest,
-) (GetScannerElementsResponse, error) {
+) (Body, error) {
 
 	// Build ElementData for each requested element
 	var elements []ElementData
@@ -164,7 +164,7 @@ func (srv *AbstractServer) handleGetScannerElementsRequest(
 func (srv *AbstractServer) handleCreateScanJobRequest(
 	query *transport.ServerQuery,
 	req CreateScanJobRequest,
-) (CreateScanJobResponse, error) {
+) (Body, error) {
 
 	srv.lock.Lock()
 	defer srv.lock.Unlock()
@@ -172,7 +172,7 @@ func (srv *AbstractServer) handleCreateScanJobRequest(
 	// Check if previous scan is still in progress
 	if srv.document != nil {
 		query.Reject(http.StatusServiceUnavailable, nil)
-		return CreateScanJobResponse{}, errBusy
+		return nil, errBusy
 	}
 
 	// Convert ScanTicket to abstract.ScannerRequest
@@ -183,7 +183,7 @@ func (srv *AbstractServer) handleCreateScanJobRequest(
 	document, err := srv.options.Scanner.Scan(ctx, absreq)
 	if err != nil {
 		query.Reject(http.StatusConflict, err)
-		return CreateScanJobResponse{}, err
+		return nil, err
 	}
 
 	// Store document and update status
@@ -205,7 +205,7 @@ func (srv *AbstractServer) handleCreateScanJobRequest(
 func (srv *AbstractServer) handleRetrieveImageRequest(
 	query *transport.ServerQuery,
 	req RetrieveImageRequest,
-) (RetrieveImageResponse, error) {
+) (Body, error) {
 
 	// Validate job credentials
 	srv.lock.Lock()
@@ -214,7 +214,7 @@ func (srv *AbstractServer) handleRetrieveImageRequest(
 		req.JobToken != srv.jobToken {
 		srv.lock.Unlock()
 		query.Reject(http.StatusNotFound, nil)
-		return RetrieveImageResponse{}, errInvalidJob
+		return nil, errInvalidJob
 	}
 
 	// Get next document file
@@ -225,11 +225,11 @@ func (srv *AbstractServer) handleRetrieveImageRequest(
 	case err == io.EOF:
 		srv.finish()
 		query.Reject(http.StatusNotFound, nil)
-		return RetrieveImageResponse{}, err
+		return nil, err
 	case err != nil:
 		srv.finish()
 		query.Reject(http.StatusServiceUnavailable, err)
-		return RetrieveImageResponse{}, err
+		return nil, err
 	}
 
 	return RetrieveImageResponse{
