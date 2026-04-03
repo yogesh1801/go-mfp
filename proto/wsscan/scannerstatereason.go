@@ -32,7 +32,8 @@ const (
 )
 
 // decodeScannerStateReason decodes [ScannerStateReason] from the XML tree.
-func decodeScannerStateReason(root xmldoc.Element) (ssr ScannerStateReason, err error) {
+func decodeScannerStateReason(root xmldoc.Element) (
+	ssr ScannerStateReason, err error) {
 	return decodeEnum(root, DecodeScannerStateReason)
 }
 
@@ -74,7 +75,7 @@ func (ssr ScannerStateReason) String() string {
 	return "Unknown"
 }
 
-// DecodeScannerStateReason decodes [ScannerStateReason] out of its XML string representation.
+// DecodeScannerStateReason decodes [ScannerStateReason]
 func DecodeScannerStateReason(s string) ScannerStateReason {
 	switch s {
 	case "AttentionRequired":

@@ -1,0 +1,200 @@
+// MFP - Multi-Function Printers and scanners toolkit
+// WS-Scan core protocol
+//
+// Copyright (C) 2024 and up by Yogesh Singla (yogeshsingla481@gmail.com)
+// See LICENSE for license terms and conditions
+//
+// WS-Scan SOAP message
+
+package wsscan
+
+import (
+	"bytes"
+	"fmt"
+	"io"
+	"mime/multipart"
+	"net/textproto"
+
+	"github.com/OpenPrinting/go-mfp/util/generic"
+	"github.com/OpenPrinting/go-mfp/util/xmldoc"
+)
+
+// Message represents a WS-Scan SOAP message, consisting of
+// a [Header] and a [Body].
+type Message struct {
+	Header Header
+	Body   Body
+}
+
+// DecodeMessage decodes a [Message] from the wire representation.
+func DecodeMessage(data []byte) (msg Message, err error) {
+	root, err := xmldoc.Decode(NsMap, bytes.NewReader(data))
+	if err == nil {
+		msg, err = decodeMessageXML(root)
+	}
+	return
+}
+
+// decodeMessageXML decodes a [Message] from the XML tree.
+func decodeMessageXML(root xmldoc.Element) (msg Message, err error) {
+	const (
+		rootName = NsSOAP + ":" + "Envelope"
+		hdrName  = NsSOAP + ":" + "Header"
+		bodyName = NsSOAP + ":" + "Body"
+	)
+
+	defer func() { err = xmldoc.XMLErrWrap(root, err) }()
+
+	// Check root element
+	if root.Name != rootName {
+		err = fmt.Errorf("%s: missed", rootName)
+		return
+	}
+
+	// Look for Header and Body elements
+	hdr := xmldoc.Lookup{Name: hdrName, Required: true}
+	body := xmldoc.Lookup{Name: bodyName, Required: true}
+
+	missed := root.Lookup(&hdr, &body)
+	if missed != nil {
+		err = xmldoc.XMLErrMissed(missed.Name)
+		return
+	}
+
+	// Decode message header
+	msg.Header, err = decodeHeader(hdr.Elem)
+	if err != nil {
+		return
+	}
+
+	// Find the body child element by action
+	bodyChildName := msg.Header.Action.bodyElementName()
+	if bodyChildName == "" {
+		err = fmt.Errorf("unknown action: %s", msg.Header.Action)
+		return
+	}
+
+	child, ok := body.Elem.ChildByName(bodyChildName)
+	if !ok {
+		err = xmldoc.XMLErrMissed(bodyChildName)
+		err = xmldoc.XMLErrWrap(body.Elem, err)
+		return
+	}
+
+	// Decode message body by action
+	switch msg.Header.Action {
+	case ActGetScannerElements:
+		msg.Body, err = decodeGetScannerElementsRequest(child)
+	case ActGetScannerElementsResponse:
+		msg.Body, err = decodeGetScannerElementsResponse(child)
+	case ActCreateScanJob:
+		msg.Body, err = decodeCreateScanJobRequest(child)
+	case ActCreateScanJobResponse:
+		msg.Body, err = decodeCreateScanJobResponse(child)
+	case ActRetrieveImage:
+		msg.Body, err = decodeRetrieveImageRequest(child)
+	default:
+		err = fmt.Errorf("unhandled action: %s", msg.Header.Action)
+	}
+
+	return
+}
+
+// Encode encodes the [Message] into its wire representation.
+func (msg Message) Encode() []byte {
+	buf := bytes.Buffer{}
+	ns := generic.CopySlice(NsMap)
+	msg.toXML().Encode(&buf, ns)
+	return buf.Bytes()
+}
+
+// Format formats the [Message] for logging.
+func (msg Message) Format() string {
+	ns := generic.CopySlice(NsMap)
+	return msg.toXML().EncodeIndentString(ns, "  ")
+}
+
+// toXML generates the XML tree for the SOAP envelope.
+func (msg Message) toXML() xmldoc.Element {
+	var bodyChildren []xmldoc.Element
+	if msg.Body != nil {
+		bodyChildren = []xmldoc.Element{msg.Body.ToXML()}
+	}
+
+	return xmldoc.Element{
+		Name: NsSOAP + ":" + "Envelope",
+		Children: []xmldoc.Element{
+			msg.Header.toXML(),
+			{
+				Name:     NsSOAP + ":" + "Body",
+				Children: bodyChildren,
+			},
+		},
+	}
+}
+
+// mtomContentType returns the Content-Type header value for the
+// MTOM/XOP multipart encoding using the given boundary and
+// envelope Content-ID.
+func mtomContentType(boundary, envelopeCID string) string {
+	return fmt.Sprintf(
+		`multipart/related;`+
+			` type="application/xop+xml";`+
+			` boundary="%s";`+
+			` start="<%s>";`+
+			` start-info="application/soap+xml"`,
+		boundary, envelopeCID)
+}
+
+// writeMTOM encodes the message as an MTOM/XOP multipart response,
+// with the SOAP envelope as the first part and the binary
+// attachment from [RetrieveImageResponse] as the second part.
+//
+// The caller must set HTTP headers (using [mtomContentType]) and
+// call WriteHeader before invoking writeMTOM, because writeMTOM
+// writes directly to w.
+//
+// The boundary and envelopeCID must match the values used in the
+// Content-Type header.
+func (msg Message) writeMTOM(w io.Writer, boundary, envelopeCID string) error {
+	body := msg.Body.(RetrieveImageResponse)
+
+	// Encode the SOAP envelope
+	soapData := msg.Encode()
+
+	// Create multipart writer with the pre-determined boundary
+	mw := multipart.NewWriter(w)
+	if err := mw.SetBoundary(boundary); err != nil {
+		return err
+	}
+
+	// Part 1: SOAP envelope
+	soapPart, err := mw.CreatePart(textproto.MIMEHeader{
+		"Content-Type": {`application/xop+xml;` +
+			` charset=UTF-8;` +
+			` type="application/soap+xml"`},
+		"Content-Transfer-Encoding": {"binary"},
+		"Content-Id":                {"<" + envelopeCID + ">"},
+	})
+	if err != nil {
+		return err
+	}
+	if _, err = soapPart.Write(soapData); err != nil {
+		return err
+	}
+
+	// Part 2: Image data (streamed)
+	imagePart, err := mw.CreatePart(textproto.MIMEHeader{
+		"Content-Type":              {body.ContentType},
+		"Content-Transfer-Encoding": {"binary"},
+		"Content-Id":                {"<" + body.ScanData.ContentID + ">"},
+	})
+	if err != nil {
+		return err
+	}
+	if _, err = io.Copy(imagePart, body.Image); err != nil {
+		return err
+	}
+
+	return mw.Close()
+}

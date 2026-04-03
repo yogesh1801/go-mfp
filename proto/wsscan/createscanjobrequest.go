@@ -21,8 +21,16 @@ import (
 // pushes button on device); that mode is not fully supported.
 type CreateScanJobRequest struct {
 	DestinationToken optional.Val[string]
-	ScanIdentifier optional.Val[string]
-	ScanTicket      ScanTicket
+	ScanIdentifier   optional.Val[string]
+	ScanTicket       ScanTicket
+}
+
+// Action returns the [Action] associated with this body.
+func (CreateScanJobRequest) Action() Action { return ActCreateScanJob }
+
+// ToXML encodes the body into an XML tree.
+func (csjr CreateScanJobRequest) ToXML() xmldoc.Element {
+	return csjr.toXML(NsWSCN + ":CreateScanJobRequest")
 }
 
 // toXML generates XML tree for the CreateScanJobRequest.
@@ -68,13 +76,13 @@ func decodeCreateScanJobRequest(root xmldoc.Element) (
 	}
 
 	if missed := root.Lookup(
-		&scanTicket, 
+		&scanTicket,
 		&destinationToken,
 		&scanIdentifier,
 	); missed != nil {
 		return csjr, xmldoc.XMLErrMissed(missed.Name)
 	}
-	
+
 	if csjr.ScanTicket, err = decodeScanTicket(scanTicket.Elem); err != nil {
 		return csjr, fmt.Errorf("ScanTicket: %w", err)
 	}

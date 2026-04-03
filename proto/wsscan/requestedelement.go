@@ -14,6 +14,7 @@ import "github.com/OpenPrinting/go-mfp/util/xmldoc"
 // that a client wants data for in a GetScannerElementsRequest.
 //
 // For GetScannerElementsRequest, one of the following QName values:
+//   - wscn:DefaultScanTicket
 //   - wscn:ScannerDescription
 //   - wscn:ScannerConfiguration
 //   - wscn:ScannerStatus
@@ -22,11 +23,12 @@ type RequestedElement int
 
 // Known RequestedElement values.
 const (
-	UnknownRequestedElement    RequestedElement = iota
-	RequestedElementDescription                 // wscn:ScannerDescription
-	RequestedElementConfiguration               // wscn:ScannerConfiguration
-	RequestedElementStatus                      // wscn:ScannerStatus
-	RequestedElementVendorSection               // xmlns:VendorSection
+	UnknownRequestedElement           RequestedElement = iota
+	RequestedElementDefaultScanTicket                  // wscn:DefaultScanTicket
+	RequestedElementDescription                        // wscn:ScannerDescription
+	RequestedElementConfiguration                      // wscn:ScannerConfiguration
+	RequestedElementStatus                             // wscn:ScannerStatus
+	RequestedElementVendorSection                      // xmlns:VendorSection
 )
 
 // decodeRequestedElement decodes [RequestedElement] from the XML tree.
@@ -45,6 +47,8 @@ func (re RequestedElement) toXML(name string) xmldoc.Element {
 // String returns the string representation of the [RequestedElement].
 func (re RequestedElement) String() string {
 	switch re {
+	case RequestedElementDefaultScanTicket:
+		return NsWSCN + ":DefaultScanTicket"
 	case RequestedElementDescription:
 		return NsWSCN + ":ScannerDescription"
 	case RequestedElementConfiguration:
@@ -62,6 +66,8 @@ func (re RequestedElement) String() string {
 // representation.
 func DecodeRequestedElement(s string) RequestedElement {
 	switch s {
+	case NsWSCN + ":DefaultScanTicket":
+		return RequestedElementDefaultScanTicket
 	case NsWSCN + ":ScannerDescription":
 		return RequestedElementDescription
 	case NsWSCN + ":ScannerConfiguration":

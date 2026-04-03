@@ -24,6 +24,14 @@ type CreateScanJobResponse struct {
 	JobToken                string
 }
 
+// Action returns the [Action] associated with this body.
+func (CreateScanJobResponse) Action() Action { return ActCreateScanJobResponse }
+
+// ToXML encodes the body into an XML tree.
+func (r CreateScanJobResponse) ToXML() xmldoc.Element {
+	return r.toXML(NsWSCN + ":CreateScanJobResponse")
+}
+
 // toXML generates XML tree for the [CreateScanJobResponse].
 func (r CreateScanJobResponse) toXML(name string) xmldoc.Element {
 	return xmldoc.Element{
