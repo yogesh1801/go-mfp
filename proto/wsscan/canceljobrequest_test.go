@@ -15,6 +15,25 @@ import (
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
+// TestCancelJobRequest_Action verifies that Action returns ActCancelJob.
+func TestCancelJobRequest_Action(t *testing.T) {
+	r := CancelJobRequest{JobID: 1}
+	if r.Action() != ActCancelJob {
+		t.Errorf("expected ActCancelJob, got %v", r.Action())
+	}
+}
+
+// TestCancelJobRequest_ToXML verifies that ToXML produces the correct root
+// element name.
+func TestCancelJobRequest_ToXML(t *testing.T) {
+	r := CancelJobRequest{JobID: 3}
+	elm := r.ToXML()
+	if elm.Name != NsWSCN+":CancelJobRequest" {
+		t.Errorf("expected element name %q, got %q",
+			NsWSCN+":CancelJobRequest", elm.Name)
+	}
+}
+
 // TestCancelJobRequest_RoundTrip verifies that a CancelJobRequest encodes to
 // XML and decodes back to an identical value.
 func TestCancelJobRequest_RoundTrip(t *testing.T) {

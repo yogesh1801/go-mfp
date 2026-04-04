@@ -93,6 +93,18 @@ func decodeMessageXML(root xmldoc.Element) (msg Message, err error) {
 		msg.Body, err = decodeCreateScanJobResponse(child)
 	case ActRetrieveImage:
 		msg.Body, err = decodeRetrieveImageRequest(child)
+	case ActCancelJob:
+		msg.Body, err = decodeCancelJobRequest(child)
+	case ActCancelJobResponse:
+		msg.Body = CancelJobResponse{}
+	case ActGetActiveJobs:
+		msg.Body = GetActiveJobsRequest{}
+	case ActGetActiveJobsResponse:
+		msg.Body, err = decodeGetActiveJobsResponse(child)
+	case ActGetJobHistory:
+		msg.Body = GetJobHistoryRequest{}
+	case ActGetJobHistoryResponse:
+		msg.Body, err = decodeGetJobHistoryResponse(child)
 	default:
 		err = fmt.Errorf("unhandled action: %s", msg.Header.Action)
 	}

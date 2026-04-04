@@ -25,6 +25,14 @@ const (
 	ActCreateScanJobResponse             // CreateScanJob response
 	ActRetrieveImage                     // RetrieveImage request
 	ActRetrieveImageResponse             // RetrieveImage response
+	ActCancelJob                         // CancelJob request
+	ActCancelJobResponse                 // CancelJob response
+	ActGetJobElements                    // GetJobElements request
+	ActGetJobElementsResponse            // GetJobElements response
+	ActGetActiveJobs                     // GetActiveJobs request
+	ActGetActiveJobsResponse             // GetActiveJobs response
+	ActGetJobHistory                     // GetJobHistory request
+	ActGetJobHistoryResponse             // GetJobHistory response
 )
 
 // actionBaseURL is the common prefix for all WS-Scan action URLs.
@@ -45,6 +53,18 @@ func (act Action) String() string {
 		return "RetrieveImage"
 	case ActRetrieveImageResponse:
 		return "RetrieveImageResponse"
+	case ActCancelJob:
+		return "CancelJob"
+	case ActCancelJobResponse:
+		return "CancelJobResponse"
+	case ActGetActiveJobs:
+		return "GetActiveJobs"
+	case ActGetActiveJobsResponse:
+		return "GetActiveJobsResponse"
+	case ActGetJobHistory:
+		return "GetJobHistory"
+	case ActGetJobHistoryResponse:
+		return "GetJobHistoryResponse"
 	}
 	return "Unknown"
 }
@@ -74,6 +94,22 @@ func (act Action) bodyElementName() string {
 		return NsWSCN + ":RetrieveImageRequest"
 	case ActRetrieveImageResponse:
 		return NsWSCN + ":RetrieveImageResponse"
+	case ActCancelJob:
+		return NsWSCN + ":CancelJobRequest"
+	case ActCancelJobResponse:
+		return NsWSCN + ":CancelJobResponse"
+	case ActGetJobElements:
+		return NsWSCN + ":GetJobElementsRequest"
+	case ActGetJobElementsResponse:
+		return NsWSCN + ":GetJobElementsResponse"
+	case ActGetActiveJobs:
+		return NsWSCN + ":GetActiveJobsRequest"
+	case ActGetActiveJobsResponse:
+		return NsWSCN + ":GetActiveJobsResponse"
+	case ActGetJobHistory:
+		return NsWSCN + ":GetJobHistoryRequest"
+	case ActGetJobHistoryResponse:
+		return NsWSCN + ":GetJobHistoryResponse"
 	}
 	return ""
 }
@@ -103,6 +139,18 @@ func actDecode(s string) Action {
 		return ActRetrieveImage
 	case actionBaseURL + "RetrieveImageResponse":
 		return ActRetrieveImageResponse
+	case actionBaseURL + "CancelJob":
+		return ActCancelJob
+	case actionBaseURL + "CancelJobResponse":
+		return ActCancelJobResponse
+	case actionBaseURL + "GetActiveJobs":
+		return ActGetActiveJobs
+	case actionBaseURL + "GetActiveJobsResponse":
+		return ActGetActiveJobsResponse
+	case actionBaseURL + "GetJobHistory":
+		return ActGetJobHistory
+	case actionBaseURL + "GetJobHistoryResponse":
+		return ActGetJobHistoryResponse
 	}
 	return ActUnknown
 }

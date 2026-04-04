@@ -12,8 +12,54 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/OpenPrinting/go-mfp/util/optional"
+	"github.com/OpenPrinting/go-mfp/util/uuid"
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
+
+// TestGetActiveJobsResponse_Action verifies that Action returns ActGetActiveJobsResponse.
+func TestGetActiveJobsResponse_Action(t *testing.T) {
+	r := GetActiveJobsResponse{}
+	if r.Action() != ActGetActiveJobsResponse {
+		t.Errorf("expected ActGetActiveJobsResponse, got %v", r.Action())
+	}
+}
+
+// TestGetActiveJobsResponse_ToXML verifies that ToXML produces the correct
+// root element name.
+func TestGetActiveJobsResponse_ToXML(t *testing.T) {
+	r := GetActiveJobsResponse{ActiveJobs: ActiveJobs{}}
+	elm := r.ToXML()
+	if elm.Name != NsWSCN+":GetActiveJobsResponse" {
+		t.Errorf("expected element name %q, got %q",
+			NsWSCN+":GetActiveJobsResponse", elm.Name)
+	}
+}
+
+// TestGetActiveJobsResponse_MessageRoundTrip verifies that a
+// GetActiveJobsResponse survives a full Message encode/decode cycle.
+func TestGetActiveJobsResponse_MessageRoundTrip(t *testing.T) {
+	body := GetActiveJobsResponse{ActiveJobs: ActiveJobs{}}
+	msg := Message{
+		Header: Header{
+			Action:    body.Action(),
+			MessageID: AnyURI(uuid.Random().URN()),
+			To:        optional.New(AnyURI(AddrAnonymous)),
+		},
+		Body: body,
+	}
+
+	data := msg.Encode()
+
+	decoded, err := DecodeMessage(data)
+	if err != nil {
+		t.Fatalf("DecodeMessage returned error: %v", err)
+	}
+
+	if _, ok := decoded.Body.(GetActiveJobsResponse); !ok {
+		t.Errorf("expected body type GetActiveJobsResponse, got %T", decoded.Body)
+	}
+}
 
 // TestGetActiveJobsResponse_RoundTrip_Empty verifies that a response with an
 // empty ActiveJobs (no current jobs) encodes to XML and decodes back
