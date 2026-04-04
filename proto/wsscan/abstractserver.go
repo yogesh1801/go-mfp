@@ -10,6 +10,7 @@ import (
 
 	"github.com/OpenPrinting/go-mfp/abstract"
 	"github.com/OpenPrinting/go-mfp/transport"
+	"github.com/OpenPrinting/go-mfp/util/generic"
 	"github.com/OpenPrinting/go-mfp/util/optional"
 	"github.com/OpenPrinting/go-mfp/util/uuid"
 )
@@ -124,10 +125,14 @@ func (srv *AbstractServer) handleGetScannerElementsRequest(
 	req GetScannerElementsRequest,
 ) (Body, error) {
 
-	// Build ElementData for each requested element
+	// Build ElementData for each requested element, skipping duplicates.
 	var elements []ElementData
+	seen := generic.NewSet[RequestedElement]()
 
 	for _, re := range req.RequestedElements {
+		if !seen.TestAndAdd(re) {
+			continue
+		}
 		switch re {
 		case RequestedElementDefaultScanTicket:
 			req := srv.caps.DefaultRequest()
