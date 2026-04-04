@@ -235,6 +235,136 @@ func fromAbstractResolutions(
 	return r
 }
 
+// fromAbstractScannerRequest converts an [abstract.ScannerRequest]
+// into a [ScanTicket]. It is the inverse of [ScanTicket.ToAbstract].
+func fromAbstractScannerRequest(req *abstract.ScannerRequest) ScanTicket {
+	dp := DocumentParameters{}
+
+	// Input + ADFMode → InputSource
+	switch req.Input {
+	case abstract.InputPlaten:
+		dp.InputSource = optional.New(InputSource{Text: InputSourcePlaten})
+	case abstract.InputADF:
+		switch req.ADFMode {
+		case abstract.ADFModeDuplex:
+			dp.InputSource = optional.New(
+				InputSource{Text: InputSourceADFDuplex})
+		default:
+			dp.InputSource = optional.New(InputSource{Text: InputSourceADF})
+		}
+	}
+
+	// Build MediaFront (ColorProcessing, Resolution, ScanRegion)
+	front := MediaSide{}
+
+	// ColorMode + ColorDepth → ColorProcessing
+	ce := abstractColorEntryFrom(req.ColorMode, req.ColorDepth)
+	if ce != UnknownColorEntry {
+		front.ColorProcessing = optional.New(ColorProcessing{Text: ce})
+	}
+
+	// Resolution
+	if !req.Resolution.IsZero() {
+		front.Resolution = optional.New(Resolution{
+			Width:  ValWithOptions[int]{Text: req.Resolution.XResolution},
+			Height: ValWithOptions[int]{Text: req.Resolution.YResolution},
+		})
+	}
+
+	// Region → ScanRegion
+	if !req.Region.IsZero() {
+		sr := ScanRegion{
+			ScanRegionWidth: ValWithOptions[int]{
+				Text: req.Region.Width.Dots(wsscanDPI)},
+			ScanRegionHeight: ValWithOptions[int]{
+				Text: req.Region.Height.Dots(wsscanDPI)},
+		}
+		if req.Region.XOffset != 0 {
+			sr.ScanRegionXOffset = optional.New(
+				ValWithOptions[int]{Text: req.Region.XOffset.Dots(wsscanDPI)})
+		}
+		if req.Region.YOffset != 0 {
+			sr.ScanRegionYOffset = optional.New(
+				ValWithOptions[int]{Text: req.Region.YOffset.Dots(wsscanDPI)})
+		}
+		front.ScanRegion = optional.New(sr)
+	}
+
+	dp.MediaSides = optional.New(MediaSides{MediaFront: front})
+
+	// DocumentFormat (MIME) → Format
+	if req.DocumentFormat != "" {
+		fv := mimeToFormatValue(req.DocumentFormat)
+		if fv != UnknownFormatValue {
+			dp.Format = optional.New(Format{Text: fv})
+		}
+	}
+
+	// Compression
+	if req.Compression != nil {
+		compression := optional.Get(req.Compression)
+		dp.CompressionQualityFactor = optional.New(
+			CompressionQualityFactor{Text: compression})
+	}
+
+	// Intent → ContentType
+	switch req.Intent {
+	case abstract.IntentDocument:
+		dp.ContentType = optional.New(ContentType{Text: Text})
+	case abstract.IntentPhoto:
+		dp.ContentType = optional.New(ContentType{Text: Photo})
+	case abstract.IntentTextAndGraphic:
+		dp.ContentType = optional.New(ContentType{Text: Mixed})
+	}
+
+	// Brightness, Contrast, Sharpen → Exposure.ExposureSettings
+	if req.Brightness != nil || req.Contrast != nil || req.Sharpen != nil {
+		es := ExposureSettings{}
+		if req.Brightness != nil {
+			es.Brightness = optional.New(Brightness{
+				Text: optional.Get(req.Brightness)})
+		}
+		if req.Contrast != nil {
+			es.Contrast = optional.New(Contrast{
+				Text: optional.Get(req.Contrast)})
+		}
+		if req.Sharpen != nil {
+			es.Sharpness = optional.New(Sharpness{
+				Text: optional.Get(req.Sharpen)})
+		}
+		dp.Exposure = optional.New(Exposure{
+			ExposureSettings: optional.New(es),
+		})
+	}
+
+	return ScanTicket{
+		DocumentParameters: optional.New(dp),
+	}
+}
+
+// abstractColorEntryFrom converts [abstract.ColorMode] and
+// [abstract.ColorDepth] into a [ColorEntry].
+func abstractColorEntryFrom(
+	mode abstract.ColorMode,
+	depth abstract.ColorDepth) ColorEntry {
+
+	switch mode {
+	case abstract.ColorModeBinary:
+		return BlackAndWhite1
+	case abstract.ColorModeMono:
+		if depth == abstract.ColorDepth16 {
+			return Grayscale16
+		}
+		return Grayscale8
+	case abstract.ColorModeColor:
+		if depth == abstract.ColorDepth16 {
+			return RGB48
+		}
+		return RGB24
+	}
+	return UnknownColorEntry
+}
+
 // fromAbstractColorEntries extracts unique [ColorEntry] values from
 // the color modes and depths defined in settings profiles.
 func fromAbstractColorEntries(

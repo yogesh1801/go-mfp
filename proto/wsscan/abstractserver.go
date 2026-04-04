@@ -22,14 +22,13 @@ var (
 // AbstractServer implements a WS-Scan server on top of
 // [abstract.Scanner].
 type AbstractServer struct {
-	options           AbstractServerOptions
-	caps              *abstract.ScannerCapabilities
-	status            ScannerStatus
-	defaultScanTicket *ScanTicket
-	document          abstract.Document
-	jobID             int
-	jobToken          string
-	lock              sync.Mutex
+	options  AbstractServerOptions
+	caps     *abstract.ScannerCapabilities
+	status   ScannerStatus
+	document abstract.Document
+	jobID    int
+	jobToken string
+	lock     sync.Mutex
 }
 
 // AbstractServerOptions allows specifying options that can
@@ -40,19 +39,13 @@ type AbstractServerOptions struct {
 	// BasePath is required so the server knows how to
 	// interpret incoming request paths.
 	BasePath string
-
-	// DefaultScanTicket provides the default scan settings
-	// returned in GetScannerElementsResponse. If nil, no
-	// DefaultScanTicket element is included.
-	DefaultScanTicket *ScanTicket
 }
 
 // NewAbstractServer returns a new [AbstractServer].
 func NewAbstractServer(options AbstractServerOptions) *AbstractServer {
 	srv := &AbstractServer{
-		options:           options,
-		caps:              options.Scanner.Capabilities(),
-		defaultScanTicket: options.DefaultScanTicket,
+		options: options,
+		caps:    options.Scanner.Capabilities(),
 	}
 
 	srv.status = ScannerStatus{
@@ -126,6 +119,17 @@ func (srv *AbstractServer) handleGetScannerElementsRequest(
 
 	for _, re := range req.RequestedElements {
 		switch re {
+		case RequestedElementDefaultScanTicket:
+			req := srv.caps.DefaultRequest()
+			if req != nil {
+				ticket := fromAbstractScannerRequest(req)
+				elements = append(elements, ElementData{
+					Name:              ElementDataDefaultScanTicket,
+					Valid:             BooleanElement("true"),
+					DefaultScanTicket: optional.New(ticket),
+				})
+			}
+
 		case RequestedElementDescription:
 			desc := fromAbstractScannerDescription(srv.caps)
 			elements = append(elements, ElementData{
