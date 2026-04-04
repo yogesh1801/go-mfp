@@ -22,13 +22,13 @@ var (
 // AbstractServer implements a WS-Scan server on top of
 // [abstract.Scanner].
 type AbstractServer struct {
-	options  AbstractServerOptions
-	caps     *abstract.ScannerCapabilities
-	status   ScannerStatus
-	document abstract.Document
-	jobID    int
-	jobToken string
-	lock     sync.Mutex
+	options   AbstractServerOptions
+	caps      *abstract.ScannerCapabilities
+	status    ScannerStatus
+	document  abstract.Document
+	jobs      jobList
+	nextJobID int
+	lock      sync.Mutex
 }
 
 // AbstractServerOptions allows specifying options that can
@@ -44,8 +44,9 @@ type AbstractServerOptions struct {
 // NewAbstractServer returns a new [AbstractServer].
 func NewAbstractServer(options AbstractServerOptions) *AbstractServer {
 	srv := &AbstractServer{
-		options: options,
-		caps:    options.Scanner.Capabilities(),
+		options:   options,
+		caps:      options.Scanner.Capabilities(),
+		nextJobID: 1,
 	}
 
 	srv.status = ScannerStatus{
@@ -97,6 +98,15 @@ func (srv *AbstractServer) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 
 	case RetrieveImageRequest:
 		rsp, err = srv.handleRetrieveImageRequest(query, body)
+
+	case CancelJobRequest:
+		rsp, err = srv.handleCancelJobRequest(query, body)
+
+	case GetActiveJobsRequest:
+		rsp, err = srv.handleGetActiveJobsRequest(query, body)
+
+	case GetJobHistoryRequest:
+		rsp, err = srv.handleGetJobHistoryRequest(query, body)
 
 	default:
 		query.Reject(http.StatusBadRequest, nil)
@@ -202,18 +212,30 @@ func (srv *AbstractServer) handleCreateScanJobRequest(
 	srv.document = document
 	srv.status.ScannerState = Processing
 
-	srv.jobID++
-	srv.jobToken = uuid.Random().URN()
-
 	// Convert the filled request back to DocumentParameters so the
 	// response reflects the actual parameters used for the scan.
 	finalTicket := fromAbstractScannerRequest(filled)
+	finalTicket.JobDescription = req.ScanTicket.JobDescription
+
+	// Register job in history
+	jobID := srv.nextJobID
+	srv.nextJobID++
+	jobToken := uuid.Random().URN()
+
+	srv.jobs.put(jobInfo{
+		jobID:       jobID,
+		jobToken:    jobToken,
+		state:       JobStateProcessing,
+		scanTicket:  finalTicket,
+		createdTime: time.Now(),
+	})
+
+	srv.status.ScannerState = Processing
 
 	return CreateScanJobResponse{
-		DocumentFinalParameters: optional.Get(
-			finalTicket.DocumentParameters),
-		JobID:    srv.jobID,
-		JobToken: srv.jobToken,
+		DocumentFinalParameters: optional.Get(finalTicket.DocumentParameters),
+		JobID:                   jobID,
+		JobToken:                jobToken,
 	}, nil
 }
 
@@ -223,11 +245,10 @@ func (srv *AbstractServer) handleRetrieveImageRequest(
 	req RetrieveImageRequest,
 ) (Body, error) {
 
-	// Validate job credentials
 	srv.lock.Lock()
 
-	if srv.document == nil || req.JobID != srv.jobID ||
-		req.JobToken != srv.jobToken {
+	job := srv.jobs.get(req.JobID)
+	if srv.document == nil || job == nil || req.JobToken != job.jobToken {
 		srv.lock.Unlock()
 		query.Reject(http.StatusNotFound, nil)
 		return nil, errInvalidJob
@@ -239,14 +260,21 @@ func (srv *AbstractServer) handleRetrieveImageRequest(
 
 	switch {
 	case err == io.EOF:
-		srv.finish()
+		srv.finish(req.JobID, JobStateCompleted)
 		query.Reject(http.StatusNotFound, nil)
 		return nil, err
 	case err != nil:
-		srv.finish()
+		srv.finish(req.JobID, JobStateAborted)
 		query.Reject(http.StatusServiceUnavailable, err)
 		return nil, err
 	}
+
+	// Increment scansCompleted for this job
+	srv.lock.Lock()
+	if j := srv.jobs.get(req.JobID); j != nil {
+		j.scansCompleted++
+	}
+	srv.lock.Unlock()
 
 	return RetrieveImageResponse{
 		ScanData:    ScanData{ContentID: uuid.Random().String()},
@@ -255,14 +283,94 @@ func (srv *AbstractServer) handleRetrieveImageRequest(
 	}, nil
 }
 
-// finish closes the current document and resets the server state.
-func (srv *AbstractServer) finish() {
+// handleCancelJobRequest handles CancelJob requests.
+func (srv *AbstractServer) handleCancelJobRequest(
+	query *transport.ServerQuery,
+	req CancelJobRequest,
+) (Body, error) {
+
+	srv.lock.Lock()
+	job := srv.jobs.get(req.JobID)
+	active := job.state == JobStateProcessing
+	srv.lock.Unlock()
+
+	if !active {
+		query.Reject(http.StatusNotFound, nil)
+		return nil, errInvalidJob
+	}
+
+	srv.finish(req.JobID, JobStateCanceled)
+	return CancelJobResponse{}, nil
+}
+
+// handleGetActiveJobsRequest handles GetActiveJobs requests.
+func (srv *AbstractServer) handleGetActiveJobsRequest(
+	query *transport.ServerQuery,
+	req GetActiveJobsRequest,
+) (Body, error) {
+
 	srv.lock.Lock()
 	defer srv.lock.Unlock()
 
-	srv.document.Close()
-	srv.document = nil
+	var summaries []JobSummary
+	for _, j := range srv.jobs {
+		if j.state == JobStateProcessing {
+			summaries = append(summaries, jobSummaryFrom(j))
+		}
+	}
+
+	return GetActiveJobsResponse{
+		ActiveJobs: ActiveJobs{JobSummary: summaries},
+	}, nil
+}
+
+// handleGetJobHistoryRequest handles GetJobHistory requests.
+func (srv *AbstractServer) handleGetJobHistoryRequest(
+	query *transport.ServerQuery,
+	req GetJobHistoryRequest,
+) (Body, error) {
+
+	srv.lock.Lock()
+	defer srv.lock.Unlock()
+
+	var history []JobSummary
+	for _, j := range srv.jobs {
+		if j.state != JobStateProcessing {
+			history = append(history, jobSummaryFrom(j))
+		}
+	}
+
+	return GetJobHistoryResponse{JobHistory: history}, nil
+}
+
+// jobSummaryFrom builds a [JobSummary] from a [jobInfo].
+func jobSummaryFrom(j jobInfo) JobSummary {
+	return JobSummary{
+		JobID:                  j.jobID,
+		JobName:                j.scanTicket.JobDescription.JobName,
+		JobOriginatingUserName: j.scanTicket.JobDescription.JobOriginatingUserName,
+		JobState:               j.state,
+		ScansCompleted:         j.scansCompleted,
+	}
+}
+
+// finish closes the current document, updates the job state, and
+// resets the server to idle.
+func (srv *AbstractServer) finish(jobID int, state JobState) {
+	srv.lock.Lock()
+	defer srv.lock.Unlock()
+
+	if srv.document != nil {
+		srv.document.Close()
+		srv.document = nil
+	}
+
 	srv.status.ScannerState = Idle
+
+	if j := srv.jobs.get(jobID); j != nil {
+		j.state = state
+		j.completedTime = time.Now()
+	}
 }
 
 // sendSOAPResponse wraps a response body in a SOAP envelope and sends it.

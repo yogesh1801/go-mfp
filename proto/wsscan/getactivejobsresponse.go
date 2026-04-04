@@ -20,6 +20,14 @@ type GetActiveJobsResponse struct {
 	ActiveJobs ActiveJobs
 }
 
+// Action returns the [Action] associated with this body.
+func (GetActiveJobsResponse) Action() Action { return ActGetActiveJobsResponse }
+
+// ToXML encodes the body into an XML tree.
+func (r GetActiveJobsResponse) ToXML() xmldoc.Element {
+	return r.toXML(NsWSCN + ":GetActiveJobsResponse")
+}
+
 // toXML generates XML tree for the [GetActiveJobsResponse].
 func (r GetActiveJobsResponse) toXML(name string) xmldoc.Element {
 	return xmldoc.Element{
