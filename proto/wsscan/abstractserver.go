@@ -90,23 +90,23 @@ func (srv *AbstractServer) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	// Dispatch by body type
 	var rsp Body
 	switch body := msg.Body.(type) {
-	case GetScannerElementsRequest:
-		rsp, err = srv.handleGetScannerElementsRequest(query, body)
+	case CancelJobRequest:
+		rsp, err = srv.handleCancelJobRequest(query, body)
 
 	case CreateScanJobRequest:
 		rsp, err = srv.handleCreateScanJobRequest(query, body)
-
-	case RetrieveImageRequest:
-		rsp, err = srv.handleRetrieveImageRequest(query, body)
-
-	case CancelJobRequest:
-		rsp, err = srv.handleCancelJobRequest(query, body)
 
 	case GetActiveJobsRequest:
 		rsp, err = srv.handleGetActiveJobsRequest(query, body)
 
 	case GetJobHistoryRequest:
 		rsp, err = srv.handleGetJobHistoryRequest(query, body)
+
+	case GetScannerElementsRequest:
+		rsp, err = srv.handleGetScannerElementsRequest(query, body)
+
+	case RetrieveImageRequest:
+		rsp, err = srv.handleRetrieveImageRequest(query, body)
 
 	default:
 		query.Reject(http.StatusBadRequest, nil)
