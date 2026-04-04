@@ -42,7 +42,7 @@ func NewClient(u *url.URL, tr *transport.Transport) *Client {
 // from the WS-Scan server.
 func (c *Client) GetScannerElements(
 	ctx context.Context,
-	elements []RequestedElement,
+	elements ...RequestedElement,
 ) (GetScannerElementsResponse, error) {
 
 	req := GetScannerElementsRequest{RequestedElements: elements}
