@@ -19,20 +19,20 @@ type Action int
 // WS-Scan actions:
 const (
 	ActUnknown                    Action = iota
-	ActGetScannerElements                // GetScannerElements request
-	ActGetScannerElementsResponse        // GetScannerElements response
-	ActCreateScanJob                     // CreateScanJob request
-	ActCreateScanJobResponse             // CreateScanJob response
-	ActRetrieveImage                     // RetrieveImage request
-	ActRetrieveImageResponse             // RetrieveImage response
 	ActCancelJob                         // CancelJob request
 	ActCancelJobResponse                 // CancelJob response
-	ActGetJobElements                    // GetJobElements request
-	ActGetJobElementsResponse            // GetJobElements response
+	ActCreateScanJob                     // CreateScanJob request
+	ActCreateScanJobResponse             // CreateScanJob response
 	ActGetActiveJobs                     // GetActiveJobs request
 	ActGetActiveJobsResponse             // GetActiveJobs response
+	ActGetJobElements                    // GetJobElements request
+	ActGetJobElementsResponse            // GetJobElements response
 	ActGetJobHistory                     // GetJobHistory request
 	ActGetJobHistoryResponse             // GetJobHistory response
+	ActGetScannerElements                // GetScannerElements request
+	ActGetScannerElementsResponse        // GetScannerElements response
+	ActRetrieveImage                     // RetrieveImage request
+	ActRetrieveImageResponse             // RetrieveImage response
 )
 
 // actionBaseURL is the common prefix for all WS-Scan action URLs.
@@ -41,30 +41,34 @@ const actionBaseURL = "https://schemas.microsoft.com/windows/2006/01/wdp/scan/"
 // String returns a short string representation for debugging.
 func (act Action) String() string {
 	switch act {
-	case ActGetScannerElements:
-		return "GetScannerElements"
-	case ActGetScannerElementsResponse:
-		return "GetScannerElementsResponse"
-	case ActCreateScanJob:
-		return "CreateScanJob"
-	case ActCreateScanJobResponse:
-		return "CreateScanJobResponse"
-	case ActRetrieveImage:
-		return "RetrieveImage"
-	case ActRetrieveImageResponse:
-		return "RetrieveImageResponse"
 	case ActCancelJob:
 		return "CancelJob"
 	case ActCancelJobResponse:
 		return "CancelJobResponse"
+	case ActCreateScanJob:
+		return "CreateScanJob"
+	case ActCreateScanJobResponse:
+		return "CreateScanJobResponse"
 	case ActGetActiveJobs:
 		return "GetActiveJobs"
 	case ActGetActiveJobsResponse:
 		return "GetActiveJobsResponse"
+	case ActGetJobElements:
+		return "GetJobElements"
+	case ActGetJobElementsResponse:
+		return "GetJobElementsResponse"
 	case ActGetJobHistory:
 		return "GetJobHistory"
 	case ActGetJobHistoryResponse:
 		return "GetJobHistoryResponse"
+	case ActGetScannerElements:
+		return "GetScannerElements"
+	case ActGetScannerElementsResponse:
+		return "GetScannerElementsResponse"
+	case ActRetrieveImage:
+		return "RetrieveImage"
+	case ActRetrieveImageResponse:
+		return "RetrieveImageResponse"
 	}
 	return "Unknown"
 }
@@ -82,34 +86,34 @@ func (act Action) Encode() string {
 // SOAP body child corresponding to this action.
 func (act Action) bodyElementName() string {
 	switch act {
-	case ActGetScannerElements:
-		return NsWSCN + ":GetScannerElementsRequest"
-	case ActGetScannerElementsResponse:
-		return NsWSCN + ":GetScannerElementsResponse"
-	case ActCreateScanJob:
-		return NsWSCN + ":CreateScanJobRequest"
-	case ActCreateScanJobResponse:
-		return NsWSCN + ":CreateScanJobResponse"
-	case ActRetrieveImage:
-		return NsWSCN + ":RetrieveImageRequest"
-	case ActRetrieveImageResponse:
-		return NsWSCN + ":RetrieveImageResponse"
 	case ActCancelJob:
 		return NsWSCN + ":CancelJobRequest"
 	case ActCancelJobResponse:
 		return NsWSCN + ":CancelJobResponse"
-	case ActGetJobElements:
-		return NsWSCN + ":GetJobElementsRequest"
-	case ActGetJobElementsResponse:
-		return NsWSCN + ":GetJobElementsResponse"
+	case ActCreateScanJob:
+		return NsWSCN + ":CreateScanJobRequest"
+	case ActCreateScanJobResponse:
+		return NsWSCN + ":CreateScanJobResponse"
 	case ActGetActiveJobs:
 		return NsWSCN + ":GetActiveJobsRequest"
 	case ActGetActiveJobsResponse:
 		return NsWSCN + ":GetActiveJobsResponse"
+	case ActGetJobElements:
+		return NsWSCN + ":GetJobElementsRequest"
+	case ActGetJobElementsResponse:
+		return NsWSCN + ":GetJobElementsResponse"
 	case ActGetJobHistory:
 		return NsWSCN + ":GetJobHistoryRequest"
 	case ActGetJobHistoryResponse:
 		return NsWSCN + ":GetJobHistoryResponse"
+	case ActGetScannerElements:
+		return NsWSCN + ":GetScannerElementsRequest"
+	case ActGetScannerElementsResponse:
+		return NsWSCN + ":GetScannerElementsResponse"
+	case ActRetrieveImage:
+		return NsWSCN + ":RetrieveImageRequest"
+	case ActRetrieveImageResponse:
+		return NsWSCN + ":RetrieveImageResponse"
 	}
 	return ""
 }
@@ -127,30 +131,34 @@ func decodeAction(root xmldoc.Element) (Action, error) {
 // the [Action] value.
 func actDecode(s string) Action {
 	switch s {
-	case actionBaseURL + "GetScannerElements":
-		return ActGetScannerElements
-	case actionBaseURL + "GetScannerElementsResponse":
-		return ActGetScannerElementsResponse
-	case actionBaseURL + "CreateScanJob":
-		return ActCreateScanJob
-	case actionBaseURL + "CreateScanJobResponse":
-		return ActCreateScanJobResponse
-	case actionBaseURL + "RetrieveImage":
-		return ActRetrieveImage
-	case actionBaseURL + "RetrieveImageResponse":
-		return ActRetrieveImageResponse
 	case actionBaseURL + "CancelJob":
 		return ActCancelJob
 	case actionBaseURL + "CancelJobResponse":
 		return ActCancelJobResponse
+	case actionBaseURL + "CreateScanJob":
+		return ActCreateScanJob
+	case actionBaseURL + "CreateScanJobResponse":
+		return ActCreateScanJobResponse
 	case actionBaseURL + "GetActiveJobs":
 		return ActGetActiveJobs
 	case actionBaseURL + "GetActiveJobsResponse":
 		return ActGetActiveJobsResponse
+	case actionBaseURL + "GetJobElements":
+		return ActGetJobElements
+	case actionBaseURL + "GetJobElementsResponse":
+		return ActGetJobElementsResponse
 	case actionBaseURL + "GetJobHistory":
 		return ActGetJobHistory
 	case actionBaseURL + "GetJobHistoryResponse":
 		return ActGetJobHistoryResponse
+	case actionBaseURL + "GetScannerElements":
+		return ActGetScannerElements
+	case actionBaseURL + "GetScannerElementsResponse":
+		return ActGetScannerElementsResponse
+	case actionBaseURL + "RetrieveImage":
+		return ActRetrieveImage
+	case actionBaseURL + "RetrieveImageResponse":
+		return ActRetrieveImageResponse
 	}
 	return ActUnknown
 }
