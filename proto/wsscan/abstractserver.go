@@ -182,9 +182,17 @@ func (srv *AbstractServer) handleCreateScanJobRequest(
 	// Convert ScanTicket to abstract.ScannerRequest
 	absreq := req.ScanTicket.ToAbstract()
 
-	// Send request to the underlying abstract.Scanner
+	// Fill missing parameters with scanner defaults and validate against
+	// capabilities. FillRequest returns an error for unsupported params.
+	filled, err := srv.caps.FillRequest(&absreq)
+	if err != nil {
+		query.Reject(http.StatusConflict, err)
+		return nil, err
+	}
+
+	// Send filled request to the underlying abstract.Scanner
 	ctx := query.RequestContext()
-	document, err := srv.options.Scanner.Scan(ctx, absreq)
+	document, err := srv.options.Scanner.Scan(ctx, *filled)
 	if err != nil {
 		query.Reject(http.StatusConflict, err)
 		return nil, err
@@ -197,9 +205,13 @@ func (srv *AbstractServer) handleCreateScanJobRequest(
 	srv.jobID++
 	srv.jobToken = uuid.Random().URN()
 
+	// Convert the filled request back to DocumentParameters so the
+	// response reflects the actual parameters used for the scan.
+	finalTicket := fromAbstractScannerRequest(filled)
+
 	return CreateScanJobResponse{
 		DocumentFinalParameters: optional.Get(
-			req.ScanTicket.DocumentParameters),
+			finalTicket.DocumentParameters),
 		JobID:    srv.jobID,
 		JobToken: srv.jobToken,
 	}, nil
