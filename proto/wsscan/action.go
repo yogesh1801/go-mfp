@@ -36,7 +36,7 @@ const (
 )
 
 // actionBaseURL is the common prefix for all WS-Scan action URLs.
-const actionBaseURL = "https://schemas.microsoft.com/windows/2006/01/wdp/scan/"
+const actionBaseURL = "http://schemas.microsoft.com/windows/2006/08/wdp/scan/"
 
 // String returns a short string representation for debugging.
 func (act Action) String() string {
