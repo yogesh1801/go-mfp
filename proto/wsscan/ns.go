@@ -23,7 +23,7 @@ const (
 const (
 	// AddrAnonymous is the WS-Addressing anonymous role URI,
 	// used as the To address in responses.
-	AddrAnonymous = "https://schemas.xmlsoap.org/ws/2003/03/addressing/role/anonymous"
+	AddrAnonymous = "http://schemas.xmlsoap.org/ws/2004/08/addressing/role/anonymous"
 )
 
 // NsMap maps namespace prefixes to URLs for XML encoding/decoding.
@@ -38,7 +38,7 @@ var NsMap = xmldoc.Namespace{
 
 	// WS-Scan
 	{Prefix: NsWSCN,
-		URL: "http://schemas.microsoft.com/windows/2006/01/wdp/scan"},
+		URL: "http://schemas.microsoft.com/windows/2006/08/wdp/scan"},
 
 	// XOP (XML-binary Optimized Packaging)
 	{Prefix: NsXOP,
