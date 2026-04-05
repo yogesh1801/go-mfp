@@ -316,6 +316,16 @@ PyObject *py_tuple_get(PyObject *tuple, int index);
 // It returns true on success, false on error.
 bool py_tuple_set(PyObject *tuple, int index, PyObject *val);
 
+// py_cfunction_make makes a new PyCFunction object.
+// The caller must ensure that ml outlives the returned object.
+// It returns strong object reference on success, NULL on an error.
+PyObject *py_cfunction_make(PyMethodDef *ml, PyObject *self);
+
+// py_cfunction_make makes a new PyCFunction object.
+// It returns strong object reference on success, NULL on an error.
+PyObject *py_capsule_make(void *pointer, const char *name,
+                          PyCapsule_Destructor destructor);
+
 // Python build-in (primitive) types:
 extern PyTypeObject *PyBool_Type_p;
 extern PyTypeObject *PyByteArray_Type_p;

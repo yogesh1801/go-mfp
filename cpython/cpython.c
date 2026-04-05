@@ -52,6 +52,8 @@ static __typeof__(PyByteArray_Size)             *PyByteArray_Size_p;
 static __typeof__(PyBytes_AsStringAndSize)      *PyBytes_AsStringAndSize_p;
 static __typeof__(PyBytes_FromStringAndSize)    *PyBytes_FromStringAndSize_p;
 static __typeof__(PyCallable_Check)             *PyCallable_Check_p;
+static __typeof__(PyCapsule_New)                *PyCapsule_New_p;
+static __typeof__(PyCFunction_New)              *PyCFunction_New_p;
 static __typeof__(Py_CompileString)             *Py_CompileString_p;
 static __typeof__(PyComplex_FromDoubles)        *PyComplex_FromDoubles_p;
 static __typeof__(PyComplex_ImagAsDouble)       *PyComplex_ImagAsDouble_p;
@@ -197,6 +199,8 @@ static void py_load_all (const char *libpython3) {
     PyBytes_FromStringAndSize_p = py_load("PyBytes_FromStringAndSize");
     PyCallable_Check_p = py_load("PyCallable_Check");
     Py_CompileString_p = py_load("Py_CompileString");
+    PyCapsule_New_p = py_load("PyCapsule_New");
+    PyCFunction_New_p = py_load("PyCFunction_New");
     PyComplex_FromDoubles_p = py_load("PyComplex_FromDoubles");
     PyComplex_ImagAsDouble_p = py_load("PyComplex_ImagAsDouble");
     PyComplex_RealAsDouble_p = py_load("PyComplex_RealAsDouble");
@@ -957,7 +961,7 @@ PyObject *py_tuple_make(size_t len) {
     return PyTuple_New_p(len);
 }
 
-// py_tuple_set retrieves value of the tuple item at the given position.
+// py_tuple_get retrieves value of the tuple item at the given position.
 // It returns strong object reference on success, NULL on an error.
 PyObject *py_tuple_get(PyObject *tuple, int index) {
     PyObject *item = PyTuple_GetItem_p(tuple, index);
@@ -973,6 +977,20 @@ PyObject *py_tuple_get(PyObject *tuple, int index) {
 bool py_tuple_set(PyObject *tuple, int index, PyObject *val) {
     Py_IncRef_p(val);
     return PyTuple_SetItem_p(tuple, index, val) == 0;
+}
+
+// py_cfunction_make makes a new PyCFunction object.
+// The caller must ensure that ml outlives the returned object.
+// It returns strong object reference on success, NULL on an error.
+PyObject *py_cfunction_make(PyMethodDef *ml, PyObject *self) {
+    return PyCFunction_New_p(ml, self);
+}
+
+// py_cfunction_make makes a new PyCFunction object.
+// It returns strong object reference on success, NULL on an error.
+PyObject *py_capsule_make(void *pointer, const char *name,
+                          PyCapsule_Destructor destructor) {
+    return PyCapsule_New_p(pointer, name, destructor);
 }
 
 // vim:ts=8:sw=4:et
