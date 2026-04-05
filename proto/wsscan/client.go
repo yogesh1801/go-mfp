@@ -69,6 +69,7 @@ func (c *Client) sendSOAP(ctx context.Context, body Body) (Message, error) {
 			Action:    body.Action(),
 			MessageID: AnyURI(uuid.Random().URN()),
 			To:        optional.New(AnyURI(c.url.String())),
+			ReplyTo:   optional.New(AnyURI(AddrAnonymous)),
 		},
 		Body: body,
 	}
