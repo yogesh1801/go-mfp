@@ -21,6 +21,7 @@ type Header struct {
 	Action    Action               // Message action (type)
 	MessageID AnyURI               // Unique message identifier
 	To        optional.Val[AnyURI] // Message destination
+	ReplyTo   optional.Val[AnyURI] // Response destination
 	RelatesTo optional.Val[AnyURI] // ID of the request being replied to
 }
 
@@ -40,12 +41,16 @@ func decodeHeader(root xmldoc.Element) (hdr Header, err error) {
 		Name:     NsAddressing + ":To",
 		Required: false,
 	}
+	replyTo := xmldoc.Lookup{
+		Name:     NsAddressing + ":ReplyTo",
+		Required: false,
+	}
 	relatesTo := xmldoc.Lookup{
 		Name:     NsAddressing + ":RelatesTo",
 		Required: false,
 	}
 
-	missed := root.Lookup(&action, &messageID, &to, &relatesTo)
+	missed := root.Lookup(&action, &messageID, &to, &replyTo, &relatesTo)
 	if missed != nil {
 		err = xmldoc.XMLErrMissed(missed.Name)
 		return
@@ -71,6 +76,16 @@ func decodeHeader(root xmldoc.Element) (hdr Header, err error) {
 			return
 		}
 		hdr.To = optional.New(tmp)
+	}
+
+	// Decode ReplyTo (optional)
+	if replyTo.Found {
+		var tmp AnyURI
+		tmp, err = DecodeAnyURI(replyTo.Elem)
+		if err != nil {
+			return
+		}
+		hdr.ReplyTo = optional.New(tmp)
 	}
 
 	// Decode RelatesTo (optional)
@@ -106,6 +121,16 @@ func (hdr Header) toXML() xmldoc.Element {
 		elm.Children = append(elm.Children, xmldoc.Element{
 			Name: NsAddressing + ":To",
 			Text: string(*hdr.To),
+		})
+	}
+
+	if hdr.ReplyTo != nil {
+		elm.Children = append(elm.Children, xmldoc.Element{
+			Name: NsAddressing + ":ReplyTo",
+			Children: []xmldoc.Element{{
+				Name: NsAddressing + ":Address",
+				Text: string(*hdr.ReplyTo),
+			}},
 		})
 	}
 
