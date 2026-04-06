@@ -23,10 +23,10 @@ type GetScannerElementsResponse struct {
 }
 
 // Action returns the [Action] associated with this body.
-func (GetScannerElementsResponse) Action() Action { return ActGetScannerElementsResponse }
+func (*GetScannerElementsResponse) Action() Action { return ActGetScannerElementsResponse }
 
 // ToXML encodes the body into an XML tree.
-func (r GetScannerElementsResponse) ToXML() xmldoc.Element {
+func (r *GetScannerElementsResponse) ToXML() xmldoc.Element {
 	return r.toXML(NsWSCN + ":GetScannerElementsResponse")
 }
 

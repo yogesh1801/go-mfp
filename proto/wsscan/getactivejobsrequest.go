@@ -15,9 +15,9 @@ import "github.com/OpenPrinting/go-mfp/util/xmldoc"
 type GetActiveJobsRequest struct{}
 
 // Action returns the [Action] associated with this body.
-func (GetActiveJobsRequest) Action() Action { return ActGetActiveJobs }
+func (*GetActiveJobsRequest) Action() Action { return ActGetActiveJobs }
 
 // ToXML encodes the body into an XML tree.
-func (r GetActiveJobsRequest) ToXML() xmldoc.Element {
+func (r *GetActiveJobsRequest) ToXML() xmldoc.Element {
 	return xmldoc.Element{Name: NsWSCN + ":GetActiveJobsRequest"}
 }

@@ -15,9 +15,9 @@ import "github.com/OpenPrinting/go-mfp/util/xmldoc"
 type GetJobHistoryRequest struct{}
 
 // Action returns the [Action] associated with this body.
-func (GetJobHistoryRequest) Action() Action { return ActGetJobHistory }
+func (*GetJobHistoryRequest) Action() Action { return ActGetJobHistory }
 
 // ToXML encodes the body into an XML tree.
-func (r GetJobHistoryRequest) ToXML() xmldoc.Element {
+func (r *GetJobHistoryRequest) ToXML() xmldoc.Element {
 	return xmldoc.Element{Name: NsWSCN + ":GetJobHistoryRequest"}
 }

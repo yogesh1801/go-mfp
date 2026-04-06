@@ -80,27 +80,35 @@ func decodeMessageXML(root xmldoc.Element) (msg Message, err error) {
 	// Decode message body by action
 	switch msg.Header.Action {
 	case ActGetScannerElements:
-		msg.Body, err = decodeGetScannerElementsRequest(child)
+		v, e := decodeGetScannerElementsRequest(child)
+		msg.Body, err = &v, e
 	case ActGetScannerElementsResponse:
-		msg.Body, err = decodeGetScannerElementsResponse(child)
+		v, e := decodeGetScannerElementsResponse(child)
+		msg.Body, err = &v, e
 	case ActCreateScanJob:
-		msg.Body, err = decodeCreateScanJobRequest(child)
+		v, e := decodeCreateScanJobRequest(child)
+		msg.Body, err = &v, e
 	case ActCreateScanJobResponse:
-		msg.Body, err = decodeCreateScanJobResponse(child)
+		v, e := decodeCreateScanJobResponse(child)
+		msg.Body, err = &v, e
 	case ActRetrieveImage:
-		msg.Body, err = decodeRetrieveImageRequest(child)
+		v, e := decodeRetrieveImageRequest(child)
+		msg.Body, err = &v, e
 	case ActCancelJob:
-		msg.Body, err = decodeCancelJobRequest(child)
+		v, e := decodeCancelJobRequest(child)
+		msg.Body, err = &v, e
 	case ActCancelJobResponse:
-		msg.Body = CancelJobResponse{}
+		msg.Body = &CancelJobResponse{}
 	case ActGetActiveJobs:
-		msg.Body = GetActiveJobsRequest{}
+		msg.Body = &GetActiveJobsRequest{}
 	case ActGetActiveJobsResponse:
-		msg.Body, err = decodeGetActiveJobsResponse(child)
+		v, e := decodeGetActiveJobsResponse(child)
+		msg.Body, err = &v, e
 	case ActGetJobHistory:
-		msg.Body = GetJobHistoryRequest{}
+		msg.Body = &GetJobHistoryRequest{}
 	case ActGetJobHistoryResponse:
-		msg.Body, err = decodeGetJobHistoryResponse(child)
+		v, e := decodeGetJobHistoryResponse(child)
+		msg.Body, err = &v, e
 	default:
 		err = fmt.Errorf("unhandled action: %s", msg.Header.Action)
 	}
@@ -165,7 +173,7 @@ func mtomContentType(boundary, envelopeCID string) string {
 // The boundary and envelopeCID must match the values used in the
 // Content-Type header.
 func (msg Message) writeMTOM(w io.Writer, boundary, envelopeCID string) error {
-	body := msg.Body.(RetrieveImageResponse)
+	body := msg.Body.(*RetrieveImageResponse)
 
 	// Encode the SOAP envelope
 	soapData := msg.Encode()

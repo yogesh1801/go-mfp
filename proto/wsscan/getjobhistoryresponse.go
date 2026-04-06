@@ -19,10 +19,10 @@ type GetJobHistoryResponse struct {
 }
 
 // Action returns the [Action] associated with this body.
-func (GetJobHistoryResponse) Action() Action { return ActGetJobHistoryResponse }
+func (*GetJobHistoryResponse) Action() Action { return ActGetJobHistoryResponse }
 
 // ToXML encodes the body into an XML tree.
-func (r GetJobHistoryResponse) ToXML() xmldoc.Element {
+func (r *GetJobHistoryResponse) ToXML() xmldoc.Element {
 	return r.toXML(NsWSCN + ":GetJobHistoryResponse")
 }
 

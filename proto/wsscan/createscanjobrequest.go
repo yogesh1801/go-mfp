@@ -26,10 +26,10 @@ type CreateScanJobRequest struct {
 }
 
 // Action returns the [Action] associated with this body.
-func (CreateScanJobRequest) Action() Action { return ActCreateScanJob }
+func (*CreateScanJobRequest) Action() Action { return ActCreateScanJob }
 
 // ToXML encodes the body into an XML tree.
-func (csjr CreateScanJobRequest) ToXML() xmldoc.Element {
+func (csjr *CreateScanJobRequest) ToXML() xmldoc.Element {
 	return csjr.toXML(NsWSCN + ":CreateScanJobRequest")
 }
 

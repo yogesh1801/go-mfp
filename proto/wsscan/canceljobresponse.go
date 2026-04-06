@@ -15,9 +15,9 @@ import "github.com/OpenPrinting/go-mfp/util/xmldoc"
 type CancelJobResponse struct{}
 
 // Action returns the [Action] associated with this body.
-func (CancelJobResponse) Action() Action { return ActCancelJobResponse }
+func (*CancelJobResponse) Action() Action { return ActCancelJobResponse }
 
 // ToXML encodes the body into an XML tree.
-func (r CancelJobResponse) ToXML() xmldoc.Element {
+func (r *CancelJobResponse) ToXML() xmldoc.Element {
 	return xmldoc.Element{Name: NsWSCN + ":CancelJobResponse"}
 }

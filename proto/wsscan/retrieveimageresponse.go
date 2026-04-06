@@ -30,10 +30,10 @@ type RetrieveImageResponse struct {
 }
 
 // Action returns the [Action] associated with this body.
-func (RetrieveImageResponse) Action() Action { return ActRetrieveImageResponse }
+func (*RetrieveImageResponse) Action() Action { return ActRetrieveImageResponse }
 
 // ToXML encodes the body into an XML tree.
-func (r RetrieveImageResponse) ToXML() xmldoc.Element {
+func (r *RetrieveImageResponse) ToXML() xmldoc.Element {
 	return r.toXML(NsWSCN + ":RetrieveImageResponse")
 }
 

@@ -44,17 +44,17 @@ func NewClient(u *url.URL, tr *transport.Transport) *Client {
 func (c *Client) GetScannerElements(
 	ctx context.Context,
 	elements ...RequestedElement,
-) (GetScannerElementsResponse, error) {
+) (*GetScannerElementsResponse, error) {
 
 	req := GetScannerElementsRequest{RequestedElements: elements}
-	msg, err := c.sendSOAP(ctx, req)
+	msg, err := c.sendSOAP(ctx, &req)
 	if err != nil {
-		return GetScannerElementsResponse{}, err
+		return nil, err
 	}
 
-	rsp, ok := msg.Body.(GetScannerElementsResponse)
+	rsp, ok := msg.Body.(*GetScannerElementsResponse)
 	if !ok {
-		return GetScannerElementsResponse{},
+		return nil,
 			fmt.Errorf("wsscan: unexpected response type %T", msg.Body)
 	}
 

@@ -42,7 +42,7 @@ func TestGetActiveJobsRequest_ToXML(t *testing.T) {
 // TestGetActiveJobsRequest_MessageRoundTrip verifies that a GetActiveJobsRequest
 // survives a full Message encode/decode cycle.
 func TestGetActiveJobsRequest_MessageRoundTrip(t *testing.T) {
-	body := GetActiveJobsRequest{}
+	body := &GetActiveJobsRequest{}
 	msg := Message{
 		Header: Header{
 			Action:    body.Action(),
@@ -64,7 +64,7 @@ func TestGetActiveJobsRequest_MessageRoundTrip(t *testing.T) {
 		t.Fatalf("DecodeMessage returned error: %v", err)
 	}
 
-	if _, ok := decoded.Body.(GetActiveJobsRequest); !ok {
+	if _, ok := decoded.Body.(*GetActiveJobsRequest); !ok {
 		t.Errorf("expected body type GetActiveJobsRequest, got %T", decoded.Body)
 	}
 }

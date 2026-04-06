@@ -42,7 +42,7 @@ func TestGetJobHistoryRequest_ToXML(t *testing.T) {
 // TestGetJobHistoryRequest_MessageRoundTrip verifies that a GetJobHistoryRequest
 // survives a full Message encode/decode cycle.
 func TestGetJobHistoryRequest_MessageRoundTrip(t *testing.T) {
-	body := GetJobHistoryRequest{}
+	body := &GetJobHistoryRequest{}
 	msg := Message{
 		Header: Header{
 			Action:    body.Action(),
@@ -64,7 +64,7 @@ func TestGetJobHistoryRequest_MessageRoundTrip(t *testing.T) {
 		t.Fatalf("DecodeMessage returned error: %v", err)
 	}
 
-	if _, ok := decoded.Body.(GetJobHistoryRequest); !ok {
+	if _, ok := decoded.Body.(*GetJobHistoryRequest); !ok {
 		t.Errorf("expected body type GetJobHistoryRequest, got %T", decoded.Body)
 	}
 }
