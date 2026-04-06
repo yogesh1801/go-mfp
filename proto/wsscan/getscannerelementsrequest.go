@@ -21,12 +21,12 @@ type GetScannerElementsRequest struct {
 }
 
 // Action returns the [Action] associated with this body.
-func (GetScannerElementsRequest) Action() Action {
+func (*GetScannerElementsRequest) Action() Action {
 	return ActGetScannerElements
 }
 
 // ToXML encodes the body into an XML tree.
-func (gser GetScannerElementsRequest) ToXML() xmldoc.Element {
+func (gser *GetScannerElementsRequest) ToXML() xmldoc.Element {
 	return gser.toXML(NsWSCN + ":GetScannerElementsRequest")
 }
 

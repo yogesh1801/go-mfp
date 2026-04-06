@@ -99,22 +99,22 @@ func (srv *AbstractServer) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	// Dispatch by body type
 	var rsp Body
 	switch body := msg.Body.(type) {
-	case CancelJobRequest:
+	case *CancelJobRequest:
 		rsp, err = srv.handleCancelJobRequest(query, body)
 
-	case CreateScanJobRequest:
+	case *CreateScanJobRequest:
 		rsp, err = srv.handleCreateScanJobRequest(query, body)
 
-	case GetActiveJobsRequest:
+	case *GetActiveJobsRequest:
 		rsp, err = srv.handleGetActiveJobsRequest(query, body)
 
-	case GetJobHistoryRequest:
+	case *GetJobHistoryRequest:
 		rsp, err = srv.handleGetJobHistoryRequest(query, body)
 
-	case GetScannerElementsRequest:
+	case *GetScannerElementsRequest:
 		rsp, err = srv.handleGetScannerElementsRequest(query, body)
 
-	case RetrieveImageRequest:
+	case *RetrieveImageRequest:
 		rsp, err = srv.handleRetrieveImageRequest(query, body)
 
 	default:
@@ -130,7 +130,7 @@ func (srv *AbstractServer) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 // handleGetScannerElementsRequest handles GetScannerElements requests.
 func (srv *AbstractServer) handleGetScannerElementsRequest(
 	query *transport.ServerQuery,
-	req GetScannerElementsRequest,
+	req *GetScannerElementsRequest,
 ) (Body, error) {
 
 	// Build ElementData for each requested element, skipping duplicates.
@@ -182,7 +182,7 @@ func (srv *AbstractServer) handleGetScannerElementsRequest(
 		}
 	}
 
-	return GetScannerElementsResponse{
+	return &GetScannerElementsResponse{
 		ScannerElements: elements,
 	}, nil
 }
@@ -190,7 +190,7 @@ func (srv *AbstractServer) handleGetScannerElementsRequest(
 // handleCreateScanJobRequest handles CreateScanJob requests.
 func (srv *AbstractServer) handleCreateScanJobRequest(
 	query *transport.ServerQuery,
-	req CreateScanJobRequest,
+	req *CreateScanJobRequest,
 ) (Body, error) {
 
 	srv.lock.Lock()
@@ -245,7 +245,7 @@ func (srv *AbstractServer) handleCreateScanJobRequest(
 
 	srv.status.ScannerState = Processing
 
-	return CreateScanJobResponse{
+	return &CreateScanJobResponse{
 		DocumentFinalParameters: optional.Get(finalTicket.DocumentParameters),
 		JobID:                   jobID,
 		JobToken:                jobToken,
@@ -255,7 +255,7 @@ func (srv *AbstractServer) handleCreateScanJobRequest(
 // handleRetrieveImageRequest handles RetrieveImage requests.
 func (srv *AbstractServer) handleRetrieveImageRequest(
 	query *transport.ServerQuery,
-	req RetrieveImageRequest,
+	req *RetrieveImageRequest,
 ) (Body, error) {
 
 	srv.lock.Lock()
@@ -289,7 +289,7 @@ func (srv *AbstractServer) handleRetrieveImageRequest(
 	}
 	srv.lock.Unlock()
 
-	return RetrieveImageResponse{
+	return &RetrieveImageResponse{
 		ScanData:    ScanData{ContentID: uuid.Random().String()},
 		Image:       io.NopCloser(file),
 		ContentType: file.Format(),
@@ -299,7 +299,7 @@ func (srv *AbstractServer) handleRetrieveImageRequest(
 // handleCancelJobRequest handles CancelJob requests.
 func (srv *AbstractServer) handleCancelJobRequest(
 	query *transport.ServerQuery,
-	req CancelJobRequest,
+	req *CancelJobRequest,
 ) (Body, error) {
 
 	srv.lock.Lock()
@@ -313,13 +313,13 @@ func (srv *AbstractServer) handleCancelJobRequest(
 	}
 
 	srv.finish(req.JobID, JobStateCanceled)
-	return CancelJobResponse{}, nil
+	return &CancelJobResponse{}, nil
 }
 
 // handleGetActiveJobsRequest handles GetActiveJobs requests.
 func (srv *AbstractServer) handleGetActiveJobsRequest(
 	query *transport.ServerQuery,
-	req GetActiveJobsRequest,
+	req *GetActiveJobsRequest,
 ) (Body, error) {
 
 	srv.lock.Lock()
@@ -332,7 +332,7 @@ func (srv *AbstractServer) handleGetActiveJobsRequest(
 		}
 	}
 
-	return GetActiveJobsResponse{
+	return &GetActiveJobsResponse{
 		ActiveJobs: ActiveJobs{JobSummary: summaries},
 	}, nil
 }
@@ -340,7 +340,7 @@ func (srv *AbstractServer) handleGetActiveJobsRequest(
 // handleGetJobHistoryRequest handles GetJobHistory requests.
 func (srv *AbstractServer) handleGetJobHistoryRequest(
 	query *transport.ServerQuery,
-	req GetJobHistoryRequest,
+	req *GetJobHistoryRequest,
 ) (Body, error) {
 
 	srv.lock.Lock()
@@ -353,7 +353,7 @@ func (srv *AbstractServer) handleGetJobHistoryRequest(
 		}
 	}
 
-	return GetJobHistoryResponse{JobHistory: history}, nil
+	return &GetJobHistoryResponse{JobHistory: history}, nil
 }
 
 // jobSummaryFrom builds a [JobSummary] from a [jobInfo].
@@ -405,7 +405,7 @@ func (srv *AbstractServer) sendSOAPResponse(
 	}
 
 	// RetrieveImageResponse requires MTOM/XOP multipart encoding
-	if _, ok := body.(RetrieveImageResponse); ok {
+	if _, ok := body.(*RetrieveImageResponse); ok {
 		boundary := uuid.Random().String()
 		envelopeCID := uuid.Random().String()
 

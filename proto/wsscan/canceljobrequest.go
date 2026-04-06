@@ -22,10 +22,10 @@ type CancelJobRequest struct {
 }
 
 // Action returns the [Action] associated with this body.
-func (CancelJobRequest) Action() Action { return ActCancelJob }
+func (*CancelJobRequest) Action() Action { return ActCancelJob }
 
 // ToXML encodes the body into an XML tree.
-func (r CancelJobRequest) ToXML() xmldoc.Element {
+func (r *CancelJobRequest) ToXML() xmldoc.Element {
 	return r.toXML(NsWSCN + ":CancelJobRequest")
 }
 

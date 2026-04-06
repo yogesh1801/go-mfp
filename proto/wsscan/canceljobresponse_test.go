@@ -42,7 +42,7 @@ func TestCancelJobResponse_ToXML(t *testing.T) {
 // TestCancelJobResponse_MessageRoundTrip verifies that a CancelJobResponse
 // survives a full Message encode/decode cycle.
 func TestCancelJobResponse_MessageRoundTrip(t *testing.T) {
-	body := CancelJobResponse{}
+	body := &CancelJobResponse{}
 	msg := Message{
 		Header: Header{
 			Action:    body.Action(),
@@ -64,7 +64,7 @@ func TestCancelJobResponse_MessageRoundTrip(t *testing.T) {
 		t.Fatalf("DecodeMessage returned error: %v", err)
 	}
 
-	if _, ok := decoded.Body.(CancelJobResponse); !ok {
+	if _, ok := decoded.Body.(*CancelJobResponse); !ok {
 		t.Errorf("expected body type CancelJobResponse, got %T", decoded.Body)
 	}
 }
