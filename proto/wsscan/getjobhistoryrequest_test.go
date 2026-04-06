@@ -9,10 +9,12 @@
 package wsscan
 
 import (
+	"bytes"
 	"testing"
 
 	"github.com/OpenPrinting/go-mfp/util/optional"
 	"github.com/OpenPrinting/go-mfp/util/uuid"
+	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
 // TestGetJobHistoryRequest_Action verifies that Action returns ActGetJobHistory.
@@ -52,7 +54,12 @@ func TestGetJobHistoryRequest_MessageRoundTrip(t *testing.T) {
 
 	data := msg.Encode()
 
-	decoded, err := DecodeMessage(data)
+	root, err := xmldoc.Decode(NsMap, bytes.NewReader(data))
+	if err != nil {
+		t.Fatalf("xmldoc.Decode returned error: %v", err)
+	}
+
+	decoded, err := DecodeMessage(root)
 	if err != nil {
 		t.Fatalf("DecodeMessage returned error: %v", err)
 	}

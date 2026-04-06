@@ -1,6 +1,7 @@
 package wsscan
 
 import (
+	"bytes"
 	"errors"
 	"io"
 	"net/http"
@@ -13,6 +14,7 @@ import (
 	"github.com/OpenPrinting/go-mfp/util/generic"
 	"github.com/OpenPrinting/go-mfp/util/optional"
 	"github.com/OpenPrinting/go-mfp/util/uuid"
+	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
 var (
@@ -82,7 +84,13 @@ func (srv *AbstractServer) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	msg, err := DecodeMessage(data)
+	root, err := xmldoc.Decode(NsMap, bytes.NewReader(data))
+	if err != nil {
+		query.Reject(http.StatusBadRequest, err)
+		return
+	}
+
+	msg, err := DecodeMessage(root)
 	if err != nil {
 		query.Reject(http.StatusBadRequest, err)
 		return
