@@ -26,13 +26,9 @@ type Message struct {
 	Body   Body
 }
 
-// DecodeMessage decodes a [Message] from the wire representation.
-func DecodeMessage(data []byte) (msg Message, err error) {
-	root, err := xmldoc.Decode(NsMap, bytes.NewReader(data))
-	if err == nil {
-		msg, err = decodeMessageXML(root)
-	}
-	return
+// DecodeMessage decodes a [Message] from the XML tree.
+func DecodeMessage(root xmldoc.Element) (msg Message, err error) {
+	return decodeMessageXML(root)
 }
 
 // decodeMessageXML decodes a [Message] from the XML tree.

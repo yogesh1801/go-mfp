@@ -19,6 +19,7 @@ import (
 	"github.com/OpenPrinting/go-mfp/transport"
 	"github.com/OpenPrinting/go-mfp/util/optional"
 	"github.com/OpenPrinting/go-mfp/util/uuid"
+	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
 // Client implements a low-level WS-Scan client.
@@ -102,5 +103,10 @@ func (c *Client) sendSOAP(ctx context.Context, body Body) (Message, error) {
 		return Message{}, err
 	}
 
-	return DecodeMessage(rspData)
+	root, err := xmldoc.Decode(NsMap, bytes.NewReader(rspData))
+	if err != nil {
+		return Message{}, err
+	}
+
+	return DecodeMessage(root)
 }
