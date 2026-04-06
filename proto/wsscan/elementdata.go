@@ -10,6 +10,7 @@ package wsscan
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/OpenPrinting/go-mfp/util/optional"
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
@@ -48,17 +49,22 @@ func (n ElementDataName) String() string {
 }
 
 // decodeElementDataName decodes an [ElementDataName] from its QName string.
+// The prefix is stripped before matching because devices may use a different
+// namespace prefix than we do for the same WS-Scan namespace URL.
 func decodeElementDataName(s string) ElementDataName {
+	if i := strings.LastIndex(s, ":"); i >= 0 {
+		s = s[i+1:]
+	}
 	switch s {
-	case NsWSCN + ":DefaultScanTicket":
+	case "DefaultScanTicket":
 		return ElementDataDefaultScanTicket
-	case NsWSCN + ":ScannerConfiguration":
+	case "ScannerConfiguration":
 		return ElementDataScannerConfiguration
-	case NsWSCN + ":ScannerDescription":
+	case "ScannerDescription":
 		return ElementDataScannerDescription
-	case NsWSCN + ":ScannerStatus":
+	case "ScannerStatus":
 		return ElementDataScannerStatus
-	case NsXML + ":VendorSection":
+	case "VendorSection":
 		return ElementDataVendorSection
 	default:
 		return UnknownElementDataName
