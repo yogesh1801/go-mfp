@@ -78,7 +78,6 @@ const (
 	// Warning exceptions
 	BytesWarning              Except = "BytesWarning"
 	DeprecationWarning        Except = "DeprecationWarning"
-	EncodingWarning           Except = "EncodingWarning"
 	FutureWarning             Except = "FutureWarning"
 	ImportWarning             Except = "ImportWarning"
 	PendingDeprecationWarning Except = "PendingDeprecationWarning"
@@ -168,7 +167,6 @@ func exceptInit() {
 		// Warnings
 		BytesWarning:              C.PyExc_BytesWarning_p,
 		DeprecationWarning:        C.PyExc_DeprecationWarning_p,
-		EncodingWarning:           C.PyExc_EncodingWarning_p,
 		FutureWarning:             C.PyExc_FutureWarning_p,
 		ImportWarning:             C.PyExc_ImportWarning_p,
 		PendingDeprecationWarning: C.PyExc_PendingDeprecationWarning_p,

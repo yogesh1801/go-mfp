@@ -410,7 +410,6 @@ extern PyObject *PyExc_ZeroDivisionError_p;
 // Standard warnings
 extern PyObject *PyExc_BytesWarning_p;
 extern PyObject *PyExc_DeprecationWarning_p;
-extern PyObject *PyExc_EncodingWarning_p;
 extern PyObject *PyExc_FutureWarning_p;
 extern PyObject *PyExc_ImportWarning_p;
 extern PyObject *PyExc_PendingDeprecationWarning_p;

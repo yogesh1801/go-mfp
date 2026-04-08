@@ -198,7 +198,6 @@ PyObject *PyExc_ZeroDivisionError_p;
 // Standard warnings
 PyObject *PyExc_BytesWarning_p;
 PyObject *PyExc_DeprecationWarning_p;
-PyObject *PyExc_EncodingWarning_p;
 PyObject *PyExc_FutureWarning_p;
 PyObject *PyExc_ImportWarning_p;
 PyObject *PyExc_PendingDeprecationWarning_p;
@@ -406,7 +405,6 @@ static void py_load_all (const char *libpython3) {
 
     PyExc_BytesWarning_p = py_load_ptr("PyExc_BytesWarning");
     PyExc_DeprecationWarning_p = py_load_ptr("PyExc_DeprecationWarning");
-    PyExc_EncodingWarning_p = py_load_ptr("PyExc_EncodingWarning");
     PyExc_FutureWarning_p = py_load_ptr("PyExc_FutureWarning");
     PyExc_ImportWarning_p = py_load_ptr("PyExc_ImportWarning");
     PyExc_PendingDeprecationWarning_p = py_load_ptr("PyExc_PendingDeprecationWarning");
