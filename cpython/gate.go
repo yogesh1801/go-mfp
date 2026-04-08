@@ -12,7 +12,6 @@ import (
 	"fmt"
 	"math/big"
 	"runtime"
-	"strings"
 	"unsafe"
 
 	"github.com/OpenPrinting/go-mfp/internal/assert"
@@ -71,18 +70,18 @@ func (gate pyGate) lastErrorAt(file string, line int) error {
 	defer C.py_obj_unref(trace)
 
 	// Decode the error
-	var msg string
+	except := SystemError // The default
+	msg := "Unknown Python exception"
 	var needLocation bool
 
 	if etype != nil {
 		var nm string
 		if tmp, _ := gate.getattr(etype, "__name__"); tmp != nil {
-			nm, _ = gate.str(tmp)
+			nm, _ := gate.str(tmp)
 			C.py_obj_unref(tmp)
-		}
-
-		if nm != "" {
-			msg = nm + ":"
+			if nm != "" {
+				except = Except(nm)
+			}
 		}
 
 		// Some exception types, like SyntaxError, already
@@ -98,12 +97,8 @@ func (gate pyGate) lastErrorAt(file string, line int) error {
 	if evalue != nil {
 		s, _ := gate.str(evalue)
 		if s != "" {
-			msg = strings.Join([]string{msg, s}, " ")
+			msg = s
 		}
-	}
-
-	if msg == "" {
-		msg = "Unknown Python exception"
 	}
 
 	if needLocation && trace != nil {
@@ -116,7 +111,7 @@ func (gate pyGate) lastErrorAt(file string, line int) error {
 		}
 	}
 
-	return ErrPython{msg}
+	return ErrPython{except, msg}
 }
 
 // lastErrorLocation extracts file and line information out of the
@@ -836,4 +831,31 @@ func (gate pyGate) load(s, name, file string) (pyObject, error) {
 	}
 
 	return pyobj, nil
+}
+
+// py_capsule_make makes a new PyCapsule_Type object.
+// This object encapsulates an opaque C pointer with optional destructor.
+func (gate pyGate) makeCapsule(p unsafe.Pointer, name *C.char,
+	destructor C.PyCapsule_Destructor) (pyObject, error) {
+
+	capsule := C.py_capsule_make(p, name, destructor)
+	if capsule == nil {
+		return nil, gate.lastError()
+	}
+
+	return capsule, nil
+}
+
+// makeCfunction makes a new PyCFunction_Type object.
+// This object represents a Python->C callback.
+func (gate pyGate) makeCfunction(def *C.PyMethodDef,
+	self pyObject) (pyObject, error) {
+
+	cfunction := C.py_cfunction_make(def, self)
+	if cfunction == nil {
+		err := gate.lastError()
+		return nil, err
+	}
+
+	return cfunction, nil
 }

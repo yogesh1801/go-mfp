@@ -10,6 +10,7 @@
 
 #include <dlfcn.h>
 #include <stdarg.h>
+#include <stdatomic.h>
 
 // py_libpython3 contains libpython3.so handle.
 static void                                     *py_libpython3;
@@ -25,6 +26,10 @@ static char                                     py_error_buf[1024];
 // py_main_thread keeps reference to the main Python thread state
 // between calls to functions that use that.
 static PyThreadState                            *py_main_thread;
+
+// py_enter_level counts py_enter nesting level when called
+// from the same thread;
+static __thread volatile int                     py_enter_level;
 
 // The table of the libpython3 symbols.
 //
@@ -52,6 +57,7 @@ static __typeof__(PyByteArray_Size)             *PyByteArray_Size_p;
 static __typeof__(PyBytes_AsStringAndSize)      *PyBytes_AsStringAndSize_p;
 static __typeof__(PyBytes_FromStringAndSize)    *PyBytes_FromStringAndSize_p;
 static __typeof__(PyCallable_Check)             *PyCallable_Check_p;
+static __typeof__(PyCapsule_GetPointer)         *PyCapsule_GetPointer_p;
 static __typeof__(PyCapsule_New)                *PyCapsule_New_p;
 static __typeof__(PyCFunction_New)              *PyCFunction_New_p;
 static __typeof__(Py_CompileString)             *Py_CompileString_p;
@@ -111,9 +117,8 @@ static __typeof__(PyType_IsSubtype)             *PyType_IsSubtype_p;
 static __typeof__(PyUnicode_AsUCS4)             *PyUnicode_AsUCS4_p;
 static __typeof__(PyUnicode_FromStringAndSize)  *PyUnicode_FromStringAndSize_p;
 
-// Python exceptions (some of them):
-static PyObject *PyExc_KeyError_p;
-static PyObject *PyExc_OverflowError_p;
+// Directly exposed functions
+__typeof__(PyUnicode_GetLength)                  *PyUnicode_GetLength_p;
 
 // Python build-in (primitive) types:
 PyTypeObject *PyBool_Type_p;
@@ -135,8 +140,74 @@ PyTypeObject *PyTuple_Type_p;
 PyTypeObject *PyType_Type_p;
 PyTypeObject *PyUnicode_Type_p;
 
-// Directly exposed libpython functions:
-Py_ssize_t                      (*PyUnicode_GetLength_p)(PyObject *);
+// Standard exceptions
+PyObject *PyExc_ArithmeticError_p;
+PyObject *PyExc_AssertionError_p;
+PyObject *PyExc_AttributeError_p;
+PyObject *PyExc_BaseException_p;
+PyObject *PyExc_BlockingIOError_p;
+PyObject *PyExc_BrokenPipeError_p;
+PyObject *PyExc_BufferError_p;
+PyObject *PyExc_ChildProcessError_p;
+PyObject *PyExc_ConnectionAbortedError_p;
+PyObject *PyExc_ConnectionError_p;
+PyObject *PyExc_ConnectionRefusedError_p;
+PyObject *PyExc_ConnectionResetError_p;
+PyObject *PyExc_EOFError_p;
+PyObject *PyExc_Exception_p;
+PyObject *PyExc_FileExistsError_p;
+PyObject *PyExc_FileNotFoundError_p;
+PyObject *PyExc_FloatingPointError_p;
+PyObject *PyExc_GeneratorExit_p;
+PyObject *PyExc_ImportError_p;
+PyObject *PyExc_IndentationError_p;
+PyObject *PyExc_IndexError_p;
+PyObject *PyExc_InterruptedError_p;
+PyObject *PyExc_IsADirectoryError_p;
+PyObject *PyExc_KeyboardInterrupt_p;
+PyObject *PyExc_KeyError_p;
+PyObject *PyExc_LookupError_p;
+PyObject *PyExc_MemoryError_p;
+PyObject *PyExc_ModuleNotFoundError_p;
+PyObject *PyExc_NameError_p;
+PyObject *PyExc_NotADirectoryError_p;
+PyObject *PyExc_NotImplementedError_p;
+PyObject *PyExc_OSError_p;
+PyObject *PyExc_OverflowError_p;
+PyObject *PyExc_PermissionError_p;
+PyObject *PyExc_ProcessLookupError_p;
+PyObject *PyExc_RecursionError_p;
+PyObject *PyExc_ReferenceError_p;
+PyObject *PyExc_RuntimeError_p;
+PyObject *PyExc_StopAsyncIteration_p;
+PyObject *PyExc_StopIteration_p;
+PyObject *PyExc_SyntaxError_p;
+PyObject *PyExc_SystemError_p;
+PyObject *PyExc_SystemExit_p;
+PyObject *PyExc_TabError_p;
+PyObject *PyExc_TimeoutError_p;
+PyObject *PyExc_TypeError_p;
+PyObject *PyExc_UnboundLocalError_p;
+PyObject *PyExc_UnicodeDecodeError_p;
+PyObject *PyExc_UnicodeEncodeError_p;
+PyObject *PyExc_UnicodeError_p;
+PyObject *PyExc_UnicodeTranslateError_p;
+PyObject *PyExc_ValueError_p;
+PyObject *PyExc_ZeroDivisionError_p;
+
+// Standard warnings
+PyObject *PyExc_BytesWarning_p;
+PyObject *PyExc_DeprecationWarning_p;
+PyObject *PyExc_EncodingWarning_p;
+PyObject *PyExc_FutureWarning_p;
+PyObject *PyExc_ImportWarning_p;
+PyObject *PyExc_PendingDeprecationWarning_p;
+PyObject *PyExc_ResourceWarning_p;
+PyObject *PyExc_RuntimeWarning_p;
+PyObject *PyExc_SyntaxWarning_p;
+PyObject *PyExc_UnicodeWarning_p;
+PyObject *PyExc_UserWarning_p;
+PyObject *PyExc_Warning_p;
 
 // Forward declarations
 static PyObject *py_obj_getattr_int(PyObject *x, const char *name);
@@ -199,6 +270,7 @@ static void py_load_all (const char *libpython3) {
     PyBytes_FromStringAndSize_p = py_load("PyBytes_FromStringAndSize");
     PyCallable_Check_p = py_load("PyCallable_Check");
     Py_CompileString_p = py_load("Py_CompileString");
+    PyCapsule_GetPointer_p = py_load("PyCapsule_GetPointer");
     PyCapsule_New_p = py_load("PyCapsule_New");
     PyCFunction_New_p = py_load("PyCFunction_New");
     PyComplex_FromDoubles_p = py_load("PyComplex_FromDoubles");
@@ -257,8 +329,7 @@ static void py_load_all (const char *libpython3) {
     PyUnicode_AsUCS4_p = py_load("PyUnicode_AsUCS4");
     PyUnicode_FromStringAndSize_p = py_load("PyUnicode_FromStringAndSize");
 
-    PyExc_KeyError_p = py_load_ptr("PyExc_KeyError");
-    PyExc_OverflowError_p = py_load_ptr("PyExc_OverflowError");
+    PyUnicode_GetLength_p = py_load("PyUnicode_GetLength");
 
     PyBool_Type_p = py_load("PyBool_Type");
     PyByteArray_Type_p = py_load("PyByteArray_Type");
@@ -279,7 +350,72 @@ static void py_load_all (const char *libpython3) {
     PyType_Type_p = py_load("PyType_Type");
     PyUnicode_Type_p = py_load("PyUnicode_Type");
 
-    PyUnicode_GetLength_p = py_load("PyUnicode_GetLength");
+    PyExc_ArithmeticError_p = py_load_ptr("PyExc_ArithmeticError");
+    PyExc_AssertionError_p = py_load_ptr("PyExc_AssertionError");
+    PyExc_AttributeError_p = py_load_ptr("PyExc_AttributeError");
+    PyExc_BaseException_p = py_load_ptr("PyExc_BaseException");
+    PyExc_BlockingIOError_p = py_load_ptr("PyExc_BlockingIOError");
+    PyExc_BrokenPipeError_p = py_load_ptr("PyExc_BrokenPipeError");
+    PyExc_BufferError_p = py_load_ptr("PyExc_BufferError");
+    PyExc_ChildProcessError_p = py_load_ptr("PyExc_ChildProcessError");
+    PyExc_ConnectionAbortedError_p = py_load_ptr("PyExc_ConnectionAbortedError");
+    PyExc_ConnectionError_p = py_load_ptr("PyExc_ConnectionError");
+    PyExc_ConnectionRefusedError_p = py_load_ptr("PyExc_ConnectionRefusedError");
+    PyExc_ConnectionResetError_p = py_load_ptr("PyExc_ConnectionResetError");
+    PyExc_EOFError_p = py_load_ptr("PyExc_EOFError");
+    PyExc_Exception_p = py_load_ptr("PyExc_Exception");
+    PyExc_FileExistsError_p = py_load_ptr("PyExc_FileExistsError");
+    PyExc_FileNotFoundError_p = py_load_ptr("PyExc_FileNotFoundError");
+    PyExc_FloatingPointError_p = py_load_ptr("PyExc_FloatingPointError");
+    PyExc_GeneratorExit_p = py_load_ptr("PyExc_GeneratorExit");
+    PyExc_ImportError_p = py_load_ptr("PyExc_ImportError");
+    PyExc_IndentationError_p = py_load_ptr("PyExc_IndentationError");
+    PyExc_IndexError_p = py_load_ptr("PyExc_IndexError");
+    PyExc_InterruptedError_p = py_load_ptr("PyExc_InterruptedError");
+    PyExc_IsADirectoryError_p = py_load_ptr("PyExc_IsADirectoryError");
+    PyExc_KeyboardInterrupt_p = py_load_ptr("PyExc_KeyboardInterrupt");
+    PyExc_KeyError_p = py_load_ptr("PyExc_KeyError");
+    PyExc_LookupError_p = py_load_ptr("PyExc_LookupError");
+    PyExc_MemoryError_p = py_load_ptr("PyExc_MemoryError");
+    PyExc_ModuleNotFoundError_p = py_load_ptr("PyExc_ModuleNotFoundError");
+    PyExc_NameError_p = py_load_ptr("PyExc_NameError");
+    PyExc_NotADirectoryError_p = py_load_ptr("PyExc_NotADirectoryError");
+    PyExc_NotImplementedError_p = py_load_ptr("PyExc_NotImplementedError");
+    PyExc_OSError_p = py_load_ptr("PyExc_OSError");
+    PyExc_OverflowError_p = py_load_ptr("PyExc_OverflowError");
+    PyExc_PermissionError_p = py_load_ptr("PyExc_PermissionError");
+    PyExc_ProcessLookupError_p = py_load_ptr("PyExc_ProcessLookupError");
+    PyExc_RecursionError_p = py_load_ptr("PyExc_RecursionError");
+    PyExc_ReferenceError_p = py_load_ptr("PyExc_ReferenceError");
+    PyExc_RuntimeError_p = py_load_ptr("PyExc_RuntimeError");
+    PyExc_StopAsyncIteration_p = py_load_ptr("PyExc_RuntimeError");
+    PyExc_StopIteration_p = py_load_ptr("PyExc_StopIteration");
+    PyExc_SyntaxError_p = py_load_ptr("PyExc_SyntaxError");
+    PyExc_SystemError_p = py_load_ptr("PyExc_SystemError");
+    PyExc_SystemExit_p = py_load_ptr("PyExc_SystemExit");
+    PyExc_TabError_p = py_load_ptr("PyExc_TabError");
+    PyExc_TimeoutError_p = py_load_ptr("PyExc_TimeoutError");
+    PyExc_TypeError_p = py_load_ptr("PyExc_TypeError");
+    PyExc_UnboundLocalError_p = py_load_ptr("PyExc_UnboundLocalError");
+    PyExc_UnicodeDecodeError_p = py_load_ptr("PyExc_UnicodeDecodeError");
+    PyExc_UnicodeEncodeError_p = py_load_ptr("PyExc_UnicodeEncodeError");
+    PyExc_UnicodeError_p = py_load_ptr("PyExc_UnicodeError");
+    PyExc_UnicodeTranslateError_p = py_load_ptr("PyExc_UnicodeTranslateError");
+    PyExc_ValueError_p = py_load_ptr("PyExc_ValueError");
+    PyExc_ZeroDivisionError_p = py_load_ptr("PyExc_ZeroDivisionError");
+
+    PyExc_BytesWarning_p = py_load_ptr("PyExc_BytesWarning");
+    PyExc_DeprecationWarning_p = py_load_ptr("PyExc_DeprecationWarning");
+    PyExc_EncodingWarning_p = py_load_ptr("PyExc_EncodingWarning");
+    PyExc_FutureWarning_p = py_load_ptr("PyExc_FutureWarning");
+    PyExc_ImportWarning_p = py_load_ptr("PyExc_ImportWarning");
+    PyExc_PendingDeprecationWarning_p = py_load_ptr("PyExc_PendingDeprecationWarning");
+    PyExc_ResourceWarning_p = py_load_ptr("PyExc_ResourceWarning");
+    PyExc_RuntimeWarning_p = py_load_ptr("PyExc_RuntimeWarning");
+    PyExc_SyntaxWarning_p = py_load_ptr("PyExc_SyntaxWarning");
+    PyExc_UnicodeWarning_p = py_load_ptr("PyExc_UnicodeWarning");
+    PyExc_UserWarning_p = py_load_ptr("PyExc_UserWarning");
+    PyExc_Warning_p = py_load_ptr("PyExc_Warning");
 }
 
 // py_init initializes Python stuff.
@@ -340,12 +476,16 @@ void py_interp_close (PyThreadState *tstate) {
 // It must be called before any operations with the interpreter
 // are performed and must be paired with the py_leave.
 void py_enter (PyThreadState *tstate) {
-    PyEval_RestoreThread_p(tstate);
+    if (atomic_fetch_add(&py_enter_level,1) == 0) {
+        PyEval_RestoreThread_p(tstate);
+    }
 }
 
 // py_leave detaches the calling thread from the Python interpreter.
 void py_leave (void) {
-    PyEval_SaveThread_p();
+    if (atomic_fetch_sub(&py_enter_level,1) == 1) {
+        PyEval_SaveThread_p();
+    }
 }
 
 // py_interp_eval evaluates string as a Python statement or expression.
@@ -860,10 +1000,10 @@ bool py_long_get_int64 (PyObject *x, int64_t *val, bool *overflow) {
         PyObject *err = PyErr_Occurred_p();
         if (err == PyExc_OverflowError_p) {
             ovf = true;
+            PyErr_Clear_p();
         } else if (err != NULL) {
             ok = false;
         }
-        PyErr_Clear_p();
     }
 
     if (!(INT64_MIN <= tmp && tmp <= INT64_MAX)) {
@@ -889,10 +1029,10 @@ bool py_long_get_uint64 (PyObject *x, uint64_t *val, bool *overflow) {
         PyObject *err = PyErr_Occurred_p();
         if (err == PyExc_OverflowError_p) {
             ovf = true;
+            PyErr_Clear_p();
         } else if (err != NULL) {
             ok = false;
         }
-        PyErr_Clear_p();
     }
 
     if (!(tmp <= UINT64_MAX)) {
@@ -979,18 +1119,26 @@ bool py_tuple_set(PyObject *tuple, int index, PyObject *val) {
     return PyTuple_SetItem_p(tuple, index, val) == 0;
 }
 
-// py_cfunction_make makes a new PyCFunction object.
+// py_cfunction_make makes a new PyCFunction_Type object.
 // The caller must ensure that ml outlives the returned object.
 // It returns strong object reference on success, NULL on an error.
 PyObject *py_cfunction_make(PyMethodDef *ml, PyObject *self) {
     return PyCFunction_New_p(ml, self);
 }
 
-// py_cfunction_make makes a new PyCFunction object.
+// py_capsule_make makes a new PyCapsule_Type object.
 // It returns strong object reference on success, NULL on an error.
 PyObject *py_capsule_make(void *pointer, const char *name,
                           PyCapsule_Destructor destructor) {
     return PyCapsule_New_p(pointer, name, destructor);
+}
+
+// py_capsule_get_ptr returns pointer, encapsulated into
+// the capsule.
+//
+// The name must match exactly the name used for py_capsule_make.
+void *py_capsule_get_ptr(PyObject *capsule, const char *name) {
+    return PyCapsule_GetPointer_p(capsule, name);
 }
 
 // vim:ts=8:sw=4:et

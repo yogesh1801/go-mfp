@@ -13,6 +13,9 @@ import (
 	"sort"
 )
 
+// reflectErrorType is the reflect.Type of error
+var reflectErrorType = reflect.TypeOf(new(error)).Elem()
+
 // reflectSort sorts slice of reflect.Value in acceding order.
 //
 // Slice elements must be [cmp.Ordered] or bool.

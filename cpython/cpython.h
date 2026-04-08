@@ -326,6 +326,12 @@ PyObject *py_cfunction_make(PyMethodDef *ml, PyObject *self);
 PyObject *py_capsule_make(void *pointer, const char *name,
                           PyCapsule_Destructor destructor);
 
+// py_capsule_get_ptr returns pointer, encapsulated into
+// the capsule.
+//
+// The name must match exactly the name used for py_capsule_make.
+void *py_capsule_get_ptr(PyObject *capsule, const char *name);
+
 // Python build-in (primitive) types:
 extern PyTypeObject *PyBool_Type_p;
 extern PyTypeObject *PyByteArray_Type_p;
@@ -345,6 +351,75 @@ extern PyTypeObject *PySlice_Type_p;
 extern PyTypeObject *PyTuple_Type_p;
 extern PyTypeObject *PyType_Type_p;
 extern PyTypeObject *PyUnicode_Type_p;
+
+// Standard exceptions
+extern PyObject *PyExc_ArithmeticError_p;
+extern PyObject *PyExc_AssertionError_p;
+extern PyObject *PyExc_AttributeError_p;
+extern PyObject *PyExc_BaseException_p;
+extern PyObject *PyExc_BlockingIOError_p;
+extern PyObject *PyExc_BrokenPipeError_p;
+extern PyObject *PyExc_BufferError_p;
+extern PyObject *PyExc_ChildProcessError_p;
+extern PyObject *PyExc_ConnectionAbortedError_p;
+extern PyObject *PyExc_ConnectionError_p;
+extern PyObject *PyExc_ConnectionRefusedError_p;
+extern PyObject *PyExc_ConnectionResetError_p;
+extern PyObject *PyExc_EOFError_p;
+extern PyObject *PyExc_Exception_p;
+extern PyObject *PyExc_FileExistsError_p;
+extern PyObject *PyExc_FileNotFoundError_p;
+extern PyObject *PyExc_FloatingPointError_p;
+extern PyObject *PyExc_GeneratorExit_p;
+extern PyObject *PyExc_ImportError_p;
+extern PyObject *PyExc_IndentationError_p;
+extern PyObject *PyExc_IndexError_p;
+extern PyObject *PyExc_InterruptedError_p;
+extern PyObject *PyExc_IsADirectoryError_p;
+extern PyObject *PyExc_KeyboardInterrupt_p;
+extern PyObject *PyExc_KeyError_p;
+extern PyObject *PyExc_LookupError_p;
+extern PyObject *PyExc_MemoryError_p;
+extern PyObject *PyExc_ModuleNotFoundError_p;
+extern PyObject *PyExc_NameError_p;
+extern PyObject *PyExc_NotADirectoryError_p;
+extern PyObject *PyExc_NotImplementedError_p;
+extern PyObject *PyExc_OSError_p;
+extern PyObject *PyExc_OverflowError_p;
+extern PyObject *PyExc_PermissionError_p;
+extern PyObject *PyExc_ProcessLookupError_p;
+extern PyObject *PyExc_RecursionError_p;
+extern PyObject *PyExc_ReferenceError_p;
+extern PyObject *PyExc_RuntimeError_p;
+extern PyObject *PyExc_StopAsyncIteration_p;
+extern PyObject *PyExc_StopIteration_p;
+extern PyObject *PyExc_SyntaxError_p;
+extern PyObject *PyExc_SystemError_p;
+extern PyObject *PyExc_SystemExit_p;
+extern PyObject *PyExc_TabError_p;
+extern PyObject *PyExc_TimeoutError_p;
+extern PyObject *PyExc_TypeError_p;
+extern PyObject *PyExc_UnboundLocalError_p;
+extern PyObject *PyExc_UnicodeDecodeError_p;
+extern PyObject *PyExc_UnicodeEncodeError_p;
+extern PyObject *PyExc_UnicodeError_p;
+extern PyObject *PyExc_UnicodeTranslateError_p;
+extern PyObject *PyExc_ValueError_p;
+extern PyObject *PyExc_ZeroDivisionError_p;
+
+// Standard warnings
+extern PyObject *PyExc_BytesWarning_p;
+extern PyObject *PyExc_DeprecationWarning_p;
+extern PyObject *PyExc_EncodingWarning_p;
+extern PyObject *PyExc_FutureWarning_p;
+extern PyObject *PyExc_ImportWarning_p;
+extern PyObject *PyExc_PendingDeprecationWarning_p;
+extern PyObject *PyExc_ResourceWarning_p;
+extern PyObject *PyExc_RuntimeWarning_p;
+extern PyObject *PyExc_SyntaxWarning_p;
+extern PyObject *PyExc_UnicodeWarning_p;
+extern PyObject *PyExc_UserWarning_p;
+extern PyObject *PyExc_Warning_p;
 
 #endif
 

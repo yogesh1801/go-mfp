@@ -14,12 +14,13 @@ import (
 
 // ErrPython represents a Python exception.
 type ErrPython struct {
-	msg string
+	except Except
+	msg    string
 }
 
 // Error returns error message. It implements the [error] interface.
 func (e ErrPython) Error() string {
-	return e.msg
+	return string(e.except) + ": " + e.msg
 }
 
 // ErrTypeConversion represents Go<->Python type conversion error.

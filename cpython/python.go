@@ -13,6 +13,7 @@ import (
 	"math/big"
 	"reflect"
 	"runtime"
+	"strings"
 
 	"github.com/OpenPrinting/go-mfp/internal/assert"
 )
@@ -191,7 +192,8 @@ func (py *Python) Bool(v bool) *Object {
 //
 //	[]any, [...]any                 PyList_Type
 //
-//	[cmp.Ordered or bool]any        PyDict_Type
+//	[any]any                        PyDict_Type; key must be cmp.Ordered
+//	                                or bool
 func (py *Python) NewObject(val any) *Object {
 	gate, err := py.gate()
 	if err != nil {
@@ -277,8 +279,10 @@ func (py *Python) newPyObject(gate pyGate, val any) (pyObject, error) {
 	case reflect.Map:
 		return py.newPyDict(gate, val)
 
-	case reflect.Chan:
 	case reflect.Func:
+		return py.newPyFunction(gate, val)
+
+	case reflect.Chan:
 	case reflect.Interface:
 	case reflect.Pointer:
 	case reflect.Struct:
@@ -378,6 +382,35 @@ func (py *Python) newPyDict(gate pyGate, val any) (pyObject, error) {
 	}
 
 	return pydict, nil
+}
+
+// newPyFunction creates a new callable object for Python->Go calls.
+func (py *Python) newPyFunction(gate pyGate, call any) (pyObject, error) {
+	// Obtain function name
+	name := "unknown"
+	if ff := runtime.FuncForPC(reflect.ValueOf(call).Pointer()); ff != nil {
+		name = ff.Name()
+		if i := strings.LastIndexByte(name, '/'); i >= 0 {
+			name = name[i+1:]
+		}
+	}
+
+	// Create callback
+	cb := newCallback(py, name, call)
+	if cb == nil {
+		err := ErrTypeConversion{
+			from: reflect.ValueOf(call).Type().String(),
+			to:   "Python object",
+		}
+		return nil, err
+	}
+
+	pyobj, err := cb.object(gate)
+	if err != nil {
+		cb.Delete()
+	}
+
+	return pyobj, err
 }
 
 // Eval evaluates string as a Python expression and returns its value.

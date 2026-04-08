@@ -111,6 +111,11 @@ func pyInterpThread(initilized *sync.WaitGroup) {
 		pyInitErrorCheck(msg)
 	}
 
+	// Initialize exceptions
+	if pyInitError == nil {
+		exceptInit()
+	}
+
 	// Notify caller that initialization is completed
 	initilized.Done()
 
