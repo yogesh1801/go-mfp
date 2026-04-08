@@ -59,7 +59,7 @@ static __typeof__(PyBytes_FromStringAndSize)    *PyBytes_FromStringAndSize_p;
 static __typeof__(PyCallable_Check)             *PyCallable_Check_p;
 static __typeof__(PyCapsule_GetPointer)         *PyCapsule_GetPointer_p;
 static __typeof__(PyCapsule_New)                *PyCapsule_New_p;
-static __typeof__(PyCFunction_New)              *PyCFunction_New_p;
+static __typeof__(PyCFunction_NewEx)            *PyCFunction_NewEx_p;
 static __typeof__(Py_CompileString)             *Py_CompileString_p;
 static __typeof__(PyComplex_FromDoubles)        *PyComplex_FromDoubles_p;
 static __typeof__(PyComplex_ImagAsDouble)       *PyComplex_ImagAsDouble_p;
@@ -272,7 +272,7 @@ static void py_load_all (const char *libpython3) {
     Py_CompileString_p = py_load("Py_CompileString");
     PyCapsule_GetPointer_p = py_load("PyCapsule_GetPointer");
     PyCapsule_New_p = py_load("PyCapsule_New");
-    PyCFunction_New_p = py_load("PyCFunction_New");
+    PyCFunction_NewEx_p = py_load("PyCFunction_NewEx");
     PyComplex_FromDoubles_p = py_load("PyComplex_FromDoubles");
     PyComplex_ImagAsDouble_p = py_load("PyComplex_ImagAsDouble");
     PyComplex_RealAsDouble_p = py_load("PyComplex_RealAsDouble");
@@ -1123,7 +1123,7 @@ bool py_tuple_set(PyObject *tuple, int index, PyObject *val) {
 // The caller must ensure that ml outlives the returned object.
 // It returns strong object reference on success, NULL on an error.
 PyObject *py_cfunction_make(PyMethodDef *ml, PyObject *self) {
-    return PyCFunction_New_p(ml, self);
+    return PyCFunction_NewEx_p(ml, self, NULL);
 }
 
 // py_capsule_make makes a new PyCapsule_Type object.
