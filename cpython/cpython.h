@@ -332,6 +332,13 @@ PyObject *py_capsule_make(void *pointer, const char *name,
 // The name must match exactly the name used for py_capsule_make.
 void *py_capsule_get_ptr(PyObject *capsule, const char *name);
 
+// py_set_err sets the error condition within the Python interpreter,
+// which raises exception at the Python side.
+//
+// The callback function, registered by the py_cfunction_make, MUST
+// set the error, if it returns NULL.
+void py_set_err(PyObject *extype, const char *msg);
+
 // Python build-in (primitive) types:
 extern PyTypeObject *PyBool_Type_p;
 extern PyTypeObject *PyByteArray_Type_p;

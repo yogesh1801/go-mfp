@@ -73,6 +73,7 @@ static __typeof__(PyErr_Fetch)                  *PyErr_Fetch_p;
 static __typeof__(PyErr_NormalizeException)     *PyErr_NormalizeException_p;
 static __typeof__(PyErr_Occurred)               *PyErr_Occurred_p;
 static __typeof__(PyErr_Restore)                *PyErr_Restore_p;
+static __typeof__(PyErr_SetString)              *PyErr_SetString_p;
 static __typeof__(PyEval_EvalCode)              *PyEval_EvalCode_p;
 static __typeof__(PyEval_RestoreThread)         *PyEval_RestoreThread_p;
 static __typeof__(PyEval_SaveThread)            *PyEval_SaveThread_p;
@@ -282,6 +283,7 @@ static void py_load_all (const char *libpython3) {
     PyErr_Clear_p = py_load("PyErr_Clear");
     PyErr_Fetch_p = py_load("PyErr_Fetch");
     PyErr_Restore_p = py_load("PyErr_Restore");
+    PyErr_SetString_p = py_load("PyErr_SetString");
     PyErr_NormalizeException_p = py_load("PyErr_NormalizeException");
     PyErr_Occurred_p = py_load("PyErr_Occurred");
     PyEval_EvalCode_p = py_load("PyEval_EvalCode");
@@ -1137,6 +1139,15 @@ PyObject *py_capsule_make(void *pointer, const char *name,
 // The name must match exactly the name used for py_capsule_make.
 void *py_capsule_get_ptr(PyObject *capsule, const char *name) {
     return PyCapsule_GetPointer_p(capsule, name);
+}
+
+// py_set_err sets the error condition within the Python interpreter,
+// which raises exception at the Python side.
+//
+// The callback function, registered by the py_cfunction_make, MUST
+// set the error, if it returns NULL.
+void py_set_err(PyObject *extype, const char *msg) {
+    PyErr_SetString_p(extype, msg);
 }
 
 // vim:ts=8:sw=4:et

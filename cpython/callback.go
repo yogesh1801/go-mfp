@@ -166,8 +166,28 @@ func callbackCall(capsule, args pyObject) pyObject {
 	if p != nil {
 		handle := *(*cgo.Handle)(p)
 		cb := handle.Value().(*callback)
-		pyobj, _ := cb.call(args)
+		pyobj, err := cb.call(args)
+		if err != nil {
+			callbackSetError(err)
+		}
 		return pyobj
 	}
 	return nil
+}
+
+// callbackSetError reports error to the Python side by
+// raising Python exception
+func callbackSetError(err error) {
+	except := Except("")
+	msg := ""
+
+	if err2, ok := err.(ErrPython); ok {
+		except, msg = err2.except, err2.msg
+	} else {
+		msg = err.Error()
+	}
+
+	cmsg := C.CString(msg)
+	C.py_set_err(except.object(), cmsg)
+	C.free(unsafe.Pointer(cmsg))
 }
