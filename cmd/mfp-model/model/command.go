@@ -21,6 +21,7 @@ import (
 	"github.com/OpenPrinting/go-mfp/modeling"
 	"github.com/OpenPrinting/go-mfp/proto/escl"
 	"github.com/OpenPrinting/go-mfp/proto/ipp"
+	"github.com/OpenPrinting/go-mfp/proto/wsscan"
 	"github.com/OpenPrinting/go-mfp/transport"
 )
 
@@ -76,9 +77,6 @@ var Command = argv.Command{
 			Singleton: true,
 			Validate: func(s string) error {
 				err := transport.ValidateAddr(s)
-				if err == nil {
-					err = errors.New("not implemented")
-				}
 				return err
 			},
 		},
@@ -214,17 +212,9 @@ func cmdModelHandler(ctx context.Context, inv *argv.Invocation) error {
 	}
 
 	// Query printer and scanner capabilities
-	var esclcaps *escl.ScannerCapabilities
 	var ippattrs *ipp.PrinterAttributes
-
-	if optESCL != nil {
-		esclcaps, err = queryESCLScannerCapabilities(ctx, optESCL)
-		if err != nil {
-			err = fmt.Errorf(
-				"Can't get eSCL ScannerCapabilities: %s", err)
-			return err
-		}
-	}
+	var esclcaps *escl.ScannerCapabilities
+	var wsdcaps *wsscan.GetScannerElementsResponse
 
 	if optIPP != nil {
 		ippattrs, err = queryIPPPrinterAttributes(ctx, optIPP)
@@ -235,11 +225,30 @@ func cmdModelHandler(ctx context.Context, inv *argv.Invocation) error {
 		}
 	}
 
+	if optESCL != nil {
+		esclcaps, err = queryESCLScannerCapabilities(ctx, optESCL)
+		if err != nil {
+			err = fmt.Errorf(
+				"Can't get eSCL ScannerCapabilities: %s", err)
+			return err
+		}
+	}
+
+	if optWSD != nil {
+		wsdcaps, err = queryWSDScannerCapabilities(ctx, optWSD)
+		if err != nil {
+			err = fmt.Errorf(
+				"Can't get WSD ScannerCapabilities: %s", err)
+			return err
+		}
+	}
+
 	// Save model to file
 	file, _ := inv.Get("-m")
 
-	model.SetESCLScanCaps(esclcaps)
 	model.SetIPPPrinterAttrs(ippattrs)
+	model.SetESCLScanCaps(esclcaps)
+	model.SetWSDScanCaps(wsdcaps)
 
 	if file == "-" {
 		return model.Write(os.Stdout)

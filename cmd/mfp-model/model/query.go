@@ -15,48 +15,9 @@ import (
 	"github.com/OpenPrinting/go-mfp/log"
 	"github.com/OpenPrinting/go-mfp/proto/escl"
 	"github.com/OpenPrinting/go-mfp/proto/ipp"
+	"github.com/OpenPrinting/go-mfp/proto/wsscan"
 	"github.com/OpenPrinting/go-mfp/transport"
 )
-
-// queryESCLScannerCapabilities queries escl.ScannerCapabilities from
-// the provided endpoints (assuming they all are aliases of the same
-// device).
-func queryESCLScannerCapabilities(ctx context.Context,
-	endpoints []string) (*escl.ScannerCapabilities, error) {
-
-	var err error
-
-	for _, ep := range endpoints {
-		log.Debug(ctx, "escl: trying %q", ep)
-
-		var u *url.URL
-		u, err2 := transport.ParseAddr(ep, "")
-		if err2 != nil {
-			if err == nil {
-				err = err2
-			}
-
-			log.Debug(ctx, "escl: %q: %s", ep, err2)
-			continue
-		}
-
-		clnt := escl.NewClient(u, nil)
-		caps, _, err2 := clnt.GetScannerCapabilities(ctx)
-
-		if err2 != nil {
-			if err == nil {
-				err = err2
-			}
-
-			log.Debug(ctx, "escl: %q: %s", ep, err2)
-			continue
-		}
-
-		return caps, nil
-	}
-
-	return nil, err
-}
 
 // queryIPPPrinterAttributes queries ipp.PrinterAttributes from
 // the provided endpoints (assuming they all are aliases of the same
@@ -108,6 +69,91 @@ func queryIPPPrinterAttributes(ctx context.Context,
 			for _, err := range errors {
 				log.Warning(ctx, "  %s", err)
 			}
+		}
+
+		return caps, nil
+	}
+
+	return nil, err
+}
+
+// queryESCLScannerCapabilities queries escl.ScannerCapabilities from
+// the provided endpoints (assuming they all are aliases of the same
+// device).
+func queryESCLScannerCapabilities(ctx context.Context,
+	endpoints []string) (*escl.ScannerCapabilities, error) {
+
+	var err error
+
+	for _, ep := range endpoints {
+		log.Debug(ctx, "escl: trying %q", ep)
+
+		var u *url.URL
+		u, err2 := transport.ParseAddr(ep, "")
+		if err2 != nil {
+			if err == nil {
+				err = err2
+			}
+
+			log.Debug(ctx, "escl: %q: %s", ep, err2)
+			continue
+		}
+
+		clnt := escl.NewClient(u, nil)
+		caps, _, err2 := clnt.GetScannerCapabilities(ctx)
+
+		if err2 != nil {
+			if err == nil {
+				err = err2
+			}
+
+			log.Debug(ctx, "escl: %q: %s", ep, err2)
+			continue
+		}
+
+		return caps, nil
+	}
+
+	return nil, err
+}
+
+// queryWSDScannerCapabilities queries wsscam.GetScannerElementsResponse
+// from the provided endpoints (assuming they all are aliases of the same
+// device).
+func queryWSDScannerCapabilities(ctx context.Context,
+	endpoints []string) (*wsscan.GetScannerElementsResponse, error) {
+
+	var err error
+
+	for _, ep := range endpoints {
+		log.Debug(ctx, "wsscan: trying %q", ep)
+
+		var u *url.URL
+		u, err2 := transport.ParseAddr(ep, "")
+		if err2 != nil {
+			if err == nil {
+				err = err2
+			}
+
+			log.Debug(ctx, "wsscan: %q: %s", ep, err2)
+			continue
+		}
+
+		clnt := wsscan.NewClient(u, nil)
+		caps, err2 := clnt.GetScannerElements(
+			ctx,
+			wsscan.RequestedElementDescription,
+			wsscan.RequestedElementConfiguration,
+			wsscan.RequestedElementDefaultScanTicket,
+		)
+
+		if err2 != nil {
+			if err == nil {
+				err = err2
+			}
+
+			log.Debug(ctx, "wsscan: %q: %s", ep, err2)
+			continue
 		}
 
 		return caps, nil
