@@ -21,8 +21,13 @@ import (
 // pyExportStruct converts the protocol object, represented as Go
 // structure or pointer to structure, into the Python dictionary.
 //
+// kwmap used to map Go struct field names into the
+// resulting dictionary key
+//
 // s MUST be struct or pointer to struct.
-func (model *Model) pyExportStruct(s any) *cpython.Object {
+func (model *Model) pyExportStruct(kwmap map[string]string,
+	s any) *cpython.Object {
+
 	// Create output cpython.Object (the empty dict).
 	dict := model.py.NewObject(map[any]any(nil))
 
@@ -58,8 +63,8 @@ func (model *Model) pyExportStruct(s any) *cpython.Object {
 		}
 
 		// Convert into the Python Object and add to the dict,
-		item := model.pyExportValue(f)
-		err := dict.Set(keywordNormalize(fld.Name), item)
+		item := model.pyExportValue(kwmap, f)
+		err := dict.Set(keywordNormalize(kwmap, fld.Name), item)
 
 		if err != nil {
 			return model.py.NewError(err)
@@ -70,18 +75,22 @@ func (model *Model) pyExportStruct(s any) *cpython.Object {
 }
 
 // pyExportSlice exports slice of values as the Python object.
-func (model *Model) pyExportSlice(v reflect.Value) *cpython.Object {
+func (model *Model) pyExportSlice(kwmap map[string]string,
+	v reflect.Value) *cpython.Object {
+
 	list := make([]*cpython.Object, v.Len())
 	for i := 0; i < v.Len(); i++ {
 		elem := v.Index(i)
-		list[i] = model.pyExportValue(elem)
+		list[i] = model.pyExportValue(kwmap, elem)
 	}
 
 	return model.py.NewObject(list)
 }
 
 // pyExportValue exports a value as the Python object.
-func (model *Model) pyExportValue(v reflect.Value) *cpython.Object {
+func (model *Model) pyExportValue(kwmap map[string]string,
+	v reflect.Value) *cpython.Object {
+
 	// Handle known types
 	data := v.Interface()
 	switch v := data.(type) {
@@ -100,10 +109,10 @@ func (model *Model) pyExportValue(v reflect.Value) *cpython.Object {
 	// Switch by reflect.Kind
 	switch v.Kind() {
 	case reflect.Struct:
-		return model.pyExportStruct(data)
+		return model.pyExportStruct(kwmap, data)
 
 	case reflect.Slice:
-		return model.pyExportSlice(v)
+		return model.pyExportSlice(kwmap, v)
 	}
 
 	// Let Python handle default case
@@ -113,8 +122,13 @@ func (model *Model) pyExportValue(v reflect.Value) *cpython.Object {
 // pyImportStruct converts the Python object into the Go structure,
 // that expected to be the protocol object.
 //
+// kwmap used to map Go struct field names into the
+// resulting dictionary key
+//
 // p MUST be pointer to struct or pointer to pointer to struct.
-func (model *Model) pyImportStruct(p any, obj *cpython.Object) error {
+func (model *Model) pyImportStruct(kwmap map[string]string,
+	p any, obj *cpython.Object) error {
+
 	// Validate argument
 	t := reflect.TypeOf(p)
 
@@ -134,7 +148,7 @@ func (model *Model) pyImportStruct(p any, obj *cpython.Object) error {
 	// Import, field by field
 	for _, fld := range reflect.VisibleFields(t) {
 		// Lookup python dictionary
-		kw := keywordNormalize(fld.Name)
+		kw := keywordNormalize(kwmap, fld.Name)
 		item := obj.Get(kw)
 
 		if err := item.Err(); err != nil {
@@ -146,7 +160,7 @@ func (model *Model) pyImportStruct(p any, obj *cpython.Object) error {
 
 		// Decode the item, if found
 		fldval := v.FieldByIndex(fld.Index)
-		err := model.pyImportValue(fldval, item)
+		err := model.pyImportValue(kwmap, fldval, item)
 		if err != nil {
 			return err
 		}
@@ -164,7 +178,9 @@ func (model *Model) pyImportStruct(p any, obj *cpython.Object) error {
 }
 
 // pyImportSlice imports slice of values from the Python object.
-func (model *Model) pyImportSlice(v reflect.Value, obj *cpython.Object) error {
+func (model *Model) pyImportSlice(kwmap map[string]string,
+	v reflect.Value, obj *cpython.Object) error {
+
 	// Obtain Python object items
 	slice, err := obj.Slice()
 	if err != nil {
@@ -176,7 +192,7 @@ func (model *Model) pyImportSlice(v reflect.Value, obj *cpython.Object) error {
 
 	// Decode item by item
 	for i, item := range slice {
-		err = model.pyImportValue(v.Index(i), item)
+		err = model.pyImportValue(kwmap, v.Index(i), item)
 		if err != nil {
 			return err
 		}
@@ -186,7 +202,9 @@ func (model *Model) pyImportSlice(v reflect.Value, obj *cpython.Object) error {
 }
 
 // pyImportValue imports a value from the Python object.
-func (model *Model) pyImportValue(v reflect.Value, obj *cpython.Object) error {
+func (model *Model) pyImportValue(kwmap map[string]string,
+	v reflect.Value, obj *cpython.Object) error {
+
 	// If we are decoding pointer to value, create a new
 	// value instance and shift to it.
 	if v.Kind() == reflect.Pointer {
@@ -319,10 +337,10 @@ func (model *Model) pyImportValue(v reflect.Value, obj *cpython.Object) error {
 	// Switch by reflect.Kind
 	switch v.Kind() {
 	case reflect.Struct:
-		return model.pyImportStruct(v.Addr().Interface(), obj)
+		return model.pyImportStruct(kwmap, v.Addr().Interface(), obj)
 
 	case reflect.Slice:
-		return model.pyImportSlice(v, obj)
+		return model.pyImportSlice(kwmap, v, obj)
 
 	case reflect.Int:
 		i, err := obj.Int()

@@ -24,3 +24,6 @@ var embedPyIPP string
 
 //go:embed escl.py
 var embedPyEscl string
+
+//go:embed wsd.py
+var embedPyWSD string

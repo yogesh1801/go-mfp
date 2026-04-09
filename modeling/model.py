@@ -27,3 +27,7 @@ escl.caps = $ESCL
 # Called on response: GET /{JobUri}/NextDocument
 #
 # def escl_onNextDocumentResponse (q: query.Query, flt: escl.ImageFilter):
+
+#-wsd
+# WS-Scan (WSD) scanner parameters:
+wsd.caps = $WSD

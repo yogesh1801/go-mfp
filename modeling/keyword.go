@@ -10,27 +10,35 @@ package modeling
 
 import "strings"
 
-// keywordMap contains str.ToLower(GoName)->ProtocolName mappings
-// for keywords.
-var keywordMap = map[string]string{}
+// keywordMapESCL contains str.ToLower(GoName)->ProtocolName mappings
+// for eSCL keywords.
+var keywordMapESCL = map[string]string{}
 
-// init populates the keywordMap
+// keywordMapWSD contains str.ToLower(GoName)->ProtocolName mappings
+// for WSD keywords.
+var keywordMapWSD = map[string]string{}
+
+// init populates keywordMapESCL and keywordMapWSD
 func init() {
-	for _, kw := range keywordList {
-		keywordMap[strings.ToLower(kw)] = kw
+	for _, kw := range keywordListESCL {
+		keywordMapESCL[strings.ToLower(kw)] = kw
+	}
+
+	for _, kw := range keywordListWSD {
+		keywordMapWSD[strings.ToLower(kw)] = kw
 	}
 }
 
-// keywordNormalize returns a keyword with the normalized spelling.
-func keywordNormalize(kw string) string {
-	if norm, ok := keywordMap[strings.ToLower(kw)]; ok {
+// keywordNormalize returns the protocol keyword with the normalized spelling.
+func keywordNormalize(kwmap map[string]string, kw string) string {
+	if norm, ok := kwmap[strings.ToLower(kw)]; ok {
 		return norm
 	}
 	return kw
 }
 
-// keywordList defines proper spelling of the keywords used in the MFP
-// models.
+// keywordListESCL defines proper spelling of the keywords used in the MFP
+// models for ESCL.
 //
 // These names are based on a Go field names in the protocol structures,
 // and in the most cases 1:1 corresponds to the protocol names.
@@ -38,7 +46,7 @@ func keywordNormalize(kw string) string {
 // But sometimes, at the Go side, golint dictates us uppercase spelling.
 // For example, Uuid named "UUID" at the Go side, but in the model/protocols
 // it is named "Uuid'. So we need to implement the proper mapping
-var keywordList = []string{
+var keywordListESCL = []string{
 	"ActualHeight",
 	"ActualWidth",
 	"Adf",
@@ -152,4 +160,10 @@ var keywordList = []string{
 	"YOffset",
 	"YResolution",
 	"YResolutionRange",
+}
+
+// keywordListWSD defines proper spelling of the keywords used in the MFP
+// models for WSD.
+var keywordListWSD = []string{
+	"JobId",
 }

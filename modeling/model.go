@@ -17,6 +17,7 @@ import (
 	"github.com/OpenPrinting/go-mfp/internal/assert"
 	"github.com/OpenPrinting/go-mfp/proto/escl"
 	"github.com/OpenPrinting/go-mfp/proto/ipp"
+	"github.com/OpenPrinting/go-mfp/proto/wsscan"
 )
 
 // Model defines the whole characteristics of the MFP device being
@@ -25,14 +26,18 @@ import (
 // behavior and the Python interpreter instance, used to execute
 // these hooks.
 type Model struct {
-	py              *cpython.Python
+	py *cpython.Python
+
+	// Scanner and printer capabilities, protocol-specific
 	ippPrinterAttrs *ipp.PrinterAttributes
 	esclScanCaps    *escl.ScannerCapabilities
+	wsdScanCaps     *wsscan.GetScannerElementsResponse
 
 	// Modules
-	modQuery *cpython.Object // query.py
-	modEscl  *cpython.Object // escl.py
-	modIPP   *cpython.Object // IPP.py
+	modQuery  *cpython.Object // query.py
+	modIPP    *cpython.Object // ipp.py
+	modEscl   *cpython.Object // escl.py
+	modWSScan *cpython.Object // wsd.py
 
 	// Important Python class constructors
 	clsDict            *cpython.Object // dict
@@ -79,13 +84,18 @@ func NewModel() (*Model, error) {
 		return nil, err
 	}
 
+	model.modIPP = py.Load(embedPyIPP, "ipp", "ipp.py")
+	if err := model.modIPP.Err(); err != nil {
+		return nil, err
+	}
+
 	model.modEscl = py.Load(embedPyEscl, "escl", "escl.py")
 	if err := model.modEscl.Err(); err != nil {
 		return nil, err
 	}
 
-	model.modIPP = py.Load(embedPyIPP, "ipp", "ipp.py")
-	if err := model.modIPP.Err(); err != nil {
+	model.modWSScan = py.Load(embedPyWSD, "wsd", "wsd.py")
+	if err := model.modWSScan.Err(); err != nil {
 		return nil, err
 	}
 
@@ -146,17 +156,9 @@ func (model *Model) Reset() error {
 
 // Write writes model into the [io.Writer]
 func (model *Model) Write(w io.Writer) (err error) {
-	var escl, ipp string
+	var ipp, escl, wsd string
 
 	// Format parts
-	if model.esclScanCaps != nil {
-		obj := model.pyExportStruct(model.esclScanCaps)
-		escl, err = formatPython(obj)
-		if err != nil {
-			return
-		}
-	}
-
 	if model.ippPrinterAttrs != nil {
 		obj := model.pyExportIPP(model.ippPrinterAttrs)
 		ipp, err = formatPython(obj)
@@ -165,13 +167,31 @@ func (model *Model) Write(w io.Writer) (err error) {
 		}
 	}
 
+	if model.esclScanCaps != nil {
+		obj := model.pyExportStruct(keywordMapESCL, model.esclScanCaps)
+		escl, err = formatPython(obj)
+		if err != nil {
+			return
+		}
+	}
+
+	if model.wsdScanCaps != nil {
+		obj := model.pyExportStruct(keywordMapWSD, model.wsdScanCaps)
+		wsd, err = formatPython(obj)
+		if err != nil {
+			return
+		}
+	}
+
 	// Expand callback
 	expand := func(name string) string {
 		switch name {
-		case "ESCL":
-			return escl
 		case "IPP":
 			return ipp
+		case "ESCL":
+			return escl
+		case "WSD":
+			return wsd
 		}
 
 		return ""
@@ -187,10 +207,12 @@ func (model *Model) Write(w io.Writer) (err error) {
 	skip := true
 	for _, t := range template {
 		switch {
-		case strings.HasPrefix(t, "#-escl"):
-			skip = model.esclScanCaps == nil
 		case strings.HasPrefix(t, "#-ipp"):
 			skip = model.ippPrinterAttrs == nil
+		case strings.HasPrefix(t, "#-escl"):
+			skip = model.esclScanCaps == nil
+		case strings.HasPrefix(t, "#-wsd"):
+			skip = model.wsdScanCaps == nil
 		case strings.HasPrefix(t, "#-"):
 			skip = false
 		default:
@@ -220,12 +242,12 @@ func (model *Model) Read(filename string, r io.Reader) error {
 		return err
 	}
 
-	err = model.esclLoad()
+	err = model.ippLoad()
 	if err != nil {
 		return err
 	}
 
-	err = model.ippLoad()
+	err = model.esclLoad()
 	if err != nil {
 		return err
 	}

@@ -31,7 +31,7 @@ func (model *Model) pyExportIPPAttrs(attrs goipp.Attributes) *cpython.Object {
 	// Roll over all IPP attributes
 	for _, attr := range attrs {
 		vals := model.pyExportIPPValues(attr)
-		err := dict.Set(keywordNormalize(attr.Name), vals)
+		err := dict.Set(attr.Name, vals)
 		if err != nil {
 			return model.py.NewError(err)
 		}

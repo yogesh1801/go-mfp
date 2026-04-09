@@ -90,7 +90,7 @@ func (model *Model) esclLoad() error {
 
 	if !obj.IsNone() {
 		var caps *escl.ScannerCapabilities
-		err := model.pyImportStruct(&caps, obj)
+		err := model.pyImportStruct(keywordMapESCL, &caps, obj)
 		if err != nil {
 			err = fmt.Errorf("escl.caps: %w", err)
 			return err
@@ -212,7 +212,7 @@ func (model *Model) esclOnScanJobsRequest(
 		return nil
 	}
 
-	rq := model.pyExportStruct(ss)
+	rq := model.pyExportStruct(keywordMapESCL, ss)
 	if err := rq.Err(); err != nil {
 		query.Reject(http.StatusServiceUnavailable, err)
 		return nil
@@ -233,7 +233,7 @@ func (model *Model) esclOnScanJobsRequest(
 	}
 
 	var ss2 *escl.ScanSettings
-	err = model.pyImportStruct(&ss2, rq)
+	err = model.pyImportStruct(keywordMapESCL, &ss2, rq)
 	if err != nil {
 		query.Reject(http.StatusServiceUnavailable, err)
 		return nil
@@ -314,7 +314,7 @@ func (model *Model) esclOnNextDocumentResponse(
 	}
 
 	var filter esclImageFilter
-	err = model.pyImportStruct(&filter, flt)
+	err = model.pyImportStruct(keywordMapESCL, &filter, flt)
 	if err != nil {
 		query.Reject(http.StatusServiceUnavailable, err)
 		return nil
