@@ -20,7 +20,7 @@ import (
 // by JobID. RequestedElements specifies which job schema elements to return.
 type GetJobElementsRequest struct {
 	JobID             int
-	RequestedElements []RequestedElement
+	RequestedElements []JobRequestedElement
 }
 
 // toXML generates XML tree for the [GetJobElementsRequest].
@@ -69,7 +69,7 @@ func decodeGetJobElementsRequest(root xmldoc.Element) (
 
 	for _, child := range requestedElements.Elem.Children {
 		if child.Name == NsWSCN+":Name" {
-			re, err := decodeRequestedElement(child)
+			re, err := decodeJobRequestedElement(child)
 			if err != nil {
 				return r, err
 			}

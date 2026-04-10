@@ -135,14 +135,14 @@ func (srv *AbstractServer) handleGetScannerElementsRequest(
 
 	// Build ElementData for each requested element, skipping duplicates.
 	var elements []ElementData
-	seen := generic.NewSet[RequestedElement]()
+	seen := generic.NewSet[ScannerRequestedElement]()
 
 	for _, re := range req.RequestedElements {
 		if !seen.TestAndAdd(re) {
 			continue
 		}
 		switch re {
-		case RequestedElementDefaultScanTicket:
+		case ScannerRequestedElementDefaultScanTicket:
 			req := srv.caps.DefaultRequest()
 			if req != nil {
 				ticket := fromAbstractScannerRequest(req)
@@ -153,7 +153,7 @@ func (srv *AbstractServer) handleGetScannerElementsRequest(
 				})
 			}
 
-		case RequestedElementDescription:
+		case ScannerRequestedElementDescription:
 			desc := fromAbstractScannerDescription(srv.caps)
 			elements = append(elements, ElementData{
 				Name:               ElementDataScannerDescription,
@@ -161,7 +161,7 @@ func (srv *AbstractServer) handleGetScannerElementsRequest(
 				ScannerDescription: optional.New(desc),
 			})
 
-		case RequestedElementConfiguration:
+		case ScannerRequestedElementConfiguration:
 			conf := fromAbstractScannerConfiguration(srv.caps)
 			elements = append(elements, ElementData{
 				Name:                 ElementDataScannerConfiguration,
@@ -169,7 +169,7 @@ func (srv *AbstractServer) handleGetScannerElementsRequest(
 				ScannerConfiguration: optional.New(conf),
 			})
 
-		case RequestedElementStatus:
+		case ScannerRequestedElementStatus:
 			srv.lock.Lock()
 			status := srv.status
 			srv.lock.Unlock()

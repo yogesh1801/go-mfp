@@ -20,9 +20,9 @@ import (
 func TestGetJobElementsRequest_RoundTrip(t *testing.T) {
 	orig := GetJobElementsRequest{
 		JobID: 5,
-		RequestedElements: []RequestedElement{
-			RequestedElementDescription,
-			RequestedElementStatus,
+		RequestedElements: []JobRequestedElement{
+			JobRequestedElementJobStatus,
+			JobRequestedElementScanTicket,
 		},
 	}
 	elm := orig.toXML(NsWSCN + ":GetJobElementsRequest")
@@ -49,7 +49,7 @@ func TestGetJobElementsRequest_MissingJobId(t *testing.T) {
 			{
 				Name: NsWSCN + ":RequestedElements",
 				Children: []xmldoc.Element{
-					{Name: NsWSCN + ":Name", Text: NsWSCN + ":ScannerDescription"},
+					{Name: NsWSCN + ":Name", Text: NsWSCN + ":JobStatus"},
 				},
 			},
 		},
@@ -95,7 +95,7 @@ func TestGetJobElementsRequest_EmptyRequestedElements(t *testing.T) {
 func TestGetJobElementsRequest_ZeroJobId(t *testing.T) {
 	orig := GetJobElementsRequest{
 		JobID:             0,
-		RequestedElements: []RequestedElement{RequestedElementStatus},
+		RequestedElements: []JobRequestedElement{JobRequestedElementJobStatus},
 	}
 	elm := orig.toXML(NsWSCN + ":GetJobElementsRequest")
 	_, err := decodeGetJobElementsRequest(elm)
