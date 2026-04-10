@@ -10,73 +10,138 @@ package wsscan
 
 import "github.com/OpenPrinting/go-mfp/util/xmldoc"
 
-// RequestedElement identifies a section of the WSD Scan Service schema
+// ScannerRequestedElement identifies a section of the WSD Scan Service schema
 // that a client wants data for in a GetScannerElementsRequest.
 //
-// For GetScannerElementsRequest, one of the following QName values:
+// Valid QName values:
 //   - wscn:DefaultScanTicket
 //   - wscn:ScannerDescription
 //   - wscn:ScannerConfiguration
 //   - wscn:ScannerStatus
 //   - xmlns:VendorSection (vendor-defined extension)
-type RequestedElement int
+type ScannerRequestedElement int
 
-// Known RequestedElement values.
+// Known ScannerRequestedElement values.
 const (
-	UnknownRequestedElement           RequestedElement = iota
-	RequestedElementDefaultScanTicket                  // wscn:DefaultScanTicket
-	RequestedElementDescription                        // wscn:ScannerDescription
-	RequestedElementConfiguration                      // wscn:ScannerConfiguration
-	RequestedElementStatus                             // wscn:ScannerStatus
-	RequestedElementVendorSection                      // xmlns:VendorSection
+	UnknownScannerRequestedElement                ScannerRequestedElement = iota
+	ScannerRequestedElementDefaultScanTicket                               // wscn:DefaultScanTicket
+	ScannerRequestedElementDescription                                     // wscn:ScannerDescription
+	ScannerRequestedElementConfiguration                                   // wscn:ScannerConfiguration
+	ScannerRequestedElementStatus                                          // wscn:ScannerStatus
+	ScannerRequestedElementVendorSection                                   // xmlns:VendorSection
 )
 
-// decodeRequestedElement decodes [RequestedElement] from the XML tree.
-func decodeRequestedElement(root xmldoc.Element) (RequestedElement, error) {
-	return decodeEnum(root, DecodeRequestedElement)
+// decodeScannerRequestedElement decodes [ScannerRequestedElement] from the XML tree.
+func decodeScannerRequestedElement(root xmldoc.Element) (ScannerRequestedElement, error) {
+	return decodeEnum(root, DecodeScannerRequestedElement)
 }
 
-// toXML generates XML tree for the [RequestedElement].
-func (re RequestedElement) toXML(name string) xmldoc.Element {
+// toXML generates XML tree for the [ScannerRequestedElement].
+func (re ScannerRequestedElement) toXML(name string) xmldoc.Element {
 	return xmldoc.Element{
 		Name: name,
 		Text: re.String(),
 	}
 }
 
-// String returns the string representation of the [RequestedElement].
-func (re RequestedElement) String() string {
+// String returns the string representation of the [ScannerRequestedElement].
+func (re ScannerRequestedElement) String() string {
 	switch re {
-	case RequestedElementDefaultScanTicket:
+	case ScannerRequestedElementDefaultScanTicket:
 		return NsWSCN + ":DefaultScanTicket"
-	case RequestedElementDescription:
+	case ScannerRequestedElementDescription:
 		return NsWSCN + ":ScannerDescription"
-	case RequestedElementConfiguration:
+	case ScannerRequestedElementConfiguration:
 		return NsWSCN + ":ScannerConfiguration"
-	case RequestedElementStatus:
+	case ScannerRequestedElementStatus:
 		return NsWSCN + ":ScannerStatus"
-	case RequestedElementVendorSection:
+	case ScannerRequestedElementVendorSection:
 		return NsXML + ":VendorSection"
 	}
 
 	return "Unknown"
 }
 
-// DecodeRequestedElement decodes [RequestedElement] out of its XML string
-// representation.
-func DecodeRequestedElement(s string) RequestedElement {
+// DecodeScannerRequestedElement decodes [ScannerRequestedElement] out of its
+// XML string representation.
+func DecodeScannerRequestedElement(s string) ScannerRequestedElement {
 	switch s {
 	case NsWSCN + ":DefaultScanTicket":
-		return RequestedElementDefaultScanTicket
+		return ScannerRequestedElementDefaultScanTicket
 	case NsWSCN + ":ScannerDescription":
-		return RequestedElementDescription
+		return ScannerRequestedElementDescription
 	case NsWSCN + ":ScannerConfiguration":
-		return RequestedElementConfiguration
+		return ScannerRequestedElementConfiguration
 	case NsWSCN + ":ScannerStatus":
-		return RequestedElementStatus
+		return ScannerRequestedElementStatus
 	case NsXML + ":VendorSection":
-		return RequestedElementVendorSection
+		return ScannerRequestedElementVendorSection
 	}
 
-	return UnknownRequestedElement
+	return UnknownScannerRequestedElement
+}
+
+// JobRequestedElement identifies a section of the WSD Scan Service schema
+// that a client wants data for in a GetJobElementsRequest.
+//
+// Valid QName values:
+//   - wscn:JobStatus
+//   - wscn:ScanTicket
+//   - wscn:Documents
+//   - xmlns:VendorSection (vendor-defined extension)
+type JobRequestedElement int
+
+// Known JobRequestedElement values.
+const (
+	UnknownJobRequestedElement       JobRequestedElement = iota
+	JobRequestedElementJobStatus                         // wscn:JobStatus
+	JobRequestedElementScanTicket                        // wscn:ScanTicket
+	JobRequestedElementDocuments                         // wscn:Documents
+	JobRequestedElementVendorSection                     // xmlns:VendorSection
+)
+
+// decodeJobRequestedElement decodes [JobRequestedElement] from the XML tree.
+func decodeJobRequestedElement(root xmldoc.Element) (JobRequestedElement, error) {
+	return decodeEnum(root, DecodeJobRequestedElement)
+}
+
+// toXML generates XML tree for the [JobRequestedElement].
+func (re JobRequestedElement) toXML(name string) xmldoc.Element {
+	return xmldoc.Element{
+		Name: name,
+		Text: re.String(),
+	}
+}
+
+// String returns the string representation of the [JobRequestedElement].
+func (re JobRequestedElement) String() string {
+	switch re {
+	case JobRequestedElementJobStatus:
+		return NsWSCN + ":JobStatus"
+	case JobRequestedElementScanTicket:
+		return NsWSCN + ":ScanTicket"
+	case JobRequestedElementDocuments:
+		return NsWSCN + ":Documents"
+	case JobRequestedElementVendorSection:
+		return NsXML + ":VendorSection"
+	}
+
+	return "Unknown"
+}
+
+// DecodeJobRequestedElement decodes [JobRequestedElement] out of its XML
+// string representation.
+func DecodeJobRequestedElement(s string) JobRequestedElement {
+	switch s {
+	case NsWSCN + ":JobStatus":
+		return JobRequestedElementJobStatus
+	case NsWSCN + ":ScanTicket":
+		return JobRequestedElementScanTicket
+	case NsWSCN + ":Documents":
+		return JobRequestedElementDocuments
+	case NsXML + ":VendorSection":
+		return JobRequestedElementVendorSection
+	}
+
+	return UnknownJobRequestedElement
 }
