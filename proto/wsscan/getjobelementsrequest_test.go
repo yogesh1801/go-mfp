@@ -21,8 +21,8 @@ func TestGetJobElementsRequest_RoundTrip(t *testing.T) {
 	orig := GetJobElementsRequest{
 		JobID: 5,
 		RequestedElements: []JobRequestedElement{
-			JobRequestedElementJobStatus,
-			JobRequestedElementScanTicket,
+			JobElemStatus,
+			JobElemScanTicket,
 		},
 	}
 	elm := orig.toXML(NsWSCN + ":GetJobElementsRequest")
@@ -95,7 +95,7 @@ func TestGetJobElementsRequest_EmptyRequestedElements(t *testing.T) {
 func TestGetJobElementsRequest_ZeroJobId(t *testing.T) {
 	orig := GetJobElementsRequest{
 		JobID:             0,
-		RequestedElements: []JobRequestedElement{JobRequestedElementJobStatus},
+		RequestedElements: []JobRequestedElement{JobElemStatus},
 	}
 	elm := orig.toXML(NsWSCN + ":GetJobElementsRequest")
 	_, err := decodeGetJobElementsRequest(elm)

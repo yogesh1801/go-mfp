@@ -22,16 +22,16 @@ func TestScannerRequestedElement_String(t *testing.T) {
 		re       ScannerRequestedElement
 		expected string
 	}{
-		{"Unknown", UnknownScannerRequestedElement, "Unknown"},
-		{"DefaultScanTicket", ScannerRequestedElementDefaultScanTicket,
+		{"Unknown", UnknownScannerElem, "Unknown"},
+		{"DefaultScanTicket", ScannerElemDefaultScanTicket,
 			NsWSCN + ":DefaultScanTicket"},
-		{"Description", ScannerRequestedElementDescription,
+		{"Description", ScannerElemDescription,
 			NsWSCN + ":ScannerDescription"},
-		{"Configuration", ScannerRequestedElementConfiguration,
+		{"Configuration", ScannerElemConfiguration,
 			NsWSCN + ":ScannerConfiguration"},
-		{"Status", ScannerRequestedElementStatus,
+		{"Status", ScannerElemStatus,
 			NsWSCN + ":ScannerStatus"},
-		{"VendorSection", ScannerRequestedElementVendorSection,
+		{"VendorSection", ScannerElemVendorSection,
 			NsXML + ":VendorSection"},
 	}
 
@@ -54,17 +54,17 @@ func TestDecodeScannerRequestedElement(t *testing.T) {
 		expected ScannerRequestedElement
 	}{
 		{"DefaultScanTicket", NsWSCN + ":DefaultScanTicket",
-			ScannerRequestedElementDefaultScanTicket},
+			ScannerElemDefaultScanTicket},
 		{"Description", NsWSCN + ":ScannerDescription",
-			ScannerRequestedElementDescription},
+			ScannerElemDescription},
 		{"Configuration", NsWSCN + ":ScannerConfiguration",
-			ScannerRequestedElementConfiguration},
+			ScannerElemConfiguration},
 		{"Status", NsWSCN + ":ScannerStatus",
-			ScannerRequestedElementStatus},
+			ScannerElemStatus},
 		{"VendorSection", NsXML + ":VendorSection",
-			ScannerRequestedElementVendorSection},
-		{"Empty", "", UnknownScannerRequestedElement},
-		{"Invalid", "InvalidName", UnknownScannerRequestedElement},
+			ScannerElemVendorSection},
+		{"Empty", "", UnknownScannerElem},
+		{"Invalid", "InvalidName", UnknownScannerElem},
 	}
 
 	for _, tt := range tests {
@@ -88,7 +88,7 @@ func TestScannerRequestedElement_toXML(t *testing.T) {
 	}{
 		{
 			name:    "DefaultScanTicket",
-			re:      ScannerRequestedElementDefaultScanTicket,
+			re:      ScannerElemDefaultScanTicket,
 			xmlName: NsWSCN + ":Name",
 			expected: xmldoc.Element{
 				Name: NsWSCN + ":Name",
@@ -97,7 +97,7 @@ func TestScannerRequestedElement_toXML(t *testing.T) {
 		},
 		{
 			name:    "Description",
-			re:      ScannerRequestedElementDescription,
+			re:      ScannerElemDescription,
 			xmlName: NsWSCN + ":Name",
 			expected: xmldoc.Element{
 				Name: NsWSCN + ":Name",
@@ -106,7 +106,7 @@ func TestScannerRequestedElement_toXML(t *testing.T) {
 		},
 		{
 			name:    "Configuration",
-			re:      ScannerRequestedElementConfiguration,
+			re:      ScannerElemConfiguration,
 			xmlName: NsWSCN + ":Name",
 			expected: xmldoc.Element{
 				Name: NsWSCN + ":Name",
@@ -115,7 +115,7 @@ func TestScannerRequestedElement_toXML(t *testing.T) {
 		},
 		{
 			name:    "Status",
-			re:      ScannerRequestedElementStatus,
+			re:      ScannerElemStatus,
 			xmlName: NsWSCN + ":Name",
 			expected: xmldoc.Element{
 				Name: NsWSCN + ":Name",
@@ -124,7 +124,7 @@ func TestScannerRequestedElement_toXML(t *testing.T) {
 		},
 		{
 			name:    "VendorSection",
-			re:      ScannerRequestedElementVendorSection,
+			re:      ScannerElemVendorSection,
 			xmlName: NsWSCN + ":Name",
 			expected: xmldoc.Element{
 				Name: NsWSCN + ":Name",
@@ -163,7 +163,7 @@ func Test_decodeScannerRequestedElement(t *testing.T) {
 				Name: NsWSCN + ":Name",
 				Text: NsWSCN + ":DefaultScanTicket",
 			},
-			expected: ScannerRequestedElementDefaultScanTicket,
+			expected: ScannerElemDefaultScanTicket,
 		},
 		{
 			name: "Valid Description",
@@ -171,7 +171,7 @@ func Test_decodeScannerRequestedElement(t *testing.T) {
 				Name: NsWSCN + ":Name",
 				Text: NsWSCN + ":ScannerDescription",
 			},
-			expected: ScannerRequestedElementDescription,
+			expected: ScannerElemDescription,
 		},
 		{
 			name: "Valid Configuration",
@@ -179,7 +179,7 @@ func Test_decodeScannerRequestedElement(t *testing.T) {
 				Name: NsWSCN + ":Name",
 				Text: NsWSCN + ":ScannerConfiguration",
 			},
-			expected: ScannerRequestedElementConfiguration,
+			expected: ScannerElemConfiguration,
 		},
 		{
 			name: "Valid Status",
@@ -187,7 +187,7 @@ func Test_decodeScannerRequestedElement(t *testing.T) {
 				Name: NsWSCN + ":Name",
 				Text: NsWSCN + ":ScannerStatus",
 			},
-			expected: ScannerRequestedElementStatus,
+			expected: ScannerElemStatus,
 		},
 		{
 			name: "Valid VendorSection",
@@ -195,7 +195,7 @@ func Test_decodeScannerRequestedElement(t *testing.T) {
 				Name: NsWSCN + ":Name",
 				Text: NsXML + ":VendorSection",
 			},
-			expected: ScannerRequestedElementVendorSection,
+			expected: ScannerElemVendorSection,
 		},
 		{
 			name: "Invalid value",
@@ -203,7 +203,7 @@ func Test_decodeScannerRequestedElement(t *testing.T) {
 				Name: NsWSCN + ":Name",
 				Text: "InvalidName",
 			},
-			expected: UnknownScannerRequestedElement,
+			expected: UnknownScannerElem,
 			wantErr:  true,
 		},
 	}
@@ -232,14 +232,14 @@ func TestJobRequestedElement_String(t *testing.T) {
 		re       JobRequestedElement
 		expected string
 	}{
-		{"Unknown", UnknownJobRequestedElement, "Unknown"},
-		{"JobStatus", JobRequestedElementJobStatus,
+		{"Unknown", UnknownJobElem, "Unknown"},
+		{"JobStatus", JobElemStatus,
 			NsWSCN + ":JobStatus"},
-		{"ScanTicket", JobRequestedElementScanTicket,
+		{"ScanTicket", JobElemScanTicket,
 			NsWSCN + ":ScanTicket"},
-		{"Documents", JobRequestedElementDocuments,
+		{"Documents", JobElemDocuments,
 			NsWSCN + ":Documents"},
-		{"VendorSection", JobRequestedElementVendorSection,
+		{"VendorSection", JobElemVendorSection,
 			NsXML + ":VendorSection"},
 	}
 
@@ -262,15 +262,15 @@ func TestDecodeJobRequestedElement(t *testing.T) {
 		expected JobRequestedElement
 	}{
 		{"JobStatus", NsWSCN + ":JobStatus",
-			JobRequestedElementJobStatus},
+			JobElemStatus},
 		{"ScanTicket", NsWSCN + ":ScanTicket",
-			JobRequestedElementScanTicket},
+			JobElemScanTicket},
 		{"Documents", NsWSCN + ":Documents",
-			JobRequestedElementDocuments},
+			JobElemDocuments},
 		{"VendorSection", NsXML + ":VendorSection",
-			JobRequestedElementVendorSection},
-		{"Empty", "", UnknownJobRequestedElement},
-		{"Invalid", "InvalidName", UnknownJobRequestedElement},
+			JobElemVendorSection},
+		{"Empty", "", UnknownJobElem},
+		{"Invalid", "InvalidName", UnknownJobElem},
 	}
 
 	for _, tt := range tests {
@@ -298,7 +298,7 @@ func Test_decodeJobRequestedElement(t *testing.T) {
 				Name: NsWSCN + ":Name",
 				Text: NsWSCN + ":JobStatus",
 			},
-			expected: JobRequestedElementJobStatus,
+			expected: JobElemStatus,
 		},
 		{
 			name: "Valid ScanTicket",
@@ -306,7 +306,7 @@ func Test_decodeJobRequestedElement(t *testing.T) {
 				Name: NsWSCN + ":Name",
 				Text: NsWSCN + ":ScanTicket",
 			},
-			expected: JobRequestedElementScanTicket,
+			expected: JobElemScanTicket,
 		},
 		{
 			name: "Valid Documents",
@@ -314,7 +314,7 @@ func Test_decodeJobRequestedElement(t *testing.T) {
 				Name: NsWSCN + ":Name",
 				Text: NsWSCN + ":Documents",
 			},
-			expected: JobRequestedElementDocuments,
+			expected: JobElemDocuments,
 		},
 		{
 			name: "Valid VendorSection",
@@ -322,7 +322,7 @@ func Test_decodeJobRequestedElement(t *testing.T) {
 				Name: NsWSCN + ":Name",
 				Text: NsXML + ":VendorSection",
 			},
-			expected: JobRequestedElementVendorSection,
+			expected: JobElemVendorSection,
 		},
 		{
 			name: "Invalid value",
@@ -330,7 +330,7 @@ func Test_decodeJobRequestedElement(t *testing.T) {
 				Name: NsWSCN + ":Name",
 				Text: "InvalidName",
 			},
-			expected: UnknownJobRequestedElement,
+			expected: UnknownJobElem,
 			wantErr:  true,
 		},
 	}
