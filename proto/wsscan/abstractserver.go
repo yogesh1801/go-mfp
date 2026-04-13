@@ -142,7 +142,7 @@ func (srv *AbstractServer) handleGetScannerElementsRequest(
 			continue
 		}
 		switch re {
-		case ScannerRequestedElementDefaultScanTicket:
+		case ScannerElemDefaultScanTicket:
 			req := srv.caps.DefaultRequest()
 			if req != nil {
 				ticket := fromAbstractScannerRequest(req)
@@ -153,7 +153,7 @@ func (srv *AbstractServer) handleGetScannerElementsRequest(
 				})
 			}
 
-		case ScannerRequestedElementDescription:
+		case ScannerElemDescription:
 			desc := fromAbstractScannerDescription(srv.caps)
 			elements = append(elements, ElementData{
 				Name:               ElementDataScannerDescription,
@@ -161,7 +161,7 @@ func (srv *AbstractServer) handleGetScannerElementsRequest(
 				ScannerDescription: optional.New(desc),
 			})
 
-		case ScannerRequestedElementConfiguration:
+		case ScannerElemConfiguration:
 			conf := fromAbstractScannerConfiguration(srv.caps)
 			elements = append(elements, ElementData{
 				Name:                 ElementDataScannerConfiguration,
@@ -169,7 +169,7 @@ func (srv *AbstractServer) handleGetScannerElementsRequest(
 				ScannerConfiguration: optional.New(conf),
 			})
 
-		case ScannerRequestedElementStatus:
+		case ScannerElemStatus:
 			srv.lock.Lock()
 			status := srv.status
 			srv.lock.Unlock()

@@ -23,12 +23,12 @@ type ScannerRequestedElement int
 
 // Known ScannerRequestedElement values.
 const (
-	UnknownScannerRequestedElement                ScannerRequestedElement = iota
-	ScannerRequestedElementDefaultScanTicket                               // wscn:DefaultScanTicket
-	ScannerRequestedElementDescription                                     // wscn:ScannerDescription
-	ScannerRequestedElementConfiguration                                   // wscn:ScannerConfiguration
-	ScannerRequestedElementStatus                                          // wscn:ScannerStatus
-	ScannerRequestedElementVendorSection                                   // xmlns:VendorSection
+	UnknownScannerElem                ScannerRequestedElement = iota
+	ScannerElemDefaultScanTicket                               // wscn:DefaultScanTicket
+	ScannerElemDescription                                     // wscn:ScannerDescription
+	ScannerElemConfiguration                                   // wscn:ScannerConfiguration
+	ScannerElemStatus                                          // wscn:ScannerStatus
+	ScannerElemVendorSection                                   // xmlns:VendorSection
 )
 
 // decodeScannerRequestedElement decodes [ScannerRequestedElement] from the XML tree.
@@ -47,15 +47,15 @@ func (re ScannerRequestedElement) toXML(name string) xmldoc.Element {
 // String returns the string representation of the [ScannerRequestedElement].
 func (re ScannerRequestedElement) String() string {
 	switch re {
-	case ScannerRequestedElementDefaultScanTicket:
+	case ScannerElemDefaultScanTicket:
 		return NsWSCN + ":DefaultScanTicket"
-	case ScannerRequestedElementDescription:
+	case ScannerElemDescription:
 		return NsWSCN + ":ScannerDescription"
-	case ScannerRequestedElementConfiguration:
+	case ScannerElemConfiguration:
 		return NsWSCN + ":ScannerConfiguration"
-	case ScannerRequestedElementStatus:
+	case ScannerElemStatus:
 		return NsWSCN + ":ScannerStatus"
-	case ScannerRequestedElementVendorSection:
+	case ScannerElemVendorSection:
 		return NsXML + ":VendorSection"
 	}
 
@@ -67,18 +67,18 @@ func (re ScannerRequestedElement) String() string {
 func DecodeScannerRequestedElement(s string) ScannerRequestedElement {
 	switch s {
 	case NsWSCN + ":DefaultScanTicket":
-		return ScannerRequestedElementDefaultScanTicket
+		return ScannerElemDefaultScanTicket
 	case NsWSCN + ":ScannerDescription":
-		return ScannerRequestedElementDescription
+		return ScannerElemDescription
 	case NsWSCN + ":ScannerConfiguration":
-		return ScannerRequestedElementConfiguration
+		return ScannerElemConfiguration
 	case NsWSCN + ":ScannerStatus":
-		return ScannerRequestedElementStatus
+		return ScannerElemStatus
 	case NsXML + ":VendorSection":
-		return ScannerRequestedElementVendorSection
+		return ScannerElemVendorSection
 	}
 
-	return UnknownScannerRequestedElement
+	return UnknownScannerElem
 }
 
 // JobRequestedElement identifies a section of the WSD Scan Service schema
@@ -93,11 +93,11 @@ type JobRequestedElement int
 
 // Known JobRequestedElement values.
 const (
-	UnknownJobRequestedElement       JobRequestedElement = iota
-	JobRequestedElementJobStatus                         // wscn:JobStatus
-	JobRequestedElementScanTicket                        // wscn:ScanTicket
-	JobRequestedElementDocuments                         // wscn:Documents
-	JobRequestedElementVendorSection                     // xmlns:VendorSection
+	UnknownJobElem       JobRequestedElement = iota
+	JobElemStatus                         // wscn:JobStatus
+	JobElemScanTicket                        // wscn:ScanTicket
+	JobElemDocuments                         // wscn:Documents
+	JobElemVendorSection                     // xmlns:VendorSection
 )
 
 // decodeJobRequestedElement decodes [JobRequestedElement] from the XML tree.
@@ -116,13 +116,13 @@ func (re JobRequestedElement) toXML(name string) xmldoc.Element {
 // String returns the string representation of the [JobRequestedElement].
 func (re JobRequestedElement) String() string {
 	switch re {
-	case JobRequestedElementJobStatus:
+	case JobElemStatus:
 		return NsWSCN + ":JobStatus"
-	case JobRequestedElementScanTicket:
+	case JobElemScanTicket:
 		return NsWSCN + ":ScanTicket"
-	case JobRequestedElementDocuments:
+	case JobElemDocuments:
 		return NsWSCN + ":Documents"
-	case JobRequestedElementVendorSection:
+	case JobElemVendorSection:
 		return NsXML + ":VendorSection"
 	}
 
@@ -134,14 +134,14 @@ func (re JobRequestedElement) String() string {
 func DecodeJobRequestedElement(s string) JobRequestedElement {
 	switch s {
 	case NsWSCN + ":JobStatus":
-		return JobRequestedElementJobStatus
+		return JobElemStatus
 	case NsWSCN + ":ScanTicket":
-		return JobRequestedElementScanTicket
+		return JobElemScanTicket
 	case NsWSCN + ":Documents":
-		return JobRequestedElementDocuments
+		return JobElemDocuments
 	case NsXML + ":VendorSection":
-		return JobRequestedElementVendorSection
+		return JobElemVendorSection
 	}
 
-	return UnknownJobRequestedElement
+	return UnknownJobElem
 }
