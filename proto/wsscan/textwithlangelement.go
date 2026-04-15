@@ -10,6 +10,8 @@
 package wsscan
 
 import (
+	"strings"
+
 	"github.com/OpenPrinting/go-mfp/util/optional"
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
@@ -30,7 +32,7 @@ func (t *TextWithLangElement) decodeTextWithLangElement(root xmldoc.Element) (
 	return *t, nil
 }
 
-// ToXML creates an XML element from the struct.
+// toXML creates an XML element from the struct.
 func (t TextWithLangElement) toXML(name string) xmldoc.Element {
 	elm := xmldoc.Element{Name: name, Text: t.Text}
 	lang := optional.Get(t.Lang)
@@ -41,4 +43,59 @@ func (t TextWithLangElement) toXML(name string) xmldoc.Element {
 		}}
 	}
 	return elm
+}
+
+// TextWithLangList represents a list of text elements with
+// optional language attributes.
+type TextWithLangList []TextWithLangElement
+
+// NeutralLang returns the most language-neutral entry from the list.
+//
+// It uses the following preferences:
+//   - entry without Lang is the best match
+//   - if not found, search for the "en" version
+//   - if not found, search for the "en-US" version
+//   - if not found, search for the first entry starting with "en-"
+//   - if not found, return the first entry from the list
+//
+// If list is empty, it returns TextWithLangElement{}.
+func (tl TextWithLangList) NeutralLang() TextWithLangElement {
+	var en, enUS, enAny TextWithLangElement
+	var enFound, enUSFound, enAnyFound bool
+
+	for _, t := range tl {
+		lang := strings.ToLower(optional.Get(t.Lang))
+		switch lang {
+		case "":
+			return t // The best match; return immediately
+		case "en":
+			if !enFound {
+				en = t
+				enFound = true
+			}
+		case "en-us":
+			if !enUSFound {
+				enUS = t
+				enUSFound = true
+			}
+		default:
+			if strings.HasPrefix(lang, "en-") && !enAnyFound {
+				enAny = t
+				enAnyFound = true
+			}
+		}
+	}
+
+	switch {
+	case enFound:
+		return en
+	case enUSFound:
+		return enUS
+	case enAnyFound:
+		return enAny
+	case len(tl) != 0:
+		return tl[0]
+	}
+
+	return TextWithLangElement{}
 }
