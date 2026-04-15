@@ -8,7 +8,7 @@
 
 package cpython
 
-// Add performs adds value to Object:
+// Add adds value to Object:
 //
 //	ret = obj + val
 func (obj *Object) Add(val any) *Object {
@@ -127,6 +127,7 @@ func (obj *Object) binop(name string, val any) *Object {
 	if err != nil {
 		return newErrorObject(obj.py, err)
 	}
+	defer gate.unref(pyargs)
 
 	err = gate.setTupleItem(pyargs, pyobj2, 0)
 	if err != nil {
