@@ -147,6 +147,38 @@ func (obj *Object) Len() (int, error) {
 	return objDo(obj, pyGate.length)
 }
 
+// Save sets the global variable 'name' to the Object's value:
+//
+//	name = obj
+//
+// This is the same as obj.Py().Set(name, obj).
+// This method is useful for operations chaining with error propagation:
+//
+//	// x = (2 * 3 + 5) % 7
+//	err = py.NewObject(2).Mul(3).Add(5).Mod(7).Save("x")
+func (obj *Object) Save(name string) error {
+	return obj.py.Set(name, obj)
+}
+
+// SaveTo saves the global variable 'name' to the dest Object's attribute:
+//
+//	dest.name = obj
+//
+// See also [Object.Save].
+func (obj *Object) SaveTo(dest *Object, name string) error {
+	return dest.Set(name, obj)
+}
+
+// SaveItem saves the global variable 'name' to the dest's item with
+// the specified key.
+//
+//	dest[key] = obj
+//
+// See also [Object.Save].
+func (obj *Object) SaveItem(dest *Object, key any) error {
+	return dest.SetItem(key, obj)
+}
+
 // String returns string representation of the Object, for debugging
 // purposes.
 //
