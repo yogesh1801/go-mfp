@@ -927,6 +927,7 @@ func TestObjectGC(t *testing.T) {
 	py, err := NewPython()
 	assert.NoError(err)
 
+	runtime.GC() // Make sure all garbage objects collected
 	base := py.countObjID()
 
 	err = py.Eval("5").Err()
