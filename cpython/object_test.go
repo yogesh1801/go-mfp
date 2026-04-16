@@ -489,14 +489,14 @@ dog = Dog("Archi", 4)
 		t.Errorf("Attribute not %q expected but found", "unknown")
 	}
 
-	attr := obj.GetAttr("name")
+	attr := obj.Get("name")
 	if err := attr.Err(); err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	} else {
 		s, err := attr.Unicode()
 		assert.NoError(err)
 		if s != "Archi" {
-			t.Errorf("obj.GetAttr mismatch:\n"+
+			t.Errorf("obj.Get mismatch:\n"+
 				"expected: %s\n"+
 				"present:  %s\n", "Archi", s)
 		}

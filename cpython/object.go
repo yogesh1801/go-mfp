@@ -242,8 +242,6 @@ func (obj *Object) ContainsItem(key any) (bool, error) {
 
 // SetItem sets Object item with the specified name:
 //
-// In Python:
-//
 //	obj[name] = val
 //
 // The Object must be container (array, dict, etc).
@@ -274,8 +272,6 @@ func (obj *Object) SetItem(key, val any) error {
 
 // DelAttr deletes Object attribute with the specified name:
 //
-// In Python:
-//
 //	delattr(obj, name)
 //
 // It returns:
@@ -298,12 +294,10 @@ func (obj *Object) DelAttr(name string) (bool, error) {
 	return found, err
 }
 
-// GetAttr returns Object attribute with the specified name:
+// Get returns Object attribute with the specified name:
 //
-// In Python:
-//
-//	obj.name
-func (obj *Object) GetAttr(name string) *Object {
+//	ret = obj.name
+func (obj *Object) Get(name string) *Object {
 	gate, pyobj, err := obj.begin()
 	if err != nil {
 		return newErrorObject(obj.py, err)
@@ -329,8 +323,6 @@ func (obj *Object) GetAttr(name string) *Object {
 
 // HasAttr reports if Object has the attribute with the specified name.
 //
-// In Python:
-//
 //	hasattr(obj, name)
 func (obj *Object) HasAttr(name string) (bool, error) {
 	gate, pyobj, err := obj.begin()
@@ -342,14 +334,12 @@ func (obj *Object) HasAttr(name string) (bool, error) {
 	return gate.hasattr(pyobj, name)
 }
 
-// SetAttr sets Object attribute with the specified name.
-//
-// In Python:
+// Set sets Object attribute with the specified name:
 //
 //	obj.name = val
 //
 // The val may be any value that [Python.NewObject] accepts.
-func (obj *Object) SetAttr(name string, val any) error {
+func (obj *Object) Set(name string, val any) error {
 	gate, pyobj, err := obj.begin()
 	if err != nil {
 		return err
@@ -463,7 +453,7 @@ func (obj *Object) Bool() (bool, error) {
 	}
 
 	// Try to call the __bool__ method
-	toBool := obj.GetAttr("__bool__")
+	toBool := obj.Get("__bool__")
 	if toBool.Err() == nil {
 		val, err2 := toBool.Call().fastBool()
 		if err2 == nil {

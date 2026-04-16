@@ -25,12 +25,12 @@ func (model *Model) queryToPython(query *transport.ServerQuery) *cpython.Object 
 	response := model.httpHeaderToPython(query.ResponseHeader())
 
 	// Add them to the query Object
-	err := obj.SetAttr("request", request)
+	err := obj.Set("request", request)
 	if err != nil {
 		return model.py.NewError(err)
 	}
 
-	err = obj.SetAttr("response", response)
+	err = obj.Set("response", response)
 	if err != nil {
 		return model.py.NewError(err)
 	}
@@ -44,8 +44,8 @@ func (model *Model) queryFromPython(query *transport.ServerQuery,
 	obj *cpython.Object) error {
 
 	// Extract request and response
-	request := obj.GetAttr("request")
-	response := obj.GetAttr("response")
+	request := obj.Get("request")
+	response := obj.Get("response")
 
 	// Convert both to the http.Header
 	requestHdr, err := model.httpHeaderFromPython(request)

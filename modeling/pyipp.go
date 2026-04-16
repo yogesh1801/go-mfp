@@ -290,21 +290,21 @@ func (model *Model) pyImportIPPResolution(obj *cpython.Object) (
 	var units goipp.Units
 
 	// Load Xres
-	x, err = obj.GetAttr("X").Int()
+	x, err = obj.Get("X").Int()
 	if err != nil {
 		err = pyIPPImportErrorWrap("X", err)
 		return
 	}
 
 	// Load Yres
-	y, err = obj.GetAttr("Y").Int()
+	y, err = obj.Get("Y").Int()
 	if err != nil {
 		err = pyIPPImportErrorWrap("Y", err)
 		return
 	}
 
 	// Load Units
-	unitsName, err := obj.GetAttr("Units").Str()
+	unitsName, err := obj.Get("Units").Str()
 	if err == nil {
 		switch unitsName {
 		case "dpi":
@@ -336,14 +336,14 @@ func (model *Model) pyImportIPPRange(obj *cpython.Object) (
 	var lower, upper int64
 
 	// Load Lower
-	lower, err = obj.GetAttr("Lower").Int()
+	lower, err = obj.Get("Lower").Int()
 	if err != nil {
 		err = pyIPPImportErrorWrap("Lower", err)
 		return
 	}
 
 	// Load Upper
-	upper, err = obj.GetAttr("Upper").Int()
+	upper, err = obj.Get("Upper").Int()
 	if err != nil {
 		err = pyIPPImportErrorWrap("Upper", err)
 		return
@@ -364,7 +364,7 @@ func (model *Model) pyImportIPPTextWithLang(obj *cpython.Object, tag goipp.Tag) 
 	var lang, text string
 
 	// Load lang
-	lang, err = obj.GetAttr("Lang").Str()
+	lang, err = obj.Get("Lang").Str()
 	if err != nil {
 		err = pyIPPImportErrorWrap("Lang", err)
 		return
@@ -376,7 +376,7 @@ func (model *Model) pyImportIPPTextWithLang(obj *cpython.Object, tag goipp.Tag) 
 		nm = "Name"
 	}
 
-	text, err = obj.GetAttr(nm).Str()
+	text, err = obj.Get(nm).Str()
 	if err != nil {
 		err = pyIPPImportErrorWrap(nm, err)
 		return
