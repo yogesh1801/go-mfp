@@ -147,6 +147,18 @@ func (obj *Object) Len() (int, error) {
 	return objDo(obj, pyGate.length)
 }
 
+// String returns string representation of the Object, for debugging
+// purposes.
+//
+// It tries [Object.Str], with fallback to obj.Err().Error()
+func (obj *Object) String() string {
+	s, err := obj.Str()
+	if err != nil {
+		s = err.Error()
+	}
+	return s
+}
+
 // Del deletes Object item with the specified key:
 //
 // In Python:
