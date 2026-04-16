@@ -182,7 +182,6 @@ func (obj *Object) Del(key any) (bool, error) {
 	defer gate.unref(pykey)
 
 	// Check for item existence, then delete, if found.
-	// Check if attribute exists, then retrieve
 	found, err := gate.hasitem(pyobj, pykey)
 	if found {
 		err = gate.delitem(pyobj, pykey)
