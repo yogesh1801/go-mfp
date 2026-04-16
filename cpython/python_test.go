@@ -115,6 +115,7 @@ func TestPythonInitError(t *testing.T) {
 func TestPythonLoad(t *testing.T) {
 	py, err := NewPython()
 	assert.NoError(err)
+	defer py.Close()
 
 	mod := "\n" +
 		"i = 5\n" +
@@ -158,6 +159,7 @@ func TestPythonErrorLocation(t *testing.T) {
 
 	py, err := NewPython()
 	assert.NoError(err)
+	defer py.Close()
 
 	err = py.Exec(script, "test.py")
 	assert.MustMsg(err != nil, "Python exception MUST occur")
@@ -169,5 +171,40 @@ func TestPythonErrorLocation(t *testing.T) {
 			"expected: %s\n"+
 			"present:  %s\n",
 			expected, present)
+	}
+}
+
+// TestPythonGlobalScope tests global scope accessors (Python.Get,
+// Python.GetGlobal etc).
+func TestPythonGlobals(t *testing.T) {
+	py, err := NewPython()
+	assert.NoError(err)
+	defer py.Close()
+
+	const builtin = "print"
+	const global = "__name__"
+
+	// Python.GetGlobal must fail for builtin
+	obj := py.GetGlobal(builtin)
+	if !obj.NotFound() {
+		t.Errorf("Python.GetGlobal(%q): %s", builtin, obj)
+	}
+
+	// Python.Get must succeed for builtin
+	obj = py.Get(builtin)
+	if obj.Err() != nil {
+		t.Errorf("Python.GetGlobal(%q): %s", builtin, obj)
+	}
+
+	// Python.GetGlobal must succeed for global
+	obj = py.GetGlobal(global)
+	if obj.Err() != nil {
+		t.Errorf("Python.GetGlobal(%q): %s", global, obj)
+	}
+
+	// Python.Get must succeed too
+	obj = py.Get(global)
+	if obj.Err() != nil {
+		t.Errorf("Python.GetGlobal(%q): %s", global, obj)
 	}
 }

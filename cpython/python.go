@@ -31,6 +31,7 @@ type Python struct {
 	objTrue  *Object       // Cached True Object
 	objFalse *Object       // Cached False Object
 	globals  *Object       // Global dictionary
+	builtins *Object       // __builtins__ dictionary
 }
 
 // NewPython creates a new Python interpreter.
@@ -61,9 +62,11 @@ func NewPython() (py *Python, err error) {
 
 		gate.release()
 
-		// Load global dictionary.
-		// It is more convenient to use it as the Object
+		// Load global dictionary and __builtins__
 		py.globals = py.Eval("globals()")
+		assert.NoError(py.globals.Err())
+
+		py.builtins = py.Eval("__builtins__")
 		assert.NoError(py.globals.Err())
 	}
 
@@ -109,29 +112,39 @@ func (py *Python) closed() bool {
 	return py.interp == nil
 }
 
-// GetGlobal returns item from the interpreter's global dictionary.
+// Get returns item from the Python global scope:
 //
-// In Python:
+//	ret = name
 //
-//	globals()[name]
+// It searches globals dictionary, then __builtins__
+func (py *Python) Get(name string) *Object {
+	obj := py.globals.GetItem(name)
+	if obj.NotFound() {
+		obj = py.builtins.Get(name)
+	}
+
+	return obj
+}
+
+// GetGlobal returns item from the interpreter's global dictionary:
+//
+//	ret = globals()[name]
+//
+// Unlike [Python.Get] it doesn't search __builtins__.
 func (py *Python) GetGlobal(name string) *Object {
 	return py.globals.GetItem(name)
 }
 
-// SetGlobal sets item in the interpreter's global dictionary.
+// Set sets item in the Python global scope:
 //
-// In Python:
-//
-//	globals()[name] = val
+//	name = val
 //
 // The val may be any value that [Python.NewObject] accepts.
-func (py *Python) SetGlobal(name string, val any) error {
+func (py *Python) Set(name string, val any) error {
 	return py.globals.SetItem(name, val)
 }
 
-// DelGlobal deletes item the interpreter's global dictionary.
-//
-// In Python:
+// Del deletes item from the Python global scope:
 //
 //	del(globals(), name)
 //
@@ -139,14 +152,23 @@ func (py *Python) SetGlobal(name string, val any) error {
 //   - (true, nil) if item was found and deleted
 //   - (false, nil) if item was not found
 //   - (false, error) in a case of error
-func (py *Python) DelGlobal(name string) (bool, error) {
+func (py *Python) Del(name string) (bool, error) {
 	return py.globals.Del(name)
 }
 
+// Contains reports if the item is defined in the Python global
+// scope, either in globals or in __builtins__
+func (py *Python) Contains(name string) (bool, error) {
+	found, err := py.globals.ContainsItem(name)
+	if !found && err == nil {
+		found, err = py.builtins.ContainsItem(name)
+	}
+
+	return found, err
+}
+
 // ContainsGlobal reports if the interpreter's global dictionary
-// contains the named item.
-//
-// In Python:
+// contains the named item:
 //
 //	name in globals()
 func (py *Python) ContainsGlobal(name string) (bool, error) {
