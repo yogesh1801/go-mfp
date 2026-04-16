@@ -64,7 +64,7 @@ func (model *Model) pyExportStruct(kwmap map[string]string,
 
 		// Convert into the Python Object and add to the dict,
 		item := model.pyExportValue(kwmap, f)
-		err := dict.Set(keywordNormalize(kwmap, fld.Name), item)
+		err := dict.SetItem(keywordNormalize(kwmap, fld.Name), item)
 
 		if err != nil {
 			return model.py.NewError(err)
@@ -149,7 +149,7 @@ func (model *Model) pyImportStruct(kwmap map[string]string,
 	for _, fld := range reflect.VisibleFields(t) {
 		// Lookup python dictionary
 		kw := keywordNormalize(kwmap, fld.Name)
-		item := obj.Get(kw)
+		item := obj.GetItem(kw)
 
 		if err := item.Err(); err != nil {
 			if item.NotFound() {

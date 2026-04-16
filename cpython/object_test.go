@@ -535,19 +535,19 @@ func TestObjectItems(t *testing.T) {
 
 	// Items 1, 2, 3 must exist and have proper value
 	for i := 1; i <= 3; i++ {
-		found, err := obj.Contains(i)
+		found, err := obj.ContainsItem(i)
 		if err != nil {
-			t.Errorf("Object.Contains(%v): %s", i, err)
+			t.Errorf("Object.ContainsItem(%v): %s", i, err)
 			return
 		}
 
 		if !found {
-			t.Errorf("Object.Contains(%v): item not found", i)
+			t.Errorf("Object.ContainsItem(%v): item not found", i)
 		}
 
-		item := obj.Get(i)
+		item := obj.GetItem(i)
 		if err := item.Err(); err != nil {
-			t.Errorf("Object.Get(%v): %s", i, err)
+			t.Errorf("Object.GetItem(%v): %s", i, err)
 			return
 		}
 
@@ -555,7 +555,7 @@ func TestObjectItems(t *testing.T) {
 		assert.NoError(err)
 
 		if expected := fmt.Sprintf("%d", i); s != expected {
-			t.Errorf("Object.Get(%v):\n"+
+			t.Errorf("Object.GetItem(%v):\n"+
 				"expected: %s\n"+
 				"present:  %s\n",
 				i, expected, s)
@@ -563,22 +563,22 @@ func TestObjectItems(t *testing.T) {
 	}
 
 	// Items 4, 5, 6 must not exist.
-	// Object.Get must return (nil,nil) for them.
+	// Object.GetItem must return ErrNotFound{} for them.
 	for i := 4; i <= 6; i++ {
-		found, err := obj.Contains(i)
+		found, err := obj.ContainsItem(i)
 		if err != nil {
-			t.Errorf("Object.Contains(%v): %s", i, err)
+			t.Errorf("Object.ContainsItem(%v): %s", i, err)
 			return
 		}
 
 		if found {
-			t.Errorf("Object.Contains(%v): item found", i)
+			t.Errorf("Object.ContainsItem(%v): item found", i)
 		}
 
-		item := obj.Get(i)
+		item := obj.GetItem(i)
 		err = item.Err()
 		if err != (ErrNotFound{}) {
-			t.Errorf("Object.Get(%v):\n"+
+			t.Errorf("Object.GetItem(%v):\n"+
 				"expected: (%s)\n"+
 				"present:  (%s)\n",
 				i, ErrNotFound{}, err)
@@ -588,7 +588,7 @@ func TestObjectItems(t *testing.T) {
 	// Add items 4, 5, 6
 	for i := 4; i <= 6; i++ {
 		val := fmt.Sprintf("%d", i)
-		err := obj.Set(i, val)
+		err := obj.SetItem(i, val)
 		if err != nil {
 			t.Errorf("Object.Set(%v): %s", i, err)
 			return
@@ -597,9 +597,9 @@ func TestObjectItems(t *testing.T) {
 
 	// Now all objects must be present
 	for i := 1; i <= 6; i++ {
-		item := obj.Get(i)
+		item := obj.GetItem(i)
 		if err := item.Err(); err != nil {
-			t.Errorf("Object.Get(%v): %s", i, err)
+			t.Errorf("Object.GetItem(%v): %s", i, err)
 			return
 		}
 
@@ -641,14 +641,14 @@ func TestObjectItems(t *testing.T) {
 
 	// Now items 1, 2, 3 must not exist.
 	for i := 1; i <= 3; i++ {
-		found, err := obj.Contains(i)
+		found, err := obj.ContainsItem(i)
 		if err != nil {
-			t.Errorf("Object.Contains(%v): %s", i, err)
+			t.Errorf("Object.ContainsItem(%v): %s", i, err)
 			return
 		}
 
 		if found {
-			t.Errorf("Object.Contains(%v): item found", i)
+			t.Errorf("Object.ContainsItem(%v): item found", i)
 		}
 	}
 }

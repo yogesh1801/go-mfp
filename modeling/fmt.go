@@ -85,7 +85,7 @@ func (f *formatter) formatDict(dict *cpython.Object, indent int) {
 	for i := range keyobjs {
 		keys[i], f.err = keyobjs[i].Repr()
 		if f.err == nil {
-			vals[i] = dict.Get(keyobjs[i])
+			vals[i] = dict.GetItem(keyobjs[i])
 			f.err = vals[i].Err()
 		}
 
@@ -174,7 +174,7 @@ func (f *formatter) formatArray(obj *cpython.Object, indent int) {
 	width := 0
 	for i := 0; i < length; i++ {
 		// Fill array of values
-		vals[i] = obj.Get(i)
+		vals[i] = obj.GetItem(i)
 		f.err = vals[i].Err()
 		if f.err != nil {
 			return

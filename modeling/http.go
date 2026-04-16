@@ -41,7 +41,7 @@ func (model *Model) httpHeaderToPython(h http.Header) *cpython.Object {
 	// Create and populate the target Python Object
 	obj := model.clsHTTPMessage.Call()
 	for _, line := range hdrlines {
-		err := obj.Set(line.name, line.val)
+		err := obj.SetItem(line.name, line.val)
 		if err != nil {
 			return model.py.NewError(err)
 		}
@@ -69,7 +69,7 @@ func (model *Model) httpHeaderFromPython(obj *cpython.Object) (
 			continue
 		}
 
-		val := obj.Get(key)
+		val := obj.GetItem(key)
 		if err := val.Err(); err != nil {
 			return nil, err
 		}

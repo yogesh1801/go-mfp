@@ -179,15 +179,13 @@ func (obj *Object) Del(key any) (bool, error) {
 	return found, err
 }
 
-// Get returns Object item with the specified key:
+// GetItem returns Object item with the specified key:
 //
-// In Python:
-//
-//	obj[key]
+//	ret = obj[key]
 //
 // The Object must be container (array, dict, etc).
 // The key may be any value that [Python.NewObject] accepts.
-func (obj *Object) Get(key any) *Object {
+func (obj *Object) GetItem(key any) *Object {
 	gate, pyobj, err := obj.begin()
 	if err != nil {
 		return newErrorObject(obj.py, err)
@@ -218,15 +216,13 @@ func (obj *Object) Get(key any) *Object {
 	return newObjectFromPython(obj.py, gate, pyitem)
 }
 
-// Contains reports if Object has the item with the specified key.
+// ContainsItem reports if Object has the item with the specified key:
 //
-// In Python:
-//
-//	key in obj
+//	ret = key in obj
 //
 // The Object must be container (array, dict, etc).
 // The key may be any value that [Python.NewObject] accepts.
-func (obj *Object) Contains(key any) (bool, error) {
+func (obj *Object) ContainsItem(key any) (bool, error) {
 	gate, pyobj, err := obj.begin()
 	if err != nil {
 		return false, err
@@ -244,7 +240,7 @@ func (obj *Object) Contains(key any) (bool, error) {
 	return gate.hasitem(pyobj, pykey)
 }
 
-// Set sets Object item with the specified name.
+// SetItem sets Object item with the specified name:
 //
 // In Python:
 //
@@ -252,7 +248,7 @@ func (obj *Object) Contains(key any) (bool, error) {
 //
 // The Object must be container (array, dict, etc).
 // The key and val may be any value that [Python.NewObject] accepts.
-func (obj *Object) Set(key, val any) error {
+func (obj *Object) SetItem(key, val any) error {
 	gate, pyobj, err := obj.begin()
 	if err != nil {
 		return err

@@ -31,7 +31,7 @@ func (model *Model) pyExportIPPAttrs(attrs goipp.Attributes) *cpython.Object {
 	// Roll over all IPP attributes
 	for _, attr := range attrs {
 		vals := model.pyExportIPPValues(attr)
-		err := dict.Set(attr.Name, vals)
+		err := dict.SetItem(attr.Name, vals)
 		if err != nil {
 			return model.py.NewError(err)
 		}
@@ -155,7 +155,7 @@ func (model *Model) pyImportIPPAttrs(obj *cpython.Object) (
 		// Obtain key name and value
 		key, err = keyobjs[i].Str()
 		if err == nil {
-			valobj = obj.Get(keyobjs[i])
+			valobj = obj.GetItem(keyobjs[i])
 			err = valobj.Err()
 		}
 
@@ -192,7 +192,7 @@ func (model *Model) pyImportIPPValues(obj *cpython.Object) (
 
 		objs = make([]*cpython.Object, sz)
 		for i := 0; i < sz; i++ {
-			objs[i] = obj.Get(i)
+			objs[i] = obj.GetItem(i)
 		}
 	} else {
 		objs = []*cpython.Object{obj}

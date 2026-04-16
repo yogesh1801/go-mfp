@@ -115,7 +115,7 @@ func (py *Python) closed() bool {
 //
 //	globals()[name]
 func (py *Python) GetGlobal(name string) *Object {
-	return py.globals.Get(name)
+	return py.globals.GetItem(name)
 }
 
 // SetGlobal sets item in the interpreter's global dictionary.
@@ -126,7 +126,7 @@ func (py *Python) GetGlobal(name string) *Object {
 //
 // The val may be any value that [Python.NewObject] accepts.
 func (py *Python) SetGlobal(name string, val any) error {
-	return py.globals.Set(name, val)
+	return py.globals.SetItem(name, val)
 }
 
 // DelGlobal deletes item the interpreter's global dictionary.
@@ -150,7 +150,7 @@ func (py *Python) DelGlobal(name string) (bool, error) {
 //
 //	name in globals()
 func (py *Python) ContainsGlobal(name string) (bool, error) {
-	return py.globals.Contains(name)
+	return py.globals.ContainsItem(name)
 }
 
 // None returns the None Object
