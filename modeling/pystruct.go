@@ -15,6 +15,7 @@ import (
 	"github.com/OpenPrinting/go-mfp/cpython"
 	"github.com/OpenPrinting/go-mfp/internal/assert"
 	"github.com/OpenPrinting/go-mfp/proto/escl"
+	"github.com/OpenPrinting/go-mfp/proto/wsscan"
 	"github.com/OpenPrinting/go-mfp/util/uuid"
 )
 
@@ -94,12 +95,14 @@ func (model *Model) pyExportValue(kwmap map[string]string,
 	// Handle known types
 	data := v.Interface()
 	switch v := data.(type) {
-	// The following types have their own simple classes
-	// at the Python side.
 	case escl.Version:
 		return model.py.NewObject(v.String())
 	case uuid.UUID:
 		return model.clsUUID.Call(v.String())
+	case wsscan.TextWithLangElement:
+		if v.Lang == nil {
+			return model.py.NewObject(v.Text)
+		}
 
 	// fmt.Stringer becomes Python string
 	case fmt.Stringer:
