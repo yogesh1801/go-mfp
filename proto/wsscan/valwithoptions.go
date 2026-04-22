@@ -32,6 +32,11 @@ type ValWithOptions[T any] struct {
 	UsedDefault optional.Val[BooleanElement]
 }
 
+// HasOptions reports if value really has any options set.
+func (t *ValWithOptions[T]) HasOptions() bool {
+	return t.MustHonor != nil || t.Override != nil || t.UsedDefault != nil
+}
+
 // decodeValWithOptions fills the struct from an XML element.
 // The decoder function converts the XML text to the desired type T.
 func (t *ValWithOptions[T]) decodeValWithOptions(
