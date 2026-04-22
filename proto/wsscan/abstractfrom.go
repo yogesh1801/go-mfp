@@ -27,7 +27,9 @@ func fromAbstractScannerDescription(
 	caps *abstract.ScannerCapabilities) ScannerDescription {
 
 	sd := ScannerDescription{
-		ScannerName: TextWithLangElement{Text: caps.MakeAndModel},
+		ScannerName: TextWithLangList{
+			{Text: caps.MakeAndModel},
+		},
 	}
 
 	return sd
