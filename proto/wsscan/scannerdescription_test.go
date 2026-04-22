@@ -17,22 +17,26 @@ import (
 )
 
 func TestScannerDescription(t *testing.T) {
-	// Test with all child elements
+	// Test with all child elements, multiple languages
 	sd := ScannerDescription{
-		ScannerName: TextWithLangElement{
-			Text: "Accounting Scanner in Copy Room 2",
-			Lang: optional.New(
-				"en-CA, en-US",
-			),
+		ScannerName: TextWithLangList{
+			{
+				Text: "Accounting Scanner in Copy Room 2",
+				Lang: optional.New("en-CA, en-US"),
+			},
 		},
-		ScannerInfo: optional.New(TextWithLangElement{
-			Text: "High-speed document scanner for accounting department",
-			Lang: optional.New("en-US"),
-		}),
-		ScannerLocation: optional.New(TextWithLangElement{
-			Text: "LA Campus - Building 1",
-			Lang: optional.New("en-CA, en-US"),
-		}),
+		ScannerInfo: TextWithLangList{
+			{
+				Text: "High-speed document scanner for accounting department",
+				Lang: optional.New("en-US"),
+			},
+		},
+		ScannerLocation: TextWithLangList{
+			{
+				Text: "LA Campus - Building 1",
+				Lang: optional.New("en-CA, en-US"),
+			},
+		},
 	}
 
 	elm := sd.toXML(NsWSCN + ":ScannerDescription")
@@ -60,8 +64,8 @@ func TestScannerDescription(t *testing.T) {
 
 	// Test with only required ScannerName
 	sdMinimal := ScannerDescription{
-		ScannerName: TextWithLangElement{
-			Text: "Basic Scanner",
+		ScannerName: TextWithLangList{
+			{Text: "Basic Scanner"},
 		},
 	}
 
@@ -77,5 +81,41 @@ func TestScannerDescription(t *testing.T) {
 	assert.NoError(err)
 	if !reflect.DeepEqual(sdMinimal, sd3) {
 		t.Errorf("expected %v, got %v", sdMinimal, sd3)
+	}
+}
+
+func TestScannerDescriptionMultiLang(t *testing.T) {
+	// Test with multiple language variants
+	sd := ScannerDescription{
+		ScannerName: TextWithLangList{
+			{Text: "Scanner"},
+			{Text: "Scanner", Lang: optional.New("en")},
+			{Text: "Scanner Russian", Lang: optional.New("ru-RU")},
+		},
+		ScannerInfo: TextWithLangList{
+			{
+				Text: "Office scanner",
+				Lang: optional.New("en-US"),
+			},
+			{
+				Text: "Office scanner Russian",
+				Lang: optional.New("ru-RU"),
+			},
+		},
+	}
+
+	elm := sd.toXML(NsWSCN + ":ScannerDescription")
+
+	// 3 ScannerName + 2 ScannerInfo = 5 children
+	if len(elm.Children) != 5 {
+		t.Errorf("expected 5 child elements, got %d",
+			len(elm.Children))
+	}
+
+	// Round-trip
+	sd2, err := decodeScannerDescription(elm)
+	assert.NoError(err)
+	if !reflect.DeepEqual(sd, sd2) {
+		t.Errorf("expected %v, got %v", sd, sd2)
 	}
 }

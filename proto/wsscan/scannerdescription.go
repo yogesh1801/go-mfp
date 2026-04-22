@@ -1,4 +1,4 @@
-// MFP - Miulti-Function Printers and scanners toolkit
+// MFP - Multi-Function Printers and scanners toolkit
 // WS-Scan core protocol
 //
 // Copyright (C) 2024 and up by Yogesh Singla (yogeshsingla481@gmail.com)
@@ -9,7 +9,6 @@
 package wsscan
 
 import (
-	"github.com/OpenPrinting/go-mfp/util/optional"
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
@@ -29,65 +28,63 @@ import (
 // Text value: None
 //
 // Child elements:
-//   - ScannerInfo (optional): Administratively assigned descriptive info
-//   - ScannerLocation (optional): Administratively assigned location info
-//   - ScannerName (required): Administratively assigned user-friendly name
+//   - ScannerInfo (optional, repeatable): Administratively assigned
+//     descriptive info, one per language
+//   - ScannerLocation (optional, repeatable): Administratively assigned
+//     location info, one per language
+//   - ScannerName (required, repeatable): Administratively assigned
+//     user-friendly name, one per language
 type ScannerDescription struct {
-	ScannerInfo     optional.Val[TextWithLangElement]
-	ScannerLocation optional.Val[TextWithLangElement]
-	ScannerName     TextWithLangElement
+	ScannerInfo     TextWithLangList
+	ScannerLocation TextWithLangList
+	ScannerName     TextWithLangList
 }
 
 // decodeScannerDescription decodes a [ScannerDescription] from an XML element.
 // It extracts child elements ScannerName, ScannerInfo, and ScannerLocation
-// from the XML element. ScannerName is required, while ScannerInfo and
-// ScannerLocation are optional.
+// from the XML element. ScannerName is required (at least one entry),
+// while ScannerInfo and ScannerLocation are optional. Each element may
+// appear multiple times, once per language variant.
 func decodeScannerDescription(root xmldoc.Element) (
 	sd ScannerDescription,
 	err error,
 ) {
 	defer func() { err = xmldoc.XMLErrWrap(root, err) }()
 
-	// Lookup relevant XML elements
-	scannerName := xmldoc.Lookup{
-		Name:     NsWSCN + ":ScannerName",
-		Required: true,
-	}
-	scannerInfo := xmldoc.Lookup{Name: NsWSCN + ":ScannerInfo"}
-	scannerLocation := xmldoc.Lookup{Name: NsWSCN + ":ScannerLocation"}
+	nameN := NsWSCN + ":ScannerName"
+	infoN := NsWSCN + ":ScannerInfo"
+	locationN := NsWSCN + ":ScannerLocation"
 
-	missed := root.Lookup(&scannerName, &scannerInfo, &scannerLocation)
-	if missed != nil {
-		err = xmldoc.XMLErrMissed(missed.Name)
-		return
-	}
+	for _, child := range root.Children {
+		switch child.Name {
+		case nameN:
+			var t TextWithLangElement
+			t, err = t.decodeTextWithLangElement(child)
+			if err != nil {
+				return sd, err
+			}
+			sd.ScannerName = append(sd.ScannerName, t)
 
-	// Decode ScannerName (required)
-	var sn TextWithLangElement
-	sn, err = sn.decodeTextWithLangElement(scannerName.Elem)
-	if err != nil {
-		return sd, err
-	}
-	sd.ScannerName = sn
+		case infoN:
+			var t TextWithLangElement
+			t, err = t.decodeTextWithLangElement(child)
+			if err != nil {
+				return sd, err
+			}
+			sd.ScannerInfo = append(sd.ScannerInfo, t)
 
-	// Decode ScannerInfo (optional)
-	if scannerInfo.Found {
-		var si TextWithLangElement
-		si, err = si.decodeTextWithLangElement(scannerInfo.Elem)
-		if err != nil {
-			return sd, err
+		case locationN:
+			var t TextWithLangElement
+			t, err = t.decodeTextWithLangElement(child)
+			if err != nil {
+				return sd, err
+			}
+			sd.ScannerLocation = append(sd.ScannerLocation, t)
 		}
-		sd.ScannerInfo = optional.New(si)
 	}
 
-	// Decode ScannerLocation (optional)
-	if scannerLocation.Found {
-		var sl TextWithLangElement
-		sl, err = sl.decodeTextWithLangElement(scannerLocation.Elem)
-		if err != nil {
-			return sd, err
-		}
-		sd.ScannerLocation = optional.New(sl)
+	if len(sd.ScannerName) == 0 {
+		return sd, xmldoc.XMLErrMissed(nameN)
 	}
 
 	return sd, nil
@@ -96,31 +93,31 @@ func decodeScannerDescription(root xmldoc.Element) (
 // toXML converts a [ScannerDescription] to an XML element.
 // It creates an XML element with the given name and adds child elements for
 // ScannerName (required), ScannerInfo (optional), and ScannerLocation
-// (optional).
+// (optional). Each may appear multiple times for different language variants.
 func (sd ScannerDescription) toXML(name string) xmldoc.Element {
 	elm := xmldoc.Element{Name: name}
 
-	// Add ScannerName (required)
-	elm.Children = append(
-		elm.Children,
-		sd.ScannerName.toXML(NsWSCN+":ScannerName"),
-	)
-
-	// Add ScannerInfo (optional)
-	if sd.ScannerInfo != nil {
-		info := optional.Get(sd.ScannerInfo)
+	// Add ScannerName entries (required, at least one)
+	for _, sn := range sd.ScannerName {
 		elm.Children = append(
 			elm.Children,
-			info.toXML(NsWSCN+":ScannerInfo"),
+			sn.toXML(NsWSCN+":ScannerName"),
 		)
 	}
 
-	// Add ScannerLocation (optional)
-	if sd.ScannerLocation != nil {
-		location := optional.Get(sd.ScannerLocation)
+	// Add ScannerInfo entries (optional)
+	for _, si := range sd.ScannerInfo {
 		elm.Children = append(
 			elm.Children,
-			location.toXML(NsWSCN+":ScannerLocation"),
+			si.toXML(NsWSCN+":ScannerInfo"),
+		)
+	}
+
+	// Add ScannerLocation entries (optional)
+	for _, sl := range sd.ScannerLocation {
+		elm.Children = append(
+			elm.Children,
+			sl.toXML(NsWSCN+":ScannerLocation"),
 		)
 	}
 

@@ -19,9 +19,11 @@ import (
 
 func createValidScannerDescription() ScannerDescription {
 	return ScannerDescription{
-		ScannerName: TextWithLangElement{
-			Text: "Test Scanner",
-			Lang: optional.New("en-US"),
+		ScannerName: TextWithLangList{
+			{
+				Text: "Test Scanner",
+				Lang: optional.New("en-US"),
+			},
 		},
 	}
 }
