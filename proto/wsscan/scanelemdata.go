@@ -4,7 +4,7 @@
 // Copyright (C) 2024 and up by Yogesh Singla (yogeshsingla481@gmail.com)
 // See LICENSE for license terms and conditions
 //
-// ElementData: contains data returned for a scanner-related schema request
+// ScanElemData: data returned for a scanner-related schema request
 
 package wsscan
 
@@ -16,67 +16,68 @@ import (
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
-// ElementDataName identifies which scanner schema element is carried
-// in an [ElementData].
-type ElementDataName int
+// ScanElemDataName identifies which scanner schema element is
+// carried in a [ScanElemData].
+type ScanElemDataName int
 
-// Known ElementDataName values:
+// Known ScanElemDataName values:
 const (
-	UnknownElementDataName          ElementDataName = iota
-	ElementDataDefaultScanTicket                    // xmlns:DefaultScanTicket
-	ElementDataScannerConfiguration                 // xmlns:ScannerConfiguration
-	ElementDataScannerDescription                   // xmlns:ScannerDescription
-	ElementDataScannerStatus                        // xmlns:ScannerStatus
-	ElementDataVendorSection                        // xmlns:VendorSection
+	UnknownScanElemDataName          ScanElemDataName = iota
+	ScanElemDataDefaultScanTicket                           // xmlns:DefaultScanTicket
+	ScanElemDataScannerConfiguration                        // xmlns:ScannerConfiguration
+	ScanElemDataScannerDescription                          // xmlns:ScannerDescription
+	ScanElemDataScannerStatus                               // xmlns:ScannerStatus
+	ScanElemDataVendorSection                               // xmlns:VendorSection
 )
 
-// String returns the QName string for an [ElementDataName].
-func (n ElementDataName) String() string {
+// String returns the QName string for a [ScanElemDataName].
+func (n ScanElemDataName) String() string {
 	switch n {
-	case ElementDataDefaultScanTicket:
+	case ScanElemDataDefaultScanTicket:
 		return NsWSCN + ":DefaultScanTicket"
-	case ElementDataScannerConfiguration:
+	case ScanElemDataScannerConfiguration:
 		return NsWSCN + ":ScannerConfiguration"
-	case ElementDataScannerDescription:
+	case ScanElemDataScannerDescription:
 		return NsWSCN + ":ScannerDescription"
-	case ElementDataScannerStatus:
+	case ScanElemDataScannerStatus:
 		return NsWSCN + ":ScannerStatus"
-	case ElementDataVendorSection:
+	case ScanElemDataVendorSection:
 		return NsWSCN + ":VendorSection"
 	default:
 		return "Unknown"
 	}
 }
 
-// decodeElementDataName decodes an [ElementDataName] from its QName string.
-// The prefix is stripped before matching because devices may use a different
-// namespace prefix than we do for the same WS-Scan namespace URL.
-func decodeElementDataName(s string) ElementDataName {
+// decodeScanElemDataName decodes a [ScanElemDataName] from its
+// QName string. The prefix is stripped before matching because devices may
+// use a different namespace prefix than we do for the same WS-Scan
+// namespace URL.
+func decodeScanElemDataName(s string) ScanElemDataName {
 	if i := strings.LastIndex(s, ":"); i >= 0 {
 		s = s[i+1:]
 	}
 	switch s {
 	case "DefaultScanTicket":
-		return ElementDataDefaultScanTicket
+		return ScanElemDataDefaultScanTicket
 	case "ScannerConfiguration":
-		return ElementDataScannerConfiguration
+		return ScanElemDataScannerConfiguration
 	case "ScannerDescription":
-		return ElementDataScannerDescription
+		return ScanElemDataScannerDescription
 	case "ScannerStatus":
-		return ElementDataScannerStatus
+		return ScanElemDataScannerStatus
 	case "VendorSection":
-		return ElementDataVendorSection
+		return ScanElemDataVendorSection
 	default:
-		return UnknownElementDataName
+		return UnknownScanElemDataName
 	}
 }
 
-// ElementData contains the data returned for a scanner-related schema request.
-// The Name attribute identifies which schema element is present and Valid
-// indicates whether the returned data is valid. Exactly one child element
-// matching Name is expected to be present.
-type ElementData struct {
-	Name                 ElementDataName
+// ScanElemData contains the data returned for a scanner-related
+// schema request. The Name attribute identifies which schema element is
+// present and Valid indicates whether the returned data is valid.
+// Exactly one child element matching Name is expected to be present.
+type ScanElemData struct {
+	Name                 ScanElemDataName
 	Valid                BooleanElement
 	DefaultScanTicket    optional.Val[ScanTicket]
 	ScannerConfiguration optional.Val[ScannerConfiguration]
@@ -84,8 +85,8 @@ type ElementData struct {
 	ScannerStatus        optional.Val[ScannerStatus]
 }
 
-// toXML creates an XML element for ElementData.
-func (ed ElementData) toXML(name string) xmldoc.Element {
+// toXML creates an XML element for ScanElemData.
+func (ed ScanElemData) toXML(name string) xmldoc.Element {
 	elm := xmldoc.Element{
 		Name: name,
 		Attrs: []xmldoc.Attr{
@@ -118,11 +119,10 @@ func (ed ElementData) toXML(name string) xmldoc.Element {
 	return elm
 }
 
-// decodeElementData decodes an ElementData from an XML element.
-func decodeElementData(root xmldoc.Element) (ElementData, error) {
-	var ed ElementData
+// decodeScanElemData decodes a [ScanElemData] from an XML element.
+func decodeScanElemData(root xmldoc.Element) (ScanElemData, error) {
+	var ed ScanElemData
 
-	// Decode required attributes
 	nameAttr := xmldoc.LookupAttr{Name: "Name", Required: true}
 	validAttr := xmldoc.LookupAttr{Name: "Valid", Required: true}
 
@@ -130,18 +130,17 @@ func decodeElementData(root xmldoc.Element) (ElementData, error) {
 		return ed, xmldoc.XMLErrMissed(missed.Name)
 	}
 
-	ed.Name = decodeElementDataName(nameAttr.Attr.Value)
-	if ed.Name == UnknownElementDataName {
-		return ed, fmt.Errorf("ElementData: unknown Name %q",
+	ed.Name = decodeScanElemDataName(nameAttr.Attr.Value)
+	if ed.Name == UnknownScanElemDataName {
+		return ed, fmt.Errorf("ScanElemData: unknown Name %q",
 			nameAttr.Attr.Value)
 	}
 
 	ed.Valid = BooleanElement(validAttr.Attr.Value)
 	if err := ed.Valid.Validate(); err != nil {
-		return ed, fmt.Errorf("ElementData: Valid: %w", err)
+		return ed, fmt.Errorf("ScanElemData: Valid: %w", err)
 	}
 
-	// Decode optional child elements
 	defaultScanTicket := xmldoc.Lookup{
 		Name: NsWSCN + ":DefaultScanTicket"}
 	scannerConfiguration := xmldoc.Lookup{

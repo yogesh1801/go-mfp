@@ -23,6 +23,14 @@ type GetJobElementsRequest struct {
 	RequestedElements []JobRequestedElement
 }
 
+// Action returns the [Action] associated with this body.
+func (*GetJobElementsRequest) Action() Action { return ActGetJobElements }
+
+// ToXML encodes the body into an XML tree.
+func (r *GetJobElementsRequest) ToXML() xmldoc.Element {
+	return r.toXML(NsWSCN + ":GetJobElementsRequest")
+}
+
 // toXML generates XML tree for the [GetJobElementsRequest].
 func (r GetJobElementsRequest) toXML(name string) xmldoc.Element {
 	nameElems := make([]xmldoc.Element, len(r.RequestedElements))

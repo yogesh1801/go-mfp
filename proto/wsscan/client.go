@@ -61,6 +61,32 @@ func (c *Client) GetScannerElements(
 	return rsp, nil
 }
 
+// GetJobElements requests the specified job schema elements for the
+// job identified by jobID from the WS-Scan server.
+func (c *Client) GetJobElements(
+	ctx context.Context,
+	jobID int,
+	elements ...JobRequestedElement,
+) (*GetJobElementsResponse, error) {
+
+	req := GetJobElementsRequest{
+		JobID:             jobID,
+		RequestedElements: elements,
+	}
+	msg, err := c.sendSOAP(ctx, &req)
+	if err != nil {
+		return nil, err
+	}
+
+	rsp, ok := msg.Body.(*GetJobElementsResponse)
+	if !ok {
+		return nil,
+			fmt.Errorf("wsscan: unexpected response type %T", msg.Body)
+	}
+
+	return rsp, nil
+}
+
 // sendSOAP wraps body in a SOAP envelope, POSTs it to the server,
 // and returns the decoded response [Message].
 func (c *Client) sendSOAP(ctx context.Context, body Body) (Message, error) {
