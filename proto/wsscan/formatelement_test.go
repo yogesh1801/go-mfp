@@ -22,7 +22,7 @@ import (
 func TestFormat_RoundTrip_AllAttributes(t *testing.T) {
 	orig := Format(
 		ValWithOptions[FormatValue]{
-			Text:        JFIF,
+			Val:         JFIF,
 			Override:    optional.New(BooleanElement("true")),
 			UsedDefault: optional.New(BooleanElement("0")),
 		},
@@ -55,7 +55,7 @@ func TestFormat_RoundTrip_AllAttributes(t *testing.T) {
 func TestFormat_RoundTrip_NoAttributes(t *testing.T) {
 	orig := Format(
 		ValWithOptions[FormatValue]{
-			Text: PNG,
+			Val: PNG,
 		},
 	)
 
@@ -97,7 +97,7 @@ func TestFormat_StandardValues(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			f := Format(
 				ValWithOptions[FormatValue]{
-					Text: c.value,
+					Val: c.value,
 				},
 			)
 			elm := f.toXML("wscn:Format")
@@ -110,8 +110,8 @@ func TestFormat_StandardValues(t *testing.T) {
 			if err != nil {
 				t.Fatalf("decode returned error: %v", err)
 			}
-			if decoded.Text != c.value {
-				t.Errorf("expected value %v, got %v", c.value, decoded.Text)
+			if decoded.Val != c.value {
+				t.Errorf("expected value %v, got %v", c.value, decoded.Val)
 			}
 		})
 	}
@@ -122,7 +122,7 @@ func TestFormat_StandardValues(t *testing.T) {
 func TestFormat_NoMustHonor(t *testing.T) {
 	f := Format(
 		ValWithOptions[FormatValue]{
-			Text:     JPEG2K,
+			Val:      JPEG2K,
 			Override: optional.New(BooleanElement("false")),
 		},
 	)
@@ -146,7 +146,7 @@ func TestFormat_NoMustHonor(t *testing.T) {
 func TestFormat_WithOverride(t *testing.T) {
 	orig := Format(
 		ValWithOptions[FormatValue]{
-			Text:     TIFFSingleJPEGTN2,
+			Val:      TIFFSingleJPEGTN2,
 			Override: optional.New(BooleanElement("1")),
 		},
 	)
@@ -175,7 +175,7 @@ func TestFormat_WithOverride(t *testing.T) {
 func TestFormat_WithUsedDefault(t *testing.T) {
 	orig := Format(
 		ValWithOptions[FormatValue]{
-			Text:        TIFFMultiG3MH,
+			Val:         TIFFMultiG3MH,
 			UsedDefault: optional.New(BooleanElement("true")),
 		},
 	)
@@ -212,9 +212,9 @@ func TestFormat_UnknownValue(t *testing.T) {
 	if err != nil {
 		t.Fatalf("decode returned error: %v", err)
 	}
-	if decoded.Text != FormatValue("unknown-format") {
+	if decoded.Val != FormatValue("unknown-format") {
 		t.Errorf("expected vendor format value to be preserved, got %v",
-			decoded.Text)
+			decoded.Val)
 	}
 }
 

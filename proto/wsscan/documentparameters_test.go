@@ -29,7 +29,7 @@ func TestDocumentParametersRoundTrip(t *testing.T) {
 			name: "with Format only",
 			dp: DocumentParameters{
 				Format: optional.New(Format(ValWithOptions[FormatValue]{
-					Text: JFIF,
+					Val: JFIF,
 				})),
 			},
 		},
@@ -37,7 +37,7 @@ func TestDocumentParametersRoundTrip(t *testing.T) {
 			name: "with ImagesToTransfer only",
 			dp: DocumentParameters{
 				ImagesToTransfer: optional.New(ImagesToTransfer(ValWithOptions[int]{
-					Text: 10,
+					Val: 10,
 				})),
 			},
 		},
@@ -45,7 +45,7 @@ func TestDocumentParametersRoundTrip(t *testing.T) {
 			name: "with InputSource only",
 			dp: DocumentParameters{
 				InputSource: optional.New(InputSource(ValWithOptions[InputSourceValue]{
-					Text: InputSourcePlaten,
+					Val: InputSourcePlaten,
 				})),
 			},
 		},
@@ -53,13 +53,13 @@ func TestDocumentParametersRoundTrip(t *testing.T) {
 			name: "with multiple elements",
 			dp: DocumentParameters{
 				Format: optional.New(Format(ValWithOptions[FormatValue]{
-					Text: PNG,
+					Val: PNG,
 				})),
 				ImagesToTransfer: optional.New(ImagesToTransfer(ValWithOptions[int]{
-					Text: 5,
+					Val: 5,
 				})),
 				CompressionQualityFactor: optional.New(CompressionQualityFactor(ValWithOptions[int]{
-					Text: 75,
+					Val: 75,
 				})),
 			},
 		},
@@ -119,10 +119,10 @@ func TestDocumentParametersDecodeError(t *testing.T) {
 func TestDocumentParametersToXML(t *testing.T) {
 	dp := DocumentParameters{
 		Format: optional.New(Format(ValWithOptions[FormatValue]{
-			Text: JFIF,
+			Val: JFIF,
 		})),
 		ImagesToTransfer: optional.New(ImagesToTransfer(ValWithOptions[int]{
-			Text: 10,
+			Val: 10,
 		})),
 	}
 

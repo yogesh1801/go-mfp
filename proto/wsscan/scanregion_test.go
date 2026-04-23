@@ -19,25 +19,25 @@ import (
 func TestScanRegion_RoundTrip_AllAttributes(t *testing.T) {
 	orig := ScanRegion{
 		ScanRegionHeight: ValWithOptions[int]{
-			Text:        1000,
+			Val:         1000,
 			MustHonor:   optional.New(BooleanElement("true")),
 			Override:    optional.New(BooleanElement("false")),
 			UsedDefault: optional.New(BooleanElement("1")),
 		},
 		ScanRegionWidth: ValWithOptions[int]{
-			Text:        800,
+			Val:         800,
 			MustHonor:   optional.New(BooleanElement("0")),
 			Override:    optional.New(BooleanElement("true")),
 			UsedDefault: optional.New(BooleanElement("false")),
 		},
 		ScanRegionXOffset: optional.New(ValWithOptions[int]{
-			Text:        100,
+			Val:         100,
 			MustHonor:   optional.New(BooleanElement("1")),
 			Override:    optional.New(BooleanElement("0")),
 			UsedDefault: optional.New(BooleanElement("true")),
 		}),
 		ScanRegionYOffset: optional.New(ValWithOptions[int]{
-			Text:        50,
+			Val:         50,
 			MustHonor:   optional.New(BooleanElement("false")),
 			Override:    optional.New(BooleanElement("1")),
 			UsedDefault: optional.New(BooleanElement("0")),
@@ -63,10 +63,10 @@ func TestScanRegion_RoundTrip_AllAttributes(t *testing.T) {
 
 func TestScanRegion_RoundTrip_NoAttributes(t *testing.T) {
 	orig := ScanRegion{
-		ScanRegionHeight:  ValWithOptions[int]{Text: 2000},
-		ScanRegionWidth:   ValWithOptions[int]{Text: 1500},
-		ScanRegionXOffset: optional.New(ValWithOptions[int]{Text: 0}),
-		ScanRegionYOffset: optional.New(ValWithOptions[int]{Text: 0}),
+		ScanRegionHeight:  ValWithOptions[int]{Val: 2000},
+		ScanRegionWidth:   ValWithOptions[int]{Val: 1500},
+		ScanRegionXOffset: optional.New(ValWithOptions[int]{Val: 0}),
+		ScanRegionYOffset: optional.New(ValWithOptions[int]{Val: 0}),
 	}
 
 	elm := orig.toXML("wscn:ScanRegion")
@@ -91,19 +91,19 @@ func TestScanRegion_RoundTrip_NoAttributes(t *testing.T) {
 func TestScanRegion_RoundTrip_PartialAttributes(t *testing.T) {
 	orig := ScanRegion{
 		ScanRegionHeight: ValWithOptions[int]{
-			Text:     1200,
+			Val:      1200,
 			Override: optional.New(BooleanElement("true")),
 		},
 		ScanRegionWidth: ValWithOptions[int]{
-			Text:        850,
+			Val:         850,
 			UsedDefault: optional.New(BooleanElement("false")),
 		},
 		ScanRegionXOffset: optional.New(ValWithOptions[int]{
-			Text:      200,
+			Val:       200,
 			MustHonor: optional.New(BooleanElement("1")),
 		}),
 		ScanRegionYOffset: optional.New(ValWithOptions[int]{
-			Text: 100,
+			Val: 100,
 		}),
 	}
 
@@ -119,10 +119,10 @@ func TestScanRegion_RoundTrip_PartialAttributes(t *testing.T) {
 
 func TestScanRegion_ChildElementOrder(t *testing.T) {
 	orig := ScanRegion{
-		ScanRegionHeight:  ValWithOptions[int]{Text: 500},
-		ScanRegionWidth:   ValWithOptions[int]{Text: 400},
-		ScanRegionXOffset: optional.New(ValWithOptions[int]{Text: 10}),
-		ScanRegionYOffset: optional.New(ValWithOptions[int]{Text: 20}),
+		ScanRegionHeight:  ValWithOptions[int]{Val: 500},
+		ScanRegionWidth:   ValWithOptions[int]{Val: 400},
+		ScanRegionXOffset: optional.New(ValWithOptions[int]{Val: 10}),
+		ScanRegionYOffset: optional.New(ValWithOptions[int]{Val: 20}),
 	}
 
 	elm := orig.toXML("wscn:ScanRegion")
@@ -149,10 +149,10 @@ func TestScanRegion_ChildElementOrder(t *testing.T) {
 
 func TestScanRegion_ChildElementValues(t *testing.T) {
 	orig := ScanRegion{
-		ScanRegionHeight:  ValWithOptions[int]{Text: 1234},
-		ScanRegionWidth:   ValWithOptions[int]{Text: 5678},
-		ScanRegionXOffset: optional.New(ValWithOptions[int]{Text: 42}),
-		ScanRegionYOffset: optional.New(ValWithOptions[int]{Text: 99}),
+		ScanRegionHeight:  ValWithOptions[int]{Val: 1234},
+		ScanRegionWidth:   ValWithOptions[int]{Val: 5678},
+		ScanRegionXOffset: optional.New(ValWithOptions[int]{Val: 42}),
+		ScanRegionYOffset: optional.New(ValWithOptions[int]{Val: 99}),
 	}
 
 	elm := orig.toXML("wscn:ScanRegion")
@@ -207,8 +207,8 @@ func TestScanRegion_MissingWidth(t *testing.T) {
 func TestScanRegion_MissingOffsets(t *testing.T) {
 	// Test that offsets are optional - should decode successfully without them
 	orig := ScanRegion{
-		ScanRegionHeight: ValWithOptions[int]{Text: 1000},
-		ScanRegionWidth:  ValWithOptions[int]{Text: 800},
+		ScanRegionHeight: ValWithOptions[int]{Val: 1000},
+		ScanRegionWidth:  ValWithOptions[int]{Val: 800},
 	}
 
 	elm := orig.toXML("wscn:ScanRegion")
@@ -286,25 +286,25 @@ func TestScanRegion_BooleanVariations(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			orig := ScanRegion{
 				ScanRegionHeight: ValWithOptions[int]{
-					Text:        300,
+					Val:         300,
 					MustHonor:   optional.New(c.value),
 					Override:    optional.New(c.value),
 					UsedDefault: optional.New(c.value),
 				},
 				ScanRegionWidth: ValWithOptions[int]{
-					Text:        250,
+					Val:         250,
 					MustHonor:   optional.New(c.value),
 					Override:    optional.New(c.value),
 					UsedDefault: optional.New(c.value),
 				},
 				ScanRegionXOffset: optional.New(ValWithOptions[int]{
-					Text:        10,
+					Val:         10,
 					MustHonor:   optional.New(c.value),
 					Override:    optional.New(c.value),
 					UsedDefault: optional.New(c.value),
 				}),
 				ScanRegionYOffset: optional.New(ValWithOptions[int]{
-					Text:        20,
+					Val:         20,
 					MustHonor:   optional.New(c.value),
 					Override:    optional.New(c.value),
 					UsedDefault: optional.New(c.value),
@@ -325,10 +325,10 @@ func TestScanRegion_BooleanVariations(t *testing.T) {
 
 func TestScanRegion_ZeroOffsets(t *testing.T) {
 	orig := ScanRegion{
-		ScanRegionHeight:  ValWithOptions[int]{Text: 1000},
-		ScanRegionWidth:   ValWithOptions[int]{Text: 800},
-		ScanRegionXOffset: optional.New(ValWithOptions[int]{Text: 0}),
-		ScanRegionYOffset: optional.New(ValWithOptions[int]{Text: 0}),
+		ScanRegionHeight:  ValWithOptions[int]{Val: 1000},
+		ScanRegionWidth:   ValWithOptions[int]{Val: 800},
+		ScanRegionXOffset: optional.New(ValWithOptions[int]{Val: 0}),
+		ScanRegionYOffset: optional.New(ValWithOptions[int]{Val: 0}),
 	}
 
 	elm := orig.toXML("wscn:ScanRegion")

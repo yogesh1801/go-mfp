@@ -18,7 +18,7 @@ import (
 func TestBrightness_RoundTrip(t *testing.T) {
 	orig := Brightness(
 		ValWithOptions[int]{
-			Text:        50,
+			Val:         50,
 			Override:    optional.New(BooleanElement("true")),
 			UsedDefault: optional.New(BooleanElement("0")),
 		},
@@ -44,7 +44,7 @@ func TestBrightness_RoundTrip(t *testing.T) {
 func TestBrightness_NoMustHonor(t *testing.T) {
 	b := Brightness(
 		ValWithOptions[int]{
-			Text:     25,
+			Val:      25,
 			Override: optional.New(BooleanElement("false")),
 		},
 	)

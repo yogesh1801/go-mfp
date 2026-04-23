@@ -48,12 +48,12 @@ func TestExposure_RoundTrip_WithExposureSettings(t *testing.T) {
 		ExposureSettings: optional.New(ExposureSettings{
 			Brightness: optional.New(Brightness(
 				ValWithOptions[int]{
-					Text: 50,
+					Val: 50,
 				},
 			)),
 			Contrast: optional.New(Contrast(
 				ValWithOptions[int]{
-					Text: 75,
+					Val: 75,
 				},
 			)),
 		}),
@@ -99,7 +99,7 @@ func TestExposure_RoundTrip_BothChildren(t *testing.T) {
 		ExposureSettings: optional.New(ExposureSettings{
 			Sharpness: optional.New(Sharpness(
 				ValWithOptions[int]{
-					Text: 90,
+					Val: 90,
 				},
 			)),
 		}),

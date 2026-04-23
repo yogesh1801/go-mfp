@@ -38,11 +38,11 @@ func TestCreateScanJobRequestRoundTrip(t *testing.T) {
 				ScanTicket: ScanTicket{
 					DocumentParameters: optional.New(DocumentParameters{
 						Format: optional.New(Format(ValWithOptions[FormatValue]{
-							Text: JFIF,
+							Val: JFIF,
 						})),
 						ImagesToTransfer: optional.New(
 							ImagesToTransfer(ValWithOptions[int]{
-								Text: 5,
+								Val: 5,
 							}),
 						),
 					}),

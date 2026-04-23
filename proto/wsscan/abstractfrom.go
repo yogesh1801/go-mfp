@@ -245,14 +245,14 @@ func fromAbstractScannerRequest(req *abstract.ScannerRequest) ScanTicket {
 	// Input + ADFMode → InputSource
 	switch req.Input {
 	case abstract.InputPlaten:
-		dp.InputSource = optional.New(InputSource{Text: InputSourcePlaten})
+		dp.InputSource = optional.New(InputSource{Val: InputSourcePlaten})
 	case abstract.InputADF:
 		switch req.ADFMode {
 		case abstract.ADFModeDuplex:
 			dp.InputSource = optional.New(
-				InputSource{Text: InputSourceADFDuplex})
+				InputSource{Val: InputSourceADFDuplex})
 		default:
-			dp.InputSource = optional.New(InputSource{Text: InputSourceADF})
+			dp.InputSource = optional.New(InputSource{Val: InputSourceADF})
 		}
 	}
 
@@ -262,14 +262,14 @@ func fromAbstractScannerRequest(req *abstract.ScannerRequest) ScanTicket {
 	// ColorMode + ColorDepth → ColorProcessing
 	ce := abstractColorEntryFrom(req.ColorMode, req.ColorDepth)
 	if ce != UnknownColorEntry {
-		front.ColorProcessing = optional.New(ColorProcessing{Text: ce})
+		front.ColorProcessing = optional.New(ColorProcessing{Val: ce})
 	}
 
 	// Resolution
 	if !req.Resolution.IsZero() {
 		front.Resolution = optional.New(Resolution{
-			Width:  ValWithOptions[int]{Text: req.Resolution.XResolution},
-			Height: ValWithOptions[int]{Text: req.Resolution.YResolution},
+			Width:  ValWithOptions[int]{Val: req.Resolution.XResolution},
+			Height: ValWithOptions[int]{Val: req.Resolution.YResolution},
 		})
 	}
 
@@ -277,17 +277,17 @@ func fromAbstractScannerRequest(req *abstract.ScannerRequest) ScanTicket {
 	if !req.Region.IsZero() {
 		sr := ScanRegion{
 			ScanRegionWidth: ValWithOptions[int]{
-				Text: req.Region.Width.Dots(wsscanDPI)},
+				Val: req.Region.Width.Dots(wsscanDPI)},
 			ScanRegionHeight: ValWithOptions[int]{
-				Text: req.Region.Height.Dots(wsscanDPI)},
+				Val: req.Region.Height.Dots(wsscanDPI)},
 		}
 		if req.Region.XOffset != 0 {
 			sr.ScanRegionXOffset = optional.New(
-				ValWithOptions[int]{Text: req.Region.XOffset.Dots(wsscanDPI)})
+				ValWithOptions[int]{Val: req.Region.XOffset.Dots(wsscanDPI)})
 		}
 		if req.Region.YOffset != 0 {
 			sr.ScanRegionYOffset = optional.New(
-				ValWithOptions[int]{Text: req.Region.YOffset.Dots(wsscanDPI)})
+				ValWithOptions[int]{Val: req.Region.YOffset.Dots(wsscanDPI)})
 		}
 		front.ScanRegion = optional.New(sr)
 	}
@@ -298,7 +298,7 @@ func fromAbstractScannerRequest(req *abstract.ScannerRequest) ScanTicket {
 	if req.DocumentFormat != "" {
 		fv := mimeToFormatValue(req.DocumentFormat)
 		if fv != UnknownFormatValue {
-			dp.Format = optional.New(Format{Text: fv})
+			dp.Format = optional.New(Format{Val: fv})
 		}
 	}
 
@@ -306,17 +306,17 @@ func fromAbstractScannerRequest(req *abstract.ScannerRequest) ScanTicket {
 	if req.Compression != nil {
 		compression := optional.Get(req.Compression)
 		dp.CompressionQualityFactor = optional.New(
-			CompressionQualityFactor{Text: compression})
+			CompressionQualityFactor{Val: compression})
 	}
 
 	// Intent → ContentType
 	switch req.Intent {
 	case abstract.IntentDocument:
-		dp.ContentType = optional.New(ContentType{Text: Text})
+		dp.ContentType = optional.New(ContentType{Val: Text})
 	case abstract.IntentPhoto:
-		dp.ContentType = optional.New(ContentType{Text: Photo})
+		dp.ContentType = optional.New(ContentType{Val: Photo})
 	case abstract.IntentTextAndGraphic:
-		dp.ContentType = optional.New(ContentType{Text: Mixed})
+		dp.ContentType = optional.New(ContentType{Val: Mixed})
 	}
 
 	// Brightness, Contrast, Sharpen → Exposure.ExposureSettings
@@ -324,15 +324,15 @@ func fromAbstractScannerRequest(req *abstract.ScannerRequest) ScanTicket {
 		es := ExposureSettings{}
 		if req.Brightness != nil {
 			es.Brightness = optional.New(Brightness{
-				Text: optional.Get(req.Brightness)})
+				Val: optional.Get(req.Brightness)})
 		}
 		if req.Contrast != nil {
 			es.Contrast = optional.New(Contrast{
-				Text: optional.Get(req.Contrast)})
+				Val: optional.Get(req.Contrast)})
 		}
 		if req.Sharpen != nil {
 			es.Sharpness = optional.New(Sharpness{
-				Text: optional.Get(req.Sharpen)})
+				Val: optional.Get(req.Sharpen)})
 		}
 		dp.Exposure = optional.New(Exposure{
 			ExposureSettings: optional.New(es),

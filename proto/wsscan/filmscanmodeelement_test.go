@@ -19,7 +19,7 @@ import (
 func TestFilmScanModeElement_RoundTrip_AllAttributes(t *testing.T) {
 	orig := FilmScanModeElement(
 		ValWithOptions[string]{
-			Text:        "ColorSlideFilm",
+			Val:         "ColorSlideFilm",
 			MustHonor:   optional.New(BooleanElement("true")),
 			Override:    optional.New(BooleanElement("false")),
 			UsedDefault: optional.New(BooleanElement("1")),
@@ -51,7 +51,7 @@ func TestFilmScanModeElement_RoundTrip_AllAttributes(t *testing.T) {
 func TestFilmScanModeElement_RoundTrip_NoAttributes(t *testing.T) {
 	orig := FilmScanModeElement(
 		ValWithOptions[string]{
-			Text: "NotApplicable",
+			Val: "NotApplicable",
 		},
 	)
 
@@ -81,7 +81,7 @@ func TestFilmScanModeElement_StandardValues(t *testing.T) {
 		t.Run(value, func(t *testing.T) {
 			fsm := FilmScanModeElement(
 				ValWithOptions[string]{
-					Text: value,
+					Val: value,
 				},
 			)
 			elm := fsm.toXML("wscn:FilmScanMode")
@@ -94,8 +94,8 @@ func TestFilmScanModeElement_StandardValues(t *testing.T) {
 			if err != nil {
 				t.Fatalf("decode returned error: %v", err)
 			}
-			if decoded.Text != value {
-				t.Errorf("expected value %s, got %s", value, decoded.Text)
+			if decoded.Val != value {
+				t.Errorf("expected value %s, got %s", value, decoded.Val)
 			}
 		})
 	}
@@ -105,7 +105,7 @@ func TestFilmScanModeElement_CustomValue(t *testing.T) {
 	// Test that custom/extended values are supported
 	orig := FilmScanModeElement(
 		ValWithOptions[string]{
-			Text: "CustomFilmType",
+			Val: "CustomFilmType",
 		},
 	)
 
@@ -114,16 +114,16 @@ func TestFilmScanModeElement_CustomValue(t *testing.T) {
 	if err != nil {
 		t.Fatalf("decode returned error: %v", err)
 	}
-	if decoded.Text != "CustomFilmType" {
+	if decoded.Val != "CustomFilmType" {
 		t.Errorf("expected custom value 'CustomFilmType', got %s",
-			decoded.Text)
+			decoded.Val)
 	}
 }
 
 func TestFilmScanModeElement_WithMustHonor(t *testing.T) {
 	orig := FilmScanModeElement(
 		ValWithOptions[string]{
-			Text:      "ColorNegativeFilm",
+			Val:       "ColorNegativeFilm",
 			MustHonor: optional.New(BooleanElement("true")),
 		},
 	)
@@ -150,7 +150,7 @@ func TestFilmScanModeElement_WithMustHonor(t *testing.T) {
 func TestFilmScanModeElement_WithOverride(t *testing.T) {
 	orig := FilmScanModeElement(
 		ValWithOptions[string]{
-			Text:     "BlackandWhiteNegativeFilm",
+			Val:      "BlackandWhiteNegativeFilm",
 			Override: optional.New(BooleanElement("0")),
 		},
 	)

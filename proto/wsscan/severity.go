@@ -64,4 +64,3 @@ func DecodeSeverity(str string) Severity {
 
 	return UnknownSeverity
 }
-

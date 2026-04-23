@@ -18,7 +18,7 @@ import (
 
 func createValidDocumentFinalParameters() DocumentParameters {
 	return DocumentParameters{
-		Format: optional.New(Format(ValWithOptions[FormatValue]{Text: PNG})),
+		Format: optional.New(Format(ValWithOptions[FormatValue]{Val: PNG})),
 	}
 }
 

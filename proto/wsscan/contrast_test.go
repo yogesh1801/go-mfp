@@ -18,7 +18,7 @@ import (
 func TestContrast_RoundTrip(t *testing.T) {
 	orig := Contrast(
 		ValWithOptions[int]{
-			Text:        75,
+			Val:         75,
 			Override:    optional.New(BooleanElement("false")),
 			UsedDefault: optional.New(BooleanElement("1")),
 		},

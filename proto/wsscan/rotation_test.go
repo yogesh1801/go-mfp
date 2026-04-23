@@ -19,7 +19,7 @@ import (
 func TestRotation_RoundTrip_AllAttributes(t *testing.T) {
 	orig := Rotation{
 		ValWithOptions: ValWithOptions[RotationValue]{
-			Text:        Rotation90,
+			Val:         Rotation90,
 			MustHonor:   optional.New(BooleanElement("true")),
 			Override:    optional.New(BooleanElement("false")),
 			UsedDefault: optional.New(BooleanElement("1")),
@@ -50,7 +50,7 @@ func TestRotation_RoundTrip_AllAttributes(t *testing.T) {
 func TestRotation_RoundTrip_NoAttributes(t *testing.T) {
 	orig := Rotation{
 		ValWithOptions: ValWithOptions[RotationValue]{
-			Text: Rotation180,
+			Val: Rotation180,
 		},
 	}
 
@@ -84,7 +84,7 @@ func TestRotation_AllRotationValues(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			r := Rotation{
 				ValWithOptions: ValWithOptions[RotationValue]{
-					Text: c.value,
+					Val: c.value,
 				},
 			}
 			elm := r.toXML("wscn:Rotation")
@@ -97,8 +97,8 @@ func TestRotation_AllRotationValues(t *testing.T) {
 			if err != nil {
 				t.Errorf("expected no error for value %s, got: %v", c.text, err)
 			}
-			if decoded.Text != c.value {
-				t.Errorf("expected value %v, got %v", c.value, decoded.Text)
+			if decoded.Val != c.value {
+				t.Errorf("expected value %v, got %v", c.value, decoded.Val)
 			}
 		})
 	}
@@ -134,7 +134,7 @@ func TestRotation_InvalidBooleanAttribute(t *testing.T) {
 func TestRotation_WithMustHonor(t *testing.T) {
 	orig := Rotation{
 		ValWithOptions: ValWithOptions[RotationValue]{
-			Text:      Rotation270,
+			Val:       Rotation270,
 			MustHonor: optional.New(BooleanElement("true")),
 		},
 	}
@@ -161,7 +161,7 @@ func TestRotation_WithMustHonor(t *testing.T) {
 func TestRotation_WithOverride(t *testing.T) {
 	orig := Rotation{
 		ValWithOptions: ValWithOptions[RotationValue]{
-			Text:     Rotation0,
+			Val:      Rotation0,
 			Override: optional.New(BooleanElement("false")),
 		},
 	}
@@ -188,7 +188,7 @@ func TestRotation_WithOverride(t *testing.T) {
 func TestRotation_WithUsedDefault(t *testing.T) {
 	orig := Rotation{
 		ValWithOptions: ValWithOptions[RotationValue]{
-			Text:        Rotation180,
+			Val:         Rotation180,
 			UsedDefault: optional.New(BooleanElement("1")),
 		},
 	}
@@ -229,7 +229,7 @@ func TestRotation_BooleanVariations(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			orig := Rotation{
 				ValWithOptions: ValWithOptions[RotationValue]{
-					Text:        Rotation90,
+					Val:         Rotation90,
 					MustHonor:   optional.New(c.value),
 					Override:    optional.New(c.value),
 					UsedDefault: optional.New(c.value),

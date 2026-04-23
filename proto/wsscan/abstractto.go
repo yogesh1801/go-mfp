@@ -25,7 +25,7 @@ func (ticket ScanTicket) ToAbstract() abstract.ScannerRequest {
 	// Translate InputSource → Input + ADFMode
 	if dp.InputSource != nil {
 		is := optional.Get(dp.InputSource)
-		switch is.Text {
+		switch is.Val {
 		case InputSourcePlaten:
 			absreq.Input = abstract.InputPlaten
 		case InputSourceADF:
@@ -46,14 +46,14 @@ func (ticket ScanTicket) ToAbstract() abstract.ScannerRequest {
 		if front.ColorProcessing != nil {
 			cp := optional.Get(front.ColorProcessing)
 			absreq.ColorMode, absreq.ColorDepth =
-				colorEntryToAbstract(cp.Text)
+				colorEntryToAbstract(cp.Val)
 		}
 
 		// Resolution → XResolution, YResolution
 		if front.Resolution != nil {
 			res := optional.Get(front.Resolution)
-			absreq.Resolution.XResolution = res.Width.Text
-			absreq.Resolution.YResolution = res.Height.Text
+			absreq.Resolution.XResolution = res.Width.Val
+			absreq.Resolution.YResolution = res.Height.Val
 		}
 
 		// ScanRegion → Region
@@ -61,18 +61,18 @@ func (ticket ScanTicket) ToAbstract() abstract.ScannerRequest {
 			sr := optional.Get(front.ScanRegion)
 			absreq.Region = abstract.Region{
 				Width: abstract.DimensionFromDots(
-					1000, sr.ScanRegionWidth.Text),
+					1000, sr.ScanRegionWidth.Val),
 				Height: abstract.DimensionFromDots(
-					1000, sr.ScanRegionHeight.Text),
+					1000, sr.ScanRegionHeight.Val),
 			}
 
 			if sr.ScanRegionXOffset != nil {
 				absreq.Region.XOffset = abstract.DimensionFromDots(
-					1000, optional.Get(sr.ScanRegionXOffset).Text)
+					1000, optional.Get(sr.ScanRegionXOffset).Val)
 			}
 			if sr.ScanRegionYOffset != nil {
 				absreq.Region.YOffset = abstract.DimensionFromDots(
-					1000, optional.Get(sr.ScanRegionYOffset).Text)
+					1000, optional.Get(sr.ScanRegionYOffset).Val)
 			}
 		}
 	}
@@ -80,19 +80,19 @@ func (ticket ScanTicket) ToAbstract() abstract.ScannerRequest {
 	// Translate Format → DocumentFormat
 	if dp.Format != nil {
 		fmtVal := optional.Get(dp.Format)
-		absreq.DocumentFormat = fmtVal.Text.MimeType()
+		absreq.DocumentFormat = fmtVal.Val.MimeType()
 	}
 
 	// Translate CompressionQualityFactor → Compression
 	if dp.CompressionQualityFactor != nil {
 		cqf := optional.Get(dp.CompressionQualityFactor)
-		absreq.Compression = optional.New(cqf.Text)
+		absreq.Compression = optional.New(cqf.Val)
 	}
 
 	// Translate ContentType → Intent
 	if dp.ContentType != nil {
 		ct := optional.Get(dp.ContentType)
-		switch ct.Text {
+		switch ct.Val {
 		case Text:
 			absreq.Intent = abstract.IntentDocument
 		case Photo:
@@ -112,15 +112,15 @@ func (ticket ScanTicket) ToAbstract() abstract.ScannerRequest {
 
 			if es.Brightness != nil {
 				b := optional.Get(es.Brightness)
-				absreq.Brightness = optional.New(b.Text)
+				absreq.Brightness = optional.New(b.Val)
 			}
 			if es.Contrast != nil {
 				c := optional.Get(es.Contrast)
-				absreq.Contrast = optional.New(c.Text)
+				absreq.Contrast = optional.New(c.Val)
 			}
 			if es.Sharpness != nil {
 				s := optional.Get(es.Sharpness)
-				absreq.Sharpen = optional.New(s.Text)
+				absreq.Sharpen = optional.New(s.Val)
 			}
 		}
 	}

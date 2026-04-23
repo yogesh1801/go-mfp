@@ -40,7 +40,7 @@ func TestMediaSidesRoundTrip(t *testing.T) {
 				MediaFront: MediaSide{
 					ColorProcessing: optional.New(ColorProcessing(
 						ValWithOptions[ColorEntry]{
-							Text: RGB24,
+							Val: RGB24,
 						},
 					)),
 				},
@@ -52,8 +52,8 @@ func TestMediaSidesRoundTrip(t *testing.T) {
 				MediaFront: MediaSide{},
 				MediaBack: optional.New(MediaSide{
 					Resolution: optional.New(Resolution{
-						Height: ValWithOptions[int]{Text: 300},
-						Width:  ValWithOptions[int]{Text: 300},
+						Height: ValWithOptions[int]{Val: 300},
+						Width:  ValWithOptions[int]{Val: 300},
 					}),
 				}),
 			},
@@ -64,23 +64,23 @@ func TestMediaSidesRoundTrip(t *testing.T) {
 				MediaFront: MediaSide{
 					ColorProcessing: optional.New(ColorProcessing(
 						ValWithOptions[ColorEntry]{
-							Text: RGB24,
+							Val: RGB24,
 						},
 					)),
 					Resolution: optional.New(Resolution{
-						Height: ValWithOptions[int]{Text: 600},
-						Width:  ValWithOptions[int]{Text: 600},
+						Height: ValWithOptions[int]{Val: 600},
+						Width:  ValWithOptions[int]{Val: 600},
 					}),
 				},
 				MediaBack: optional.New(MediaSide{
 					ColorProcessing: optional.New(ColorProcessing(
 						ValWithOptions[ColorEntry]{
-							Text: Grayscale8,
+							Val: Grayscale8,
 						},
 					)),
 					ScanRegion: optional.New(ScanRegion{
-						ScanRegionHeight: ValWithOptions[int]{Text: 1000},
-						ScanRegionWidth:  ValWithOptions[int]{Text: 800},
+						ScanRegionHeight: ValWithOptions[int]{Val: 1000},
+						ScanRegionWidth:  ValWithOptions[int]{Val: 800},
 					}),
 				}),
 			},
@@ -92,28 +92,28 @@ func TestMediaSidesRoundTrip(t *testing.T) {
 				MediaFront: MediaSide{
 					ColorProcessing: optional.New(ColorProcessing(
 						ValWithOptions[ColorEntry]{
-							Text:      RGB24,
+							Val:       RGB24,
 							MustHonor: optional.New(BooleanElement("true")),
 						},
 					)),
 					Resolution: optional.New(Resolution{
-						Height:    ValWithOptions[int]{Text: 600},
-						Width:     ValWithOptions[int]{Text: 600},
+						Height:    ValWithOptions[int]{Val: 600},
+						Width:     ValWithOptions[int]{Val: 600},
 						MustHonor: optional.New(BooleanElement("false")),
 					}),
 					ScanRegion: optional.New(ScanRegion{
-						ScanRegionHeight: ValWithOptions[int]{Text: 2000},
-						ScanRegionWidth:  ValWithOptions[int]{Text: 1500},
+						ScanRegionHeight: ValWithOptions[int]{Val: 2000},
+						ScanRegionWidth:  ValWithOptions[int]{Val: 1500},
 						ScanRegionXOffset: optional.New(
-							ValWithOptions[int]{Text: 100}),
+							ValWithOptions[int]{Val: 100}),
 						ScanRegionYOffset: optional.New(
-							ValWithOptions[int]{Text: 50}),
+							ValWithOptions[int]{Val: 50}),
 					}),
 				},
 				MediaBack: optional.New(MediaSide{
 					ColorProcessing: optional.New(ColorProcessing(
 						ValWithOptions[ColorEntry]{
-							Text: Grayscale8,
+							Val: Grayscale8,
 						},
 					)),
 				}),
