@@ -92,6 +92,11 @@ func (model *Model) pyExportSlice(kwmap map[string]string,
 func (model *Model) pyExportValue(kwmap map[string]string,
 	v reflect.Value) *cpython.Object {
 
+	// Unwrap wrapped values where possible.
+	if wrapper, ok := v.Interface().(wsscan.Wrapper); ok {
+		v = reflect.ValueOf(wrapper.Unwrap())
+	}
+
 	// Handle known types
 	data := v.Interface()
 	switch v := data.(type) {
@@ -99,10 +104,6 @@ func (model *Model) pyExportValue(kwmap map[string]string,
 		return model.py.NewObject(v.String())
 	case uuid.UUID:
 		return model.clsUUID.Call(v.String())
-	case wsscan.TextWithLangElement:
-		if v.Lang == nil {
-			return model.py.NewObject(v.Text)
-		}
 
 	// fmt.Stringer becomes Python string
 	case fmt.Stringer:
