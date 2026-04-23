@@ -16,14 +16,16 @@ import (
 )
 
 // GetScannerElementsResponse contains the WSD Scan Service's response to a
-// client's GetScannerElementsRequest. ScannerElements holds one [ElementData]
-// entry for each schema element that was requested.
+// client's GetScannerElementsRequest. ScannerElements holds one
+// [ScanElemData] entry for each schema element that was requested.
 type GetScannerElementsResponse struct {
-	ScannerElements []ElementData
+	ScannerElements []ScanElemData
 }
 
 // Action returns the [Action] associated with this body.
-func (*GetScannerElementsResponse) Action() Action { return ActGetScannerElementsResponse }
+func (*GetScannerElementsResponse) Action() Action {
+	return ActGetScannerElementsResponse
+}
 
 // ToXML encodes the body into an XML tree.
 func (r *GetScannerElementsResponse) ToXML() xmldoc.Element {
@@ -65,7 +67,7 @@ func decodeGetScannerElementsResponse(root xmldoc.Element) (
 		if child.Name != NsWSCN+":ElementData" {
 			continue
 		}
-		ed, err := decodeElementData(child)
+		ed, err := decodeScanElemData(child)
 		if err != nil {
 			return r, err
 		}

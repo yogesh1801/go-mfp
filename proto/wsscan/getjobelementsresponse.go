@@ -15,10 +15,20 @@ import (
 )
 
 // GetJobElementsResponse returns the job-related information that a client
-// requested via GetJobElementsRequest. JobElements holds one [ElementData]
-// entry for each job schema element that was requested.
+// requested via GetJobElementsRequest. JobElements holds one
+// [JobElemData] entry for each job schema element that was requested.
 type GetJobElementsResponse struct {
-	JobElements []ElementData
+	JobElements []JobElemData
+}
+
+// Action returns the [Action] associated with this body.
+func (*GetJobElementsResponse) Action() Action {
+	return ActGetJobElementsResponse
+}
+
+// ToXML encodes the body into an XML tree.
+func (r *GetJobElementsResponse) ToXML() xmldoc.Element {
+	return r.toXML(NsWSCN + ":GetJobElementsResponse")
 }
 
 // toXML generates XML tree for the [GetJobElementsResponse].
@@ -54,7 +64,7 @@ func decodeGetJobElementsResponse(root xmldoc.Element) (
 
 	for _, child := range jobElements.Elem.Children {
 		if child.Name == NsWSCN+":ElementData" {
-			ed, err := decodeElementData(child)
+			ed, err := decodeJobElemData(child)
 			if err != nil {
 				return r, err
 			}

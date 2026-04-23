@@ -20,11 +20,15 @@ import (
 // encodes to XML and decodes back to an identical value.
 func TestGetJobElementsResponse_RoundTrip(t *testing.T) {
 	orig := GetJobElementsResponse{
-		JobElements: []ElementData{
+		JobElements: []JobElemData{
 			{
-				Name:               ElementDataScannerDescription,
-				Valid:              BooleanElement("true"),
-				ScannerDescription: optional.New(createValidScannerDescription()),
+				Name:  JobElemDataJobStatus,
+				Valid: BooleanElement("true"),
+				JobStatus: optional.New(JobStatus{
+					JobID:          1,
+					JobState:       JobStateProcessing,
+					ScansCompleted: 0,
+				}),
 			},
 		},
 	}

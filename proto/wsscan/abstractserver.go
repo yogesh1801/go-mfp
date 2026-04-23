@@ -108,6 +108,9 @@ func (srv *AbstractServer) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	case *GetActiveJobsRequest:
 		rsp, err = srv.handleGetActiveJobsRequest(query, body)
 
+	case *GetJobElementsRequest:
+		rsp, err = srv.handleGetJobElementsRequest(query, body)
+
 	case *GetJobHistoryRequest:
 		rsp, err = srv.handleGetJobHistoryRequest(query, body)
 
@@ -133,8 +136,8 @@ func (srv *AbstractServer) handleGetScannerElementsRequest(
 	req *GetScannerElementsRequest,
 ) (Body, error) {
 
-	// Build ElementData for each requested element, skipping duplicates.
-	var elements []ElementData
+	// Build ScanElemData for each requested element, skipping duplicates.
+	var elements []ScanElemData
 	seen := generic.NewSet[ScannerRequestedElement]()
 
 	for _, re := range req.RequestedElements {
@@ -146,8 +149,8 @@ func (srv *AbstractServer) handleGetScannerElementsRequest(
 			req := srv.caps.DefaultRequest()
 			if req != nil {
 				ticket := fromAbstractScannerRequest(req)
-				elements = append(elements, ElementData{
-					Name:              ElementDataDefaultScanTicket,
+				elements = append(elements, ScanElemData{
+					Name:              ScanElemDataDefaultScanTicket,
 					Valid:             BooleanElement("true"),
 					DefaultScanTicket: optional.New(ticket),
 				})
@@ -155,16 +158,16 @@ func (srv *AbstractServer) handleGetScannerElementsRequest(
 
 		case ScannerElemDescription:
 			desc := fromAbstractScannerDescription(srv.caps)
-			elements = append(elements, ElementData{
-				Name:               ElementDataScannerDescription,
+			elements = append(elements, ScanElemData{
+				Name:               ScanElemDataScannerDescription,
 				Valid:              BooleanElement("true"),
 				ScannerDescription: optional.New(desc),
 			})
 
 		case ScannerElemConfiguration:
 			conf := fromAbstractScannerConfiguration(srv.caps)
-			elements = append(elements, ElementData{
-				Name:                 ElementDataScannerConfiguration,
+			elements = append(elements, ScanElemData{
+				Name:                 ScanElemDataScannerConfiguration,
 				Valid:                BooleanElement("true"),
 				ScannerConfiguration: optional.New(conf),
 			})
@@ -174,8 +177,8 @@ func (srv *AbstractServer) handleGetScannerElementsRequest(
 			status := srv.status
 			srv.lock.Unlock()
 			status.ScannerCurrentTime = time.Now()
-			elements = append(elements, ElementData{
-				Name:          ElementDataScannerStatus,
+			elements = append(elements, ScanElemData{
+				Name:          ScanElemDataScannerStatus,
 				Valid:         BooleanElement("true"),
 				ScannerStatus: optional.New(status),
 			})
@@ -185,6 +188,81 @@ func (srv *AbstractServer) handleGetScannerElementsRequest(
 	return &GetScannerElementsResponse{
 		ScannerElements: elements,
 	}, nil
+}
+
+// handleGetJobElementsRequest handles GetJobElements requests.
+// It returns the requested job schema elements for the job identified
+// by JobID.
+func (srv *AbstractServer) handleGetJobElementsRequest(
+	query *transport.ServerQuery,
+	req *GetJobElementsRequest,
+) (Body, error) {
+
+	srv.lock.Lock()
+	job := srv.jobs.get(req.JobID)
+	if job == nil {
+		srv.lock.Unlock()
+		query.Reject(http.StatusNotFound, nil)
+		return nil, errInvalidJob
+	}
+	j := *job
+	srv.lock.Unlock()
+
+	var elements []JobElemData
+	seen := generic.NewSet[JobRequestedElement]()
+
+	for _, re := range req.RequestedElements {
+		if !seen.TestAndAdd(re) {
+			continue
+		}
+		switch re {
+		case JobElemStatus:
+			elements = append(elements, JobElemData{
+				Name:      JobElemDataJobStatus,
+				Valid:     BooleanElement("true"),
+				JobStatus: optional.New(jobStatusFrom(j)),
+			})
+
+		case JobElemScanTicket:
+			elements = append(elements, JobElemData{
+				Name:       JobElemDataScanTicket,
+				Valid:      BooleanElement("true"),
+				ScanTicket: optional.New(j.scanTicket),
+			})
+
+		case JobElemDocuments:
+			docs := Documents{}
+			if j.scanTicket.DocumentParameters != nil {
+				docs.DocumentFinalParameters =
+					optional.Get(j.scanTicket.DocumentParameters)
+			}
+			elements = append(elements, JobElemData{
+				Name:      JobElemDataDocuments,
+				Valid:     BooleanElement("true"),
+				Documents: optional.New(docs),
+			})
+		}
+	}
+
+	return &GetJobElementsResponse{
+		JobElements: elements,
+	}, nil
+}
+
+// jobStatusFrom builds a [JobStatus] from a [jobInfo].
+func jobStatusFrom(j jobInfo) JobStatus {
+	js := JobStatus{
+		JobID:          j.jobID,
+		JobState:       j.state,
+		ScansCompleted: j.scansCompleted,
+	}
+	if !j.createdTime.IsZero() {
+		js.JobCreatedTime = optional.New(j.createdTime)
+	}
+	if !j.completedTime.IsZero() {
+		js.JobCompletedTime = optional.New(j.completedTime)
+	}
+	return js
 }
 
 // handleCreateScanJobRequest handles CreateScanJob requests.
