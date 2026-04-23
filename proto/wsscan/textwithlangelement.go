@@ -22,6 +22,23 @@ type TextWithLangElement struct {
 	Lang optional.Val[string]
 }
 
+// HasOptions reports if value really has any options set.
+// It implements the [Wrapper] interface.
+func (t TextWithLangElement) HasOptions() bool {
+	return t.Lang != nil
+}
+
+// Unwrap returns the underlying value, if t has no options, or the
+// t's value itself otherwise.
+//
+// It implements the [Wrapper] interface.
+func (t TextWithLangElement) Unwrap() any {
+	if !t.HasOptions() {
+		return t.Text
+	}
+	return t.Text
+}
+
 // decodeTextWithLangElement fills the struct from an XML element.
 func (t *TextWithLangElement) decodeTextWithLangElement(root xmldoc.Element) (
 	TextWithLangElement, error) {

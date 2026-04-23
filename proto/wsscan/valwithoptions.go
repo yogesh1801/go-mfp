@@ -33,8 +33,20 @@ type ValWithOptions[T any] struct {
 }
 
 // HasOptions reports if value really has any options set.
-func (t *ValWithOptions[T]) HasOptions() bool {
+// It implements the [Wrapper] interface.
+func (t ValWithOptions[T]) HasOptions() bool {
 	return t.MustHonor != nil || t.Override != nil || t.UsedDefault != nil
+}
+
+// Unwrap returns the underlying value, if t has no options, or the
+// t's value itself otherwise.
+//
+// It implements the [Wrapper] interface.
+func (t ValWithOptions[T]) Unwrap() any {
+	if !t.HasOptions() {
+		return t.Val
+	}
+	return t
 }
 
 // decodeValWithOptions fills the struct from an XML element.
