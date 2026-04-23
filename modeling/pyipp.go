@@ -10,7 +10,6 @@ package modeling
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/OpenPrinting/go-mfp/cpython"
@@ -167,7 +166,7 @@ func (model *Model) pyImportIPPAttrs(obj *cpython.Object) (
 		var vals goipp.Values
 		vals, err = model.pyImportIPPValues(valobj)
 		if err != nil {
-			return nil, pyIPPImportErrorWrap(key, err)
+			return nil, pyImportErrorWrap(key, err)
 		}
 
 		// Append the attribute
@@ -292,14 +291,14 @@ func (model *Model) pyImportIPPResolution(obj *cpython.Object) (
 	// Load Xres
 	x, err = obj.Get("X").Int()
 	if err != nil {
-		err = pyIPPImportErrorWrap("X", err)
+		err = pyImportErrorWrap("X", err)
 		return
 	}
 
 	// Load Yres
 	y, err = obj.Get("Y").Int()
 	if err != nil {
-		err = pyIPPImportErrorWrap("Y", err)
+		err = pyImportErrorWrap("Y", err)
 		return
 	}
 
@@ -338,14 +337,14 @@ func (model *Model) pyImportIPPRange(obj *cpython.Object) (
 	// Load Lower
 	lower, err = obj.Get("Lower").Int()
 	if err != nil {
-		err = pyIPPImportErrorWrap("Lower", err)
+		err = pyImportErrorWrap("Lower", err)
 		return
 	}
 
 	// Load Upper
 	upper, err = obj.Get("Upper").Int()
 	if err != nil {
-		err = pyIPPImportErrorWrap("Upper", err)
+		err = pyImportErrorWrap("Upper", err)
 		return
 	}
 
@@ -366,7 +365,7 @@ func (model *Model) pyImportIPPTextWithLang(obj *cpython.Object, tag goipp.Tag) 
 	// Load lang
 	lang, err = obj.Get("Lang").Str()
 	if err != nil {
-		err = pyIPPImportErrorWrap("Lang", err)
+		err = pyImportErrorWrap("Lang", err)
 		return
 	}
 
@@ -378,7 +377,7 @@ func (model *Model) pyImportIPPTextWithLang(obj *cpython.Object, tag goipp.Tag) 
 
 	text, err = obj.Get(nm).Str()
 	if err != nil {
-		err = pyIPPImportErrorWrap(nm, err)
+		err = pyImportErrorWrap(nm, err)
 		return
 	}
 
@@ -450,37 +449,4 @@ func init() {
 	for tag, name := range pyIPPTagName {
 		pyIPPTagByName[name] = tag
 	}
-}
-
-// pyIPPImportError represents the error that happens during
-// importing the Python object into IPP structures
-type pyIPPImportError struct {
-	path []string // Path over attribute names
-	err  error    // Underlying error
-}
-
-// pyIPPImportErrorWrap wraps error into the pyIPPImportError.
-// name is the name of the attribute the error is related to.
-func pyIPPImportErrorWrap(name string, err error) error {
-	if e, ok := err.(pyIPPImportError); ok {
-		return pyIPPImportError{
-			path: append([]string{name}, e.path...),
-			err:  e.err,
-		}
-	}
-
-	return pyIPPImportError{
-		path: []string{name},
-		err:  err,
-	}
-}
-
-// Error returns the error message
-func (e pyIPPImportError) Error() string {
-	return fmt.Sprintf("%s: %s", strings.Join(e.path, "."), e.err)
-}
-
-// Unwrap "unwraps" the error.
-func (e pyIPPImportError) Unwrap() error {
-	return e.err
 }

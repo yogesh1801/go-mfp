@@ -11,6 +11,7 @@ package modeling
 import (
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/OpenPrinting/go-mfp/cpython"
 	"github.com/OpenPrinting/go-mfp/internal/assert"
@@ -159,14 +160,14 @@ func (model *Model) pyImportStruct(kwmap map[string]string,
 			if item.NotFound() {
 				continue
 			}
-			return fmt.Errorf("%s: %s", fld.Name, item.Err())
+			return pyImportErrorWrap(fld.Name, err)
 		}
 
 		// Decode the item, if found
 		fldval := v.FieldByIndex(fld.Index)
 		err := model.pyImportValue(kwmap, fldval, item)
 		if err != nil {
-			return err
+			return pyImportErrorWrap(fld.Name, err)
 		}
 	}
 
@@ -198,7 +199,7 @@ func (model *Model) pyImportSlice(kwmap map[string]string,
 	for i, item := range slice {
 		err = model.pyImportValue(kwmap, v.Index(i), item)
 		if err != nil {
-			return err
+			return pyImportErrorWrap(fmt.Sprintf("[%d]", i), err)
 		}
 	}
 
@@ -362,4 +363,48 @@ func (model *Model) pyImportValue(kwmap map[string]string,
 	}
 
 	return nil
+}
+
+// pyImportError represents the error that happens during
+// importing the Python object into Go structure
+type pyImportError struct {
+	path []string // Path over attribute names
+	err  error    // Underlying error
+}
+
+// pyImportErrorWrap wraps error into the pyImportError.
+// name is the name of the attribute the error is related to.
+func pyImportErrorWrap(name string, err error) error {
+	if e, ok := err.(pyImportError); ok {
+		return pyImportError{
+			path: append([]string{name}, e.path...),
+			err:  e.err,
+		}
+	}
+
+	return pyImportError{
+		path: []string{name},
+		err:  err,
+	}
+}
+
+// Error returns the error message
+func (e pyImportError) Error() string {
+	buf := strings.Builder{}
+	for _, p := range e.path {
+		if buf.Len() > 0 && !strings.HasPrefix(p, "[") {
+			buf.WriteByte('.')
+		}
+		buf.WriteString(p)
+	}
+
+	buf.Write([]byte(": "))
+	buf.WriteString(e.err.Error())
+
+	return buf.String()
+}
+
+// Unwrap "unwraps" the error.
+func (e pyImportError) Unwrap() error {
+	return e.err
 }
