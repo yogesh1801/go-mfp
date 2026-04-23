@@ -27,7 +27,7 @@ func TestDocumentsRoundTrip(t *testing.T) {
 				DocumentFinalParameters: DocumentParameters{
 					Format: optional.New(Format(
 						ValWithOptions[FormatValue]{
-							Text: JFIF,
+							Val: JFIF,
 						})),
 				},
 			},
@@ -38,11 +38,11 @@ func TestDocumentsRoundTrip(t *testing.T) {
 				DocumentFinalParameters: DocumentParameters{
 					Format: optional.New(Format(
 						ValWithOptions[FormatValue]{
-							Text: PNG,
+							Val: PNG,
 						})),
 					ImagesToTransfer: optional.New(ImagesToTransfer(
 						ValWithOptions[int]{
-							Text: 5,
+							Val: 5,
 						})),
 				},
 				Document: []Document{
@@ -60,15 +60,15 @@ func TestDocumentsRoundTrip(t *testing.T) {
 				DocumentFinalParameters: DocumentParameters{
 					Format: optional.New(Format(
 						ValWithOptions[FormatValue]{
-							Text: JFIF,
+							Val: JFIF,
 						})),
 					ImagesToTransfer: optional.New(ImagesToTransfer(
 						ValWithOptions[int]{
-							Text: 10,
+							Val: 10,
 						})),
 					InputSource: optional.New(InputSource(
 						ValWithOptions[InputSourceValue]{
-							Text: InputSourcePlaten,
+							Val: InputSourcePlaten,
 						})),
 				},
 				Document: []Document{
@@ -204,7 +204,7 @@ func TestDocumentsToXML(t *testing.T) {
 		DocumentFinalParameters: DocumentParameters{
 			Format: optional.New(Format(
 				ValWithOptions[FormatValue]{
-					Text: JFIF,
+					Val: JFIF,
 				})),
 		},
 		Document: []Document{

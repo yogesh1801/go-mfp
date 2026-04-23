@@ -18,7 +18,7 @@ import (
 
 func TestCompressionQualityFactor_RoundTrip_AllAttributes(t *testing.T) {
 	orig := CompressionQualityFactor(ValWithOptions[int]{
-		Text:        85,
+		Val:         85,
 		MustHonor:   optional.New(BooleanElement("true")),
 		Override:    optional.New(BooleanElement("false")),
 		UsedDefault: optional.New(BooleanElement("1")),
@@ -52,7 +52,7 @@ func TestCompressionQualityFactor_RoundTrip_AllAttributes(t *testing.T) {
 
 func TestCompressionQualityFactor_RoundTrip_NoAttributes(t *testing.T) {
 	orig := CompressionQualityFactor(ValWithOptions[int]{
-		Text: 50,
+		Val: 50,
 	})
 
 	elm := orig.toXML("wscn:CompressionQualityFactor")
@@ -85,7 +85,7 @@ func TestCompressionQualityFactor_BoundaryValues(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			cqf := CompressionQualityFactor(ValWithOptions[int]{
-				Text: c.value,
+				Val: c.value,
 			})
 			elm := cqf.toXML("wscn:CompressionQualityFactor")
 
@@ -97,11 +97,11 @@ func TestCompressionQualityFactor_BoundaryValues(t *testing.T) {
 					err,
 				)
 			}
-			if decoded.Text != c.value {
+			if decoded.Val != c.value {
 				t.Errorf(
 					"expected value %d, got %d",
 					c.value,
-					decoded.Text,
+					decoded.Val,
 				)
 			}
 		})
@@ -141,7 +141,7 @@ func TestCompressionQualityFactor_InvalidBooleanAttribute(t *testing.T) {
 
 func TestCompressionQualityFactor_WithMustHonor(t *testing.T) {
 	orig := CompressionQualityFactor(ValWithOptions[int]{
-		Text:      100,
+		Val:       100,
 		MustHonor: optional.New(BooleanElement("true")),
 	})
 
@@ -173,7 +173,7 @@ func TestCompressionQualityFactor_WithMustHonor(t *testing.T) {
 
 func TestCompressionQualityFactor_WithOverride(t *testing.T) {
 	orig := CompressionQualityFactor(ValWithOptions[int]{
-		Text:     25,
+		Val:      25,
 		Override: optional.New(BooleanElement("false")),
 	})
 
@@ -198,7 +198,7 @@ func TestCompressionQualityFactor_WithOverride(t *testing.T) {
 
 func TestCompressionQualityFactor_WithUsedDefault(t *testing.T) {
 	orig := CompressionQualityFactor(ValWithOptions[int]{
-		Text:        75,
+		Val:         75,
 		UsedDefault: optional.New(BooleanElement("1")),
 	})
 

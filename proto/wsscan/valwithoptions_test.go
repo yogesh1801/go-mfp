@@ -38,7 +38,7 @@ func intEncoder(i int) string {
 
 func TestValWithOptions_String_RoundTrip_AllAttributes(t *testing.T) {
 	orig := ValWithOptions[string]{
-		Text:        "100",
+		Val:         "100",
 		MustHonor:   optional.New(BooleanElement("true")),
 		Override:    optional.New(BooleanElement("false")),
 		UsedDefault: optional.New(BooleanElement("1")),
@@ -50,10 +50,10 @@ func TestValWithOptions_String_RoundTrip_AllAttributes(t *testing.T) {
 			elm.Name,
 		)
 	}
-	if elm.Text != orig.Text {
+	if elm.Text != orig.Val {
 		t.Errorf(
 			"expected text '%s', got '%s'",
-			orig.Text,
+			orig.Val,
 			elm.Text,
 		)
 	}
@@ -77,7 +77,7 @@ func TestValWithOptions_String_RoundTrip_AllAttributes(t *testing.T) {
 
 func TestValWithOptions_String_RoundTrip_NoAttributes(t *testing.T) {
 	orig := ValWithOptions[string]{
-		Text: "50",
+		Val: "50",
 	}
 	elm := orig.toXML("wscn:CompressionQualityFactor", stringEncoder)
 	if len(elm.Attrs) != 0 {
@@ -96,7 +96,7 @@ func TestValWithOptions_String_RoundTrip_NoAttributes(t *testing.T) {
 
 func TestValWithOptions_String_RoundTrip_PartialAttributes(t *testing.T) {
 	orig := ValWithOptions[string]{
-		Text:      "75",
+		Val:       "75",
 		MustHonor: optional.New(BooleanElement("true")),
 		Override:  optional.New(BooleanElement("0")),
 	}
@@ -121,7 +121,7 @@ func TestValWithOptions_String_RoundTrip_PartialAttributes(t *testing.T) {
 
 func TestValWithOptions_Int_RoundTrip(t *testing.T) {
 	orig := ValWithOptions[int]{
-		Text:        100,
+		Val:         100,
 		MustHonor:   optional.New(BooleanElement("true")),
 		UsedDefault: optional.New(BooleanElement("false")),
 	}
@@ -175,7 +175,7 @@ func TestValWithOptions_BooleanVariations(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			orig := ValWithOptions[string]{
-				Text:      "test",
+				Val:       "test",
 				MustHonor: optional.New(c.value),
 			}
 			elm := orig.toXML("wscn:Test", stringEncoder)
@@ -205,7 +205,7 @@ func TestValWithOptions_Int_InvalidValue(t *testing.T) {
 // Example usage demonstrating the generic type
 func ExampleValWithOptions_string() {
 	elem := ValWithOptions[string]{
-		Text:      "high",
+		Val:       "high",
 		MustHonor: optional.New(BooleanElement("true")),
 	}
 	xml := elem.toXML("wscn:Quality", stringEncoder)
@@ -215,7 +215,7 @@ func ExampleValWithOptions_string() {
 
 func ExampleValWithOptions_int() {
 	elem := ValWithOptions[int]{
-		Text:     85,
+		Val:      85,
 		Override: optional.New(BooleanElement("false")),
 	}
 	xml := elem.toXML("wscn:CompressionQualityFactor", intEncoder)

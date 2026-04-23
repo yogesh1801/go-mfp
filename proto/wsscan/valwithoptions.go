@@ -26,7 +26,7 @@ import (
 // </wscn:Element>
 // The type parameter T allows the value to be any type (string, int, etc.)
 type ValWithOptions[T any] struct {
-	Text        T
+	Val         T
 	MustHonor   optional.Val[BooleanElement]
 	Override    optional.Val[BooleanElement]
 	UsedDefault optional.Val[BooleanElement]
@@ -48,7 +48,7 @@ func (t *ValWithOptions[T]) decodeValWithOptions(
 	if err != nil {
 		return *t, err
 	}
-	t.Text = val
+	t.Val = val
 
 	// Decode MustHonor attribute
 	if attr, found := root.AttrByName(NsWSCN + ":MustHonor"); found {
@@ -86,7 +86,7 @@ func (t ValWithOptions[T]) toXML(
 	name string,
 	encoder func(T) string,
 ) xmldoc.Element {
-	elm := xmldoc.Element{Name: name, Text: encoder(t.Text)}
+	elm := xmldoc.Element{Name: name, Text: encoder(t.Val)}
 	var attrs []xmldoc.Attr
 
 	// Add MustHonor attribute if present

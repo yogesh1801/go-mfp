@@ -19,7 +19,7 @@ import (
 func TestInputSource_RoundTrip_AllAttributes(t *testing.T) {
 	orig := InputSource(
 		ValWithOptions[InputSourceValue]{
-			Text:        InputSourceADF,
+			Val:         InputSourceADF,
 			MustHonor:   optional.New(BooleanElement("true")),
 			Override:    optional.New(BooleanElement("false")),
 			UsedDefault: optional.New(BooleanElement("1")),
@@ -51,7 +51,7 @@ func TestInputSource_RoundTrip_AllAttributes(t *testing.T) {
 func TestInputSource_RoundTrip_NoAttributes(t *testing.T) {
 	orig := InputSource(
 		ValWithOptions[InputSourceValue]{
-			Text: InputSourcePlaten,
+			Val: InputSourcePlaten,
 		},
 	)
 
@@ -75,7 +75,7 @@ func TestInputSource_RoundTrip_NoAttributes(t *testing.T) {
 func TestInputSource_RoundTrip_PartialAttributes(t *testing.T) {
 	orig := InputSource(
 		ValWithOptions[InputSourceValue]{
-			Text:      InputSourceADFDuplex,
+			Val:       InputSourceADFDuplex,
 			MustHonor: optional.New(BooleanElement("true")),
 			Override:  optional.New(BooleanElement("0")),
 		},
@@ -115,7 +115,7 @@ func TestInputSource_AllValues(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			orig := InputSource(
 				ValWithOptions[InputSourceValue]{
-					Text: c.value,
+					Val: c.value,
 				},
 			)
 
@@ -128,8 +128,8 @@ func TestInputSource_AllValues(t *testing.T) {
 			if err != nil {
 				t.Fatalf("decode returned error: %v", err)
 			}
-			if decoded.Text != c.value {
-				t.Errorf("expected value %v, got %v", c.value, decoded.Text)
+			if decoded.Val != c.value {
+				t.Errorf("expected value %v, got %v", c.value, decoded.Val)
 			}
 		})
 	}
@@ -179,7 +179,7 @@ func TestInputSource_BooleanVariations(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			orig := InputSource(
 				ValWithOptions[InputSourceValue]{
-					Text:      InputSourceFilm,
+					Val:       InputSourceFilm,
 					MustHonor: optional.New(c.value),
 				},
 			)

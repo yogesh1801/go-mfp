@@ -19,12 +19,12 @@ import (
 func TestResolution_RoundTrip_AllAttributes(t *testing.T) {
 	orig := Resolution{
 		Height: ValWithOptions[int]{
-			Text:        300,
+			Val:         300,
 			Override:    optional.New(BooleanElement("true")),
 			UsedDefault: optional.New(BooleanElement("false")),
 		},
 		Width: ValWithOptions[int]{
-			Text:        300,
+			Val:         300,
 			Override:    optional.New(BooleanElement("0")),
 			UsedDefault: optional.New(BooleanElement("1")),
 		},
@@ -53,8 +53,8 @@ func TestResolution_RoundTrip_AllAttributes(t *testing.T) {
 
 func TestResolution_RoundTrip_NoAttributes(t *testing.T) {
 	orig := Resolution{
-		Height: ValWithOptions[int]{Text: 600},
-		Width:  ValWithOptions[int]{Text: 600},
+		Height: ValWithOptions[int]{Val: 600},
+		Width:  ValWithOptions[int]{Val: 600},
 	}
 
 	elm := orig.toXML("wscn:Resolution")
@@ -74,11 +74,11 @@ func TestResolution_RoundTrip_NoAttributes(t *testing.T) {
 func TestResolution_RoundTrip_PartialAttributes(t *testing.T) {
 	orig := Resolution{
 		Height: ValWithOptions[int]{
-			Text:     1200,
+			Val:      1200,
 			Override: optional.New(BooleanElement("true")),
 		},
 		Width: ValWithOptions[int]{
-			Text:        1200,
+			Val:         1200,
 			UsedDefault: optional.New(BooleanElement("false")),
 		},
 		MustHonor: optional.New(BooleanElement("1")),
@@ -96,8 +96,8 @@ func TestResolution_RoundTrip_PartialAttributes(t *testing.T) {
 
 func TestResolution_DifferentHeightWidth(t *testing.T) {
 	orig := Resolution{
-		Height: ValWithOptions[int]{Text: 300},
-		Width:  ValWithOptions[int]{Text: 600},
+		Height: ValWithOptions[int]{Val: 300},
+		Width:  ValWithOptions[int]{Val: 600},
 	}
 
 	elm := orig.toXML("wscn:Resolution")
@@ -228,12 +228,12 @@ func TestResolution_BooleanVariations(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			orig := Resolution{
 				Height: ValWithOptions[int]{
-					Text:        150,
+					Val:         150,
 					Override:    optional.New(c.value),
 					UsedDefault: optional.New(c.value),
 				},
 				Width: ValWithOptions[int]{
-					Text:        150,
+					Val:         150,
 					Override:    optional.New(c.value),
 					UsedDefault: optional.New(c.value),
 				},

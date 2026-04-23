@@ -23,12 +23,12 @@ type ScannerRequestedElement int
 
 // Known ScannerRequestedElement values.
 const (
-	UnknownScannerElem                ScannerRequestedElement = iota
-	ScannerElemDefaultScanTicket                               // wscn:DefaultScanTicket
-	ScannerElemDescription                                     // wscn:ScannerDescription
-	ScannerElemConfiguration                                   // wscn:ScannerConfiguration
-	ScannerElemStatus                                          // wscn:ScannerStatus
-	ScannerElemVendorSection                                   // xmlns:VendorSection
+	UnknownScannerElem           ScannerRequestedElement = iota
+	ScannerElemDefaultScanTicket                         // wscn:DefaultScanTicket
+	ScannerElemDescription                               // wscn:ScannerDescription
+	ScannerElemConfiguration                             // wscn:ScannerConfiguration
+	ScannerElemStatus                                    // wscn:ScannerStatus
+	ScannerElemVendorSection                             // xmlns:VendorSection
 )
 
 // decodeScannerRequestedElement decodes [ScannerRequestedElement] from the XML tree.
@@ -94,7 +94,7 @@ type JobRequestedElement int
 // Known JobRequestedElement values.
 const (
 	UnknownJobElem       JobRequestedElement = iota
-	JobElemStatus                         // wscn:JobStatus
+	JobElemStatus                            // wscn:JobStatus
 	JobElemScanTicket                        // wscn:ScanTicket
 	JobElemDocuments                         // wscn:Documents
 	JobElemVendorSection                     // xmlns:VendorSection

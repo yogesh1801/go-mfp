@@ -24,4 +24,3 @@ var testSeverity = testEnum[Severity]{
 func TestSeverity(t *testing.T) {
 	testSeverity.run(t)
 }
-

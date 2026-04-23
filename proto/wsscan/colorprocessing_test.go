@@ -19,7 +19,7 @@ import (
 func TestColorProcessing_RoundTrip_AllAttributes(t *testing.T) {
 	orig := ColorProcessing(
 		ValWithOptions[ColorEntry]{
-			Text:        RGB24,
+			Val:         RGB24,
 			MustHonor:   optional.New(BooleanElement("true")),
 			Override:    optional.New(BooleanElement("false")),
 			UsedDefault: optional.New(BooleanElement("1")),
@@ -51,7 +51,7 @@ func TestColorProcessing_RoundTrip_AllAttributes(t *testing.T) {
 func TestColorProcessing_RoundTrip_NoAttributes(t *testing.T) {
 	orig := ColorProcessing(
 		ValWithOptions[ColorEntry]{
-			Text: Grayscale8,
+			Val: Grayscale8,
 		},
 	)
 
@@ -75,7 +75,7 @@ func TestColorProcessing_RoundTrip_NoAttributes(t *testing.T) {
 func TestColorProcessing_RoundTrip_PartialAttributes(t *testing.T) {
 	orig := ColorProcessing(
 		ValWithOptions[ColorEntry]{
-			Text:      BlackAndWhite1,
+			Val:       BlackAndWhite1,
 			MustHonor: optional.New(BooleanElement("true")),
 			Override:  optional.New(BooleanElement("0")),
 		},
@@ -119,7 +119,7 @@ func TestColorProcessing_AllColorEntries(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			orig := ColorProcessing(
 				ValWithOptions[ColorEntry]{
-					Text: c.value,
+					Val: c.value,
 				},
 			)
 
@@ -132,8 +132,8 @@ func TestColorProcessing_AllColorEntries(t *testing.T) {
 			if err != nil {
 				t.Fatalf("decode returned error: %v", err)
 			}
-			if decoded.Text != c.value {
-				t.Errorf("expected value %v, got %v", c.value, decoded.Text)
+			if decoded.Val != c.value {
+				t.Errorf("expected value %v, got %v", c.value, decoded.Val)
 			}
 		})
 	}
@@ -183,7 +183,7 @@ func TestColorProcessing_BooleanVariations(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			orig := ColorProcessing(
 				ValWithOptions[ColorEntry]{
-					Text:      Grayscale16,
+					Val:       Grayscale16,
 					MustHonor: optional.New(c.value),
 				},
 			)

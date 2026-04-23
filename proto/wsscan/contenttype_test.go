@@ -19,7 +19,7 @@ import (
 func TestContentType_RoundTrip_AllAttributes(t *testing.T) {
 	orig := ContentType(
 		ValWithOptions[ContentTypeValue]{
-			Text:        Photo,
+			Val:         Photo,
 			MustHonor:   optional.New(BooleanElement("true")),
 			Override:    optional.New(BooleanElement("false")),
 			UsedDefault: optional.New(BooleanElement("1")),
@@ -49,7 +49,7 @@ func TestContentType_RoundTrip_AllAttributes(t *testing.T) {
 func TestContentType_RoundTrip_NoAttributes(t *testing.T) {
 	orig := ContentType(
 		ValWithOptions[ContentTypeValue]{
-			Text: Auto,
+			Val: Auto,
 		},
 	)
 
@@ -84,7 +84,7 @@ func TestContentType_AllValues(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			ct := ContentType(
 				ValWithOptions[ContentTypeValue]{
-					Text: c.value,
+					Val: c.value,
 				},
 			)
 			elm := ct.toXML("wscn:ContentType")
@@ -97,8 +97,8 @@ func TestContentType_AllValues(t *testing.T) {
 			if err != nil {
 				t.Fatalf("decode returned error: %v", err)
 			}
-			if decoded.Text != c.value {
-				t.Errorf("expected value %v, got %v", c.value, decoded.Text)
+			if decoded.Val != c.value {
+				t.Errorf("expected value %v, got %v", c.value, decoded.Val)
 			}
 		})
 	}
@@ -114,15 +114,15 @@ func TestContentType_UnknownValue(t *testing.T) {
 	if err != nil {
 		t.Fatalf("decode returned error: %v", err)
 	}
-	if decoded.Text != UnknownContentTypeValue {
-		t.Errorf("expected UnknownContentTypeValue, got %v", decoded.Text)
+	if decoded.Val != UnknownContentTypeValue {
+		t.Errorf("expected UnknownContentTypeValue, got %v", decoded.Val)
 	}
 }
 
 func TestContentType_WithMustHonor(t *testing.T) {
 	orig := ContentType(
 		ValWithOptions[ContentTypeValue]{
-			Text:      Text,
+			Val:       Text,
 			MustHonor: optional.New(BooleanElement("true")),
 		},
 	)
@@ -149,7 +149,7 @@ func TestContentType_WithMustHonor(t *testing.T) {
 func TestContentType_WithOverride(t *testing.T) {
 	orig := ContentType(
 		ValWithOptions[ContentTypeValue]{
-			Text:     Halftone,
+			Val:      Halftone,
 			Override: optional.New(BooleanElement("0")),
 		},
 	)
@@ -176,7 +176,7 @@ func TestContentType_WithOverride(t *testing.T) {
 func TestContentType_WithUsedDefault(t *testing.T) {
 	orig := ContentType(
 		ValWithOptions[ContentTypeValue]{
-			Text:        Mixed,
+			Val:         Mixed,
 			UsedDefault: optional.New(BooleanElement("true")),
 		},
 	)

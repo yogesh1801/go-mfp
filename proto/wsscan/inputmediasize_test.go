@@ -19,11 +19,11 @@ import (
 func TestInputMediaSize_RoundTrip(t *testing.T) {
 	orig := InputMediaSize{
 		Height: ValWithOptions[int]{
-			Text:     1200,
+			Val:      1200,
 			Override: optional.New(BooleanElement("true")),
 		},
 		Width: ValWithOptions[int]{
-			Text:        850,
+			Val:         850,
 			UsedDefault: optional.New(BooleanElement("false")),
 		},
 	}

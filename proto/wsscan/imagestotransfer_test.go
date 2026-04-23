@@ -19,7 +19,7 @@ import (
 func TestImagesToTransfer_RoundTrip_AllAttributes(t *testing.T) {
 	orig := ImagesToTransfer(
 		ValWithOptions[int]{
-			Text:        10,
+			Val:         10,
 			MustHonor:   optional.New(BooleanElement("true")),
 			Override:    optional.New(BooleanElement("false")),
 			UsedDefault: optional.New(BooleanElement("1")),
@@ -51,7 +51,7 @@ func TestImagesToTransfer_RoundTrip_AllAttributes(t *testing.T) {
 func TestImagesToTransfer_RoundTrip_NoAttributes(t *testing.T) {
 	orig := ImagesToTransfer(
 		ValWithOptions[int]{
-			Text: 5,
+			Val: 5,
 		},
 	)
 
@@ -84,7 +84,7 @@ func TestImagesToTransfer_BoundaryValues(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			itt := ImagesToTransfer(
 				ValWithOptions[int]{
-					Text: c.value,
+					Val: c.value,
 				},
 			)
 			elm := itt.toXML("wscn:ImagesToTransfer")
@@ -94,8 +94,8 @@ func TestImagesToTransfer_BoundaryValues(t *testing.T) {
 				t.Errorf("expected no error for value %d, got: %v",
 					c.value, err)
 			}
-			if decoded.Text != c.value {
-				t.Errorf("expected value %d, got %d", c.value, decoded.Text)
+			if decoded.Val != c.value {
+				t.Errorf("expected value %d, got %d", c.value, decoded.Val)
 			}
 		})
 	}
@@ -131,7 +131,7 @@ func TestImagesToTransfer_InvalidBooleanAttribute(t *testing.T) {
 func TestImagesToTransfer_WithMustHonor(t *testing.T) {
 	orig := ImagesToTransfer(
 		ValWithOptions[int]{
-			Text:      20,
+			Val:       20,
 			MustHonor: optional.New(BooleanElement("true")),
 		},
 	)
@@ -158,7 +158,7 @@ func TestImagesToTransfer_WithMustHonor(t *testing.T) {
 func TestImagesToTransfer_WithOverride(t *testing.T) {
 	orig := ImagesToTransfer(
 		ValWithOptions[int]{
-			Text:     15,
+			Val:      15,
 			Override: optional.New(BooleanElement("false")),
 		},
 	)
@@ -185,7 +185,7 @@ func TestImagesToTransfer_WithOverride(t *testing.T) {
 func TestImagesToTransfer_WithUsedDefault(t *testing.T) {
 	orig := ImagesToTransfer(
 		ValWithOptions[int]{
-			Text:        30,
+			Val:         30,
 			UsedDefault: optional.New(BooleanElement("1")),
 		},
 	)

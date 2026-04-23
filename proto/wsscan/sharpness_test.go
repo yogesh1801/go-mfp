@@ -18,7 +18,7 @@ import (
 func TestSharpness_RoundTrip(t *testing.T) {
 	orig := Sharpness(
 		ValWithOptions[int]{
-			Text:        90,
+			Val:         90,
 			Override:    optional.New(BooleanElement("1")),
 			UsedDefault: optional.New(BooleanElement("false")),
 		},

@@ -21,8 +21,8 @@ func TestInputSize_RoundTrip_WithDocumentSizeAutoDetect(t *testing.T) {
 		MustHonor:              optional.New(BooleanElement("true")),
 		DocumentSizeAutoDetect: optional.New(BooleanElement("1")),
 		InputMediaSize: InputMediaSize{
-			Height: ValWithOptions[int]{Text: 1200},
-			Width:  ValWithOptions[int]{Text: 850},
+			Height: ValWithOptions[int]{Val: 1200},
+			Width:  ValWithOptions[int]{Val: 850},
 		},
 	}
 
@@ -50,8 +50,8 @@ func TestInputSize_RoundTrip_WithInputMediaSize(t *testing.T) {
 	orig := InputSize{
 		MustHonor: optional.New(BooleanElement("false")),
 		InputMediaSize: InputMediaSize{
-			Height: ValWithOptions[int]{Text: 1200},
-			Width:  ValWithOptions[int]{Text: 850},
+			Height: ValWithOptions[int]{Val: 1200},
+			Width:  ValWithOptions[int]{Val: 850},
 		},
 	}
 
@@ -73,8 +73,8 @@ func TestInputSize_RoundTrip_NoMustHonor(t *testing.T) {
 	orig := InputSize{
 		DocumentSizeAutoDetect: optional.New(BooleanElement("false")),
 		InputMediaSize: InputMediaSize{
-			Height: ValWithOptions[int]{Text: 1200},
-			Width:  ValWithOptions[int]{Text: 850},
+			Height: ValWithOptions[int]{Val: 1200},
+			Width:  ValWithOptions[int]{Val: 850},
 		},
 	}
 
@@ -97,8 +97,8 @@ func TestInputSize_RoundTrip_BothChildren(t *testing.T) {
 	orig := InputSize{
 		DocumentSizeAutoDetect: optional.New(BooleanElement("true")),
 		InputMediaSize: InputMediaSize{
-			Height: ValWithOptions[int]{Text: 2000},
-			Width:  ValWithOptions[int]{Text: 1500},
+			Height: ValWithOptions[int]{Val: 2000},
+			Width:  ValWithOptions[int]{Val: 1500},
 		},
 	}
 
@@ -120,8 +120,8 @@ func TestInputSize_OnlyInputMediaSize(t *testing.T) {
 	orig := InputSize{
 		MustHonor: optional.New(BooleanElement("1")),
 		InputMediaSize: InputMediaSize{
-			Height: ValWithOptions[int]{Text: 1200},
-			Width:  ValWithOptions[int]{Text: 850},
+			Height: ValWithOptions[int]{Val: 1200},
+			Width:  ValWithOptions[int]{Val: 850},
 		},
 	}
 
@@ -182,8 +182,8 @@ func TestInputSize_MustHonorTrue(t *testing.T) {
 		MustHonor:              optional.New(BooleanElement("true")),
 		DocumentSizeAutoDetect: optional.New(BooleanElement("0")),
 		InputMediaSize: InputMediaSize{
-			Height: ValWithOptions[int]{Text: 1200},
-			Width:  ValWithOptions[int]{Text: 850},
+			Height: ValWithOptions[int]{Val: 1200},
+			Width:  ValWithOptions[int]{Val: 850},
 		},
 	}
 

@@ -19,12 +19,12 @@ import (
 func TestScaling_RoundTrip_AllAttributes(t *testing.T) {
 	orig := Scaling{
 		ScalingHeight: ValWithOptions[int]{
-			Text:        100,
+			Val:         100,
 			Override:    optional.New(BooleanElement("true")),
 			UsedDefault: optional.New(BooleanElement("false")),
 		},
 		ScalingWidth: ValWithOptions[int]{
-			Text:        100,
+			Val:         100,
 			Override:    optional.New(BooleanElement("0")),
 			UsedDefault: optional.New(BooleanElement("1")),
 		},
@@ -53,8 +53,8 @@ func TestScaling_RoundTrip_AllAttributes(t *testing.T) {
 
 func TestScaling_RoundTrip_NoAttributes(t *testing.T) {
 	orig := Scaling{
-		ScalingHeight: ValWithOptions[int]{Text: 50},
-		ScalingWidth:  ValWithOptions[int]{Text: 50},
+		ScalingHeight: ValWithOptions[int]{Val: 50},
+		ScalingWidth:  ValWithOptions[int]{Val: 50},
 	}
 
 	elm := orig.toXML("wscn:Scaling")
@@ -74,11 +74,11 @@ func TestScaling_RoundTrip_NoAttributes(t *testing.T) {
 func TestScaling_RoundTrip_PartialAttributes(t *testing.T) {
 	orig := Scaling{
 		ScalingHeight: ValWithOptions[int]{
-			Text:     200,
+			Val:      200,
 			Override: optional.New(BooleanElement("true")),
 		},
 		ScalingWidth: ValWithOptions[int]{
-			Text:        150,
+			Val:         150,
 			UsedDefault: optional.New(BooleanElement("false")),
 		},
 		MustHonor: optional.New(BooleanElement("1")),
@@ -96,8 +96,8 @@ func TestScaling_RoundTrip_PartialAttributes(t *testing.T) {
 
 func TestScaling_DifferentHeightWidth(t *testing.T) {
 	orig := Scaling{
-		ScalingHeight: ValWithOptions[int]{Text: 75},
-		ScalingWidth:  ValWithOptions[int]{Text: 125},
+		ScalingHeight: ValWithOptions[int]{Val: 75},
+		ScalingWidth:  ValWithOptions[int]{Val: 125},
 	}
 
 	elm := orig.toXML("wscn:Scaling")
@@ -228,12 +228,12 @@ func TestScaling_BooleanVariations(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			orig := Scaling{
 				ScalingHeight: ValWithOptions[int]{
-					Text:        100,
+					Val:         100,
 					Override:    optional.New(c.value),
 					UsedDefault: optional.New(c.value),
 				},
 				ScalingWidth: ValWithOptions[int]{
-					Text:        100,
+					Val:         100,
 					Override:    optional.New(c.value),
 					UsedDefault: optional.New(c.value),
 				},
