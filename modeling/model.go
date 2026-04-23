@@ -252,6 +252,11 @@ func (model *Model) Read(filename string, r io.Reader) error {
 		return err
 	}
 
+	err = model.wsdLoad()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
