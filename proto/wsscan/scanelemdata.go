@@ -30,29 +30,54 @@ const (
 	ScanElemDataVendorSection                               // xmlns:VendorSection
 )
 
-// String returns the QName string for a [ScanElemDataName].
+// String returns the local name for a [ScanElemDataName].
 func (n ScanElemDataName) String() string {
 	switch n {
 	case ScanElemDataDefaultScanTicket:
-		return NsWSCN + ":DefaultScanTicket"
+		return "DefaultScanTicket"
 	case ScanElemDataScannerConfiguration:
-		return NsWSCN + ":ScannerConfiguration"
+		return "ScannerConfiguration"
 	case ScanElemDataScannerDescription:
-		return NsWSCN + ":ScannerDescription"
+		return "ScannerDescription"
 	case ScanElemDataScannerStatus:
-		return NsWSCN + ":ScannerStatus"
+		return "ScannerStatus"
 	case ScanElemDataVendorSection:
-		return NsWSCN + ":VendorSection"
+		return "VendorSection"
 	default:
 		return "Unknown"
 	}
 }
 
-// decodeScanElemDataName decodes a [ScanElemDataName] from its
+// Encode returns the QName string for XML encoding of the
+// [ScanElemDataName], used both as the value of the Name attribute on
+// [ScanElemData] and as the text content of a wscn:Name element inside
+// a GetScannerElementsRequest.
+func (n ScanElemDataName) Encode() string {
+	return NsWSCN + ":" + n.String()
+}
+
+// toXML generates an XML element whose text content is the QName for
+// the [ScanElemDataName]. Used by [GetScannerElementsRequest] to encode
+// each requested element name.
+func (n ScanElemDataName) toXML(name string) xmldoc.Element {
+	return xmldoc.Element{
+		Name: name,
+		Text: n.Encode(),
+	}
+}
+
+// decodeScanElemDataName decodes a [ScanElemDataName] from an XML element
+// whose text content is the QName form. Returns an error if the value is
+// not a known name.
+func decodeScanElemDataName(root xmldoc.Element) (ScanElemDataName, error) {
+	return decodeEnum(root, DecodeScanElemDataName)
+}
+
+// DecodeScanElemDataName decodes a [ScanElemDataName] from its
 // QName string. The prefix is stripped before matching because devices may
 // use a different namespace prefix than we do for the same WS-Scan
 // namespace URL.
-func decodeScanElemDataName(s string) ScanElemDataName {
+func DecodeScanElemDataName(s string) ScanElemDataName {
 	if i := strings.LastIndex(s, ":"); i >= 0 {
 		s = s[i+1:]
 	}
@@ -90,7 +115,7 @@ func (ed ScanElemData) toXML(name string) xmldoc.Element {
 	elm := xmldoc.Element{
 		Name: name,
 		Attrs: []xmldoc.Attr{
-			{Name: "Name", Value: ed.Name.String()},
+			{Name: "Name", Value: NsWSCN + ":" + ed.Name.String()},
 			{Name: "Valid", Value: string(ed.Valid)},
 		},
 	}
@@ -130,7 +155,7 @@ func decodeScanElemData(root xmldoc.Element) (ScanElemData, error) {
 		return ed, xmldoc.XMLErrMissed(missed.Name)
 	}
 
-	ed.Name = decodeScanElemDataName(nameAttr.Attr.Value)
+	ed.Name = DecodeScanElemDataName(nameAttr.Attr.Value)
 	if ed.Name == UnknownScanElemDataName {
 		return ed, fmt.Errorf("ScanElemData: unknown Name %q",
 			nameAttr.Attr.Value)

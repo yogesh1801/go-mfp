@@ -177,6 +177,127 @@ func TestScanElemData_InvalidValidAttr(t *testing.T) {
 	}
 }
 
+// TestScanElemDataName_String checks that each known ScanElemDataName
+// produces the correct local name.
+func TestScanElemDataName_String(t *testing.T) {
+	tests := []struct {
+		name     string
+		n        ScanElemDataName
+		expected string
+	}{
+		{"Unknown", UnknownScanElemDataName, "Unknown"},
+		{"DefaultScanTicket", ScanElemDataDefaultScanTicket,
+			"DefaultScanTicket"},
+		{"ScannerConfiguration", ScanElemDataScannerConfiguration,
+			"ScannerConfiguration"},
+		{"ScannerDescription", ScanElemDataScannerDescription,
+			"ScannerDescription"},
+		{"ScannerStatus", ScanElemDataScannerStatus, "ScannerStatus"},
+		{"VendorSection", ScanElemDataVendorSection, "VendorSection"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.n.String(); got != tt.expected {
+				t.Errorf("String() = %q, want %q", got, tt.expected)
+			}
+		})
+	}
+}
+
+// TestScanElemDataName_Encode checks that Encode produces the QName form
+// used as element text content in GetScannerElementsRequest.
+func TestScanElemDataName_Encode(t *testing.T) {
+	if got := ScanElemDataScannerDescription.Encode(); got !=
+		NsWSCN+":ScannerDescription" {
+		t.Errorf("Encode() = %q, want %q",
+			got, NsWSCN+":ScannerDescription")
+	}
+	if got := ScanElemDataVendorSection.Encode(); got !=
+		NsWSCN+":VendorSection" {
+		t.Errorf("Encode() = %q, want %q",
+			got, NsWSCN+":VendorSection")
+	}
+}
+
+// TestDecodeScanElemDataName checks that valid QName strings decode to
+// the correct constant and invalid ones return Unknown. The namespace
+// prefix is intentionally ignored (devices may use a different one for
+// the same namespace URL).
+func TestDecodeScanElemDataName(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected ScanElemDataName
+	}{
+		{"DefaultScanTicket", NsWSCN + ":DefaultScanTicket",
+			ScanElemDataDefaultScanTicket},
+		{"ScannerConfiguration", NsWSCN + ":ScannerConfiguration",
+			ScanElemDataScannerConfiguration},
+		{"ScannerDescription", NsWSCN + ":ScannerDescription",
+			ScanElemDataScannerDescription},
+		{"ScannerStatus", NsWSCN + ":ScannerStatus",
+			ScanElemDataScannerStatus},
+		{"VendorSection different prefix",
+			"vendor:VendorSection", ScanElemDataVendorSection},
+		{"Empty", "", UnknownScanElemDataName},
+		{"Invalid", "InvalidName", UnknownScanElemDataName},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := DecodeScanElemDataName(tt.input); got !=
+				tt.expected {
+				t.Errorf("DecodeScanElemDataName(%q) = %v, want %v",
+					tt.input, got, tt.expected)
+			}
+		})
+	}
+}
+
+// TestScanElemDataName_toXML_RoundTrip checks that toXML and
+// decodeScanElemDataName round-trip the Name-as-text-element form used
+// by GetScannerElementsRequest.
+func TestScanElemDataName_toXML_RoundTrip(t *testing.T) {
+	values := []ScanElemDataName{
+		ScanElemDataDefaultScanTicket,
+		ScanElemDataScannerDescription,
+		ScanElemDataScannerConfiguration,
+		ScanElemDataScannerStatus,
+		ScanElemDataVendorSection,
+	}
+	for _, v := range values {
+		t.Run(v.String(), func(t *testing.T) {
+			elm := v.toXML(NsWSCN + ":Name")
+			if elm.Name != NsWSCN+":Name" {
+				t.Errorf("toXML().Name = %q, want %q",
+					elm.Name, NsWSCN+":Name")
+			}
+			if elm.Text != v.Encode() {
+				t.Errorf("toXML().Text = %q, want %q",
+					elm.Text, v.Encode())
+			}
+			got, err := decodeScanElemDataName(elm)
+			if err != nil {
+				t.Fatalf("decodeScanElemDataName: %v", err)
+			}
+			if got != v {
+				t.Errorf("round-trip = %v, want %v", got, v)
+			}
+		})
+	}
+}
+
+// Test_decodeScanElemDataName_Invalid verifies that an XML element with
+// an unrecognised Name value returns an error.
+func Test_decodeScanElemDataName_Invalid(t *testing.T) {
+	elm := xmldoc.Element{
+		Name: NsWSCN + ":Name",
+		Text: "InvalidName",
+	}
+	if _, err := decodeScanElemDataName(elm); err == nil {
+		t.Error("expected error for invalid Name text, got nil")
+	}
+}
+
 // TestScanElemData_UnknownName verifies that decoding an ScanElemData element
 // with an unrecognised Name attribute value returns an error.
 func TestScanElemData_UnknownName(t *testing.T) {
