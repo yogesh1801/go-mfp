@@ -265,7 +265,7 @@ func Test_decodeJobElemName_Invalid(t *testing.T) {
 }
 
 // TestJobElemData_RejectsScannerName verifies that a Name value that
-// belongs to ScanElemData (e.g. ScannerDescription) is rejected when
+// belongs to ScannerElemData (e.g. ScannerDescription) is rejected when
 // decoded as a JobElemData — enforcing the split between scanner and
 // job element sets.
 func TestJobElemData_RejectsScannerName(t *testing.T) {

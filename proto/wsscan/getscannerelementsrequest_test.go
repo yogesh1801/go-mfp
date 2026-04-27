@@ -28,8 +28,8 @@ func TestGetScannerElementsRequestRoundTrip(t *testing.T) {
 			// valid case.
 			name: "single name",
 			gser: GetScannerElementsRequest{
-				RequestedElements: []ScanElemName{
-					ScanElemDescription,
+				RequestedElements: []ScannerElemName{
+					ScannerElemDescription,
 				},
 			},
 		},
@@ -39,10 +39,10 @@ func TestGetScannerElementsRequestRoundTrip(t *testing.T) {
 			// in order.
 			name: "multiple names",
 			gser: GetScannerElementsRequest{
-				RequestedElements: []ScanElemName{
-					ScanElemDescription,
-					ScanElemConfiguration,
-					ScanElemStatus,
+				RequestedElements: []ScannerElemName{
+					ScannerElemDescription,
+					ScannerElemConfiguration,
+					ScannerElemStatus,
 				},
 			},
 		},
@@ -139,9 +139,9 @@ func TestGetScannerElementsRequestDecodeError(t *testing.T) {
 // children.
 func TestGetScannerElementsRequestToXML(t *testing.T) {
 	gser := GetScannerElementsRequest{
-		RequestedElements: []ScanElemName{
-			ScanElemDescription,
-			ScanElemConfiguration,
+		RequestedElements: []ScannerElemName{
+			ScannerElemDescription,
+			ScannerElemConfiguration,
 		},
 	}
 
@@ -171,9 +171,9 @@ func TestGetScannerElementsRequestToXML(t *testing.T) {
 			len(reqElem.Children))
 	}
 
-	expected := []ScanElemName{
-		ScanElemDescription,
-		ScanElemConfiguration,
+	expected := []ScannerElemName{
+		ScannerElemDescription,
+		ScannerElemConfiguration,
 	}
 	for i, child := range reqElem.Children {
 		if child.Name != NsWSCN+":Name" {

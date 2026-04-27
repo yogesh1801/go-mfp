@@ -136,49 +136,49 @@ func (srv *AbstractServer) handleGetScannerElementsRequest(
 	req *GetScannerElementsRequest,
 ) (Body, error) {
 
-	// Build ScanElemData for each requested element, skipping duplicates.
-	var elements []ScanElemData
-	seen := generic.NewSet[ScanElemName]()
+	// Build ScannerElemData for each requested element, skipping duplicates.
+	var elements []ScannerElemData
+	seen := generic.NewSet[ScannerElemName]()
 
 	for _, re := range req.RequestedElements {
 		if !seen.TestAndAdd(re) {
 			continue
 		}
 		switch re {
-		case ScanElemDefaultScanTicket:
+		case ScannerElemDefaultScanTicket:
 			req := srv.caps.DefaultRequest()
 			if req != nil {
 				ticket := fromAbstractScannerRequest(req)
-				elements = append(elements, ScanElemData{
-					Name:              ScanElemDefaultScanTicket,
+				elements = append(elements, ScannerElemData{
+					Name:              ScannerElemDefaultScanTicket,
 					Valid:             BooleanElement("true"),
 					DefaultScanTicket: optional.New(ticket),
 				})
 			}
 
-		case ScanElemDescription:
+		case ScannerElemDescription:
 			desc := fromAbstractScannerDescription(srv.caps)
-			elements = append(elements, ScanElemData{
-				Name:               ScanElemDescription,
+			elements = append(elements, ScannerElemData{
+				Name:               ScannerElemDescription,
 				Valid:              BooleanElement("true"),
 				ScannerDescription: optional.New(desc),
 			})
 
-		case ScanElemConfiguration:
+		case ScannerElemConfiguration:
 			conf := fromAbstractScannerConfiguration(srv.caps)
-			elements = append(elements, ScanElemData{
-				Name:                 ScanElemConfiguration,
+			elements = append(elements, ScannerElemData{
+				Name:                 ScannerElemConfiguration,
 				Valid:                BooleanElement("true"),
 				ScannerConfiguration: optional.New(conf),
 			})
 
-		case ScanElemStatus:
+		case ScannerElemStatus:
 			srv.lock.Lock()
 			status := srv.status
 			srv.lock.Unlock()
 			status.ScannerCurrentTime = time.Now()
-			elements = append(elements, ScanElemData{
-				Name:          ScanElemStatus,
+			elements = append(elements, ScannerElemData{
+				Name:          ScannerElemStatus,
 				Valid:         BooleanElement("true"),
 				ScannerStatus: optional.New(status),
 			})
