@@ -17,7 +17,7 @@ import (
 // GetScannerElementsRequest enables a client to request information
 // about the scanner from the WSD Scan Service.
 type GetScannerElementsRequest struct {
-	RequestedElements []ScanElemDataName // At least one required
+	RequestedElements []ScanElemName // At least one required
 }
 
 // Action returns the [Action] associated with this body.
@@ -65,7 +65,7 @@ func decodeGetScannerElementsRequest(root xmldoc.Element) (
 
 	for _, child := range requestedElements.Elem.Children {
 		if child.Name == NsWSCN+":Name" {
-			re, decErr := decodeScanElemDataName(child)
+			re, decErr := decodeScanElemName(child)
 			if decErr != nil {
 				return gser, decErr
 			}

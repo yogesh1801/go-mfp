@@ -22,7 +22,7 @@ func TestGetScannerElementsResponse_RoundTrip_Single(t *testing.T) {
 	orig := GetScannerElementsResponse{
 		ScannerElements: []ScanElemData{
 			{
-				Name:  ScanElemDataScannerDescription,
+				Name:  ScanElemDescription,
 				Valid: BooleanElement("true"),
 				ScannerDescription: optional.New(
 					createValidScannerDescription()),
@@ -52,13 +52,13 @@ func TestGetScannerElementsResponse_RoundTrip_Multiple(t *testing.T) {
 	orig := GetScannerElementsResponse{
 		ScannerElements: []ScanElemData{
 			{
-				Name:  ScanElemDataScannerDescription,
+				Name:  ScanElemDescription,
 				Valid: BooleanElement("true"),
 				ScannerDescription: optional.New(
 					createValidScannerDescription()),
 			},
 			{
-				Name:  ScanElemDataScannerStatus,
+				Name:  ScanElemStatus,
 				Valid: BooleanElement("true"),
 				ScannerStatus: optional.New(
 					createValidScannerStatus()),

@@ -38,7 +38,7 @@ func createValidDocuments() Documents {
 // identical value.
 func TestJobElemData_RoundTrip_JobStatus(t *testing.T) {
 	orig := JobElemData{
-		Name:      JobElemDataJobStatus,
+		Name:      JobElemStatus,
 		Valid:     BooleanElement("true"),
 		JobStatus: optional.New(createValidJobStatus()),
 	}
@@ -62,7 +62,7 @@ func TestJobElemData_RoundTrip_JobStatus(t *testing.T) {
 // identical value.
 func TestJobElemData_RoundTrip_ScanTicket(t *testing.T) {
 	orig := JobElemData{
-		Name:       JobElemDataScanTicket,
+		Name:       JobElemScanTicket,
 		Valid:      BooleanElement("true"),
 		ScanTicket: optional.New(createValidScanTicket()),
 	}
@@ -82,7 +82,7 @@ func TestJobElemData_RoundTrip_ScanTicket(t *testing.T) {
 // identical value.
 func TestJobElemData_RoundTrip_Documents(t *testing.T) {
 	orig := JobElemData{
-		Name:      JobElemDataDocuments,
+		Name:      JobElemDocuments,
 		Valid:     BooleanElement("true"),
 		Documents: optional.New(createValidDocuments()),
 	}
@@ -101,7 +101,7 @@ func TestJobElemData_RoundTrip_Documents(t *testing.T) {
 // element without the required Name attribute returns an error.
 func TestJobElemData_MissingNameAttr(t *testing.T) {
 	orig := JobElemData{
-		Name:      JobElemDataJobStatus,
+		Name:      JobElemStatus,
 		Valid:     BooleanElement("true"),
 		JobStatus: optional.New(createValidJobStatus()),
 	}
@@ -124,7 +124,7 @@ func TestJobElemData_MissingNameAttr(t *testing.T) {
 // element with an invalid Valid attribute value returns an error.
 func TestJobElemData_InvalidValidAttr(t *testing.T) {
 	orig := JobElemData{
-		Name:  JobElemDataJobStatus,
+		Name:  JobElemStatus,
 		Valid: BooleanElement("maybe"),
 	}
 	elm := orig.toXML(NsWSCN + ":ElementData")
@@ -139,7 +139,7 @@ func TestJobElemData_InvalidValidAttr(t *testing.T) {
 // element with an unrecognised Name attribute value returns an error.
 func TestJobElemData_UnknownName(t *testing.T) {
 	orig := JobElemData{
-		Name:  JobElemDataJobStatus,
+		Name:  JobElemStatus,
 		Valid: BooleanElement("true"),
 	}
 	elm := orig.toXML(NsWSCN + ":ElementData")
@@ -155,19 +155,19 @@ func TestJobElemData_UnknownName(t *testing.T) {
 	}
 }
 
-// TestJobElemDataName_String checks that each known JobElemDataName
+// TestJobElemName_String checks that each known JobElemName
 // produces the correct local name.
-func TestJobElemDataName_String(t *testing.T) {
+func TestJobElemName_String(t *testing.T) {
 	tests := []struct {
 		name     string
-		n        JobElemDataName
+		n        JobElemName
 		expected string
 	}{
-		{"Unknown", UnknownJobElemDataName, "Unknown"},
-		{"JobStatus", JobElemDataJobStatus, "JobStatus"},
-		{"ScanTicket", JobElemDataScanTicket, "ScanTicket"},
-		{"Documents", JobElemDataDocuments, "Documents"},
-		{"VendorSection", JobElemDataVendorSection, "VendorSection"},
+		{"Unknown", UnknownJobElem, "Unknown"},
+		{"JobStatus", JobElemStatus, "JobStatus"},
+		{"ScanTicket", JobElemScanTicket, "ScanTicket"},
+		{"Documents", JobElemDocuments, "Documents"},
+		{"VendorSection", JobElemVendorSection, "VendorSection"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -178,57 +178,57 @@ func TestJobElemDataName_String(t *testing.T) {
 	}
 }
 
-// TestJobElemDataName_Encode checks that Encode produces the QName form
+// TestJobElemName_Encode checks that Encode produces the QName form
 // used as element text content in GetJobElementsRequest.
-func TestJobElemDataName_Encode(t *testing.T) {
-	if got := JobElemDataJobStatus.Encode(); got != NsWSCN+":JobStatus" {
+func TestJobElemName_Encode(t *testing.T) {
+	if got := JobElemStatus.Encode(); got != NsWSCN+":JobStatus" {
 		t.Errorf("Encode() = %q, want %q",
 			got, NsWSCN+":JobStatus")
 	}
-	if got := JobElemDataVendorSection.Encode(); got !=
+	if got := JobElemVendorSection.Encode(); got !=
 		NsWSCN+":VendorSection" {
 		t.Errorf("Encode() = %q, want %q",
 			got, NsWSCN+":VendorSection")
 	}
 }
 
-// TestDecodeJobElemDataName checks that valid QName strings decode to the
+// TestDecodeJobElemName checks that valid QName strings decode to the
 // correct constant and invalid ones return Unknown. The namespace prefix
 // is intentionally ignored.
-func TestDecodeJobElemDataName(t *testing.T) {
+func TestDecodeJobElemName(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    string
-		expected JobElemDataName
+		expected JobElemName
 	}{
-		{"JobStatus", NsWSCN + ":JobStatus", JobElemDataJobStatus},
-		{"ScanTicket", NsWSCN + ":ScanTicket", JobElemDataScanTicket},
-		{"Documents", NsWSCN + ":Documents", JobElemDataDocuments},
+		{"JobStatus", NsWSCN + ":JobStatus", JobElemStatus},
+		{"ScanTicket", NsWSCN + ":ScanTicket", JobElemScanTicket},
+		{"Documents", NsWSCN + ":Documents", JobElemDocuments},
 		{"VendorSection different prefix",
-			"vendor:VendorSection", JobElemDataVendorSection},
-		{"Empty", "", UnknownJobElemDataName},
-		{"Invalid", "InvalidName", UnknownJobElemDataName},
+			"vendor:VendorSection", JobElemVendorSection},
+		{"Empty", "", UnknownJobElem},
+		{"Invalid", "InvalidName", UnknownJobElem},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := DecodeJobElemDataName(tt.input); got !=
+			if got := DecodeJobElemName(tt.input); got !=
 				tt.expected {
-				t.Errorf("DecodeJobElemDataName(%q) = %v, want %v",
+				t.Errorf("DecodeJobElemName(%q) = %v, want %v",
 					tt.input, got, tt.expected)
 			}
 		})
 	}
 }
 
-// TestJobElemDataName_toXML_RoundTrip checks that toXML and
-// decodeJobElemDataName round-trip the Name-as-text-element form used by
+// TestJobElemName_toXML_RoundTrip checks that toXML and
+// decodeJobElemName round-trip the Name-as-text-element form used by
 // GetJobElementsRequest.
-func TestJobElemDataName_toXML_RoundTrip(t *testing.T) {
-	values := []JobElemDataName{
-		JobElemDataJobStatus,
-		JobElemDataScanTicket,
-		JobElemDataDocuments,
-		JobElemDataVendorSection,
+func TestJobElemName_toXML_RoundTrip(t *testing.T) {
+	values := []JobElemName{
+		JobElemStatus,
+		JobElemScanTicket,
+		JobElemDocuments,
+		JobElemVendorSection,
 	}
 	for _, v := range values {
 		t.Run(v.String(), func(t *testing.T) {
@@ -241,9 +241,9 @@ func TestJobElemDataName_toXML_RoundTrip(t *testing.T) {
 				t.Errorf("toXML().Text = %q, want %q",
 					elm.Text, v.Encode())
 			}
-			got, err := decodeJobElemDataName(elm)
+			got, err := decodeJobElemName(elm)
 			if err != nil {
-				t.Fatalf("decodeJobElemDataName: %v", err)
+				t.Fatalf("decodeJobElemName: %v", err)
 			}
 			if got != v {
 				t.Errorf("round-trip = %v, want %v", got, v)
@@ -252,14 +252,14 @@ func TestJobElemDataName_toXML_RoundTrip(t *testing.T) {
 	}
 }
 
-// Test_decodeJobElemDataName_Invalid verifies that an XML element with
+// Test_decodeJobElemName_Invalid verifies that an XML element with
 // an unrecognised Name value returns an error.
-func Test_decodeJobElemDataName_Invalid(t *testing.T) {
+func Test_decodeJobElemName_Invalid(t *testing.T) {
 	elm := xmldoc.Element{
 		Name: NsWSCN + ":Name",
 		Text: "InvalidName",
 	}
-	if _, err := decodeJobElemDataName(elm); err == nil {
+	if _, err := decodeJobElemName(elm); err == nil {
 		t.Error("expected error for invalid Name text, got nil")
 	}
 }

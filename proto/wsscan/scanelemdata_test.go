@@ -59,7 +59,7 @@ func createValidScanTicket() ScanTicket {
 // to an identical value.
 func TestScanElemData_RoundTrip_ScannerConfiguration(t *testing.T) {
 	orig := ScanElemData{
-		Name:  ScanElemDataScannerConfiguration,
+		Name:  ScanElemConfiguration,
 		Valid: BooleanElement("true"),
 		ScannerConfiguration: optional.New(ScannerConfiguration{
 			DeviceSettings: createValidDeviceSettings(),
@@ -85,7 +85,7 @@ func TestScanElemData_RoundTrip_ScannerConfiguration(t *testing.T) {
 // to an identical value.
 func TestScanElemData_RoundTrip_ScannerDescription(t *testing.T) {
 	orig := ScanElemData{
-		Name:               ScanElemDataScannerDescription,
+		Name:               ScanElemDescription,
 		Valid:              BooleanElement("true"),
 		ScannerDescription: optional.New(createValidScannerDescription()),
 	}
@@ -105,7 +105,7 @@ func TestScanElemData_RoundTrip_ScannerDescription(t *testing.T) {
 // to an identical value.
 func TestScanElemData_RoundTrip_ScannerStatus(t *testing.T) {
 	orig := ScanElemData{
-		Name:          ScanElemDataScannerStatus,
+		Name:          ScanElemStatus,
 		Valid:         BooleanElement("true"),
 		ScannerStatus: optional.New(createValidScannerStatus()),
 	}
@@ -125,7 +125,7 @@ func TestScanElemData_RoundTrip_ScannerStatus(t *testing.T) {
 // to an identical value.
 func TestScanElemData_RoundTrip_DefaultScanTicket(t *testing.T) {
 	orig := ScanElemData{
-		Name:              ScanElemDataDefaultScanTicket,
+		Name:              ScanElemDefaultScanTicket,
 		Valid:             BooleanElement("true"),
 		DefaultScanTicket: optional.New(createValidScanTicket()),
 	}
@@ -144,7 +144,7 @@ func TestScanElemData_RoundTrip_DefaultScanTicket(t *testing.T) {
 // element without the required Name attribute returns an error.
 func TestScanElemData_MissingNameAttr(t *testing.T) {
 	orig := ScanElemData{
-		Name:  ScanElemDataScannerStatus,
+		Name:  ScanElemStatus,
 		Valid: BooleanElement("true"),
 	}
 	elm := orig.toXML(NsWSCN + ":ElementData")
@@ -166,7 +166,7 @@ func TestScanElemData_MissingNameAttr(t *testing.T) {
 // element with an invalid Valid attribute value returns an error.
 func TestScanElemData_InvalidValidAttr(t *testing.T) {
 	orig := ScanElemData{
-		Name:  ScanElemDataScannerStatus,
+		Name:  ScanElemStatus,
 		Valid: BooleanElement("maybe"),
 	}
 	elm := orig.toXML(NsWSCN + ":ElementData")
@@ -177,23 +177,23 @@ func TestScanElemData_InvalidValidAttr(t *testing.T) {
 	}
 }
 
-// TestScanElemDataName_String checks that each known ScanElemDataName
+// TestScanElemName_String checks that each known ScanElemName
 // produces the correct local name.
-func TestScanElemDataName_String(t *testing.T) {
+func TestScanElemName_String(t *testing.T) {
 	tests := []struct {
 		name     string
-		n        ScanElemDataName
+		n        ScanElemName
 		expected string
 	}{
-		{"Unknown", UnknownScanElemDataName, "Unknown"},
-		{"DefaultScanTicket", ScanElemDataDefaultScanTicket,
+		{"Unknown", UnknownScanElem, "Unknown"},
+		{"DefaultScanTicket", ScanElemDefaultScanTicket,
 			"DefaultScanTicket"},
-		{"ScannerConfiguration", ScanElemDataScannerConfiguration,
+		{"ScannerConfiguration", ScanElemConfiguration,
 			"ScannerConfiguration"},
-		{"ScannerDescription", ScanElemDataScannerDescription,
+		{"ScannerDescription", ScanElemDescription,
 			"ScannerDescription"},
-		{"ScannerStatus", ScanElemDataScannerStatus, "ScannerStatus"},
-		{"VendorSection", ScanElemDataVendorSection, "VendorSection"},
+		{"ScannerStatus", ScanElemStatus, "ScannerStatus"},
+		{"VendorSection", ScanElemVendorSection, "VendorSection"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -204,65 +204,65 @@ func TestScanElemDataName_String(t *testing.T) {
 	}
 }
 
-// TestScanElemDataName_Encode checks that Encode produces the QName form
+// TestScanElemName_Encode checks that Encode produces the QName form
 // used as element text content in GetScannerElementsRequest.
-func TestScanElemDataName_Encode(t *testing.T) {
-	if got := ScanElemDataScannerDescription.Encode(); got !=
+func TestScanElemName_Encode(t *testing.T) {
+	if got := ScanElemDescription.Encode(); got !=
 		NsWSCN+":ScannerDescription" {
 		t.Errorf("Encode() = %q, want %q",
 			got, NsWSCN+":ScannerDescription")
 	}
-	if got := ScanElemDataVendorSection.Encode(); got !=
+	if got := ScanElemVendorSection.Encode(); got !=
 		NsWSCN+":VendorSection" {
 		t.Errorf("Encode() = %q, want %q",
 			got, NsWSCN+":VendorSection")
 	}
 }
 
-// TestDecodeScanElemDataName checks that valid QName strings decode to
+// TestDecodeScanElemName checks that valid QName strings decode to
 // the correct constant and invalid ones return Unknown. The namespace
 // prefix is intentionally ignored (devices may use a different one for
 // the same namespace URL).
-func TestDecodeScanElemDataName(t *testing.T) {
+func TestDecodeScanElemName(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    string
-		expected ScanElemDataName
+		expected ScanElemName
 	}{
 		{"DefaultScanTicket", NsWSCN + ":DefaultScanTicket",
-			ScanElemDataDefaultScanTicket},
+			ScanElemDefaultScanTicket},
 		{"ScannerConfiguration", NsWSCN + ":ScannerConfiguration",
-			ScanElemDataScannerConfiguration},
+			ScanElemConfiguration},
 		{"ScannerDescription", NsWSCN + ":ScannerDescription",
-			ScanElemDataScannerDescription},
+			ScanElemDescription},
 		{"ScannerStatus", NsWSCN + ":ScannerStatus",
-			ScanElemDataScannerStatus},
+			ScanElemStatus},
 		{"VendorSection different prefix",
-			"vendor:VendorSection", ScanElemDataVendorSection},
-		{"Empty", "", UnknownScanElemDataName},
-		{"Invalid", "InvalidName", UnknownScanElemDataName},
+			"vendor:VendorSection", ScanElemVendorSection},
+		{"Empty", "", UnknownScanElem},
+		{"Invalid", "InvalidName", UnknownScanElem},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := DecodeScanElemDataName(tt.input); got !=
+			if got := DecodeScanElemName(tt.input); got !=
 				tt.expected {
-				t.Errorf("DecodeScanElemDataName(%q) = %v, want %v",
+				t.Errorf("DecodeScanElemName(%q) = %v, want %v",
 					tt.input, got, tt.expected)
 			}
 		})
 	}
 }
 
-// TestScanElemDataName_toXML_RoundTrip checks that toXML and
-// decodeScanElemDataName round-trip the Name-as-text-element form used
+// TestScanElemName_toXML_RoundTrip checks that toXML and
+// decodeScanElemName round-trip the Name-as-text-element form used
 // by GetScannerElementsRequest.
-func TestScanElemDataName_toXML_RoundTrip(t *testing.T) {
-	values := []ScanElemDataName{
-		ScanElemDataDefaultScanTicket,
-		ScanElemDataScannerDescription,
-		ScanElemDataScannerConfiguration,
-		ScanElemDataScannerStatus,
-		ScanElemDataVendorSection,
+func TestScanElemName_toXML_RoundTrip(t *testing.T) {
+	values := []ScanElemName{
+		ScanElemDefaultScanTicket,
+		ScanElemDescription,
+		ScanElemConfiguration,
+		ScanElemStatus,
+		ScanElemVendorSection,
 	}
 	for _, v := range values {
 		t.Run(v.String(), func(t *testing.T) {
@@ -275,9 +275,9 @@ func TestScanElemDataName_toXML_RoundTrip(t *testing.T) {
 				t.Errorf("toXML().Text = %q, want %q",
 					elm.Text, v.Encode())
 			}
-			got, err := decodeScanElemDataName(elm)
+			got, err := decodeScanElemName(elm)
 			if err != nil {
-				t.Fatalf("decodeScanElemDataName: %v", err)
+				t.Fatalf("decodeScanElemName: %v", err)
 			}
 			if got != v {
 				t.Errorf("round-trip = %v, want %v", got, v)
@@ -286,14 +286,14 @@ func TestScanElemDataName_toXML_RoundTrip(t *testing.T) {
 	}
 }
 
-// Test_decodeScanElemDataName_Invalid verifies that an XML element with
+// Test_decodeScanElemName_Invalid verifies that an XML element with
 // an unrecognised Name value returns an error.
-func Test_decodeScanElemDataName_Invalid(t *testing.T) {
+func Test_decodeScanElemName_Invalid(t *testing.T) {
 	elm := xmldoc.Element{
 		Name: NsWSCN + ":Name",
 		Text: "InvalidName",
 	}
-	if _, err := decodeScanElemDataName(elm); err == nil {
+	if _, err := decodeScanElemName(elm); err == nil {
 		t.Error("expected error for invalid Name text, got nil")
 	}
 }
@@ -302,7 +302,7 @@ func Test_decodeScanElemDataName_Invalid(t *testing.T) {
 // with an unrecognised Name attribute value returns an error.
 func TestScanElemData_UnknownName(t *testing.T) {
 	orig := ScanElemData{
-		Name:  ScanElemDataScannerStatus,
+		Name:  ScanElemStatus,
 		Valid: BooleanElement("true"),
 	}
 	elm := orig.toXML(NsWSCN + ":ElementData")
