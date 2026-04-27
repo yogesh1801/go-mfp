@@ -29,27 +29,52 @@ const (
 	JobElemDataVendorSection                    // xmlns:VendorSection
 )
 
-// String returns the QName string for a [JobElemDataName].
+// String returns the local name for a [JobElemDataName].
 func (n JobElemDataName) String() string {
 	switch n {
 	case JobElemDataJobStatus:
-		return NsWSCN + ":JobStatus"
+		return "JobStatus"
 	case JobElemDataScanTicket:
-		return NsWSCN + ":ScanTicket"
+		return "ScanTicket"
 	case JobElemDataDocuments:
-		return NsWSCN + ":Documents"
+		return "Documents"
 	case JobElemDataVendorSection:
-		return NsWSCN + ":VendorSection"
+		return "VendorSection"
 	default:
 		return "Unknown"
 	}
 }
 
-// decodeJobElemDataName decodes a [JobElemDataName] from its QName
+// Encode returns the QName string for XML encoding of the
+// [JobElemDataName], used both as the value of the Name attribute on
+// [JobElemData] and as the text content of a wscn:Name element inside
+// a GetJobElementsRequest.
+func (n JobElemDataName) Encode() string {
+	return NsWSCN + ":" + n.String()
+}
+
+// toXML generates an XML element whose text content is the QName for
+// the [JobElemDataName]. Used by [GetJobElementsRequest] to encode each
+// requested element name.
+func (n JobElemDataName) toXML(name string) xmldoc.Element {
+	return xmldoc.Element{
+		Name: name,
+		Text: n.Encode(),
+	}
+}
+
+// decodeJobElemDataName decodes a [JobElemDataName] from an XML element
+// whose text content is the QName form. Returns an error if the value is
+// not a known name.
+func decodeJobElemDataName(root xmldoc.Element) (JobElemDataName, error) {
+	return decodeEnum(root, DecodeJobElemDataName)
+}
+
+// DecodeJobElemDataName decodes a [JobElemDataName] from its QName
 // string. The prefix is stripped before matching because devices may use
 // a different namespace prefix than we do for the same WS-Scan namespace
 // URL.
-func decodeJobElemDataName(s string) JobElemDataName {
+func DecodeJobElemDataName(s string) JobElemDataName {
 	if i := strings.LastIndex(s, ":"); i >= 0 {
 		s = s[i+1:]
 	}
@@ -84,7 +109,7 @@ func (ed JobElemData) toXML(name string) xmldoc.Element {
 	elm := xmldoc.Element{
 		Name: name,
 		Attrs: []xmldoc.Attr{
-			{Name: "Name", Value: ed.Name.String()},
+			{Name: "Name", Value: NsWSCN + ":" + ed.Name.String()},
 			{Name: "Valid", Value: string(ed.Valid)},
 		},
 	}
@@ -119,7 +144,7 @@ func decodeJobElemData(root xmldoc.Element) (JobElemData, error) {
 		return ed, xmldoc.XMLErrMissed(missed.Name)
 	}
 
-	ed.Name = decodeJobElemDataName(nameAttr.Attr.Value)
+	ed.Name = DecodeJobElemDataName(nameAttr.Attr.Value)
 	if ed.Name == UnknownJobElemDataName {
 		return ed, fmt.Errorf("JobElemData: unknown Name %q",
 			nameAttr.Attr.Value)

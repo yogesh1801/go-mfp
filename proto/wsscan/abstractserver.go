@@ -138,14 +138,14 @@ func (srv *AbstractServer) handleGetScannerElementsRequest(
 
 	// Build ScanElemData for each requested element, skipping duplicates.
 	var elements []ScanElemData
-	seen := generic.NewSet[ScannerRequestedElement]()
+	seen := generic.NewSet[ScanElemDataName]()
 
 	for _, re := range req.RequestedElements {
 		if !seen.TestAndAdd(re) {
 			continue
 		}
 		switch re {
-		case ScannerElemDefaultScanTicket:
+		case ScanElemDataDefaultScanTicket:
 			req := srv.caps.DefaultRequest()
 			if req != nil {
 				ticket := fromAbstractScannerRequest(req)
@@ -156,7 +156,7 @@ func (srv *AbstractServer) handleGetScannerElementsRequest(
 				})
 			}
 
-		case ScannerElemDescription:
+		case ScanElemDataScannerDescription:
 			desc := fromAbstractScannerDescription(srv.caps)
 			elements = append(elements, ScanElemData{
 				Name:               ScanElemDataScannerDescription,
@@ -164,7 +164,7 @@ func (srv *AbstractServer) handleGetScannerElementsRequest(
 				ScannerDescription: optional.New(desc),
 			})
 
-		case ScannerElemConfiguration:
+		case ScanElemDataScannerConfiguration:
 			conf := fromAbstractScannerConfiguration(srv.caps)
 			elements = append(elements, ScanElemData{
 				Name:                 ScanElemDataScannerConfiguration,
@@ -172,7 +172,7 @@ func (srv *AbstractServer) handleGetScannerElementsRequest(
 				ScannerConfiguration: optional.New(conf),
 			})
 
-		case ScannerElemStatus:
+		case ScanElemDataScannerStatus:
 			srv.lock.Lock()
 			status := srv.status
 			srv.lock.Unlock()
@@ -209,28 +209,28 @@ func (srv *AbstractServer) handleGetJobElementsRequest(
 	srv.lock.Unlock()
 
 	var elements []JobElemData
-	seen := generic.NewSet[JobRequestedElement]()
+	seen := generic.NewSet[JobElemDataName]()
 
 	for _, re := range req.RequestedElements {
 		if !seen.TestAndAdd(re) {
 			continue
 		}
 		switch re {
-		case JobElemStatus:
+		case JobElemDataJobStatus:
 			elements = append(elements, JobElemData{
 				Name:      JobElemDataJobStatus,
 				Valid:     BooleanElement("true"),
 				JobStatus: optional.New(jobStatusFrom(j)),
 			})
 
-		case JobElemScanTicket:
+		case JobElemDataScanTicket:
 			elements = append(elements, JobElemData{
 				Name:       JobElemDataScanTicket,
 				Valid:      BooleanElement("true"),
 				ScanTicket: optional.New(j.scanTicket),
 			})
 
-		case JobElemDocuments:
+		case JobElemDataDocuments:
 			docs := Documents{}
 			if j.scanTicket.DocumentParameters != nil {
 				docs.DocumentFinalParameters =
