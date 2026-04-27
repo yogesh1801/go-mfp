@@ -20,7 +20,7 @@ import (
 // by JobID. RequestedElements specifies which job schema elements to return.
 type GetJobElementsRequest struct {
 	JobID             int
-	RequestedElements []JobElemDataName
+	RequestedElements []JobElemName
 }
 
 // Action returns the [Action] associated with this body.
@@ -77,7 +77,7 @@ func decodeGetJobElementsRequest(root xmldoc.Element) (
 
 	for _, child := range requestedElements.Elem.Children {
 		if child.Name == NsWSCN+":Name" {
-			re, err := decodeJobElemDataName(child)
+			re, err := decodeJobElemName(child)
 			if err != nil {
 				return r, err
 			}

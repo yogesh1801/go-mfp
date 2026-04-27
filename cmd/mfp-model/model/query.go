@@ -142,9 +142,9 @@ func queryWSDScannerCapabilities(ctx context.Context,
 		clnt := wsscan.NewClient(u, nil)
 		caps, err2 := clnt.GetScannerElements(
 			ctx,
-			wsscan.ScanElemDataScannerDescription,
-			wsscan.ScanElemDataScannerConfiguration,
-			wsscan.ScanElemDataDefaultScanTicket,
+			wsscan.ScanElemDescription,
+			wsscan.ScanElemConfiguration,
+			wsscan.ScanElemDefaultScanTicket,
 		)
 
 		if err2 != nil {

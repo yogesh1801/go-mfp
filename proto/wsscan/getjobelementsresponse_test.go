@@ -22,7 +22,7 @@ func TestGetJobElementsResponse_RoundTrip(t *testing.T) {
 	orig := GetJobElementsResponse{
 		JobElements: []JobElemData{
 			{
-				Name:  JobElemDataJobStatus,
+				Name:  JobElemStatus,
 				Valid: BooleanElement("true"),
 				JobStatus: optional.New(JobStatus{
 					JobID:          1,

@@ -16,32 +16,32 @@ import (
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
-// ScanElemDataName identifies which scanner schema element is
+// ScanElemName identifies which scanner schema element is
 // carried in a [ScanElemData].
-type ScanElemDataName int
+type ScanElemName int
 
-// Known ScanElemDataName values:
+// Known ScanElemName values:
 const (
-	UnknownScanElemDataName          ScanElemDataName = iota
-	ScanElemDataDefaultScanTicket                           // xmlns:DefaultScanTicket
-	ScanElemDataScannerConfiguration                        // xmlns:ScannerConfiguration
-	ScanElemDataScannerDescription                          // xmlns:ScannerDescription
-	ScanElemDataScannerStatus                               // xmlns:ScannerStatus
-	ScanElemDataVendorSection                               // xmlns:VendorSection
+	UnknownScanElem           ScanElemName = iota
+	ScanElemDefaultScanTicket              // wscn:DefaultScanTicket
+	ScanElemConfiguration                  // wscn:ScannerConfiguration
+	ScanElemDescription                    // wscn:ScannerDescription
+	ScanElemStatus                         // wscn:ScannerStatus
+	ScanElemVendorSection                  // wscn:VendorSection
 )
 
-// String returns the local name for a [ScanElemDataName].
-func (n ScanElemDataName) String() string {
+// String returns the local name for a [ScanElemName].
+func (n ScanElemName) String() string {
 	switch n {
-	case ScanElemDataDefaultScanTicket:
+	case ScanElemDefaultScanTicket:
 		return "DefaultScanTicket"
-	case ScanElemDataScannerConfiguration:
+	case ScanElemConfiguration:
 		return "ScannerConfiguration"
-	case ScanElemDataScannerDescription:
+	case ScanElemDescription:
 		return "ScannerDescription"
-	case ScanElemDataScannerStatus:
+	case ScanElemStatus:
 		return "ScannerStatus"
-	case ScanElemDataVendorSection:
+	case ScanElemVendorSection:
 		return "VendorSection"
 	default:
 		return "Unknown"
@@ -49,51 +49,51 @@ func (n ScanElemDataName) String() string {
 }
 
 // Encode returns the QName string for XML encoding of the
-// [ScanElemDataName], used both as the value of the Name attribute on
+// [ScanElemName], used both as the value of the Name attribute on
 // [ScanElemData] and as the text content of a wscn:Name element inside
 // a GetScannerElementsRequest.
-func (n ScanElemDataName) Encode() string {
+func (n ScanElemName) Encode() string {
 	return NsWSCN + ":" + n.String()
 }
 
 // toXML generates an XML element whose text content is the QName for
-// the [ScanElemDataName]. Used by [GetScannerElementsRequest] to encode
+// the [ScanElemName]. Used by [GetScannerElementsRequest] to encode
 // each requested element name.
-func (n ScanElemDataName) toXML(name string) xmldoc.Element {
+func (n ScanElemName) toXML(name string) xmldoc.Element {
 	return xmldoc.Element{
 		Name: name,
 		Text: n.Encode(),
 	}
 }
 
-// decodeScanElemDataName decodes a [ScanElemDataName] from an XML element
+// decodeScanElemName decodes a [ScanElemName] from an XML element
 // whose text content is the QName form. Returns an error if the value is
 // not a known name.
-func decodeScanElemDataName(root xmldoc.Element) (ScanElemDataName, error) {
-	return decodeEnum(root, DecodeScanElemDataName)
+func decodeScanElemName(root xmldoc.Element) (ScanElemName, error) {
+	return decodeEnum(root, DecodeScanElemName)
 }
 
-// DecodeScanElemDataName decodes a [ScanElemDataName] from its
+// DecodeScanElemName decodes a [ScanElemName] from its
 // QName string. The prefix is stripped before matching because devices may
 // use a different namespace prefix than we do for the same WS-Scan
 // namespace URL.
-func DecodeScanElemDataName(s string) ScanElemDataName {
+func DecodeScanElemName(s string) ScanElemName {
 	if i := strings.LastIndex(s, ":"); i >= 0 {
 		s = s[i+1:]
 	}
 	switch s {
 	case "DefaultScanTicket":
-		return ScanElemDataDefaultScanTicket
+		return ScanElemDefaultScanTicket
 	case "ScannerConfiguration":
-		return ScanElemDataScannerConfiguration
+		return ScanElemConfiguration
 	case "ScannerDescription":
-		return ScanElemDataScannerDescription
+		return ScanElemDescription
 	case "ScannerStatus":
-		return ScanElemDataScannerStatus
+		return ScanElemStatus
 	case "VendorSection":
-		return ScanElemDataVendorSection
+		return ScanElemVendorSection
 	default:
-		return UnknownScanElemDataName
+		return UnknownScanElem
 	}
 }
 
@@ -102,7 +102,7 @@ func DecodeScanElemDataName(s string) ScanElemDataName {
 // present and Valid indicates whether the returned data is valid.
 // Exactly one child element matching Name is expected to be present.
 type ScanElemData struct {
-	Name                 ScanElemDataName
+	Name                 ScanElemName
 	Valid                BooleanElement
 	DefaultScanTicket    optional.Val[ScanTicket]
 	ScannerConfiguration optional.Val[ScannerConfiguration]
@@ -155,8 +155,8 @@ func decodeScanElemData(root xmldoc.Element) (ScanElemData, error) {
 		return ed, xmldoc.XMLErrMissed(missed.Name)
 	}
 
-	ed.Name = DecodeScanElemDataName(nameAttr.Attr.Value)
-	if ed.Name == UnknownScanElemDataName {
+	ed.Name = DecodeScanElemName(nameAttr.Attr.Value)
+	if ed.Name == UnknownScanElem {
 		return ed, fmt.Errorf("ScanElemData: unknown Name %q",
 			nameAttr.Attr.Value)
 	}

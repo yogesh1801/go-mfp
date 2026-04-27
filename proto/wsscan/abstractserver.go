@@ -138,47 +138,47 @@ func (srv *AbstractServer) handleGetScannerElementsRequest(
 
 	// Build ScanElemData for each requested element, skipping duplicates.
 	var elements []ScanElemData
-	seen := generic.NewSet[ScanElemDataName]()
+	seen := generic.NewSet[ScanElemName]()
 
 	for _, re := range req.RequestedElements {
 		if !seen.TestAndAdd(re) {
 			continue
 		}
 		switch re {
-		case ScanElemDataDefaultScanTicket:
+		case ScanElemDefaultScanTicket:
 			req := srv.caps.DefaultRequest()
 			if req != nil {
 				ticket := fromAbstractScannerRequest(req)
 				elements = append(elements, ScanElemData{
-					Name:              ScanElemDataDefaultScanTicket,
+					Name:              ScanElemDefaultScanTicket,
 					Valid:             BooleanElement("true"),
 					DefaultScanTicket: optional.New(ticket),
 				})
 			}
 
-		case ScanElemDataScannerDescription:
+		case ScanElemDescription:
 			desc := fromAbstractScannerDescription(srv.caps)
 			elements = append(elements, ScanElemData{
-				Name:               ScanElemDataScannerDescription,
+				Name:               ScanElemDescription,
 				Valid:              BooleanElement("true"),
 				ScannerDescription: optional.New(desc),
 			})
 
-		case ScanElemDataScannerConfiguration:
+		case ScanElemConfiguration:
 			conf := fromAbstractScannerConfiguration(srv.caps)
 			elements = append(elements, ScanElemData{
-				Name:                 ScanElemDataScannerConfiguration,
+				Name:                 ScanElemConfiguration,
 				Valid:                BooleanElement("true"),
 				ScannerConfiguration: optional.New(conf),
 			})
 
-		case ScanElemDataScannerStatus:
+		case ScanElemStatus:
 			srv.lock.Lock()
 			status := srv.status
 			srv.lock.Unlock()
 			status.ScannerCurrentTime = time.Now()
 			elements = append(elements, ScanElemData{
-				Name:          ScanElemDataScannerStatus,
+				Name:          ScanElemStatus,
 				Valid:         BooleanElement("true"),
 				ScannerStatus: optional.New(status),
 			})
@@ -209,35 +209,35 @@ func (srv *AbstractServer) handleGetJobElementsRequest(
 	srv.lock.Unlock()
 
 	var elements []JobElemData
-	seen := generic.NewSet[JobElemDataName]()
+	seen := generic.NewSet[JobElemName]()
 
 	for _, re := range req.RequestedElements {
 		if !seen.TestAndAdd(re) {
 			continue
 		}
 		switch re {
-		case JobElemDataJobStatus:
+		case JobElemStatus:
 			elements = append(elements, JobElemData{
-				Name:      JobElemDataJobStatus,
+				Name:      JobElemStatus,
 				Valid:     BooleanElement("true"),
 				JobStatus: optional.New(jobStatusFrom(j)),
 			})
 
-		case JobElemDataScanTicket:
+		case JobElemScanTicket:
 			elements = append(elements, JobElemData{
-				Name:       JobElemDataScanTicket,
+				Name:       JobElemScanTicket,
 				Valid:      BooleanElement("true"),
 				ScanTicket: optional.New(j.scanTicket),
 			})
 
-		case JobElemDataDocuments:
+		case JobElemDocuments:
 			docs := Documents{}
 			if j.scanTicket.DocumentParameters != nil {
 				docs.DocumentFinalParameters =
 					optional.Get(j.scanTicket.DocumentParameters)
 			}
 			elements = append(elements, JobElemData{
-				Name:      JobElemDataDocuments,
+				Name:      JobElemDocuments,
 				Valid:     BooleanElement("true"),
 				Documents: optional.New(docs),
 			})

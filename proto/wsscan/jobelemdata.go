@@ -16,29 +16,29 @@ import (
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
-// JobElemDataName identifies which job schema element is carried
+// JobElemName identifies which job schema element is carried
 // in a [JobElemData].
-type JobElemDataName int
+type JobElemName int
 
-// Known JobElemDataName values:
+// Known JobElemName values:
 const (
-	UnknownJobElemDataName   JobElemDataName = iota
-	JobElemDataJobStatus                        // xmlns:JobStatus
-	JobElemDataScanTicket                       // xmlns:ScanTicket
-	JobElemDataDocuments                        // xmlns:Documents
-	JobElemDataVendorSection                    // xmlns:VendorSection
+	UnknownJobElem       JobElemName = iota
+	JobElemStatus                    // wscn:JobStatus
+	JobElemScanTicket                // wscn:ScanTicket
+	JobElemDocuments                 // wscn:Documents
+	JobElemVendorSection             // wscn:VendorSection
 )
 
-// String returns the local name for a [JobElemDataName].
-func (n JobElemDataName) String() string {
+// String returns the local name for a [JobElemName].
+func (n JobElemName) String() string {
 	switch n {
-	case JobElemDataJobStatus:
+	case JobElemStatus:
 		return "JobStatus"
-	case JobElemDataScanTicket:
+	case JobElemScanTicket:
 		return "ScanTicket"
-	case JobElemDataDocuments:
+	case JobElemDocuments:
 		return "Documents"
-	case JobElemDataVendorSection:
+	case JobElemVendorSection:
 		return "VendorSection"
 	default:
 		return "Unknown"
@@ -46,49 +46,49 @@ func (n JobElemDataName) String() string {
 }
 
 // Encode returns the QName string for XML encoding of the
-// [JobElemDataName], used both as the value of the Name attribute on
+// [JobElemName], used both as the value of the Name attribute on
 // [JobElemData] and as the text content of a wscn:Name element inside
 // a GetJobElementsRequest.
-func (n JobElemDataName) Encode() string {
+func (n JobElemName) Encode() string {
 	return NsWSCN + ":" + n.String()
 }
 
 // toXML generates an XML element whose text content is the QName for
-// the [JobElemDataName]. Used by [GetJobElementsRequest] to encode each
+// the [JobElemName]. Used by [GetJobElementsRequest] to encode each
 // requested element name.
-func (n JobElemDataName) toXML(name string) xmldoc.Element {
+func (n JobElemName) toXML(name string) xmldoc.Element {
 	return xmldoc.Element{
 		Name: name,
 		Text: n.Encode(),
 	}
 }
 
-// decodeJobElemDataName decodes a [JobElemDataName] from an XML element
+// decodeJobElemName decodes a [JobElemName] from an XML element
 // whose text content is the QName form. Returns an error if the value is
 // not a known name.
-func decodeJobElemDataName(root xmldoc.Element) (JobElemDataName, error) {
-	return decodeEnum(root, DecodeJobElemDataName)
+func decodeJobElemName(root xmldoc.Element) (JobElemName, error) {
+	return decodeEnum(root, DecodeJobElemName)
 }
 
-// DecodeJobElemDataName decodes a [JobElemDataName] from its QName
+// DecodeJobElemName decodes a [JobElemName] from its QName
 // string. The prefix is stripped before matching because devices may use
 // a different namespace prefix than we do for the same WS-Scan namespace
 // URL.
-func DecodeJobElemDataName(s string) JobElemDataName {
+func DecodeJobElemName(s string) JobElemName {
 	if i := strings.LastIndex(s, ":"); i >= 0 {
 		s = s[i+1:]
 	}
 	switch s {
 	case "JobStatus":
-		return JobElemDataJobStatus
+		return JobElemStatus
 	case "ScanTicket":
-		return JobElemDataScanTicket
+		return JobElemScanTicket
 	case "Documents":
-		return JobElemDataDocuments
+		return JobElemDocuments
 	case "VendorSection":
-		return JobElemDataVendorSection
+		return JobElemVendorSection
 	default:
-		return UnknownJobElemDataName
+		return UnknownJobElem
 	}
 }
 
@@ -97,7 +97,7 @@ func DecodeJobElemDataName(s string) JobElemDataName {
 // and Valid indicates whether the returned data is valid. Exactly one
 // child element matching Name is expected to be present.
 type JobElemData struct {
-	Name       JobElemDataName
+	Name       JobElemName
 	Valid      BooleanElement
 	JobStatus  optional.Val[JobStatus]
 	ScanTicket optional.Val[ScanTicket]
@@ -144,8 +144,8 @@ func decodeJobElemData(root xmldoc.Element) (JobElemData, error) {
 		return ed, xmldoc.XMLErrMissed(missed.Name)
 	}
 
-	ed.Name = DecodeJobElemDataName(nameAttr.Attr.Value)
-	if ed.Name == UnknownJobElemDataName {
+	ed.Name = DecodeJobElemName(nameAttr.Attr.Value)
+	if ed.Name == UnknownJobElem {
 		return ed, fmt.Errorf("JobElemData: unknown Name %q",
 			nameAttr.Attr.Value)
 	}
