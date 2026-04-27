@@ -17,12 +17,12 @@ import (
 )
 
 // TestGetScannerElementsResponse_RoundTrip_Single verifies that a response
-// with a single ScanElemData entry encodes to XML and decodes back identically.
+// with a single ScannerElemData entry encodes to XML and decodes back identically.
 func TestGetScannerElementsResponse_RoundTrip_Single(t *testing.T) {
 	orig := GetScannerElementsResponse{
-		ScannerElements: []ScanElemData{
+		ScannerElements: []ScannerElemData{
 			{
-				Name:  ScanElemDescription,
+				Name:  ScannerElemDescription,
 				Valid: BooleanElement("true"),
 				ScannerDescription: optional.New(
 					createValidScannerDescription()),
@@ -46,19 +46,19 @@ func TestGetScannerElementsResponse_RoundTrip_Single(t *testing.T) {
 }
 
 // TestGetScannerElementsResponse_RoundTrip_Multiple verifies that a response
-// carrying multiple ScanElemData entries (description + status) round-trips
+// carrying multiple ScannerElemData entries (description + status) round-trips
 // correctly and preserves order.
 func TestGetScannerElementsResponse_RoundTrip_Multiple(t *testing.T) {
 	orig := GetScannerElementsResponse{
-		ScannerElements: []ScanElemData{
+		ScannerElements: []ScannerElemData{
 			{
-				Name:  ScanElemDescription,
+				Name:  ScannerElemDescription,
 				Valid: BooleanElement("true"),
 				ScannerDescription: optional.New(
 					createValidScannerDescription()),
 			},
 			{
-				Name:  ScanElemStatus,
+				Name:  ScannerElemStatus,
 				Valid: BooleanElement("true"),
 				ScannerStatus: optional.New(
 					createValidScannerStatus()),
@@ -90,7 +90,7 @@ func TestGetScannerElementsResponse_MissingScannerElements(t *testing.T) {
 }
 
 // TestGetScannerElementsResponse_EmptyScannerElements verifies that
-// decoding a response with an empty ScannerElements (no ScanElemData children)
+// decoding a response with an empty ScannerElements (no ScannerElemData children)
 // returns an error.
 func TestGetScannerElementsResponse_EmptyScannerElements(t *testing.T) {
 	elm := xmldoc.Element{
