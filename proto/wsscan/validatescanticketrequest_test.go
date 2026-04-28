@@ -41,9 +41,9 @@ func TestValidateScanTicketRequestRoundTrip(t *testing.T) {
 							Val: JFIF,
 						})),
 						ImagesToTransfer: optional.New(
-							ImagesToTransfer(ValWithOptions[int]{
+							ValWithOptions[int]{
 								Val: 5,
-							}),
+							},
 						),
 						InputSource: optional.New(
 							InputSource(ValWithOptions[InputSourceValue]{

@@ -37,9 +37,9 @@ func TestScanTicketRoundTrip(t *testing.T) {
 					Format: optional.New(Format(ValWithOptions[FormatValue]{
 						Val: JFIF,
 					})),
-					ImagesToTransfer: optional.New(ImagesToTransfer(ValWithOptions[int]{
+					ImagesToTransfer: optional.New(ValWithOptions[int]{
 						Val: 10,
-					})),
+					}),
 				}),
 				JobDescription: JobDescription{
 					JobName:                "ScanJob",
@@ -56,10 +56,9 @@ func TestScanTicketRoundTrip(t *testing.T) {
 						ValWithOptions[FormatValue]{
 							Val: PNG,
 						})),
-					ImagesToTransfer: optional.New(ImagesToTransfer(
-						ValWithOptions[int]{
-							Val: 5,
-						})),
+					ImagesToTransfer: optional.New(ValWithOptions[int]{
+						Val: 5,
+					}),
 					InputSource: optional.New(InputSource(
 						ValWithOptions[InputSourceValue]{
 							Val: InputSourcePlaten,

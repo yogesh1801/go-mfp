@@ -41,9 +41,9 @@ func TestCreateScanJobRequestRoundTrip(t *testing.T) {
 							Val: JFIF,
 						})),
 						ImagesToTransfer: optional.New(
-							ImagesToTransfer(ValWithOptions[int]{
+							ValWithOptions[int]{
 								Val: 5,
-							}),
+							},
 						),
 					}),
 					JobDescription: JobDescription{

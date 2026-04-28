@@ -24,7 +24,7 @@ type DocumentParameters struct {
 	Exposure                 optional.Val[Exposure]
 	FilmScanMode             optional.Val[FilmScanModeElement]
 	Format                   optional.Val[Format]
-	ImagesToTransfer         optional.Val[ImagesToTransfer]
+	ImagesToTransfer         optional.Val[ValWithOptions[int]]
 	InputSize                optional.Val[InputSize]
 	InputSource              optional.Val[InputSource]
 	MediaSides               optional.Val[MediaSides]
@@ -69,7 +69,7 @@ func (dp DocumentParameters) toXML(name string) xmldoc.Element {
 	if dp.ImagesToTransfer != nil {
 		children = append(children, optional.Get(
 			dp.ImagesToTransfer).toXML(
-			NsWSCN+":ImagesToTransfer"))
+			NsWSCN+":ImagesToTransfer", intValueEncoder))
 	}
 
 	if dp.InputSize != nil {
@@ -226,9 +226,9 @@ func decodeDocumentParameters(root xmldoc.Element) (
 	}
 
 	if imagesToTransfer.Found {
-		var itt ImagesToTransfer
-		if itt, err = decodeImagesToTransfer(
-			imagesToTransfer.Elem,
+		var itt ValWithOptions[int]
+		if itt, err = itt.decodeValWithOptions(
+			imagesToTransfer.Elem, intValueDecoder,
 		); err != nil {
 			return dp, fmt.Errorf("ImagesToTransfer: %w", err)
 		}
