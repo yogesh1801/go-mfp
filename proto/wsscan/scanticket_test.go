@@ -34,9 +34,9 @@ func TestScanTicketRoundTrip(t *testing.T) {
 			name: "ScanTicket with DocumentParameters",
 			st: ScanTicket{
 				DocumentParameters: optional.New(DocumentParameters{
-					Format: optional.New(Format(ValWithOptions[FormatValue]{
+					Format: optional.New(ValWithOptions[FormatValue]{
 						Val: JFIF,
-					})),
+					}),
 					ImagesToTransfer: optional.New(ValWithOptions[int]{
 						Val: 10,
 					}),
@@ -52,21 +52,19 @@ func TestScanTicketRoundTrip(t *testing.T) {
 			name: "ScanTicket with full DocumentParameters",
 			st: ScanTicket{
 				DocumentParameters: optional.New(DocumentParameters{
-					Format: optional.New(Format(
-						ValWithOptions[FormatValue]{
-							Val: PNG,
-						})),
+					Format: optional.New(ValWithOptions[FormatValue]{
+						Val: PNG,
+					}),
 					ImagesToTransfer: optional.New(ValWithOptions[int]{
 						Val: 5,
 					}),
-					InputSource: optional.New(InputSource(
-						ValWithOptions[InputSourceValue]{
-							Val: InputSourcePlaten,
-						})),
+					InputSource: optional.New(ValWithOptions[InputSourceValue]{
+						Val: InputSourcePlaten,
+					}),
 					CompressionQualityFactor: optional.New(
-						CompressionQualityFactor(ValWithOptions[int]{
+						ValWithOptions[int]{
 							Val: 85,
-						})),
+						}),
 				}),
 				JobDescription: JobDescription{
 					JobName:                "FullScanJob",
@@ -159,9 +157,9 @@ func TestScanTicketDecodeError(t *testing.T) {
 func TestScanTicketToXML(t *testing.T) {
 	st := ScanTicket{
 		DocumentParameters: optional.New(DocumentParameters{
-			Format: optional.New(Format(ValWithOptions[FormatValue]{
+			Format: optional.New(ValWithOptions[FormatValue]{
 				Val: JFIF,
-			})),
+			}),
 		}),
 		JobDescription: JobDescription{
 			JobName:                "TestJob",

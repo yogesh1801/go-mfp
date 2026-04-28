@@ -18,25 +18,19 @@ import (
 
 func TestExposureSettings_RoundTrip_AllChildren(t *testing.T) {
 	orig := ExposureSettings{
-		Brightness: optional.New(Brightness(
-			ValWithOptions[int]{
-				Val:      50,
-				Override: optional.New(BooleanElement("true")),
-			},
-		)),
-		Contrast: optional.New(Contrast(
-			ValWithOptions[int]{
-				Val:         75,
-				UsedDefault: optional.New(BooleanElement("false")),
-			},
-		)),
-		Sharpness: optional.New(Sharpness(
-			ValWithOptions[int]{
-				Val:         90,
-				Override:    optional.New(BooleanElement("1")),
-				UsedDefault: optional.New(BooleanElement("0")),
-			},
-		)),
+		Brightness: optional.New(ValWithOptions[int]{
+			Val:      50,
+			Override: optional.New(BooleanElement("true")),
+		}),
+		Contrast: optional.New(ValWithOptions[int]{
+			Val:         75,
+			UsedDefault: optional.New(BooleanElement("false")),
+		}),
+		Sharpness: optional.New(ValWithOptions[int]{
+			Val:         90,
+			Override:    optional.New(BooleanElement("1")),
+			UsedDefault: optional.New(BooleanElement("0")),
+		}),
 	}
 
 	elm := orig.toXML("wscn:ExposureSettings")
@@ -76,11 +70,9 @@ func TestExposureSettings_RoundTrip_NoChildren(t *testing.T) {
 
 func TestExposureSettings_RoundTrip_OnlyBrightness(t *testing.T) {
 	orig := ExposureSettings{
-		Brightness: optional.New(Brightness(
-			ValWithOptions[int]{
-				Val: 25,
-			},
-		)),
+		Brightness: optional.New(ValWithOptions[int]{
+			Val: 25,
+		}),
 	}
 
 	elm := orig.toXML("wscn:ExposureSettings")

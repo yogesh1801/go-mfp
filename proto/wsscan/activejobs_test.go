@@ -53,10 +53,9 @@ func TestActiveJobsRoundTrip(t *testing.T) {
 					{
 						Documents: Documents{
 							DocumentFinalParameters: DocumentParameters{
-								Format: optional.New(Format(
-									ValWithOptions[FormatValue]{
-										Val: JFIF,
-									})),
+								Format: optional.New(ValWithOptions[FormatValue]{
+									Val: JFIF,
+								}),
 							},
 						},
 						JobStatus: JobStatus{
@@ -81,10 +80,9 @@ func TestActiveJobsRoundTrip(t *testing.T) {
 					{
 						Documents: Documents{
 							DocumentFinalParameters: DocumentParameters{
-								Format: optional.New(Format(
-									ValWithOptions[FormatValue]{
-										Val: PNG,
-									})),
+								Format: optional.New(ValWithOptions[FormatValue]{
+									Val: PNG,
+								}),
 							},
 						},
 						JobStatus: JobStatus{
@@ -194,10 +192,9 @@ func TestActiveJobsToXML(t *testing.T) {
 			{
 				Documents: Documents{
 					DocumentFinalParameters: DocumentParameters{
-						Format: optional.New(Format(
-							ValWithOptions[FormatValue]{
-								Val: JFIF,
-							})),
+						Format: optional.New(ValWithOptions[FormatValue]{
+							Val: JFIF,
+						}),
 					},
 				},
 				JobStatus: JobStatus{

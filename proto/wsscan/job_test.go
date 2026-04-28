@@ -27,10 +27,9 @@ func TestJobRoundTrip(t *testing.T) {
 			job: Job{
 				Documents: Documents{
 					DocumentFinalParameters: DocumentParameters{
-						Format: optional.New(Format(
-							ValWithOptions[FormatValue]{
-								Val: JFIF,
-							})),
+						Format: optional.New(ValWithOptions[FormatValue]{
+							Val: JFIF,
+						}),
 					},
 				},
 				JobStatus: JobStatus{
@@ -51,10 +50,9 @@ func TestJobRoundTrip(t *testing.T) {
 			job: Job{
 				Documents: Documents{
 					DocumentFinalParameters: DocumentParameters{
-						Format: optional.New(Format(
-							ValWithOptions[FormatValue]{
-								Val: PNG,
-							})),
+						Format: optional.New(ValWithOptions[FormatValue]{
+							Val: PNG,
+						}),
 						ImagesToTransfer: optional.New(ValWithOptions[int]{
 							Val: 5,
 						}),
@@ -83,10 +81,9 @@ func TestJobRoundTrip(t *testing.T) {
 				},
 				ScanTicket: ScanTicket{
 					DocumentParameters: optional.New(DocumentParameters{
-						Format: optional.New(Format(
-							ValWithOptions[FormatValue]{
-								Val: PNG,
-							})),
+						Format: optional.New(ValWithOptions[FormatValue]{
+							Val: PNG,
+						}),
 					}),
 					JobDescription: JobDescription{
 						JobName:                "CompleteJob",
@@ -224,10 +221,9 @@ func TestJobToXML(t *testing.T) {
 	job := Job{
 		Documents: Documents{
 			DocumentFinalParameters: DocumentParameters{
-				Format: optional.New(Format(
-					ValWithOptions[FormatValue]{
-						Val: JFIF,
-					})),
+				Format: optional.New(ValWithOptions[FormatValue]{
+					Val: JFIF,
+				}),
 			},
 		},
 		JobStatus: JobStatus{

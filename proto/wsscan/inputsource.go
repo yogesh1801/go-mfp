@@ -4,20 +4,14 @@
 // Copyright (C) 2024 and up by Yogesh Singla (yogeshsingla481@gmail.com)
 // See LICENSE for license terms and conditions
 //
-// InputSource: specifies the source from which the document should be scanned
+// InputSourceValue: enumerates sources from which a document can be scanned
 
 package wsscan
 
-import (
-	"fmt"
+import "fmt"
 
-	"github.com/OpenPrinting/go-mfp/util/xmldoc"
-)
-
-// InputSource represents the source from which a document should be scanned.
-type InputSource ValWithOptions[InputSourceValue]
-
-// InputSourceValue represents the possible values for InputSource
+// InputSourceValue represents the possible values carried by the
+// wscn:InputSource element.
 type InputSourceValue int
 
 // Known InputSource values
@@ -74,21 +68,4 @@ func inputSourceValueDecoder(s string) (InputSourceValue, error) {
 // inputSourceValueEncoder is the encoder function for use with ValWithOptions
 func inputSourceValueEncoder(isv InputSourceValue) string {
 	return isv.String()
-}
-
-// decodeInputSource decodes InputSource from the XML tree
-func decodeInputSource(root xmldoc.Element) (InputSource, error) {
-	var base ValWithOptions[InputSourceValue]
-	decoded, err := base.decodeValWithOptions(root,
-		inputSourceValueDecoder)
-	if err != nil {
-		return InputSource{}, err
-	}
-	return InputSource(decoded), nil
-}
-
-// toXML generates XML tree for the InputSource
-func (is InputSource) toXML(name string) xmldoc.Element {
-	return ValWithOptions[InputSourceValue](is).toXML(name,
-		inputSourceValueEncoder)
 }
