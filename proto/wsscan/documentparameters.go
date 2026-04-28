@@ -19,16 +19,16 @@ import (
 // DocumentParameters defines the image processing functions to be applied
 // to documents within a scan job. All child elements are optional.
 type DocumentParameters struct {
-	CompressionQualityFactor optional.Val[CompressionQualityFactor]
-	ContentType              optional.Val[ContentType]
+	CompressionQualityFactor optional.Val[ValWithOptions[int]]
+	ContentType              optional.Val[ValWithOptions[ContentTypeValue]]
 	Exposure                 optional.Val[Exposure]
 	FilmScanMode             optional.Val[FilmScanModeElement]
-	Format                   optional.Val[Format]
+	Format                   optional.Val[ValWithOptions[FormatValue]]
 	ImagesToTransfer         optional.Val[ValWithOptions[int]]
 	InputSize                optional.Val[InputSize]
-	InputSource              optional.Val[InputSource]
+	InputSource              optional.Val[ValWithOptions[InputSourceValue]]
 	MediaSides               optional.Val[MediaSides]
-	Rotation                 optional.Val[Rotation]
+	Rotation                 optional.Val[ValWithOptions[RotationValue]]
 	Scaling                  optional.Val[Scaling]
 }
 
@@ -39,13 +39,13 @@ func (dp DocumentParameters) toXML(name string) xmldoc.Element {
 	if dp.CompressionQualityFactor != nil {
 		children = append(children, optional.Get(
 			dp.CompressionQualityFactor).toXML(
-			NsWSCN+":CompressionQualityFactor"))
+			NsWSCN+":CompressionQualityFactor", intValueEncoder))
 	}
 
 	if dp.ContentType != nil {
 		children = append(children, optional.Get(
 			dp.ContentType).toXML(
-			NsWSCN+":ContentType"))
+			NsWSCN+":ContentType", contentTypeValueEncoder))
 	}
 
 	if dp.Exposure != nil {
@@ -63,7 +63,7 @@ func (dp DocumentParameters) toXML(name string) xmldoc.Element {
 	if dp.Format != nil {
 		children = append(children, optional.Get(
 			dp.Format).toXML(
-			NsWSCN+":Format"))
+			NsWSCN+":Format", formatValueEncoder))
 	}
 
 	if dp.ImagesToTransfer != nil {
@@ -81,7 +81,7 @@ func (dp DocumentParameters) toXML(name string) xmldoc.Element {
 	if dp.InputSource != nil {
 		children = append(children, optional.Get(
 			dp.InputSource).toXML(
-			NsWSCN+":InputSource"))
+			NsWSCN+":InputSource", inputSourceValueEncoder))
 	}
 
 	if dp.MediaSides != nil {
@@ -93,7 +93,7 @@ func (dp DocumentParameters) toXML(name string) xmldoc.Element {
 	if dp.Rotation != nil {
 		children = append(children, optional.Get(
 			dp.Rotation).toXML(
-			NsWSCN+":Rotation"))
+			NsWSCN+":Rotation", rotationValueEncoder))
 	}
 
 	if dp.Scaling != nil {
@@ -176,9 +176,9 @@ func decodeDocumentParameters(root xmldoc.Element) (
 
 	// Decode each optional element if present
 	if compressionQualityFactor.Found {
-		var cqf CompressionQualityFactor
-		if cqf, err = decodeCompressionQualityFactor(
-			compressionQualityFactor.Elem,
+		var cqf ValWithOptions[int]
+		if cqf, err = cqf.decodeValWithOptions(
+			compressionQualityFactor.Elem, intValueDecoder,
 		); err != nil {
 			return dp, fmt.Errorf("CompressionQualityFactor: %w", err)
 		}
@@ -186,9 +186,9 @@ func decodeDocumentParameters(root xmldoc.Element) (
 	}
 
 	if contentType.Found {
-		var ct ContentType
-		if ct, err = decodeContentType(
-			contentType.Elem,
+		var ct ValWithOptions[ContentTypeValue]
+		if ct, err = ct.decodeValWithOptions(
+			contentType.Elem, contentTypeValueDecoder,
 		); err != nil {
 			return dp, fmt.Errorf("ContentType: %w", err)
 		}
@@ -216,9 +216,9 @@ func decodeDocumentParameters(root xmldoc.Element) (
 	}
 
 	if format.Found {
-		var fmtVal Format
-		if fmtVal, err = decodeFormat(
-			format.Elem,
+		var fmtVal ValWithOptions[FormatValue]
+		if fmtVal, err = fmtVal.decodeValWithOptions(
+			format.Elem, formatValueDecoder,
 		); err != nil {
 			return dp, fmt.Errorf("Format: %w", err)
 		}
@@ -246,9 +246,9 @@ func decodeDocumentParameters(root xmldoc.Element) (
 	}
 
 	if inputSource.Found {
-		var isrc InputSource
-		if isrc, err = decodeInputSource(
-			inputSource.Elem,
+		var isrc ValWithOptions[InputSourceValue]
+		if isrc, err = isrc.decodeValWithOptions(
+			inputSource.Elem, inputSourceValueDecoder,
 		); err != nil {
 			return dp, fmt.Errorf("InputSource: %w", err)
 		}
@@ -266,9 +266,9 @@ func decodeDocumentParameters(root xmldoc.Element) (
 	}
 
 	if rotation.Found {
-		var rot Rotation
-		if rot, err = decodeRotation(
-			rotation.Elem,
+		var rot ValWithOptions[RotationValue]
+		if rot, err = rot.decodeValWithOptions(
+			rotation.Elem, rotationValueDecoder,
 		); err != nil {
 			return dp, fmt.Errorf("Rotation: %w", err)
 		}

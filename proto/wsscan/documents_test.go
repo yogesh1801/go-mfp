@@ -25,10 +25,9 @@ func TestDocumentsRoundTrip(t *testing.T) {
 			name: "Documents with no Document elements",
 			docs: Documents{
 				DocumentFinalParameters: DocumentParameters{
-					Format: optional.New(Format(
-						ValWithOptions[FormatValue]{
-							Val: JFIF,
-						})),
+					Format: optional.New(ValWithOptions[FormatValue]{
+						Val: JFIF,
+					}),
 				},
 			},
 		},
@@ -36,10 +35,9 @@ func TestDocumentsRoundTrip(t *testing.T) {
 			name: "Documents with one Document",
 			docs: Documents{
 				DocumentFinalParameters: DocumentParameters{
-					Format: optional.New(Format(
-						ValWithOptions[FormatValue]{
-							Val: PNG,
-						})),
+					Format: optional.New(ValWithOptions[FormatValue]{
+						Val: PNG,
+					}),
 					ImagesToTransfer: optional.New(ValWithOptions[int]{
 						Val: 5,
 					}),
@@ -57,17 +55,15 @@ func TestDocumentsRoundTrip(t *testing.T) {
 			name: "Documents with multiple Documents",
 			docs: Documents{
 				DocumentFinalParameters: DocumentParameters{
-					Format: optional.New(Format(
-						ValWithOptions[FormatValue]{
-							Val: JFIF,
-						})),
+					Format: optional.New(ValWithOptions[FormatValue]{
+						Val: JFIF,
+					}),
 					ImagesToTransfer: optional.New(ValWithOptions[int]{
 						Val: 10,
 					}),
-					InputSource: optional.New(InputSource(
-						ValWithOptions[InputSourceValue]{
-							Val: InputSourcePlaten,
-						})),
+					InputSource: optional.New(ValWithOptions[InputSourceValue]{
+						Val: InputSourcePlaten,
+					}),
 				},
 				Document: []Document{
 					{
@@ -200,10 +196,9 @@ func TestDocumentsDecodeError(t *testing.T) {
 func TestDocumentsToXML(t *testing.T) {
 	docs := Documents{
 		DocumentFinalParameters: DocumentParameters{
-			Format: optional.New(Format(
-				ValWithOptions[FormatValue]{
-					Val: JFIF,
-				})),
+			Format: optional.New(ValWithOptions[FormatValue]{
+				Val: JFIF,
+			}),
 		},
 		Document: []Document{
 			{

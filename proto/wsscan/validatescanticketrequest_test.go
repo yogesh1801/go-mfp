@@ -37,18 +37,18 @@ func TestValidateScanTicketRequestRoundTrip(t *testing.T) {
 			vstr: ValidateScanTicketRequest{
 				ScanTicket: ScanTicket{
 					DocumentParameters: optional.New(DocumentParameters{
-						Format: optional.New(Format(ValWithOptions[FormatValue]{
+						Format: optional.New(ValWithOptions[FormatValue]{
 							Val: JFIF,
-						})),
+						}),
 						ImagesToTransfer: optional.New(
 							ValWithOptions[int]{
 								Val: 5,
 							},
 						),
 						InputSource: optional.New(
-							InputSource(ValWithOptions[InputSourceValue]{
+							ValWithOptions[InputSourceValue]{
 								Val: InputSourcePlaten,
-							}),
+							},
 						),
 					}),
 					JobDescription: JobDescription{

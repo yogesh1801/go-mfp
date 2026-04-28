@@ -38,11 +38,9 @@ func TestMediaSidesRoundTrip(t *testing.T) {
 			name: "MediaSides with MediaFront with ColorProcessing",
 			ms: MediaSides{
 				MediaFront: MediaSide{
-					ColorProcessing: optional.New(ColorProcessing(
-						ValWithOptions[ColorEntry]{
-							Val: RGB24,
-						},
-					)),
+					ColorProcessing: optional.New(ValWithOptions[ColorEntry]{
+						Val: RGB24,
+					}),
 				},
 			},
 		},
@@ -62,22 +60,18 @@ func TestMediaSidesRoundTrip(t *testing.T) {
 			name: "MediaSides with both sides populated",
 			ms: MediaSides{
 				MediaFront: MediaSide{
-					ColorProcessing: optional.New(ColorProcessing(
-						ValWithOptions[ColorEntry]{
-							Val: RGB24,
-						},
-					)),
+					ColorProcessing: optional.New(ValWithOptions[ColorEntry]{
+						Val: RGB24,
+					}),
 					Resolution: optional.New(Resolution{
 						Height: ValWithOptions[int]{Val: 600},
 						Width:  ValWithOptions[int]{Val: 600},
 					}),
 				},
 				MediaBack: optional.New(MediaSide{
-					ColorProcessing: optional.New(ColorProcessing(
-						ValWithOptions[ColorEntry]{
-							Val: Grayscale8,
-						},
-					)),
+					ColorProcessing: optional.New(ValWithOptions[ColorEntry]{
+						Val: Grayscale8,
+					}),
 					ScanRegion: optional.New(ScanRegion{
 						ScanRegionHeight: ValWithOptions[int]{Val: 1000},
 						ScanRegionWidth:  ValWithOptions[int]{Val: 800},
@@ -90,12 +84,10 @@ func TestMediaSidesRoundTrip(t *testing.T) {
 			ms: MediaSides{
 				MustHonor: optional.New(BooleanElement("false")),
 				MediaFront: MediaSide{
-					ColorProcessing: optional.New(ColorProcessing(
-						ValWithOptions[ColorEntry]{
-							Val:       RGB24,
-							MustHonor: optional.New(BooleanElement("true")),
-						},
-					)),
+					ColorProcessing: optional.New(ValWithOptions[ColorEntry]{
+						Val:       RGB24,
+						MustHonor: optional.New(BooleanElement("true")),
+					}),
 					Resolution: optional.New(Resolution{
 						Height:    ValWithOptions[int]{Val: 600},
 						Width:     ValWithOptions[int]{Val: 600},
@@ -111,11 +103,9 @@ func TestMediaSidesRoundTrip(t *testing.T) {
 					}),
 				},
 				MediaBack: optional.New(MediaSide{
-					ColorProcessing: optional.New(ColorProcessing(
-						ValWithOptions[ColorEntry]{
-							Val: Grayscale8,
-						},
-					)),
+					ColorProcessing: optional.New(ValWithOptions[ColorEntry]{
+						Val: Grayscale8,
+					}),
 				}),
 			},
 		},

@@ -37,9 +37,9 @@ func TestCreateScanJobRequestRoundTrip(t *testing.T) {
 			csjr: CreateScanJobRequest{
 				ScanTicket: ScanTicket{
 					DocumentParameters: optional.New(DocumentParameters{
-						Format: optional.New(Format(ValWithOptions[FormatValue]{
+						Format: optional.New(ValWithOptions[FormatValue]{
 							Val: JFIF,
-						})),
+						}),
 						ImagesToTransfer: optional.New(
 							ValWithOptions[int]{
 								Val: 5,
