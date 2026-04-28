@@ -36,9 +36,9 @@ func TestDocumentParametersRoundTrip(t *testing.T) {
 		{
 			name: "with ImagesToTransfer only",
 			dp: DocumentParameters{
-				ImagesToTransfer: optional.New(ImagesToTransfer(ValWithOptions[int]{
+				ImagesToTransfer: optional.New(ValWithOptions[int]{
 					Val: 10,
-				})),
+				}),
 			},
 		},
 		{
@@ -55,9 +55,9 @@ func TestDocumentParametersRoundTrip(t *testing.T) {
 				Format: optional.New(Format(ValWithOptions[FormatValue]{
 					Val: PNG,
 				})),
-				ImagesToTransfer: optional.New(ImagesToTransfer(ValWithOptions[int]{
+				ImagesToTransfer: optional.New(ValWithOptions[int]{
 					Val: 5,
-				})),
+				}),
 				CompressionQualityFactor: optional.New(CompressionQualityFactor(ValWithOptions[int]{
 					Val: 75,
 				})),
@@ -121,9 +121,9 @@ func TestDocumentParametersToXML(t *testing.T) {
 		Format: optional.New(Format(ValWithOptions[FormatValue]{
 			Val: JFIF,
 		})),
-		ImagesToTransfer: optional.New(ImagesToTransfer(ValWithOptions[int]{
+		ImagesToTransfer: optional.New(ValWithOptions[int]{
 			Val: 10,
-		})),
+		}),
 	}
 
 	xml := dp.toXML(NsWSCN + ":DocumentParameters")

@@ -40,10 +40,9 @@ func TestDocumentsRoundTrip(t *testing.T) {
 						ValWithOptions[FormatValue]{
 							Val: PNG,
 						})),
-					ImagesToTransfer: optional.New(ImagesToTransfer(
-						ValWithOptions[int]{
-							Val: 5,
-						})),
+					ImagesToTransfer: optional.New(ValWithOptions[int]{
+						Val: 5,
+					}),
 				},
 				Document: []Document{
 					{
@@ -62,10 +61,9 @@ func TestDocumentsRoundTrip(t *testing.T) {
 						ValWithOptions[FormatValue]{
 							Val: JFIF,
 						})),
-					ImagesToTransfer: optional.New(ImagesToTransfer(
-						ValWithOptions[int]{
-							Val: 10,
-						})),
+					ImagesToTransfer: optional.New(ValWithOptions[int]{
+						Val: 10,
+					}),
 					InputSource: optional.New(InputSource(
 						ValWithOptions[InputSourceValue]{
 							Val: InputSourcePlaten,

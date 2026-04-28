@@ -55,10 +55,9 @@ func TestJobRoundTrip(t *testing.T) {
 							ValWithOptions[FormatValue]{
 								Val: PNG,
 							})),
-						ImagesToTransfer: optional.New(ImagesToTransfer(
-							ValWithOptions[int]{
-								Val: 5,
-							})),
+						ImagesToTransfer: optional.New(ValWithOptions[int]{
+							Val: 5,
+						}),
 					},
 					Document: []Document{
 						{
