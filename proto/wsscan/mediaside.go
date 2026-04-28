@@ -19,7 +19,7 @@ import (
 // to the scanning of one side of the physical media.
 // This is a common type used for both MediaFront and MediaBack elements.
 type MediaSide struct {
-	ColorProcessing optional.Val[ColorProcessing]
+	ColorProcessing optional.Val[ValWithOptions[ColorEntry]]
 	Resolution      optional.Val[Resolution]
 	ScanRegion      optional.Val[ScanRegion]
 }
@@ -46,7 +46,9 @@ func decodeMediaSide(root xmldoc.Element) (MediaSide, error) {
 
 	// Decode ColorProcessing if present
 	if colorProcessing.Found {
-		cp, err := decodeColorProcessing(colorProcessing.Elem)
+		var cp ValWithOptions[ColorEntry]
+		cp, err := cp.decodeValWithOptions(
+			colorProcessing.Elem, colorEntryDecoder)
 		if err != nil {
 			return ms, fmt.Errorf("ColorProcessing: %w", err)
 		}
@@ -81,7 +83,8 @@ func (ms MediaSide) toXML(name string) xmldoc.Element {
 	// Add ColorProcessing if present
 	if ms.ColorProcessing != nil {
 		elm.Children = append(elm.Children,
-			optional.Get(ms.ColorProcessing).toXML(NsWSCN+":ColorProcessing"))
+			optional.Get(ms.ColorProcessing).toXML(
+				NsWSCN+":ColorProcessing", colorEntryEncoder))
 	}
 
 	// Add Resolution if present

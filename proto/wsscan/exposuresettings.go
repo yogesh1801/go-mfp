@@ -16,9 +16,9 @@ import (
 // ExposureSettings contains individual adjustment values that the
 // WSD Scan Service should apply to the image data after acquisition.
 type ExposureSettings struct {
-	Brightness optional.Val[Brightness]
-	Contrast   optional.Val[Contrast]
-	Sharpness  optional.Val[Sharpness]
+	Brightness optional.Val[ValWithOptions[int]]
+	Contrast   optional.Val[ValWithOptions[int]]
+	Sharpness  optional.Val[ValWithOptions[int]]
 }
 
 // decodeExposureSettings decodes an ExposureSettings from an XML element.
@@ -40,7 +40,9 @@ func decodeExposureSettings(root xmldoc.Element) (ExposureSettings, error) {
 
 	// Decode Brightness if present
 	if brightnessLookup.Elem.Name != "" {
-		brightness, err := decodeBrightness(brightnessLookup.Elem)
+		var brightness ValWithOptions[int]
+		brightness, err := brightness.decodeValWithOptions(
+			brightnessLookup.Elem, intValueDecoder)
 		if err != nil {
 			return es, err
 		}
@@ -49,7 +51,9 @@ func decodeExposureSettings(root xmldoc.Element) (ExposureSettings, error) {
 
 	// Decode Contrast if present
 	if contrastLookup.Elem.Name != "" {
-		contrast, err := decodeContrast(contrastLookup.Elem)
+		var contrast ValWithOptions[int]
+		contrast, err := contrast.decodeValWithOptions(
+			contrastLookup.Elem, intValueDecoder)
 		if err != nil {
 			return es, err
 		}
@@ -58,7 +62,9 @@ func decodeExposureSettings(root xmldoc.Element) (ExposureSettings, error) {
 
 	// Decode Sharpness if present
 	if sharpnessLookup.Elem.Name != "" {
-		sharpness, err := decodeSharpness(sharpnessLookup.Elem)
+		var sharpness ValWithOptions[int]
+		sharpness, err := sharpness.decodeValWithOptions(
+			sharpnessLookup.Elem, intValueDecoder)
 		if err != nil {
 			return es, err
 		}
@@ -76,19 +82,19 @@ func (es ExposureSettings) toXML(name string) xmldoc.Element {
 	// Add Brightness if present
 	if es.Brightness != nil {
 		children = append(children, optional.Get(es.Brightness).toXML(
-			NsWSCN+":Brightness"))
+			NsWSCN+":Brightness", intValueEncoder))
 	}
 
 	// Add Contrast if present
 	if es.Contrast != nil {
 		children = append(children, optional.Get(es.Contrast).toXML(
-			NsWSCN+":Contrast"))
+			NsWSCN+":Contrast", intValueEncoder))
 	}
 
 	// Add Sharpness if present
 	if es.Sharpness != nil {
 		children = append(children, optional.Get(es.Sharpness).toXML(
-			NsWSCN+":Sharpness"))
+			NsWSCN+":Sharpness", intValueEncoder))
 	}
 
 	elm.Children = children

@@ -173,3 +173,57 @@ func stringValueDecoder(s string) (string, error) {
 func stringValueEncoder(s string) string {
 	return s
 }
+
+// colorEntryDecoder decodes a ColorEntry from its string form, rejecting
+// unknown values.
+func colorEntryDecoder(s string) (ColorEntry, error) {
+	val := DecodeColorEntry(s)
+	if val == UnknownColorEntry {
+		return val, fmt.Errorf("unknown ColorProcessing value: %s", s)
+	}
+	return val, nil
+}
+
+// colorEntryEncoder encodes a ColorEntry as its string form.
+func colorEntryEncoder(ce ColorEntry) string {
+	return ce.String()
+}
+
+// contentTypeValueDecoder decodes a ContentTypeValue from its string form.
+// Unknown values are mapped to UnknownContentTypeValue (preserving prior
+// behaviour of the wrapper's decoder).
+func contentTypeValueDecoder(s string) (ContentTypeValue, error) {
+	return DecodeContentTypeValue(s), nil
+}
+
+// contentTypeValueEncoder encodes a ContentTypeValue as its string form.
+func contentTypeValueEncoder(ctv ContentTypeValue) string {
+	return ctv.String()
+}
+
+// formatValueDecoder decodes a FormatValue from its string form. Vendor
+// extensions are passed through unchanged; only empty strings are not
+// allowed at the typed-value level.
+func formatValueDecoder(s string) (FormatValue, error) {
+	return DecodeFormatValue(s), nil
+}
+
+// formatValueEncoder encodes a FormatValue as its string form.
+func formatValueEncoder(fv FormatValue) string {
+	return string(fv)
+}
+
+// rotationValueDecoder decodes a RotationValue from its string form, rejecting
+// unknown values.
+func rotationValueDecoder(s string) (RotationValue, error) {
+	val := DecodeRotationValue(s)
+	if val == UnknownRotationValue {
+		return val, fmt.Errorf("unknown Rotation value: %s", s)
+	}
+	return val, nil
+}
+
+// rotationValueEncoder encodes a RotationValue as its string form.
+func rotationValueEncoder(rv RotationValue) string {
+	return rv.String()
+}

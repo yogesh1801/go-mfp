@@ -245,14 +245,16 @@ func fromAbstractScannerRequest(req *abstract.ScannerRequest) ScanTicket {
 	// Input + ADFMode → InputSource
 	switch req.Input {
 	case abstract.InputPlaten:
-		dp.InputSource = optional.New(InputSource{Val: InputSourcePlaten})
+		dp.InputSource = optional.New(
+			ValWithOptions[InputSourceValue]{Val: InputSourcePlaten})
 	case abstract.InputADF:
 		switch req.ADFMode {
 		case abstract.ADFModeDuplex:
 			dp.InputSource = optional.New(
-				InputSource{Val: InputSourceADFDuplex})
+				ValWithOptions[InputSourceValue]{Val: InputSourceADFDuplex})
 		default:
-			dp.InputSource = optional.New(InputSource{Val: InputSourceADF})
+			dp.InputSource = optional.New(
+				ValWithOptions[InputSourceValue]{Val: InputSourceADF})
 		}
 	}
 
@@ -262,7 +264,7 @@ func fromAbstractScannerRequest(req *abstract.ScannerRequest) ScanTicket {
 	// ColorMode + ColorDepth → ColorProcessing
 	ce := abstractColorEntryFrom(req.ColorMode, req.ColorDepth)
 	if ce != UnknownColorEntry {
-		front.ColorProcessing = optional.New(ColorProcessing{Val: ce})
+		front.ColorProcessing = optional.New(ValWithOptions[ColorEntry]{Val: ce})
 	}
 
 	// Resolution
@@ -298,7 +300,7 @@ func fromAbstractScannerRequest(req *abstract.ScannerRequest) ScanTicket {
 	if req.DocumentFormat != "" {
 		fv := mimeToFormatValue(req.DocumentFormat)
 		if fv != UnknownFormatValue {
-			dp.Format = optional.New(Format{Val: fv})
+			dp.Format = optional.New(ValWithOptions[FormatValue]{Val: fv})
 		}
 	}
 
@@ -306,32 +308,32 @@ func fromAbstractScannerRequest(req *abstract.ScannerRequest) ScanTicket {
 	if req.Compression != nil {
 		compression := optional.Get(req.Compression)
 		dp.CompressionQualityFactor = optional.New(
-			CompressionQualityFactor{Val: compression})
+			ValWithOptions[int]{Val: compression})
 	}
 
 	// Intent → ContentType
 	switch req.Intent {
 	case abstract.IntentDocument:
-		dp.ContentType = optional.New(ContentType{Val: Text})
+		dp.ContentType = optional.New(ValWithOptions[ContentTypeValue]{Val: Text})
 	case abstract.IntentPhoto:
-		dp.ContentType = optional.New(ContentType{Val: Photo})
+		dp.ContentType = optional.New(ValWithOptions[ContentTypeValue]{Val: Photo})
 	case abstract.IntentTextAndGraphic:
-		dp.ContentType = optional.New(ContentType{Val: Mixed})
+		dp.ContentType = optional.New(ValWithOptions[ContentTypeValue]{Val: Mixed})
 	}
 
 	// Brightness, Contrast, Sharpen → Exposure.ExposureSettings
 	if req.Brightness != nil || req.Contrast != nil || req.Sharpen != nil {
 		es := ExposureSettings{}
 		if req.Brightness != nil {
-			es.Brightness = optional.New(Brightness{
+			es.Brightness = optional.New(ValWithOptions[int]{
 				Val: optional.Get(req.Brightness)})
 		}
 		if req.Contrast != nil {
-			es.Contrast = optional.New(Contrast{
+			es.Contrast = optional.New(ValWithOptions[int]{
 				Val: optional.Get(req.Contrast)})
 		}
 		if req.Sharpen != nil {
-			es.Sharpness = optional.New(Sharpness{
+			es.Sharpness = optional.New(ValWithOptions[int]{
 				Val: optional.Get(req.Sharpen)})
 		}
 		dp.Exposure = optional.New(Exposure{
