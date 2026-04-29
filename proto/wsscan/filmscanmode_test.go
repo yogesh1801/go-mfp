@@ -1,4 +1,4 @@
-// MFP - Miulti-Function Printers and scanners toolkit
+// MFP - Multi-Function Printers and scanners toolkit
 // WS-Scan core protocol - unit tests
 //
 // Copyright (C) 2024 and up by Yogesh Singla (yogeshsingla481@gmail.com)
@@ -18,7 +18,7 @@ func TestFilmScanModeString(t *testing.T) {
 		fsm      FilmScanMode
 		expected string
 	}{
-		{UnknownFilmScanMode, "Unknown"},
+		{UnknownFilmScanMode, ""},
 		{NotApplicable, "NotApplicable"},
 		{ColorSlideFilm, "ColorSlideFilm"},
 		{ColorNegativeFilm, "ColorNegativeFilm"},
@@ -43,7 +43,8 @@ func TestDecodeFilmScanMode(t *testing.T) {
 		{"ColorSlideFilm", ColorSlideFilm},
 		{"ColorNegativeFilm", ColorNegativeFilm},
 		{"BlackandWhiteNegativeFilm", BlackandWhiteNegativeFilm},
-		{"Undefined", UnknownFilmScanMode},
+		// Vendor-defined values are preserved verbatim.
+		{"VendorXYZFilm", FilmScanMode("VendorXYZFilm")},
 		{"", UnknownFilmScanMode},
 	}
 
@@ -65,6 +66,7 @@ func TestFilmScanModeXML(t *testing.T) {
 		{ColorSlideFilm, "ColorSlideFilm"},
 		{ColorNegativeFilm, "ColorNegativeFilm"},
 		{BlackandWhiteNegativeFilm, "BlackandWhiteNegativeFilm"},
+		{FilmScanMode("VendorXYZFilm"), "VendorXYZFilm"},
 	}
 
 	const elementName = "FilmScanModeValue"
@@ -89,5 +91,16 @@ func TestFilmScanModeXML(t *testing.T) {
 			t.Errorf("decodeFilmScanMode(%q): expected %v, got %v",
 				test.expected, test.fsm, decoded)
 		}
+	}
+}
+
+// Test that decodeFilmScanMode rejects empty values.
+func TestDecodeFilmScanModeEmpty(t *testing.T) {
+	_, err := decodeFilmScanMode(xmldoc.Element{
+		Name: "FilmScanModeValue",
+		Text: "",
+	})
+	if err == nil {
+		t.Error("decodeFilmScanMode(\"\"): expected error, got nil")
 	}
 }

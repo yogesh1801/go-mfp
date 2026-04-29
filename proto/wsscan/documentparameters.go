@@ -22,7 +22,7 @@ type DocumentParameters struct {
 	CompressionQualityFactor optional.Val[ValWithOptions[int]]
 	ContentType              optional.Val[ValWithOptions[ContentTypeValue]]
 	Exposure                 optional.Val[Exposure]
-	FilmScanMode             optional.Val[FilmScanModeElement]
+	FilmScanMode             optional.Val[ValWithOptions[FilmScanMode]]
 	Format                   optional.Val[ValWithOptions[FormatValue]]
 	ImagesToTransfer         optional.Val[ValWithOptions[int]]
 	InputSize                optional.Val[InputSize]
@@ -57,7 +57,7 @@ func (dp DocumentParameters) toXML(name string) xmldoc.Element {
 	if dp.FilmScanMode != nil {
 		children = append(children, optional.Get(
 			dp.FilmScanMode).toXML(
-			NsWSCN+":FilmScanMode"))
+			NsWSCN+":FilmScanMode", filmScanModeEncoder))
 	}
 
 	if dp.Format != nil {
@@ -206,9 +206,9 @@ func decodeDocumentParameters(root xmldoc.Element) (
 	}
 
 	if filmScanMode.Found {
-		var fsm FilmScanModeElement
-		if fsm, err = decodeFilmScanModeElement(
-			filmScanMode.Elem,
+		var fsm ValWithOptions[FilmScanMode]
+		if fsm, err = fsm.decodeValWithOptions(
+			filmScanMode.Elem, filmScanModeDecoder,
 		); err != nil {
 			return dp, fmt.Errorf("FilmScanMode: %w", err)
 		}
