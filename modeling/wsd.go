@@ -14,12 +14,17 @@ import (
 	"github.com/OpenPrinting/go-mfp/proto/wsscan"
 )
 
-// SetWSDScanCaps sets the [escl.ScannerCapabilities].
+// SetWSDScanCaps sets the WS-Scan scanner capabilities.
+//
+// It requires [wsscan.GetScannerElementsResponse] with filled
+// [wsscan.GetScannerElementsResponse.ScannerConfiguration] and
+// [wsscan.GetScannerElementsResponse.ScannerDescription] fields.
 func (model *Model) SetWSDScanCaps(caps *wsscan.GetScannerElementsResponse) {
 	model.wsdScanCaps = caps
 }
 
-// GetWSDScanCaps returns the [escl.ScannerCapabilities].
+// GetWSDScanCaps returns the WS-Scan scanner capabilities, previously
+// set with [Model.SetWSDScanCaps].
 func (model *Model) GetWSDScanCaps() *wsscan.GetScannerElementsResponse {
 	return model.wsdScanCaps
 }
