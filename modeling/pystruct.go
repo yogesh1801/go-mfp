@@ -150,24 +150,51 @@ func (model *Model) pyImportStruct(kwmap map[string]string,
 	// Create a new instance of the target structure
 	v := reflect.New(t).Elem()
 
-	// Import, field by field
-	for _, fld := range reflect.VisibleFields(t) {
-		// Lookup python dictionary
-		kw := keywordNormalize(kwmap, fld.Name)
-		item := obj.GetItem(kw)
+	// Import the object
+	if !obj.IsDict() {
+		// If object is not dictionary, try to interpret it
+		// as wsscan.Wrapper without options
+		if wrapper, ok := v.Interface().(wsscan.Wrapper); ok {
+			// Create the new value of the Wrapper's underlying
+			// type
+			t2 := reflect.TypeOf(wrapper.Unwrap())
+			v2 := reflect.New(t2).Elem()
 
-		if err := item.Err(); err != nil {
-			if item.NotFound() {
-				continue
+			// Import its value from Python
+			err := model.pyImportValue(kwmap, v2, obj)
+			if err != nil {
+				return err
 			}
-			return pyImportErrorWrap(fld.Name, err)
-		}
 
-		// Decode the item, if found
-		fldval := v.FieldByIndex(fld.Index)
-		err := model.pyImportValue(kwmap, fldval, item)
-		if err != nil {
-			return pyImportErrorWrap(fld.Name, err)
+			// Wrap the value
+			wrapped := wrapper.Wrap(v2.Interface())
+			if wrapped == nil {
+				return pyImportErrorConv(obj, v)
+			}
+
+			// Replace v with the wrapped value
+			v = reflect.ValueOf(wrapped)
+		}
+	} else {
+		// Import structure, field by field
+		for _, fld := range reflect.VisibleFields(t) {
+			// Lookup python dictionary
+			kw := keywordNormalize(kwmap, fld.Name)
+			item := obj.GetItem(kw)
+
+			if err := item.Err(); err != nil {
+				if item.NotFound() {
+					continue
+				}
+				return pyImportErrorWrap(fld.Name, err)
+			}
+
+			// Decode the item, if found
+			fldval := v.FieldByIndex(fld.Index)
+			err := model.pyImportValue(kwmap, fldval, item)
+			if err != nil {
+				return pyImportErrorWrap(fld.Name, err)
+			}
 		}
 	}
 
@@ -207,7 +234,22 @@ func (model *Model) pyImportSlice(kwmap map[string]string,
 }
 
 // pyImportValue imports a value from the Python object.
+//
+// It calls model.pyImportValueInt, then post-processes the
+// returned error, if any.
 func (model *Model) pyImportValue(kwmap map[string]string,
+	v reflect.Value, obj *cpython.Object) error {
+
+	err := model.pyImportValueInt(kwmap, v, obj)
+	if _, ok := err.(cpython.ErrTypeConversion); ok {
+		err = pyImportErrorConv(obj, v)
+	}
+
+	return err
+}
+
+// pyImportValueInt is the internal function behind the pyImportValue.
+func (model *Model) pyImportValueInt(kwmap map[string]string,
 	v reflect.Value, obj *cpython.Object) error {
 
 	// If we are decoding pointer to value, create a new
@@ -220,6 +262,7 @@ func (model *Model) pyImportValue(kwmap map[string]string,
 
 	// Handle known types
 	switch v.Interface().(type) {
+	// escl types
 	case escl.ADFOption:
 		opt, err := esclDecodeADFOption(obj)
 		if err == nil {
@@ -325,6 +368,33 @@ func (model *Model) pyImportValue(kwmap map[string]string,
 		}
 		return err
 
+	// wsscan types
+	case wsscan.ColorEntry:
+		return pyDecode(v, obj, wsscan.DecodeColorEntry)
+	case wsscan.ContentTypeValue:
+		return pyDecode(v, obj, wsscan.DecodeContentTypeValue)
+	case wsscan.FilmScanMode:
+		return pyDecode(v, obj, wsscan.DecodeFilmScanMode)
+	case wsscan.InputSourceValue:
+		return pyDecode(v, obj, wsscan.DecodeInputSourceValue)
+	case wsscan.JobElemName:
+		return pyDecode(v, obj, wsscan.DecodeJobElemName)
+	case wsscan.JobStateReason:
+		return pyDecode(v, obj, wsscan.DecodeJobStateReason)
+	case wsscan.JobState:
+		return pyDecode(v, obj, wsscan.DecodeJobState)
+	case wsscan.RotationValue:
+		return pyDecode(v, obj, wsscan.DecodeRotationValue)
+	case wsscan.ScannerElemName:
+		return pyDecode(v, obj, wsscan.DecodeScannerElemName)
+	case wsscan.ScannerStateReason:
+		return pyDecode(v, obj, wsscan.DecodeScannerStateReason)
+	case wsscan.ScannerState:
+		return pyDecode(v, obj, wsscan.DecodeScannerState)
+	case wsscan.Severity:
+		return pyDecode(v, obj, wsscan.DecodeSeverity)
+
+	// other types
 	case uuid.UUID:
 		s, err := obj.Str()
 		if err != nil {
@@ -350,18 +420,43 @@ func (model *Model) pyImportValue(kwmap map[string]string,
 	case reflect.Int:
 		i, err := obj.Int()
 		if err == nil {
-			v.Set(reflect.ValueOf(int(i)))
+			v.Set(reflect.ValueOf(int(i)).Convert(v.Type()))
 		}
 		return err
 
 	case reflect.String:
 		s, err := obj.Str()
 		if err == nil {
-			v.Set(reflect.ValueOf(s))
+			v.Set(reflect.ValueOf(s).Convert(v.Type()))
 		}
 		return err
 	}
 
+	return nil
+}
+
+// pyDecode decodes Python str object into the Go value, using
+// the supplied parse function.
+//
+// The parse function assumed to return the zero value of the
+// target type if string cannot be decoded.
+func pyDecode[T comparable](v reflect.Value, obj *cpython.Object,
+	parse func(string) T) error {
+
+	var zero T
+
+	s, err := obj.Str()
+	if err != nil {
+		return err
+	}
+
+	val := parse(s)
+	if val == zero {
+		err := fmt.Errorf("%s: invalid %s", s, reflect.TypeOf(zero))
+		return err
+	}
+
+	v.Set(reflect.ValueOf(val))
 	return nil
 }
 
@@ -370,6 +465,15 @@ func (model *Model) pyImportValue(kwmap map[string]string,
 type pyImportError struct {
 	path []string // Path over attribute names
 	err  error    // Underlying error
+}
+
+// pyImportErrorConv returns a conversion error for conversion
+// from the Python object to the Go value
+func pyImportErrorConv(from *cpython.Object, to reflect.Value) error {
+	return fmt.Errorf("can't convert %s to %s",
+		from.TypeName(),
+		to.Type().String(),
+	)
 }
 
 // pyImportErrorWrap wraps error into the pyImportError.
