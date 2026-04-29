@@ -10,6 +10,7 @@
 package wsscan
 
 import (
+	"reflect"
 	"strings"
 
 	"github.com/OpenPrinting/go-mfp/util/optional"
@@ -37,6 +38,21 @@ func (t TextWithLangElement) Unwrap() any {
 		return t.Text
 	}
 	return t.Text
+}
+
+// Wrap wraps the simple value into the Wrapper
+// type and returns the new wrapped value.
+//
+// In case the provided value cannot be converted
+// into the Wrapper's underlying type, this function
+// returns nil.
+func (t TextWithLangElement) Wrap(v any) any {
+	val, ok := v.(string)
+	if ok {
+		return TextWithLangElement{Text: val}
+	}
+	println("FAIL", reflect.TypeOf(v).String())
+	return nil
 }
 
 // decodeTextWithLangElement fills the struct from an XML element.

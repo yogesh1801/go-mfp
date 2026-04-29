@@ -28,4 +28,12 @@ type Wrapper interface {
 	//   TextWithLangElement{Text: "hello", Lang: nil} -> "hello"
 	//   TextWithLangElement{Text: "hello", Lang: "en} -> TextWithLangElementP{...}
 	Unwrap() any
+
+	// Wrap wraps the simple value into the Wrapper
+	// type and returns the new wrapped value.
+	//
+	// In case the provided value cannot be converted
+	// into the Wrapper's underlying type, this function
+	// returns nil.
+	Wrap(any) any
 }

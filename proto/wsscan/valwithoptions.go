@@ -49,6 +49,20 @@ func (t ValWithOptions[T]) Unwrap() any {
 	return t
 }
 
+// Wrap wraps the simple value into the Wrapper
+// type and returns the new wrapped value.
+//
+// In case the provided value cannot be converted
+// into the Wrapper's underlying type, this function
+// returns nil.
+func (t ValWithOptions[T]) Wrap(v any) any {
+	val, ok := v.(T)
+	if ok {
+		return ValWithOptions[T]{Val: val}
+	}
+	return nil
+}
+
 // decodeValWithOptions fills the struct from an XML element.
 // The decoder function converts the XML text to the desired type T.
 func (t *ValWithOptions[T]) decodeValWithOptions(
