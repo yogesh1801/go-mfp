@@ -35,6 +35,9 @@ type Runner struct {
 	ESCLPort int    // eSCL server port, 0 if none
 	ESCLPath string // Path part of the eSCL URL
 	ESCLName string // eSCL scanner name (will be visible as SANE name)
+	WSDPort  int    // WS-Scan server port, 0 if none
+	WSDPath  string // Path part of the WS-Scan URL
+	WSDName  string // WS-Scan scanner name (will be visible as SANE name)
 }
 
 // Run executes the command and waits for its completion.
@@ -51,13 +54,16 @@ func (r *Runner) Run(ctx context.Context,
 	cmd.Stderr = os.Stderr
 
 	const envCUPS = "CUPS_SERVER="
-	const envESCL = "SANE_AIRSCAN_DEVICE="
+	const envAIRSCAN = "SANE_AIRSCAN_DEVICE="
 
 	// Copy system environment
+	replaceCUPS := r.CUPSPort != 0
+	replaceAIRSCAN := (r.ESCLPort | r.WSDPort) != 0
+
 	for _, env := range os.Environ() {
 		switch {
-		case r.CUPSPort != 0 && strings.HasPrefix(env, envCUPS):
-		case r.ESCLPort != 0 && strings.HasPrefix(env, envESCL):
+		case replaceCUPS && strings.HasPrefix(env, envCUPS):
+		case replaceAIRSCAN && strings.HasPrefix(env, envAIRSCAN):
 
 		default:
 			cmd.Env = append(cmd.Env, env)
@@ -77,8 +83,18 @@ func (r *Runner) Run(ctx context.Context,
 		}
 
 		env := fmt.Sprintf(
-			envESCL+"escl:%s:http://localhost:%d%s",
+			envAIRSCAN+"escl:%s:http://localhost:%d%s",
 			name, r.ESCLPort, transport.CleanURLPath(r.ESCLPath))
+		cmd.Env = append(cmd.Env, env)
+	} else if r.WSDPort != 0 {
+		name := r.WSDName
+		if name == "" {
+			name = "WSD scanner"
+		}
+
+		env := fmt.Sprintf(
+			envAIRSCAN+"wsd:%s:http://localhost:%d%s",
+			name, r.WSDPort, transport.CleanURLPath(r.WSDPath))
 		cmd.Env = append(cmd.Env, env)
 	}
 
