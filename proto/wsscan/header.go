@@ -78,10 +78,18 @@ func decodeHeader(root xmldoc.Element) (hdr Header, err error) {
 		hdr.To = optional.New(tmp)
 	}
 
-	// Decode ReplyTo (optional)
+	// Decode ReplyTo (optional) — value is nested in a child Address element
 	if replyTo.Found {
+		address := xmldoc.Lookup{
+			Name:     NsAddressing + ":Address",
+			Required: true,
+		}
+		if missed := replyTo.Elem.Lookup(&address); missed != nil {
+			err = xmldoc.XMLErrMissed(missed.Name)
+			return
+		}
 		var tmp AnyURI
-		tmp, err = DecodeAnyURI(replyTo.Elem)
+		tmp, err = DecodeAnyURI(address.Elem)
 		if err != nil {
 			return
 		}
