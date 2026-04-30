@@ -11,3 +11,12 @@ package wsscan
 // wsscanDPI is the resolution at which WS-Scan dimensions are expressed
 // (thousandths of an inch, i.e. 1/1000").
 const wsscanDPI = 1000
+
+// Brightness and Contrast adjustment range, as mandated by the WS-Scan spec.
+// All scan services must support the full range; 0 means no adjustment.
+const (
+	brightnessMin = -1000
+	brightnessMax = 1000
+	contrastMin   = -1000
+	contrastMax   = 1000
+)
