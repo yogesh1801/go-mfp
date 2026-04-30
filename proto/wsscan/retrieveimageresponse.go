@@ -10,6 +10,7 @@ package wsscan
 
 import (
 	"io"
+	"strings"
 
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
@@ -35,6 +36,29 @@ func (*RetrieveImageResponse) Action() Action { return ActRetrieveImageResponse 
 // ToXML encodes the body into an XML tree.
 func (r *RetrieveImageResponse) ToXML() xmldoc.Element {
 	return r.toXML(NsWSCN + ":RetrieveImageResponse")
+}
+
+// decodeRetrieveImageResponse decodes [RetrieveImageResponse] from the XML tree,
+// extracting the ContentID from the xop:Include href inside ScanData.
+func decodeRetrieveImageResponse(root xmldoc.Element) (
+	RetrieveImageResponse, error) {
+
+	var r RetrieveImageResponse
+
+	scanData := xmldoc.Lookup{Name: NsWSCN + ":ScanData", Required: true}
+	if missed := root.Lookup(&scanData); missed != nil {
+		return r, xmldoc.XMLErrMissed(missed.Name)
+	}
+
+	include := xmldoc.Lookup{Name: NsXOP + ":Include", Required: true}
+	if missed := scanData.Elem.Lookup(&include); missed != nil {
+		return r, xmldoc.XMLErrMissed(missed.Name)
+	}
+
+	href, _ := include.Elem.AttrByName("href")
+	r.ScanData.ContentID = strings.TrimPrefix(href.Value, "cid:")
+
+	return r, nil
 }
 
 // toXML generates XML tree for the [RetrieveImageResponse].

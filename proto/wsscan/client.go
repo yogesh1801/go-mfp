@@ -13,6 +13,8 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"mime"
+	"mime/multipart"
 	"net/http"
 	"net/url"
 
@@ -173,10 +175,86 @@ func (c *Client) GetJobHistory(
 	return rsp, nil
 }
 
-// sendSOAP wraps body in a SOAP envelope, POSTs it to the server,
-// and returns the decoded response [Message].
-func (c *Client) sendSOAP(ctx context.Context, body Body) (Message, error) {
-	// Build request message
+// RetrieveImage retrieves a scanned image from the device. The returned
+// [RetrieveImageResponse.Image] must be closed by the caller when done
+// to release the underlying HTTP connection.
+func (c *Client) RetrieveImage(
+	ctx context.Context,
+	req *RetrieveImageRequest,
+) (*RetrieveImageResponse, error) {
+
+	httpRsp, err := c.doRequest(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	mediaType, params, err := mime.ParseMediaType(
+		httpRsp.Header.Get("Content-Type"))
+	if err != nil {
+		httpRsp.Body.Close()
+		return nil, fmt.Errorf("wsscan: invalid Content-Type: %w", err)
+	}
+	if mediaType != "multipart/related" {
+		httpRsp.Body.Close()
+		return nil, fmt.Errorf("wsscan: expected multipart/related, got %q",
+			mediaType)
+	}
+	boundary := params["boundary"]
+	if boundary == "" {
+		httpRsp.Body.Close()
+		return nil, fmt.Errorf("wsscan: missing multipart boundary")
+	}
+
+	mr := multipart.NewReader(httpRsp.Body, boundary)
+
+	// Part 1: SOAP envelope
+	soapPart, err := mr.NextPart()
+	if err != nil {
+		httpRsp.Body.Close()
+		return nil, fmt.Errorf("wsscan: reading SOAP part: %w", err)
+	}
+	soapData, err := io.ReadAll(soapPart)
+	if err != nil {
+		httpRsp.Body.Close()
+		return nil, fmt.Errorf("wsscan: reading SOAP part: %w", err)
+	}
+	root, err := xmldoc.Decode(NsMap, bytes.NewReader(soapData))
+	if err != nil {
+		httpRsp.Body.Close()
+		return nil, fmt.Errorf("wsscan: decoding SOAP envelope: %w", err)
+	}
+	msg, err := DecodeMessage(root)
+	if err != nil {
+		httpRsp.Body.Close()
+		return nil, fmt.Errorf("wsscan: decoding SOAP message: %w", err)
+	}
+	rsp, ok := msg.Body.(*RetrieveImageResponse)
+	if !ok {
+		httpRsp.Body.Close()
+		return nil, fmt.Errorf("wsscan: unexpected response type %T", msg.Body)
+	}
+
+	// Part 2: image data — streamed; closing Image closes httpRsp.Body
+	imagePart, err := mr.NextPart()
+	if err != nil {
+		httpRsp.Body.Close()
+		return nil, fmt.Errorf("wsscan: reading image part: %w", err)
+	}
+	rsp.ContentType = imagePart.Header.Get("Content-Type")
+	rsp.Image = struct {
+		io.Reader
+		io.Closer
+	}{imagePart, httpRsp.Body}
+
+	return rsp, nil
+}
+
+// doRequest wraps body in a SOAP envelope, POSTs it to the server,
+// and returns the raw HTTP response. The caller is responsible for
+// reading and closing the response body.
+func (c *Client) doRequest(
+	ctx context.Context, body Body) (*http.Response, error) {
+
 	req := Message{
 		Header: Header{
 			Action:    body.Action(),
@@ -187,29 +265,38 @@ func (c *Client) sendSOAP(ctx context.Context, body Body) (Message, error) {
 		Body: body,
 	}
 
-	// Encode to wire format
 	data := req.Encode()
 
-	// POST to server
 	httpReq, err := transport.NewRequest(ctx, "POST", c.url,
 		bytes.NewReader(data))
 	if err != nil {
-		return Message{}, err
+		return nil, err
 	}
 	httpReq.Header.Set("Content-Type", "application/soap+xml")
 
 	httpRsp, err := c.httpClient.Do(httpReq)
 	if err != nil {
+		return nil, err
+	}
+
+	if httpRsp.StatusCode/100 != http.StatusOK/100 {
+		httpRsp.Body.Close()
+		return nil, fmt.Errorf("HTTP %d: %s",
+			httpRsp.StatusCode, httpRsp.Status)
+	}
+
+	return httpRsp, nil
+}
+
+// sendSOAP wraps body in a SOAP envelope, POSTs it to the server,
+// and returns the decoded response [Message].
+func (c *Client) sendSOAP(ctx context.Context, body Body) (Message, error) {
+	httpRsp, err := c.doRequest(ctx, body)
+	if err != nil {
 		return Message{}, err
 	}
 	defer httpRsp.Body.Close()
 
-	if httpRsp.StatusCode/100 != http.StatusOK/100 {
-		return Message{}, fmt.Errorf("HTTP %d: %s",
-			httpRsp.StatusCode, httpRsp.Status)
-	}
-
-	// Read and decode response
 	rspData, err := io.ReadAll(httpRsp.Body)
 	if err != nil {
 		return Message{}, err
