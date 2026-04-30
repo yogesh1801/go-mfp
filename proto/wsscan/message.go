@@ -94,6 +94,9 @@ func decodeMessageXML(root xmldoc.Element) (msg Message, err error) {
 	case ActRetrieveImage:
 		v, e := decodeRetrieveImageRequest(child)
 		msg.Body, err = &v, e
+	case ActRetrieveImageResponse:
+		v, e := decodeRetrieveImageResponse(child)
+		msg.Body, err = &v, e
 	case ActCancelJob:
 		v, e := decodeCancelJobRequest(child)
 		msg.Body, err = &v, e
