@@ -130,8 +130,10 @@ func (model *Model) esclLoad() error {
 	return nil
 }
 
-// NewESCLServer creates a virtual eSCL server on a top of
-// the existent abstract.Scanner implementation.
+// NewESCLServer creates a virtual eSCL server based on eSCL scanner
+// capabilities, defined by the model (see also [Model.SetESCLScanCaps]).
+//
+// The actual scanning facilities provided by the supplied [abstract.Scanner].
 //
 // It will return nil, if model doesn't have the eSCL scanner capabilities.
 func (model *Model) NewESCLServer(
