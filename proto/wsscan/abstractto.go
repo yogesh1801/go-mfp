@@ -48,10 +48,12 @@ func (r *GetScannerElementsResponse) ToAbstract() *abstract.ScannerCapabilities 
 	}
 
 	if ds.BrightnessSupported.Bool() {
-		caps.BrightnessRange = abstract.Range{Min: 0, Max: 100, Normal: 50}
+		caps.BrightnessRange = abstract.Range{
+			Min: brightnessMin, Max: brightnessMax, Normal: 0}
 	}
 	if ds.ContrastSupported.Bool() {
-		caps.ContrastRange = abstract.Range{Min: 0, Max: 100, Normal: 50}
+		caps.ContrastRange = abstract.Range{
+			Min: contrastMin, Max: contrastMax, Normal: 0}
 	}
 
 	if sc.Platen != nil {
