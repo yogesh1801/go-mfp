@@ -11,6 +11,7 @@ package modeling
 import (
 	"fmt"
 
+	"github.com/OpenPrinting/go-mfp/abstract"
 	"github.com/OpenPrinting/go-mfp/proto/wsscan"
 )
 
@@ -27,6 +28,34 @@ func (model *Model) SetWSDScanCaps(caps *wsscan.GetScannerElementsResponse) {
 // set with [Model.SetWSDScanCaps].
 func (model *Model) GetWSDScanCaps() *wsscan.GetScannerElementsResponse {
 	return model.wsdScanCaps
+}
+
+// NewWSDServer creates a virtual WS-Scan server based on WS-Scan scanner
+// capabilities, defined by the model (see also [Model.SetWSDScanCaps]).
+//
+// The actual scanning facilities provided by the supplied [abstract.Scanner].
+//
+// It will return nil, if model doesn't have the eSCL scanner capabilities.
+func (model *Model) NewWSDServer(
+	scanner abstract.Scanner) *wsscan.AbstractServer {
+
+	// Obtain scanner capabilities
+	caps := model.GetWSDScanCaps()
+	if caps == nil {
+		return nil
+	}
+
+	// Setup hooks
+	// TODO
+
+	// Setup options
+	options := wsscan.AbstractServerOptions{
+		Scanner:  scanner,
+		BasePath: "/WSScan",
+	}
+
+	// Create the WS-Scan server
+	return wsscan.NewAbstractServer(options)
 }
 
 // wsdLoad decodes WS-Scan part of model. The model file assumed to
