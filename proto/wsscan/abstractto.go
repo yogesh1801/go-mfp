@@ -13,6 +13,133 @@ import (
 	"github.com/OpenPrinting/go-mfp/util/optional"
 )
 
+// ToAbstract converts [GetScannerElementsResponse] to
+// *[abstract.ScannerCapabilities] by extracting the first
+// [ScannerConfiguration] and [ScannerDescription] from ScannerElements.
+func (r *GetScannerElementsResponse) ToAbstract() *abstract.ScannerCapabilities {
+	var sc ScannerConfiguration
+	var sd ScannerDescription
+
+	for _, elem := range r.ScannerElements {
+		if elem.ScannerConfiguration != nil {
+			sc = optional.Get(elem.ScannerConfiguration)
+		}
+		if elem.ScannerDescription != nil {
+			sd = optional.Get(elem.ScannerDescription)
+		}
+	}
+
+	caps := &abstract.ScannerCapabilities{}
+
+	caps.MakeAndModel = sd.ScannerName.NeutralLang().Text
+
+	ds := sc.DeviceSettings
+	for _, fv := range ds.FormatsSupported {
+		if mime := fv.MimeType(); mime != "" {
+			caps.DocumentFormats = append(caps.DocumentFormats, mime)
+		}
+	}
+
+	cqf := ds.CompressionQualityFactorSupported
+	caps.CompressionRange = abstract.Range{
+		Min:    cqf.MinValue,
+		Max:    cqf.MaxValue,
+		Normal: (cqf.MinValue + cqf.MaxValue) / 2,
+	}
+
+	if ds.BrightnessSupported.Bool() {
+		caps.BrightnessRange = abstract.Range{Min: 0, Max: 100, Normal: 50}
+	}
+	if ds.ContrastSupported.Bool() {
+		caps.ContrastRange = abstract.Range{Min: 0, Max: 100, Normal: 50}
+	}
+
+	if sc.Platen != nil {
+		p := optional.Get(sc.Platen)
+		caps.Platen = platenToAbstract(p)
+	}
+
+	if sc.ADF != nil {
+		adf := optional.Get(sc.ADF)
+		if adf.ADFFront != nil {
+			caps.ADFSimplex = adfSideToAbstract(optional.Get(adf.ADFFront))
+		}
+		if adf.ADFSupportsDuplex.Bool() && adf.ADFBack != nil {
+			caps.ADFDuplex = adfSideToAbstract(optional.Get(adf.ADFBack))
+		}
+	}
+
+	return caps
+}
+
+// platenToAbstract converts [Platen] to *[abstract.InputCapabilities].
+func platenToAbstract(p Platen) *abstract.InputCapabilities {
+	return &abstract.InputCapabilities{
+		MinWidth: abstract.DimensionFromDots(
+			wsscanDPI, p.PlatenMinimumSize.Width),
+		MaxWidth: abstract.DimensionFromDots(
+			wsscanDPI, p.PlatenMaximumSize.Width),
+		MinHeight: abstract.DimensionFromDots(
+			wsscanDPI, p.PlatenMinimumSize.Height),
+		MaxHeight: abstract.DimensionFromDots(
+			wsscanDPI, p.PlatenMaximumSize.Height),
+		MaxOpticalXResolution: p.PlatenOpticalResolution.Width,
+		MaxOpticalYResolution: p.PlatenOpticalResolution.Height,
+		Profiles: colorResolutionsToProfiles(
+			p.PlatenColor, p.PlatenResolutions),
+	}
+}
+
+// adfSideToAbstract converts [ADFSide] to *[abstract.InputCapabilities].
+func adfSideToAbstract(s ADFSide) *abstract.InputCapabilities {
+	return &abstract.InputCapabilities{
+		MinWidth: abstract.DimensionFromDots(
+			wsscanDPI, s.ADFMinimumSize.Width),
+		MaxWidth: abstract.DimensionFromDots(
+			wsscanDPI, s.ADFMaximumSize.Width),
+		MinHeight: abstract.DimensionFromDots(
+			wsscanDPI, s.ADFMinimumSize.Height),
+		MaxHeight: abstract.DimensionFromDots(
+			wsscanDPI, s.ADFMaximumSize.Height),
+		MaxOpticalXResolution: s.ADFOpticalResolution.Width,
+		MaxOpticalYResolution: s.ADFOpticalResolution.Height,
+		Profiles: colorResolutionsToProfiles(
+			s.ADFColor, s.ADFResolutions),
+	}
+}
+
+// colorResolutionsToProfiles builds a single [abstract.SettingsProfile]
+// from WS-Scan color entries and resolution lists. Resolutions are the
+// cross-product of all widths × heights.
+func colorResolutionsToProfiles(
+	colors []ColorEntry, res Resolutions) []abstract.SettingsProfile {
+
+	prof := abstract.SettingsProfile{}
+
+	for _, ce := range colors {
+		mode, depth := colorEntryToAbstract(ce)
+		if mode == abstract.ColorModeUnset {
+			continue
+		}
+		prof.ColorModes.Add(mode)
+		if depth != abstract.ColorDepthUnset {
+			prof.Depths.Add(depth)
+		}
+		if mode == abstract.ColorModeBinary {
+			prof.BinaryRenderings.Add(abstract.BinaryRenderingThreshold)
+		}
+	}
+
+	for _, w := range res.Widths {
+		for _, h := range res.Heights {
+			prof.Resolutions = append(prof.Resolutions,
+				abstract.Resolution{XResolution: w, YResolution: h})
+		}
+	}
+
+	return []abstract.SettingsProfile{prof}
+}
+
 // ToAbstract converts [ScanTicket] to [abstract.ScannerRequest].
 func (ticket ScanTicket) ToAbstract() abstract.ScannerRequest {
 	absreq := abstract.ScannerRequest{}

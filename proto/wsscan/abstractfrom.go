@@ -16,11 +16,6 @@ import (
 	"github.com/OpenPrinting/go-mfp/util/optional"
 )
 
-// wsscanDPI is used for converting abstract.Dimension to WS-Scan
-// dimensions. WS-Scan uses thousandths of an inch (1/1000"),
-// so we treat dimensions as dots at 1000 DPI.
-const wsscanDPI = 1000
-
 // FromAbstractScannerDescription translates
 // [abstract.ScannerCapabilities] into a [ScannerDescription].
 func fromAbstractScannerDescription(
