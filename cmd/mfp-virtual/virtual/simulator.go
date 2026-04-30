@@ -59,6 +59,30 @@ func simulate(ctx context.Context, model *modeling.Model, tracer *trace.Writer,
 		runner.ESCLPath = "/eSCL"
 	}
 
+	// Add WS-Scan handler
+	if wsdcaps := model.GetWSDScanCaps(); wsdcaps != nil {
+		s := &abstract.VirtualScanner{
+			ScanCaps: wsdcaps.ToAbstract(),
+			Resolution: abstract.Resolution{
+				XResolution: 600,
+				YResolution: 600,
+			},
+			PlatenImage: testutils.Images.PNG5100x7016,
+			ADFImages: [][]byte{
+				testutils.Images.PNG5100x7016,
+				testutils.Images.PNG5100x7016,
+				testutils.Images.PNG5100x7016,
+			},
+		}
+
+		handler := model.NewWSDServer(s)
+		mux.Add("/WSScan", handler)
+
+		runner.WSDName = "Virtual MFP Scanner"
+		runner.WSDPort = portnum
+		runner.WSDPath = "/WSScan"
+	}
+
 	// Add IPP handler
 	if handler := model.NewIPPServer(); handler != nil {
 		if tracer != nil {
