@@ -23,6 +23,9 @@ import (
 	"github.com/OpenPrinting/go-mfp/util/xmldoc"
 )
 
+// nextQueryID maintains is the next Query ID
+var nextQueryID atomic.Uint64
+
 // ServerQuery maintains the HTTP [Server] query processing,
 // allowing per-request centralized logging and hooking.
 //
@@ -36,6 +39,7 @@ import (
 // [http.Handler.ServeHTTP].
 type ServerQuery struct {
 	log       *log.Record         // Log record for the query
+	id        uint64              // Query ID
 	logprefix string              // Log prefix
 	rq        *http.Request       // Incoming request
 	w         http.ResponseWriter // Underlying http.ResponseWriter
@@ -47,12 +51,24 @@ func NewServerQuery(w http.ResponseWriter, rq *http.Request) *ServerQuery {
 	ctx := rq.Context()
 	query := &ServerQuery{
 		log:       log.Begin(ctx),
+		id:        nextQueryID.Add(1),
 		logprefix: "HTTP-SRVR",
 		rq:        rq,
 		w:         w,
 	}
 
 	return query
+}
+
+// ID returns the unique identifier assigned to each [ServerQuery].
+//
+// IDs are intended to correlate query activities for debugging and
+// diagnostics.
+//
+// The only guarantee is that the ID remains unique throughout the
+// process lifetime.
+func (query *ServerQuery) ID() uint64 {
+	return query.id
 }
 
 // SetLogPrefix sets log prefix used for log messages generated
