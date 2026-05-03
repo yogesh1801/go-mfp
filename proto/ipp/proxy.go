@@ -19,6 +19,7 @@ import (
 	"strings"
 
 	"github.com/OpenPrinting/go-mfp/log"
+	"github.com/OpenPrinting/go-mfp/proto/trace"
 	"github.com/OpenPrinting/go-mfp/transport"
 	"github.com/OpenPrinting/goipp"
 )
@@ -34,7 +35,7 @@ type Proxy struct {
 	localPath string            // Path portion of the local URL
 	remoteURL *url.URL          // Remote URLs
 	clnt      *transport.Client // HTTP client part of proxy
-	sniffer   Sniffer           // Sniffer callbacks
+	tracer    *trace.Writer     // Protocol tracer, may be nil
 }
 
 // proxyMsgXlat performs URL translation in the IPP requests
@@ -75,12 +76,12 @@ func NewProxy(localPath string, remoteURL *url.URL) *Proxy {
 	return proxy
 }
 
-// Sniff installs the sniffer callback.
+// Trace installs the protocol tracer.
 //
 // Don't use this function when proxy is already active (i.e., concurrently
 // with the [Proxy.ServeHTTP], it can cause race conditions.
-func (proxy *Proxy) Sniff(sniffer Sniffer) {
-	proxy.sniffer = sniffer
+func (proxy *Proxy) Trace(tracer *trace.Writer) {
+	proxy.tracer = tracer
 }
 
 // ServeHTTP handles incoming HTTP requests.
@@ -214,11 +215,11 @@ func (proxy *Proxy) doRequest(query *transport.ServerQuery,
 
 	// Notify sniffer, if present
 	body := io.ReadCloser(peeker)
-	if proxy.sniffer.Request != nil {
+	if proxy.tracer != nil {
 		rpipe, wpipe := io.Pipe()
 		body = transport.TeeReadCloser(body, wpipe)
 		skip := transport.SkipReader(rpipe, len(msg2bytes))
-		proxy.sniffer.Request(query, &msg, skip)
+		proxy.tracer.OnRequest(query, goippRequest{&msg}, skip)
 	}
 
 	// Setup outgoing request
@@ -269,11 +270,11 @@ func (proxy *Proxy) doResponse(query *transport.ServerQuery,
 
 	// Notify sniffer, if present
 	body := io.ReadCloser(peeker)
-	if proxy.sniffer.Response != nil {
+	if proxy.tracer != nil {
 		rpipe, wpipe := io.Pipe()
 		body = transport.TeeReadCloser(body, wpipe)
 		skip := transport.SkipReader(rpipe, len(msg2bytes))
-		proxy.sniffer.Response(query, msg2, skip)
+		proxy.tracer.OnResponse(query, goippResponse{msg2}, skip)
 	}
 
 	rsp.Body = body

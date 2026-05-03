@@ -207,13 +207,8 @@ func cmdProxyHandler(ctx context.Context, inv *argv.Invocation) error {
 		switch m.proto {
 		case protoIPP:
 			proxy := ipp.NewProxy(m.localPath, m.targetURL)
-			if tracer != nil {
-				sniffer := ipp.Sniffer{
-					Request:  tracer.IPPRequest,
-					Response: tracer.IPPResponse,
-				}
-				proxy.Sniff(sniffer)
-			}
+			proxy.Trace(tracer)
+
 			mux.Add(m.localPath, proxy)
 
 			runner.CUPSPort = portnum

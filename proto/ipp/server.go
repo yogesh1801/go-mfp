@@ -17,6 +17,7 @@ import (
 	"net/http/httputil"
 
 	"github.com/OpenPrinting/go-mfp/log"
+	"github.com/OpenPrinting/go-mfp/proto/trace"
 	"github.com/OpenPrinting/go-mfp/transport"
 	"github.com/OpenPrinting/goipp"
 )
@@ -25,7 +26,7 @@ import (
 type Server struct {
 	options ServerOptions         // Server options
 	ops     map[goipp.Op]*Handler // Installed handlers
-	sniffer Sniffer               // Sniffer callbacks
+	tracer  *trace.Writer         // Protocol tracer, may be nil
 }
 
 // ServerOptions allows to specify options that can modify
@@ -55,12 +56,12 @@ func NewServer(options ServerOptions) *Server {
 	return s
 }
 
-// Sniff installs the sniffer callback.
+// Trace installs the protocol tracer.
 //
 // Don't use this function when proxy is already active (i.e., concurrently
 // with the [Proxy.ServeHTTP], it can cause race conditions.
-func (s *Server) Sniff(sniffer Sniffer) {
-	s.sniffer = sniffer
+func (s *Server) Trace(tracer *trace.Writer) {
+	s.tracer = tracer
 }
 
 // ServeHTTP handles incoming HTTP request. It implements
@@ -128,15 +129,15 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	log.Debug(ctx, "IPP request message:")
 	log.Debug(ctx, buf.String())
 
-	// Notify sniffer, if present
+	// Notify tracer, if present
 	body := query.RequestBody()
-	if s.sniffer.Request != nil {
+	if s.tracer != nil {
 		rpipe, wpipe := io.Pipe()
 		body = transport.TeeReadCloser(body, wpipe)
-		s.sniffer.Request(query, msg, rpipe)
+		s.tracer.OnRequest(query, goippRequest{msg}, rpipe)
 	}
 
-	// Make sure the body is closed, so sniffer will notice that
+	// Make sure the body is closed, so tracer will notice that
 	// body reading is done and will finish with saving it.
 	defer func() {
 		if body != nil {
@@ -182,14 +183,14 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	// Close the body. It will notify sniffer that request is
-	// fully consumed, so sniffer can finish writing it.
+	// Close the body. It will notify tracer that request is
+	// fully consumed, so tracer can finish writing it.
 	body.Close()
 	body = nil
 
-	// Notify sniffer, if present
-	if s.sniffer.Response != nil {
-		s.sniffer.Response(query, rsp, &bytes.Reader{})
+	// Notify tracer, if present
+	if s.tracer != nil {
+		s.tracer.OnResponse(query, goippResponse{rsp}, &bytes.Reader{})
 	}
 
 	// Call the OnIPPResponse hook
@@ -234,9 +235,10 @@ func (s *Server) httpError(query *transport.ServerQuery, err error) {
 		// Create the IPP response
 		rsp := err.Encode()
 
-		// Notify snifferm if present
-		if s.sniffer.Response != nil {
-			s.sniffer.Response(query, rsp, &bytes.Reader{})
+		// Notify tracer if present
+		if s.tracer != nil {
+			s.tracer.OnResponse(query, goippResponse{rsp},
+				&bytes.Reader{})
 		}
 
 		// Call OnIPPResponse hook

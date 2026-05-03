@@ -19,7 +19,6 @@ import (
 	"github.com/OpenPrinting/go-mfp/internal/testutils"
 	"github.com/OpenPrinting/go-mfp/log"
 	"github.com/OpenPrinting/go-mfp/modeling"
-	"github.com/OpenPrinting/go-mfp/proto/ipp"
 	"github.com/OpenPrinting/go-mfp/proto/trace"
 	"github.com/OpenPrinting/go-mfp/transport"
 )
@@ -85,13 +84,7 @@ func simulate(ctx context.Context, model *modeling.Model, tracer *trace.Writer,
 
 	// Add IPP handler
 	if handler := model.NewIPPServer(); handler != nil {
-		if tracer != nil {
-			sniffer := ipp.Sniffer{
-				Request:  tracer.IPPRequest,
-				Response: tracer.IPPResponse,
-			}
-			handler.Sniff(sniffer)
-		}
+		handler.Trace(tracer)
 		mux.Add("/ipp/print", handler)
 
 		runner.CUPSPort = portnum

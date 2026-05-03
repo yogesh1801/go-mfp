@@ -15,6 +15,7 @@ import (
 
 	"github.com/OpenPrinting/go-mfp/log"
 	"github.com/OpenPrinting/go-mfp/proto/ipp/iana"
+	"github.com/OpenPrinting/go-mfp/proto/trace"
 	"github.com/OpenPrinting/go-mfp/util/generic"
 	"github.com/OpenPrinting/goipp"
 )
@@ -80,12 +81,12 @@ func NewPrinter(attrs *PrinterAttributes, options ServerOptions) *Printer {
 	return printer
 }
 
-// Sniff installs the sniffer callback.
+// Trace installs the protocol tracer.
 //
 // Don't use this function when proxy is already active (i.e., concurrently
 // with the [Proxy.ServeHTTP], it can cause race conditions.
-func (printer *Printer) Sniff(sniffer Sniffer) {
-	printer.server.Sniff(sniffer)
+func (printer *Printer) Trace(tracer *trace.Writer) {
+	printer.server.Trace(tracer)
 }
 
 // ServeHTTP handles incoming HTTP request. It implements

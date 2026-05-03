@@ -19,7 +19,6 @@ import (
 
 	"github.com/OpenPrinting/go-mfp/log"
 	"github.com/OpenPrinting/go-mfp/transport"
-	"github.com/OpenPrinting/goipp"
 )
 
 // Writer writes a protocol trace
@@ -77,15 +76,13 @@ func (writer *Writer) Close() {
 	}
 }
 
-// IPPRequest is the [ipp.Sniffer.Request] callback.
-func (writer *Writer) IPPRequest(query *transport.ServerQuery,
-	msg *goipp.Message, body io.Reader) {
+// OnRequest needs to be called by protocol being traced
+// to write the request message.
+func (writer *Writer) OnRequest(query *transport.ServerQuery,
+	msg Message, body io.Reader) {
 
-	name := fmt.Sprintf("%8.8d/00-%s.ipp",
-		query.ID(), goipp.Op(msg.Code))
-
-	data, _ := msg.EncodeBytes()
-	writer.Send(name, data)
+	name := fmt.Sprintf("%8.8d/00-%s.%s", query.ID(), msg.Name(), msg.Ext())
+	writer.Send(name, msg.MarshalTrace())
 
 	writer.donewait.Add(1)
 	go func() {
@@ -102,15 +99,13 @@ func (writer *Writer) IPPRequest(query *transport.ServerQuery,
 	}()
 }
 
-// IPPResponse is the [ipp.Sniffer.Response] callback.
-func (writer *Writer) IPPResponse(query *transport.ServerQuery,
-	msg *goipp.Message, body io.Reader) {
+// OnResponse needs to be called by protocol being traced
+// to write the response message.
+func (writer *Writer) OnResponse(query *transport.ServerQuery,
+	msg Message, body io.Reader) {
 
-	name := fmt.Sprintf("%8.8d/02-%s.ipp",
-		query.ID(), goipp.Status(msg.Code))
-
-	data, _ := msg.EncodeBytes()
-	writer.Send(name, data)
+	name := fmt.Sprintf("%8.8d/02-%s.%s", query.ID(), msg.Name(), msg.Ext())
+	writer.Send(name, msg.MarshalTrace())
 
 	writer.donewait.Add(1)
 	go func() {
