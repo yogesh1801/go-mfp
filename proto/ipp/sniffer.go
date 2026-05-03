@@ -20,17 +20,11 @@ import (
 type Sniffer struct {
 	// Request, if not nil, is called when IPP request is
 	// being sent to the destination.
-	//
-	// The sequence number is incremented for each new
-	// request.
-	Request func(seqnum uint64, query *transport.ServerQuery,
+	Request func(query *transport.ServerQuery,
 		msg *goipp.Message, body io.Reader)
 
 	// Response, if not nil, is called when IPP response has been
 	// being received from the destination.
-	//
-	// The sequence number of the response matches the sequence
-	// number of the request.
-	Response func(seqnum uint64, query *transport.ServerQuery,
+	Response func(query *transport.ServerQuery,
 		msg *goipp.Message, body io.Reader)
 }

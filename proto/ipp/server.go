@@ -15,7 +15,6 @@ import (
 	"mime"
 	"net/http"
 	"net/http/httputil"
-	"sync/atomic"
 
 	"github.com/OpenPrinting/go-mfp/log"
 	"github.com/OpenPrinting/go-mfp/transport"
@@ -27,7 +26,6 @@ type Server struct {
 	options ServerOptions         // Server options
 	ops     map[goipp.Op]*Handler // Installed handlers
 	sniffer Sniffer               // Sniffer callbacks
-	seqnum  atomic.Uint64         // Sequence number, for sniffer
 }
 
 // ServerOptions allows to specify options that can modify
@@ -76,7 +74,6 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	query := transport.NewServerQuery(w, rq)
 	query.SetLogPrefix("IPP")
 	ctx := query.RequestContext()
-	seqnum := s.seqnum.Add(1)
 
 	// Dump request HTTP headers
 	dump, _ := httputil.DumpRequest(query.Request(), false)
@@ -93,7 +90,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 
 	// Check HTTP parameters
 	if query.RequestMethod() != "POST" {
-		s.httpError(seqnum, query, ErrHTTPMethodNotAllowed)
+		s.httpError(query, ErrHTTPMethodNotAllowed)
 		return
 	}
 
@@ -102,7 +99,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	if mediatype != goipp.ContentType {
 		err := NewErrHTTP(http.StatusUnsupportedMediaType,
 			fmt.Sprintf("unsupported media type: %q", ctype))
-		s.httpError(seqnum, query, err)
+		s.httpError(query, err)
 		return
 	}
 
@@ -110,7 +107,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	msg := &goipp.Message{}
 	err := msg.Decode(query.RequestBody())
 	if err != nil {
-		s.httpError(seqnum, query, err)
+		s.httpError(query, err)
 		return
 	}
 
@@ -136,7 +133,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	if s.sniffer.Request != nil {
 		rpipe, wpipe := io.Pipe()
 		body = transport.TeeReadCloser(body, wpipe)
-		s.sniffer.Request(seqnum, query, msg, rpipe)
+		s.sniffer.Request(query, msg, rpipe)
 	}
 
 	// Make sure the body is closed, so sniffer will notice that
@@ -153,7 +150,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 			goipp.StatusErrorBadRequest,
 			"bad request ID %d", msg.RequestID)
 
-		s.httpError(seqnum, query, err)
+		s.httpError(query, err)
 		return
 	}
 
@@ -163,7 +160,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 			goipp.StatusErrorVersionNotSupported,
 			"bad request version %s", msg.Version)
 
-		s.httpError(seqnum, query, err)
+		s.httpError(query, err)
 		return
 	}
 
@@ -174,14 +171,14 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 			goipp.StatusErrorOperationNotSupported,
 			"unsupported operation %s", op)
 
-		s.httpError(seqnum, query, err)
+		s.httpError(query, err)
 		return
 	}
 
 	// Handle the message
 	rsp, err := handler.handle(ctx, msg, body)
 	if err != nil {
-		s.httpError(seqnum, query, err)
+		s.httpError(query, err)
 		return
 	}
 
@@ -192,7 +189,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 
 	// Notify sniffer, if present
 	if s.sniffer.Response != nil {
-		s.sniffer.Response(seqnum, query, rsp, &bytes.Reader{})
+		s.sniffer.Response(query, rsp, &bytes.Reader{})
 	}
 
 	// Call the OnIPPResponse hook
@@ -228,11 +225,7 @@ func (s *Server) RegisterHandler(handler *Handler) {
 }
 
 // httpError finishes HTTP request with an error.
-//
-// seqnum parameter is only used for Sniffer.
-func (s *Server) httpError(seqnum uint64,
-	query *transport.ServerQuery, err error) {
-
+func (s *Server) httpError(query *transport.ServerQuery, err error) {
 	switch err := err.(type) {
 	case *ErrHTTP:
 		query.Reject(err.Status, err)
@@ -243,7 +236,7 @@ func (s *Server) httpError(seqnum uint64,
 
 		// Notify snifferm if present
 		if s.sniffer.Response != nil {
-			s.sniffer.Response(seqnum, query, rsp, &bytes.Reader{})
+			s.sniffer.Response(query, rsp, &bytes.Reader{})
 		}
 
 		// Call OnIPPResponse hook

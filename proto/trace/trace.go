@@ -78,11 +78,11 @@ func (writer *Writer) Close() {
 }
 
 // IPPRequest is the [ipp.Sniffer.Request] callback.
-func (writer *Writer) IPPRequest(seqnum uint64,
-	query *transport.ServerQuery, msg *goipp.Message, body io.Reader) {
+func (writer *Writer) IPPRequest(query *transport.ServerQuery,
+	msg *goipp.Message, body io.Reader) {
 
 	name := fmt.Sprintf("%8.8d/00-%s.ipp",
-		seqnum, goipp.Op(msg.Code))
+		query.ID(), goipp.Op(msg.Code))
 
 	data, _ := msg.EncodeBytes()
 	writer.Send(name, data)
@@ -93,7 +93,7 @@ func (writer *Writer) IPPRequest(seqnum uint64,
 
 		if len(data) != 0 {
 			name := fmt.Sprintf("%8.8d/01-odata.%s",
-				seqnum, magic(data))
+				query.ID(), magic(data))
 
 			writer.Send(name, data)
 		}
@@ -103,11 +103,11 @@ func (writer *Writer) IPPRequest(seqnum uint64,
 }
 
 // IPPResponse is the [ipp.Sniffer.Response] callback.
-func (writer *Writer) IPPResponse(seqnum uint64,
-	query *transport.ServerQuery, msg *goipp.Message, body io.Reader) {
+func (writer *Writer) IPPResponse(query *transport.ServerQuery,
+	msg *goipp.Message, body io.Reader) {
 
 	name := fmt.Sprintf("%8.8d/02-%s.ipp",
-		seqnum, goipp.Status(msg.Code))
+		query.ID(), goipp.Status(msg.Code))
 
 	data, _ := msg.EncodeBytes()
 	writer.Send(name, data)
@@ -118,7 +118,7 @@ func (writer *Writer) IPPResponse(seqnum uint64,
 
 		if len(data) != 0 {
 			name := fmt.Sprintf("%8.8d/03-rdata.%s",
-				seqnum, magic(data))
+				query.ID(), magic(data))
 
 			writer.Send(name, data)
 		}

@@ -17,7 +17,6 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
-	"sync/atomic"
 
 	"github.com/OpenPrinting/go-mfp/log"
 	"github.com/OpenPrinting/go-mfp/transport"
@@ -36,7 +35,6 @@ type Proxy struct {
 	remoteURL *url.URL          // Remote URLs
 	clnt      *transport.Client // HTTP client part of proxy
 	sniffer   Sniffer           // Sniffer callbacks
-	seqnum    atomic.Uint64     // Sequence number, for sniffer
 }
 
 // proxyMsgXlat performs URL translation in the IPP requests
@@ -89,7 +87,6 @@ func (proxy *Proxy) Sniff(sniffer Sniffer) {
 // It implements [http.Handler] interface.
 func (proxy *Proxy) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	// Setup things
-	seqnum := proxy.seqnum.Add(1)
 	query := transport.NewServerQuery(w, rq)
 	ctx := query.RequestContext()
 
@@ -123,7 +120,7 @@ func (proxy *Proxy) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	// Prepare outgoing request
-	out, err := proxy.doRequest(query, xlat, seqnum)
+	out, err := proxy.doRequest(query, xlat)
 	if err != nil {
 		err = fmt.Errorf("IPP error: %w", err)
 		log.Debug(ctx, "%s", err)
@@ -156,7 +153,7 @@ func (proxy *Proxy) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	// Translate IPP response
 	ct := strings.ToLower(rsp.Header.Get("Content-Type"))
 	if ct == "application/ipp" {
-		err = proxy.doResponse(query, rsp, xlat, seqnum)
+		err = proxy.doResponse(query, rsp, xlat)
 		if err != nil {
 			log.Debug(ctx, "IPP: %s", err)
 			query.Reject(http.StatusBadGateway, err)
@@ -183,7 +180,7 @@ func (proxy *Proxy) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 //
 // It returns modified request ready to be send to the server or error.
 func (proxy *Proxy) doRequest(query *transport.ServerQuery,
-	xlat *proxyMsgXlat, seqnum uint64) (*http.Request, error) {
+	xlat *proxyMsgXlat) (*http.Request, error) {
 
 	// Fetch IPP Request message
 	peeker := transport.NewPeeker(query.RequestBody())
@@ -221,7 +218,7 @@ func (proxy *Proxy) doRequest(query *transport.ServerQuery,
 		rpipe, wpipe := io.Pipe()
 		body = transport.TeeReadCloser(body, wpipe)
 		skip := transport.SkipReader(rpipe, len(msg2bytes))
-		proxy.sniffer.Request(seqnum, query, &msg, skip)
+		proxy.sniffer.Request(query, &msg, skip)
 	}
 
 	// Setup outgoing request
@@ -237,7 +234,7 @@ func (proxy *Proxy) doRequest(query *transport.ServerQuery,
 
 // doResponse performs (client->server) part of the IPP request handling
 func (proxy *Proxy) doResponse(query *transport.ServerQuery,
-	rsp *http.Response, xlat *proxyMsgXlat, seqnum uint64) error {
+	rsp *http.Response, xlat *proxyMsgXlat) error {
 
 	// Fetch IPP response message
 	peeker := transport.NewPeeker(rsp.Body)
@@ -276,7 +273,7 @@ func (proxy *Proxy) doResponse(query *transport.ServerQuery,
 		rpipe, wpipe := io.Pipe()
 		body = transport.TeeReadCloser(body, wpipe)
 		skip := transport.SkipReader(rpipe, len(msg2bytes))
-		proxy.sniffer.Response(seqnum, query, msg2, skip)
+		proxy.sniffer.Response(query, msg2, skip)
 	}
 
 	rsp.Body = body
