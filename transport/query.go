@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/http/httptest"
 	"net/http/httputil"
 	"net/url"
 	"strings"
@@ -183,6 +184,27 @@ func (query *ServerQuery) Finish() {
 // DumpRequest creates a request dump, for logging.
 func (query *ServerQuery) DumpRequest() []byte {
 	dump, _ := httputil.DumpRequest(query.Request(), false)
+	return dump
+}
+
+// DumpResponse creates a response dump, for logging.
+// The query needs to be completed when this function is called.
+func (query *ServerQuery) DumpResponse() []byte {
+	// Note, http.ResponseWriter, passed to the http.Handler.ServeHTTP
+	// doesn't allow to intercept HTTP response actually written to
+	// the connection.
+	//
+	// Here we use httptest.ResponseRecorder, replaying all actions
+	// that were performed against the original ResponseWritter (except
+	// writting the body) to obtain more-or-less accurate dump.
+	rec := httptest.ResponseRecorder{
+		Code:      query.ResponseStatus(),
+		HeaderMap: query.ResponseHeader().Clone(),
+	}
+	rec.WriteHeader(query.ResponseStatus())
+	rsp := rec.Result()
+
+	dump, _ := httputil.DumpResponse(rsp, false)
 	return dump
 }
 
