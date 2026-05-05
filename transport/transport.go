@@ -115,10 +115,10 @@ func (tr *Transport) RoundTrip(rq *http.Request) (*http.Response, error) {
 // dialContext implements DialContext callback for underlying
 // http.Transport.
 func (tr *Transport) dialContext(ctx context.Context,
-	network, addr string) (net.Conn, error) {
+	_, addr string) (net.Conn, error) {
 
 	host, port, _ := net.SplitHostPort(addr)
-	network, host, _ = strings.Cut(host, "+")
+	network, host, _ := strings.Cut(host, "+")
 
 	addr = net.JoinHostPort(host, port)
 
