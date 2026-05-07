@@ -213,7 +213,7 @@ func (proxy *Proxy) doRequest(query *transport.ServerQuery,
 	msg2bytes, _ := msg2.EncodeBytes()
 	peeker.Replace(msg2bytes)
 
-	// Notify sniffer, if present
+	// Notify tracer, if present
 	body := io.ReadCloser(peeker)
 	if proxy.tracer != nil {
 		rpipe, wpipe := io.Pipe()
