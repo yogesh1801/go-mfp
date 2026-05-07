@@ -112,6 +112,22 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
+	// Notify tracer, if present
+	body := query.RequestBody()
+	if s.tracer != nil {
+		rpipe, wpipe := io.Pipe()
+		body = transport.TeeReadCloser(body, wpipe)
+		s.tracer.OnRequest(query, goippRequest{msg}, rpipe)
+
+		// Make sure the body is closed, so tracer will notice that
+		// body reading is done and will finish with saving it.
+		defer func() {
+			if body != nil {
+				body.Close()
+			}
+		}()
+	}
+
 	// Call the OnIPPRequest hook
 	if s.options.Hooks.OnIPPRequest != nil {
 		msg2 := s.options.Hooks.OnIPPRequest(query, msg)
@@ -128,22 +144,6 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	msg.Print(&buf, true)
 	log.Debug(ctx, "IPP request message:")
 	log.Debug(ctx, buf.String())
-
-	// Notify tracer, if present
-	body := query.RequestBody()
-	if s.tracer != nil {
-		rpipe, wpipe := io.Pipe()
-		body = transport.TeeReadCloser(body, wpipe)
-		s.tracer.OnRequest(query, goippRequest{msg}, rpipe)
-	}
-
-	// Make sure the body is closed, so tracer will notice that
-	// body reading is done and will finish with saving it.
-	defer func() {
-		if body != nil {
-			body.Close()
-		}
-	}()
 
 	// Check IPP parameters
 	if msg.RequestID == 0 {
@@ -188,11 +188,6 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	body.Close()
 	body = nil
 
-	// Notify tracer, if present
-	if s.tracer != nil {
-		s.tracer.OnResponse(query, goippResponse{rsp}, &bytes.Reader{})
-	}
-
 	// Call the OnIPPResponse hook
 	if s.options.Hooks.OnIPPResponse != nil {
 		rsp2 := s.options.Hooks.OnIPPResponse(query, rsp)
@@ -202,6 +197,11 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 		if rsp2 != nil {
 			rsp = rsp2
 		}
+	}
+
+	// Notify tracer, if present
+	if s.tracer != nil {
+		s.tracer.OnResponse(query, goippResponse{rsp}, &bytes.Reader{})
 	}
 
 	// Log the response
