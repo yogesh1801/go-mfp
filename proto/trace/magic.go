@@ -34,4 +34,5 @@ var magicTable = []struct {
 	{[]byte("%PDF"), "pdf"},
 	{[]byte("%!PS"), "ps"},
 	{[]byte{'U', 'N', 'I', 'R', 'A', 'S', 'T', 0}, "urf"},
+	{[]byte("<?xml"), "xml"},
 }
