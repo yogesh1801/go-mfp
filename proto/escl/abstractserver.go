@@ -17,6 +17,7 @@ import (
 	"sync"
 
 	"github.com/OpenPrinting/go-mfp/abstract"
+	"github.com/OpenPrinting/go-mfp/proto/trace"
 	"github.com/OpenPrinting/go-mfp/transport"
 	"github.com/OpenPrinting/go-mfp/util/missed"
 	"github.com/OpenPrinting/go-mfp/util/optional"
@@ -36,6 +37,7 @@ type AbstractServer struct {
 	document abstract.Document             // Document being server
 	joburi   string                        // Current JobURI, "" if none
 	lock     sync.Mutex                    // Access lock
+	tracer   *trace.Writer                 // Protocol tracer, may be nil
 }
 
 // AbstractServerOptions allows to specify options that can
@@ -83,6 +85,11 @@ func NewAbstractServer(options AbstractServerOptions) *AbstractServer {
 	return srv
 }
 
+// Trace installs the protocol tracer.
+func (srv *AbstractServer) Trace(tracer *trace.Writer) {
+	srv.tracer = tracer
+}
+
 // ServeHTTP serves incoming HTTP requests.
 // It implements the [http.Handler] interface.
 func (srv *AbstractServer) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
@@ -110,6 +117,9 @@ func (srv *AbstractServer) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 
 	// Dispatch the request
 	var action func(*transport.ServerQuery)
+	var message trace.Message
+	var body io.Reader
+	var format string
 
 	const NextDocument = "/NextDocument"
 	const ScanImageInfo = "/ScanImageInfo"
@@ -118,34 +128,68 @@ func (srv *AbstractServer) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	// Handle {root}-relative requests
 	case method == "GET" && subpath == "ScannerCapabilities":
 		action = srv.getScannerCapabilities
+		message = esclScannerCapabilities{}
 
 	case method == "GET" && subpath == "ScannerStatus":
 		action = srv.getScannerStatus
+		message = esclScannerStatus{}
 
 	case method == "POST" && subpath == "ScanJobs":
 		action = srv.postScanJobs
+		message = esclScanJobs{}
 
 	// Handle {JobUri}-relative requests
 	case method == "GET" && strings.HasSuffix(path, NextDocument):
 		joburi := path[:len(path)-len(NextDocument)]
 		action = func(*transport.ServerQuery) {
-			srv.getJobURINextDocument(query, joburi)
+			body, format = srv.getJobURINextDocument(query, joburi)
 		}
+		message = esclNextDocument{}
 
 	case method == "GET" && strings.HasSuffix(path, ScanImageInfo):
 		joburi := path[:len(path)-len(ScanImageInfo)]
 		action = func(*transport.ServerQuery) {
 			srv.getJobURIScanImageInfo(query, joburi)
 		}
+		message = esclScanImageInfo{}
 
 	case method == "DELETE":
 		action = func(*transport.ServerQuery) {
 			srv.deleteJobURI(query, path)
 		}
+		message = esclDELETE{}
 	}
 
 	if action != nil {
+		// Notify tracer on request
+		if srv.tracer != nil {
+			r1, r2 := transport.TeeReadCloser2(query.RequestBody())
+			query.Request().Body = r1
+			srv.tracer.OnRequest(query, message, r2)
+			defer r1.Close()
+		}
+
+		// Call action handler
 		action(query)
+
+		// Notify tracer on response
+		if srv.tracer != nil {
+			var body2 io.Reader
+			if body != nil {
+				var bodyCloser io.ReadCloser
+				bodyCloser, body2 = transport.TeeReadCloser2(
+					io.NopCloser(body))
+				body = bodyCloser
+				defer bodyCloser.Close()
+			}
+
+			srv.tracer.OnResponse(query, message, body2)
+		}
+
+		// Send resulting image
+		if body != nil {
+			query.SendData(http.StatusOK, format, body)
+		}
 	} else {
 		query.Reject(http.StatusNotFound, nil)
 	}
@@ -308,7 +352,8 @@ func (srv *AbstractServer) postScanJobs(query *transport.ServerQuery) {
 
 // getJobURINextDocument handles GET /{JobUri}/NextDocument
 func (srv *AbstractServer) getJobURINextDocument(
-	query *transport.ServerQuery, joburi string) {
+	query *transport.ServerQuery,
+	joburi string) (body io.Reader, format string) {
 
 	// Call OnNextDocumentRequest hook
 	if srv.options.Hooks.OnNextDocumentRequest != nil {
@@ -353,10 +398,12 @@ func (srv *AbstractServer) getJobURINextDocument(
 	}
 
 	// Call OnNextDocumentResponse hook
-	body := io.NopCloser(file)
+	body = file
 	if srv.options.Hooks.OnNextDocumentResponse != nil {
-		body2 := srv.options.Hooks.OnNextDocumentResponse(query, body)
+		body2 := srv.options.Hooks.OnNextDocumentResponse(query,
+			io.NopCloser(body))
 		if query.IsStatusSet() {
+			body = nil
 			return
 		}
 
@@ -366,7 +413,7 @@ func (srv *AbstractServer) getJobURINextDocument(
 	}
 
 	// Send the response
-	query.SendData(http.StatusOK, file.Format(), body)
+	return
 }
 
 // getJobURIScanImageInfo handles GET /{JobUri}/ScanImageInfo
