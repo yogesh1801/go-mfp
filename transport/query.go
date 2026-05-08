@@ -229,6 +229,11 @@ func (query *ServerQuery) IsStatusSet() bool {
 	return query.ResponseStatus() != 0
 }
 
+// IsFinished returns true query is finished.
+func (query *ServerQuery) IsFinished() bool {
+	return query.finished.Load()
+}
+
 // assertStatusSet panics if HTTP response status is not set.
 func (query *ServerQuery) assertStatusSet() {
 	assert.MustMsg(query.IsStatusSet(),
