@@ -83,7 +83,7 @@ func (writer *Writer) Close() {
 func (writer *Writer) OnRequest(query *transport.ServerQuery,
 	msg Message, body io.Reader) {
 
-	name := fmt.Sprintf("%8.8d/00-%s", query.ID(), msg.Name())
+	name := fmt.Sprintf("%8.8d/req-%s", query.ID(), msg.Name())
 
 	writer.Send(name+".http", query.DumpRequest())
 	writer.Send(name+"."+msg.Ext(), msg.MarshalTrace())
@@ -109,7 +109,7 @@ func (writer *Writer) OnRequest(query *transport.ServerQuery,
 func (writer *Writer) OnResponse(query *transport.ServerQuery,
 	msg Message, body io.Reader) {
 
-	name := fmt.Sprintf("%8.8d/02-%s", query.ID(), msg.Name())
+	name := fmt.Sprintf("%8.8d/rsp-%s", query.ID(), msg.Name())
 	writer.Send(name+"."+msg.Ext(), msg.MarshalTrace())
 
 	if body != nil {
@@ -125,11 +125,16 @@ func (writer *Writer) OnResponse(query *transport.ServerQuery,
 		}()
 	}
 
-	query.OnCompletion(
-		func(query *transport.ServerQuery) {
-			dump := query.DumpResponse()
-			writer.Send(name+".http", dump)
-		})
+	onCompletion := func(query *transport.ServerQuery) {
+		dump := query.DumpResponse()
+		writer.Send(name+".http", dump)
+	}
+
+	if query.IsFinished() {
+		onCompletion(query)
+	} else {
+		query.OnCompletion(onCompletion)
+	}
 }
 
 // Send writes a new record (a file) into the writer archive.
