@@ -222,10 +222,11 @@ func (proxy *Proxy) doRequest(query *transport.ServerQuery,
 	// Notify tracer, if present
 	body := io.ReadCloser(peeker)
 	if proxy.tracer != nil {
-		rpipe, wpipe := io.Pipe()
-		body = transport.TeeReadCloser(body, wpipe)
-		skip := transport.SkipReader(rpipe, len(msg2bytes))
-		proxy.tracer.OnRequest(query, goippRequest{&msg}, skip)
+		var body2 io.Reader
+
+		body, body2 = transport.TeeReadCloser2(body)
+		body2 = transport.SkipReader(body2, len(msg2bytes))
+		proxy.tracer.OnRequest(query, goippRequest{&msg}, body2)
 	}
 
 	// Setup outgoing request
@@ -277,10 +278,11 @@ func (proxy *Proxy) doResponse(query *transport.ServerQuery,
 	// Notify sniffer, if present
 	body := io.ReadCloser(peeker)
 	if proxy.tracer != nil {
-		rpipe, wpipe := io.Pipe()
-		body = transport.TeeReadCloser(body, wpipe)
-		skip := transport.SkipReader(rpipe, len(msg2bytes))
-		proxy.tracer.OnResponse(query, goippResponse{msg2}, skip)
+		var body2 io.Reader
+
+		body, body2 = transport.TeeReadCloser2(body)
+		body2 = transport.SkipReader(body2, len(msg2bytes))
+		proxy.tracer.OnRequest(query, goippRequest{&msg}, body2)
 	}
 
 	rsp.Body = body

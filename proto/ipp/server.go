@@ -115,9 +115,10 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	// Notify tracer, if present
 	body := query.RequestBody()
 	if s.tracer != nil {
-		rpipe, wpipe := io.Pipe()
-		body = transport.TeeReadCloser(body, wpipe)
-		s.tracer.OnRequest(query, goippRequest{msg}, rpipe)
+		var body2 io.Reader
+
+		body, body2 = transport.TeeReadCloser2(body)
+		s.tracer.OnRequest(query, goippRequest{msg}, body2)
 
 		// Make sure the body is closed, so tracer will notice that
 		// body reading is done and will finish with saving it.
