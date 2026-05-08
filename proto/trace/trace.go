@@ -78,6 +78,8 @@ func (writer *Writer) Close() {
 
 // OnRequest needs to be called by protocol being traced
 // to write the request message.
+//
+// Empty body can be represented as nil.
 func (writer *Writer) OnRequest(query *transport.ServerQuery,
 	msg Message, body io.Reader) {
 
@@ -86,42 +88,42 @@ func (writer *Writer) OnRequest(query *transport.ServerQuery,
 	writer.Send(name+".http", query.DumpRequest())
 	writer.Send(name+"."+msg.Ext(), msg.MarshalTrace())
 
-	writer.donewait.Add(1)
-	go func() {
-		data, _ := io.ReadAll(body)
+	if body != nil {
+		writer.donewait.Add(1)
+		go func() {
+			data, _ := io.ReadAll(body)
 
-		if len(data) != 0 {
-			name := fmt.Sprintf("%8.8d/01-odata.%s",
-				query.ID(), magic(data))
+			if len(data) != 0 {
+				writer.Send(name+"."+magic(data), data)
+			}
 
-			writer.Send(name, data)
-		}
-
-		writer.donewait.Done()
-	}()
+			writer.donewait.Done()
+		}()
+	}
 }
 
 // OnResponse needs to be called by protocol being traced
 // to write the response message.
+//
+// Empty body can be represented as nil.
 func (writer *Writer) OnResponse(query *transport.ServerQuery,
 	msg Message, body io.Reader) {
 
 	name := fmt.Sprintf("%8.8d/02-%s", query.ID(), msg.Name())
 	writer.Send(name+"."+msg.Ext(), msg.MarshalTrace())
 
-	writer.donewait.Add(1)
-	go func() {
-		data, _ := io.ReadAll(body)
+	if body != nil {
+		writer.donewait.Add(1)
+		go func() {
+			data, _ := io.ReadAll(body)
 
-		if len(data) != 0 {
-			name := fmt.Sprintf("%8.8d/03-rdata.%s",
-				query.ID(), magic(data))
+			if len(data) != 0 {
+				writer.Send(name+"."+magic(data), data)
+			}
 
-			writer.Send(name, data)
-		}
-
-		writer.donewait.Done()
-	}()
+			writer.donewait.Done()
+		}()
+	}
 
 	query.OnCompletion(
 		func(query *transport.ServerQuery) {
@@ -131,9 +133,16 @@ func (writer *Writer) OnResponse(query *transport.ServerQuery,
 }
 
 // Send writes a new record (a file) into the writer archive.
+//
+// If data is nil, nothing is written, but if data is the empty
+// slice, the empty file is written.
 func (writer *Writer) Send(name string, data []byte) {
 	writer.lock.Lock()
 	defer writer.lock.Unlock()
+
+	if data == nil {
+		return
+	}
 
 	log.Debug(writer.ctx, "%s: %d bytes saved", name, len(data))
 
