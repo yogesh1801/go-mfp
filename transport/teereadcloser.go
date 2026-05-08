@@ -45,6 +45,19 @@ func TeeReadCloser(r io.ReadCloser, w io.Writer) io.ReadCloser {
 	return tee
 }
 
+// TeeReadCloser2 is the alternative interface to [TeeReadCloser].
+//
+// Instead of writing a copy of data stream into the caller-provided
+// io.Writer, it returns two readers.
+//
+// This is the caller responsibility to drain both readers
+// until EOF is returned.
+func TeeReadCloser2(r io.ReadCloser) (r1, r2 io.ReadCloser) {
+	rpipe, wpipe := io.Pipe()
+	r1 = TeeReadCloser(r, wpipe)
+	return r1, rpipe
+}
+
 // Close closes the teeReadCloser.
 func (tee *teeReadCloser) Close() error {
 	tee.closefunc()
