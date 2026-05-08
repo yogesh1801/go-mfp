@@ -51,6 +51,7 @@ func simulate(ctx context.Context, model *modeling.Model, tracer *trace.Writer,
 		}
 
 		handler := model.NewESCLServer(s)
+		handler.Trace(tracer)
 		mux.Add("/eSCL", handler)
 
 		runner.ESCLName = "Virtual MFP Scanner"
