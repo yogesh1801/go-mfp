@@ -184,6 +184,12 @@ func (proxy *Proxy) doRequest(query *transport.ServerQuery,
 	xlat *proxyMsgXlat) (*http.Request, error) {
 
 	// Fetch IPP Request message
+	//
+	// Note, for IPP requests with data attachment (e.g., Send-Document)
+	// the data attachment immediately follows the IPP part.
+	//
+	// Proxy will translate the IPP part, forwarding attachment
+	// unchanged. Hence the peeker.
 	peeker := transport.NewPeeker(query.RequestBody())
 	var msg goipp.Message
 	ops := goipp.DecoderOptions{EnableWorkarounds: true}
