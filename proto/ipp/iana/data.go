@@ -5139,6 +5139,13 @@ var Operation = map[string]*DefAttr{
 		Max:   MAX,
 		Tags:  []goipp.Tag{goipp.TagBeginCollection},
 		Members: []map[string]*DefAttr{{
+			// Operation/input-attributes/input-auto-exposure (PWG5100.15)
+			"input-auto-exposure": &DefAttr{
+				SetOf: false,
+				Min:   MIN,
+				Max:   MAX,
+				Tags:  []goipp.Tag{goipp.TagBoolean},
+			},
 			// Operation/input-attributes/input-auto-scaling (PWG5100.15)
 			"input-auto-scaling": &DefAttr{
 				SetOf: false,
