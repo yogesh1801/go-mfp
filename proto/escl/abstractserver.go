@@ -128,15 +128,15 @@ func (srv *AbstractServer) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	// Handle {root}-relative requests
 	case method == "GET" && subpath == "ScannerCapabilities":
 		action = srv.getScannerCapabilities
-		message = esclScannerCapabilities{}
+		message = traceMessage("ScannerCapabilities")
 
 	case method == "GET" && subpath == "ScannerStatus":
 		action = srv.getScannerStatus
-		message = esclScannerStatus{}
+		message = traceMessage("ScannerStatus")
 
 	case method == "POST" && subpath == "ScanJobs":
 		action = srv.postScanJobs
-		message = esclScanJobs{}
+		message = traceMessage("ScanJobs")
 
 	// Handle {JobUri}-relative requests
 	case method == "GET" && strings.HasSuffix(path, NextDocument):
@@ -144,20 +144,20 @@ func (srv *AbstractServer) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 		action = func(*transport.ServerQuery) {
 			body, format = srv.getJobURINextDocument(query, joburi)
 		}
-		message = esclNextDocument{}
+		message = traceMessage("NextDocument")
 
 	case method == "GET" && strings.HasSuffix(path, ScanImageInfo):
 		joburi := path[:len(path)-len(ScanImageInfo)]
 		action = func(*transport.ServerQuery) {
 			srv.getJobURIScanImageInfo(query, joburi)
 		}
-		message = esclScanImageInfo{}
+		message = traceMessage("ScanImageInfo")
 
 	case method == "DELETE":
 		action = func(*transport.ServerQuery) {
 			srv.deleteJobURI(query, path)
 		}
-		message = esclDELETE{}
+		message = traceMessage("DELETE")
 	}
 
 	if action != nil {
