@@ -91,6 +91,15 @@
       <xref data="https://ftp.pwg.org/pub/pwg/candidates/cs-ippsystem11-20250328-5100.22.pdf" type="uri">PWG5100.22</xref>
     </record>
 
+    <! Missed Operation/input-attributes members !>
+    <record>
+      <collection>Operation</collection>
+      <name>input-attributes</name>
+      <member_attribute>input-auto-exposure</member_attribute>
+      <syntax>boolean</syntax>
+      <xref data="https://ftp.pwg.org/pub/pwg/candidates/cs-ippfaxout10-20140618-5100.15.pdf" type="uri">PWG5100.15</xref>
+    </record>
+
     <! Missed Printer Description attribytes !>
     <record>
       <collection>Printer Description</collection>
