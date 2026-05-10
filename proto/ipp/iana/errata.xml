@@ -3,6 +3,16 @@
   <registry>
     <! ----- Fixes for broken records ----- !>
     <record>
+      <! input-orientation-requested is listed as keyword in the member
+         record but its values (3,4,5,6) and the supported attribute are
+         both enum. The keyword syntax is a typo. !>
+      <collection>Operation</collection>
+      <name>input-attributes</name>
+      <member_attribute>input-orientation-requested</member_attribute>
+      <syntax>type2 enum</syntax>
+      <xref data="https://ftp.pwg.org/pub/pwg/candidates/cs-ippfaxout10-20140618-5100.15.pdf" type="uri">PWG5100.15</xref>
+    </record>
+    <record>
       <collection>Job Template</collection>
       <name>finishings-col</name>
       <member_attribute>stitching</member_attribute>
