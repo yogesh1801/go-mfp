@@ -5213,8 +5213,8 @@ var Operation = map[string]*DefAttr{
 			"input-orientation-requested": &DefAttr{
 				SetOf: false,
 				Min:   1,
-				Max:   255,
-				Tags:  []goipp.Tag{goipp.TagKeyword},
+				Max:   MAX,
+				Tags:  []goipp.Tag{goipp.TagEnum},
 			},
 			// Operation/input-attributes/input-quality (PWG5100.15)
 			"input-quality": &DefAttr{
