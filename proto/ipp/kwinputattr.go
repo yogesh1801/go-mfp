@@ -1,7 +1,7 @@
-// MFP - Miulti-Function Printers and scanners toolkit
+// MFP - Multi-Function Printers and scanners toolkit
 // IPP - Internet Printing Protocol implementation
 //
-// Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
+// Copyright (C) 2024 and up by Yogesh Singla (yogeshsingla481@gmail.com)
 // See LICENSE for license terms and conditions
 //
 // IPP Scanner keyword types
