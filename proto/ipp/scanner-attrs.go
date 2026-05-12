@@ -13,20 +13,6 @@ import (
 	"github.com/OpenPrinting/goipp"
 )
 
-// ScannerAttributes represents IPP Scanner Attributes.
-//
-// See PWG5100.17.
-type ScannerAttributes struct {
-	ObjectRawAttrs
-
-	PrinterDescriptionGroup
-	PrinterStatusGroup
-
-	PrinterDescription
-	ScannerDescription
-	JobTemplate
-}
-
 // InputScanRegion represents a single region within the "input-scan-regions"
 // member of [InputAttributes].
 //
@@ -103,20 +89,4 @@ type ScannerDescription struct {
 
 	// PWG5100.15: input source
 	InputSourceSupported []KwInputSource `ipp:"input-source-supported"`
-}
-
-// DecodeScannerAttributes decodes ScannerAttributes from goipp.Attributes.
-func DecodeScannerAttributes(attrs goipp.Attributes, opt *DecoderOptions) (
-	*ScannerAttributes, error) {
-
-	sa := &ScannerAttributes{}
-	dec := NewDecoder(opt)
-	defer dec.Free()
-
-	err := dec.Decode(sa, attrs)
-	if err != nil {
-		return nil, err
-	}
-
-	return sa, nil
 }
