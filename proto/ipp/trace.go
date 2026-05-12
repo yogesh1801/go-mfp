@@ -11,7 +11,7 @@ package ipp
 import (
 	"bytes"
 
-	"github.com/OpenPrinting/go-mfp/proto/trace"
+	"github.com/OpenPrinting/go-mfp/log/trace"
 	"github.com/OpenPrinting/goipp"
 )
 

@@ -16,7 +16,7 @@ import (
 	"net/http/httputil"
 
 	"github.com/OpenPrinting/go-mfp/log"
-	"github.com/OpenPrinting/go-mfp/proto/trace"
+	"github.com/OpenPrinting/go-mfp/log/trace"
 	"github.com/OpenPrinting/go-mfp/transport"
 	"github.com/OpenPrinting/goipp"
 )

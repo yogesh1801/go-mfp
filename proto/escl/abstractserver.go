@@ -17,7 +17,7 @@ import (
 	"sync"
 
 	"github.com/OpenPrinting/go-mfp/abstract"
-	"github.com/OpenPrinting/go-mfp/proto/trace"
+	"github.com/OpenPrinting/go-mfp/log/trace"
 	"github.com/OpenPrinting/go-mfp/transport"
 	"github.com/OpenPrinting/go-mfp/util/missed"
 	"github.com/OpenPrinting/go-mfp/util/optional"

@@ -15,10 +15,10 @@ import (
 
 	"github.com/OpenPrinting/go-mfp/argv"
 	"github.com/OpenPrinting/go-mfp/log"
+	"github.com/OpenPrinting/go-mfp/log/trace"
 	"github.com/OpenPrinting/go-mfp/modeling"
 	"github.com/OpenPrinting/go-mfp/modeling/defaults"
 	"github.com/OpenPrinting/go-mfp/proto/escl"
-	"github.com/OpenPrinting/go-mfp/proto/trace"
 )
 
 // DefaultTCPPort is the default TCP port for the MFP simulator
