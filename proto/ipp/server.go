@@ -11,7 +11,6 @@ package ipp
 import (
 	"bytes"
 	"fmt"
-	"io"
 	"mime"
 	"net/http"
 	"net/http/httputil"
@@ -26,7 +25,6 @@ import (
 type Server struct {
 	options ServerOptions         // Server options
 	ops     map[goipp.Op]*Handler // Installed handlers
-	tracer  *trace.Writer         // Protocol tracer, may be nil
 }
 
 // ServerOptions allows to specify options that can modify
@@ -54,14 +52,6 @@ func NewServer(options ServerOptions) *Server {
 		ops:     make(map[goipp.Op]*Handler),
 	}
 	return s
-}
-
-// Trace installs the protocol tracer.
-//
-// Don't use this function when proxy is already active (i.e., concurrently
-// with the [Proxy.ServeHTTP], it can cause race conditions.
-func (s *Server) Trace(tracer *trace.Writer) {
-	s.tracer = tracer
 }
 
 // ServeHTTP handles incoming HTTP request. It implements
@@ -114,20 +104,8 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 
 	// Notify tracer, if present
 	body := query.RequestBody()
-	if s.tracer != nil {
-		var body2 io.Reader
-
-		body, body2 = transport.TeeReadCloser2(body)
-		s.tracer.OnRequest(query, goippRequest{msg}, body2)
-
-		// Make sure the body is closed, so tracer will notice that
-		// body reading is done and will finish with saving it.
-		defer func() {
-			if body != nil {
-				body.Close()
-			}
-		}()
-	}
+	body = trace.OnRequest(query, goippRequest{msg}, body)
+	defer body.Close()
 
 	// Call the OnIPPRequest hook
 	if s.options.Hooks.OnIPPRequest != nil {
@@ -201,9 +179,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	// Notify tracer, if present
-	if s.tracer != nil {
-		s.tracer.OnResponse(query, goippResponse{rsp}, &bytes.Reader{})
-	}
+	trace.OnResponse(query, goippResponse{rsp}, nil)
 
 	// Log the response
 	buf.Reset()
@@ -239,10 +215,7 @@ func (s *Server) httpError(query *transport.ServerQuery, err error) {
 		rsp := err.Encode()
 
 		// Notify tracer if present
-		if s.tracer != nil {
-			s.tracer.OnResponse(query, goippResponse{rsp},
-				&bytes.Reader{})
-		}
+		trace.OnResponse(query, goippResponse{rsp}, nil)
 
 		// Call OnIPPResponse hook
 		if s.options.Hooks.OnIPPResponse != nil {

@@ -15,6 +15,9 @@ import (
 // Message represents a single protocol message, which can
 // be either request or response.
 type Message interface {
+	// Protocol returns the protocol name
+	Protocol() string
+
 	// Ext returns file extension for the protocol message files.
 	Ext() string
 

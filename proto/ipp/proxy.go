@@ -13,7 +13,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/http/httputil"
 	"net/url"
 	"strconv"
 	"strings"
@@ -35,7 +34,6 @@ type Proxy struct {
 	localPath string            // Path portion of the local URL
 	remoteURL *url.URL          // Remote URLs
 	clnt      *transport.Client // HTTP client part of proxy
-	tracer    *trace.Writer     // Protocol tracer, may be nil
 }
 
 // proxyMsgXlat performs URL translation in the IPP requests
@@ -76,25 +74,12 @@ func NewProxy(localPath string, remoteURL *url.URL) *Proxy {
 	return proxy
 }
 
-// Trace installs the protocol tracer.
-//
-// Don't use this function when proxy is already active (i.e., concurrently
-// with the [Proxy.ServeHTTP], it can cause race conditions.
-func (proxy *Proxy) Trace(tracer *trace.Writer) {
-	proxy.tracer = tracer
-}
-
 // ServeHTTP handles incoming HTTP requests.
 // It implements [http.Handler] interface.
 func (proxy *Proxy) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	// Setup things
 	query := transport.NewServerQuery(w, rq)
 	ctx := query.RequestContext()
-
-	// Dump request HTTP headers
-	dump, _ := httputil.DumpRequest(query.Request(), false)
-	log.Debug(ctx, "IPP: request received:")
-	log.Debug(ctx, "%s", dump)
 
 	// Validate the request
 	switch query.RequestMethod() {
@@ -133,7 +118,6 @@ func (proxy *Proxy) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	log.Debug(ctx, "IPP: forward request to: %s", out.URL)
 
 	rsp, err := proxy.clnt.Do(out)
-
 	if err != nil {
 		log.Debug(ctx, "IPP: %s", err)
 		query.Reject(http.StatusBadGateway, err)
@@ -146,20 +130,112 @@ func (proxy *Proxy) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	// not the direct rsp.Body.Close() call.
 	defer func() { rsp.Body.Close() }()
 
-	// Dump response HTTP headers
-	dump, _ = httputil.DumpResponse(rsp, false)
-	log.Debug(ctx, "IPP: response received:")
-	log.Debug(ctx, "%s", dump)
+	// For non-IPP response we are just HTTP proxy
+	ct := strings.ToLower(rsp.Header.Get("Content-Type"))
+	if ct != "application/ipp" {
+		transport.HTTPRemoveHopByHopHeaders(rsp.Header)
+		transport.HTTPCopyHeaders(query.ResponseHeader(), rsp.Header)
+		query.WriteHeader(rsp.StatusCode)
+		io.Copy(query, rsp.Body)
+		return
+	}
 
 	// Translate IPP response
-	ct := strings.ToLower(rsp.Header.Get("Content-Type"))
-	if ct == "application/ipp" {
-		err = proxy.doResponse(query, rsp, xlat)
-		if err != nil {
-			log.Debug(ctx, "IPP: %s", err)
-			query.Reject(http.StatusBadGateway, err)
-			return
-		}
+	err = proxy.doResponse(query, rsp, xlat)
+	if err != nil {
+		log.Debug(ctx, "IPP: %s", err)
+		query.Reject(http.StatusBadGateway, err)
+	}
+}
+
+// doRequest performs (client->server) part of the IPP request handling
+//
+// It returns modified request ready to be send to the server or error.
+func (proxy *Proxy) doRequest(query *transport.ServerQuery,
+	xlat *proxyMsgXlat) (*http.Request, error) {
+
+	// Fetch IPP Request message
+	//
+	// Note, for IPP requests with data attachment (e.g., Send-Document)
+	// the data attachment immediately follows the IPP part.
+	body := query.RequestBody()
+
+	var msg goipp.Message
+	var consumed transport.DiscardCounter
+
+	ops := goipp.DecoderOptions{EnableWorkarounds: true}
+	err := msg.DecodeEx(io.TeeReader(body, &consumed), ops)
+	if err != nil {
+		return nil, err
+	}
+
+	// Translate IPP message
+	msg2, chg := xlat.Forward(&msg)
+
+	// Notify tracer
+	//
+	// Note, we must close the wrapped body to notify tracer
+	// that data transfer is done. From another hand, we should
+	// not close the original body here; it is controlled by
+	// the Proxy.ServeHTTP. So we protect it from being closed
+	// by wrapping into io.NopCloser.
+	body = trace.OnRequest(query, goippRequest{&msg}, io.NopCloser(body))
+	defer body.Close()
+
+	// Log the message changes
+	if !chg.isEmpty() {
+		ctx := query.RequestContext()
+		log.Debug(ctx, "IPP: translated attributes:")
+		log.Object(ctx, log.LevelDebug, 4, chg)
+	}
+
+	// Replace IPP part of the request body with the translated message
+	msg2bytes, _ := msg2.EncodeBytes()
+	body = io.NopCloser(io.MultiReader(bytes.NewReader(msg2bytes), body))
+
+	// Setup outgoing request
+	out := proxy.outreq(query, xlat, body)
+	out.ContentLength = query.RequestContentLength()
+	if out.ContentLength >= 0 {
+		out.ContentLength += int64(len(msg2bytes))
+		out.ContentLength -= consumed.Count
+	}
+
+	return out, nil
+}
+
+// doResponse performs (client->server) part of the IPP request handling
+func (proxy *Proxy) doResponse(query *transport.ServerQuery,
+	rsp *http.Response, xlat *proxyMsgXlat) error {
+
+	// Fetch IPP response message
+	body := rsp.Body
+
+	var msg goipp.Message
+	var consumed transport.DiscardCounter
+
+	ops := goipp.DecoderOptions{EnableWorkarounds: true}
+	err := msg.DecodeEx(io.TeeReader(body, &consumed), ops)
+	if err != nil {
+		return err
+	}
+
+	// Translate IPP response
+	msg2, chg := xlat.Reverse(&msg)
+	if !chg.isEmpty() {
+		ctx := rsp.Request.Context()
+		log.Debug(ctx, "IPP: translated attributes:")
+		log.Object(ctx, log.LevelDebug, 4, chg)
+	}
+
+	// Replace http.Response body
+	msg2bytes, _ := msg2.EncodeBytes()
+	body = io.NopCloser(io.MultiReader(bytes.NewReader(msg2bytes), body))
+
+	// Adjust rsp.ContentLength
+	if rsp.ContentLength >= 0 {
+		rsp.ContentLength += int64(len(msg2bytes))
+		rsp.ContentLength -= consumed.Count
 	}
 
 	// Copy response headers and status to the client
@@ -173,125 +249,13 @@ func (proxy *Proxy) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 
 	query.WriteHeader(rsp.StatusCode)
 
-	// Forward response body
-	io.Copy(query, rsp.Body)
-}
-
-// doRequest performs (client->server) part of the IPP request handling
-//
-// It returns modified request ready to be send to the server or error.
-func (proxy *Proxy) doRequest(query *transport.ServerQuery,
-	xlat *proxyMsgXlat) (*http.Request, error) {
-
-	// Fetch IPP Request message
-	//
-	// Note, for IPP requests with data attachment (e.g., Send-Document)
-	// the data attachment immediately follows the IPP part.
-	//
-	// Proxy will translate the IPP part, forwarding attachment
-	// unchanged. Hence the peeker.
-	peeker := transport.NewPeeker(query.RequestBody())
-	var msg goipp.Message
-	ops := goipp.DecoderOptions{EnableWorkarounds: true}
-
-	err := msg.DecodeEx(peeker, ops)
-	if err != nil {
-		return nil, err
-	}
-
-	// Translate IPP message
-	msg2, chg := xlat.Forward(&msg)
-
-	// Log the message
-	ctx := query.RequestContext()
-
-	var buf bytes.Buffer
-	msg2.Print(&buf, true)
-	log.Debug(ctx, "IPP: request message:")
-	log.Debug(ctx, buf.String())
-
-	if !chg.isEmpty() {
-		log.Debug(ctx, "IPP: translated attributes:")
-		log.Object(ctx, log.LevelDebug, 4, chg)
-	}
-
-	// Replace IPP part of the request body with the translated message
-	msg2bytes, _ := msg2.EncodeBytes()
-	peeker.Replace(msg2bytes)
-
-	// Notify tracer, if present
-	body := io.ReadCloser(peeker)
-	if proxy.tracer != nil {
-		var body2 io.Reader
-
-		body, body2 = transport.TeeReadCloser2(body)
-		body2 = transport.SkipReader(body2, len(msg2bytes))
-		proxy.tracer.OnRequest(query, goippRequest{&msg}, body2)
-	}
-
-	// Setup outgoing request
-	out := proxy.outreq(query, xlat, body)
-	out.ContentLength = query.RequestContentLength()
-	if out.ContentLength >= 0 {
-		out.ContentLength += int64(len(msg2bytes))
-		out.ContentLength -= peeker.Count()
-	}
-
-	return out, nil
-}
-
-// doResponse performs (client->server) part of the IPP request handling
-func (proxy *Proxy) doResponse(query *transport.ServerQuery,
-	rsp *http.Response, xlat *proxyMsgXlat) error {
-
-	// Fetch IPP response message
-	peeker := transport.NewPeeker(rsp.Body)
-	var msg goipp.Message
-	ops := goipp.DecoderOptions{EnableWorkarounds: true}
-
-	err := msg.DecodeEx(peeker, ops)
-	if err != nil {
-		peeker.Rewind()
-		return err
-	}
-
-	// Translate IPP response
-	msg2, chg := xlat.Reverse(&msg)
-
-	// Log the message
-	ctx := rsp.Request.Context()
-
-	var buf bytes.Buffer
-	msg2.Print(&buf, false)
-	log.Debug(ctx, "IPP: response message (translated):")
-	log.Debug(ctx, buf.String())
-
-	if !chg.isEmpty() {
-		log.Debug(ctx, "IPP: translated attributes:")
-		log.Object(ctx, log.LevelDebug, 4, chg)
-	}
-
-	// Replace http.Response body
-	msg2bytes, _ := msg2.EncodeBytes()
-	peeker.Replace(msg2bytes)
-
-	// Notify sniffer, if present
-	body := io.ReadCloser(peeker)
-	if proxy.tracer != nil {
-		var body2 io.Reader
-
-		body, body2 = transport.TeeReadCloser2(body)
-		body2 = transport.SkipReader(body2, len(msg2bytes))
-		proxy.tracer.OnRequest(query, goippRequest{&msg}, body2)
-	}
-
+	// Notify tracer
+	body = trace.OnResponse(query, goippResponse{&msg}, body)
 	rsp.Body = body
 
-	// Adjust rsp.ContentLength
-	if rsp.ContentLength >= 0 {
-		rsp.ContentLength += int64(len(msg2bytes))
-		rsp.ContentLength -= peeker.Count()
-	}
+	// Forward response body
+	io.Copy(query, rsp.Body)
+	rsp.Body.Close()
 
 	return nil
 }

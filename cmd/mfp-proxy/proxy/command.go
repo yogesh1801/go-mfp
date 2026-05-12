@@ -140,15 +140,14 @@ func cmdProxyHandler(ctx context.Context, inv *argv.Invocation) error {
 	ctx = log.NewContext(ctx, logger)
 
 	// Setup trace
-	var tracer *trace.Writer
 	if traceName, _ := inv.Get("-t"); traceName != "" {
-		var err error
-		tracer, err = trace.NewWriter(ctx, traceName)
+		tracer, err := trace.NewWriter(ctx, traceName)
 		if err != nil {
 			return err
 		}
 
 		defer tracer.Close()
+		ctx = trace.NewContext(ctx, tracer)
 	}
 
 	// Validate parameters
@@ -207,8 +206,6 @@ func cmdProxyHandler(ctx context.Context, inv *argv.Invocation) error {
 		switch m.proto {
 		case protoIPP:
 			proxy := ipp.NewProxy(m.localPath, m.targetURL)
-			proxy.Trace(tracer)
-
 			mux.Add(m.localPath, proxy)
 
 			runner.CUPSPort = portnum

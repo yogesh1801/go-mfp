@@ -19,7 +19,6 @@ import (
 	"github.com/OpenPrinting/go-mfp/internal/testutils"
 	"github.com/OpenPrinting/go-mfp/log"
 	"github.com/OpenPrinting/go-mfp/modeling"
-	"github.com/OpenPrinting/go-mfp/proto/trace"
 	"github.com/OpenPrinting/go-mfp/transport"
 )
 
@@ -27,7 +26,7 @@ import (
 //
 // If argv is not empty, it specifies the external command that will
 // be run under the simulator.
-func simulate(ctx context.Context, model *modeling.Model, tracer *trace.Writer,
+func simulate(ctx context.Context, model *modeling.Model,
 	portnum int, usbip bool, argv []string) error {
 
 	// Create the PathMux
@@ -51,7 +50,6 @@ func simulate(ctx context.Context, model *modeling.Model, tracer *trace.Writer,
 		}
 
 		handler := model.NewESCLServer(s)
-		handler.Trace(tracer)
 		mux.Add("/eSCL", handler)
 
 		runner.ESCLName = "Virtual MFP Scanner"
@@ -85,9 +83,7 @@ func simulate(ctx context.Context, model *modeling.Model, tracer *trace.Writer,
 
 	// Add IPP handler
 	if handler := model.NewIPPServer(); handler != nil {
-		handler.Trace(tracer)
 		mux.Add("/ipp/print", handler)
-
 		runner.CUPSPort = portnum
 	}
 

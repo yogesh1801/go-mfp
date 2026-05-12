@@ -37,7 +37,6 @@ type AbstractServer struct {
 	document abstract.Document             // Document being server
 	joburi   string                        // Current JobURI, "" if none
 	lock     sync.Mutex                    // Access lock
-	tracer   *trace.Writer                 // Protocol tracer, may be nil
 }
 
 // AbstractServerOptions allows to specify options that can
@@ -85,11 +84,6 @@ func NewAbstractServer(options AbstractServerOptions) *AbstractServer {
 	return srv
 }
 
-// Trace installs the protocol tracer.
-func (srv *AbstractServer) Trace(tracer *trace.Writer) {
-	srv.tracer = tracer
-}
-
 // ServeHTTP serves incoming HTTP requests.
 // It implements the [http.Handler] interface.
 func (srv *AbstractServer) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
@@ -118,7 +112,7 @@ func (srv *AbstractServer) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	// Dispatch the request
 	var action func(*transport.ServerQuery)
 	var message trace.Message
-	var body io.Reader
+	var body io.ReadCloser
 	var format string
 
 	const NextDocument = "/NextDocument"
@@ -162,33 +156,33 @@ func (srv *AbstractServer) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 
 	if action != nil {
 		// Notify tracer on request
-		if srv.tracer != nil {
-			r1, r2 := transport.TeeReadCloser2(query.RequestBody())
-			query.Request().Body = r1
-			srv.tracer.OnRequest(query, message, r2)
-			defer r1.Close()
-		}
+		query.Request().Body = trace.OnRequest(query,
+			message, query.Request().Body)
+		defer query.Request().Body.Close()
 
 		// Call action handler
 		action(query)
 
-		// Notify tracer on response
-		if srv.tracer != nil {
-			var body2 io.Reader
+		// Finish with response header
+		if !query.IsStatusSet() {
 			if body != nil {
-				var bodyCloser io.ReadCloser
-				bodyCloser, body2 = transport.TeeReadCloser2(
-					io.NopCloser(body))
-				body = bodyCloser
-				defer bodyCloser.Close()
+				query.ResponseHeader().Set("Content-Type",
+					format)
 			}
 
-			srv.tracer.OnResponse(query, message, body2)
+			query.WriteHeader(http.StatusOK)
+		}
+
+		// Notify tracer on response
+		body = trace.OnResponse(query, message, body)
+		if body != nil {
+			defer body.Close()
 		}
 
 		// Send resulting image
 		if body != nil {
-			query.SendData(http.StatusOK, format, body)
+			io.Copy(query, body)
+			query.Finish()
 		}
 	} else {
 		query.Reject(http.StatusNotFound, nil)
@@ -353,7 +347,7 @@ func (srv *AbstractServer) postScanJobs(query *transport.ServerQuery) {
 // getJobURINextDocument handles GET /{JobUri}/NextDocument
 func (srv *AbstractServer) getJobURINextDocument(
 	query *transport.ServerQuery,
-	joburi string) (body io.Reader, format string) {
+	joburi string) (body io.ReadCloser, format string) {
 
 	// Call OnNextDocumentRequest hook
 	if srv.options.Hooks.OnNextDocumentRequest != nil {
@@ -398,7 +392,7 @@ func (srv *AbstractServer) getJobURINextDocument(
 	}
 
 	// Call OnNextDocumentResponse hook
-	body = file
+	body = io.NopCloser(file)
 	if srv.options.Hooks.OnNextDocumentResponse != nil {
 		body2 := srv.options.Hooks.OnNextDocumentResponse(query,
 			io.NopCloser(body))
@@ -413,6 +407,7 @@ func (srv *AbstractServer) getJobURINextDocument(
 	}
 
 	// Send the response
+	println(query.ResponseStatus())
 	return
 }
 

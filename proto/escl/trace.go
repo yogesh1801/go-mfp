@@ -15,6 +15,7 @@ package escl
 // HTTP header or attachment), we represent them as string.
 type traceMessage string
 
+func (m traceMessage) Protocol() string     { return "eSCL" }
 func (m traceMessage) Ext() string          { return "" }
 func (m traceMessage) Name() string         { return string(m) }
 func (m traceMessage) MarshalLog() []byte   { return nil }

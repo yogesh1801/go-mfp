@@ -119,6 +119,17 @@ func cmdVirtualHandler(ctx context.Context, inv *argv.Invocation) error {
 
 	var err error
 
+	// Setup tracer
+	if traceName, _ := inv.Get("-t"); traceName != "" {
+		tracer, err := trace.NewWriter(ctx, traceName)
+		if err != nil {
+			return err
+		}
+
+		defer tracer.Close()
+		ctx = trace.NewContext(ctx, tracer)
+	}
+
 	// Create MFP model
 	model, err := modeling.NewModel()
 	if err != nil {
@@ -155,19 +166,7 @@ func cmdVirtualHandler(ctx context.Context, inv *argv.Invocation) error {
 		argv = append(argv, inv.Values("args")...)
 	}
 
-	// Setup tracer
-	var tracer *trace.Writer
-	if traceName, _ := inv.Get("-t"); traceName != "" {
-		var err error
-		tracer, err = trace.NewWriter(ctx, traceName)
-		if err != nil {
-			return err
-		}
-
-		defer tracer.Close()
-	}
-
 	// Run the simulator
 	usbip := inv.Flag("-U")
-	return simulate(ctx, model, tracer, port, usbip, argv)
+	return simulate(ctx, model, port, usbip, argv)
 }

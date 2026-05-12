@@ -22,6 +22,11 @@ type goippRequest struct {
 
 var _ = trace.Message(goippRequest{})
 
+// Protocol returns the protocol name
+func (goippRequest) Protocol() string {
+	return "IPP"
+}
+
 // Ext returns file extension for the protocol message files.
 // It implements the [trace.Message] interface.
 func (goippRequest) Ext() string {
@@ -55,6 +60,11 @@ type goippResponse struct {
 }
 
 var _ = trace.Message(goippResponse{})
+
+// Protocol returns the protocol name
+func (goippResponse) Protocol() string {
+	return "IPP"
+}
 
 // Ext returns file extension for the protocol message files.
 // It implements the [trace.Message] interface.
