@@ -82,6 +82,9 @@ func (p *Peeker) Bytes() []byte {
 
 // Rewind rewinds the output stream to the beginning, making
 // already consumed bytes available again.
+//
+// It also stops recording of the subsequent reads from the
+// Peeker so avoiding excessive memory usage.
 func (p *Peeker) Rewind() {
 	p.out = io.MultiReader(&p.buf, p.in)
 }
