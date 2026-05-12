@@ -51,6 +51,7 @@ type PrinterAttributes struct {
 	PrinterStatusGroup
 
 	PrinterDescription
+	ScannerDescription
 	JobTemplate
 	MediaColDatabase
 }
