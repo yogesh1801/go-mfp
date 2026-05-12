@@ -42,8 +42,47 @@ const (
 	EnJobStateCompleted EnJobState = 9
 )
 
+// EnInputOrientationRequested represents "input-orientation-requested" enum values.
+//
+// Reuses the same values as "orientation-requested" defined in RFC8011, 5.2.13.
+// See PWG5100.15.
+type EnInputOrientationRequested int
+
+const (
+	// EnInputOrientationPortrait means portrait orientation.
+	EnInputOrientationPortrait EnInputOrientationRequested = 3
+
+	// EnInputOrientationLandscape means landscape orientation.
+	EnInputOrientationLandscape EnInputOrientationRequested = 4
+
+	// EnInputOrientationReverseLandscape means reverse landscape orientation.
+	EnInputOrientationReverseLandscape EnInputOrientationRequested = 5
+
+	// EnInputOrientationReversePortrait means reverse portrait orientation.
+	EnInputOrientationReversePortrait EnInputOrientationRequested = 6
+)
+
+// EnInputQuality represents "input-quality" enum values.
+//
+// Reuses the same values as "print-quality" defined in RFC8011, 5.2.13.
+// See PWG5100.15.
+type EnInputQuality int
+
+const (
+	// EnInputQualityDraft means draft quality scanning.
+	EnInputQualityDraft EnInputQuality = 3
+
+	// EnInputQualityNormal means normal quality scanning.
+	EnInputQualityNormal EnInputQuality = 4
+
+	// EnInputQualityHigh means high quality scanning.
+	EnInputQualityHigh EnInputQuality = 5
+)
+
 // kwRegisteredTypes lists all registered keyword types for IPP codec.
 var enRegisteredTypes = map[reflect.Type]struct{}{
-	reflect.TypeOf(EnJobState(0)):    struct{}{},
-	reflect.TypeOf(EnPrinterType(0)): struct{}{},
+	reflect.TypeOf(EnJobState(0)):                  struct{}{},
+	reflect.TypeOf(EnPrinterType(0)):               struct{}{},
+	reflect.TypeOf(EnInputOrientationRequested(0)): struct{}{},
+	reflect.TypeOf(EnInputQuality(0)):              struct{}{},
 }

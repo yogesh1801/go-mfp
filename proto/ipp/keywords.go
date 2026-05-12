@@ -612,4 +612,10 @@ var kwRegisteredTypes = map[reflect.Type]struct{}{
 	reflect.TypeOf(KwColor("")):       struct{}{},
 	reflect.TypeOf(KwDeviceClass("")): struct{}{},
 	reflect.TypeOf(KwMedia("")):       struct{}{},
+
+	// Input attribute keyword types, defined in kwinputattr.go
+	reflect.TypeOf(KwInputSource("")):       struct{}{},
+	reflect.TypeOf(KwInputColorMode("")):    struct{}{},
+	reflect.TypeOf(KwInputContentType("")):  struct{}{},
+	reflect.TypeOf(KwInputFilmScanMode("")): struct{}{},
 }
