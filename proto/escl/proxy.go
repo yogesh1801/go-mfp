@@ -32,8 +32,7 @@ type Proxy struct {
 	remoteURL *url.URL           // Remote URLs
 	clnt      *Client            // eSCL client part of proxy
 	urlxlat   *transport.URLXlat // URL translator
-	//sniffer   Sniffer           // Sniffer callbacks
-	hooks ServerHooks // eSCL server hooks
+	hooks     ServerHooks        // eSCL server hooks
 }
 
 // NewProxy creates the new [Proxy].
