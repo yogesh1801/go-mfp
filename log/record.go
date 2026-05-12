@@ -145,6 +145,14 @@ func (rec *Record) format(level Level, format string, v ...any) *Record {
 
 // text writes a text message to the Record
 func (rec *Record) text(level Level, indent int, text []byte) *Record {
+	if len(text) == 0 {
+		return rec
+	}
+
+	if text[len(text)-1] == '\n' {
+		text = text[:len(text)-1]
+	}
+
 	lines := bytes.Split(text, []byte("\n"))
 	levels := make([]Level, len(lines))
 
