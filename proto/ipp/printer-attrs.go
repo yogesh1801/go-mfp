@@ -111,6 +111,7 @@ type PrinterDescription struct {
 	JobHistoryAttributesSupported    []string                    `ipp:"job-history-attributes-supported"`
 	JobHistoryIntervalConfigured     optional.Val[int]           `ipp:"job-history-interval-configured"`
 	JobHistoryIntervalSupported      optional.Val[goipp.Range]   `ipp:"job-history-interval-supported"`
+	JobIdsSupported                  optional.Val[bool]          `ipp:"job-ids-supported"`
 	JobMandatoryAttributesSupported  optional.Val[bool]          `ipp:"job-mandatory-attributes-supported"`
 	JobSpoolingSupported             optional.Val[KwJobSpooling] `ipp:"job-spooling-supported"`
 	MediaBackCoatingSupported        []KwMediaBackCoating        `ipp:"media-back-coating-supported"`
