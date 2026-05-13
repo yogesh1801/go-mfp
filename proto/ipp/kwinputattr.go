@@ -14,20 +14,14 @@ package ipp
 type KwInputSource string
 
 const (
-	// KwInputSourceFlatbed means scan from the flatbed.
-	KwInputSourceFlatbed KwInputSource = "flatbed"
+	// KwInputSourcePlaten means scan from the scanner glass or platen.
+	KwInputSourcePlaten KwInputSource = "platen"
 
-	// KwInputSourceADF means scan from the ADF (either side).
+	// KwInputSourceADF means scan from the auto-document feeder.
 	KwInputSourceADF KwInputSource = "adf"
 
-	// KwInputSourceADFFront means scan from the front side of the ADF.
-	KwInputSourceADFFront KwInputSource = "adf-front"
-
-	// KwInputSourceADFBack means scan from the back side of the ADF.
-	KwInputSourceADFBack KwInputSource = "adf-back"
-
-	// KwInputSourceCamera means scan from a camera input.
-	KwInputSourceCamera KwInputSource = "camera"
+	// KwInputSourceFilmReader means scan from a microfilm reader.
+	KwInputSourceFilmReader KwInputSource = "film-reader"
 )
 
 // KwInputContentType represents "input-content-type" keyword values.
