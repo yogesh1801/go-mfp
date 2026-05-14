@@ -8,15 +8,30 @@
 
 package escl
 
-// traceMessage implements trace.Message interface for eSCL protocol messages.
-//
-// As eSCL protocol messages are trivial and the only information they
-// carry is the message name (everything else is transmitted in the
-// HTTP header or attachment), we represent them as string.
-type traceMessage string
+import (
+	"bytes"
 
+	"github.com/OpenPrinting/go-mfp/util/xmldoc"
+)
+
+// traceMessage implements trace.Message interface for eSCL protocol messages.
+type traceMessage struct {
+	name string
+	xml  xmldoc.Element
+}
+
+// Simple methods of traceMessage
 func (m traceMessage) Protocol() string     { return "eSCL" }
-func (m traceMessage) Ext() string          { return "" }
-func (m traceMessage) Name() string         { return string(m) }
-func (m traceMessage) MarshalLog() []byte   { return nil }
-func (m traceMessage) MarshalTrace() []byte { return nil }
+func (m traceMessage) Ext() string          { return "xml" }
+func (m traceMessage) Name() string         { return m.name }
+func (m traceMessage) MarshalTrace() []byte { return m.MarshalLog() }
+
+// MarshalLog returns pretty-printed m.xml, if it is not zero-value
+func (m traceMessage) MarshalLog() []byte {
+	if !m.xml.IsZero() {
+		buf := bytes.Buffer{}
+		m.xml.EncodeIndent(&buf, NsMap, "  ")
+		return buf.Bytes()
+	}
+	return nil
+}

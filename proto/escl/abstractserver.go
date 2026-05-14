@@ -111,9 +111,6 @@ func (srv *AbstractServer) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 
 	// Dispatch the request
 	var action func(*transport.ServerQuery)
-	var message trace.Message
-	var body io.ReadCloser
-	var format string
 
 	const NextDocument = "/NextDocument"
 	const ScanImageInfo = "/ScanImageInfo"
@@ -122,68 +119,34 @@ func (srv *AbstractServer) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	// Handle {root}-relative requests
 	case method == "GET" && subpath == "ScannerCapabilities":
 		action = srv.getScannerCapabilities
-		message = traceMessage("ScannerCapabilities")
 
 	case method == "GET" && subpath == "ScannerStatus":
 		action = srv.getScannerStatus
-		message = traceMessage("ScannerStatus")
 
 	case method == "POST" && subpath == "ScanJobs":
 		action = srv.postScanJobs
-		message = traceMessage("ScanJobs")
 
 	// Handle {JobUri}-relative requests
 	case method == "GET" && strings.HasSuffix(path, NextDocument):
 		joburi := path[:len(path)-len(NextDocument)]
 		action = func(*transport.ServerQuery) {
-			body, format = srv.getJobURINextDocument(query, joburi)
+			srv.getJobURINextDocument(query, joburi)
 		}
-		message = traceMessage("NextDocument")
 
 	case method == "GET" && strings.HasSuffix(path, ScanImageInfo):
 		joburi := path[:len(path)-len(ScanImageInfo)]
 		action = func(*transport.ServerQuery) {
 			srv.getJobURIScanImageInfo(query, joburi)
 		}
-		message = traceMessage("ScanImageInfo")
 
 	case method == "DELETE":
 		action = func(*transport.ServerQuery) {
 			srv.deleteJobURI(query, path)
 		}
-		message = traceMessage("DELETE")
 	}
 
 	if action != nil {
-		// Notify tracer on request
-		query.Request().Body = trace.OnRequest(query,
-			message, query.Request().Body)
-		defer query.Request().Body.Close()
-
-		// Call action handler
 		action(query)
-
-		// Finish with response header
-		if !query.IsStatusSet() {
-			if body != nil {
-				query.ResponseHeader().Set("Content-Type",
-					format)
-			}
-
-			query.WriteHeader(http.StatusOK)
-		}
-
-		// Notify tracer on response
-		body = trace.OnResponse(query, message, body)
-		if body != nil {
-			defer body.Close()
-		}
-
-		// Send resulting image
-		if body != nil {
-			io.Copy(query, body)
-			query.Finish()
-		}
 	} else {
 		query.Reject(http.StatusNotFound, nil)
 	}
@@ -191,6 +154,10 @@ func (srv *AbstractServer) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 
 // getScannerCapabilities handles GET /{root}/ScannerCapabilities request
 func (srv *AbstractServer) getScannerCapabilities(query *transport.ServerQuery) {
+	// Notify tracer on request
+	message := traceMessage{name: "ScannerCapabilities"}
+	trace.OnRequest(query, message, nil)
+
 	// Call OnScannerCapabilitiesRequest hook
 	if srv.options.Hooks.OnScannerCapabilitiesRequest != nil {
 		srv.options.Hooks.OnScannerCapabilitiesRequest(query)
@@ -217,11 +184,21 @@ func (srv *AbstractServer) getScannerCapabilities(query *transport.ServerQuery) 
 	}
 
 	// Generate and send XML response
-	srv.sendXML(query, HookScannerCapabilities, caps)
+	xml := caps.ToXML()
+	srv.sendXML(query, HookScannerCapabilities, xml)
+
+	// Notify tracer on response
+	message.xml = xml
+	trace.OnResponse(query, message, nil)
 }
 
 // getScannerStatus handles GET /{root}/ScannerStatus request
 func (srv *AbstractServer) getScannerStatus(query *transport.ServerQuery) {
+	// Notify tracer on request
+	message := traceMessage{name: "ScannerCapabilities"}
+	trace.OnRequest(query, message, nil)
+
+	// Call OnScannerStatusRequest hook
 	if srv.options.Hooks.OnScannerStatusRequest != nil {
 		srv.options.Hooks.OnScannerStatusRequest(query)
 		if query.IsStatusSet() {
@@ -229,6 +206,7 @@ func (srv *AbstractServer) getScannerStatus(query *transport.ServerQuery) {
 		}
 	}
 
+	// Generate scanner status
 	srv.lock.Lock()
 	status := srv.status
 	srv.lock.Unlock()
@@ -245,7 +223,12 @@ func (srv *AbstractServer) getScannerStatus(query *transport.ServerQuery) {
 		}
 	}
 
-	srv.sendXML(query, HookScannerStatus, &status)
+	xml := status.ToXML()
+	srv.sendXML(query, HookScannerStatus, xml)
+
+	// Notify tracer on response
+	message.xml = xml
+	trace.OnResponse(query, message, nil)
 }
 
 // postScanJobs handles POST /{root}/ScanJobs
@@ -259,6 +242,10 @@ func (srv *AbstractServer) postScanJobs(query *transport.ServerQuery) {
 		query.Reject(http.StatusBadRequest, err)
 		return
 	}
+
+	// Notify tracer on request
+	message := traceMessage{name: "ScanJobs", xml: xml}
+	trace.OnRequest(query, message, nil)
 
 	// Call OnXMLRequest hook
 	if srv.options.Hooks.OnXMLRequest != nil {
@@ -342,12 +329,20 @@ func (srv *AbstractServer) postScanJobs(query *transport.ServerQuery) {
 
 	// Complete the request
 	query.Created(joburi)
+
+	// Notify tracer on response
+	message.xml = xmldoc.Element{}
+	trace.OnResponse(query, message, nil)
 }
 
 // getJobURINextDocument handles GET /{JobUri}/NextDocument
 func (srv *AbstractServer) getJobURINextDocument(
 	query *transport.ServerQuery,
-	joburi string) (body io.ReadCloser, format string) {
+	joburi string) {
+
+	// Notify tracer on request
+	message := traceMessage{name: "NextDocument"}
+	trace.OnRequest(query, message, nil)
 
 	// Call OnNextDocumentRequest hook
 	if srv.options.Hooks.OnNextDocumentRequest != nil {
@@ -392,7 +387,7 @@ func (srv *AbstractServer) getJobURINextDocument(
 	}
 
 	// Call OnNextDocumentResponse hook
-	body = io.NopCloser(file)
+	body := io.NopCloser(file)
 	if srv.options.Hooks.OnNextDocumentResponse != nil {
 		body2 := srv.options.Hooks.OnNextDocumentResponse(query,
 			io.NopCloser(body))
@@ -406,20 +401,37 @@ func (srv *AbstractServer) getJobURINextDocument(
 		}
 	}
 
-	// Send the response
-	println(query.ResponseStatus())
-	return
+	// Send response HTTP header
+	query.ResponseHeader().Set("Content-Type", file.Format())
+	query.WriteHeader(http.StatusOK)
+
+	// Notify tracer on response
+	body = trace.OnResponse(query, message, body)
+	defer body.Close()
+
+	// Send resulting image
+	io.Copy(query, body)
+	query.Finish()
 }
 
 // getJobURIScanImageInfo handles GET /{JobUri}/ScanImageInfo
 func (srv *AbstractServer) getJobURIScanImageInfo(
 	query *transport.ServerQuery, joburi string) {
+
+	// Notify tracer on request
+	message := traceMessage{name: "ScanImageInfo"}
+	trace.OnRequest(query, message, nil)
+
 	query.Reject(http.StatusNotImplemented, nil)
 }
 
 // deleteJobURI handles DELETE /{JobUri}
 func (srv *AbstractServer) deleteJobURI(
 	query *transport.ServerQuery, joburi string) {
+
+	// Notify tracer on request
+	message := traceMessage{name: "DELETE"}
+	trace.OnRequest(query, message, nil)
 
 	// Call OnDeleteRequest hook
 	if srv.options.Hooks.OnDeleteRequest != nil {
@@ -446,6 +458,9 @@ func (srv *AbstractServer) deleteJobURI(
 	// Finish the job
 	srv.finish(JobCanceled, JobCanceledByUser)
 	query.WriteHeader(http.StatusOK)
+
+	// Notify tracer on response
+	trace.OnResponse(query, message, nil)
 }
 
 // finish finishes the current job and updates server state
@@ -465,9 +480,8 @@ func (srv *AbstractServer) finish(state JobState, reason JobStateReason) {
 
 // sendXML generates and sends the XML response to the query.
 func (srv *AbstractServer) sendXML(query *transport.ServerQuery,
-	action HookAction, rsp interface{ ToXML() xmldoc.Element }) {
+	action HookAction, xml xmldoc.Element) {
 
-	xml := rsp.ToXML()
 	if srv.options.Hooks.OnXMLResponse != nil {
 		xml2 := srv.options.Hooks.OnXMLResponse(query, action, xml)
 
