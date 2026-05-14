@@ -57,6 +57,8 @@ func (jl *jobList) put(job jobInfo) {
 	// Append new job, dropping the oldest entry if over the limit.
 	*jl = append(*jl, job)
 	if len(*jl) > abstractServerJobHistorySize {
-		*jl = (*jl)[1:]
+		copy(*jl, (*jl)[1:])
+		(*jl)[len(*jl)-1] = jobInfo{}
+		*jl = (*jl)[:len(*jl)-1]
 	}
 }
