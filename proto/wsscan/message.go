@@ -198,6 +198,7 @@ func (msg Message) writeMTOM(w io.Writer, boundary, envelopeCID string) error {
 	if err != nil {
 		return err
 	}
+
 	if _, err = soapPart.Write(soapData); err != nil {
 		return err
 	}

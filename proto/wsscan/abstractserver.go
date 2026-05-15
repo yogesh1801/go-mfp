@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/OpenPrinting/go-mfp/abstract"
+	"github.com/OpenPrinting/go-mfp/log/trace"
 	"github.com/OpenPrinting/go-mfp/transport"
 	"github.com/OpenPrinting/go-mfp/util/generic"
 	"github.com/OpenPrinting/go-mfp/util/optional"
@@ -103,6 +104,9 @@ func (srv *AbstractServer) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 		query.Reject(http.StatusBadRequest, err)
 		return
 	}
+
+	// Notify tracer
+	trace.OnRequest(query, traceMessage{msg}, nil)
 
 	// Dispatch by body type
 	var rsp Body
@@ -504,4 +508,7 @@ func (srv *AbstractServer) sendSOAPResponse(
 	}
 
 	query.SendXML(http.StatusOK, NsMap, rsp.toXML())
+
+	// Notify tracer
+	trace.OnResponse(query, traceMessage{rsp}, nil)
 }
