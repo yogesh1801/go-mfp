@@ -500,6 +500,7 @@ func (srv *AbstractServer) sendSOAPResponse(
 		return
 	}
 
+	query.ResponseHeader().Set("Content-Type", "application/soap+xml")
 	query.SendXML(http.StatusOK, NsMap, rsp.toXML())
 
 	// Notify tracer
