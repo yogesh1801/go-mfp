@@ -31,6 +31,10 @@ type JobCreateOperation struct {
 	JobKOctets              optional.Val[int]    `ipp:"job-k-octets"`
 	JobMediaSheets          optional.Val[int]    `ipp:"job-media-sheets"`
 	JobName                 optional.Val[string] `ipp:"job-name"`
+	RequestingUserURI       optional.Val[string] `ipp:"requesting-user-uri"`
+
+	// PWG5100.17: scan-job operation attributes.
+	ScannerJobCreateOperation
 }
 
 // JobStatus contains Job status attributes

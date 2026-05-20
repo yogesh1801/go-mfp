@@ -32,6 +32,7 @@ type CreateJobResponse struct {
 	ObjectRawAttrs
 	ResponseHeader
 	OperationGroup
+	ScannerCreateJobResponse
 
 	// Unsupported attributes, if any
 	UnsupportedAttributes goipp.Attributes
