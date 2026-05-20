@@ -25,6 +25,42 @@ type InputScanRegion struct {
 	YOrigin    optional.Val[int] `ipp:"y-origin"`
 }
 
+// ScannerCreateJobResponse contains the scan-specific operation
+// attributes for the Create-Job response.
+//
+// It is embedded into [CreateJobResponse] so that the compression
+// attribute is emitted in Group 1 (operation attributes) of the response.
+//
+// See PWG5100.17, 7.1.2.
+type ScannerCreateJobResponse struct {
+	Compression optional.Val[KwCompression] `ipp:"compression"`
+}
+
+// ScannerJobCreateOperation contains the scan-specific operation
+// attributes for job-creation requests (Validate-Job, Create-Job).
+//
+// It is embedded into [JobCreateOperation] so that print and scan operation
+// attributes share the same operation group on the wire but stay separated
+// in the Go type system.
+//
+// See PWG5100.17, 7.1.1.
+type ScannerJobCreateOperation struct {
+	CompressionAccepted    []KwCompression                `ipp:"compression-accepted"`
+	DocumentFormatAccepted []string                       `ipp:"document-format-accepted"`
+	InputAttributes        optional.Val[InputAttributes]  `ipp:"input-attributes"`
+	OutputAttributes       optional.Val[OutputAttributes] `ipp:"output-attributes"`
+}
+
+// OutputAttributes represents the "output-attributes" collection.
+//
+// It is used in scan job operation requests to specify per-job
+// image-processing settings for the output document(s), and as the value
+// type of "output-attributes-default" in printer description attributes.
+type OutputAttributes struct {
+	NoiseRemoval                   optional.Val[int] `ipp:"noise-removal"`
+	OutputCompressionQualityFactor optional.Val[int] `ipp:"output-compression-quality-factor"`
+}
+
 // InputAttributes represents the "input-attributes" collection.
 //
 // It is used in scan job operation requests to specify per-job scanning
@@ -89,4 +125,13 @@ type ScannerDescription struct {
 
 	// PWG5100.15: input source
 	InputSourceSupported []KwInputSource `ipp:"input-source-supported"`
+
+	// PWG5100.17: spooling behavior for scan job document data.
+	JobDestinationSpoolingSupported optional.Val[KwJobSpooling] `ipp:"job-destination-spooling-supported"`
+
+	// PWG5100.17: default values for output-attributes members.
+	OutputAttributesDefault optional.Val[OutputAttributes] `ipp:"output-attributes-default"`
+
+	// PWG5100.17: which output-attributes member attributes are supported.
+	OutputAttributesSupported []string `ipp:"output-attributes-supported"`
 }
