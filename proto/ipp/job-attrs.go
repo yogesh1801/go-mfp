@@ -33,8 +33,11 @@ type JobCreateOperation struct {
 	JobName                 optional.Val[string] `ipp:"job-name"`
 	RequestingUserURI       optional.Val[string] `ipp:"requesting-user-uri"`
 
-	// PWG5100.17: scan-job operation attributes.
-	ScannerJobCreateOperation
+	// PWG5100.17, 7.1.1: scan-job operation attributes.
+	CompressionAccepted    []KwCompression                `ipp:"compression-accepted"`
+	DocumentFormatAccepted []string                       `ipp:"document-format-accepted"`
+	InputAttributes        optional.Val[InputAttributes]  `ipp:"input-attributes"`
+	OutputAttributes       optional.Val[OutputAttributes] `ipp:"output-attributes"`
 }
 
 // JobStatus contains Job status attributes
