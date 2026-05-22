@@ -25,32 +25,6 @@ type InputScanRegion struct {
 	YOrigin    optional.Val[int] `ipp:"y-origin"`
 }
 
-// ScannerCreateJobResponse contains the scan-specific operation
-// attributes for the Create-Job response.
-//
-// It is embedded into [CreateJobResponse] so that the compression
-// attribute is emitted in Group 1 (operation attributes) of the response.
-//
-// See PWG5100.17, 7.1.2.
-type ScannerCreateJobResponse struct {
-	Compression optional.Val[KwCompression] `ipp:"compression"`
-}
-
-// ScannerJobCreateOperation contains the scan-specific operation
-// attributes for job-creation requests (Validate-Job, Create-Job).
-//
-// It is embedded into [JobCreateOperation] so that print and scan operation
-// attributes share the same operation group on the wire but stay separated
-// in the Go type system.
-//
-// See PWG5100.17, 7.1.1.
-type ScannerJobCreateOperation struct {
-	CompressionAccepted    []KwCompression                `ipp:"compression-accepted"`
-	DocumentFormatAccepted []string                       `ipp:"document-format-accepted"`
-	InputAttributes        optional.Val[InputAttributes]  `ipp:"input-attributes"`
-	OutputAttributes       optional.Val[OutputAttributes] `ipp:"output-attributes"`
-}
-
 // OutputAttributes represents the "output-attributes" collection.
 //
 // It is used in scan job operation requests to specify per-job

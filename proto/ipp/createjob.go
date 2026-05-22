@@ -9,6 +9,7 @@
 package ipp
 
 import (
+	"github.com/OpenPrinting/go-mfp/util/optional"
 	"github.com/OpenPrinting/goipp"
 )
 
@@ -32,7 +33,9 @@ type CreateJobResponse struct {
 	ObjectRawAttrs
 	ResponseHeader
 	OperationGroup
-	ScannerCreateJobResponse
+
+	// PWG5100.17, 7.1.2: compression of the delivered document data.
+	Compression optional.Val[KwCompression] `ipp:"compression"`
 
 	// Unsupported attributes, if any
 	UnsupportedAttributes goipp.Attributes
