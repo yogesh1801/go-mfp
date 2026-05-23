@@ -13,6 +13,7 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/OpenPrinting/go-mfp/abstract"
 	"github.com/OpenPrinting/go-mfp/log"
 	"github.com/OpenPrinting/go-mfp/proto/ipp/iana"
 	"github.com/OpenPrinting/go-mfp/util/generic"
@@ -21,18 +22,40 @@ import (
 
 // Printer implements the IPP printer.
 type Printer struct {
+	options       PrinterOptions                 // Printer options
 	server        *Server                        // Underlying IPP server
 	attrs         *PrinterAttributes             // Printer attributes
 	attrSelection map[string]generic.Set[string] // Attr groups
 	q             *queue                         // Job queue
 }
 
+// PrinterOptions extends [ServerOptions] with printer-specific
+// parameters.
+type PrinterOptions struct {
+	ServerOptions
+
+	// Scanner, if not nil, provides scan services for IPP-scan
+	// and IPP-fax.
+	Scanner abstract.Scanner
+
+	// UseRawPrinterAttributes, if set, instruct [Printer]
+	// to return attributes, based on PrinterAttributes.RawAttrs
+	// instead of the the PrinterAttributes.Encode.
+	//
+	// It can be useful when the exact content and ordering of
+	// printer attributes needs to be specified, because conversion
+	// from the IPP attributes to and from the Go structure
+	// is not lossless.
+	UseRawPrinterAttributes bool
+}
+
 // NewPrinter creates a new [Printer], which facilities and
 // behavior is defined by the supplied [PrinterAttributes].
-func NewPrinter(attrs *PrinterAttributes, options ServerOptions) *Printer {
+func NewPrinter(attrs *PrinterAttributes, options PrinterOptions) *Printer {
 	// Create the Printer structure
-	server := NewServer(options)
+	server := NewServer(options.ServerOptions)
 	printer := &Printer{
+		options:       options,
 		server:        server,
 		attrs:         attrs,
 		attrSelection: make(map[string]generic.Set[string]),
@@ -101,7 +124,7 @@ func (printer *Printer) handleGetPrinterAttributes(
 	// Here we encode GetPrinterAttributesResponse into the goipp.Message
 	// with the only purpose to obtain printer attributes.
 	attrs := rsp.Encode().Printer
-	if printer.server.options.UseRawPrinterAttributes {
+	if printer.options.UseRawPrinterAttributes {
 		attrs = printer.attrs.RawAttrs().All()
 	}
 

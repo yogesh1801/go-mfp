@@ -34,7 +34,7 @@ func (model *Model) NewIPPServer() *ipp.Printer {
 	}
 
 	// Create the IPP print server
-	options := ipp.ServerOptions{
+	options := ipp.PrinterOptions{
 		UseRawPrinterAttributes: true,
 	}
 	return ipp.NewPrinter(attrs, options)

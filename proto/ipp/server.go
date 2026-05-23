@@ -30,16 +30,6 @@ type Server struct {
 // ServerOptions allows to specify options that can modify
 // the [Server] behavior.
 type ServerOptions struct {
-	// UseRawPrinterAttributes, if set, instruct [Printer]
-	// to return attributes, based on PrinterAttributes.RawAttrs
-	// instead of the the PrinterAttributes.Encode.
-	//
-	// It can be useful when the exact content and ordering of
-	// printer attributes needs to be specified, because conversion
-	// from the IPP attributes to and from the Go structure
-	// is not lossless.
-	UseRawPrinterAttributes bool
-
 	// Hooks defines IPP server hooks. See [ServerHooks]
 	// for details.
 	Hooks ServerHooks
