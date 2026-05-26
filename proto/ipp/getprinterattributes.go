@@ -11,6 +11,8 @@ package ipp
 import (
 	"errors"
 
+	"github.com/OpenPrinting/go-mfp/proto/ipp/iana"
+	"github.com/OpenPrinting/go-mfp/util/generic"
 	"github.com/OpenPrinting/go-mfp/util/optional"
 	"github.com/OpenPrinting/goipp"
 )
@@ -161,6 +163,113 @@ func (rsp *GetPrinterAttributesResponse) EncodeRaw(
 
 	msg := goipp.NewMessageWithGroups(rsp.Version, goipp.Code(rsp.Status),
 		rsp.RequestID, groups)
+
+	return msg
+}
+
+// buildAttrSelection builds the standard attribute-group selection map
+// used by Get-Printer-Attributes / Get-Scanner-Elements handlers.
+//
+// Both Print Services (RFC8011) and Scan Services (PWG5100.17)
+// use the same Get-Printer-Attributes operation with the same group
+// keywords ("all", "printer-description", "job-template"), so the
+// selection map is identical.
+func buildAttrSelection() map[string]generic.Set[string] {
+	all := generic.NewSet[string]()
+	for name := range iana.PrinterDescription {
+		all.Add(name)
+	}
+	for name := range iana.PrinterStatus {
+		all.Add(name)
+	}
+	all.Del("media-col-database")
+
+	jobTemplate := generic.NewSet[string]()
+	all.ForEach(func(name string) {
+		if iana.PrinterDescription[name+"-default"] != nil {
+			jobTemplate.Add(name + "-default")
+		}
+		if iana.PrinterDescription[name+"-supported"] != nil {
+			jobTemplate.Add(name + "-supported")
+		}
+	})
+
+	printerDescription := all.Clone()
+	jobTemplate.ForEach(func(name string) {
+		printerDescription.Del(name)
+	})
+
+	return map[string]generic.Set[string]{
+		"all":                 all,
+		"printer-description": printerDescription,
+		"job-template":        jobTemplate,
+	}
+}
+
+// getPrinterAttributesResponse builds the goipp.Message response to a
+// Get-Printer-Attributes request, filtering the printer attributes by
+// the requested groups/names.
+//
+// Shared by Printer (RFC8011) and Scanner (PWG5100.17 — same op
+// code with GetScanServiceElements semantics).
+func getPrinterAttributesResponse(
+	rq *GetPrinterAttributesRequest,
+	attrs *PrinterAttributes,
+	attrSelection map[string]generic.Set[string],
+	useRawAttrs bool,
+) *goipp.Message {
+
+	rsp := GetPrinterAttributesResponse{
+		ResponseHeader: rq.ResponseHeader(goipp.StatusOk),
+		Printer:        attrs,
+	}
+
+	// Obtain all attributes by encoding once to extract them.
+	encoded := rsp.Encode().Printer
+	if useRawAttrs {
+		encoded = attrs.RawAttrs().All()
+	}
+
+	supported := generic.NewSet[string]()
+	for _, attr := range encoded {
+		supported.Add(attr.Name)
+	}
+
+	// Build filter and collect unsupported names.
+	filter := generic.NewSet[string]()
+	unsupported := generic.NewSet[string]()
+	var unsupportedNames []string
+
+	for _, name := range rq.RequestedAttributes {
+		if group, ok := attrSelection[name]; ok {
+			filter.Merge(group)
+		} else if supported.Contains(name) {
+			filter.Add(name)
+		} else if unsupported.TestAndAdd(name) {
+			unsupportedNames = append(unsupportedNames, name)
+		}
+	}
+
+	var returnedAttrs goipp.Attributes
+	for _, attr := range encoded {
+		if filter.Contains(attr.Name) {
+			returnedAttrs = append(returnedAttrs, attr)
+		}
+	}
+
+	// Rebuild the response with only the filtered attributes.
+	rsp.UnsupportedAttributes = unsupportedNames
+	rsp.Printer = nil
+	msg := rsp.Encode()
+
+	msg.Code = goipp.Code(goipp.StatusOk)
+	if len(unsupportedNames) > 0 {
+		msg.Code = goipp.Code(goipp.StatusOkIgnoredOrSubstituted)
+	}
+
+	msg.Printer = returnedAttrs
+	msg.Groups = nil
+	msg.Groups = msg.AttrGroups()
 
 	return msg
 }
