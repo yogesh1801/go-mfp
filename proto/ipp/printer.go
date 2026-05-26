@@ -13,9 +13,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/OpenPrinting/go-mfp/abstract"
 	"github.com/OpenPrinting/go-mfp/log"
-	"github.com/OpenPrinting/go-mfp/proto/ipp/iana"
 	"github.com/OpenPrinting/go-mfp/util/generic"
 	"github.com/OpenPrinting/goipp"
 )
@@ -33,10 +31,6 @@ type Printer struct {
 // parameters.
 type PrinterOptions struct {
 	ServerOptions
-
-	// Scanner, if not nil, provides scan services for IPP-scan
-	// and IPP-fax.
-	Scanner abstract.Scanner
 
 	// UseRawPrinterAttributes, if set, instruct [Printer]
 	// to return attributes, based on PrinterAttributes.RawAttrs
@@ -58,41 +52,9 @@ func NewPrinter(attrs *PrinterAttributes, options PrinterOptions) *Printer {
 		options:       options,
 		server:        server,
 		attrs:         attrs,
-		attrSelection: make(map[string]generic.Set[string]),
+		attrSelection: buildAttrSelection(),
 		q:             newQueue(),
 	}
-
-	// Populate Printer.attrSelection
-	all := generic.NewSet[string]()
-	for name := range iana.PrinterDescription {
-		all.Add(name)
-	}
-	for name := range iana.PrinterStatus {
-		all.Add(name)
-	}
-	all.Del("media-col-database")
-
-	jobTemplate := generic.NewSet[string]()
-	all.ForEach(func(name string) {
-		name2 := name + "-default"
-		if iana.PrinterDescription[name2] != nil {
-			jobTemplate.Add(name2)
-		}
-
-		name2 = name + "-supported"
-		if iana.PrinterDescription[name2] != nil {
-			jobTemplate.Add(name2)
-		}
-	})
-
-	printerDescription := all.Clone()
-	jobTemplate.ForEach(func(name string) {
-		printerDescription.Del(name)
-	})
-
-	printer.attrSelection["all"] = all
-	printer.attrSelection["printer-description"] = printerDescription
-	printer.attrSelection["job-template"] = jobTemplate
 
 	// Install request handlers
 	server.RegisterHandler(NewHandler(printer.handleGetPrinterAttributes))
@@ -114,74 +76,8 @@ func (printer *Printer) handleGetPrinterAttributes(
 	ctx context.Context,
 	rq *GetPrinterAttributesRequest) (*goipp.Message, error) {
 
-	rsp := GetPrinterAttributesResponse{
-		ResponseHeader: rq.ResponseHeader(goipp.StatusOk),
-		Printer:        printer.attrs,
-	}
-
-	// Obtain all attributes.
-	//
-	// Here we encode GetPrinterAttributesResponse into the goipp.Message
-	// with the only purpose to obtain printer attributes.
-	attrs := rsp.Encode().Printer
-	if printer.options.UseRawPrinterAttributes {
-		attrs = printer.attrs.RawAttrs().All()
-	}
-
-	// Build set of supported attributes.
-	supported := generic.NewSet[string]()
-	for _, attr := range attrs {
-		supported.Add(attr.Name)
-	}
-
-	// Prepare filter of returned attributes and build list
-	// of unsupported attributes, if any.
-	filter := generic.NewSet[string]()
-
-	unsupported := generic.NewSet[string]()
-	var unsupportedNames []string
-
-	for _, name := range rq.RequestedAttributes {
-		if group, ok := printer.attrSelection[name]; ok {
-			filter.Merge(group)
-		} else if supported.Contains(name) {
-			filter.Add(name)
-		} else if unsupported.TestAndAdd(name) {
-			unsupportedNames = append(unsupportedNames, name)
-		}
-	}
-
-	// Now collect actually returned attributes
-	var returnedAttrs goipp.Attributes
-	for _, attr := range attrs {
-		if filter.Contains(attr.Name) {
-			returnedAttrs = append(returnedAttrs, attr)
-		}
-	}
-
-	// Rebuild the response.
-	//
-	// We don't need printer attributes to be encoded here, because we
-	// will replace them directly in the message with the filtered list
-	// of attributes. Hence rsp.Printer = nil.
-	//
-	// FIXME, from the architectural point of view this is really ugly.
-	rsp.UnsupportedAttributes = unsupportedNames
-	rsp.Printer = nil
-	msg := rsp.Encode()
-
-	// Set status code
-	msg.Code = goipp.Code(goipp.StatusOk)
-	if len(unsupportedNames) > 0 {
-		msg.Code = goipp.Code(goipp.StatusOkIgnoredOrSubstituted)
-	}
-
-	// Rebuild msg.Groups
-	msg.Printer = returnedAttrs
-	msg.Groups = nil // Forces Groups to be rebuilt
-	msg.Groups = msg.AttrGroups()
-
-	return msg, nil
+	return getPrinterAttributesResponse(rq, printer.attrs,
+		printer.attrSelection, printer.options.UseRawPrinterAttributes), nil
 }
 
 // handleValidateJob handles Validate-Job request.
