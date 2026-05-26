@@ -167,14 +167,16 @@ func (rsp *GetPrinterAttributesResponse) EncodeRaw(
 	return msg
 }
 
-// buildAttrSelection builds the standard attribute-group selection map
-// used by Get-Printer-Attributes / Get-Scanner-Elements handlers.
-//
-// Both Print Services (RFC8011) and Scan Services (PWG5100.17)
-// use the same Get-Printer-Attributes operation with the same group
-// keywords ("all", "printer-description", "job-template"), so the
-// selection map is identical.
-func buildAttrSelection() map[string]generic.Set[string] {
+// attrGroups maps the standard attribute-group keywords
+// ("all", "printer-description", "job-template") to the set of
+// individual attribute names that belong to each group, for
+// Get-Printer-Attributes requests (used by both Print Services
+// (RFC8011) and Scan Services (PWG5100.17)).
+var attrGroups = buildAttrGroups()
+
+// buildAttrGroups constructs the printer attribute-group expansion
+// map from the IANA registration database.
+func buildAttrGroups() map[string]generic.Set[string] {
 	all := generic.NewSet[string]()
 	for name := range iana.PrinterDescription {
 		all.Add(name)
@@ -206,16 +208,13 @@ func buildAttrSelection() map[string]generic.Set[string] {
 	}
 }
 
-// getPrinterAttributesResponse builds the goipp.Message response to a
-// Get-Printer-Attributes request, filtering the printer attributes by
-// the requested groups/names.
-//
-// Shared by Printer (RFC8011) and Scanner (PWG5100.17 — same op
-// code with GetScanServiceElements semantics).
-func getPrinterAttributesResponse(
+// getAttributesResponse builds the goipp.Message response to a
+// Get-XXX-Attributes IPP request by filtering the supplied attributes
+// against the requested groups/names defined by attrGroups.
+func getAttributesResponse(
 	rq *GetPrinterAttributesRequest,
 	attrs *PrinterAttributes,
-	attrSelection map[string]generic.Set[string],
+	attrGroups map[string]generic.Set[string],
 	useRawAttrs bool,
 ) *goipp.Message {
 
@@ -241,7 +240,7 @@ func getPrinterAttributesResponse(
 	var unsupportedNames []string
 
 	for _, name := range rq.RequestedAttributes {
-		if group, ok := attrSelection[name]; ok {
+		if group, ok := attrGroups[name]; ok {
 			filter.Merge(group)
 		} else if supported.Contains(name) {
 			filter.Add(name)

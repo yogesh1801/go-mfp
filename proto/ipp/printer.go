@@ -14,17 +14,15 @@ import (
 	"net/http"
 
 	"github.com/OpenPrinting/go-mfp/log"
-	"github.com/OpenPrinting/go-mfp/util/generic"
 	"github.com/OpenPrinting/goipp"
 )
 
 // Printer implements the IPP printer.
 type Printer struct {
-	options       PrinterOptions                 // Printer options
-	server        *Server                        // Underlying IPP server
-	attrs         *PrinterAttributes             // Printer attributes
-	attrSelection map[string]generic.Set[string] // Attr groups
-	q             *queue                         // Job queue
+	options PrinterOptions     // Printer options
+	server  *Server            // Underlying IPP server
+	attrs   *PrinterAttributes // Printer attributes
+	q       *queue             // Job queue
 }
 
 // PrinterOptions extends [ServerOptions] with printer-specific
@@ -49,11 +47,10 @@ func NewPrinter(attrs *PrinterAttributes, options PrinterOptions) *Printer {
 	// Create the Printer structure
 	server := NewServer(options.ServerOptions)
 	printer := &Printer{
-		options:       options,
-		server:        server,
-		attrs:         attrs,
-		attrSelection: buildAttrSelection(),
-		q:             newQueue(),
+		options: options,
+		server:  server,
+		attrs:   attrs,
+		q:       newQueue(),
 	}
 
 	// Install request handlers
@@ -76,8 +73,8 @@ func (printer *Printer) handleGetPrinterAttributes(
 	ctx context.Context,
 	rq *GetPrinterAttributesRequest) (*goipp.Message, error) {
 
-	return getPrinterAttributesResponse(rq, printer.attrs,
-		printer.attrSelection, printer.options.UseRawPrinterAttributes), nil
+	return getAttributesResponse(rq, printer.attrs,
+		attrGroups, printer.options.UseRawPrinterAttributes), nil
 }
 
 // handleValidateJob handles Validate-Job request.
