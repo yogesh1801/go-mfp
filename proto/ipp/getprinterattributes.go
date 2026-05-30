@@ -62,8 +62,15 @@ type GetPrinterAttributesResponse struct {
 	// Names of unsupported attributes
 	UnsupportedAttributes []string
 
-	// Returned printer attributes
+	// Printer holds the typed printer attributes. Populated by Decode
+	// on the client side.
 	Printer *PrinterAttributes
+
+	// PrinterAttrsRaw holds pre-encoded printer attributes. Populated by
+	// Apply on the server side to carry the already-filtered, wire-form
+	// attrs without re-encoding. When non-nil, takes precedence in Encode
+	// over Printer.
+	PrinterAttrsRaw goipp.Attributes
 }
 
 // GetOp returns GetPrinterAttributesRequest IPP Operation code.
@@ -111,7 +118,10 @@ func (rsp *GetPrinterAttributesResponse) Encode() *goipp.Message {
 	enc := ippEncoder{}
 
 	var attrs goipp.Attributes
-	if rsp.Printer != nil {
+	switch {
+	case rsp.PrinterAttrsRaw != nil:
+		attrs = rsp.PrinterAttrsRaw
+	case rsp.Printer != nil:
 		attrs = enc.Encode(rsp.Printer)
 	}
 
@@ -167,16 +177,19 @@ func (rsp *GetPrinterAttributesResponse) EncodeRaw(
 	return msg
 }
 
-// attrGroups maps the standard attribute-group keywords
+// printerAttrGroups maps the standard attribute-group keywords
 // ("all", "printer-description", "job-template") to the set of
 // individual attribute names that belong to each group, for
 // Get-Printer-Attributes requests (used by both Print Services
 // (RFC8011) and Scan Services (PWG5100.17)).
-var attrGroups = buildAttrGroups()
+//
+// Other Get-XXX-Attributes operations (e.g. Get-Job-Attributes)
+// will define their own analogous group maps.
+var printerAttrGroups = buildPrinterAttrGroups()
 
-// buildAttrGroups constructs the printer attribute-group expansion
-// map from the IANA registration database.
-func buildAttrGroups() map[string]generic.Set[string] {
+// buildPrinterAttrGroups constructs the printer attribute-group
+// expansion map from the IANA registration database.
+func buildPrinterAttrGroups() map[string]generic.Set[string] {
 	all := generic.NewSet[string]()
 	for name := range iana.PrinterDescription {
 		all.Add(name)
@@ -208,69 +221,73 @@ func buildAttrGroups() map[string]generic.Set[string] {
 	}
 }
 
-// getAttributesResponse builds the goipp.Message response to a
-// Get-XXX-Attributes IPP request by filtering the supplied attributes
-// against the requested groups/names defined by attrGroups.
-func getAttributesResponse(
-	rq *GetPrinterAttributesRequest,
-	attrs *PrinterAttributes,
+// filterAttributes filters encoded against the requested groups/names
+// defined by attrGroups. Returns the filtered subset (preserving the
+// original order of encoded) and the list of requested names that were
+// neither a known group nor a supported attribute.
+func filterAttributes(
+	requestedAttrs []string,
+	encoded goipp.Attributes,
 	attrGroups map[string]generic.Set[string],
-	useRawAttrs bool,
-) *goipp.Message {
-
-	rsp := GetPrinterAttributesResponse{
-		ResponseHeader: rq.ResponseHeader(goipp.StatusOk),
-		Printer:        attrs,
-	}
-
-	// Obtain all attributes by encoding once to extract them.
-	encoded := rsp.Encode().Printer
-	if useRawAttrs {
-		encoded = attrs.RawAttrs().All()
-	}
+) (filtered goipp.Attributes, unsupported []string) {
 
 	supported := generic.NewSet[string]()
 	for _, attr := range encoded {
 		supported.Add(attr.Name)
 	}
 
-	// Build filter and collect unsupported names.
 	filter := generic.NewSet[string]()
-	unsupported := generic.NewSet[string]()
-	var unsupportedNames []string
+	seenUnsupported := generic.NewSet[string]()
 
-	for _, name := range rq.RequestedAttributes {
+	for _, name := range requestedAttrs {
 		if group, ok := attrGroups[name]; ok {
 			filter.Merge(group)
 		} else if supported.Contains(name) {
 			filter.Add(name)
-		} else if unsupported.TestAndAdd(name) {
-			unsupportedNames = append(unsupportedNames, name)
+		} else if seenUnsupported.TestAndAdd(name) {
+			unsupported = append(unsupported, name)
 		}
 	}
 
-	var returnedAttrs goipp.Attributes
 	for _, attr := range encoded {
 		if filter.Contains(attr.Name) {
-			returnedAttrs = append(returnedAttrs, attr)
+			filtered = append(filtered, attr)
 		}
 	}
 
-	// Rebuild the response with only the filtered attributes.
-	rsp.UnsupportedAttributes = unsupportedNames
-	rsp.Printer = nil
-	msg := rsp.Encode()
+	return
+}
 
-	msg.Code = goipp.Code(goipp.StatusOk)
-	if len(unsupportedNames) > 0 {
-		msg.Code = goipp.Code(goipp.StatusOkIgnoredOrSubstituted)
+// Apply applies the request's requested-attributes filter to attrs and
+// returns the resulting response. If useRawAttrs is true, the source
+// attrs are taken from attrs.RawAttrs().All() (lossless wire form);
+// otherwise they are produced by encoding attrs.
+func (rq *GetPrinterAttributesRequest) Apply(
+	attrs *PrinterAttributes,
+	useRawAttrs bool,
+) *GetPrinterAttributesResponse {
+
+	var encoded goipp.Attributes
+	if useRawAttrs {
+		encoded = attrs.RawAttrs().All()
+	} else {
+		enc := ippEncoder{}
+		encoded = enc.Encode(attrs)
 	}
 
-	msg.Printer = returnedAttrs
-	msg.Groups = nil
-	msg.Groups = msg.AttrGroups()
+	filtered, unsupported := filterAttributes(
+		rq.RequestedAttributes, encoded, printerAttrGroups)
 
-	return msg
+	status := goipp.StatusOk
+	if len(unsupported) > 0 {
+		status = goipp.StatusOkIgnoredOrSubstituted
+	}
+
+	return &GetPrinterAttributesResponse{
+		ResponseHeader:        rq.ResponseHeader(status),
+		UnsupportedAttributes: unsupported,
+		PrinterAttrsRaw:       filtered,
+	}
 }
 
 // Decode decodes GetPrinterAttributesResponse from goipp.Message.
