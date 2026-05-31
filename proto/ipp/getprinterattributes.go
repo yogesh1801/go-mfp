@@ -108,6 +108,26 @@ func (rq *GetPrinterAttributesRequest) Decode(
 func (rsp *GetPrinterAttributesResponse) Encode() *goipp.Message {
 	enc := ippEncoder{}
 
+	var attrs goipp.Attributes
+	if rsp.Printer != nil {
+		attrs = enc.Encode(rsp.Printer)
+	}
+
+	return rsp.EncodeRaw(attrs)
+}
+
+// EncodeRaw is like [GetPrinterAttributesResponse.Encode],
+// but it accepts printer attributes as parameter and ignores
+// the [GetPrinterAttributesResponse.Printer] field.
+//
+// This function is convenient when there is a need to constrict
+// Get-Printer-Attributes response from the raw set of printer
+// attributes.
+func (rsp *GetPrinterAttributesResponse) EncodeRaw(
+	rawPrinterAttrs goipp.Attributes) *goipp.Message {
+
+	enc := ippEncoder{}
+
 	groups := goipp.Groups{
 		{
 			Tag:   goipp.TagOperationGroup,
@@ -132,10 +152,10 @@ func (rsp *GetPrinterAttributesResponse) Encode() *goipp.Message {
 		})
 	}
 
-	if rsp.Printer != nil {
+	if rawPrinterAttrs != nil {
 		groups.Add(goipp.Group{
 			Tag:   goipp.TagPrinterGroup,
-			Attrs: enc.Encode(rsp.Printer),
+			Attrs: rawPrinterAttrs,
 		})
 	}
 
