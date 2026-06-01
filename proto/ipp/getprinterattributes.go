@@ -62,15 +62,8 @@ type GetPrinterAttributesResponse struct {
 	// Names of unsupported attributes
 	UnsupportedAttributes []string
 
-	// Printer holds the typed printer attributes. Populated by Decode
-	// on the client side.
+	// Returned printer attributes
 	Printer *PrinterAttributes
-
-	// PrinterAttrsRaw holds pre-encoded printer attributes. Populated by
-	// Apply on the server side to carry the already-filtered, wire-form
-	// attrs without re-encoding. When non-nil, takes precedence in Encode
-	// over Printer.
-	PrinterAttrsRaw goipp.Attributes
 }
 
 // GetOp returns GetPrinterAttributesRequest IPP Operation code.
@@ -118,10 +111,7 @@ func (rsp *GetPrinterAttributesResponse) Encode() *goipp.Message {
 	enc := ippEncoder{}
 
 	var attrs goipp.Attributes
-	switch {
-	case rsp.PrinterAttrsRaw != nil:
-		attrs = rsp.PrinterAttrsRaw
-	case rsp.Printer != nil:
+	if rsp.Printer != nil {
 		attrs = enc.Encode(rsp.Printer)
 	}
 
@@ -259,13 +249,13 @@ func filterAttributes(
 }
 
 // Apply applies the request's requested-attributes filter to attrs and
-// returns the resulting response. If useRawAttrs is true, the source
+// returns the encoded response message. If useRawAttrs is true, the source
 // attrs are taken from attrs.RawAttrs().All() (lossless wire form);
 // otherwise they are produced by encoding attrs.
 func (rq *GetPrinterAttributesRequest) Apply(
 	attrs *PrinterAttributes,
 	useRawAttrs bool,
-) *GetPrinterAttributesResponse {
+) *goipp.Message {
 
 	var encoded goipp.Attributes
 	if useRawAttrs {
@@ -283,11 +273,12 @@ func (rq *GetPrinterAttributesRequest) Apply(
 		status = goipp.StatusOkIgnoredOrSubstituted
 	}
 
-	return &GetPrinterAttributesResponse{
+	rsp := &GetPrinterAttributesResponse{
 		ResponseHeader:        rq.ResponseHeader(status),
 		UnsupportedAttributes: unsupported,
-		PrinterAttrsRaw:       filtered,
 	}
+
+	return rsp.EncodeRaw(filtered)
 }
 
 // Decode decodes GetPrinterAttributesResponse from goipp.Message.
