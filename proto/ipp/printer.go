@@ -73,8 +73,7 @@ func (printer *Printer) handleGetPrinterAttributes(
 	ctx context.Context,
 	rq *GetPrinterAttributesRequest) (*goipp.Message, error) {
 
-	rsp := rq.Apply(printer.attrs, printer.options.UseRawPrinterAttributes)
-	return rsp.Encode(), nil
+	return rq.Apply(printer.attrs, printer.options.UseRawPrinterAttributes), nil
 }
 
 // handleValidateJob handles Validate-Job request.
