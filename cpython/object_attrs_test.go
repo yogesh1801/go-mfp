@@ -10,6 +10,7 @@
 package cpython
 
 import (
+	"errors"
 	"fmt"
 	"testing"
 
@@ -39,6 +40,7 @@ dog = Dog("Archi", 4)
 	obj := py.Eval("dog")
 	assert.NoError(obj.Err())
 
+	// Attribute "name" must exist for now
 	found, err := obj.HasAttr("name")
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
@@ -47,6 +49,7 @@ dog = Dog("Archi", 4)
 		t.Errorf("Attribute %q expected but not found", "name")
 	}
 
+	// And "unknown" attribute must not exist
 	found, err = obj.HasAttr("unknown")
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
@@ -55,6 +58,7 @@ dog = Dog("Archi", 4)
 		t.Errorf("Attribute %q not expected but found", "unknown")
 	}
 
+	// Check the returned attribute value
 	attr := obj.Get("name")
 	if err := attr.Err(); err != nil {
 		t.Errorf("Unexpected error: %s", err)
@@ -66,6 +70,7 @@ dog = Dog("Archi", 4)
 		}
 	}
 
+	// Attempt to delete "name" must succeed
 	deleted, err := obj.DelAttr("name")
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
@@ -74,12 +79,22 @@ dog = Dog("Archi", 4)
 		t.Errorf("obj.DelAttr: attribute %s not deleted", "name")
 	}
 
+	// Now attribute must not exist
 	found, err = obj.HasAttr("name")
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
 	if found {
 		t.Errorf("Deleted attribute %q still present", "name")
+	}
+
+	// And attempt to delete "unknown" attribute must fail
+	deleted, err = obj.DelAttr("unknown")
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if deleted {
+		t.Errorf("obj.DelAttr: attribute %s is deleted", "unknown")
 	}
 }
 
@@ -97,21 +112,41 @@ class Exploding:
     def __getattribute__(self, name):
         raise RuntimeError("no attrs for you")
 
-exploding = Exploding()
+class Empty:
+    pass
 `
 	err = py.Exec(script, "")
 	if err != nil {
 		t.Fatalf("setup failed: %s", err)
 	}
 
-	obj := py.Eval("exploding")
+	// Access to non-existing attribute must return ErrNotFound{}
+	obj := py.Eval("Empty()")
 	if err := obj.Err(); err != nil {
 		t.Fatalf("Eval exploding: %s", err)
 	}
 
 	result := obj.Get("anything")
-	if result.Err() == nil {
-		t.Error("Get on Exploding object: expected error, got nil")
+	if !errors.Is(result.Err(), ErrNotFound{}) {
+		t.Errorf("Get on Empty object:\n"+
+			"expected: %s\n"+
+			"present:  %s\n",
+			result, ErrNotFound{})
+	}
+
+	// However, if object's __getattribute__ method throws an
+	// exception, the error will be different...
+	obj = py.Eval("Exploding()")
+	if err := obj.Err(); err != nil {
+		t.Fatalf("Eval exploding: %s", err)
+	}
+
+	result = obj.Get("anything")
+	if !errors.Is(result.Err(), RuntimeError) {
+		t.Errorf("Get on Exploding object:\n"+
+			"expected: %s\n"+
+			"present:  %s\n",
+			result, RuntimeError)
 	}
 }
 
@@ -452,4 +487,3 @@ func TestObjSliceGetItemErrorPath(t *testing.T) {
 		t.Errorf("Keys: expected 3 keys, got %d", len(keys))
 	}
 }
-

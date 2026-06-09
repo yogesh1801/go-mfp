@@ -99,7 +99,6 @@ static __typeof__(PyObject_Call)                *PyObject_Call_p;
 static __typeof__(PyObject_DelItem)             *PyObject_DelItem_p;
 static __typeof__(PyObject_GetAttrString)       *PyObject_GetAttrString_p;
 static __typeof__(PyObject_GetItem)             *PyObject_GetItem_p;
-static __typeof__(PyObject_HasAttrString)       *PyObject_HasAttrString_p;
 static __typeof__(*PyObject_Length)             *PyObject_Length_p;
 static __typeof__(PyObject_Repr)                *PyObject_Repr_p;
 static __typeof__(PyObject_SetAttrString)       *PyObject_SetAttrString_p;
@@ -311,7 +310,6 @@ static void py_load_all (const char *libpython3) {
     PyObject_DelItem_p = py_load("PyObject_DelItem");
     PyObject_GetAttrString_p = py_load("PyObject_GetAttrString");
     PyObject_GetItem_p = py_load("PyObject_GetItem");
-    PyObject_HasAttrString_p = py_load("PyObject_HasAttrString");
     PyObject_Length_p = py_load("PyObject_Length");
     PyObject_Repr_p = py_load("PyObject_Repr");
     PyObject_SetAttrString_p = py_load("PyObject_SetAttrString");
@@ -741,8 +739,26 @@ PyObject *py_obj_keys (PyObject *x) {
 // It returns true on success, false on error and puts answer into
 // its third parameter.
 bool py_obj_hasattr(PyObject *x, const char *name, bool *answer) {
-    *answer = PyObject_HasAttrString_p(x, name) != 0;
-    return true;
+    PyObject *attr = NULL;
+
+    // Try to retrieve an attribute
+    if (py_obj_getattr(x, name, &attr)) {
+        *answer = true;
+        Py_DecRef_p(attr);
+        return true;
+    }
+
+    // Don't treat PyExc_AttributeError as an error.
+    // Just indicate that attribute didn't exist
+    if (PyErr_Occurred_p() == PyExc_AttributeError_p) {
+        *answer = false;
+        PyErr_Clear_p();
+        return true;
+    }
+
+    // Otherwise, propagate the error
+    *answer = false;
+    return false;
 }
 
 // py_obj_delattr deletes the attribute with the specified name.
@@ -764,7 +780,7 @@ bool py_obj_getattr(PyObject *x, const char *name, PyObject **answer) {
 // internal use.
 //
 // It has the following differences from the normal py_obj_getattr:
-//   - the returned reference is borrowed, not string
+//   - the returned reference is borrowed, not strong
 //   - input object may be NULL
 //   - error is cleared if any occurs
 static PyObject *py_obj_getattr_int(PyObject *x, const char *name) {
