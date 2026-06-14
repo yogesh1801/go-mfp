@@ -77,7 +77,8 @@ func (op *JobCreateOperation) ToAbstract() abstract.ScannerRequest {
 	}
 
 	if inp.InputColorMode != nil {
-		req.ColorMode, req.ColorDepth = inputColorModeToAbstract(optional.Get(inp.InputColorMode))
+		req.ColorMode, req.ColorDepth = inputColorModeToAbstract(
+			optional.Get(inp.InputColorMode))
 	}
 
 	if inp.InputResolution != nil {
