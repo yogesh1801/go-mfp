@@ -11,6 +11,7 @@ package ipp
 import (
 	"time"
 
+	"github.com/OpenPrinting/go-mfp/abstract"
 	"github.com/OpenPrinting/go-mfp/util/optional"
 	"github.com/OpenPrinting/goipp"
 )
@@ -38,6 +39,12 @@ type JobCreateOperation struct {
 	DocumentFormatAccepted []string                       `ipp:"document-format-accepted"`
 	InputAttributes        optional.Val[InputAttributes]  `ipp:"input-attributes"`
 	OutputAttributes       optional.Val[OutputAttributes] `ipp:"output-attributes"`
+}
+
+// JobCreateOperation translates JobCreateOperation into
+// the abstract.ScannerRequest
+func (JobCreateOperation) ToAbstract() abstract.ScannerRequest {
+	return abstract.ScannerRequest{} // FIXME
 }
 
 // JobStatus contains Job status attributes
