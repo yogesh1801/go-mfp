@@ -51,7 +51,7 @@ func (model *Model) ippLoad() error {
 	}
 
 	if !obj.IsNone() {
-		pa, err := model.pyImportPrinterAppributes(obj)
+		pa, err := ippImportPrinterAppributes(obj)
 		if err != nil {
 			err = fmt.Errorf("ipp.attrs: %s", err)
 			return err

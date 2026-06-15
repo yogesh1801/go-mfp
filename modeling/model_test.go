@@ -35,14 +35,14 @@ func TestKyoceraESCLScannerCapabilities(t *testing.T) {
 	defer model.Close()
 
 	// Roll over Model.pyExportStruct/Model.pyImportStruct
-	obj := model.pyExportStruct(keywordMapESCL, scancaps)
+	obj := structExport(model.py, keywordMapESCL, scancaps)
 	if err := obj.Err(); err != nil {
 		t.Errorf("Model.pyExportStruct: %s", err)
 		return
 	}
 
 	var scancaps2 *escl.ScannerCapabilities
-	err = model.pyImportStruct(keywordMapESCL, &scancaps2, obj)
+	err = structImport(obj, keywordMapESCL, &scancaps2)
 	if err != nil {
 		t.Errorf("Model.pyImportStruct: %s", err)
 		return

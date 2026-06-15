@@ -11,7 +11,6 @@ package modeling
 import (
 	"fmt"
 	"reflect"
-	"strings"
 
 	"github.com/OpenPrinting/go-mfp/cpython"
 	"github.com/OpenPrinting/go-mfp/internal/assert"
@@ -20,18 +19,18 @@ import (
 	"github.com/OpenPrinting/go-mfp/util/uuid"
 )
 
-// pyExportStruct converts the protocol object, represented as Go
+// structExport converts the protocol object, represented as Go
 // structure or pointer to structure, into the Python dictionary.
 //
 // kwmap used to map Go struct field names into the
 // resulting dictionary key
 //
 // s MUST be struct or pointer to struct.
-func (model *Model) pyExportStruct(kwmap map[string]string,
-	s any) *cpython.Object {
+func structExport(py *cpython.Python,
+	kwmap map[string]string, s any) *cpython.Object {
 
 	// Create output cpython.Object (the empty dict).
-	dict := model.py.NewObject(map[any]any(nil))
+	dict := py.NewObject(map[any]any(nil))
 
 	// Normalize input parameter and obtain the reflect.Value for it.
 	v := reflect.ValueOf(s)
@@ -65,33 +64,33 @@ func (model *Model) pyExportStruct(kwmap map[string]string,
 		}
 
 		// Convert into the Python Object and add to the dict,
-		item := model.pyExportValue(kwmap, f)
+		item := structExportValue(py, kwmap, f)
 		err := dict.SetItem(keywordNormalize(kwmap, fld.Name), item)
 
 		if err != nil {
-			return model.py.NewError(err)
+			return py.NewError(err)
 		}
 	}
 
 	return dict
 }
 
-// pyExportSlice exports slice of values as the Python object.
-func (model *Model) pyExportSlice(kwmap map[string]string,
-	v reflect.Value) *cpython.Object {
+// structExportSlice exports slice of values as the Python object.
+func structExportSlice(py *cpython.Python,
+	kwmap map[string]string, v reflect.Value) *cpython.Object {
 
 	list := make([]*cpython.Object, v.Len())
 	for i := 0; i < v.Len(); i++ {
 		elem := v.Index(i)
-		list[i] = model.pyExportValue(kwmap, elem)
+		list[i] = structExportValue(py, kwmap, elem)
 	}
 
-	return model.py.NewObject(list)
+	return py.NewObject(list)
 }
 
-// pyExportValue exports a value as the Python object.
-func (model *Model) pyExportValue(kwmap map[string]string,
-	v reflect.Value) *cpython.Object {
+// structExportValue exports a value as the Python object.
+func structExportValue(py *cpython.Python,
+	kwmap map[string]string, v reflect.Value) *cpython.Object {
 
 	// Unwrap wrapped values where possible.
 	if wrapper, ok := v.Interface().(wsscan.Wrapper); ok {
@@ -102,38 +101,36 @@ func (model *Model) pyExportValue(kwmap map[string]string,
 	data := v.Interface()
 	switch v := data.(type) {
 	case escl.Version:
-		return model.py.NewObject(v.String())
+		return py.NewObject(v.String())
 	case uuid.UUID:
-		return model.clsUUID.Call(v.String())
+		return py.Get("UUID").Call(v.String())
 
 	// fmt.Stringer becomes Python string
 	case fmt.Stringer:
-		return model.py.NewObject(v.String())
+		return py.NewObject(v.String())
 	}
 
 	// Switch by reflect.Kind
 	switch v.Kind() {
 	case reflect.Struct:
-		return model.pyExportStruct(kwmap, data)
+		return structExport(py, kwmap, data)
 
 	case reflect.Slice:
-		return model.pyExportSlice(kwmap, v)
+		return structExportSlice(py, kwmap, v)
 	}
 
 	// Let Python handle default case
-	return model.py.NewObject(data)
+	return py.NewObject(data)
 }
 
-// pyImportStruct converts the Python object into the Go structure,
+// structImport converts the Python object into the Go structure,
 // that expected to be the protocol object.
 //
 // kwmap used to map Go struct field names into the
 // resulting dictionary key
 //
 // p MUST be pointer to struct or pointer to pointer to struct.
-func (model *Model) pyImportStruct(kwmap map[string]string,
-	p any, obj *cpython.Object) error {
-
+func structImport(obj *cpython.Object, kwmap map[string]string, p any) error {
 	// Validate argument
 	t := reflect.TypeOf(p)
 
@@ -161,7 +158,7 @@ func (model *Model) pyImportStruct(kwmap map[string]string,
 			v2 := reflect.New(t2).Elem()
 
 			// Import its value from Python
-			err := model.pyImportValue(kwmap, v2, obj)
+			err := structImportValue(obj, kwmap, v2)
 			if err != nil {
 				return err
 			}
@@ -169,7 +166,7 @@ func (model *Model) pyImportStruct(kwmap map[string]string,
 			// Wrap the value
 			wrapped := wrapper.Wrap(v2.Interface())
 			if wrapped == nil {
-				return pyImportErrorConv(obj, v)
+				return errPy2Go(obj, v)
 			}
 
 			// Replace v with the wrapped value
@@ -186,14 +183,14 @@ func (model *Model) pyImportStruct(kwmap map[string]string,
 				if item.NotFound() {
 					continue
 				}
-				return pyImportErrorWrap(fld.Name, err)
+				return errImportWrap(fld.Name, err)
 			}
 
 			// Decode the item, if found
 			fldval := v.FieldByIndex(fld.Index)
-			err := model.pyImportValue(kwmap, fldval, item)
+			err := structImportValue(item, kwmap, fldval)
 			if err != nil {
-				return pyImportErrorWrap(fld.Name, err)
+				return errImportWrap(fld.Name, err)
 			}
 		}
 	}
@@ -209,9 +206,9 @@ func (model *Model) pyImportStruct(kwmap map[string]string,
 	return nil
 }
 
-// pyImportSlice imports slice of values from the Python object.
-func (model *Model) pyImportSlice(kwmap map[string]string,
-	v reflect.Value, obj *cpython.Object) error {
+// structImportSlice imports slice of values from the Python object.
+func structImportSlice(obj *cpython.Object,
+	kwmap map[string]string, v reflect.Value) error {
 
 	// Obtain Python object items
 	slice, err := obj.Slice()
@@ -224,33 +221,33 @@ func (model *Model) pyImportSlice(kwmap map[string]string,
 
 	// Decode item by item
 	for i, item := range slice {
-		err = model.pyImportValue(kwmap, v.Index(i), item)
+		err = structImportValue(item, kwmap, v.Index(i))
 		if err != nil {
-			return pyImportErrorWrap(fmt.Sprintf("[%d]", i), err)
+			return errImportWrap(fmt.Sprintf("[%d]", i), err)
 		}
 	}
 
 	return nil
 }
 
-// pyImportValue imports a value from the Python object.
+// structImportValue imports a value from the Python object.
 //
-// It calls model.pyImportValueInt, then post-processes the
+// It calls structImportValueInt, then post-processes the
 // returned error, if any.
-func (model *Model) pyImportValue(kwmap map[string]string,
-	v reflect.Value, obj *cpython.Object) error {
+func structImportValue(obj *cpython.Object,
+	kwmap map[string]string, v reflect.Value) error {
 
-	err := model.pyImportValueInt(kwmap, v, obj)
+	err := structImportValueInt(obj, kwmap, v)
 	if _, ok := err.(cpython.ErrTypeConversion); ok {
-		err = pyImportErrorConv(obj, v)
+		err = errPy2Go(obj, v)
 	}
 
 	return err
 }
 
-// pyImportValueInt is the internal function behind the pyImportValue.
-func (model *Model) pyImportValueInt(kwmap map[string]string,
-	v reflect.Value, obj *cpython.Object) error {
+// structImportValueInt is the internal function behind the structImportValue.
+func structImportValueInt(obj *cpython.Object,
+	kwmap map[string]string, v reflect.Value) error {
 
 	// If we are decoding pointer to value, create a new
 	// value instance and shift to it.
@@ -262,102 +259,39 @@ func (model *Model) pyImportValueInt(kwmap map[string]string,
 
 	// Handle known types
 	switch v.Interface().(type) {
+
 	// escl types
 	case escl.ADFOption:
-		opt, err := esclDecodeADFOption(obj)
-		if err == nil {
-			v.Set(reflect.ValueOf(opt))
-		}
-		return err
-
+		return structDecodeEnum(obj, v, escl.DecodeADFOption)
 	case escl.ADFState:
-		st, err := esclDecodeADFState(obj)
-		if err == nil {
-			v.Set(reflect.ValueOf(st))
-		}
-		return err
-
+		return structDecodeEnum(obj, v, escl.DecodeADFState)
 	case escl.BinaryRendering:
-		rnd, err := esclDecodeBinaryRendering(obj)
-		if err == nil {
-			v.Set(reflect.ValueOf(rnd))
-		}
-		return err
-
+		return structDecodeEnum(obj, v, escl.DecodeBinaryRendering)
 	case escl.CCDChannel:
-		ccd, err := esclDecodeCCDChannel(obj)
-		if err == nil {
-			v.Set(reflect.ValueOf(ccd))
-		}
-		return err
-
+		return structDecodeEnum(obj, v, escl.DecodeCCDChannel)
 	case escl.ColorMode:
-		cm, err := esclDecodeColorMode(obj)
-		if err == nil {
-			v.Set(reflect.ValueOf(cm))
-		}
-		return err
-
+		return structDecodeEnum(obj, v, escl.DecodeColorMode)
 	case escl.ColorSpace:
-		sps, err := esclDecodeColorSpace(obj)
-		if err == nil {
-			v.Set(reflect.ValueOf(sps))
-		}
-		return err
-
+		return structDecodeEnum(obj, v, escl.DecodeColorSpace)
 	case escl.ContentType:
-		ct, err := esclDecodeContentType(obj)
-		if err == nil {
-			v.Set(reflect.ValueOf(ct))
-		}
-		return err
-
+		return structDecodeEnum(obj, v, escl.DecodeContentType)
 	case escl.FeedDirection:
-		feed, err := esclDecodeFeedDirection(obj)
-		if err == nil {
-			v.Set(reflect.ValueOf(feed))
-		}
-		return err
-
+		return structDecodeEnum(obj, v, escl.DecodeFeedDirection)
 	case escl.ImagePosition:
-		pos, err := esclDecodeImagePosition(obj)
-		if err == nil {
-			v.Set(reflect.ValueOf(pos))
-		}
-		return err
-
+		return structDecodeEnum(obj, v, escl.DecodeImagePosition)
 	case escl.InputSource:
-		src, err := esclDecodeInputSource(obj)
-		if err == nil {
-			v.Set(reflect.ValueOf(src))
-		}
-		return err
-
+		return structDecodeEnum(obj, v, escl.DecodeInputSource)
 	case escl.Intent:
-		intent, err := esclDecodeIntent(obj)
-		if err == nil {
-			v.Set(reflect.ValueOf(intent))
-		}
-		return err
-
+		return structDecodeEnum(obj, v, escl.DecodeIntent)
 	case escl.JobState:
-		st, err := esclDecodeJobState(obj)
-		if err == nil {
-			v.Set(reflect.ValueOf(st))
-		}
-		return err
+		return structDecodeEnum(obj, v, escl.DecodeJobState)
+	case escl.Units:
+		return structDecodeEnum(obj, v, escl.DecodeUnits)
 
 	case escl.JobStateReason:
 		rsn, err := esclDecodeJobStateReason(obj)
 		if err == nil {
 			v.Set(reflect.ValueOf(rsn))
-		}
-		return err
-
-	case escl.Units:
-		un, err := esclDecodeUnits(obj)
-		if err == nil {
-			v.Set(reflect.ValueOf(un))
 		}
 		return err
 
@@ -370,29 +304,29 @@ func (model *Model) pyImportValueInt(kwmap map[string]string,
 
 	// wsscan types
 	case wsscan.ColorEntry:
-		return pyDecode(v, obj, wsscan.DecodeColorEntry)
+		return structDecodeEnum(obj, v, wsscan.DecodeColorEntry)
 	case wsscan.ContentTypeValue:
-		return pyDecode(v, obj, wsscan.DecodeContentTypeValue)
+		return structDecodeEnum(obj, v, wsscan.DecodeContentTypeValue)
 	case wsscan.FilmScanMode:
-		return pyDecode(v, obj, wsscan.DecodeFilmScanMode)
+		return structDecodeEnum(obj, v, wsscan.DecodeFilmScanMode)
 	case wsscan.InputSourceValue:
-		return pyDecode(v, obj, wsscan.DecodeInputSourceValue)
+		return structDecodeEnum(obj, v, wsscan.DecodeInputSourceValue)
 	case wsscan.JobElemName:
-		return pyDecode(v, obj, wsscan.DecodeJobElemName)
+		return structDecodeEnum(obj, v, wsscan.DecodeJobElemName)
 	case wsscan.JobStateReason:
-		return pyDecode(v, obj, wsscan.DecodeJobStateReason)
+		return structDecodeEnum(obj, v, wsscan.DecodeJobStateReason)
 	case wsscan.JobState:
-		return pyDecode(v, obj, wsscan.DecodeJobState)
+		return structDecodeEnum(obj, v, wsscan.DecodeJobState)
 	case wsscan.RotationValue:
-		return pyDecode(v, obj, wsscan.DecodeRotationValue)
+		return structDecodeEnum(obj, v, wsscan.DecodeRotationValue)
 	case wsscan.ScannerElemName:
-		return pyDecode(v, obj, wsscan.DecodeScannerElemName)
+		return structDecodeEnum(obj, v, wsscan.DecodeScannerElemName)
 	case wsscan.ScannerStateReason:
-		return pyDecode(v, obj, wsscan.DecodeScannerStateReason)
+		return structDecodeEnum(obj, v, wsscan.DecodeScannerStateReason)
 	case wsscan.ScannerState:
-		return pyDecode(v, obj, wsscan.DecodeScannerState)
+		return structDecodeEnum(obj, v, wsscan.DecodeScannerState)
 	case wsscan.Severity:
-		return pyDecode(v, obj, wsscan.DecodeSeverity)
+		return structDecodeEnum(obj, v, wsscan.DecodeSeverity)
 
 	// other types
 	case uuid.UUID:
@@ -412,10 +346,10 @@ func (model *Model) pyImportValueInt(kwmap map[string]string,
 	// Switch by reflect.Kind
 	switch v.Kind() {
 	case reflect.Struct:
-		return model.pyImportStruct(kwmap, v.Addr().Interface(), obj)
+		return structImport(obj, kwmap, v.Addr().Interface())
 
 	case reflect.Slice:
-		return model.pyImportSlice(kwmap, v, obj)
+		return structImportSlice(obj, kwmap, v)
 
 	case reflect.Int:
 		i, err := obj.Int()
@@ -435,13 +369,13 @@ func (model *Model) pyImportValueInt(kwmap map[string]string,
 	return nil
 }
 
-// pyDecode decodes Python str object into the Go value, using
-// the supplied parse function.
+// structDecodeEnum enum-alike value from the Python str object,
+// using the supplied parse function.
 //
 // The parse function assumed to return the zero value of the
 // target type if string cannot be decoded.
-func pyDecode[T comparable](v reflect.Value, obj *cpython.Object,
-	parse func(string) T) error {
+func structDecodeEnum[T comparable](obj *cpython.Object,
+	v reflect.Value, parse func(string) T) error {
 
 	var zero T
 
@@ -458,57 +392,4 @@ func pyDecode[T comparable](v reflect.Value, obj *cpython.Object,
 
 	v.Set(reflect.ValueOf(val))
 	return nil
-}
-
-// pyImportError represents the error that happens during
-// importing the Python object into Go structure
-type pyImportError struct {
-	path []string // Path over attribute names
-	err  error    // Underlying error
-}
-
-// pyImportErrorConv returns a conversion error for conversion
-// from the Python object to the Go value
-func pyImportErrorConv(from *cpython.Object, to reflect.Value) error {
-	return fmt.Errorf("can't convert %s to %s",
-		from.TypeName(),
-		to.Type().String(),
-	)
-}
-
-// pyImportErrorWrap wraps error into the pyImportError.
-// name is the name of the attribute the error is related to.
-func pyImportErrorWrap(name string, err error) error {
-	if e, ok := err.(pyImportError); ok {
-		return pyImportError{
-			path: append([]string{name}, e.path...),
-			err:  e.err,
-		}
-	}
-
-	return pyImportError{
-		path: []string{name},
-		err:  err,
-	}
-}
-
-// Error returns the error message
-func (e pyImportError) Error() string {
-	buf := strings.Builder{}
-	for _, p := range e.path {
-		if buf.Len() > 0 && !strings.HasPrefix(p, "[") {
-			buf.WriteByte('.')
-		}
-		buf.WriteString(p)
-	}
-
-	buf.Write([]byte(": "))
-	buf.WriteString(e.err.Error())
-
-	return buf.String()
-}
-
-// Unwrap "unwraps" the error.
-func (e pyImportError) Unwrap() error {
-	return e.err
 }
