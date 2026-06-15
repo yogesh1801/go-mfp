@@ -210,6 +210,7 @@ func (gate pyGate) str(pyobj pyObject) (s string, err error) {
 		s, err = gate.decodeUnicode(str)
 	}
 
+	err = gate.lastError()
 	return
 }
 
@@ -221,6 +222,7 @@ func (gate pyGate) repr(pyobj pyObject) (s string, err error) {
 		s, err = gate.decodeUnicode(repr)
 	}
 
+	err = gate.lastError()
 	return
 }
 
