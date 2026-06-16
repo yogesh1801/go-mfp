@@ -195,8 +195,10 @@ func TestObjectItems(t *testing.T) {
 		}
 
 		item := obj.GetItem(i)
-		if err := item.Err(); err != (ErrNotFound{}) {
-			t.Errorf("Object.GetItem(%v):\nexpected: (%s)\npresent:  (%s)\n",
+		if err := item.Err(); !errors.Is(err, ErrNotFound{}) {
+			t.Errorf("Object.GetItem(%v):\n"+
+				"expected: (%s)\n"+
+				"present:  (%s)\n",
 				i, ErrNotFound{}, err)
 		}
 	}

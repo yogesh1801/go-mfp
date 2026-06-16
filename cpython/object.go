@@ -135,7 +135,7 @@ func (obj *Object) Err() error {
 // NotFound returns true, if [Object] is the error object
 // and error type is [ErrNotFound].
 func (obj *Object) NotFound() bool {
-	return obj.err == ErrNotFound{}
+	return errors.Is(obj.err, ErrNotFound{})
 }
 
 // Len returns Object length, in items. It works with container
@@ -249,7 +249,8 @@ func (obj *Object) GetItem(key any) *Object {
 	if found {
 		pyitem, err = gate.getitem(pyobj, pykey)
 	} else if err == nil {
-		err = ErrNotFound{}
+		name, _ := gate.str(pykey)
+		err = ErrNotFound{name}
 	}
 
 	if err != nil {
@@ -353,7 +354,7 @@ func (obj *Object) Get(name string) *Object {
 	pyattr, err := gate.getattr(pyobj, name)
 	if err != nil {
 		if errors.Is(err, AttributeError) {
-			err = ErrNotFound{}
+			err = ErrNotFound{name}
 		}
 
 		return newErrorObject(obj.py, err)

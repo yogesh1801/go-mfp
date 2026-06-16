@@ -52,7 +52,9 @@ func TestObjectMiscMethods(t *testing.T) {
 	// String() on an error object returns the error message.
 	errObj := newErrorObject(py, ErrNotFound{})
 	if s := errObj.String(); s != (ErrNotFound{}).Error() {
-		t.Errorf("Object.String (error):\nexpected: %s\npresent:  %s",
+		t.Errorf("Object.String (error):\n"+
+			"expected: %s\n"+
+			"present:  %s",
 			ErrNotFound{}.Error(), s)
 	}
 
