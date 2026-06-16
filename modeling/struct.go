@@ -11,6 +11,7 @@ package modeling
 import (
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/OpenPrinting/go-mfp/cpython"
 	"github.com/OpenPrinting/go-mfp/internal/assert"
@@ -33,8 +34,15 @@ func structExport(py *cpython.Python,
 		return legacyStructExport(py, kwmap, s)
 	}
 
-	// Create output cpython.Object (the empty dict).
-	dict := py.NewObject(map[any]any(nil))
+	return structExportInt(py, kwmap, s)
+}
+
+// structExportInt is the internal function behind the structExport.
+func structExportInt(py *cpython.Python,
+	kwmap map[string]string, s any) *cpython.Object {
+
+	// kw maintains arguments for the output object constructor
+	kw := make(map[string]any)
 
 	// Normalize input parameter and obtain the reflect.Value for it.
 	v := reflect.ValueOf(s)
@@ -69,14 +77,23 @@ func structExport(py *cpython.Python,
 
 		// Convert into the Python Object and add to the dict,
 		item := structExportValue(py, kwmap, f)
-		err := dict.SetItem(keywordNormalize(kwmap, fld.Name), item)
-
-		if err != nil {
-			return py.NewError(err)
-		}
+		kw[keywordNormalize(kwmap, fld.Name)] = item
 	}
 
-	return dict
+	// Compute Python-side type name
+	name := v.Type().String()
+	if i := strings.IndexByte(name, '.'); i >= 0 {
+		prefix := name[:i]
+		if prefix == "wsscan" {
+			prefix = "wsd"
+		}
+
+		name = prefix + "." + keywordNormalize(kwmap, name[i+1:])
+	} else {
+		name = keywordNormalize(kwmap, name)
+	}
+
+	return py.Eval(name).CallKW(kw)
 }
 
 // structExportSlice exports slice of values as the Python object.
@@ -117,7 +134,7 @@ func structExportValue(py *cpython.Python,
 	// Switch by reflect.Kind
 	switch v.Kind() {
 	case reflect.Struct:
-		return structExport(py, kwmap, data)
+		return structExportInt(py, kwmap, data)
 
 	case reflect.Slice:
 		return structExportSlice(py, kwmap, v)
@@ -161,36 +178,31 @@ func structImportInt(obj *cpython.Object, kwmap map[string]string, p any) error 
 	v := reflect.New(t).Elem()
 
 	// Import the object
-	if !obj.IsDict() {
-		// If object is not dictionary, try to interpret it
-		// as wsscan.Wrapper without options
-		if wrapper, ok := v.Interface().(wsscan.Wrapper); ok {
-			// Create the new value of the Wrapper's underlying
-			// type
-			t2 := reflect.TypeOf(wrapper.Unwrap())
-			v2 := reflect.New(t2).Elem()
+	if wrapper, ok := v.Interface().(wsscan.Wrapper); ok {
+		// Handle wsscan.Wrapper
+		t2 := reflect.TypeOf(wrapper.Unwrap())
+		v2 := reflect.New(t2).Elem()
 
-			// Import its value from Python
-			err := structImportValue(obj, kwmap, v2)
-			if err != nil {
-				return err
-			}
-
-			// Wrap the value
-			wrapped := wrapper.Wrap(v2.Interface())
-			if wrapped == nil {
-				return errPy2Go(obj, v)
-			}
-
-			// Replace v with the wrapped value
-			v = reflect.ValueOf(wrapped)
+		// Import its value from Python
+		err := structImportValue(obj, kwmap, v2)
+		if err != nil {
+			return err
 		}
+
+		// Wrap the value
+		wrapped := wrapper.Wrap(v2.Interface())
+		if wrapped == nil {
+			return errPy2Go(obj, v)
+		}
+
+		// Replace v with the wrapped value
+		v = reflect.ValueOf(wrapped)
 	} else {
 		// Import structure, field by field
 		for _, fld := range reflect.VisibleFields(t) {
 			// Lookup python dictionary
 			kw := keywordNormalize(kwmap, fld.Name)
-			item := obj.GetItem(kw)
+			item := obj.Get(kw)
 
 			if err := item.Err(); err != nil {
 				if item.NotFound() {

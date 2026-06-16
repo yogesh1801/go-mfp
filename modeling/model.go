@@ -34,6 +34,7 @@ type Model struct {
 	wsdScanCaps     *wsscan.GetScannerElementsResponse
 
 	// Modules
+	modHelper *cpython.Object // helper.py
 	modQuery  *cpython.Object // query.py
 	modIPP    *cpython.Object // ipp.py
 	modEscl   *cpython.Object // escl.py
@@ -77,6 +78,11 @@ func NewModel() (*Model, error) {
 	}
 
 	// Load modules
+	model.modHelper = py.Load(embedPyHelper, "helper", "helper.py")
+	if err := model.modHelper.Err(); err != nil {
+		return nil, err
+	}
+
 	model.modQuery = py.Load(embedPyQuery, "query", "query.py")
 	if err := model.modQuery.Err(); err != nil {
 		return nil, err
