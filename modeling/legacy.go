@@ -4,34 +4,33 @@
 // Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
 // See LICENSE for license terms and conditions
 //
-// Conversion between Go and Python protocol structures
+// Legacy Python->Go converters
 
 package modeling
 
 import (
 	"fmt"
 	"reflect"
+	"time"
 
 	"github.com/OpenPrinting/go-mfp/cpython"
 	"github.com/OpenPrinting/go-mfp/internal/assert"
 	"github.com/OpenPrinting/go-mfp/proto/escl"
+	"github.com/OpenPrinting/go-mfp/proto/ipp"
 	"github.com/OpenPrinting/go-mfp/proto/wsscan"
 	"github.com/OpenPrinting/go-mfp/util/uuid"
+	"github.com/OpenPrinting/goipp"
 )
 
-// structExport converts the protocol object, represented as Go
+// legacyStructExport converts the protocol object, represented as Go
 // structure or pointer to structure, into the Python dictionary.
 //
 // kwmap used to map Go struct field names into the
 // resulting dictionary key
 //
 // s MUST be struct or pointer to struct.
-func structExport(py *cpython.Python,
+func legacyStructExport(py *cpython.Python,
 	kwmap map[string]string, s any) *cpython.Object {
-
-	if legacy := py.Get("__use_legacy_format"); legacy.Err() == nil {
-		return legacyStructExport(py, kwmap, s)
-	}
 
 	// Create output cpython.Object (the empty dict).
 	dict := py.NewObject(map[any]any(nil))
@@ -68,7 +67,7 @@ func structExport(py *cpython.Python,
 		}
 
 		// Convert into the Python Object and add to the dict,
-		item := structExportValue(py, kwmap, f)
+		item := legacyStructExportValue(py, kwmap, f)
 		err := dict.SetItem(keywordNormalize(kwmap, fld.Name), item)
 
 		if err != nil {
@@ -79,21 +78,21 @@ func structExport(py *cpython.Python,
 	return dict
 }
 
-// structExportSlice exports slice of values as the Python object.
-func structExportSlice(py *cpython.Python,
+// legacyStructExportSlice exports slice of values as the Python object.
+func legacyStructExportSlice(py *cpython.Python,
 	kwmap map[string]string, v reflect.Value) *cpython.Object {
 
 	list := make([]*cpython.Object, v.Len())
 	for i := 0; i < v.Len(); i++ {
 		elem := v.Index(i)
-		list[i] = structExportValue(py, kwmap, elem)
+		list[i] = legacyStructExportValue(py, kwmap, elem)
 	}
 
 	return py.NewObject(list)
 }
 
-// structExportValue exports a value as the Python object.
-func structExportValue(py *cpython.Python,
+// legacyStructExportValue exports a value as the Python object.
+func legacyStructExportValue(py *cpython.Python,
 	kwmap map[string]string, v reflect.Value) *cpython.Object {
 
 	// Unwrap wrapped values where possible.
@@ -117,33 +116,26 @@ func structExportValue(py *cpython.Python,
 	// Switch by reflect.Kind
 	switch v.Kind() {
 	case reflect.Struct:
-		return structExport(py, kwmap, data)
+		return legacyStructExport(py, kwmap, data)
 
 	case reflect.Slice:
-		return structExportSlice(py, kwmap, v)
+		return legacyStructExportSlice(py, kwmap, v)
 	}
 
 	// Let Python handle default case
 	return py.NewObject(data)
 }
 
-// structImport converts the Python object into the Go structure,
+// legacyStructImport converts the Python object into the Go structure,
 // that expected to be the protocol object.
 //
 // kwmap used to map Go struct field names into the
 // resulting dictionary key
 //
 // p MUST be pointer to struct or pointer to pointer to struct.
-func structImport(obj *cpython.Object, kwmap map[string]string, p any) error {
-	if obj.IsDict() {
-		return legacyStructImport(obj, kwmap, p)
-	}
+func legacyStructImport(obj *cpython.Object,
+	kwmap map[string]string, p any) error {
 
-	return structImportInt(obj, kwmap, p)
-}
-
-// structImportInt is the internal function behind structImport.
-func structImportInt(obj *cpython.Object, kwmap map[string]string, p any) error {
 	// Validate argument
 	t := reflect.TypeOf(p)
 
@@ -171,7 +163,7 @@ func structImportInt(obj *cpython.Object, kwmap map[string]string, p any) error 
 			v2 := reflect.New(t2).Elem()
 
 			// Import its value from Python
-			err := structImportValue(obj, kwmap, v2)
+			err := legacyStructImportValue(obj, kwmap, v2)
 			if err != nil {
 				return err
 			}
@@ -201,7 +193,7 @@ func structImportInt(obj *cpython.Object, kwmap map[string]string, p any) error 
 
 			// Decode the item, if found
 			fldval := v.FieldByIndex(fld.Index)
-			err := structImportValue(item, kwmap, fldval)
+			err := legacyStructImportValue(item, kwmap, fldval)
 			if err != nil {
 				return errImportWrap(fld.Name, err)
 			}
@@ -219,8 +211,8 @@ func structImportInt(obj *cpython.Object, kwmap map[string]string, p any) error 
 	return nil
 }
 
-// structImportSlice imports slice of values from the Python object.
-func structImportSlice(obj *cpython.Object,
+// legacyStructImportSlice imports slice of values from the Python object.
+func legacyStructImportSlice(obj *cpython.Object,
 	kwmap map[string]string, v reflect.Value) error {
 
 	// Obtain Python object items
@@ -234,7 +226,7 @@ func structImportSlice(obj *cpython.Object,
 
 	// Decode item by item
 	for i, item := range slice {
-		err = structImportValue(item, kwmap, v.Index(i))
+		err = legacyStructImportValue(item, kwmap, v.Index(i))
 		if err != nil {
 			return errImportWrap(fmt.Sprintf("[%d]", i), err)
 		}
@@ -243,14 +235,14 @@ func structImportSlice(obj *cpython.Object,
 	return nil
 }
 
-// structImportValue imports a value from the Python object.
+// legacyStructImportValue imports a value from the Python object.
 //
-// It calls structImportValueInt, then post-processes the
+// It calls legacyStructImportValueInt, then post-processes the
 // returned error, if any.
-func structImportValue(obj *cpython.Object,
+func legacyStructImportValue(obj *cpython.Object,
 	kwmap map[string]string, v reflect.Value) error {
 
-	err := structImportValueInt(obj, kwmap, v)
+	err := legacyStructImportValueInt(obj, kwmap, v)
 	if _, ok := err.(cpython.ErrTypeConversion); ok {
 		err = errPy2Go(obj, v)
 	}
@@ -258,8 +250,8 @@ func structImportValue(obj *cpython.Object,
 	return err
 }
 
-// structImportValueInt is the internal function behind the structImportValue.
-func structImportValueInt(obj *cpython.Object,
+// legacyStructImportValueInt is the internal function behind the legacyStructImportValue.
+func legacyStructImportValueInt(obj *cpython.Object,
 	kwmap map[string]string, v reflect.Value) error {
 
 	// If we are decoding pointer to value, create a new
@@ -359,10 +351,10 @@ func structImportValueInt(obj *cpython.Object,
 	// Switch by reflect.Kind
 	switch v.Kind() {
 	case reflect.Struct:
-		return structImportInt(obj, kwmap, v.Addr().Interface())
+		return legacyStructImport(obj, kwmap, v.Addr().Interface())
 
 	case reflect.Slice:
-		return structImportSlice(obj, kwmap, v)
+		return legacyStructImportSlice(obj, kwmap, v)
 
 	case reflect.Int:
 		i, err := obj.Int()
@@ -382,27 +374,254 @@ func structImportValueInt(obj *cpython.Object,
 	return nil
 }
 
-// structDecodeEnum enum-alike value from the Python str object,
-// using the supplied parse function.
-//
-// The parse function assumed to return the zero value of the
-// target type if string cannot be decoded.
-func structDecodeEnum[T comparable](obj *cpython.Object,
-	v reflect.Value, parse func(string) T) error {
+// legacyIPPExport converts the [ipp.Object] into the [cpython.Object].
+func legacyIPPExport(py *cpython.Python, s ipp.Object) *cpython.Object {
+	return legacyIPPExportAttrs(py, s.RawAttrs().All())
+}
 
-	var zero T
+// legacyIPPExportAttrs exports IPP attributes into the [cpython.Object].
+func legacyIPPExportAttrs(py *cpython.Python,
+	attrs goipp.Attributes) *cpython.Object {
 
-	s, err := obj.Str()
+	// Create output cpython.Object (the empty dict).
+	dict := py.NewObject(map[any]any(nil))
+
+	// Roll over all IPP attributes
+	for _, attr := range attrs {
+		vals := legacyIPPExportValues(py, attr)
+		err := dict.SetItem(attr.Name, vals)
+		if err != nil {
+			return py.NewError(err)
+		}
+	}
+
+	return dict
+}
+
+// legacyIPPExportValues exports IPP attribute values into the [cpython.Object].
+func legacyIPPExportValues(py *cpython.Python,
+	attr goipp.Attribute) *cpython.Object {
+
+	objs := make([]*cpython.Object, 0, len(attr.Values))
+	for _, v := range attr.Values {
+		obj := legacyIPPExportValue(py, attr.Name, v.T, v.V)
+		objs = append(objs, obj)
+	}
+
+	if len(objs) == 1 {
+		return objs[0]
+	}
+
+	return py.NewObject(objs)
+}
+
+// legacyIPPExportValue exports IPP value as [cpython.Object].
+func legacyIPPExportValue(py *cpython.Python,
+	attrname string, tag goipp.Tag, val goipp.Value) *cpython.Object {
+
+	// Collections handled the special way
+	if v, ok := val.(goipp.Collection); ok {
+		return legacyIPPExportAttrs(py, goipp.Attributes(v))
+	}
+
+	// Some Enums are handled the special way
+	if tag == goipp.TagEnum {
+		switch attrname {
+		case "operations-supported":
+			op := goipp.Op(val.(goipp.Integer))
+			obj := py.Eval(fmt.Sprintf("ipp.OP(0x%.2x)", int(op)))
+			if obj.Err() == nil {
+				return obj
+			}
+
+			// If we got an error here, just continue and
+			// handle the value as the regular Enum
+		}
+	}
+
+	// We represent IPP tag+value at the Python side by wrapping
+	// value into the tag-specific Python type:
+	//   ipp.ENUM(5)
+	//   ipp.KEYWORD('auto')
+	//
+	// Here we obtain Python type name for the IPP tag
+	pytypename := ippTagName[tag]
+	if pytypename == "" {
+		err := fmt.Errorf("invalid IPP tag %d", int(tag))
+		return py.NewError(err)
+	}
+
+	pytypename = "ipp." + pytypename
+
+	// Obtain constructor
+	pytype := py.Eval(pytypename)
+
+	// Encode the value
+	switch v := val.(type) {
+	case goipp.Void:
+		return pytype.Call()
+	case goipp.Integer:
+		return pytype.Call(v)
+	case goipp.Boolean:
+		return pytype.Call(bool(v))
+	case goipp.String:
+		return pytype.Call(v)
+	case goipp.Time:
+		return pytype.Call(v.Format(time.RFC3339))
+	case goipp.Resolution:
+		return pytype.Call(v.Xres, v.Yres, v.Units.String())
+	case goipp.Range:
+		return pytype.Call(v.Lower, v.Upper)
+	case goipp.TextWithLang:
+		return pytype.Call(v.Text, v.Lang)
+	case goipp.Binary:
+		return pytype.Call(string(v))
+	}
+
+	return py.None()
+}
+
+// legacyIPPImportAttrs imports IPP attributes from the [cpython.Object].
+func legacyIPPImportAttrs(obj *cpython.Object) (
+	attrs goipp.Attributes, err error) {
+
+	// Retrieve dictionary keys
+	var keyobjs []*cpython.Object
+	keyobjs, err = obj.Keys()
 	if err != nil {
-		return err
+		return
 	}
 
-	val := parse(s)
-	if val == zero {
-		err := fmt.Errorf("%s: invalid %s", s, reflect.TypeOf(zero))
-		return err
+	for i := range keyobjs {
+		var key string
+		var valobj *cpython.Object
+
+		// Obtain key name and value
+		key, err = keyobjs[i].Str()
+		if err == nil {
+			valobj = obj.GetItem(keyobjs[i])
+			err = valobj.Err()
+		}
+
+		if err != nil {
+			return
+		}
+
+		// Decode the value
+		var vals goipp.Values
+		vals, err = legacyIPPImportValues(valobj)
+		if err != nil {
+			return nil, errImportWrap(key, err)
+		}
+
+		// Append the attribute
+		attrs.Add(goipp.Attribute{Name: key, Values: vals})
 	}
 
-	v.Set(reflect.ValueOf(val))
-	return nil
+	return
+}
+
+// legacyIPPImportValues imports IPP values from the [cpython.Object].
+func legacyIPPImportValues(obj *cpython.Object) (
+	goipp.Values, error) {
+
+	// If obj is the list object, expand it
+	var objs []*cpython.Object
+
+	if obj.IsSeq() {
+		sz, err := obj.Len()
+		if err != nil {
+			return nil, err
+		}
+
+		objs = make([]*cpython.Object, sz)
+		for i := 0; i < sz; i++ {
+			objs[i] = obj.GetItem(i)
+		}
+	} else {
+		objs = []*cpython.Object{obj}
+	}
+
+	// Now decode each value
+	vals := make(goipp.Values, len(objs))
+	for i := 0; i < len(objs); i++ {
+		tag, val, err := legacyIPPImportValue(objs[i])
+		if err != nil {
+			return nil, err
+		}
+
+		vals[i].T = tag
+		vals[i].V = val
+	}
+
+	return vals, nil
+}
+
+// legacyIPPImportValue imports a single IPP value from the Python object
+func legacyIPPImportValue(obj *cpython.Object) (
+	tag goipp.Tag, val goipp.Value, err error) {
+
+	if obj.TypeModuleName() == "ipp" {
+		typename := obj.TypeName()
+
+		tag = pyIPPTagByName[typename]
+		if tag == goipp.TagZero {
+			switch typename {
+			case "OP":
+				tag = goipp.TagEnum
+			}
+		}
+
+		switch tag.Type() {
+		case goipp.TypeVoid:
+			val = goipp.Void{}
+		case goipp.TypeInteger:
+			var data int64
+			data, err = obj.Int()
+			val = goipp.Integer(data)
+		case goipp.TypeBoolean:
+			var data bool
+			data, err = obj.Bool()
+			val = goipp.Boolean(data)
+		case goipp.TypeString, goipp.TypeBinary:
+			var data string
+			data, err = obj.Str()
+			val = goipp.String(data)
+		case goipp.TypeDateTime:
+			var data string
+			data, err = obj.Str()
+			if err != nil {
+				return
+			}
+
+			var t time.Time
+			t, err = time.Parse(time.RFC3339, data)
+			if err != nil {
+				return
+			}
+
+			val = goipp.Time{Time: t}
+		case goipp.TypeResolution:
+			val, err = ippImportIPPResolution(obj)
+		case goipp.TypeRange:
+			val, err = ippImportIPPRange(obj)
+		case goipp.TypeTextWithLang:
+			val, err = ippImportIPPTextWithLang(obj, tag)
+		default:
+			err = fmt.Errorf("ipp.%s: unknown type", typename)
+		}
+
+		return
+	}
+
+	if obj.IsDict() {
+		var attrs goipp.Attributes
+		attrs, err = legacyIPPImportAttrs(obj)
+		val = goipp.Collection(attrs)
+		tag = goipp.TagBeginCollection
+		return
+	}
+
+	err = fmt.Errorf("%s cannot be converted to IPP value", obj.TypeName())
+	return
 }

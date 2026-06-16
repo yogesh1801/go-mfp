@@ -4,7 +4,9 @@
 # Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
 # See LICENSE for license terms and conditions
 #
-# Python initialization
+# Python initialization and helper classes
 
 from uuid import UUID
 from datetime import datetime
+
+__use_legacy_format = True

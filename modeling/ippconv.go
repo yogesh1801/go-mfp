@@ -19,6 +19,10 @@ import (
 
 // ippExport converts the [ipp.Object] into the [cpython.Object].
 func ippExport(py *cpython.Python, s ipp.Object) *cpython.Object {
+	if legacy := py.Get("__use_legacy_format"); legacy.Err() == nil {
+		return legacyIPPExport(py, s)
+	}
+
 	return ippExportAttrs(py, s.RawAttrs().All())
 }
 
@@ -145,6 +149,17 @@ func ippImportPrinterAppributes(obj *cpython.Object) (
 func ippImportIPPAttrs(obj *cpython.Object) (
 	attrs goipp.Attributes, err error) {
 
+	if obj.IsDict() {
+		return legacyIPPImportAttrs(obj)
+	}
+
+	return ippImportIPPAttrsInt(obj)
+}
+
+// ippImportIPPAttrsInt is the internal function behind ippImportIPPAttrs.
+func ippImportIPPAttrsInt(obj *cpython.Object) (
+	attrs goipp.Attributes, err error) {
+
 	// Retrieve dictionary keys
 	var keyobjs []*cpython.Object
 	keyobjs, err = obj.Keys()
@@ -181,7 +196,7 @@ func ippImportIPPAttrs(obj *cpython.Object) (
 	return
 }
 
-// ippImportIPPAttrs imports IPP values from the [cpython.Object].
+// ippImportIPPValues imports IPP values from the [cpython.Object].
 func ippImportIPPValues(obj *cpython.Object) (
 	goipp.Values, error) {
 
@@ -276,7 +291,7 @@ func ippImportIPPValue(obj *cpython.Object) (
 
 	if obj.IsDict() {
 		var attrs goipp.Attributes
-		attrs, err = ippImportIPPAttrs(obj)
+		attrs, err = ippImportIPPAttrsInt(obj)
 		val = goipp.Collection(attrs)
 		tag = goipp.TagBeginCollection
 		return
