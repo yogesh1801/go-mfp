@@ -23,7 +23,7 @@ import (
 // There are may be many interpreters within a single process.
 // Each has its own namespace and isolated from others.
 type Python struct {
-	closelock sync.Mutex    // Sync between Python.gate() and Python.Close()
+	closelock sync.RWMutex  // Sync between Python.gate() and Python.Close()
 	interp    pyThreadState // Python sub-interpreter (its main thread state)
 	objects   *objmap       // Objects owned by the interpreter
 	pyNone    pyObject      // Cached None pyObject
@@ -515,8 +515,8 @@ func (py *Python) eval(s, filename string, expr bool) *Object {
 // gate is the convenience wrapper for pyGateAcquire(py.interp)
 func (py *Python) gate() (pyGate, error) {
 	// Synchronize with py.Close()
-	py.closelock.Lock()
-	defer py.closelock.Unlock()
+	py.closelock.RLock()
+	defer py.closelock.RUnlock()
 
 	if py.interp == nil {
 		return pyGate{}, ErrClosed{}
