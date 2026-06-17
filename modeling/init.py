@@ -4,10 +4,7 @@
 # Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
 # See LICENSE for license terms and conditions
 #
-# Python initialization and helper classes
+# Python initialization
 
-# Import commonly used types
 from uuid import UUID
 from datetime import datetime
-
-#__use_legacy_format = True
