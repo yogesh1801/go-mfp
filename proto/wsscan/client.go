@@ -17,6 +17,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/url"
+	"os"
 
 	"github.com/OpenPrinting/go-mfp/transport"
 	"github.com/OpenPrinting/go-mfp/util/optional"
@@ -301,6 +302,8 @@ func (c *Client) sendSOAP(ctx context.Context, body Body) (Message, error) {
 	if err != nil {
 		return Message{}, err
 	}
+
+	os.Stdout.Write(rspData)
 
 	root, err := xmldoc.Decode(NsMap, bytes.NewReader(rspData))
 	if err != nil {
