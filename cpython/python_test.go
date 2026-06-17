@@ -11,10 +11,39 @@ package cpython
 import (
 	"errors"
 	"math"
+	"sync"
+	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/OpenPrinting/go-mfp/internal/assert"
 )
+
+// TestStressObjectAllocation attempts to trigger race between
+// Python.Close and Object.finalizer
+func TestStressObjectAllocation(t *testing.T) {
+	var done atomic.Bool
+	var wait sync.WaitGroup
+
+	wait.Add(1)
+	go func() {
+		for !done.Load() {
+			py, err := NewPython()
+			assert.NoError(err)
+
+			for i := 0; i < 10000; i++ {
+				py.NewObject(i)
+			}
+
+			py.Close()
+		}
+		wait.Done()
+	}()
+
+	time.Sleep(500 * time.Millisecond)
+	done.Store(true)
+	wait.Wait()
+}
 
 // TestPythonNone covers: None() → return py.objNone
 func TestPythonNone(t *testing.T) {
@@ -487,4 +516,3 @@ func TestPythonEvalGateError(t *testing.T) {
 		t.Error("eval(1/0): expected ZeroDivisionError, got nil")
 	}
 }
-

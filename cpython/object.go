@@ -69,13 +69,10 @@ func newErrorObject(py *Python, err error) *Object {
 // finalizer is called when Object is garbage-collected.
 // It released *C.PyObject, associated with the Object.
 func (obj *Object) finalizer() {
-	if !obj.py.closed() {
-		gate, err := obj.py.gate()
-		if err == nil {
-			obj.py.delObjID(gate, obj.oid)
-			gate.release()
-		}
-
+	gate, err := obj.py.gate()
+	if err == nil {
+		obj.py.delObjID(gate, obj.oid)
+		gate.release()
 	}
 }
 

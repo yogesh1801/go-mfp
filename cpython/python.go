@@ -14,6 +14,7 @@ import (
 	"reflect"
 	"runtime"
 	"strings"
+	"sync"
 
 	"github.com/OpenPrinting/go-mfp/internal/assert"
 )
@@ -22,16 +23,17 @@ import (
 // There are may be many interpreters within a single process.
 // Each has its own namespace and isolated from others.
 type Python struct {
-	interp   pyThreadState // Python sub-interpreter (its main thread state)
-	objects  *objmap       // Objects owned by the interpreter
-	pyNone   pyObject      // Cached None pyObject
-	pyTrue   pyObject      // Cached True pyObject
-	pyFalse  pyObject      // Cached False pyObject
-	objNone  *Object       // Cached None Object
-	objTrue  *Object       // Cached True Object
-	objFalse *Object       // Cached False Object
-	globals  *Object       // Global dictionary
-	builtins *Object       // __builtins__ dictionary
+	closelock sync.Mutex    // Sync between Python.gate() and Python.Close()
+	interp    pyThreadState // Python sub-interpreter (its main thread state)
+	objects   *objmap       // Objects owned by the interpreter
+	pyNone    pyObject      // Cached None pyObject
+	pyTrue    pyObject      // Cached True pyObject
+	pyFalse   pyObject      // Cached False pyObject
+	objNone   *Object       // Cached None Object
+	objTrue   *Object       // Cached True Object
+	objFalse  *Object       // Cached False Object
+	globals   *Object       // Global dictionary
+	builtins  *Object       // __builtins__ dictionary
 }
 
 // NewPython creates a new Python interpreter.
@@ -76,10 +78,23 @@ func NewPython() (py *Python, err error) {
 // Close closes the [Python] interpreter and releases all
 // resources it holds.
 func (py *Python) Close() {
-	gate, err := py.gate()
-	if err != nil {
+	// Synchronization between py.Close() and py.gate() is subtle.
+	//
+	// py.gate() cannot be used here because it would race with the
+	// check for py.interp == nil inside py.gate(). Instead, we
+	// atomically mark Python as closed (py.interp = nil) and
+	// acquire pyGate via pyGateAcquire(), partially duplicating
+	// py.gate() logic for this specific case.
+	py.closelock.Lock()
+	interp := py.interp
+	py.interp = nil
+	py.closelock.Unlock()
+
+	if interp == nil {
 		return
 	}
+
+	gate := pyGateAcquire(interp)
 
 	// On ARM64, Py_EndInterpreter hangs in wait_for_thread_shutdown()
 	// because threading._shutdown() blocks on a semaphore that is never
@@ -97,19 +112,14 @@ func (py *Python) Close() {
 		false,
 	)
 
+	// Destroy all objects
 	py.objects.purge(gate)
 
-	interp := py.interp
-	py.interp = nil
-
+	// Now safe to release the gate
 	gate.release()
 
+	// And finally delete the interpreter
 	pyInterpDelete(interp)
-}
-
-// closed reports if interpreter is closed.
-func (py *Python) closed() bool {
-	return py.interp == nil
 }
 
 // Get returns item from the Python global scope:
@@ -504,6 +514,10 @@ func (py *Python) eval(s, filename string, expr bool) *Object {
 
 // gate is the convenience wrapper for pyGateAcquire(py.interp)
 func (py *Python) gate() (pyGate, error) {
+	// Synchronize with py.Close()
+	py.closelock.Lock()
+	defer py.closelock.Unlock()
+
 	if py.interp == nil {
 		return pyGate{}, ErrClosed{}
 	}
