@@ -11,6 +11,7 @@ package cpython
 import (
 	"bytes"
 	"errors"
+	"os"
 	"os/exec"
 	"runtime"
 	"sync"
@@ -74,7 +75,12 @@ func pyLocateLibPython() (string, error) {
 	script += "lib=sysconfig.get_config_var('INSTSONAME');"
 	script += "print(os.path.join(dir,lib),end='');"
 
-	cmd := exec.Command("python3", "-c", script)
+	python := os.Getenv("MFP_PYTHON")
+	if python == "" {
+		python = "python3"
+	}
+
+	cmd := exec.Command(python, "-c", script)
 	out, err := cmd.Output()
 
 	if err != nil {
