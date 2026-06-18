@@ -29,7 +29,7 @@ static PyThreadState                            *py_main_thread;
 
 // py_enter_level counts py_enter nesting level when called
 // from the same thread;
-static __thread volatile int                     py_enter_level;
+static __thread int                             py_enter_level;
 
 // The table of the libpython3 symbols.
 //
@@ -474,16 +474,18 @@ void py_interp_close (PyThreadState *tstate) {
 // It must be called before any operations with the interpreter
 // are performed and must be paired with the py_leave.
 void py_enter (PyThreadState *tstate) {
-    if (atomic_fetch_add(&py_enter_level,1) == 0) {
+    py_enter_level ++;
+    if (py_enter_level == 1) {
         PyEval_RestoreThread_p(tstate);
     }
 }
 
 // py_leave detaches the calling thread from the Python interpreter.
 void py_leave (void) {
-    if (atomic_fetch_sub(&py_enter_level,1) == 1) {
+    if (py_enter_level == 1) {
         PyEval_SaveThread_p();
     }
+    py_enter_level --;
 }
 
 // py_interp_eval evaluates string as a Python statement or expression.
