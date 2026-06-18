@@ -81,9 +81,6 @@ func NewPython() (py *Python, err error) {
 // Close closes the [Python] interpreter and releases all
 // resources it holds.
 func (py *Python) Close() {
-	runtime.LockOSThread()
-	defer runtime.UnlockOSThread()
-
 	// Synchronization between py.Close() and py.gate() is subtle.
 	//
 	// py.gate() cannot be used here because it would race with the
