@@ -15,6 +15,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"sync/atomic"
 
 	"github.com/OpenPrinting/go-mfp/internal/assert"
 )
@@ -72,12 +73,17 @@ func NewPython() (py *Python, err error) {
 		assert.NoError(py.globals.Err())
 	}
 
+	pythonInstancesCount.Add(1)
+
 	return
 }
 
 // Close closes the [Python] interpreter and releases all
 // resources it holds.
 func (py *Python) Close() {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
 	// Synchronization between py.Close() and py.gate() is subtle.
 	//
 	// py.gate() cannot be used here because it would race with the
@@ -120,6 +126,9 @@ func (py *Python) Close() {
 
 	// And finally delete the interpreter
 	pyInterpDelete(interp)
+
+	// Update statistics counter
+	pythonInstancesCount.Add(-1)
 }
 
 // Get returns item from the Python global scope:
@@ -548,4 +557,15 @@ func (py *Python) lookupObjID(gate pyGate, oid objid) (pyObject, error) {
 // This is the testing interface
 func (py *Python) countObjID() int {
 	return py.objects.count()
+}
+
+// pythonInstancesCount contains count of active Python instances.
+var pythonInstancesCount atomic.Int32
+
+// PythonInstancesCount returns count of active [Python] instances.
+// [NewPython] increments this counter and [Python.Close] decrements it.
+//
+// This is the testing interface.
+func PythonInstancesCount() int {
+	return int(pythonInstancesCount.Load())
 }
